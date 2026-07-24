@@ -42,6 +42,9 @@ class DocumentStructurePage(Gtk.Box):
         # 下一/上一段时多个 timeout 同时写 adjustment 造成抖动；widget 销毁
         # 时（duration 0.2s 内）timeout 仍访问已释放的 scrolled_window。
         self._scroll_timeout_id = None
+        # 搜索过滤去抖 id：on_search_changed 原每次按键都对所有 section 的
+        # ListBox 全量 filter_rows（大文档数百行）。150ms 停顿后合并为一次。
+        self._filter_idle_id = None
 
         self.add_buttons()
 
@@ -93,6 +96,12 @@ class DocumentStructurePage(Gtk.Box):
             except (ValueError, RuntimeError):
                 pass
             self._scroll_timeout_id = None
+        if self._filter_idle_id is not None:
+            try:
+                GLib.source_remove(self._filter_idle_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._filter_idle_id = None
 
     def add_section(self, name, title, widget):
         group = Adw.PreferencesGroup()
@@ -310,7 +319,17 @@ class DocumentStructurePage(Gtk.Box):
         self.search_button.set_active(False)
 
     def on_search_changed(self, entry):
-        self.filter_sections(entry.get_text())
+        # 去抖：取消上一次待执行的过滤，150ms 停顿后合并为一次 filter_sections。
+        # 连续输入一个词的每个字符原本都触发全量 filter_rows，现合并为词末一次。
+        if self._filter_idle_id is not None:
+            GLib.source_remove(self._filter_idle_id)
+        self._filter_idle_id = GLib.timeout_add(150, self._do_filter_sections)
+        return True
+
+    def _do_filter_sections(self):
+        self._filter_idle_id = None
+        self.filter_sections(self.search_entry.get_text())
+        return False
 
     def filter_sections(self, query):
         any_visible = False

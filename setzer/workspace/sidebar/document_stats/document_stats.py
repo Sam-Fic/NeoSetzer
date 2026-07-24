@@ -41,6 +41,11 @@ class DocumentStats(object):
         self.values[None] = {'save_date': 0, 'counts': None}
         self.values_lock = thread.allocate_lock()
         self.texcount_missing = False
+        # 正在跑 texcount 的文件集合：update_data 每 1s 轮询，auto_build 每 2s
+        # 保存使 mtime 频繁变化，原实现不跟踪 inflight，可能在前一个 texcount
+        # 尚未返回时又起一个新的（texcount 是 Perl 脚本，启动数百 ms，并发多个
+        # 拖慢系统）。已在跑的文件跳过，run_query 结束时（含异常）discard。
+        self._inflight = set()
 
         # 签名缓存：update_view 每 200ms（现 2000ms）被定时器调用一次，
         # 若值未变则跳过 set_markup（Pango 重新解析+重排相当昂贵）。
@@ -53,8 +58,26 @@ class DocumentStats(object):
 
         # update_view 放宽到 2000ms 仅作兜底；run_query 完成后会通过
         # GLib.idle_add 立即触发一次刷新，所以显示延迟几乎为零。
-        GObject.timeout_add(2000, self.update_view)
-        GObject.timeout_add(1000, self.update_data)
+        # 定时器 id 跟踪：Document Stats section 不可见时（用户切到 Symbols
+        # 页）暂停，避免每秒 stat + 可能的 texcount spawn 浪费 CPU/能耗。
+        # set_active 由 Sidebar 在 Stack visible-child 变化时调用。
+        self._data_timeout_id = GObject.timeout_add(1000, self.update_data)
+        self._view_timeout_id = GObject.timeout_add(2000, self.update_view)
+
+    def set_active(self, active):
+        '''section 可见时启用定时器，不可见时移除。幂等。'''
+        if active:
+            if self._data_timeout_id is None:
+                self._data_timeout_id = GObject.timeout_add(1000, self.update_data)
+            if self._view_timeout_id is None:
+                self._view_timeout_id = GObject.timeout_add(2000, self.update_view)
+        else:
+            if self._data_timeout_id is not None:
+                GObject.source_remove(self._data_timeout_id)
+                self._data_timeout_id = None
+            if self._view_timeout_id is not None:
+                GObject.source_remove(self._view_timeout_id)
+                self._view_timeout_id = None
 
     def on_new_active_document(self, workspace, document):
         self.set_document()
@@ -99,40 +122,46 @@ class DocumentStats(object):
         return True
 
     def count_words(self, filename):
+        if filename in self._inflight:
+            return
+        self._inflight.add(filename)
         thread.start_new_thread(self.run_query, (['texcount', '-brief', filename], filename))
         return False
 
     #@timer
     def run_query(self, arguments, filename):
         try:
-            process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        except FileNotFoundError:
-            with self.values_lock:
-                self.texcount_missing = True
-                self.values[filename]['counts'] = None
-            GLib.idle_add(self.update_view)
-            return
-        process.wait()
+            try:
+                process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            except FileNotFoundError:
+                with self.values_lock:
+                    self.texcount_missing = True
+                    self.values[filename]['counts'] = None
+                GLib.idle_add(self.update_view)
+                return
+            process.wait()
 
-        # texcount 输出形如 "123+45+67 ..."（text+headers+outside 以 '+'
-        # 分隔）。但 texcount 缺失、文件不可读或版本输出格式变化时，stdout
-        # 可能是错误信息（无 '+'），split('+') 后不足 3 段，raw_result[1/2]
-        # 抛 IndexError 导致后台线程静默崩溃，update_view 永不被触发、视图
-        # 永久停滞在旧值。用 try/except 守卫：解析失败时置 counts=None，
-        # 视图回退到 '?' 显示。
-        try:
-            with self.values_lock:
-                raw_result = process.communicate()[0].decode('utf-8').split('+')
-                count_0 = raw_result[0].split('\n')[-1]
-                count_1 = raw_result[1]
-                count_2 = raw_result[2].split(' ')[0]
-                self.values[filename]['counts'] = [count_0, count_1, count_2]
-                self.texcount_missing = False
-        except (IndexError, UnicodeDecodeError):
-            with self.values_lock:
-                self.values[filename]['counts'] = None
-        # 后台线程拿到新值后立即触发主线程刷新，无需等 2000ms 兜底轮询。
-        GLib.idle_add(self.update_view)
+            # texcount 输出形如 "123+45+67 ..."（text+headers+outside 以 '+'
+            # 分隔）。但 texcount 缺失、文件不可读或版本输出格式变化时，stdout
+            # 可能是错误信息（无 '+'），split('+') 后不足 3 段，raw_result[1/2]
+            # 抛 IndexError 导致后台线程静默崩溃，update_view 永不被触发、视图
+            # 永久停滞在旧值。用 try/except 守卫：解析失败时置 counts=None，
+            # 视图回退到 '?' 显示。
+            try:
+                with self.values_lock:
+                    raw_result = process.communicate()[0].decode('utf-8').split('+')
+                    count_0 = raw_result[0].split('\n')[-1]
+                    count_1 = raw_result[1]
+                    count_2 = raw_result[2].split(' ')[0]
+                    self.values[filename]['counts'] = [count_0, count_1, count_2]
+                    self.texcount_missing = False
+            except (IndexError, UnicodeDecodeError):
+                with self.values_lock:
+                    self.values[filename]['counts'] = None
+            # 后台线程拿到新值后立即触发主线程刷新，无需等 2000ms 兜底轮询。
+            GLib.idle_add(self.update_view)
+        finally:
+            self._inflight.discard(filename)
 
     #@timer
     def update_view(self):

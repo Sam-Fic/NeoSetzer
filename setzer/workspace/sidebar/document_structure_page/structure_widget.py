@@ -66,6 +66,12 @@ class StructureWidget(Gtk.Box):
         # 0 个 row 变动——这是打字卡顿的主要消除点。
         # 签名中包含 id(document)，确保文档切换时即便两文档结构恰好相同也强制重建。
         self._last_signature = None
+        # 过滤缓存：filter_rows 原每次按键对每个 row 调 get_title().lower()
+        # （C 调用 + 新字符串分配）+ 无条件 set_visible（触发 invalidate_filter）。
+        # 大文档数百行 × 每次按键 = 显著开销。优化：同查询短路；标题小写化首次
+        # 计算后缓存于 row（标题构造后不变）；仅在可见性实际变化时 set_visible。
+        self._last_filter_query = None
+        self._last_filter_any_visible = False
 
     def on_row_activated(self, listbox, row):
         self.model.on_row_activated(row)
@@ -95,28 +101,48 @@ class StructureWidget(Gtk.Box):
 
     def clear_rows(self):
         self._last_signature = None
-        child = self.list_box.get_first_child()
-        while child is not None:
-            sibling = child.get_next_sibling()
-            self.list_box.remove(child)
-            child = sibling
+        # 行已全部移除，缓存的过滤状态失效：新行无 _filter_visible / _filter_*_lower
+        # 属性，下次 filter_rows 必须重新计算。置 None 使同查询短路失效。
+        self._last_filter_query = None
+        # Gtk.ListBox.remove_all（GTK 4.6+）内部批量释放，替代原手动
+        # get_first_child + remove 循环（n 次 remove 各 O(n) → O(n²)）。
+        self.list_box.remove_all()
 
     def append_row(self, row):
         self.list_box.append(row)
 
     def filter_rows(self, query):
         query = query.lower() if query else ''
-        child = self.list_box.get_first_child()
+        # 同查询短路：去抖合并后常以相同 query 重复调用（如仅滚动触发），且
+        # 行集未变时结果必然一致，直接返回上次结果，零 set_visible 调用。
+        if query == self._last_filter_query:
+            return self._last_filter_any_visible
+        self._last_filter_query = query
+
         any_visible = False
+        child = self.list_box.get_first_child()
         while child is not None:
             if isinstance(child, Adw.ActionRow):
-                title = (child.get_title() or '').lower()
-                subtitle = (child.get_subtitle() or '').lower()
-                match = not query or query in title or query in subtitle
-                child.set_visible(match)
+                # 标题/副标题在 make_row 后不变，首次计算小写化并缓存于 row，
+                # 避免每次按键对每行调 get_title()（C 调用）+ .lower()（新分配）。
+                title_lower = getattr(child, '_filter_title_lower', None)
+                if title_lower is None:
+                    title_lower = (child.get_title() or '').lower()
+                    child._filter_title_lower = title_lower
+                subtitle_lower = getattr(child, '_filter_subtitle_lower', None)
+                if subtitle_lower is None:
+                    subtitle_lower = (child.get_subtitle() or '').lower()
+                    child._filter_subtitle_lower = subtitle_lower
+                match = not query or query in title_lower or query in subtitle_lower
+                # 仅在可见性实际变化时 set_visible：ListBox 每次可见性变更都
+                # 触发 invalidate_filter + 布局重排，重复设置同值是纯开销。
+                if getattr(child, '_filter_visible', None) != match:
+                    child.set_visible(match)
+                    child._filter_visible = match
                 if match:
                     any_visible = True
             child = child.get_next_sibling()
+        self._last_filter_any_visible = any_visible
         return any_visible
 
     def make_row(self, icon_name, text, indent):

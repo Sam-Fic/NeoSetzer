@@ -45,6 +45,9 @@ class DocumentPresenter(object):
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         else:
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.NONE)
+        # 行距：每行下方额外像素间距。get_line_yrange().height 会自动包含
+        # 此值，gutter 行号间距随之同步，无需 gutter 侧额外处理。
+        self.view.source_view.set_pixels_below_lines(self.settings.get_value('preferences', 'line_spacing'))
 
         self.settings.connect('settings_changed', self.on_settings_changed)
 
@@ -63,5 +66,7 @@ class DocumentPresenter(object):
                 self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
             else:
                 self.view.source_view.set_wrap_mode(Gtk.WrapMode.NONE)
+        if (section, item) == ('preferences', 'line_spacing'):
+            self.view.source_view.set_pixels_below_lines(value)
 
 

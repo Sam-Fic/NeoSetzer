@@ -34,9 +34,17 @@ class PreferencesDialog(object):
     def __init__(self, main_window):
         self.main_window = main_window
         self.settings = ServiceLocator.get_settings()
+        # 持有视图，按需 present（与 BuildLogDialog 范式一致）。原每次 run() 都
+        # 重建 view + 5 个 page 的完整 Adw 控件树（样式匹配/a11y 注册开销大）
+        # 并重连所有信号、重新 spawn 解释器检测线程。Adw.PreferencesDialog
+        # (AdwDialog) 支持关闭后重复 present，故首次构造后复用，setup() 仅跑
+        # 一次。preferences 设置仅能通过本对话框修改，不存在外部并发修改，
+        # 无需在再次 present 前重新同步控件值。
+        self.view = None
 
     def run(self):
-        self.setup()
+        if self.view is None:
+            self.setup()
         self.view.present(self.main_window)
 
     def setup(self):

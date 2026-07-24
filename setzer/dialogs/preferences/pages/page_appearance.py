@@ -21,6 +21,8 @@ gi.require_version('Adw', '1')
 gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Adw
 from gi.repository import Pango
+import os
+import sys
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
@@ -83,6 +85,11 @@ class PageAppearanceColors(object):
             self.settings.get_value('preferences', 'line_numbers_vertical_offset'))
         self.view.line_numbers_offset_spin.connect('notify::value', self.on_line_numbers_offset_changed)
 
+        # line spacing
+        self.view.line_spacing_spin.set_value(
+            self.settings.get_value('preferences', 'line_spacing'))
+        self.view.line_spacing_spin.connect('notify::value', self.on_line_spacing_changed)
+
         # preview width fraction
         fraction = self.settings.get_value('window_state', 'preview_width_fraction')
         self.view.preview_width_scale.set_value(int(fraction * 100))
@@ -99,7 +106,28 @@ class PageAppearanceColors(object):
     def on_language_changed(self, combo, pspec=None):
         value = LANGUAGES[combo.get_selected()][1]
         self.settings.set_value('preferences', 'language', value)
-        # 语言选择已接入 gettext，重启应用后按此偏好加载界面语言。
+        self.settings.pickle()
+        self.show_restart_dialog()
+
+    def show_restart_dialog(self):
+        dialog = Adw.AlertDialog(
+            heading=_('Restart Required'),
+            body=_('The new language will take effect after the application is restarted.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('restart', _('Restart'))
+        dialog.set_response_appearance('restart', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response('restart')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self.on_restart_response)
+
+    def on_restart_response(self, dialog, result):
+        response_id = dialog.choose_finish(result)
+        if response_id == 'restart':
+            self.restart_application()
+
+    def restart_application(self):
+        self.settings.pickle()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
 
     @staticmethod
     def apply_theme(value):
@@ -124,6 +152,9 @@ class PageAppearanceColors(object):
 
     def on_line_numbers_offset_changed(self, spin, pspec=None):
         self.settings.set_value('preferences', 'line_numbers_vertical_offset', spin.get_value())
+
+    def on_line_spacing_changed(self, spin, pspec=None):
+        self.settings.set_value('preferences', 'line_spacing', int(spin.get_value()))
 
     # ---- preview width ----
     def on_preview_width_changed(self, scale):
@@ -157,6 +188,7 @@ class PageAppearanceColors(object):
             self.view.font_chooser_button.set_font_desc(
                 Pango.FontDescription.from_string(defaults['font_string']))
             self.view.line_numbers_offset_spin.set_value(defaults['line_numbers_vertical_offset'])
+            self.view.line_spacing_spin.set_value(defaults['line_spacing'])
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
             self.preferences.page_editor.on_reset_clicked(None)
@@ -224,6 +256,14 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
             _('Fine-tune line numbers vertical position in pixels. '
               'Adjust if line numbers appear slightly misaligned with text.'))
         group_font.add(self.line_numbers_offset_spin)
+
+        # 行距：每行下方额外添加的像素间距。0 = 紧凑（默认），增大后行间更宽松。
+        self.line_spacing_spin = Adw.SpinRow.new_with_range(0.0, 12.0, 1.0)
+        self.line_spacing_spin.set_digits(0)
+        self.line_spacing_spin.set_title(_('Line Spacing'))
+        self.line_spacing_spin.set_subtitle(
+            _('Extra vertical space between lines in pixels.'))
+        group_font.add(self.line_spacing_spin)
 
         # preview width
         group_preview = Adw.PreferencesGroup()

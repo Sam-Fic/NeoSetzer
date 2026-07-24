@@ -135,11 +135,19 @@ class PageBuildSystem(object):
         thread.start_new_thread(self._detect_interpreters, ())
 
     def _detect_interpreters(self):
-        '''后台线程：检测可用 LaTeX 解释器和 latexmk。'''
+        '''后台线程：检测可用 LaTeX 解释器和 latexmk。
+
+        只关心 returncode，从不读取 stdout。原用 PIPE 但不 communicate()：
+        若 --version 输出填满管道缓冲（约 64KB，tectonic 等会打印冗长版本
+        信息），子进程阻塞在写管道上，process.wait() 永久挂起——后台线程
+        泄漏且 UI 永远等不到检测结果。改用 DEVNULL 让内核直接丢弃输出，
+        既消除死锁风险又省去管道分配。配合 PreferencesDialog 的视图缓存
+        （init 只在首次打开执行一次），整个会话仅检测一次。
+        '''
         latex_interpreters = []
         for interpreter in ['xelatex', 'pdflatex', 'lualatex', 'tectonic']:
             try:
-                process = subprocess.Popen([interpreter, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen([interpreter, '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except FileNotFoundError:
                 pass
             else:
@@ -149,7 +157,7 @@ class PageBuildSystem(object):
 
         latexmk_available = False
         try:
-            process = subprocess.Popen(['latexmk', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['latexmk', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except FileNotFoundError:
             pass
         else:

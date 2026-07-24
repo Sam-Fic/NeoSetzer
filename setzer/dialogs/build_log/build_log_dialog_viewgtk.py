@@ -210,9 +210,6 @@ class BuildLogList(Gtk.ListBox):
         return text
 
     def clear_rows(self):
-        '''清空所有子行（Gtk.ListBox 无 remove_all，手动遍历移除）。'''
-        child = self.get_first_child()
-        while child is not None:
-            sibling = child.get_next_sibling()
-            self.remove(child)
-            child = sibling
+        '''清空所有子行。GTK 4.6+ 的 Gtk.ListBox.remove_all 内部批量释放，
+        替代原手动 get_first_child + remove 循环（n 次 remove 各 O(n) → O(n²)）。'''
+        self.remove_all()

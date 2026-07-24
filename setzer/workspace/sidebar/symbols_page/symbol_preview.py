@@ -35,61 +35,80 @@ def attach_symbol_hover_preview(button, symbol, folder=None,
     favorite_state_func(folder, command) -> bool：当前是否已收藏。
     favorite_toggle_func(folder, command)：切换收藏状态（由 SymbolsPage 实现，
     内部负责刷新 Favorites 列表）。二者均提供时，Popover 内显示收藏按钮。
+
+    Popover 懒创建：主列表约 10 个分类 × 每分类数十到上百符号 = 数百到上千
+    按钮，原实现为每个按钮立即构造完整 Popover + Image + Label (+ Button)，
+    绝大多数永不被打开却常驻内存并参与样式匹配/a11y 注册，拖慢启动。改为
+    首次 hover 时按需构造并缓存于 button._hover_popover，后续 hover 复用。
+    启动时数百个 Popover 的构造降为 0，运行时仅按需创建用户实际悬停的符号。
     '''
-    popover = Gtk.Popover()
-    popover.set_has_arrow(True)
-    popover.set_autohide(True)
+    def _build_popover():
+        popover = Gtk.Popover()
+        popover.set_has_arrow(True)
+        popover.set_autohide(True)
 
-    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-    box.set_spacing(6)
-    box.set_margin_top(10)
-    box.set_margin_bottom(10)
-    box.set_margin_start(10)
-    box.set_margin_end(10)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.set_spacing(6)
+        box.set_margin_top(10)
+        box.set_margin_bottom(10)
+        box.set_margin_start(10)
+        box.set_margin_end(10)
 
-    image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
-    image.set_pixel_size(PREVIEW_PIXEL_SIZE)
-    image.set_halign(Gtk.Align.CENTER)
-    box.append(image)
+        image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
+        image.set_pixel_size(PREVIEW_PIXEL_SIZE)
+        image.set_halign(Gtk.Align.CENTER)
+        box.append(image)
 
-    command_label = Gtk.Label(label=symbol[1])
-    command_label.set_selectable(True)
-    command_label.add_css_class('monospace')
-    box.append(command_label)
+        command_label = Gtk.Label(label=symbol[1])
+        command_label.set_selectable(True)
+        command_label.add_css_class('monospace')
+        box.append(command_label)
 
-    if symbol[2] is not None:
-        package_label = Gtk.Label(label=_('Package') + ': ' + symbol[2])
-        package_label.add_css_class('dim-label')
-        box.append(package_label)
+        if symbol[2] is not None:
+            package_label = Gtk.Label(label=_('Package') + ': ' + symbol[2])
+            package_label.add_css_class('dim-label')
+            box.append(package_label)
 
-    favorite_button = None
-    if folder is not None and favorite_state_func is not None and favorite_toggle_func is not None:
-        favorite_button = Gtk.Button()
-        favorite_button.add_css_class('flat')
-        command = symbol[1]
+        if folder is not None and favorite_state_func is not None and favorite_toggle_func is not None:
+            favorite_button = Gtk.Button()
+            favorite_button.add_css_class('flat')
+            command = symbol[1]
 
-        def refresh_favorite_label():
-            if favorite_state_func(folder, command):
-                favorite_button.set_label(_('★ Remove from Favorites'))
-            else:
-                favorite_button.set_label(_('☆ Add to Favorites'))
+            def refresh_favorite_label():
+                if favorite_state_func(folder, command):
+                    favorite_button.set_label(_('★ Remove from Favorites'))
+                else:
+                    favorite_button.set_label(_('☆ Add to Favorites'))
 
-        def on_favorite_clicked(btn):
-            favorite_toggle_func(folder, command)
-            refresh_favorite_label()
+            def on_favorite_clicked(btn):
+                favorite_toggle_func(folder, command)
+                refresh_favorite_label()
 
-        refresh_favorite_label()
-        favorite_button.connect('clicked', on_favorite_clicked)
-        box.append(favorite_button)
+            favorite_button.connect('clicked', on_favorite_clicked)
+            box.append(favorite_button)
+            # 暴露刷新函数：每次 hover 重新读取当前收藏状态（收藏可能在
+            # 别处被切换），而非沿用构造时的快照。
+            popover._refresh_favorite_label = refresh_favorite_label
 
-    popover.set_child(box)
+        popover.set_child(box)
+        return popover
 
     def on_enter(controller, x, y):
-        popover.set_parent(button)
+        popover = getattr(button, '_hover_popover', None)
+        if popover is None:
+            popover = _build_popover()
+            button._hover_popover = popover
+        refresh = getattr(popover, '_refresh_favorite_label', None)
+        if refresh is not None:
+            refresh()
+        if popover.get_parent() is None:
+            popover.set_parent(button)
         popover.popup()
 
     def on_leave(controller):
-        popover.popdown()
+        popover = getattr(button, '_hover_popover', None)
+        if popover is not None:
+            popover.popdown()
 
     motion = Gtk.EventControllerMotion()
     motion.connect('enter', on_enter)

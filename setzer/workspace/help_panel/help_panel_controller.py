@@ -18,6 +18,7 @@
 import gi
 gi.require_version('WebKit', '6.0')
 from gi.repository import WebKit
+from gi.repository import GLib
 
 import webbrowser
 import _thread as thread
@@ -30,6 +31,11 @@ class HelpPanelController(object):
     def __init__(self, help_panel, view):
         self.help_panel = help_panel
         self.view = view
+
+        # 搜索 idle 去抖 id：search_entry.changed 每次按键都触发，原实现直接调
+        # set_search_query 全量扫描索引（数千项）。连续输入一个词的每个字符都
+        # 扫一遍，大索引时明显卡顿。改为 150ms 停顿后才搜索，合并连续按键。
+        self._search_idle_id = None
 
         self.view.content.connect('decide-policy', self.on_policy_decision)
         self.view.content.connect('context-menu', self.on_context_menu)
@@ -75,9 +81,22 @@ class HelpPanelController(object):
             self.help_panel.workspace.presenter.focus_active_document()
 
     def on_search_entry_changed(self, entry):
-        self.help_panel.set_search_query(entry.get_text())
+        # 去抖：取消上一次待执行的搜索，重新计时。连续按键只会在停顿后触发一次
+        # 全量索引扫描 + 结果重建。
+        if self._search_idle_id is not None:
+            GLib.source_remove(self._search_idle_id)
+        text = entry.get_text()
+        self._search_idle_id = GLib.timeout_add(150, self._do_search, text)
+
+    def _do_search(self, text):
+        self._search_idle_id = None
+        self.help_panel.set_search_query(text)
+        return False
 
     def on_search_stopped(self, entry):
+        if self._search_idle_id is not None:
+            GLib.source_remove(self._search_idle_id)
+            self._search_idle_id = None
         self.view.search_button.set_active(False)
 
     def on_search_result_activated(self, box, row):

@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 
-import os.path, re, time, bibtexparser
+import os.path, re, bibtexparser
 import xml.etree.ElementTree as ET
 
 import setzer.helpers.path as path_helpers
@@ -160,14 +160,20 @@ class LaTeXDB():
         LaTeXDB.files = files
 
         for filename, file_dict in LaTeXDB.files.items():
-            if os.path.isfile(filename):
-                last_modified = os.path.getmtime(filename)
-                if file_dict['last_parse'] < last_modified:
-                    if filename.endswith('.tex'):
-                        LaTeXDB.parse_latex_file(filename)
-                    elif filename.endswith('.bib'):
-                        LaTeXDB.parse_bibtex_file(filename)
-                    LaTeXDB.files[filename]['last_parse'] = time.time()
+            # 单次 os.stat 替代原 isfile + getmtime 双 stat：FileNotFoundError 即
+            # 文件不存在，st_mtime 兼用。last_parse 改记 mtime 而非 time.time()，
+            # 消除「当前时间 vs 文件 mtime」的时序窗口——若文件在 stat 后立即被改，
+            # 原实现 time.time() > last_modified 会跳过下次解析导致补全过期。
+            try:
+                st = os.stat(filename)
+            except FileNotFoundError:
+                continue
+            if file_dict['last_parse'] < st.st_mtime:
+                if filename.endswith('.tex'):
+                    LaTeXDB.parse_latex_file(filename)
+                elif filename.endswith('.bib'):
+                    LaTeXDB.parse_bibtex_file(filename)
+                LaTeXDB.files[filename]['last_parse'] = st.st_mtime
 
     def parse_latex_file(pathname):
         with open(pathname, 'r') as f:

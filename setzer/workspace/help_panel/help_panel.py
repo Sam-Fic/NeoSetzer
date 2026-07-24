@@ -21,6 +21,8 @@ from gi.repository import WebKit, Gtk
 
 import os.path
 import pickle
+import html
+import re
 
 from setzer.helpers.observable import Observable
 import setzer.workspace.help_panel.help_panel_controller as help_panel_controller
@@ -42,13 +44,14 @@ class HelpPanel(Observable):
         self.current_uri = self.home_uri
 
         self.search_index = None
+        # 懒加载搜索索引：原实现在 workspace 构造（应用启动早期）同步
+        # open + pickle.load 读取 search_index.pickle。该索引仅用于帮助面板搜索，
+        # 若用户从不打开帮助面板（常见场景），这次 I/O + 反序列化（数千到上万项）
+        # 完全是浪费，却推后了主窗口可交互时间。改为记录路径，首次搜索时才加载。
+        self._search_index_path = os.path.join(ServiceLocator.get_resources_path(), 'help', 'search_index.pickle')
         self.search_results_blank = list()
         self.search_results = self.search_results_blank
         self.query = ''
-
-        index_location = os.path.join(ServiceLocator.get_resources_path(), 'help', 'search_index.pickle')
-        with open(index_location, 'rb') as filehandle:
-            self.search_index = pickle.load(filehandle)
 
         self.controller = help_panel_controller.HelpPanelController(self, self.view)
         self.presenter = help_panel_presenter.HelpPanelPresenter(self, self.view)
@@ -56,6 +59,12 @@ class HelpPanel(Observable):
         self.add_change_code('search_query_changed')
 
         self.update_colors()
+
+    def _ensure_search_index(self):
+        if self.search_index is None:
+            with open(self._search_index_path, 'rb') as filehandle:
+                self.search_index = pickle.load(filehandle)
+        return self.search_index
 
     def set_uri(self, uri):
         self.current_uri = uri
@@ -72,31 +81,43 @@ class HelpPanel(Observable):
 
         self.add_change_code('uri_changed', self.current_uri)
 
+    def _highlight(self, text, words_lower):
+        # 单次扫描替代原实现的多遍 str.replace：
+        #   1. html.unescape 解码 HTML 实体（原 4 次 replace，且顺序脆弱）
+        #   2. 大小写不敏感正则一次性插入 \x00/\x01 高亮标记（原每词 3 次 replace）
+        #   3. html.escape 重新转义（原 6 次 replace）
+        #   4. 标记转 <b></b>
+        # \x00/\x01 是不可能出现在帮助文本中的控制字符，避免与原文冲突。
+        text = html.unescape(text)
+        if words_lower:
+            pattern = re.compile('|'.join(re.escape(w) for w in words_lower), re.IGNORECASE)
+            text = pattern.sub(lambda m: '\x00' + m.group(0) + '\x01', text)
+        text = html.escape(text)
+        text = text.replace('\x00', '<b>').replace('\x01', '</b>')
+        return text
+
     def set_search_query(self, query):
         self.query = query
         if query == '':
             self.search_results = self.search_results_blank
         else:
             words = query.split()
+            # 预小写化查询词：原实现循环内每次 item[0].find(word.lower()) 都重新
+            # .lower()，且 item[0] 未预小写导致大小写敏感漏匹配。此处统一小写比较。
+            words_lower = [w.lower() for w in words]
             self.search_results = list()
-            for item in self.search_index:
+            index = self._ensure_search_index()
+            for item in index:
                 if len(self.search_results) == 8: break
 
                 found = True
-                for word in words:
-                    if item[0].find(word.lower()) == -1:
+                for word_lower in words_lower:
+                    if item[0].find(word_lower) == -1:
                         found = False
                         break
                 if found:
-                    headline = item[2]
-                    headline = headline.replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('&amp;', '&')
-                    location = item[3]
-                    location = location.replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('&amp;', '&')
-                    for word in words:
-                        headline = headline.replace(word, '•' + word + '◆').replace(word.lower(), '•' + word.lower() + '◆').replace(word.title(), '•' + word.title() + '◆')
-                        location = location.replace(word, '•' + word + '◆').replace(word.lower(), '•' + word.lower() + '◆').replace(word.title(), '•' + word.title() + '◆')
-                    headline = headline.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;').replace('•', '<b>').replace('◆', '</b>')
-                    location = location.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;').replace('•', '<b>').replace('◆', '</b>')
+                    headline = self._highlight(item[2], words_lower)
+                    location = self._highlight(item[3], words_lower)
                     self.search_results.append([item[1], headline, location])
         self.add_change_code('search_query_changed')
 

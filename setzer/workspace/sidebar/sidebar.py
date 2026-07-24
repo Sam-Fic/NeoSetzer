@@ -42,7 +42,15 @@ class Sidebar(object):
 
         self.data_provider.connect('document_changed', self.on_document_changed)
 
+        # Document Stats 定时器随可见性启停：切到 Symbols 页时暂停 stats 的
+        # 1s/2s 定时器（stat + texcount spawn），回到 Structure 页时恢复。
+        self.view.connect('notify::visible-child', self.on_visible_child_changed)
+
         self.view.queue_draw()
+
+    def on_visible_child_changed(self, stack, pspec):
+        active = (stack.get_visible_child() is self.document_structure_page)
+        self.document_stats_section.set_active(active)
 
     def on_document_changed(self, data_provider, document):
         if document is None:

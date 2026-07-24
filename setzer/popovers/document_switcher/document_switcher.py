@@ -35,6 +35,14 @@ class DocumentSwitcher(Observable):
 
         self.root_selection_mode = False
 
+        # 切换器在 PopoverManager.init 中预创建，其信号处理器
+        # （on_modified_changed/on_name_change/on_is_root_changed 等）在文档属性
+        # 变化时即触发，绝大多数时候对话框是关闭的。原 update_items 每次都全量
+        # 重建 Adw.ActionRow + 重连信号——重建不可见的行纯属浪费。改为：对话框
+        # 未显示时仅标记 _dirty 并刷新便宜的按钮灵敏度，show() 时一次性重建。
+        self._is_visible = False
+        self._dirty = False
+
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
@@ -47,7 +55,20 @@ class DocumentSwitcher(Observable):
         self.update_unset_root_button()
 
     def show(self):
+        self._is_visible = True
+        # 若关闭期间有文档属性变化（_dirty），先重建行再展示，保证打开即最新。
+        if self._dirty:
+            self._dirty = False
+            self._rebuild_rows()
         self.view.dialog.present(self.main_window)
+
+    def _rebuild_rows(self):
+        '''全量重建行 + 重连信号。仅在对话框可见或即将展示时调用。'''
+        self.view.update_items(self.workspace.open_documents, self.root_selection_mode, self.workspace.get_active_document())
+        # (re)wire row + close-button handlers for the freshly built rows
+        for row in self.view.rows:
+            row.connect('activated', self.on_row_activated)
+            row.close_button.connect('clicked', self.on_close_button_clicked)
 
     def on_new_document(self, workspace, document):
         document.connect('filename_change', self.on_name_change)
@@ -124,20 +145,30 @@ class DocumentSwitcher(Observable):
 
         if parameters['previously_active_document'] != None:
             self.workspace.set_active_document(parameters['previously_active_document'])
+            # close() 已触发 on_dialog_closed 把 _is_visible 置 False；重新展示前
+            # 恢复标志并按 dirty 重建（关闭期间 remove_document 等已标记 dirty）。
+            self._is_visible = True
+            if self._dirty:
+                self._dirty = False
+                self._rebuild_rows()
             self.view.dialog.present(self.main_window)
 
     def on_dialog_closed(self, dialog=None):
+        self._is_visible = False
         active_document = self.workspace.get_active_document()
         if active_document != None:
             active_document.view.source_view.grab_focus()
         self.activate_normal_mode()
 
     def update_items(self):
-        self.view.update_items(self.workspace.open_documents, self.root_selection_mode, self.workspace.get_active_document())
-        # (re)wire row + close-button handlers for the freshly built rows
-        for row in self.view.rows:
-            row.connect('activated', self.on_row_activated)
-            row.close_button.connect('clicked', self.on_close_button_clicked)
+        # 对话框未显示时跳过昂贵的行重建，仅标记 dirty 等下次 show() 重建，
+        # 并刷新便宜的「Set as Root」按钮灵敏度（该按钮在 headerbar 常驻）。
+        if not self._is_visible:
+            self._dirty = True
+            self.activate_set_root_document_button()
+            return
+        self._dirty = False
+        self._rebuild_rows()
         self.activate_set_root_document_button()
 
     def iter_rows(self):

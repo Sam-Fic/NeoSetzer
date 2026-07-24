@@ -51,6 +51,14 @@ class StructureSection(object):
         self.nodes_in_line = list()
         self._row_map = dict()
         self._current_highlight_row = None
+        # 高亮短路缓存：记录上次高亮的节节点及其行区间。cursor_position_changed
+        # 在每次光标移动时触发，绝大多数按键光标仍在同一节内，target_node 不变。
+        # 原实现每次都线性扫描全部 nodes_in_line 并 remove/add css class。改为：
+        # 若新行号仍落在 [last_line, next_line) 区间内，直接跳过。
+        self._last_highlight_doc = None
+        self._last_highlight_node = None
+        self._last_highlight_line = None
+        self._next_highlight_line = None
 
     def on_row_activated(self, row):
         node = row.item_data
@@ -83,7 +91,15 @@ class StructureSection(object):
         self.highlight_current_section(line_number, document)
 
     def highlight_current_section(self, line_number, document):
+        # 同节内移动短路：光标仍在上次高亮节的行区间内时 target_node 不变，
+        # 跳过线性扫描与 css class 操作。
+        if (self._last_highlight_doc is document and
+                self._last_highlight_node is not None and
+                self._last_highlight_line <= line_number < self._next_highlight_line):
+            return
+
         target_node = None
+        next_line = float('inf')
         for node in self.nodes_in_line:
             node_doc = node['item'][0]
             node_line = node['item'][1]
@@ -92,6 +108,7 @@ class StructureSection(object):
             elif node_doc is not None and node_doc is not document:
                 continue
             elif node_doc is document and node_line > line_number:
+                next_line = node_line
                 break
 
         if self._current_highlight_row is not None:
@@ -103,6 +120,15 @@ class StructureSection(object):
             if row is not None:
                 row.add_css_class('accent')
                 self._current_highlight_row = row
+            self._last_highlight_doc = document
+            self._last_highlight_node = target_node
+            self._last_highlight_line = target_node['item'][1]
+            self._next_highlight_line = next_line
+        else:
+            self._last_highlight_doc = document
+            self._last_highlight_node = None
+            self._last_highlight_line = None
+            self._next_highlight_line = None
 
     #@timer
     def update_items(self, *params):
@@ -177,6 +203,11 @@ class StructureSection(object):
         self.nodes = nodes
         self._row_map.clear()
         self._current_highlight_row = None
+        # 节点已重建，旧的 _last_highlight_node 引用失效，重置缓存强制下次全量扫描。
+        self._last_highlight_doc = None
+        self._last_highlight_node = None
+        self._last_highlight_line = None
+        self._next_highlight_line = None
         self.view.populate()
         if self.data_provider.document is not None:
             self.on_cursor_position_changed(self.data_provider, self.data_provider.document)

@@ -43,6 +43,12 @@ class ServiceLocator():
     regexes = dict()
     source_language_manager = None
     source_style_scheme_manager = None
+    # style_scheme 缓存：get_style_scheme 在每个文档创建时被调用设置 source_buffer
+    # 配色。原实现每次都 Adw.StyleManager.get_default().get_dark() + get_scheme(name)
+    # 两次 C 调用。深浅色仅在主题切换时变化，缓存命中时省去查找；notify::dark
+    # 触发时清空缓存。首次构建时连接失效信号（仅连一次）。
+    _style_scheme = None
+    _style_scheme_handler_connected = False
 
     def set_main_window(main_window):
         ServiceLocator.main_window = main_window
@@ -126,11 +132,23 @@ class ServiceLocator():
 
     def get_style_scheme():
         # 编辑器配色跟随应用深浅色（Preferences 中不再提供独立选择）
-        try:
-            dark = Adw.StyleManager.get_default().get_dark()
-        except Exception:
-            dark = False
-        name = 'default-dark' if dark else 'default'
-        return ServiceLocator.get_source_style_scheme_manager().get_scheme(name)
+        if ServiceLocator._style_scheme is None:
+            try:
+                dark = Adw.StyleManager.get_default().get_dark()
+            except Exception:
+                dark = False
+            name = 'default-dark' if dark else 'default'
+            ServiceLocator._style_scheme = ServiceLocator.get_source_style_scheme_manager().get_scheme(name)
+            # 首次构建时连接 notify::dark 失效缓存（仅连一次）。
+            if not ServiceLocator._style_scheme_handler_connected:
+                try:
+                    Adw.StyleManager.get_default().connect('notify::dark', ServiceLocator._invalidate_style_scheme)
+                except Exception:
+                    pass
+                ServiceLocator._style_scheme_handler_connected = True
+        return ServiceLocator._style_scheme
+
+    def _invalidate_style_scheme(*args):
+        ServiceLocator._style_scheme = None
 
 

@@ -15,6 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+# pycairo 必须在 import gi 之前导入。PyGObject 的 cairo foreign struct
+# converter（cairo.Context 跨 Python/C 边界编组）依赖 pycairo 的 C API 在
+# gi 初始化时可用；若 gi 先导入，pycairo 尚未加载，cairo converter 注册会被
+# 跳过，运行时 draw_func / page.render 偶发 "Couldn't find foreign struct
+# converter for 'cairo.Context'" 导致预览空白。提前 import cairo 让 PyGObject
+# 走 pycairo 直连的 fallback 编组路径，避免偶发失败。
+import cairo
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -105,10 +112,10 @@ class MainApplicationController(Adw.Application):
 
         # get settings
         self.settings = ServiceLocator.get_settings()
-        # 应用主题模式（system/light/dark），默认跟随系统
-        # 清除 gtk-application-prefer-dark-theme 旧属性：libadwaita 下该属性已
-        # 废弃，残留会触发 Adwaita-WARNING，深浅色统一由 Adw.StyleManager 控制。
-        Gtk.Settings.get_default().set_property('gtk-application-prefer-dark-theme', False)
+        # 应用主题模式（system/light/dark），默认跟随系统。
+        # 注意：不要用 Gtk.Settings 的 gtk-application-prefer-dark-theme
+        # 旧属性（libadwaita 已废弃，显式设置反而触发 Adwaita-WARNING），
+        # 深浅色统一由 Adw.StyleManager.color-scheme 控制（如下）。
         theme_mode = self.settings.get_value('preferences', 'app_theme_mode')
         if theme_mode == 'light':
             Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
@@ -152,6 +159,12 @@ class MainApplicationController(Adw.Application):
             self.main_window.unmaximize()
         self.main_window.set_default_size(self.settings.get_value('window_state', 'width'), 
                                           self.settings.get_value('window_state', 'height'))
+        # 恢复上次关闭时的窗口位置（X11 下有效；Wayland 由合成器决定）。
+        # x/y 默认 -1 表示从未持久化，此时用窗口管理器默认位置。
+        pos_x = self.settings.get_value('window_state', 'x')
+        pos_y = self.settings.get_value('window_state', 'y')
+        if pos_x >= 0 and pos_y >= 0:
+            self.main_window.move(pos_x, pos_y)
         self.main_window.present()
 
         self.main_window.connect('close-request', self.on_window_close)
@@ -159,6 +172,7 @@ class MainApplicationController(Adw.Application):
         # init controller
         self.workspace.init_workspace_controller()
         self.shortcuts = shortcuts.Shortcuts()
+        ServiceLocator.set_shortcuts(self.shortcuts)
         self.workspace.actions.actions['quit'].connect('activate', self.on_quit_action)
 
     def save_window_state(self):
@@ -168,8 +182,18 @@ class MainApplicationController(Adw.Application):
         self.settings.set_value('window_state', 'is_maximized', main_window.get_property('maximized'))
         self.settings.set_value('window_state', 'show_help', self.workspace.show_help)
         self.settings.set_value('window_state', 'show_preview', self.workspace.show_preview)
-        self.settings.set_value('window_state', 'preview_paned_position', main_window.preview_paned.get_position())
         self.settings.set_value('window_state', 'show_build_log', self.workspace.show_build_log)
+        # 窗口位置：preview/sidebar 的宽度 fraction 已由 presenter 的
+        # notify::sidebar-width-fraction 回调持续写入 settings，此处无需再存。
+        # 保存左上角坐标。X11 下 GdkSurface 有 get_position()；Wayland 下
+        # GdkWaylandToplevel 没有该方法（客户端无法获取/设置位置），直接
+        # 调用会抛 AttributeError。用 getattr 探测，缺失则跳过位置保存
+        # （属环境限制，下次启动用窗口管理器默认位置）。
+        surface = main_window.get_surface()
+        if surface is not None and hasattr(surface, 'get_position'):
+            x, y = surface.get_position()
+            self.settings.set_value('window_state', 'x', x)
+            self.settings.set_value('window_state', 'y', y)
         self.settings.set_value('window_state', 'show_symbols', self.workspace.show_symbols)
         self.settings.set_value('window_state', 'show_document_structure', self.workspace.show_document_structure)
         self.settings.set_value('window_state', 'sidebar_width_fraction', main_window.sidebar_split.get_sidebar_width_fraction())

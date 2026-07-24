@@ -31,6 +31,11 @@ class ColorManager():
     # 注意：缓存命中时返回副本——部分调用者会修改 .alpha（document.py、
     # preview_presenter.py），不能让缓存对象被污染。
     _color_cache = {}
+    # 颜色字符串缓存：name -> '#rrggbb' / '#rrggbbaa'。get_ui_color_string 在
+    # help_panel.update_colors 等处调用，原实现每次 get_ui_color + 3×_to_byte +
+    # format 重新格式化。颜色仅在主题切换时变化，与 _color_cache 同生命周期失效。
+    _color_string_cache = {}
+    _color_string_alpha_cache = {}
 
     # 自定义颜色名 -> 内置 Libadwaita/GTK 调色板同名回退（语义相近）
     fallback_colors = {
@@ -60,11 +65,15 @@ class ColorManager():
     def init(main_window):
         ColorManager.main_window = main_window
         ColorManager._color_cache = {}
+        ColorManager._color_string_cache = {}
+        ColorManager._color_string_alpha_cache = {}
         # 主题切换（明↔暗）时清空缓存，下次 get_ui_color 重新查找
         Adw.StyleManager.get_default().connect('notify::dark', ColorManager.on_theme_changed)
 
     def on_theme_changed(style_manager, pspec):
         ColorManager._color_cache = {}
+        ColorManager._color_string_cache = {}
+        ColorManager._color_string_alpha_cache = {}
 
     def get_ui_color(name):
         cached = ColorManager._color_cache.get(name)
@@ -99,18 +108,28 @@ class ColorManager():
         return max(0, min(255, int(round(value * 255))))
 
     def get_ui_color_string(name):
+        s = ColorManager._color_string_cache.get(name)
+        if s is not None:
+            return s
         color_rgba = ColorManager.get_ui_color(name)
-        return '#{:02x}{:02x}{:02x}'.format(
+        s = '#{:02x}{:02x}{:02x}'.format(
             ColorManager._to_byte(color_rgba.red),
             ColorManager._to_byte(color_rgba.green),
             ColorManager._to_byte(color_rgba.blue))
+        ColorManager._color_string_cache[name] = s
+        return s
 
     def get_ui_color_string_with_alpha(name):
+        s = ColorManager._color_string_alpha_cache.get(name)
+        if s is not None:
+            return s
         color_rgba = ColorManager.get_ui_color(name)
-        return '#{:02x}{:02x}{:02x}{:02x}'.format(
+        s = '#{:02x}{:02x}{:02x}{:02x}'.format(
             ColorManager._to_byte(color_rgba.red),
             ColorManager._to_byte(color_rgba.green),
             ColorManager._to_byte(color_rgba.blue),
             ColorManager._to_byte(color_rgba.alpha))
+        ColorManager._color_string_alpha_cache[name] = s
+        return s
 
 

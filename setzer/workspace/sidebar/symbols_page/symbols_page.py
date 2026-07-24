@@ -38,6 +38,17 @@ class SymbolsPage(object):
 
         self.scroll_to = None
         self._current_section_title = ''  # 缓存 section title，用于变化检测
+        # 符号属性缓存：category -> {command: attrib_dict}。add_recent/favorite_symbol_to_flowbox
+        # 原每次插入符号都 ET.parse 整个分类 XML（数十到上百节点）。运行时不可变，
+        # 首次访问某分类时一次性解析建字典，后续 O(1) 查找。启动时 recent 列表
+        # 20 项若同属一分类，由 20 次解析降为 1 次。
+        self._symbol_attrib_cache = {}
+        # 收藏命令集合：is_favorite_symbol / toggle_favorite_symbol 原对 self.favorites
+        # 列表做 any() 线性扫描，悬停预览每次 popup 都调一次。维护并行 set 做 O(1) 查重。
+        self._favorites_commands = set()
+        # 搜索 idle 去抖 id：on_search_changed 原每次按键全量过滤，连续输入一个词
+        # 的每个字符都触发 10 个 FlowBox 的可见性切换。150ms 停顿后合并为一次。
+        self._search_idle_id = None
         # 跟踪 section 导航滚动动画的 timeout id。原实现不跟踪，连续点击
         # 下一/上一段时多个 timeout 同时写 adjustment 造成抖动；widget 销毁
         # 时（duration 0.2s 内）timeout 仍访问已释放的 scrolled_window。
@@ -50,6 +61,7 @@ class SymbolsPage(object):
 
         self.favorites = ServiceLocator.get_settings().get_value('app_favorite_symbols', 'symbols')
         self.favorites_details = list()
+        self._favorites_commands = {item[1] for item in self.favorites}
         self.update_favorites_widget()
         # 无收藏时隐藏整个 Favorites 分类。
         self.view.favorites_group.set_visible(len(self.favorites) > 0)
@@ -88,6 +100,23 @@ class SymbolsPage(object):
         for item in [item for item in self.recent]:
             self.add_recent_symbol_to_flowbox(item)
 
+    def _get_symbol_attrib(self, category, command):
+        '''从分类 XML 取某 command 的属性字典，带缓存。
+
+        原实现每次插入符号都 ET.parse 整个分类 XML 并 findall 遍历。
+        分类 XML 运行时不可变，首次访问建 command→attrib 字典，后续 O(1)。
+        '''
+        cache = self._symbol_attrib_cache.get(category)
+        if cache is None:
+            try:
+                xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', category + '.xml'))
+            except (FileNotFoundError, ET.ParseError):
+                cache = {}
+            else:
+                cache = {sym.attrib['command']: sym.attrib for sym in xml_tree.getroot().findall('./symbol')}
+            self._symbol_attrib_cache[category] = cache
+        return cache.get(command)
+
     def on_recent_activated(self, flowbox, child):
         if self.workspace.active_document is None:
             return
@@ -115,13 +144,10 @@ class SymbolsPage(object):
 
     def add_recent_symbol_to_flowbox(self, item):
         (category, command) = item
-        xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', category + '.xml'))
-        xml_root = xml_tree.getroot()
-        elements = xml_root.findall('./symbol[@command=\'' + command + '\']')
-        if len(elements) == 0:
+        attrib = self._get_symbol_attrib(category, command)
+        if attrib is None:
             self.remove_recent_symbol(item)
         else:
-            attrib = elements[0].attrib
             symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
             size = max(symbol[3], symbol[4])
 
@@ -161,10 +187,10 @@ class SymbolsPage(object):
             self.add_favorite_symbol_to_flowbox(item)
 
     def add_favorite_symbol(self, new_item):
-        # 去重：已收藏则忽略（保持首次收藏顺序）。
-        for item in self.favorites:
-            if item[1] == new_item[1]:
-                return
+        # 去重：已收藏则忽略（保持首次收藏顺序）。O(1) set 查重替代线性扫描。
+        if new_item[1] in self._favorites_commands:
+            return
+        self._favorites_commands.add(new_item[1])
         self.favorites.append(new_item)
         self.add_favorite_symbol_to_flowbox(new_item)
         self.view.favorites_group.set_visible(True)
@@ -173,6 +199,7 @@ class SymbolsPage(object):
     def remove_favorite_symbol(self, item):
         if item in self.favorites:
             self.favorites.remove(item)
+        self._favorites_commands.discard(item[1])
         for symbol in [symbol for symbol in self.favorites_details]:
             if item[1] == symbol[1]:
                 self.view.symbols_view_favorites.remove(symbol[5])
@@ -183,26 +210,23 @@ class SymbolsPage(object):
 
     def toggle_favorite_symbol(self, folder, command):
         item = (folder, command)
-        if any(i[1] == command for i in self.favorites):
+        if command in self._favorites_commands:
             self.remove_favorite_symbol(item)
         else:
             self.add_favorite_symbol(item)
 
     def is_favorite_symbol(self, folder, command):
-        return any(i[1] == command for i in self.favorites)
+        return command in self._favorites_commands
 
     def save_favorites(self):
         ServiceLocator.get_settings().set_value('app_favorite_symbols', 'symbols', list(self.favorites))
 
     def add_favorite_symbol_to_flowbox(self, item):
         (category, command) = item
-        xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', category + '.xml'))
-        xml_root = xml_tree.getroot()
-        elements = xml_root.findall('./symbol[@command=\'' + command + '\']')
-        if len(elements) == 0:
+        attrib = self._get_symbol_attrib(category, command)
+        if attrib is None:
             self.remove_favorite_symbol(item)
             return
-        attrib = elements[0].attrib
         symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
         size = max(symbol[3], symbol[4])
 
@@ -350,7 +374,16 @@ class SymbolsPage(object):
         self.view.search_button.set_active(False)
 
     def on_search_changed(self, entry):
+        # 去抖：取消上一次待执行的过滤，150ms 停顿后合并为一次 update_symbols。
+        if self._search_idle_id is not None:
+            GLib.source_remove(self._search_idle_id)
+        self._search_idle_id = GLib.timeout_add(150, self._do_update_symbols)
+        return True
+
+    def _do_update_symbols(self):
+        self._search_idle_id = None
         self.update_symbols()
+        return False
 
     def update_symbols(self):
         any_symbols_found = False
@@ -362,8 +395,6 @@ class SymbolsPage(object):
         # 错位把 Favorites/Recent 的可见性误判为主分类，且漏掉最后一个主分类。
         offset = len(self.view.labels) - len(self.view.symbols_views)
         for i, symbols_view in enumerate(self.view.symbols_views):
-            for symbol in symbols_view.visible_symbols:
-                symbols_view.remove(symbol[5])
             symbols_view.visible_symbols = []
 
             for symbol in symbols_view.symbols:
@@ -372,12 +403,16 @@ class SymbolsPage(object):
                 for word in search_words:
                     # 同时按图标名（symbol[0]，如 'alpha'）与 LaTeX 命令
                     #（symbol[1]，如 '\alpha'）匹配，输入 'alpha' 或 '\alpha'
-                    # 均可命中。
+                    # 均可命中。任一词不命中即整体不命中，break 短路。
                     if symbol[0].find(word) == -1 and symbol[1].find(word) == -1:
                         symbol_found = False
+                        break
+                # 用 set_visible 替代原 remove + insert：所有 child 在 init 时
+                # 已插入 FlowBox，过滤时仅切换可见性，避免每次搜索数百次
+                # remove/insert 触发布局重排。FlowBox 跳过不可见 child。
+                child.set_visible(symbol_found)
                 if symbol_found:
                     symbols_view.visible_symbols.append(symbol)
-                    symbols_view.insert(child, -1)
 
             symbols_found = (len(symbols_view.visible_symbols) > 0)
             any_symbols_found |= symbols_found

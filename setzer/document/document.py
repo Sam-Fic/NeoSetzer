@@ -509,12 +509,25 @@ class Document(Observable):
         self.source_buffer.create_tag('highlight-' + str(self.highlight_tag_count), background_rgba=color, background_full_height=True)
         tag = self.source_buffer.get_tag_table().lookup('highlight-' + str(self.highlight_tag_count))
         self.source_buffer.apply_tag(tag, start_iter, end_iter)
-        # 仅在无运行中的淡出 timeout 时启动新的。highlight_tags 为空意味着
-        # 上一轮 timeout 已自终止；此时 _highlight_timeout_id 也应已清空，
-        # 双重判断防止异常状态下重复挂 timeout。
-        if not self.highlight_tags and self._highlight_timeout_id is None:
-            self._highlight_timeout_id = GObject.timeout_add(15, self.remove_or_color_highlight_tags)
+        # 延迟首次淡出 tick：tag 创建后 1.5s 内无需任何处理（淡出在 1.5s 后才开始）。
+        # 原实现立即启动 15ms timeout，1.5s 等待期内每 15ms 空转遍历所有 tag 检查
+        # time_factor > 1.5（约 100 次无谓 tick + 每次调 time.time()）。改为 1.5s 后
+        # 才启动 33ms（~30fps）淡出循环：消除等待期空转，且 33ms 对 0.25s 淡出
+        # 足够平滑（约 7-8 帧），相比 15ms（~67Hz，高于 60fps 刷新率）减半 tick。
+        # _highlight_timeout_id 先持有 1500ms 一次性 id，_start_highlight_fade 触发后
+        # 切换为 33ms 循环 id；shutdown 据此 id 取消（两种 id 都能 remove）。
+        if self._highlight_timeout_id is None:
+            self._highlight_timeout_id = GObject.timeout_add(1500, self._start_highlight_fade)
         self.highlight_tags[self.highlight_tag_count] = {'tag': tag, 'time': time.time()}
+
+    def _start_highlight_fade(self):
+        # 1.5s 等待结束：切换为 33ms 淡出循环。返回 False 让本一次性 source 移除。
+        # 若此期间所有 tag 已被外部移除（极端情况），直接清空 id 不启动循环。
+        if self.highlight_tags:
+            self._highlight_timeout_id = GObject.timeout_add(33, self.remove_or_color_highlight_tags)
+        else:
+            self._highlight_timeout_id = None
+        return False
 
     def remove_or_color_highlight_tags(self):
         # start/end iter 对所有 tag 相同，提到循环外避免每个过期 tag 各调一次
@@ -553,9 +566,24 @@ class Document(Observable):
     def scroll_cursor_onscreen(self, margin_lines=5):
         height = self.view.scrolled_window.get_allocated_height()
         if height > 0:
-            # margin_lines == 0 时 margin 恒为 0，跳过 get_line_height（每次按键
-            # 经 on_cursor_position_change 调用此路径，get_line_height 虽只测首行
-            # 但属可消除的无谓 C 调用）。margin_lines > 0 的低频调用保留原逻辑。
+            # 可见性短路：on_cursor_position_change 每次光标移动都调本方法
+            # （margin_lines=0），绝大多数按键光标本就可见。原实现每次都
+            # set_kinetic_scrolling(False)+scroll_to_mark+set_kinetic_scrolling(True)，
+            # 是无谓的属性抖动 + C 调用。先判断光标是否已在可视区域（含 margin）
+            # 内，可见则直接返回，不触发 kinetic toggle。
+            visible_rect = self.source_view.get_visible_rect()
+            cursor_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+            cursor_loc = self.source_view.get_iter_location(cursor_iter)
+            if margin_lines > 0:
+                line_height = FontManager.get_line_height(self.source_view)
+                margin_pixels = margin_lines * line_height
+            else:
+                margin_pixels = 0
+            if (visible_rect.height > 0 and
+                    cursor_loc.y >= visible_rect.y + margin_pixels and
+                    cursor_loc.y + cursor_loc.height <= visible_rect.y + visible_rect.height - margin_pixels):
+                return
+
             if margin_lines > 0:
                 margin = margin_lines / (height / FontManager.get_line_height(self.source_view))
             else:

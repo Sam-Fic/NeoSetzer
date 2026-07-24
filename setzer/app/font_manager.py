@@ -29,17 +29,25 @@ class FontManager():
     default_font_string = None
     font_string = None
     zoom_level = 1.0
+    # font_desc 缓存：get_font_desc 被 actions._update_actions_now（每次光标/字体
+    # 变化触发）调用做缩放边界检查，原实现每次 Pango.FontDescription.from_string
+    # 重新解析 font_string。font_string 仅在 zoom in/out/reset（经
+    # propagate_font_setting）时变化，两次变化间结果恒定。在 propagate_font_setting
+    # 中重建缓存，get_font_desc 直接返回。调用者只读 get_size()，无修改风险。
+    _font_desc = None
 
     def init(main_window):
         FontManager.main_window = main_window
 
         FontManager.default_font_string = 'monospace 11'
         FontManager.font_string = 'monospace 11'
+        FontManager._font_desc = None
 
     def propagate_font_setting():
-        font_string = FontManager.font_string
-
-        font_desc = Pango.FontDescription.from_string(font_string)
+        # font_string 可能已变（zoom in/out/reset），重建缓存供本方法及后续
+        # get_font_desc 调用复用。
+        FontManager._font_desc = Pango.FontDescription.from_string(FontManager.font_string)
+        font_desc = FontManager._font_desc
         font_size = font_desc.get_size() / Pango.SCALE
         font_family = font_desc.get_family()
 
@@ -68,7 +76,9 @@ class FontManager():
         return (metrics.get_ascent() + metrics.get_descent()) / Pango.SCALE
 
     def get_font_desc():
-        return Pango.FontDescription.from_string(FontManager.font_string)
+        if FontManager._font_desc is None:
+            FontManager._font_desc = Pango.FontDescription.from_string(FontManager.font_string)
+        return FontManager._font_desc
 
     def get_system_font():
         return FontManager.default_font_string

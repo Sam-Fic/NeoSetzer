@@ -95,6 +95,10 @@ class Settings(Observable):
         # 文本的视觉重心会有轻微偏移；此处提供用户可调偏移量来补偿。正值下移，
         # 负值上移。默认 0.0 = 与 GtkSourceView 行顶对齐。
         self.defaults['preferences']['line_numbers_vertical_offset'] = 0.0
+        # 行距（像素）：每行文本下方额外添加的垂直间距。通过 GtkSourceView
+        # 的 pixels_below_lines 实现，get_line_yrange().height 会自动包含
+        # 这部分，gutter 行号间距随之同步，无需 gutter 侧额外处理。
+        self.defaults['preferences']['line_spacing'] = 0
         self.defaults['preferences']['enable_code_folding'] = True
         self.defaults['preferences']['enable_line_wrapping'] = True
         self.defaults['preferences']['highlight_current_line'] = False

@@ -33,6 +33,12 @@ class DataProvider(Observable):
         self.document = None
 
         self.integrated_includes = dict()
+        # includes 缓存：update_integrated_includes 与 get_includes 原各自遍历
+        # included_latex_files + get_abspath + get_document_by_filename，同一次
+        # data_updated 刷新中被 FilesSection + StructureSection 各调一次 get_includes，
+        # 加上 update_integrated_includes 共 3 次重复遍历。改为在
+        # update_integrated_includes 中一次性构建，get_includes 直接返回。
+        self._includes_cache = list()
 
         # 全路径 idle 去抖：on_buffer_changed / on_new_document /
         # on_new_active_document / on_is_root_changed 共用一个 idle，把所有
@@ -116,12 +122,19 @@ class DataProvider(Observable):
 
     def update_integrated_includes(self):
         integrated_includes = dict()
+        includes_cache = list()
         if self.document.get_is_root():
             for filename, offset in self.document.parser.symbols['included_latex_files']:
-                filename = path_helpers.get_abspath(filename, self.document.get_dirname())
-                document = self.workspace.get_document_by_filename(filename)
+                abs_path = path_helpers.get_abspath(filename, self.document.get_dirname())
+                document = self.workspace.get_document_by_filename(abs_path)
+                # 一并构建 includes 缓存：document 仅当确实打开（在
+                # integrated_includes 中）时非 None，与原 get_includes 语义一致。
                 if document:
                     integrated_includes[document] = (document, offset)
+                    includes_cache.append({'filename': abs_path, 'offset': offset, 'document': document})
+                else:
+                    includes_cache.append({'filename': abs_path, 'offset': offset, 'document': None})
+        self._includes_cache = includes_cache
 
         # 仅连接新加入的文档，避免重复 connect（修复信号泄漏：原实现每次调用
         # 都对仍包含的文档叠加连接，导致一次文本改动触发 N 次侧边栏重建）。
@@ -138,14 +151,8 @@ class DataProvider(Observable):
         self.integrated_includes = integrated_includes
 
     def get_includes(self):
-        includes = list()
-        for filename, offset in self.document.parser.symbols['included_latex_files']:
-            filename = path_helpers.get_abspath(filename, self.document.get_dirname())
-            document = self.workspace.get_document_by_filename(filename)
-            if document and document in self.integrated_includes:
-                includes.append({'filename': filename, 'offset': offset, 'document': document})
-            else:
-                includes.append({'filename': filename, 'offset': offset, 'document': None})
-        return includes
+        # 返回 update_integrated_includes 预构建的缓存，避免每次调用重复遍历
+        # included_latex_files + get_abspath + get_document_by_filename。
+        return self._includes_cache
 
 

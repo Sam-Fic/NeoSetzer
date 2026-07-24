@@ -35,9 +35,9 @@ class Observable(object):
         # workspace_presenter 在收到 'new_active_document' 后才连新文档的信号、
         # build_log 在 'build_log_update' 后断开旧文档连接）。原实现直接迭代
         # set，回调内一旦改集合就抛 RuntimeError: Set changed size during
-        # iteration，导致后续回调被吞掉且整个通知链中断。list() 拷贝 O(k)
-        # 仅与已注册观察者数量相关，远小于一次回调本身的代价。
-        for callback in list(callbacks):
+        # iteration，导致后续回调被吞掉且整个通知链中断。tuple() 拷贝 O(k)
+        # 仅与已注册观察者数量相关，远小于一次回调本身的代价；不可变更快于 list。
+        for callback in tuple(callbacks):
             if parameter is not None:
                 callback(self, parameter)
             else:
