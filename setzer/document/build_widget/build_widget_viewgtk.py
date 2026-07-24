@@ -23,8 +23,8 @@ from gi.repository import Gtk, GObject
 class BuildWidgetView(Gtk.Box):
 
     def __init__(self):
-        Gtk.Box.__init__(self)
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
+        # spacing=6 对齐 Adw.HeaderBar 默认子控件间距（Gtk.Box 自身默认 spacing=0 会粘连）
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.set_can_focus(False)
 
         self.timer = 0
@@ -49,11 +49,12 @@ class BuildWidgetView(Gtk.Box):
         self.build_button.set_tooltip_text(_('Save and build .pdf-file from document') + ' (F5)')
         self.build_button.add_css_class('suggested-action')
 
+        # clean_button 嵌套在 BuildWidgetView(Gtk.Box) 里，不是 HeaderBar 直接子控件，
+        # 不会被 HeaderBar 自动 flat，需显式加 .flat 与标题栏图标按钮保持一致外观。
         self.clean_button = Gtk.Button()
         self.clean_button.set_child(Gtk.Image(icon_name='edit-clear-all-symbolic'))
         self.clean_button.set_tooltip_text(_('Cleanup build files'))
-        self.clean_button.add_css_class('headerbar-plain')
-        self.clean_button.add_css_class('headerbar-icon')
+        self.clean_button.add_css_class('flat')
 
         self.result_revealer = Gtk.Revealer()
         self.result_revealer.set_transition_type(Gtk.RevealerTransitionType.CROSSFADE)

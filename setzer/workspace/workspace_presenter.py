@@ -41,6 +41,9 @@ class WorkspacePresenter(object):
         self.settings.connect('settings_changed', self.on_settings_changed)
 
         self.main_window.mode_stack.set_visible_child_name('welcome_screen')
+        # 初始默认欢迎页模式：headerbar 迁到 welcome_overlay，否则无文档时
+        # open/create 按钮不可见、用户无法开始编辑（详见 reparent_headerbar 注释）。
+        self.main_window.reparent_headerbar(to_welcome=True)
         self.update_font()
         self.update_colors()
         self.setup_paneds()
@@ -62,9 +65,14 @@ class WorkspacePresenter(object):
 
         if self.workspace.active_document == None:
             self.main_window.mode_stack.set_visible_child_name('welcome_screen')
+            # 回到欢迎页：headerbar 迁到 welcome_overlay，保证 open/create 可见。
+            self.main_window.reparent_headerbar(to_welcome=True)
 
     def on_new_active_document(self, workspace, document):
         self.main_window.mode_stack.set_visible_child_name('documents')
+        # 进入文档视图：headerbar 迁回 preview_paned_overlay，只覆盖右侧
+        # 编辑器/预览区，保留左侧 sidebar 通顶设计。
+        self.main_window.reparent_headerbar(to_welcome=False)
         self.main_window.document_stack.set_visible_child(document.view)
         self.focus_active_document()
 
@@ -153,7 +161,9 @@ class WorkspacePresenter(object):
     def update_preview_help_visibility(self, animate=True):
         preview_help_visible_for_latex_docs = self.workspace.show_preview or self.workspace.show_help
         show_preview_help = self.workspace.get_root_or_active_latex_document() and preview_help_visible_for_latex_docs
-        self.main_window.preview_help_stack.set_visible(show_preview_help)
+        # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
+        # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
+        self.main_window.preview_split.set_show_sidebar(show_preview_help)
 
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()
@@ -183,13 +193,24 @@ class WorkspacePresenter(object):
         show_build_log = self.workspace.get_root_or_active_latex_document() and self.workspace.get_show_build_log()
 
         sidebar_fraction = self.workspace.settings.get_value('window_state', 'sidebar_width_fraction')
-        preview_position = self.workspace.settings.get_value('window_state', 'preview_paned_position')
+        preview_fraction = self.workspace.settings.get_value('window_state', 'preview_width_fraction')
 
-        # sidebar 宽度（Adw.OverlaySplitView 按 fraction）；preview 仍像素 position
+        # 一次性迁移：旧版用像素 position（= 编辑器列宽度），新版用 fraction（= 预览占比）。
+        # 仅当存在有效旧 position 时估算 fraction = 1 - position/window_width，并落盘。
+        legacy_pos = self.workspace.settings.data.get('window_state', {}).get('preview_paned_position', -1)
+        saved_width = self.workspace.settings.get_value('window_state', 'width')
+        if legacy_pos > 0 and saved_width > 0:
+            preview_fraction = 1.0 - (legacy_pos / saved_width)
+            preview_fraction = min(max(preview_fraction, 0.2), 0.8)
+            self.workspace.settings.set_value('window_state', 'preview_width_fraction', preview_fraction)
+            try: del(self.workspace.settings.data['window_state']['preview_paned_position'])
+            except KeyError: pass
+
+        # sidebar / preview 宽度均按 fraction（Adw.OverlaySplitView）
         if isinstance(sidebar_fraction, (int, float)) and 0.0 < sidebar_fraction <= 1.0:
             self.main_window.sidebar_split.set_sidebar_width_fraction(sidebar_fraction)
-        if isinstance(preview_position, int) and preview_position > 0:
-            self.main_window.preview_paned.set_position(preview_position)
+        if isinstance(preview_fraction, (int, float)) and 0.0 < preview_fraction <= 1.0:
+            self.main_window.preview_split.set_sidebar_width_fraction(preview_fraction)
         # build_log_paned_position 设置项已废弃（弹窗尺寸由 Adw.Dialog 自管理）。
 
         if self.workspace.show_symbols: self.main_window.sidebar.set_visible_child_name('symbols')
@@ -203,11 +224,11 @@ class WorkspacePresenter(object):
         if show_build_log:
             self.update_build_log_visibility()
         self.main_window.sidebar_split.set_show_sidebar(show_sidebar)
-        self.main_window.preview_help_stack.set_visible(show_preview_help)
+        self.main_window.preview_split.set_show_sidebar(show_preview_help)
 
         # 拖动分隔条时实时持久化到 settings（仅更新内存 dict，pickle 在关闭时落盘）
         self.main_window.sidebar_split.connect('notify::sidebar-width-fraction', self.on_sidebar_width_changed)
-        self.main_window.preview_paned.connect('notify::position', self.on_preview_width_changed)
+        self.main_window.preview_split.connect('notify::sidebar-width-fraction', self.on_preview_width_changed)
 
         self.main_window.headerbar.symbols_toggle.set_active(self.workspace.show_symbols)
         self.main_window.headerbar.document_structure_toggle.set_active(self.workspace.show_document_structure)
@@ -217,7 +238,7 @@ class WorkspacePresenter(object):
     def on_sidebar_width_changed(self, split, pspec):
         self.workspace.settings.set_value('window_state', 'sidebar_width_fraction', split.get_sidebar_width_fraction())
 
-    def on_preview_width_changed(self, paned, pspec):
-        self.workspace.settings.set_value('window_state', 'preview_paned_position', paned.get_position())
+    def on_preview_width_changed(self, split, pspec):
+        self.workspace.settings.set_value('window_state', 'preview_width_fraction', split.get_sidebar_width_fraction())
 
 

@@ -3,14 +3,12 @@
  *
  * 应用整体使用 Libadwaita / GTK 默认外观，跟随系统明暗主题。
  * 仅在原生组件无法达到目标行为时，追加作用域精确的最小 CSS。
+ *
+ * 标题栏按钮的 flat 外观与 6px 间距全部由 Adw.HeaderBar 自动提供
+ * （libadwaita 对 icon-only / SplitButton / 含箭头 MenuButton 的默认行为），
+ * 不再需要任何自定义 CSS。仅 center_button / clean_button 因非 HeaderBar
+ * 直接子按钮或含非图标内容，在代码里显式加了标准 .flat 类。
  */
-
-/* 标题栏图标按钮：常态扁平透明（去掉持久底板），
-   悬停 / 按下 / 选中保留 libadwaita 默认反馈底色。 */
-headerbar button.headerbar-icon:not(:hover):not(:active):not(:checked) {
-    background-color: transparent;
-    background-image: none;
-}
 
 /*
  * 侧边栏（Document Structure / Symbols）两页共享的内嵌工具栏。

@@ -54,6 +54,10 @@ class Settings(Observable):
         self.defaults['window_state']['show_preview'] = False
         self.defaults['window_state']['show_build_log'] = False
         self.defaults['window_state']['preview_paned_position'] = -1
+        # preview 宽度占比（Adw.OverlaySplitView）。旧版用像素 preview_paned_position，
+        # 由 workspace_presenter.setup_paneds 一次性迁移到 fraction；此处保留旧键默认值
+        # 仅为向后兼容，迁移后忽略。
+        self.defaults['window_state']['preview_width_fraction'] = 0.5
         self.defaults['window_state']['notebook_paned_position'] = -1
         # Pass-10: build_log_paned_position 已废弃（build_log 改为 Adw.Dialog 弹窗，
         # 尺寸由 dialog 自管理）。旧 pickle 文件中若有该 key 不影响，只是不再读它。

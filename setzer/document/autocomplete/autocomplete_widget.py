@@ -101,7 +101,7 @@ class AutocompleteWidget(object):
 
     def update_margins(self):
         vertical_cutoff = self.document.view.scrolled_window.get_allocated_height() - self.height - self.line_height
-        horizontal_cutoff = self.main_window.preview_paned.get_allocated_width() - self.view.get_allocated_width()
+        horizontal_cutoff = self.main_window.preview_split.get_allocated_width() - self.view.get_allocated_width()
 
         if self.y_position >= self.line_height and self.y_position <= vertical_cutoff:
             self.view.set_margin_top(self.y_position + self.shortcutsbar_height)
@@ -111,12 +111,12 @@ class AutocompleteWidget(object):
         if self.x_position >= 0 and self.x_position <= horizontal_cutoff:
             self.view.set_margin_start(self.x_position)
         else:
-            self.view.set_margin_start(self.main_window.preview_paned.get_allocated_width() - self.view.get_allocated_width())
+            self.view.set_margin_start(self.main_window.preview_split.get_allocated_width() - self.view.get_allocated_width())
 
     def position_is_visible(self):
         return ((self.y_position >= self.line_height) and
             (self.y_position <= self.document.view.scrolled_window.get_allocated_height()) and
             (self.x_position >= 0) and
-            (self.x_position < self.main_window.preview_paned.get_allocated_width()))
+            (self.x_position < self.main_window.preview_split.get_allocated_width()))
 
 

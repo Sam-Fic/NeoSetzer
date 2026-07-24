@@ -35,11 +35,11 @@ from setzer.popovers.shortcutsbar.object_menu import ObjectMenu
 class _NoNaturalWidthLayout(Gtk.BoxLayout):
     '''Gtk.BoxLayout subclass that reports natural width 0 horizontally.
 
-    必要原因：preview_paned 的分隔条位置按子部件自然宽度自动分配。若
-    shortcutsbar 自然宽度 = left_box 按钮数之和，则 reflow 把按钮移到 overflow
-    时自然宽度变小 → paned 给编辑器列更少空间 → sb_width 变小 → reflow 算出
-    更大 target → 移走更多按钮 → 自然宽度更小 …… 正反馈级联，target 在两个值
-    之间震荡不收敛，按钮被裁切或反复跳动。
+    必要原因：内容列（编辑器）宽度由外层 split 容器分配。若 shortcutsbar
+    自然宽度 = left_box 按钮数之和，则 reflow 把按钮移到 overflow 时自然宽度变小
+    → 内容列可用宽度随之变化 → sb_width 变小 → reflow 算出更大 target → 移走
+    更多按钮 → 自然宽度更小 …… 正反馈级联，target 在两个值之间震荡不收敛，
+    按钮被裁切或反复跳动。
 
     返回 0 后：编辑器列宽度由 document_stack（源码编辑器）的自然宽度驱动，
     不随按钮数变化；shortcutsbar 通过 hexpand 的 _spacer 填充实际分配宽度，

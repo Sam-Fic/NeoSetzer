@@ -80,12 +80,10 @@ class HeaderBar(object):
         self.new_document_button.set_can_focus(False)
         self.new_document_button.set_tooltip_text(_('Create a new document'))
         self.new_document_button.set_action_name('win.new-latex-document')
-        self.new_document_button.set_menu_model(PopoverManager.get_popover('new_document').view.model)
         self.new_document_button.add_css_class('headerbar-plain')
         self.new_document_button.add_css_class('headerbar-icon')
-        popover = self.new_document_button.get_popover()
-        if popover is not None:
-            popover.add_css_class('menu')
+        # menu_model 延迟到 setup_popovers() 再绑定（PopoverManager 尚未就绪）
+        self._new_doc_menu_model = None
 
         self.widget.pack_start(self.open_document_button)
         self.widget.pack_start(self.open_document_blank_button)
@@ -164,3 +162,12 @@ class HeaderBar(object):
 
     def _on_center_button_clicked(self, button):
         self.open_docs_popover.show()
+
+    def setup_popovers(self):
+        '''在 PopoverManager 就绪后调用，绑定 new_document menu model。'''
+        popover = PopoverManager.get_popover('new_document')
+        if popover is not None:
+            self.new_document_button.set_menu_model(popover.view.model)
+            menu_popover = self.new_document_button.get_popover()
+            if menu_popover is not None:
+                menu_popover.add_css_class('menu')

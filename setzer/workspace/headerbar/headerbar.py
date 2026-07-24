@@ -137,8 +137,12 @@ class Headerbar(object):
             self.hide_preview_help_toggles()
 
     def hide_sidebar_toggles(self):
-        self.view.sidebar_toggles_box.set_visible(False)
+        # sidebar toggles are packed directly into the Adw.HeaderBar (no
+        # wrapping box), so toggle visibility on each widget directly —
+        # mirrors the preview/help toggle handling below.
+        self.view.document_structure_toggle.set_visible(False)
         self.view.document_structure_toggle.set_sensitive(False)
+        self.view.symbols_toggle.set_visible(False)
         self.view.symbols_toggle.set_sensitive(False)
 
     def hide_preview_help_toggles(self):
@@ -148,8 +152,9 @@ class Headerbar(object):
         self.view.help_toggle.set_sensitive(False)
 
     def show_sidebar_toggles(self):
-        self.view.sidebar_toggles_box.set_visible(True)
+        self.view.document_structure_toggle.set_visible(True)
         self.view.document_structure_toggle.set_sensitive(True)
+        self.view.symbols_toggle.set_visible(True)
         self.view.symbols_toggle.set_sensitive(True)
 
     def show_preview_help_toggles(self):

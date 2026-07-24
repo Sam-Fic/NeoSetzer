@@ -80,22 +80,21 @@ class MainWindow(Adw.ApplicationWindow):
         self.preview_help_stack.add_named(self.preview_panel, 'preview')
         self.preview_help_stack.add_named(self.help_panel, 'help')
 
-        # preview_paned: 横向 Gtk.Paned（预览/帮助在右 = end child），可拖动分隔条调整宽度。
-        # Pass-10: start_child 从 build_log_paned 改为 document_stack_wrapper
-        # （build_log_paned 已移除）。
-        self.preview_paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
-        self.preview_paned.set_wide_handle(True)
-        self.preview_paned.set_start_child(self.document_stack_wrapper)
-        self.preview_paned.set_end_child(self.preview_help_stack)
-        # shrink_start_child=True：编辑器列允许收缩到低于其自然宽度。
-        # 必要原因：shortcutsbar 在最宽档位（target=0）时全部 10 个左侧按钮都在
-        # left_box，自然宽度约 630px。若 shrink=False，编辑器列不能低于 630px，
-        # 窗口拖不窄、shortcutsbar 宽度始终 ≥630px，reflow 永远算出 target=0，
-        # 按钮永远不收起。设 True 后缩窄窗口 → shortcutsbar 跟着窄 → reflow 折叠。
-        # shrink_end_child=False：预览栏维持自然宽度（PDF 页宽），由编辑器列弹性收缩。
-        self.preview_paned.set_shrink_start_child(True)
-        self.preview_paned.set_shrink_end_child(False)
-        self.preview_paned_overlay.set_child(self.preview_paned)
+        # preview_split: 横向 Adw.OverlaySplitView（预览/帮助在右 = sidebar）。
+        # 与 sidebar_split 同款控件，set_show_sidebar() 自带滑入/滑出动画，
+        # 因此 toggle preview / toggle help 能得到与 toggle document structure 一致的
+        # 滑入动画。分隔条仍可拖拽调整宽度（notify::sidebar-width-fraction）。
+        # collapsed 保持 False：永不折叠为浮层抽屉，始终 inline 推挤编辑器列。
+        # 内容列（编辑器）= sidebar 之外的剩余空间，窗口变窄时自动收缩，shortcutsbar
+        # 的 reflow 逻辑不受影响（reflow 监听自身分配宽度，与外层容器无关）。
+        self.preview_split = Adw.OverlaySplitView()
+        self.preview_split.set_content(self.document_stack_wrapper)
+        self.preview_split.set_sidebar(self.preview_help_stack)
+        self.preview_split.set_sidebar_position(Gtk.PackType.END)  # 预览在右侧
+        self.preview_split.set_min_sidebar_width(300)   # preview 自然宽 300；help 396 由子部件 min request 自动抬高
+        self.preview_split.set_max_sidebar_width(900)
+        self.preview_split.set_sidebar_width_fraction(0.5)
+        self.preview_paned_overlay.set_child(self.preview_split)
 
         # sidebar_split: Adw.OverlaySplitView —— 原生可折叠侧边栏。
         # 宽窗口：侧边栏内联（与内容并排，等价原 Gtk.Paned 行为）；
@@ -110,8 +109,17 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.welcome_screen = welcome_screen_view.WelcomeScreenView()
 
+        # welcome_overlay：把欢迎页包进 Gtk.Overlay，以便 headerbar 在欢迎页
+        # 模式下作为浮层叠在欢迎页顶部（无文档时 mode_stack 显示 welcome_screen，
+        # 此时 headerbar 必须可见，否则用户无法点 open/create 按钮开始编辑——
+        # 而欢迎页文字也写着「Click the open or create buttons in the headerbar
+        # above」）。headerbar 是单一控件，通过 reparent_headerbar() 在
+        # welcome_overlay 与 preview_paned_overlay 之间迁移，详见该方法注释。
+        self.welcome_overlay = Gtk.Overlay()
+        self.welcome_overlay.set_child(self.welcome_screen)
+
         self.mode_stack = Gtk.Stack()
-        self.mode_stack.add_named(self.welcome_screen, 'welcome_screen')
+        self.mode_stack.add_named(self.welcome_overlay, 'welcome_screen')
         self.mode_stack.add_named(self.sidebar_split, 'documents')
 
         self.headerbar = headerbar_view.HeaderBar()
@@ -119,17 +127,25 @@ class MainWindow(Adw.ApplicationWindow):
         # 浮层 headerbar 会覆盖右侧内容区顶部，给内容区整体留出 headerbar
         # 高度的上边距，避免编辑器/预览内容被标题栏遮住。
         # 初始使用 46px 作为兜底，随后由 do_size_allocate 根据 headerbar
-        # 实际分配高度动态调整，避免写死高度。
+        # 实际分配高度动态调整，避免写死高度。welcome_screen 同样留上边距，
+        # 否则欢迎页顶部的图标/标题会被浮层 headerbar 遮住。
         self.document_stack_wrapper.set_margin_top(46)
         self.preview_help_stack.set_margin_top(46)
+        self.welcome_screen.set_margin_top(46)
 
         # 不用 Adw.ToolbarView：headerbar 作为 overlay 叠在内容上方，
         # 这样侧边栏可以从窗口顶部开始，覆盖标题栏区域。
         # 关键：把 headerbar 作为右侧内容区 (preview_paned_overlay) 的 overlay，
         # 而不是整个窗口的 overlay。这样 headerbar 只覆盖编辑器/预览区，
         # 左侧 sidebar 完全不受其影响，内容也能正常显示。
+        # 欢迎页模式下 headerbar 由 reparent_headerbar 迁移到 welcome_overlay，
+        # 保证无文档时 open/create 按钮依然可见。
         self.headerbar.widget.set_valign(Gtk.Align.START)
         self.preview_paned_overlay.add_overlay(self.headerbar.widget)
+        # 记录 headerbar 当前所在 overlay，供 reparent_headerbar 判断迁移方向。
+        # 不用 get_parent()：Gtk.Overlay 的 overlay 子部件实际父级是内部 Bin，
+        # 而非 Gtk.Overlay 本身，get_parent() 比较会失真。
+        self._headerbar_in_welcome = False
 
         self.content_overlay = Gtk.Overlay()
         self.content_overlay.set_child(self.mode_stack)
@@ -173,7 +189,7 @@ class MainWindow(Adw.ApplicationWindow):
     def do_size_allocate(self, width, height, baseline):
         Adw.ApplicationWindow.do_size_allocate(self, width, height, baseline)
 
-        # 根据浮层 headerbar 的实际高度动态调整编辑器/预览区的上边距，
+        # 根据浮层 headerbar 的实际高度动态调整编辑器/预览区/欢迎页的上边距，
         # 保证内容不会被标题栏遮住，同时避免硬编码固定高度。
         if hasattr(self, 'headerbar') and hasattr(self, 'document_stack_wrapper') and hasattr(self, 'preview_help_stack'):
             headerbar_height = self.headerbar.widget.get_allocated_height()
@@ -182,5 +198,28 @@ class MainWindow(Adw.ApplicationWindow):
                     self.document_stack_wrapper.set_margin_top(headerbar_height)
                 if self.preview_help_stack.get_margin_top() != headerbar_height:
                     self.preview_help_stack.set_margin_top(headerbar_height)
+                if hasattr(self, 'welcome_screen') and self.welcome_screen.get_margin_top() != headerbar_height:
+                    self.welcome_screen.set_margin_top(headerbar_height)
+
+    def reparent_headerbar(self, to_welcome):
+        '''在 welcome_overlay 与 preview_paned_overlay 之间迁移 headerbar。
+
+        headerbar 是单一控件实例（按钮/信号唯一绑定），不能同时在两处。无文档时
+        mode_stack 显示 welcome_screen，此时 headerbar 必须叠在 welcome_overlay
+        上，否则 open/create 按钮不可见、用户无法开始编辑；有文档时 headerbar
+        回到 preview_paned_overlay，只覆盖右侧编辑器/预览区、保留左侧 sidebar
+        通顶的设计。模式切换时由 presenter 调用本方法迁移，迁移在 mode_stack
+        切页前后完成，避免可见瞬间的空标题栏。'''
+        if to_welcome == self._headerbar_in_welcome:
+            return
+        hb = self.headerbar.widget
+        if to_welcome:
+            self.preview_paned_overlay.remove_overlay(hb)
+            self.welcome_overlay.add_overlay(hb)
+            self._headerbar_in_welcome = True
+        else:
+            self.welcome_overlay.remove_overlay(hb)
+            self.preview_paned_overlay.add_overlay(hb)
+            self._headerbar_in_welcome = False
 
 
