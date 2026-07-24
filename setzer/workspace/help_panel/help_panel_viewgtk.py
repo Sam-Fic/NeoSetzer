@@ -150,6 +150,8 @@ class HelpPanelView(Gtk.Box):
 
         self.stack = Gtk.Stack()
         self.stack.set_vexpand(True)
+        self.stack.add_css_class('preview-card')
+        self.stack.set_overflow(Gtk.Overflow.HIDDEN)
         self.stack.add_named(self.content, 'content')
         self.stack.add_named(self.search_clamp, 'search')
 

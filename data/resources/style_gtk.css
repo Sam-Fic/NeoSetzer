@@ -150,7 +150,7 @@ textview gutter {
  * Gtk.Widget.set_overflow(Gtk.Overflow.HIDDEN) 实现。
  */
 .preview-card {
-    margin: 6px;
+    margin: 0 6px 6px 6px;
     border-radius: 8px;
 }
 
