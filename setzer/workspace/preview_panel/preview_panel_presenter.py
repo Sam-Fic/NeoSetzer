@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -25,6 +25,11 @@ class PreviewPanelPresenter(object):
         self.main_window = ServiceLocator.get_main_window()
         self.view = self.main_window.preview_panel
         self.stack = self.main_window.preview_panel.stack
+        # Pass-11: 按钮与 paging_label 已迁移到 headerbar / MainWindow。
+        #   - preview_* 按钮 → headerbar.preview_*
+        #   - paging_label   → main_window.paging_label（preview_paned_overlay overlay）
+        self.headerbar = self.main_window.headerbar
+        self.paging_label = self.main_window.paging_label
         self.document = None
 
         self.workspace.connect('new_document', self.on_new_document)
@@ -35,14 +40,14 @@ class PreviewPanelPresenter(object):
         self.update_label()
         self.update_buttons()
 
-        self.view.recolor_pdf_toggle.set_active(self.workspace.settings.get_value('preferences', 'recolor_pdf'))
+        self.headerbar.preview_recolor_pdf_toggle.set_active(self.workspace.settings.get_value('preferences', 'recolor_pdf'))
         self.workspace.settings.connect('settings_changed', self.on_settings_changed)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
         if item == 'recolor_pdf':
-            self.view.recolor_pdf_toggle.set_active(value)
+            self.headerbar.preview_recolor_pdf_toggle.set_active(value)
 
     def on_new_document(self, workspace, document):
         if document.is_latex_document():
@@ -93,10 +98,12 @@ class PreviewPanelPresenter(object):
         self.update_zoom_level()
 
     def update_label(self):
-        if self.document == None:
-            self.view.paging_label.set_visible(False)
+        # Pass-11: paging_label 仅在预览展开（workspace.show_preview=True）时显示。
+        # 预览关闭时即使文档/PDF 变化也不显示，避免标题栏残留 stale 文本。
+        if self.document == None or not self.workspace.show_preview:
+            self.paging_label.set_visible(False)
         else:
-            self.view.paging_label.set_visible(True)
+            self.paging_label.set_visible(True)
             preview = self.document.preview
             if preview.poppler_document != None:
                 total = str(preview.poppler_document.get_n_pages())
@@ -108,32 +115,30 @@ class PreviewPanelPresenter(object):
             else:
                 total = "0"
                 current = "0"
-            self.view.paging_label.set_text(_('Page ') + current + _(' of ') + total)
+            self.paging_label.set_text(_('Page ') + current + _(' of ') + total)
 
     def update_buttons(self):
         self.document = self.workspace.get_root_or_active_latex_document()
         if self.document == None or self.document.preview.poppler_document == None:
-            self.view.external_viewer_button.set_visible(False)
-            self.view.recolor_pdf_toggle.set_visible(False)
-            self.view.zoom_out_button.set_visible(False)
-            self.view.zoom_level_button.set_visible(False)
-            self.view.zoom_in_button.set_visible(False)
+            self.headerbar.preview_external_viewer_button.set_visible(False)
+            self.headerbar.preview_recolor_pdf_toggle.set_visible(False)
+            self.headerbar.preview_zoom_out_button.set_visible(False)
+            self.headerbar.preview_zoom_level_button.set_visible(False)
+            self.headerbar.preview_zoom_in_button.set_visible(False)
         else:
-            self.view.external_viewer_button.set_visible(True)
-            self.view.recolor_pdf_toggle.set_visible(True)
-            self.view.zoom_out_button.set_visible(True)
-            self.view.zoom_level_button.set_visible(True)
-            self.view.zoom_in_button.set_visible(True)
+            self.headerbar.preview_external_viewer_button.set_visible(True)
+            self.headerbar.preview_recolor_pdf_toggle.set_visible(True)
+            self.headerbar.preview_zoom_out_button.set_visible(True)
+            self.headerbar.preview_zoom_level_button.set_visible(True)
+            self.headerbar.preview_zoom_in_button.set_visible(True)
 
             zoom_level = self.document.preview.zoom_manager.get_zoom_level()
 
-            self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
-            self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
+            self.headerbar.preview_zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
+            self.headerbar.preview_zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
 
     def update_zoom_level(self):
         zoom_level = self.document.preview.zoom_manager.get_zoom_level()
 
         if zoom_level != None:
-            self.view.zoom_level_label.set_text('{0:.1f}%'.format(zoom_level * 100))
-
-
+            self.headerbar.preview_zoom_level_label.set_text('{0:.1f}%'.format(zoom_level * 100))

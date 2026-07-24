@@ -18,11 +18,12 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GLib
+from gi.repository import Adw, Gtk, GLib, GObject
 
 import os
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.widgets.fixed_width_label.fixed_width_label import FixedWidthLabel
 
 import setzer.workspace.headerbar.headerbar_viewgtk as headerbar_view
 import setzer.workspace.shortcutsbar.shortcutsbar_viewgtk as shortcutsbar_view
@@ -74,9 +75,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.preview_paned_overlay = Gtk.Overlay()
         self.preview_help_stack = Gtk.Stack()
-        # 浮层 headerbar 覆盖右侧预览/帮助区域顶部，必须留出 46px 上边距，
-        # 否则预览工具栏和帮助面板的 ActionBar 会被标题栏遮住。
-        self.preview_help_stack.set_margin_top(46)
+        # preview_help_stack 不设 margin_top：面板背景延伸到窗口顶部，覆盖标题栏区域。
+        # 实际内容（PDF viewer / WebView）的 margin_top 在 do_size_allocate 中动态设置，
+        # 确保内容从标题栏下方开始，但面板背景贯通到顶部。
         self.preview_help_stack.add_named(self.preview_panel, 'preview')
         self.preview_help_stack.add_named(self.help_panel, 'help')
 
@@ -95,6 +96,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.preview_split.set_max_sidebar_width(900)
         self.preview_split.set_sidebar_width_fraction(0.5)
         self.preview_paned_overlay.set_child(self.preview_split)
+
+        # 分数变化时（设置滑块 / 程序调用）更新 paging_label 位置
+        self.preview_split.connect('notify::sidebar-width-fraction',
+                                   lambda *args: self._update_paging_label_position())
 
         # sidebar_split: Adw.OverlaySplitView —— 原生可折叠侧边栏。
         # 宽窗口：侧边栏内联（与内容并排，等价原 Gtk.Paned 行为）；
@@ -129,8 +134,12 @@ class MainWindow(Adw.ApplicationWindow):
         # 初始使用 46px 作为兜底，随后由 do_size_allocate 根据 headerbar
         # 实际分配高度动态调整，避免写死高度。welcome_screen 同样留上边距，
         # 否则欢迎页顶部的图标/标题会被浮层 headerbar 遮住。
+        # 注意：preview_help_stack 不设 margin_top——面板背景延伸到窗口顶部
+        # 覆盖标题栏区域，实际内容（PDF/WebView）的 margin_top 在 do_size_allocate
+        # 中设置到 preview_panel.stack / help_panel.stack 上。
         self.document_stack_wrapper.set_margin_top(46)
-        self.preview_help_stack.set_margin_top(46)
+        self.preview_panel.stack.set_margin_top(46)
+        self.help_panel.stack.set_margin_top(46)
         self.welcome_screen.set_margin_top(46)
 
         # 不用 Adw.ToolbarView：headerbar 作为 overlay 叠在内容上方，
@@ -142,6 +151,16 @@ class MainWindow(Adw.ApplicationWindow):
         # 保证无文档时 open/create 按钮依然可见。
         self.headerbar.widget.set_valign(Gtk.Align.START)
         self.preview_paned_overlay.add_overlay(self.headerbar.widget)
+
+        # paging_label: "page xx of xx" 作为 overlay 浮在预览区域上方，
+        # 通过 margin_start + halign=CENTER 居中在预览侧栏区域内。
+        # 与 headerbar 同层（preview_paned_overlay 的 overlay child），
+        # 但在 headerbar 之后添加，z-order 在 headerbar 之上。
+        self.paging_label = FixedWidthLabel(100)
+        self.paging_label.set_halign(Gtk.Align.CENTER)
+        self.paging_label.set_valign(Gtk.Align.CENTER)
+        self.paging_label.set_visible(False)
+        self.preview_paned_overlay.add_overlay(self.paging_label)
         # 记录 headerbar 当前所在 overlay，供 reparent_headerbar 判断迁移方向。
         # 不用 get_parent()：Gtk.Overlay 的 overlay 子部件实际父级是内部 Bin，
         # 而非 Gtk.Overlay 本身，get_parent() 比较会失真。
@@ -189,17 +208,37 @@ class MainWindow(Adw.ApplicationWindow):
     def do_size_allocate(self, width, height, baseline):
         Adw.ApplicationWindow.do_size_allocate(self, width, height, baseline)
 
-        # 根据浮层 headerbar 的实际高度动态调整编辑器/预览区/欢迎页的上边距，
+        # 根据浮层 headerbar 的实际高度动态调整编辑器/预览内容/欢迎页的上边距，
         # 保证内容不会被标题栏遮住，同时避免硬编码固定高度。
-        if hasattr(self, 'headerbar') and hasattr(self, 'document_stack_wrapper') and hasattr(self, 'preview_help_stack'):
+        # preview_help_stack 本身不设 margin_top（面板背景贯通到顶部），
+        # 只给内部内容（PDF stack / help stack）设 margin_top。
+        if hasattr(self, 'headerbar') and hasattr(self, 'document_stack_wrapper'):
             headerbar_height = self.headerbar.widget.get_allocated_height()
             if headerbar_height > 0:
                 if self.document_stack_wrapper.get_margin_top() != headerbar_height:
                     self.document_stack_wrapper.set_margin_top(headerbar_height)
-                if self.preview_help_stack.get_margin_top() != headerbar_height:
-                    self.preview_help_stack.set_margin_top(headerbar_height)
+                if hasattr(self, 'preview_panel') and self.preview_panel.stack.get_margin_top() != headerbar_height:
+                    self.preview_panel.stack.set_margin_top(headerbar_height)
+                if hasattr(self, 'help_panel') and self.help_panel.stack.get_margin_top() != headerbar_height:
+                    self.help_panel.stack.set_margin_top(headerbar_height)
                 if hasattr(self, 'welcome_screen') and self.welcome_screen.get_margin_top() != headerbar_height:
                     self.welcome_screen.set_margin_top(headerbar_height)
+
+        # 更新 paging_label 位置：居中在预览侧栏区域
+        self._update_paging_label_position()
+
+    def _update_paging_label_position(self):
+        '''通过 margin_start 将 paging_label 推到预览区域，
+        halign=CENTER 使其在预览区域内水平居中。'''
+        if not hasattr(self, 'paging_label'):
+            return
+        allocated = self.preview_split.get_allocated_width()
+        if allocated <= 0:
+            return
+        fraction = self.preview_split.get_sidebar_width_fraction()
+        content_width = int(allocated * (1 - fraction))
+        if self.paging_label.get_margin_start() != content_width:
+            self.paging_label.set_margin_start(content_width)
 
     def reparent_headerbar(self, to_welcome):
         '''在 welcome_overlay 与 preview_paned_overlay 之间迁移 headerbar。

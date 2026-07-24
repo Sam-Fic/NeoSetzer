@@ -165,6 +165,20 @@ class WorkspacePresenter(object):
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
         self.main_window.preview_split.set_show_sidebar(show_preview_help)
 
+        # Pass-11: 标题栏 panel_buttons_stack 与 paging_label 跟随预览/帮助可见性切换。
+        # - sidebar 隐藏时：panel_buttons → 'none'，paging_label 隐藏
+        # - preview 展开时：panel_buttons → 'preview'，paging_label 由
+        #   PreviewPanelPresenter.update_label 根据文档状态控制可见性
+        # - help 展开时：panel_buttons → 'help'，paging_label 隐藏（PDF 专属）
+        if not show_preview_help:
+            self.main_window.headerbar.panel_buttons_stack.set_visible_child_name('none')
+            self.main_window.paging_label.set_visible(False)
+        elif self.workspace.show_preview:
+            self.main_window.headerbar.panel_buttons_stack.set_visible_child_name('preview')
+        else:
+            self.main_window.headerbar.panel_buttons_stack.set_visible_child_name('help')
+            self.main_window.paging_label.set_visible(False)
+
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()
         if active_document != None:

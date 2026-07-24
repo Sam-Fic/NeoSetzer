@@ -41,7 +41,7 @@ class PreferencesDialog(object):
     def setup(self):
         self.view = view.Preferences()
 
-        self.page_appearance = page_appearance.PageAppearanceColors(self, self.settings)
+        self.page_appearance = page_appearance.PageAppearanceColors(self, self.settings, self.main_window)
         self.page_build_system = page_build_system.PageBuildSystem(self, self.settings)
         self.page_editor = page_editor.PageEditor(self, self.settings)
         self.page_autocomplete = page_autocomplete.PageAutocomplete(self, self.settings)

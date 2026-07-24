@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -19,11 +19,17 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
-from setzer.widgets.fixed_width_label.fixed_width_label import FixedWidthLabel
-from setzer.popovers.popover_manager import PopoverManager
-
 
 class PreviewPanelView(Gtk.Box):
+    '''PDF 预览面板的视图层。
+
+    Pass-11 重构：原 ActionBar（zoom_out / zoom_level / zoom_in / recolor /
+    external_viewer / paging_label）已全部迁移到 headerbar，由
+    HeaderBar.preview_buttons 持有，并通过 HeaderBar.panel_buttons_stack
+    在预览展开时显示。本视图仅保留 PDF stack 与 empty_placeholder。
+    "page xx of xx" 由 MainWindow.paging_label（preview_paned_overlay 的
+    overlay）显示，居中在预览侧栏区域内。
+    '''
 
     def __init__(self):
         Gtk.Box.__init__(self)
@@ -31,60 +37,9 @@ class PreviewPanelView(Gtk.Box):
         self.set_size_request(300, -1)
         self.add_css_class('preview')
 
-        self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
-        self.zoom_out_button.set_tooltip_text(_('Zoom out'))
-        self.zoom_out_button.add_css_class('flat')
-        self.zoom_out_button.set_can_focus(False)
-
-        self.zoom_level_label = FixedWidthLabel(66)
-
-        self.zoom_level_button = Gtk.MenuButton()
-        self.zoom_level_button.set_popover(PopoverManager.create_popover('preview_zoom_level').view)
-        self.zoom_level_button.set_can_focus(False)
-        self.zoom_level_button.set_tooltip_text(_('Set zoom level'))
-        self.zoom_level_button.add_css_class('flat')
-        self.zoom_level_button.set_can_focus(False)
-        self.zoom_level_button.set_child(self.zoom_level_label)
-
-        self.zoom_in_button = Gtk.Button(icon_name='zoom-in-symbolic')
-        self.zoom_in_button.set_tooltip_text(_('Zoom in'))
-        self.zoom_in_button.add_css_class('flat')
-        self.zoom_in_button.set_can_focus(False)
-
-        self.recolor_pdf_toggle = Gtk.ToggleButton()
-        self.recolor_pdf_toggle.set_icon_name('color-symbolic')
-        self.recolor_pdf_toggle.set_tooltip_text(_('Match theme colors'))
-        self.recolor_pdf_toggle.add_css_class('flat')
-        self.recolor_pdf_toggle.set_can_focus(False)
-
-        self.external_viewer_button = Gtk.Button(icon_name='web-browser-symbolic')
-        self.external_viewer_button.set_tooltip_text(_('External Viewer'))
-        self.external_viewer_button.add_css_class('flat')
-        self.external_viewer_button.set_can_focus(False)
-
-        self.action_bar_right = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.action_bar_right.append(self.zoom_out_button)
-        self.action_bar_right.append(self.zoom_level_button)
-        self.action_bar_right.append(self.zoom_in_button)
-        self.action_bar_right.append(self.recolor_pdf_toggle)
-        self.action_bar_right.append(self.external_viewer_button)
-
-        self.paging_label = FixedWidthLabel(100)
-        self.paging_label.set_xalign(0)
-
-        self.action_bar_left = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.action_bar_left.append(self.paging_label)
-
-        self.action_bar = Gtk.ActionBar()
-        self.action_bar.pack_start(self.action_bar_left)
-        self.action_bar.pack_end(self.action_bar_right)
-
         self.stack = Gtk.Stack()
         self.stack.set_vexpand(True)
         self.empty_placeholder = Gtk.Box()
         self.stack.add_named(self.empty_placeholder, 'empty')
 
-        self.append(self.action_bar)
         self.append(self.stack)
-
-

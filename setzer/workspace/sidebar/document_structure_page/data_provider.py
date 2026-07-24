@@ -34,9 +34,11 @@ class DataProvider(Observable):
 
         self.integrated_includes = dict()
 
-        # data_updated 去抖：on_buffer_changed 可能在同一帧内被多次触发
-        # （含被 include 的文档），用 idle 合并为一次重建，避免按键期间侧边栏
-        # 四个 section 反复 clear_rows + 重建 Adw.ActionRow。
+        # 全路径 idle 去抖：on_buffer_changed / on_new_document /
+        # on_new_active_document / on_is_root_changed 共用一个 idle，把所有
+        # 同帧内的刷新合并为一次 update_data。打开文档时 new_document +
+        # new_active_document 先后触发但只重建一遍；打字时 on_document_change
+        # + on_cursor_change 两路也只刷新一遍。
         self._update_data_idle_id = None
 
         self.signal_id = sidebar.view.connect('realize', self.on_realize)
@@ -46,10 +48,10 @@ class DataProvider(Observable):
         self.workspace.connect('root_state_change', self.on_root_state_change)
 
     def on_new_document(self, workspace, document=None):
-        self.update_data()
+        self._schedule_update_data()
 
     def on_document_removed(self, workspace, document=None):
-        self.update_data()
+        self._schedule_update_data()
 
     def on_new_active_document(self, workspace, document=None):
         self.set_document()
@@ -58,9 +60,14 @@ class DataProvider(Observable):
         self.set_document()
 
     def on_buffer_changed(self, document, parameter=None):
-        # 去抖：同一帧内的多次 changed 合并为一次 update_data，避免按键期间
-        # 侧边栏四个 section 反复全量重建。set_document 仍走同步路径，因此
-        # 文档切换/首次加载的响应不受影响。
+        self._schedule_update_data()
+
+    def _schedule_update_data(self):
+        '''所有触发侧边栏刷新的路径（文档新增/移除/切换/文本改动）共用一个
+        idle 去抖。打开文档时 new_document + new_active_document 会在同一帧
+        内先后触发，合并为一次 update_data，避免侧边栏四个 section 连续重建
+        两遍。idle 调度发生在文档视图已切换、编辑器已可交互之后，因此用户
+        不会感到文档切换本身卡顿——侧边栏在空闲时刻补上即可。'''
         if self._update_data_idle_id is None:
             self._update_data_idle_id = GLib.idle_add(self._update_data_idle)
 
@@ -70,7 +77,7 @@ class DataProvider(Observable):
         return False
 
     def on_is_root_changed(self, document, parameter=None):
-        self.update_data()
+        self._schedule_update_data()
 
     def on_realize(self, view, *parameter):
         view.disconnect(self.signal_id)
@@ -79,6 +86,8 @@ class DataProvider(Observable):
     def set_document(self):
         document = self.workspace.get_root_or_active_latex_document()
         if document != self.document:
+            # 信号断开/重连必须同步完成：若延迟到 idle，期间旧文档的 changed
+            # 信号仍会触发 on_buffer_changed，导致侧边栏为旧文档重建。
             if self.document != None:
                 self.document.disconnect('changed', self.on_buffer_changed)
                 self.document.disconnect('is_root_changed', self.on_is_root_changed)
@@ -86,7 +95,11 @@ class DataProvider(Observable):
             if self.document != None:
                 self.document.connect('changed', self.on_buffer_changed)
                 self.document.connect('is_root_changed', self.on_is_root_changed)
-            self.update_data()
+            # update_data（触发四个 section 的 clear_rows + 重建 Adw.ActionRow）
+            # 延迟到 idle：让 set_visible_child / grab_focus 先返回，编辑器立即可
+            # 交互，侧边栏在空闲时刻补上。打开大文档时这是 575ms → ~0ms 感知延迟
+            # 的关键——主帧不再被侧边栏重建阻塞。
+            self._schedule_update_data()
 
     def update_data(self, *params):
         if self.document == None: return

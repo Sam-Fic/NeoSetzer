@@ -78,6 +78,11 @@ class PageAppearanceColors(object):
         self.view.font_chooser_row.set_sensitive(not self.view.option_use_system_font.get_active())
         self.view.option_use_system_font.connect('notify::active', self.on_use_system_font_toggled)
 
+        # preview width fraction
+        fraction = self.settings.get_value('window_state', 'preview_width_fraction')
+        self.view.preview_width_scale.set_value(int(fraction * 100))
+        self.view.preview_width_scale.connect('value-changed', self.on_preview_width_changed)
+
     # ---- theme ----
     def on_theme_changed(self, combo, pspec=None):
         value = THEME_MODES[combo.get_selected()][1]
@@ -109,6 +114,13 @@ class PageAppearanceColors(object):
             font_desc.set_size(24 * Pango.SCALE)
             button.set_font_desc(font_desc)
         self.settings.set_value('preferences', 'font_string', font_desc.to_string())
+
+    # ---- preview width ----
+    def on_preview_width_changed(self, scale):
+        fraction = scale.get_value() / 100.0
+        self.settings.set_value('window_state', 'preview_width_fraction', fraction)
+        if self.main_window is not None:
+            self.main_window.preview_split.set_sidebar_width_fraction(fraction)
 
 
 class PageAppearanceColorsView(Adw.PreferencesPage):
@@ -162,3 +174,21 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.font_chooser_row.set_title(_('Set Editor Font'))
         self.font_chooser_row.add_suffix(self.font_chooser_button)
         group_font.add(self.font_chooser_row)
+
+        # preview width
+        group_preview = Adw.PreferencesGroup()
+        group_preview.set_title(_('Preview'))
+        self.add(group_preview)
+
+        self.preview_width_scale = Gtk.Scale.new_with_range(
+            Gtk.Orientation.HORIZONTAL, 15, 85, 1)
+        self.preview_width_scale.set_valign(Gtk.Align.CENTER)
+        self.preview_width_scale.set_hexpand(True)
+        self.preview_width_scale.set_draw_value(True)
+        self.preview_width_scale.set_value_pos(Gtk.PositionType.RIGHT)
+        self.preview_width_scale.add_mark(50, Gtk.PositionType.BOTTOM, None)
+        self.preview_width_row = Adw.ActionRow()
+        self.preview_width_row.set_title(_('Preview Sidebar Width'))
+        self.preview_width_row.set_subtitle(_('Percentage of the window width allocated to the PDF preview.'))
+        self.preview_width_row.add_suffix(self.preview_width_scale)
+        group_preview.add(self.preview_width_row)

@@ -21,6 +21,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 from setzer.popovers.popover_manager import PopoverManager
+from setzer.widgets.fixed_width_label.fixed_width_label import FixedWidthLabel
 
 
 class HeaderBar(object):
@@ -49,11 +50,10 @@ class HeaderBar(object):
         self.symbols_toggle.add_css_class('headerbar-plain')
         self.symbols_toggle.add_css_class('headerbar-icon')
 
-        self.sidebar_toggles_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.sidebar_toggles_box.append(self.document_structure_toggle)
-        self.sidebar_toggles_box.append(self.symbols_toggle)
-
-        self.widget.pack_start(self.sidebar_toggles_box)
+        # 直接 pack 进 HeaderBar，由 Adw 自动提供相邻控件的标准间距，
+        # 不手动用零 spacing 的 Box 包裹（避免两个按钮连在一起）。
+        self.widget.pack_start(self.document_structure_toggle)
+        self.widget.pack_start(self.symbols_toggle)
 
         # open document buttons (icon-only). 两个按钮互斥：
         # - open_document_blank_button: 无最近文档时显示，触发文件选择对话框
@@ -82,8 +82,14 @@ class HeaderBar(object):
         self.new_document_button.set_action_name('win.new-latex-document')
         self.new_document_button.add_css_class('headerbar-plain')
         self.new_document_button.add_css_class('headerbar-icon')
-        # menu_model 延迟到 setup_popovers() 再绑定（PopoverManager 尚未就绪）
-        self._new_doc_menu_model = None
+        # PopoverManager 在 create_widgets() 前已 init，此处直接绑定 menu_model。
+        # 原 setup_popovers() 方法从未被调用，导致箭头点不动——这是 bug 根因。
+        popover = PopoverManager.get_popover('new_document')
+        if popover is not None:
+            self.new_document_button.set_menu_model(popover.view.model)
+            menu_popover = self.new_document_button.get_popover()
+            if menu_popover is not None:
+                menu_popover.add_css_class('menu')
 
         self.widget.pack_start(self.open_document_button)
         self.widget.pack_start(self.open_document_blank_button)
@@ -105,32 +111,120 @@ class HeaderBar(object):
         self.save_document_button.add_css_class('headerbar-icon')
 
         # help and preview toggles
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.preview_toggle = Gtk.ToggleButton()
         self.preview_toggle.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
         self.preview_toggle.set_can_focus(False)
         self.preview_toggle.set_tooltip_text(_('Toggle preview') + ' (F9)')
         self.preview_toggle.add_css_class('headerbar-plain')
         self.preview_toggle.add_css_class('headerbar-icon')
-        box.append(self.preview_toggle)
         self.help_toggle = Gtk.ToggleButton()
         self.help_toggle.set_child(Gtk.Image(icon_name='help-browser-symbolic'))
         self.help_toggle.set_can_focus(False)
         self.help_toggle.set_tooltip_text(_('Toggle help') + ' (F1)')
         self.help_toggle.add_css_class('headerbar-plain')
         self.help_toggle.add_css_class('headerbar-icon')
-        box.append(self.help_toggle)
+        # 注意：preview_toggle / help_toggle 不在此处 pack_end。
+        # 它们在 build_wrapper 之后、save_document_button 之前 pack_end，
+        # 这样最终顺序（从最外侧到标题）为：panel_buttons_stack → menu →
+        # build → toggles → save。详见下方 pack_end 集中调用区。
 
         # build button wrapper (contains Save and Build / stop / clean / timer)
         self.build_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
+        # ---- preview buttons (moved from preview_panel ActionBar) ----
+        # 展开预览时显示在标题栏右侧，覆盖预览区域上方。
+        self.preview_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.preview_buttons.set_valign(Gtk.Align.CENTER)
+
+        self.preview_zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
+        self.preview_zoom_out_button.set_tooltip_text(_('Zoom out'))
+        self.preview_zoom_out_button.add_css_class('flat')
+        self.preview_zoom_out_button.set_can_focus(False)
+
+        self.preview_zoom_level_label = FixedWidthLabel(66)
+        self.preview_zoom_level_button = Gtk.MenuButton()
+        self.preview_zoom_level_button.set_popover(PopoverManager.create_popover('preview_zoom_level').view)
+        self.preview_zoom_level_button.set_can_focus(False)
+        self.preview_zoom_level_button.set_tooltip_text(_('Set zoom level'))
+        self.preview_zoom_level_button.add_css_class('flat')
+        self.preview_zoom_level_button.set_child(self.preview_zoom_level_label)
+
+        self.preview_zoom_in_button = Gtk.Button(icon_name='zoom-in-symbolic')
+        self.preview_zoom_in_button.set_tooltip_text(_('Zoom in'))
+        self.preview_zoom_in_button.add_css_class('flat')
+        self.preview_zoom_in_button.set_can_focus(False)
+
+        self.preview_recolor_pdf_toggle = Gtk.ToggleButton()
+        self.preview_recolor_pdf_toggle.set_icon_name('color-symbolic')
+        self.preview_recolor_pdf_toggle.set_tooltip_text(_('Match theme colors'))
+        self.preview_recolor_pdf_toggle.add_css_class('flat')
+        self.preview_recolor_pdf_toggle.set_can_focus(False)
+
+        self.preview_external_viewer_button = Gtk.Button(icon_name='web-browser-symbolic')
+        self.preview_external_viewer_button.set_tooltip_text(_('External Viewer'))
+        self.preview_external_viewer_button.add_css_class('flat')
+        self.preview_external_viewer_button.set_can_focus(False)
+
+        self.preview_buttons.append(self.preview_zoom_out_button)
+        self.preview_buttons.append(self.preview_zoom_level_button)
+        self.preview_buttons.append(self.preview_zoom_in_button)
+        self.preview_buttons.append(self.preview_recolor_pdf_toggle)
+        self.preview_buttons.append(self.preview_external_viewer_button)
+
+        # ---- help buttons (moved from help_panel ActionBar) ----
+        # 展开帮助时显示在标题栏右侧。
+        self.help_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.help_buttons.set_valign(Gtk.Align.CENTER)
+
+        self.help_home_button = Gtk.Button(icon_name='go-home-symbolic')
+        self.help_home_button.set_tooltip_text(_('Home'))
+        self.help_home_button.add_css_class('flat')
+        self.help_home_button.set_can_focus(False)
+
+        self.help_up_button = Gtk.Button(icon_name='go-up-symbolic')
+        self.help_up_button.set_tooltip_text(_('Top'))
+        self.help_up_button.add_css_class('flat')
+        self.help_up_button.set_can_focus(False)
+
+        self.help_back_button = Gtk.Button(icon_name='go-previous-symbolic')
+        self.help_back_button.set_tooltip_text(_('Back'))
+        self.help_back_button.add_css_class('flat')
+        self.help_back_button.set_can_focus(False)
+
+        self.help_next_button = Gtk.Button(icon_name='go-next-symbolic')
+        self.help_next_button.set_tooltip_text(_('Forward'))
+        self.help_next_button.add_css_class('flat')
+        self.help_next_button.set_can_focus(False)
+
+        self.help_search_button = Gtk.ToggleButton()
+        self.help_search_button.set_icon_name('edit-find-symbolic')
+        self.help_search_button.set_tooltip_text(_('Find'))
+        self.help_search_button.add_css_class('flat')
+        self.help_search_button.set_can_focus(False)
+
+        self.help_buttons.append(self.help_home_button)
+        self.help_buttons.append(self.help_up_button)
+        self.help_buttons.append(self.help_back_button)
+        self.help_buttons.append(self.help_next_button)
+        self.help_buttons.append(self.help_search_button)
+
+        # ---- panel_buttons_stack: 切换预览/帮助/无按钮组 ----
+        self.panel_buttons_stack = Gtk.Stack()
+        self.panel_buttons_stack.add_named(self.preview_buttons, 'preview')
+        self.panel_buttons_stack.add_named(self.help_buttons, 'help')
+        _panel_empty = Gtk.Box()
+        self.panel_buttons_stack.add_named(_panel_empty, 'none')
+        self.panel_buttons_stack.set_visible_child_name('none')
+
         # Right side, from the title outward: Save icon, preview/help toggles,
-        # then the build group (whose leading button is "Save and Build"),
-        # then the main menu. This puts "Save and Build" where the old textual
-        # Save button was, and the icon-only Save where the build group was.
+        # then the build group, then the main menu, then panel buttons
+        # (above the preview panel). pack_end 顺序 = 从右到左：最先 pack 的在最右。
+        # 当预览关闭时 panel_buttons_stack 切到空 Box，宽度为 0，布局回到原样。
+        self.widget.pack_end(self.panel_buttons_stack)
         self.widget.pack_end(self.menu_button)
         self.widget.pack_end(self.build_wrapper)
-        self.widget.pack_end(box)
+        self.widget.pack_end(self.preview_toggle)
+        self.widget.pack_end(self.help_toggle)
         self.widget.pack_end(self.save_document_button)
 
         # title / open documents popover
@@ -162,12 +256,3 @@ class HeaderBar(object):
 
     def _on_center_button_clicked(self, button):
         self.open_docs_popover.show()
-
-    def setup_popovers(self):
-        '''在 PopoverManager 就绪后调用，绑定 new_document menu model。'''
-        popover = PopoverManager.get_popover('new_document')
-        if popover is not None:
-            self.new_document_button.set_menu_model(popover.view.model)
-            menu_popover = self.new_document_button.get_popover()
-            if menu_popover is not None:
-                menu_popover.add_css_class('menu')

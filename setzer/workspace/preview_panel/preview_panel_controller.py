@@ -30,12 +30,14 @@ class PreviewPanelController(object):
         self.workspace = workspace
         self.main_window = ServiceLocator.get_main_window()
         self.view = self.main_window.preview_panel
+        self.headerbar = self.main_window.headerbar
 
-        self.view.zoom_in_button.connect('clicked', self.on_zoom_in_button_clicked)
-        self.view.zoom_out_button.connect('clicked', self.on_zoom_out_button_clicked)
+        # 按钮已迁移到 headerbar（Pass-11），通过 headerbar.preview_* 引用。
+        self.headerbar.preview_zoom_in_button.connect('clicked', self.on_zoom_in_button_clicked)
+        self.headerbar.preview_zoom_out_button.connect('clicked', self.on_zoom_out_button_clicked)
 
-        self.view.external_viewer_button.connect('clicked', self.on_external_viewer_button_clicked)
-        self.view.recolor_pdf_toggle.connect('toggled', self.on_recolor_pdf_toggle_toggled)
+        self.headerbar.preview_external_viewer_button.connect('clicked', self.on_external_viewer_button_clicked)
+        self.headerbar.preview_recolor_pdf_toggle.connect('toggled', self.on_recolor_pdf_toggle_toggled)
 
     def on_zoom_in_button_clicked(self, button):
         document = self.workspace.get_root_or_active_latex_document()
