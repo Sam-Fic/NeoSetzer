@@ -54,7 +54,7 @@ class DocumentView(Gtk.Box):
         self.overlay = Gtk.Overlay()
         self.overlay.set_vexpand(True)
         self.overlay.set_child(self.hbox)
-        self.overlay.add_css_class('preview-card')
+        self.overlay.add_css_class('editor-card')
         self.overlay.set_overflow(Gtk.Overflow.HIDDEN)
 
         self.vbox.append(self.overlay)

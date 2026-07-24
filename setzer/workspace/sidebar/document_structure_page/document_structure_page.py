@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GObject, Adw, Pango
+from gi.repository import Gtk, GLib, GObject, Adw, Pango
 
 import time
 
@@ -36,6 +36,8 @@ class DocumentStructurePage(Gtk.Box):
         self.scroll_to = None
         self._current_section_title = ''  # 缓存 section title，用于变化检测
         self._groups_cache = None         # page 的 group 列表缓存
+        self._closing_search = False      # 关闭搜索时阻止 set_text 副作用
+        self._suppress_scroll_handler = False  # 关闭搜索时跳过 on_scroll_or_resize
 
         self.add_buttons()
 
@@ -114,6 +116,8 @@ class DocumentStructurePage(Gtk.Box):
         self.toolbar.append(self.search_button)
 
         self.search_revealer = Gtk.Revealer()
+        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self.search_revealer.set_transition_duration(250)
         self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.search_box.add_css_class('sidebar-search-bar')
 
@@ -243,10 +247,13 @@ class DocumentStructurePage(Gtk.Box):
             self.search_entry.set_text('')
             self.search_revealer.set_reveal_child(True)
             self.search_entry.grab_focus()
+            self.filter_sections('')
         else:
+            # 先转移焦点到 scrolled_window，避免 Revealer 隐藏时搜索框失去焦点
+            # 导致 GTK 自动滚动到"下一个可聚焦控件"（越界到底部）。
+            self.scrolled_window.grab_focus()
             self.search_entry.set_text('')
             self.search_revealer.set_reveal_child(False)
-            self.filter_sections('')
 
     def on_search_stopped(self, entry):
         self.search_button.set_active(False)
@@ -259,7 +266,10 @@ class DocumentStructurePage(Gtk.Box):
             widget = self.section_widgets.get(name)
             if widget and hasattr(widget, 'filter_rows'):
                 any_visible = widget.filter_rows(query)
-                group.set_visible(any_visible or not query)
+                if query:
+                    group.set_visible(any_visible)
             else:
-                group.set_visible(True)
-        self._groups_cache = None
+                if query:
+                    group.set_visible(True)
+        if query:
+            self._groups_cache = None

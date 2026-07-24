@@ -156,6 +156,17 @@ textview gutter {
 }
 
 /*
+ * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片，但没有侧边距（编辑器占据
+ * 中央内容区，留边距会破坏与标题栏按钮的对齐），利用 document_stack_wrapper
+ * 已有的 margin_top 避免与浮层 headerbar 重叠。
+ */
+.editor-card {
+    border-radius: 8px;
+    margin: 0 0 6px 0;
+    background: @card_bg_color;
+}
+
+/*
  * 预览面板最外缘描边：来自两处 Libadwaita 原生分隔线——
  *   (1) Gtk.Paned 的 wide_handle 分隔条（编辑器与预览之间）带 border/阴影；
  *   (2) 预览底部 Gtk.ActionBar 顶缘的 inset 分隔线。
