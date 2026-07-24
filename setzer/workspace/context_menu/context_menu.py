@@ -110,18 +110,17 @@ class ContextMenu(object):
         # GTK 默认让 popover 横向居中于 pointing-to rect（光标在 popover 顶边
         # 中央）。要把光标推到左上角，需把 popover 整体右移半个宽度，使光标
         # 对齐 popover 左边缘——与 preview 的 context_menu set_offset(130, 0)
-        # （宽度 260 / 2）同思路。这里用 measure 动态取自然宽度，避免硬编码
-        # （菜单项长度随 locale/快捷键变化）。纵向默认在 pointing-to 下方展开
-        # （光标落在顶边），空间不足时 GTK 自动翻到上方（光标落到底边）；横向
-        # 接近右边界时 GTK 自动贴边/翻转。配合左移偏移，光标始终落在四个角
-        # 之一：默认左上，下方不够翻到左下，右边不够翻到右上/右下。
+        # （宽度 260 / 2 = 130）同思路。这里宽度固定 288（set_size_request，
+        # 菜单 model 不含会撑宽的动态内容），offset 取 144 = 288 / 2。
+        # 不用 measure：PopoverMenu 未 map 时内部 GtkStack 测量返回不可靠
+        # （可能为 0，使 offset 退化为 0）。纵向默认在 pointing-to 下方展开
+        # （光标落顶边），空间不足时 GTK 自动翻到上方（光标落底边）；横向接近
+        # 右边界时 GTK 自动贴边/翻转。配合右移偏移，光标始终落在四个角之一：
+        # 默认左上，下方不够翻到左下，右边不够翻到右上/右下。
         source_view = self.document.view.source_view
         self.popover_pointer.unparent()
         self.popover_pointer.set_parent(source_view)
-
-        _, nat_w, _, _ = self.popover_pointer.measure(Gtk.Orientation.HORIZONTAL, -1)
-        offset_x = max(0, nat_w // 2)
-        self.popover_pointer.set_offset(offset_x, 0)
+        self.popover_pointer.set_offset(144, 0)
 
         rect = Gdk.Rectangle()
         rect.x = x
