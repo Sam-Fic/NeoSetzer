@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -107,15 +107,15 @@ class SymbolsPageView(Gtk.Box):
         self.add_category(_('Recent'), self.symbols_view_recent)
 
         self.symbols_lists = list()
-        self.symbols_lists.append(['greek_letters', 'own-symbols-greek-letters-symbolic', _('Greek Letters'), 
+        self.symbols_lists.append(['greek_letters', 'own-symbols-greek-letters-symbolic', _('Greek Letters'),
                            'SidebarSymbolsList("greek_letters", 25)'])
-        self.symbols_lists.append(['arrows', 'own-symbols-arrows-symbolic', _('Arrows'), 
+        self.symbols_lists.append(['arrows', 'own-symbols-arrows-symbolic', _('Arrows'),
                            'SidebarSymbolsList("arrows", 48)'])
-        self.symbols_lists.append(['relations', 'own-symbols-relations-symbolic', _('Relations'), 
+        self.symbols_lists.append(['relations', 'own-symbols-relations-symbolic', _('Relations'),
                            'SidebarSymbolsList("relations", 39)'])
-        self.symbols_lists.append(['operators', 'own-symbols-operators-symbolic', _('Operators'), 
+        self.symbols_lists.append(['operators', 'own-symbols-operators-symbolic', _('Operators'),
                            'SidebarSymbolsList("operators", 47)'])
-        self.symbols_lists.append(['misc_math', 'own-symbols-misc-math-symbolic', _('Misc. Math'), 
+        self.symbols_lists.append(['misc_math', 'own-symbols-misc-math-symbolic', _('Misc. Math'),
                            'SidebarSymbolsList("misc_math", 42)'])
         self.symbols_lists.append(['misc_text', 'insert-text-symbolic', _('Misc. Symbols'),
                            'SidebarSymbolsList("misc_text", 38)'])
@@ -146,13 +146,13 @@ class SidebarSymbolsList(Gtk.FlowBox):
 
         self.symbol_folder = symbol_folder
         self.symbol_width = symbol_width
-        
+
         self.size = None
-        
+
         # symbols: icon name, latex code
         self.symbols = list()
         self.visible_symbols = list()
-        
+
         self.set_homogeneous(False)
         self.set_valign(Gtk.Align.START)
         # 关闭选中态：插入符号后不残留高亮（child-activated 仍会正常触发）。
@@ -173,7 +173,7 @@ class SidebarSymbolsList(Gtk.FlowBox):
             image.set_pixel_size(int(size * 1.5))
             image.set_size_request(self.symbol_width + 11, -1)
             tooltip_text = symbol[1]
-            if symbol[2] != None: 
+            if symbol[2] != None:
                 tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
             image.set_tooltip_text(tooltip_text)
 

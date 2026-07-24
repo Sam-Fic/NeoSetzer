@@ -152,6 +152,7 @@ textview gutter {
 .preview-card {
     margin: 0 6px 6px 6px;
     border-radius: 8px;
+    background: @card_bg_color;
 }
 
 /*
