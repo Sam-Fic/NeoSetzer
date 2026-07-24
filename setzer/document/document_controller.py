@@ -26,6 +26,11 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 
 
+# on_keypress 每次按键都跑，Gdk.keyval_from_name 模块级预计算避免每次 C 查表。
+_KEYVAL_TAB = Gdk.keyval_from_name('Tab')
+_KEYVAL_ISO_LEFT_TAB = Gdk.keyval_from_name('ISO_Left_Tab')
+
+
 class DocumentController(object):
     
     def __init__(self, document, document_view):
@@ -91,7 +96,7 @@ class DocumentController(object):
     def on_keypress(self, controller, keyval, keycode, state):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
-        if keyval in [Gdk.keyval_from_name('Tab'), Gdk.keyval_from_name('ISO_Left_Tab')]:
+        if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB]:
             if state & modifiers == 0:
                 self.document.select_next_placeholder()
                 if self.document.dot_selected():
@@ -108,7 +113,7 @@ class DocumentController(object):
                 self.document.source_buffer.place_cursor(insert_iter)
                 return True
 
-        if (state & modifiers, keyval) == (Gdk.ModifierType.SHIFT_MASK, Gdk.keyval_from_name('ISO_Left_Tab')):
+        if (state & modifiers, keyval) == (Gdk.ModifierType.SHIFT_MASK, _KEYVAL_ISO_LEFT_TAB):
             self.document.select_previous_placeholder()
             if self.document.dot_selected():
                 return True

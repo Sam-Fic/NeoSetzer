@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import Gio
+from gi.repository import Gio, GLib
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
@@ -29,6 +29,13 @@ class WorkspacePresenter(object):
         self.workspace = workspace
         self.main_window = ServiceLocator.get_main_window()
         self.settings = ServiceLocator.get_settings()
+
+        # 拖动分隔条时 notify::sidebar-width-fraction 每像素触发一次。
+        # 原实现每帧调 set_value → add_change_code('settings_changed') →
+        # 通知全部 ~10 个 settings 观察者做字符串比较。去抖后合并为拖动
+        # 停止后一次 idle 落盘，消除拖动期间的级联通知。
+        self._sidebar_width_idle_id = None
+        self._preview_width_idle_id = None
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -236,9 +243,27 @@ class WorkspacePresenter(object):
         self.main_window.headerbar.help_toggle.set_active(self.workspace.show_help)
 
     def on_sidebar_width_changed(self, split, pspec):
-        self.workspace.settings.set_value('window_state', 'sidebar_width_fraction', split.get_sidebar_width_fraction())
+        # 去抖：拖动期间仅缓存最新值，idle 时一次性 set_value。
+        # 避免 notify 每像素触发 set_value → settings_changed → 10+ 观察者回调。
+        fraction = split.get_sidebar_width_fraction()
+        if self._sidebar_width_idle_id is not None:
+            GLib.Source.remove(self._sidebar_width_idle_id)
+        self._sidebar_width_idle_id = GLib.idle_add(self._persist_sidebar_width, fraction)
+
+    def _persist_sidebar_width(self, fraction):
+        self._sidebar_width_idle_id = None
+        self.workspace.settings.set_value('window_state', 'sidebar_width_fraction', fraction)
+        return False
 
     def on_preview_width_changed(self, split, pspec):
-        self.workspace.settings.set_value('window_state', 'preview_width_fraction', split.get_sidebar_width_fraction())
+        fraction = split.get_sidebar_width_fraction()
+        if self._preview_width_idle_id is not None:
+            GLib.Source.remove(self._preview_width_idle_id)
+        self._preview_width_idle_id = GLib.idle_add(self._persist_preview_width, fraction)
+
+    def _persist_preview_width(self, fraction):
+        self._preview_width_idle_id = None
+        self.workspace.settings.set_value('window_state', 'preview_width_fraction', fraction)
+        return False
 
 

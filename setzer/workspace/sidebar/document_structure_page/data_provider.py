@@ -118,15 +118,16 @@ class DataProvider(Observable):
 
         # 仅连接新加入的文档，避免重复 connect（修复信号泄漏：原实现每次调用
         # 都对仍包含的文档叠加连接，导致一次文本改动触发 N 次侧边栏重建）。
-        for document in integrated_includes:
-            if document not in self.integrated_includes:
-                document.connect('changed', self.on_buffer_changed)
-        for document in self.integrated_includes:
-            if document not in integrated_includes:
-                try:
-                    document.disconnect('changed', self.on_buffer_changed)
-                except Exception:
-                    pass
+        # 单次集合差集替代两次线性扫描，文档数多时省一遍迭代。
+        new_docs = integrated_includes.keys() - self.integrated_includes.keys()
+        old_docs = self.integrated_includes.keys() - integrated_includes.keys()
+        for document in new_docs:
+            document.connect('changed', self.on_buffer_changed)
+        for document in old_docs:
+            try:
+                document.disconnect('changed', self.on_buffer_changed)
+            except Exception:
+                pass
         self.integrated_includes = integrated_includes
 
     def get_includes(self):

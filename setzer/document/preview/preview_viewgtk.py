@@ -53,14 +53,21 @@ class PreviewView(Gtk.Box):
         self.target_label.set_valign(Gtk.Align.END)
         self.target_label.set_can_target(False)
         self.overlay.add_overlay(self.target_label)
+        # 缓存上次的 link_target_string：update_cursor 在每次滚动/鼠标移动时
+        # 都调 set_link_target_string，绝大多数调用 target_string 不变（光标
+        # 仍在同一链接/无链接区域）。set_text + set_visible 即使值相同也会
+        # 经 GTK 属性通知链；签名比对为 O(1) 字符串比较，省去无谓的 widget 更新。
+        self._current_link_target = None
         self.set_link_target_string('')
 
     def set_layout_data(self, layout_data):
         self.layout_data = layout_data
 
     def set_link_target_string(self, target_string):
-        self.target_label.set_text(target_string)
-        self.target_label.set_visible(target_string != '')
+        if target_string != self._current_link_target:
+            self._current_link_target = target_string
+            self.target_label.set_text(target_string)
+            self.target_label.set_visible(target_string != '')
 
 
 def BlankSlateView():

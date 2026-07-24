@@ -22,6 +22,18 @@ from gi.repository import Gtk, Gdk, GLib
 from setzer.app.service_locator import ServiceLocator
 
 
+# on_keypress 每次按键都跑，原实现每次都调 Gdk.keyval_from_name 做字符串→
+# keyval 查表（C 函数 + 内部哈希）。模块级预计算为整数常量后，热路径只做
+# 整数 == 比较。
+_KEYVAL_BACKSLASH = Gdk.keyval_from_name('backslash')
+_KEYVAL_BRACKETLEFT = Gdk.keyval_from_name('bracketleft')
+_KEYVAL_BRACELEFT = Gdk.keyval_from_name('braceleft')
+_KEYVAL_PARENLEFT = Gdk.keyval_from_name('parenleft')
+_KEYVAL_BRACKETRIGHT = Gdk.keyval_from_name('bracketright')
+_KEYVAL_BRACERIGHT = Gdk.keyval_from_name('braceright')
+_KEYVAL_PARENRIGHT = Gdk.keyval_from_name('parenright')
+
+
 class BracketCompletion(object):
 
     def __init__(self, document):
@@ -61,29 +73,29 @@ class BracketCompletion(object):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if self.source_buffer.get_has_selection():
-            if keyval == Gdk.keyval_from_name('backslash'):
+            if keyval == _KEYVAL_BACKSLASH:
                 return self.bracket_selection('\\')
-            if keyval == Gdk.keyval_from_name('bracketleft'):
+            if keyval == _KEYVAL_BRACKETLEFT:
                 return self.bracket_selection('[')
-            if keyval == Gdk.keyval_from_name('braceleft'):
+            if keyval == _KEYVAL_BRACELEFT:
                 return self.bracket_selection('{')
-            if keyval == Gdk.keyval_from_name('parenleft'):
+            if keyval == _KEYVAL_PARENLEFT:
                 return self.bracket_selection('(')
         else:
-            if keyval == Gdk.keyval_from_name('bracketleft'):
+            if keyval == _KEYVAL_BRACKETLEFT:
                 return self.autoclose_brackets('[')
-            if keyval == Gdk.keyval_from_name('braceleft'):
+            if keyval == _KEYVAL_BRACELEFT:
                 return self.autoclose_brackets('{')
-            if keyval == Gdk.keyval_from_name('parenleft'):
+            if keyval == _KEYVAL_PARENLEFT:
                 return self.autoclose_brackets('(')
 
-            if keyval == Gdk.keyval_from_name('bracketright'):
+            if keyval == _KEYVAL_BRACKETRIGHT:
                 return self.handle_autoclosing_bracket_overwrite(']')
-            if keyval == Gdk.keyval_from_name('braceright'):
+            if keyval == _KEYVAL_BRACERIGHT:
                 return self.handle_autoclosing_bracket_overwrite('}')
-            if keyval == Gdk.keyval_from_name('parenright'):
+            if keyval == _KEYVAL_PARENRIGHT:
                 return self.handle_autoclosing_bracket_overwrite(')')
-            if keyval == Gdk.keyval_from_name('backslash'):
+            if keyval == _KEYVAL_BACKSLASH:
                 return self.handle_autoclosing_bracket_overwrite('\\')
 
         return False
@@ -164,14 +176,18 @@ class BracketCompletion(object):
         # remove completion marks when the cursor is outside the bracketed area.
 
         completion_marks = list()
+        # insert 位置在整个循环中不变，提到循环外只取一次。原实现每个 mark
+        # 各调一次 get_iter_at_mark(get_insert())，N 个 mark 做 N 次 mark 查找 +
+        # iter 创建。completion_marks 通常只有 0-1 项，但取值开销本身可消除。
+        insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        insert_offset = insert_iter.get_offset()
 
         for marks in self.completion_marks:
             start_mark, end_mark = marks
             start_iter = self.source_buffer.get_iter_at_mark(start_mark)
             end_iter = self.source_buffer.get_iter_at_mark(end_mark)
-            insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
 
-            if self.autoclose_enabled and start_iter.get_offset() < insert_iter.get_offset() and end_iter.get_offset() > insert_iter.get_offset():
+            if self.autoclose_enabled and start_iter.get_offset() < insert_offset and end_iter.get_offset() > insert_offset:
                 completion_marks.append([start_mark, end_mark])
             else:
                 self.source_buffer.delete_mark(start_mark)
@@ -186,27 +202,26 @@ class BracketCompletion(object):
 
         if not self.document.get_chars_at_cursor(1) == char: return False
 
-        if char == '\\':
-            insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
-            insert_iter.forward_chars(2)
-            for mark in insert_iter.get_marks():
-                if mark != None and mark.get_name() != None and mark.get_name().startswith('brackets_autoclose_end_'):
-                    self.source_buffer.begin_user_action()
-                    insert_iter.backward_chars(1)
-                    self.source_buffer.place_cursor(insert_iter)
-                    self.source_buffer.end_user_action()
-                    self.reconsider_completion_marks()
-                    return True
-        else:
-            insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
-            insert_iter.forward_chars(1)
-            for mark in insert_iter.get_marks():
-                if mark != None and mark.get_name() != None and mark.get_name().startswith('brackets_autoclose_end_'):
-                    self.source_buffer.begin_user_action()
-                    self.source_buffer.place_cursor(insert_iter)
-                    self.source_buffer.end_user_action()
-                    self.reconsider_completion_marks()
-                    return True
+        # 直接遍历 self.completion_marks（通常 0-1 项）而非 insert_iter.get_marks()，
+        # 后者会返回该位置上所有 mark（含 GTK 内置的 insert / selection_bound），
+        # 在每次按键时徒增一次完整 mark 集合迭代开销。
+        insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        target_iter = insert_iter.copy()
+        target_iter.forward_chars(2 if char == '\\' else 1)
+        target_offset = target_iter.get_offset()
+
+        for start_mark, end_mark in self.completion_marks:
+            end_iter = self.source_buffer.get_iter_at_mark(end_mark)
+            if end_iter.get_offset() == target_offset:
+                self.source_buffer.begin_user_action()
+                if char == '\\':
+                    target_iter.backward_chars(1)
+                    self.source_buffer.place_cursor(target_iter)
+                else:
+                    self.source_buffer.place_cursor(target_iter)
+                self.source_buffer.end_user_action()
+                self.reconsider_completion_marks()
+                return True
 
         return False
 

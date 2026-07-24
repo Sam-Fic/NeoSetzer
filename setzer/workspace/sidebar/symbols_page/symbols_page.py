@@ -36,6 +36,7 @@ class SymbolsPage(object):
         self.workspace = workspace
 
         self.scroll_to = None
+        self._current_section_title = ''  # 缓存 section title，用于变化检测
 
         self.recent = ServiceLocator.get_settings().get_value('app_recent_symbols', 'symbols')
         self.recent_details = list()
@@ -132,6 +133,8 @@ class SymbolsPage(object):
         else:
             self.view.prev_button.set_sensitive(True)
 
+        # 一次取 visible sections，复用给按钮敏感度 + section label，
+        # 避免每帧调用两次 get_visible_sections（各遍历全部 labels）。
         sections = self.get_visible_sections()
         if len(sections) == 0:
             self.view.next_button.set_sensitive(False)
@@ -139,7 +142,7 @@ class SymbolsPage(object):
             final_offset = sections[-1][1]
             self.view.next_button.set_sensitive(scrolling_offset < final_offset)
 
-        self.update_section_label()
+        self.update_section_label(sections)
 
     def get_visible_sections(self):
         """返回 [(title, absolute_y), ...]，含所有 visible group 的内容绝对 Y 坐标。"""
@@ -155,9 +158,13 @@ class SymbolsPage(object):
     def get_section_offsets(self):
         return [y for (title, y) in self.get_visible_sections()]
 
-    def get_current_section_title(self):
-        """返回当前滚动到视口顶部的分区标题；视口顶部位于第一段之前时返回首段标题。"""
-        sections = self.get_visible_sections()
+    def get_current_section_title(self, sections=None):
+        """返回当前滚动到视口顶部的分区标题；视口顶部位于第一段之前时返回首段标题。
+
+        接收已取的 visible_sections（绝对 Y），避免重复调用 get_visible_sections。
+        """
+        if sections is None:
+            sections = self.get_visible_sections()
         if len(sections) == 0:
             return ''
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
@@ -169,8 +176,12 @@ class SymbolsPage(object):
                 break
         return current
 
-    def update_section_label(self):
-        self.view.section_label.set_text(self.get_current_section_title())
+    def update_section_label(self, sections=None):
+        # section title：仅变化时 set_text，避免每帧触发 Gtk.Label 无谓重绘
+        current_title = self.get_current_section_title(sections)
+        if current_title != self._current_section_title:
+            self._current_section_title = current_title
+            self.view.section_label.set_text(current_title)
 
     def on_next_button_clicked(self, button):
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()

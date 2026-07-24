@@ -66,33 +66,39 @@ class StructureSection(object):
     def update_items(self, *params):
         sections = dict()
 
+        # 用游标 include_idx 推进而非 del(includes[0])：后者每次删除需把
+        # 剩余元素整体前移，N 个 include 的合并复杂度退化为 O(N²)。
         includes = self.data_provider.get_includes()
+        include_idx = 0
+        include_count = len(includes)
         blocks = list()
         for block in self.data_provider.document.parser.symbols['blocks']:
-            while len(includes) > 0 and includes[0]['offset'] < block[0]:
-                if includes[0]['document'] != None:
-                    for block_included in includes[0]['document'].parser.symbols['blocks']:
+            while include_idx < include_count and includes[include_idx]['offset'] < block[0]:
+                inc = includes[include_idx]
+                if inc['document'] != None:
+                    for block_included in inc['document'].parser.symbols['blocks']:
                         if len(block_included) < 7:
-                            block_included.append(includes[0]['document'])
+                            block_included.append(inc['document'])
                         blocks.append(block_included)
                 else:
-                    file_block = [0, 0, 0, 0, 'file', includes[0]['filename'], includes[0]['document']]
+                    file_block = [0, 0, 0, 0, 'file', inc['filename'], inc['document']]
                     blocks.append(file_block)
-                del(includes[0])
+                include_idx += 1
             if len(block) < 7:
                 block.append(self.data_provider.document)
             blocks.append(block)
 
-        while len(includes) > 0:
-            if includes[0]['document'] != None:
-                for block in includes[0]['document'].parser.symbols['blocks']:
+        while include_idx < include_count:
+            inc = includes[include_idx]
+            if inc['document'] != None:
+                for block in inc['document'].parser.symbols['blocks']:
                     if len(block) < 7:
-                        block.append(includes[0]['document'])
+                        block.append(inc['document'])
                     blocks.append(block)
             else:
-                file_block = [0, 0, 0, 0, 'file', includes[0]['filename'], includes[0]['document']]
+                file_block = [0, 0, 0, 0, 'file', inc['filename'], inc['document']]
                 blocks.append(file_block)
-            del(includes[0])
+            include_idx += 1
 
         last_line = -1
         for block in blocks:

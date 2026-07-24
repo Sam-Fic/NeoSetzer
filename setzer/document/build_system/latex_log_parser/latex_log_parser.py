@@ -53,24 +53,28 @@ class LaTeXLogParser():
     def get_additional_jobs(self, log_items, query):
         jobs = set()
         rerun_latex_reasons = set()
+        # tex_basename 不含扩展名，原实现每条 log item 都重复 rsplit 两次
+        # （rsplit('.',1)[0].rsplit('/',1)[1] 与 rsplit('/',1)[1][:-4] 各算
+        # 多遍，二者结果相同）。提到循环外只算一次，N 条日志省 2N 次字符串切分。
+        tex_basename = query.tex_filename.rsplit('/', 1)[1][:-4]
         for filename, items in log_items.items():
             for item in items['error'] + items['warning']:
 
-                if item[2].startswith('No file ') and item[2].find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0 and item[2].find('.bbl.') >= 0:
-                    if not query.tex_filename.rsplit('/', 1)[1][:-4] in query.bibtex_data['ran_on_files']:
+                if item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and item[2].find('.bbl.') >= 0:
+                    if not tex_basename in query.bibtex_data['ran_on_files']:
                         jobs |= {'build_bibtex'}
 
-                elif item[2].startswith('No file ') and item[2].find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0 and item[2].find('.ind.') >= 0:
-                    if not query.tex_filename.rsplit('/', 1)[1][:-4] in query.makeindex_data['ran_on_files']:
+                elif item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and item[2].find('.ind.') >= 0:
+                    if not tex_basename in query.makeindex_data['ran_on_files']:
                         jobs |= {'build_makeindex'}
 
                 elif item[2] == 'Please (re)run Biber on the file:':
                     line = item[3]
-                    if line.find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0:
-                        if not query.tex_filename.rsplit('/', 1)[1][:-4] in query.biber_data['ran_on_files']:
+                    if line.find(tex_basename) >= 0:
+                        if not tex_basename in query.biber_data['ran_on_files']:
                             jobs |= {'build_biber'}
 
-                elif item[2] == 'File `' + query.tex_filename.rsplit('/', 1)[1][:-4] + '.out\' has changed.':
+                elif item[2] == 'File `' + tex_basename + '.out\' has changed.':
                     jobs |= {'build_latex'}
                     rerun_latex_reasons |= {1}
 
@@ -90,7 +94,7 @@ class LaTeXLogParser():
                     jobs |= {'build_latex'}
                     rerun_latex_reasons |= {4}
 
-                elif item[2].startswith('No file ') and item[2].find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0 and (item[2].find('.toc.') >= 0 or item[2].find('.aux.') >= 0):
+                elif item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and (item[2].find('.toc.') >= 0 or item[2].find('.aux.') >= 0):
                     jobs |= {'build_latex'}
                     rerun_latex_reasons |= {5}
 
@@ -98,10 +102,10 @@ class LaTeXLogParser():
                     jobs |= {'build_latex'}
                     rerun_latex_reasons |= {6}
 
-                elif item[2].startswith('No file ') and item[2].find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0 and (item[2].find('.gls.') >= 0 or item[2].find('.acr.') >= 0):
+                elif item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and (item[2].find('.gls.') >= 0 or item[2].find('.acr.') >= 0):
                     jobs |= {'build_glossaries'}
 
-                elif item[2].startswith('No file ') and item[2].find(query.tex_filename.rsplit('.', 1)[0].rsplit('/', 1)[1]) >= 0 and (item[2].find('.aux.') >= 0):
+                elif item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and (item[2].find('.aux.') >= 0):
                     jobs |= {'build_latex'}
                     rerun_latex_reasons |= {7}
 

@@ -19,7 +19,24 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gdk
 
+import re
+
 from setzer.app.service_locator import ServiceLocator
+
+
+# on_keypress 是打字热路径，每次按键都跑。原实现每帧调
+# ServiceLocator.get_regex_object('[a-zA-Z]\\Z') 做一次 dict 查表，
+# 模块级预编译后直接 .match，省去哈希查找。
+_LETTER_REGEX = re.compile(r'[a-zA-Z]\Z')
+# handle_keypress_inside_begin_or_end 中匹配 \begin{...}\end{...} 的正则，
+# 同样从每次按键的 ServiceLocator 查表改为直接持有。
+_BEGIN_END_REGEX = re.compile(r'.*\\(begin|end)\{((?:[^\{\[\(])*)%•%((?:[^\{\[\(])*)\}')
+
+# Gdk.keyval_from_name 是 C 函数 + 字符串查表，每次按键调用 3-6 次。
+# 模块级预计算为整数常量后，热路径只做整数比较。
+_KEYVAL_ASTERISK = Gdk.keyval_from_name('asterisk')
+_KEYVAL_BACKSPACE = Gdk.keyval_from_name('BackSpace')
+_KEYVAL_DELETE = Gdk.keyval_from_name('Delete')
 
 
 class UpdateMatchingBlocks(object):
@@ -49,7 +66,7 @@ class UpdateMatchingBlocks(object):
 
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
-        if ServiceLocator.get_regex_object('[a-zA-Z]\\Z').match(Gdk.keyval_name(keyval)) or keyval == Gdk.keyval_from_name('asterisk') or keyval == Gdk.keyval_from_name('BackSpace') or keyval == Gdk.keyval_from_name('Delete'):
+        if _LETTER_REGEX.match(Gdk.keyval_name(keyval)) or keyval == _KEYVAL_ASTERISK or keyval == _KEYVAL_BACKSPACE or keyval == _KEYVAL_DELETE:
             if state & modifiers == 0:
                 if not self.document.autocomplete.is_active:
                     if self.handle_keypress_inside_begin_or_end(keyval):
@@ -64,10 +81,10 @@ class UpdateMatchingBlocks(object):
         offset = insert_iter.get_line_offset()
         cursor_offset = insert_iter.get_offset()
         line = line[:offset] + '%•%' + line[offset:]
-        match_begin_end = ServiceLocator.get_regex_object(r'.*\\(begin|end)\{((?:[^\{\[\(])*)%•%((?:[^\{\[\(])*)\}').match(line)
+        match_begin_end = _BEGIN_END_REGEX.match(line)
         if match_begin_end == None: return False
-        if keyval == Gdk.keyval_from_name('BackSpace') and len(match_begin_end.group(2)) == 0: return False
-        if keyval == Gdk.keyval_from_name('Delete') and len(match_begin_end.group(3)) == 0: return False
+        if keyval == _KEYVAL_BACKSPACE and len(match_begin_end.group(2)) == 0: return False
+        if keyval == _KEYVAL_DELETE and len(match_begin_end.group(3)) == 0: return False
 
         orig_offset = cursor_offset - insert_iter.get_line_offset() + match_begin_end.start()
         offset = None
@@ -87,15 +104,15 @@ class UpdateMatchingBlocks(object):
         if offset == None: return False
 
         buffer.begin_user_action()
-        if keyval == Gdk.keyval_from_name('asterisk'):
+        if keyval == _KEYVAL_ASTERISK:
             if cursor_offset < offset: offset += 1
             buffer.insert_at_cursor('*')
             buffer.insert(buffer.get_iter_at_offset(offset), '*')
-        elif keyval == Gdk.keyval_from_name('BackSpace'):
+        elif keyval == _KEYVAL_BACKSPACE:
             if cursor_offset < offset: offset -= 1
             buffer.delete(buffer.get_iter_at_offset(cursor_offset - 1), buffer.get_iter_at_offset(cursor_offset))
             buffer.delete(buffer.get_iter_at_offset(offset - 1), buffer.get_iter_at_offset(offset))
-        elif keyval == Gdk.keyval_from_name('Delete'):
+        elif keyval == _KEYVAL_DELETE:
             if cursor_offset < offset: offset -= 1
             buffer.delete(buffer.get_iter_at_offset(cursor_offset), buffer.get_iter_at_offset(cursor_offset + 1))
             buffer.delete(buffer.get_iter_at_offset(offset), buffer.get_iter_at_offset(offset + 1))

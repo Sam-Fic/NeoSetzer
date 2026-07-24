@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -44,6 +44,11 @@ class AutocompleteWidget(object):
         self.shortcutsbar_height = None
         self.x_position, self.y_position = (None, None)
         self.focus_hide = self.model.document.source_view.has_focus()
+        # max_chars 缓存：queue_draw 在每次滚动/光标移动时调用 update_size →
+        # get_max_chars，后者遍历全部 items（可能上百项）。但 max_chars 仅在
+        # items 内容变化时改变，用 items 对象身份做缓存键避免重复遍历。
+        self._max_chars_items = None
+        self._max_chars_cache = 0
 
         self.focus_controller = Gtk.EventControllerFocus()
         self.focus_controller.connect('enter', self.on_focus_in)
@@ -82,10 +87,17 @@ class AutocompleteWidget(object):
             self.view.set_size_request(self.width, self.height)
 
     def get_max_chars(self):
-        if len(self.model.items) > 0:
-            return max([len(item['command']) + len(item['dotlabels']) - 4 * item['dotlabels'].count('###') for item in self.model.items])
-        else:
+        items = self.model.items
+        if items is None or len(items) == 0:
             return 0
+        # items 在 update_suggestions 中被整体替换（self.items = ...），不就地修改。
+        # 用 is（身份比较）做缓存键：同一对象直接返回缓存，新对象才重新遍历。
+        # queue_draw 每次滚动都跑，但 items 仅在补全词变化时才换。
+        if items is self._max_chars_items:
+            return self._max_chars_cache
+        self._max_chars_items = items
+        self._max_chars_cache = max(len(item['command']) + len(item['dotlabels']) - 4 * item['dotlabels'].count('###') for item in items)
+        return self._max_chars_cache
 
     def update_position(self):
         start_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
@@ -118,5 +130,3 @@ class AutocompleteWidget(object):
             (self.y_position <= self.document.view.scrolled_window.get_allocated_height()) and
             (self.x_position >= 0) and
             (self.x_position < self.main_window.preview_split.get_allocated_width()))
-
-

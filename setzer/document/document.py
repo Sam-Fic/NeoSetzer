@@ -19,7 +19,7 @@ import gi
 gi.require_version('GtkSource', '5')
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import GtkSource, Gtk, GObject, Adw, GLib
+from gi.repository import GtkSource, Gtk, GObject, Adw, GLib, Gdk
 
 import os.path, time
 
@@ -252,12 +252,9 @@ class Document(Observable):
         self.source_buffer.select_range(self.source_buffer.get_start_iter(), self.source_buffer.get_end_iter())
 
     def add_packages(self, packages):
-        first_package = True
-        text = ''
-        for packagename in packages:
-            if not first_package: text += '\n'
-            text += '\\usepackage{' + packagename + '}'
-            first_package = False
+        # 用 join 替代循环 +=：每次 += 创建新字符串并复制全部已有内容，
+        # N 个包的复杂度为 O(N²)。join 一次性分配。
+        text = '\n'.join('\\usepackage{' + name + '}' for name in packages)
         self.insert_text_after_packages_if_possible(text)
 
     def insert_text_after_packages_if_possible(self, text):
@@ -331,12 +328,12 @@ class Document(Observable):
         lines = text.split('\n')
         ws_number = len(ws_line) - len(ws_line.lstrip())
         whitespace = ws_line[:ws_number]
-        final_text = ''
-        for no, line in enumerate(lines):
-            if no != 0:
-                final_text += '\n' + whitespace
-            final_text += line
-        return final_text
+        # 用 join 替代循环 +=：每次 += 都创建新字符串并复制全部已有内容，
+        # N 行片段的复杂度为 O(N²)。join 一次性分配。多行片段插入
+        # （\begin{..}\n\t•\n\\end{..}）时差异最明显。
+        if whitespace:
+            lines = [lines[0]] + [whitespace + line for line in lines[1:]]
+        return '\n'.join(lines)
 
     def on_modified_change(self, buffer):
         self.add_change_code('modified_changed')
@@ -402,18 +399,27 @@ class Document(Observable):
         self.highlight_tags[self.highlight_tag_count] = {'tag': tag, 'time': time.time()}
 
     def remove_or_color_highlight_tags(self):
+        # start/end iter 对所有 tag 相同，提到循环外避免每个过期 tag 各调一次
+        # get_start_iter / get_end_iter（C 调用 + 对象创建）。fade 色也仅取决于
+        # 主题，循环内只需算 opacity_factor。
+        start = end = None
+        fade_color = None
         for tag_count in list(self.highlight_tags):
             item = self.highlight_tags[tag_count]
             time_factor = time.time() - item['time']
             if time_factor > 1.5:
                 if time_factor <= 1.75:
+                    if fade_color is None:
+                        fade_color = ColorManager.get_ui_color('highlight_tag_textview')
+                    color = Gdk.RGBA()
+                    color.red, color.green, color.blue = fade_color.red, fade_color.green, fade_color.blue
                     opacity_factor = int(self.ease(1 - (time_factor - 1.5) * 4) * 20)
-                    color = ColorManager.get_ui_color('highlight_tag_textview')
-                    color.alpha *= opacity_factor * 0.05
+                    color.alpha = fade_color.alpha * opacity_factor * 0.05
                     item['tag'].set_property('background-rgba', color)
                 else:
-                    start = self.source_buffer.get_start_iter()
-                    end = self.source_buffer.get_end_iter()
+                    if start is None:
+                        start = self.source_buffer.get_start_iter()
+                        end = self.source_buffer.get_end_iter()
                     self.source_buffer.remove_tag(item['tag'], start, end)
                     self.source_buffer.get_tag_table().remove(item['tag'])
                     del(self.highlight_tags[tag_count])

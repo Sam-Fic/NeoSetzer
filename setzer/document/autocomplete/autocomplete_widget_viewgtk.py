@@ -42,6 +42,11 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self.set_can_target(False)
         self.add_css_class('monospace')
 
+        # 签名缓存：populate 在 select_next/select_previous/page_down/page_up
+        # 以及滚动/焦点变化时都被调用，但此时 items 切片未变，仅选中项或位置
+        # 不同。签名命中时跳过 clear + 重建 5 个 ListBoxRow，只更新 select_row。
+        self._last_items_signature = None
+
     def populate(self):
         '''Rebuild the visible rows from the model's current state.
 
@@ -52,6 +57,23 @@ class AutocompleteWidgetView(Gtk.ListBox):
         model = self.model.model
         si = model.selected_item_index
         fi = model.first_item_index
+
+        # 签名 = (current_word, first_item_index, 可见 items 的 command+dotlabels)
+        # current_word 决定加粗前缀长度，fi 决定切片起点，items 决定内容。
+        # 三者都不变时 row 内容完全相同，跳过重建只更新选中项。
+        if model.current_word is not None and fi is not None and len(model.items) > 0:
+            visible = model.items[fi:fi + 5]
+            signature = (model.current_word, fi, tuple(
+                (item['command'], item['dotlabels']) for item in visible))
+        else:
+            signature = None
+
+        if signature == self._last_items_signature:
+            # items 未变，只更新选中行
+            self._update_selection(si, fi)
+            return
+
+        self._last_items_signature = signature
 
         # Clear existing rows.
         child = self.get_first_child()
@@ -93,3 +115,22 @@ class AutocompleteWidgetView(Gtk.ListBox):
 
         if selected_row is not None:
             self.select_row(selected_row)
+
+    def _update_selection(self, si, fi):
+        '''items 未变时仅更新选中行，避免重建全部 row。'''
+        if si is None or fi is None:
+            self.select_row(None)
+            return
+        target_index = si - fi
+        if target_index < 0:
+            self.select_row(None)
+            return
+        child = self.get_first_child()
+        i = 0
+        while child is not None:
+            if i == target_index:
+                self.select_row(child)
+                return
+            child = child.get_next_sibling()
+            i += 1
+        self.select_row(None)

@@ -266,10 +266,10 @@ class DocumentStructurePage(Gtk.Box):
             widget = self.section_widgets.get(name)
             if widget and hasattr(widget, 'filter_rows'):
                 any_visible = widget.filter_rows(query)
-                if query:
-                    group.set_visible(any_visible)
+                # query 非空时按匹配结果显隐 group；query 为空时恢复全部 group
+                # 可见（修复：搜索清空后之前被隐藏的 group 未恢复）。
+                group.set_visible(any_visible if query else True)
             else:
-                if query:
-                    group.set_visible(True)
+                group.set_visible(True)
         if query:
             self._groups_cache = None

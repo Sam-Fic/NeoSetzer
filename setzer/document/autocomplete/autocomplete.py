@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 
 import re, os.path
 
@@ -25,6 +25,11 @@ import setzer.document.autocomplete.autocomplete_controller as autocomplete_cont
 import setzer.document.autocomplete.autocomplete_widget as autocomplete_widget
 from setzer.app.latex_db import LaTeXDB
 from setzer.app.service_locator import ServiceLocator
+
+
+# activate_if_possible 在每次单字符插入时调用（打字热路径），预编译避免
+# re.search 每次查 re._cache 的字典开销。
+_ACTIVATE_REGEX = re.compile(r'\\[a-zA-Z]+\Z')
 
 
 class Autocomplete(object):
@@ -42,6 +47,17 @@ class Autocomplete(object):
         self.last_tabbed_item = None
         self.first_item_index = None
         self.selected_item_index = None
+
+        # suggestions 缓存键 + idle 去抖。
+        # 1) 缓存：update_suggestions 在 is_active 时由 on_document_change +
+        #    on_cursor_position_change 两路触发，单次按键跑两遍 LaTeXDB.get_items
+        #    （会扫所有打开文档的 labels/bibitems）。若 current_word 与
+        #    last_tabbed_item 都未变（如光标在同一补全词内左右移），结果必然相同，
+        #    直接复用 items，跳过 LaTeXDB 遍历。
+        # 2) 去抖：单次按键产生的 changed + cursor-position 两路合并为一次 idle
+        #    调用，避免重复 update_suggestions + queue_draw。
+        self._last_suggestions_key = None
+        self._update_suggestions_idle_id = None
 
         self.controller = autocomplete_controller.AutocompleteController(self, document)
         self.widget = autocomplete_widget.AutocompleteWidget(self)
@@ -62,7 +78,8 @@ class Autocomplete(object):
     def on_document_change(self, document):
         if self.is_active:
             self.deactivate_if_necessary()
-            self.update_suggestions()
+            if self.is_active:
+                self._schedule_update_suggestions()
         elif self.document.parser.last_edit[0] == 'insert':
             if len(self.document.parser.last_edit[2]) == 1:
                 self.activate_if_possible()
@@ -70,7 +87,21 @@ class Autocomplete(object):
     def on_cursor_position_change(self, buffer, position):
         if self.is_active:
             self.deactivate_if_necessary()
+            if self.is_active:
+                self._schedule_update_suggestions()
+
+    def _schedule_update_suggestions(self):
+        '''单次按键触发的 changed + cursor-position 两路合并为一次 idle 调用。
+        在 idle 中跑一次 update_suggestions 而非两次，节省一次 LaTeXDB 查询 +
+        一次 queue_draw。同时 idle 让出主线程，使按键事件先返回 GTK 渲染。'''
+        if self._update_suggestions_idle_id is None:
+            self._update_suggestions_idle_id = GLib.idle_add(self._update_suggestions_idle)
+
+    def _update_suggestions_idle(self):
+        self._update_suggestions_idle_id = None
+        if self.is_active:
             self.update_suggestions()
+        return False
 
     def on_adjustment_change(self, adjustment):
         # 未激活时 widget 已隐藏，滚动无需更新位置/大小/内容。
@@ -98,7 +129,7 @@ class Autocomplete(object):
 
         insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
         line_before_cursor = self.document.get_line(insert_iter.get_line())[:insert_iter.get_line_offset()]
-        matching_result = re.search(r'\\[a-zA-Z]+\Z', line_before_cursor)
+        matching_result = _ACTIVATE_REGEX.search(line_before_cursor)
         if matching_result:
             self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + matching_result.start()
             self.is_active = True
@@ -124,6 +155,13 @@ class Autocomplete(object):
         self.last_tabbed_item = None
         self.first_item_index = None
         self.selected_item_index = None
+        # 清空缓存键与挂起的 idle 回调，避免 deactivate 后 idle 仍跑
+        # update_suggestions（is_active=False 时虽会早退，但残留 id 会阻止
+        # 下次激活期间新的 idle 调度，导致补全列表不刷新）。
+        self._last_suggestions_key = None
+        if self._update_suggestions_idle_id is not None:
+            GLib.Source.remove(self._update_suggestions_idle_id)
+            self._update_suggestions_idle_id = None
         self.widget.queue_draw()
 
     def update_suggestions(self):
@@ -136,13 +174,23 @@ class Autocomplete(object):
         line_offset = self.source_buffer.get_iter_at_line(insert_iter.get_line())[1].get_offset()
 
         self.current_word = line_before_cursor[self.current_word_offset - line_offset:]
-        self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item)
 
-        if len(self.items) > 0:
-            self.first_item_index = 0
-            self.selected_item_index = 0
-        else:
-            self.deactivate()
+        # 缓存命中：current_word 与 last_tabbed_item 都未变时（例如 queue_draw
+        # 链路重复触发、或 idle 与直接调用同帧到达），LaTeXDB.get_items 结果
+        # 必然相同，跳过遍历。current_word 是从 cursor 位置派生的，光标在词内
+        # 任何移动都会改变它，所以命中场景主要是「同帧重复调用」——这正是
+        # idle 去抖之外仍可能出现的情况（如 tab() 后再 update_suggestions）。
+        cache_key = (self.current_word, self.last_tabbed_item)
+        if cache_key != self._last_suggestions_key:
+            self._last_suggestions_key = cache_key
+            self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item)
+            # items 集合可能已变，重置选中项到首项（与原行为一致）。
+            if len(self.items) > 0:
+                self.first_item_index = 0
+                self.selected_item_index = 0
+            else:
+                self.deactivate()
+                return
         self.widget.queue_draw()
 
     def select_next(self):

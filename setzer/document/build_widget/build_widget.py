@@ -25,6 +25,18 @@ import time
 import os.path
 
 
+# LaTeX 辅助文件扩展名列表（构建产物）。原代码在 set_clean_button_state 和
+# on_clean_button_click 中各定义一份字面量列表（且略有不同），每次调用都
+# 重新创建。提到模块级常量后：1) 避免重复创建列表；2) 统一两处定义。
+# on_clean_button_click 额外需要 .xdv 和 .out.ps，合并到同一列表。
+_CLEANUP_FILE_ENDINGS = [
+    '.aux', '.blg', '.bbl', '.dvi', '.xdv', '.fdb_latexmk', '.fls',
+    '.idx', '.ilg', '.ind', '.log', '.nav', '.out', '.snm', '.synctex.gz',
+    '.toc', '.ist', '.glo', '.glg', '.acn', '.alg', '.gls', '.acr',
+    '.bcf', '.run.xml', '.out.ps',
+]
+
+
 class BuildWidget(Observable):
 
     def __init__(self, document):
@@ -120,11 +132,10 @@ class BuildWidget(Observable):
 
     def set_clean_button_state(self):
         def get_clean_button_state(document):
-            file_endings = ['.aux', '.blg', '.bbl', '.dvi', '.fdb_latexmk', '.fls', '.idx' ,'.ilg', '.ind', '.log', '.nav', '.out', '.snm', '.synctex.gz', '.toc', '.ist', '.glo', '.glg', '.acn', '.alg', '.gls', '.acr', '.bcf', '.run.xml']
             if document != None:
                 if document.filename != None:
                     pathname = document.get_filename().rsplit('/', 1)
-                    for ending in file_endings:
+                    for ending in _CLEANUP_FILE_ENDINGS:
                         filename = pathname[0] + '/' + pathname[1].rsplit('.', 1)[0] + ending
                         if os.path.exists(filename): return True
             return False
@@ -141,8 +152,7 @@ class BuildWidget(Observable):
         if self.document.filename == None: return
 
         filename_base = os.path.splitext(document.get_filename())[0]
-        file_endings = ['.aux', '.blg', '.bbl', '.dvi', '.xdv', '.fdb_latexmk', '.fls', '.idx' ,'.ilg', '.ind', '.log', '.nav', '.out', '.snm', '.synctex.gz', '.toc', '.ist', '.glo', '.glg', '.acn', '.alg', '.gls', '.acr', '.bcf', '.run.xml', '.out.ps']
-        for ending in file_endings:
+        for ending in _CLEANUP_FILE_ENDINGS:
             try: os.remove(filename_base + ending)
             except FileNotFoundError: pass
 

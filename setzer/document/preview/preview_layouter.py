@@ -74,12 +74,17 @@ class PreviewLayout(object):
         return int(max((window_width - self.page_width) / 2, 0))
 
     def get_page_number_and_offsets_by_document_offsets(self, x, y, window_width):
-        if y % (self.page_height + self.page_gap) > self.page_height: return None
-        if x < self.get_horizontal_margin(window_width) or x > (self.get_horizontal_margin(window_width) + self.page_width): return None
+        # 此方法在每次滚动/悬停时经 update_cursor 调用。原代码 3 次调用
+        # get_horizontal_margin（各做 int(max(...))），3 次计算
+        # page_height + page_gap。缓存到局部变量后各只算一次。
+        page_height_plus_gap = self.page_height + self.page_gap
+        if y % page_height_plus_gap > self.page_height: return None
+        h_margin = self.get_horizontal_margin(window_width)
+        if x < h_margin or x > (h_margin + self.page_width): return None
 
-        page_number = int(y // (self.page_height + self.page_gap))
-        y_offset = y % (self.page_height + self.page_gap) / self.scale_factor
-        x_offset = (x - self.get_horizontal_margin(window_width)) / self.scale_factor
+        page_number = int(y // page_height_plus_gap)
+        y_offset = y % page_height_plus_gap / self.scale_factor
+        x_offset = (x - h_margin) / self.scale_factor
 
         return (page_number, x_offset, y_offset)
 

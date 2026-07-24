@@ -32,12 +32,25 @@ class LaTeXDB():
     dynamic_commands = dict()
     dynamic_commands['references'] = ['\\ref*', '\\ref', '\\pageref*', '\\pageref', '\\eqref']
     dynamic_commands['citations'] = ['\\citet*', '\\citet', '\\citep*', '\\citep', '\\citealt', '\\citealp', '\\citeauthor*', '\\citeauthor', '\\citeyearpar', '\\citeyear', '\\textcite', '\\parencite', '\\autocite', '\\cite']
+    # 预编译 ref/cite 命令前缀的正则。原 get_dynamic_proposals 每次按键都
+    # 重新 '|' + re.escape + .replace + ServiceLocator.get_regex_object：
+    # 字符串拼接 + escape 扫描整串，autocomplete 激活时（打 \ref{...} 期间）
+    # 每个字符都付一次代价。dynamic_commands 在 init 后不变，正则字符串可
+    # 缓存。compiled 对象经 ServiceLocator.get_regex_object 二次缓存，但
+    # 此处直接持有避免每次哈希查表。
+    _ref_regex = None
+    _cite_regex = None
     files = dict()
     languages_dict = None
     packages_dict = None
 
     def init(resources_path):
         LaTeXDB.resources_path = resources_path
+        # 预编译 ref/cite 前缀正则（dynamic_commands 在此刻已就绪）。
+        ref_pattern = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['references'])).replace('\\|', '|') + ')'
+        cite_pattern = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['citations'])).replace('\\|', '|') + ')'
+        LaTeXDB._ref_regex = re.compile(ref_pattern)
+        LaTeXDB._cite_regex = re.compile(cite_pattern)
         LaTeXDB.generate_static_proposals()
         LaTeXDB.parse_included_files()
         # 不再注册 3 秒常驻轮询。改为事件驱动：文档打开/关闭/构建完成时
@@ -46,9 +59,12 @@ class LaTeXDB():
         # 打字时查询；文档加载/构建完成时刷新一次即覆盖所有场景。
 
     def get_items(word, top_item=None):
-        try: static_items = LaTeXDB.static_proposals[word.lower()]
+        # word.lower() 缓存：原代码在 L62 和 L64 各调一次 .lower()，每次按键
+        # 都执行。缓存到局部变量避免重复字符串分配。
+        word_lower = word.lower()
+        try: static_items = LaTeXDB.static_proposals[word_lower]
         except KeyError: static_items = list()
-        dynamic_items = LaTeXDB.get_dynamic_proposals(word.lower())
+        dynamic_items = LaTeXDB.get_dynamic_proposals(word_lower)
         if len(static_items) > 0 and len(dynamic_items) > 4:
             items = dynamic_items[:5] + static_items + dynamic_items[5:]
         else:
@@ -94,18 +110,24 @@ class LaTeXDB():
     def get_dynamic_proposals(word):
         documents = []
 
-        ref_regex = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['references'])).replace('\\|', '|') + ')'
-        cite_regex = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['citations'])).replace('\\|', '|') + ')'
-        matchings = dict()
-        matchings['labels'] = ServiceLocator.get_regex_object(ref_regex).match(word)
-        matchings['bibitems'] = ServiceLocator.get_regex_object(cite_regex).match(word)
-        key = 'labels' if matchings['labels'] != None else 'bibitems'
-        if matchings['labels'] == None and matchings['bibitems'] == None: return list()
+        # 使用 init 时预编译的 ref/cite 正则，避免每次按键重新构建字符串 +
+        # 重新查表。原实现每次都做 '|' + re.escape + .replace + 哈希查表。
+        ref_match = LaTeXDB._ref_regex.match(word) if LaTeXDB._ref_regex is not None else None
+        cite_match = LaTeXDB._cite_regex.match(word) if LaTeXDB._cite_regex is not None else None
+        if ref_match != None:
+            key = 'labels'
+            matching = ref_match
+        elif cite_match != None:
+            key = 'bibitems'
+            matching = cite_match
+        else:
+            return list()
 
         commands = list()
+        prefix = matching.group(1)
         for file in LaTeXDB.files.values():
             for value in file[key]:
-                command = matchings[key].group(1) + '{' + value + '}'
+                command = prefix + '{' + value + '}'
                 if command.startswith(word):
                     commands.append({'command': command, 'description': '', 'lowpriority': False, 'dotlabels': ''})
         return commands

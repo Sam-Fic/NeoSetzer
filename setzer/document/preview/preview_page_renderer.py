@@ -122,11 +122,17 @@ class PreviewPageRenderer(Observable):
                 is_active = self.is_active
             todo = None
             if is_active:
-                try: todo = self.render_queue.get(block=False)
+                # 阻塞式 get + 50ms timeout 替代原「非阻塞 get + time.sleep(0.05)」：
+                # 原实现在队列空时每 50ms 轮询一次，高优先级渲染任务入队后最多
+                # 等 50ms 才被取走；改用阻塞 get 后任务入队即唤醒线程，延迟趋近 0。
+                # timeout=0.05 保证 is_active 变 False 时能在 50ms 内检测到并退出。
+                try: todo = self.render_queue.get(block=True, timeout=0.05)
                 except queue.Empty:
                     try: todo = self.render_queue_low_priority.get(block=False)
                     except queue.Empty:
                         todo = None
+            else:
+                time.sleep(0.05)
             if todo != None:
                 with self.page_render_count_lock:
                     render_count = self.page_render_count[todo['page_number']]
@@ -165,8 +171,6 @@ class PreviewPageRenderer(Observable):
                         temp_ctx.fill()
 
                     self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['pdf_date'], colors]})
-            else:
-                time.sleep(0.05)
 
     def rendered_pages_loop(self):
         with self.is_active_lock:
@@ -218,21 +222,21 @@ class PreviewPageRenderer(Observable):
             colors = None
 
         changed = False
+        # colors_changed 判定：stored[3] 与 colors 同为 None → 不变；
+        # 仅一方为 None → 变；两者皆非 None → 比较 RGBA.equal。
+        # 原实现每分支都重复 self.rendered_pages[page_number] 字典查找（5+ 次/页），
+        # 缓存到 page_data 后每次循环只查一次。滚动/缩放时此循环每次都跑。
         for page_number in list(self.rendered_pages):
-            if self.rendered_pages[page_number][3] == None and colors == None:
-                colors_changed = False
-            elif self.rendered_pages[page_number][3] == None and colors != None:
-                colors_changed = True
-            elif self.rendered_pages[page_number][3] != None and colors == None:
-                colors_changed = True
-            elif not self.rendered_pages[page_number][3][0].equal(colors[0]):
-                colors_changed = True
-            elif not self.rendered_pages[page_number][3][1].equal(colors[1]):
+            page_data = self.rendered_pages[page_number]
+            stored_colors = page_data[3]
+            if stored_colors is None or colors is None:
+                colors_changed = (stored_colors is not colors)
+            elif not stored_colors[0].equal(colors[0]) or not stored_colors[1].equal(colors[1]):
                 colors_changed = True
             else:
                 colors_changed = False
 
-            if self.rendered_pages[page_number][2] != pdf_date or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
+            if page_data[2] != pdf_date or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
                 del(self.rendered_pages[page_number])
                 changed = True
         if changed:
@@ -240,17 +244,37 @@ class PreviewPageRenderer(Observable):
 
         scale_factor = self.preview.layout.scale_factor
 
-        for page_number in range(0, self.preview.poppler_document.get_n_pages()):
-            if page_number not in self.rendered_pages or self.rendered_pages[page_number][1] != page_width or self.rendered_pages[page_number][2] != pdf_date:
+        # 仅遍历需要渲染的页面区间，而非整本 PDF。原实现 range(0, n_pages)
+        # 对每个页号做两次字典查找 + 条件判断，对 100+ 页 PDF 而言每次滚动 /
+        # 缩放都会做百次无谓迭代（区间外的页既不在 render_queue 也不在
+        # render_queue_low_priority，循环体跳过仍要付 Python 字节码代价）。
+        # 改为只扫 [visible_pages_additional[0], visible_pages_additional[1]]：
+        # 这是 render_queue_low_priority 的入队区间，render_queue（高优先级）
+        # 的 [visible_pages[0], visible_pages[1]] 必然包含其中。
+        n_pages = self.preview.poppler_document.get_n_pages()
+        lo = max(visible_pages_additional[0], 0)
+        hi = min(visible_pages_additional[1], n_pages - 1)
+        # 缓存局部引用：render_queue / render_queue_low_priority / rendered_pages
+        # 在循环中每次 self.xxx 属性查找都要经 __dict__ 哈希；提到局部变量后
+        # 走 LOAD_FAST。visible_pages 恒为 list（L203 赋值），原 `!= None`
+        # 判断恒真，移除。rendered_pages 用 .get() 替代 `in` + `[]` 两次查找。
+        render_queue = self.render_queue
+        render_queue_low_priority = self.render_queue_low_priority
+        rendered_pages = self.rendered_pages
+        page_render_count = self.page_render_count
+        vp_lo, vp_hi = visible_pages[0], visible_pages[1]
+        for page_number in range(lo, hi + 1):
+            page_data = rendered_pages.get(page_number)
+            if page_data is None or page_data[1] != page_width or page_data[2] != pdf_date:
                 with self.page_render_count_lock:
                     try:
-                        self.page_render_count[page_number] += 1
+                        page_render_count[page_number] += 1
                     except KeyError:
-                        self.page_render_count[page_number] = 1
+                        page_render_count[page_number] = 1
 
                     render_task = dict()
                     render_task['page_number'] = page_number
-                    render_task['render_count'] = self.page_render_count[page_number]
+                    render_task['render_count'] = page_render_count[page_number]
                     render_task['scale_factor'] = scale_factor
                     render_task['hidpi_factor'] = hidpi_factor
                     render_task['page_width'] = page_width
@@ -258,9 +282,9 @@ class PreviewPageRenderer(Observable):
                     render_task['pdf_date'] = pdf_date
                     render_task['matching_theme_colors'] = colors
 
-                    if visible_pages != None and page_number >= visible_pages[0] and page_number <= visible_pages[1]:
-                        self.render_queue.put(render_task)
-                    elif page_number >= visible_pages_additional[0] and page_number <= visible_pages_additional[1]:
-                        self.render_queue_low_priority.put(render_task)
+                    if page_number >= vp_lo and page_number <= vp_hi:
+                        render_queue.put(render_task)
+                    else:
+                        render_queue_low_priority.put(render_task)
 
 

@@ -88,13 +88,17 @@ class PreviewPresenter(object):
 
         self.draw_background(ctx, drawing_area)
 
-        page_height = self.preview.layout.page_height
-        page_gap = self.preview.layout.page_gap
+        # 缓存 layout 引用到局部变量：draw 每帧调用，原代码在循环体内多次
+        # 经 self.preview.layout.xxx 两级属性链查找（每级 __dict__ 哈希）。
+        # 提到局部变量后走 LOAD_FAST，对 5+ 可见页 × 多次属性访问累积省可观。
+        layout = self.preview.layout
+        page_height = layout.page_height
+        page_gap = layout.page_gap
         # ``width``/``height`` are the full canvas size now; the visible
         # viewport size is read from the ScrolledWindow adjustments.
         visible_width = self.view.content.adjustment_x.get_page_size()
         visible_height = self.view.content.adjustment_y.get_page_size()
-        margin = self.preview.layout.get_horizontal_margin(visible_width)
+        margin = layout.get_horizontal_margin(visible_width)
         scrolling_offset_x = self.view.content.scrolling_offset_x
         scrolling_offset_y = self.view.content.scrolling_offset_y
         first_page = int(scrolling_offset_y // (page_height + page_gap))
@@ -104,12 +108,13 @@ class PreviewPresenter(object):
         # their absolute canvas coordinates.
         ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page * (page_height + page_gap)))
 
+        page_step = page_height + page_gap
         for page_number in range(first_page, last_page + 1):
-            self.draw_page_background_and_outline(ctx)
-            self.draw_rendered_page(ctx, page_number)
+            self.draw_page_background_and_outline(ctx, layout)
+            self.draw_rendered_page(ctx, page_number, layout)
             self.draw_synctex_rectangles(ctx, page_number)
 
-            ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_height + self.preview.layout.page_gap))
+            ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_step))
 
     def draw_background(self, ctx, drawing_area):
         # 画布底色跟随 PDF 页面底色（recolor 用 view_bg，否则纯白），
@@ -123,33 +128,40 @@ class PreviewPresenter(object):
         ctx.fill()
 
     #@timer
-    def draw_page_background_and_outline(self, ctx):
+    def draw_page_background_and_outline(self, ctx, layout):
+        # layout 由 draw 传入（已缓存为局部变量），避免每页 4+ 次
+        # self.preview.layout.xxx 两级属性链查找。
+        border_width = layout.border_width
+        page_width = layout.page_width
+        page_height = layout.page_height
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('borders'))
-        ctx.rectangle(- self.preview.layout.border_width, - self.preview.layout.border_width, self.preview.layout.page_width + 2 * self.preview.layout.border_width, self.preview.layout.page_height + 2 * self.preview.layout.border_width)
+        ctx.rectangle(- border_width, - border_width, page_width + 2 * border_width, page_height + 2 * border_width)
         ctx.fill()
 
         if self.preview.recolor_pdf:
             Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_bg_color'))
         else:
             ctx.set_source_rgba(1, 1, 1, 1)
-        ctx.rectangle(0, 0, self.preview.layout.page_width, self.preview.layout.page_height)
+        ctx.rectangle(0, 0, page_width, page_height)
         ctx.fill()
 
-    def draw_rendered_page(self, ctx, page_number):
-        if not page_number in self.page_renderer.rendered_pages: return
+    def draw_rendered_page(self, ctx, page_number, layout):
+        # .get() 替代 `in` + `[]` 两次字典查找；layout 由 draw 传入。
+        rendered_page_data = self.page_renderer.rendered_pages.get(page_number)
+        if rendered_page_data is None: return
 
-        rendered_page_data = self.page_renderer.rendered_pages[page_number]
         surface = rendered_page_data[0]
-        page_width = rendered_page_data[1] * self.preview.layout.hidpi_factor
+        page_width = rendered_page_data[1] * layout.hidpi_factor
 
         if not isinstance(surface, cairo.ImageSurface): return
 
         matrix = ctx.get_matrix()
-        factor = self.preview.layout.page_width / page_width
+        layout_page_width = layout.page_width
+        factor = layout_page_width / page_width
         ctx.scale(factor, factor)
 
         ctx.set_source_surface(surface, 0, 0)
-        ctx.rectangle(0, 0, self.preview.layout.page_width / factor, self.preview.layout.page_height / factor)
+        ctx.rectangle(0, 0, layout_page_width / factor, layout.page_height / factor)
         ctx.fill()
 
         ctx.set_matrix(matrix)

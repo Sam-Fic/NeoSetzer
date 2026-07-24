@@ -157,8 +157,9 @@ class Gutter(object):
 
     def on_scroll(self, controller, dx, dy):
         modifiers = Gtk.accelerator_get_default_mod_mask()
+        event_state = controller.get_current_event_state()
 
-        if controller.get_current_event_state() & modifiers == 0:
+        if event_state & modifiers == 0:
             if controller.get_unit() == Gdk.ScrollUnit.WHEEL:
                 dy *= self.adjustment.get_page_size() ** (2/3)
             else:
@@ -243,23 +244,38 @@ class Gutter(object):
         self.draw_background_and_border(ctx, width, height)
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
 
+        # 缓存 source_view 到局部变量：循环内每轮访问 2 次（get_line_yrange +
+        # get_line_at_y），每次 self.source_view 经 __dict__ 哈希。50 可见行
+        # × 60fps = 6000 次/秒无谓查找。
+        source_view = self.source_view
         current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
-        line_iter, offset = self.source_view.get_line_at_y(self.adjustment.get_value())
+        # 提前计算循环上界，避免每次循环都调用 adjustment getter（C 调用）。
+        scroll_top = self.adjustment.get_value()
+        scroll_bottom = scroll_top + height
+        # 起始可见行：从滚动顶部对应的行开始绘制。原实现先取一次 line_at_y
+        # 作为 offset 初值，进入循环立刻又取一次，第一次取值仅用于初值条件
+        # 判断，被立即覆盖——属无谓 C 调用。改为循环内统一获取。
+        line_iter, offset = source_view.get_line_at_y(scroll_top)
         prev_line = None
         line = -1
         total_lines = self.source_buffer.get_end_iter().get_line()
-        while (offset <= self.adjustment.get_value() + height) and line < total_lines:
-            line_iter, top = self.source_view.get_line_at_y(offset)
+        while offset <= scroll_bottom and line < total_lines:
             line = line_iter.get_line()
-            line_height = self.source_view.get_line_yrange(line_iter).height
+            line_height = source_view.get_line_yrange(line_iter).height
             if line != prev_line:
-                drawing_offset = offset - self.adjustment.get_value()
+                drawing_offset = offset - scroll_top
                 if drawing_offset < 0:
-                    drawing_offset = min(0, drawing_offset)
+                    # 原代码 min(0, drawing_offset) 在 drawing_offset<0 时
+                    # 返回 drawing_offset 自身（负 < 0），是无操作。意图显然
+                    # 是 clamp 到 0：行号文字在视觉顶部裁切时仍贴边对齐，
+                    # 不再向上溢出到 gutter 边界外。改用 max(0, ...) 达成。
+                    drawing_offset = 0
                 self.draw_line(ctx, line, current_line == line, drawing_offset, line_height)
 
             prev_line = line
             offset += line_height
+            # 前进到下一行的 y 位置，下一轮循环据此判断是否还在视口内。
+            line_iter, _ = source_view.get_line_at_y(offset)
 
         self.draw_hovered_folding_region(ctx)
 
@@ -289,7 +305,12 @@ class Gutter(object):
             ctx.fill()
             Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
 
-        self.layout.set_markup(text)
+        # 非当前行用 set_text 避免 Pango markup 解析（每帧每可见行一次）。
+        # 仅当前行需要 <b> 加粗，用 set_markup。
+        if is_current:
+            self.layout.set_markup(text)
+        else:
+            self.layout.set_text(text, -1)
 
         # 行号在第一条 visual line 内垂直居中。wrap 行时 line_height 是整个
         # 逻辑行高度，用 self.line_height（单行高度）居中才对齐到第一行。
@@ -305,37 +326,39 @@ class Gutter(object):
 
         ctx.set_line_width(0)
 
-        xoff1 = 6.5 * self.char_width / 6
-        xoff2 = 9.5 * self.char_width / 6
-        xoff3 = 2 * self.char_width / 11
-        xoff4 = 10 * self.char_width / 11
-        xoff5 = 18 * self.char_width / 11
-        xoff6 = 6 * self.char_width / 8
-        xoff7 = 11 * self.char_width / 8
-        xoff8 = 16 * self.char_width / 8
-        xoff9 = 26 * self.char_width / 11
-        yoff1 = 0
-        yoff2 = 2.5 * self.char_width / 4
-        yoff3 = 5 * self.char_width / 4
-        yoff4 = 0
-        yoff5 = 1 * self.char_width / 2
-        line_gap_folded = ((self.line_height - self.char_width * 5 / 4) / 2)
-        line_gap_unfolded = ((self.line_height - self.char_width * 1 / 2) / 2)
+        # 缓存到局部变量：原代码 self.char_width / self.line_numbers_width /
+        # self.line_height 在下方被访问 13+ 次，每次都经 __dict__ 哈希。
+        # 同时移除 xoff3/xoff4/xoff5/xoff9/yoff1/yoff4 等从未使用的死代码
+        # （原代码计算了但下方 if/else 两分支均未引用）。
+        cw = self.char_width
+        lnw = self.line_numbers_width
+        lh = self.line_height
+
+        xoff1 = 6.5 * cw / 6
+        xoff2 = 9.5 * cw / 6
+        xoff6 = 6 * cw / 8
+        xoff7 = 11 * cw / 8
+        xoff8 = 16 * cw / 8
+        yoff2 = 2.5 * cw / 4
+        yoff3 = 5 * cw / 4
+        yoff5 = 1 * cw / 2
+        line_gap_folded = ((lh - cw * 5 / 4) / 2)
+        line_gap_unfolded = ((lh - cw * 1 / 2) / 2)
 
         if folding_region['is_folded']:
-            ctx.move_to(self.line_numbers_width + xoff1, offset + line_gap_folded + 0.5)
-            ctx.line_to(self.line_numbers_width + xoff2, offset + line_gap_folded + yoff2 + 0.5)
-            ctx.line_to(self.line_numbers_width + xoff1, offset + line_gap_folded + yoff3 + 0.5)
-            ctx.line_to(self.line_numbers_width + xoff1, offset + line_gap_folded + 0.5)
+            ctx.move_to(lnw + xoff1, offset + line_gap_folded + 0.5)
+            ctx.line_to(lnw + xoff2, offset + line_gap_folded + yoff2 + 0.5)
+            ctx.line_to(lnw + xoff1, offset + line_gap_folded + yoff3 + 0.5)
+            ctx.line_to(lnw + xoff1, offset + line_gap_folded + 0.5)
             ctx.fill()
             for i in range(4):
-                ctx.rectangle(self.line_numbers_width + (i + 0.5) * self.char_width, offset + self.line_height, self.char_width / 2, 1)
+                ctx.rectangle(lnw + (i + 0.5) * cw, offset + lh, cw / 2, 1)
                 ctx.fill()
         else:
-            ctx.move_to(self.line_numbers_width + xoff6, offset + line_gap_unfolded)
-            ctx.line_to(self.line_numbers_width + xoff7, offset + line_gap_unfolded + yoff5)
-            ctx.line_to(self.line_numbers_width + xoff8, offset + line_gap_unfolded)
-            ctx.line_to(self.line_numbers_width + xoff6, offset + line_gap_unfolded)
+            ctx.move_to(lnw + xoff6, offset + line_gap_unfolded)
+            ctx.line_to(lnw + xoff7, offset + line_gap_unfolded + yoff5)
+            ctx.line_to(lnw + xoff8, offset + line_gap_unfolded)
+            ctx.line_to(lnw + xoff6, offset + line_gap_unfolded)
             ctx.fill()
 
     def draw_hovered_folding_region(self, ctx):

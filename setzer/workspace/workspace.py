@@ -188,10 +188,15 @@ class Workspace(Observable):
             return None
 
     def get_document_by_filename(self, filename):
+        if filename == None: return None
+        # normpath 涉及字符串复制与分隔符规整，提到循环外只算一次。
+        # 原实现每次比较都重算 filename 与 document.filename 的 normpath，
+        # N 个已打开文档时单次查找要做 2N+1 次 normpath。
+        target = os.path.normpath(filename)
         for document in self.open_documents:
-            if document.get_filename() != None:
-                if os.path.normpath(filename) == os.path.normpath(document.get_filename()):
-                    return document
+            doc_filename = document.get_filename()
+            if doc_filename != None and os.path.normpath(doc_filename) == target:
+                return document
         return None
 
     def get_active_document(self):
@@ -218,22 +223,28 @@ class Workspace(Observable):
             self.build_log.set_document(document)
 
     def get_last_active_document(self):
-        for document in sorted(self.open_documents, key=lambda val: -val.last_activated):
-            return document
-        return None
+        # max/min 是 O(n)，sorted 是 O(n log n)。仅取极值时无需排序。
+        # 这两个方法在文档切换、关闭时被调用，文档数多时差异明显。
+        try:
+            return max(self.open_documents, key=lambda val: val.last_activated)
+        except ValueError:
+            return None
 
     def get_earliest_active_document(self):
-        for document in sorted(self.open_documents, key=lambda val: val.last_activated):
-            return document
-        return None
+        try:
+            return min(self.open_documents, key=lambda val: val.last_activated)
+        except ValueError:
+            return None
 
     def update_recently_opened_document(self, filename, date=None, notify=True):
         if not isinstance(filename, str) or not os.path.isfile(filename):
             self.remove_recently_opened_document(filename)
         else:
             if date == None: date = time.time()
-            if len(self.recently_opened_documents) >= 1000: 
-                del(self.recently_opened_documents[sorted(self.recently_opened_documents.values(), key=lambda val: val['date'])[0]['filename']])
+            # 容量上限触发时只删一个最旧条目；用 min O(n) 替代 sorted O(n log n)。
+            if len(self.recently_opened_documents) >= 1000:
+                oldest = min(self.recently_opened_documents.values(), key=lambda val: val['date'])
+                del(self.recently_opened_documents[oldest['filename']])
             self.recently_opened_documents[filename] = {'filename': filename, 'date': date}
         if notify:
             self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
@@ -250,8 +261,9 @@ class Workspace(Observable):
         else:
             if date == None: date = time.time()
             self.recently_opened_session_files[filename] = {'filename': filename, 'date': date}
-            if len(self.recently_opened_session_files) > 5: 
-                del(self.recently_opened_session_files[sorted(self.recently_opened_session_files.values(), key=lambda val: val['date'])[0]['filename']])
+            if len(self.recently_opened_session_files) > 5:
+                oldest = min(self.recently_opened_session_files.values(), key=lambda val: val['date'])
+                del(self.recently_opened_session_files[oldest['filename']])
         if notify:
             self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
 

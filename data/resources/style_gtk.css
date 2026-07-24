@@ -156,13 +156,13 @@ textview gutter {
 }
 
 /*
- * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片，但没有侧边距（编辑器占据
- * 中央内容区，留边距会破坏与标题栏按钮的对齐），利用 document_stack_wrapper
- * 已有的 margin_top 避免与浮层 headerbar 重叠。
+ * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片外观，但仅设置左右与下边距
+ * （不要上边距），利用 document_stack_wrapper 已有的 margin_top 避免与浮层
+ * headerbar 重叠。
  */
 .editor-card {
     border-radius: 8px;
-    margin: 0 0 6px 0;
+    margin: 0 6px 6px 6px;
     background: @card_bg_color;
 }
 
