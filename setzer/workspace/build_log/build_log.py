@@ -99,9 +99,8 @@ class BuildLog(Observable):
     def on_present(self):
         '''由 workspace_presenter 在 present 弹窗后调用，更新 is_open 标志。'''
         self.is_open = True
-        # 若关闭期间有 build_log_finished_adding 标记了 dirty（populate 当时因
-        # 弹窗未开而跳过重建），现在打开时补建一次，保证展示内容最新。
         if self.view.presenter is not None and getattr(self.view.presenter, '_dirty', False):
+            self.view.presenter._update_filter_dropdowns()
             self.view.presenter.populate()
 
     def on_dialog_closed(self, dialog):

@@ -113,8 +113,9 @@ class Workspace(Observable):
         self.add_change_code('new_document', document)
         self.update_recently_opened_document(document.get_filename(), notify=True)
         # 刷新 LaTeXDB 的 label/bibitem 数据库（事件驱动，替代原 3 秒轮询）。
-        try: LaTeXDB.parse_included_files()
-        except Exception: pass
+        # 去抖：会话恢复连续打开 N 个文档时，N 次 schedule 仅触发 1 次
+        # parse_included_files（idle 合并），避免 N 次全量 stat/read 扫描。
+        LaTeXDB.schedule_parse_included_files()
 
     def remove_document(self, document):
         if document == self.root_document:
@@ -159,8 +160,8 @@ class Workspace(Observable):
                 self.set_active_document(candidate)
         self.add_change_code('document_removed', document)
         # 文档列表已变，刷新 LaTeXDB（事件驱动，替代原 3 秒轮询）。
-        try: LaTeXDB.parse_included_files()
-        except Exception: pass
+        # 去抖：连续关闭多个文档时合并为一次刷新。
+        LaTeXDB.schedule_parse_included_files()
 
     def create_latex_document(self):
         document = Document('latex')

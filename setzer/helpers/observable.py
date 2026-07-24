@@ -37,11 +37,19 @@ class Observable(object):
         # set，回调内一旦改集合就抛 RuntimeError: Set changed size during
         # iteration，导致后续回调被吞掉且整个通知链中断。tuple() 拷贝 O(k)
         # 仅与已注册观察者数量相关，远小于一次回调本身的代价；不可变更快于 list。
+        import time as _t, sys as _sys, os as _os
+        _timing = _os.environ.get('SETZER_PROFILE') and change_code in ('new_active_document', 'new_document', 'new_inactive_document')
         for callback in tuple(callbacks):
+            if _timing:
+                _s = _t.perf_counter()
             if parameter is not None:
                 callback(self, parameter)
             else:
                 callback(self)
+            if _timing:
+                _d = (_t.perf_counter() - _s) * 1000
+                if _d > 1:
+                    print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=_sys.stderr)
 
     def connect(self, change_code, callback):
         if change_code in self.connected_functions:

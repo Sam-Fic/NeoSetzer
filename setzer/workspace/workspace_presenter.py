@@ -84,14 +84,32 @@ class WorkspacePresenter(object):
         self.focus_active_document()
 
         if document.is_latex_document():
-            try: self.main_window.preview_paned_overlay.add_overlay(document.autocomplete.widget.view)
-            except AttributeError: pass
+            # autocomplete 延迟到 idle 构造（_init_latex_features），首次
+            # 激活时可能尚未就绪，try/except 跳过；idle 中补做挂载。
+            try:
+                self.main_window.preview_paned_overlay.add_overlay(document.autocomplete.widget.view)
+            except AttributeError:
+                pass
 
+        # sidebar/preview 可见性更新延迟到 idle：mode_stack 切换使 sidebar_split /
+        # preview_split（Adw.OverlaySplitView）从不可见变为可见，首次分配尚未
+        # 完成。此时同步调 set_show_sidebar(True) 会让 OverlaySplitView 在
+        # 总宽度=0/未确定的状态下分配 sidebar + content，内部计算可能产生
+        # 负宽度（GTK 警告：AdwBin width=-2147482112），导致界面错乱一会
+        # 才恢复。idle 时首轮 size_allocate 已完成，OverlaySplitView 拿到
+        # 正确的总宽度后再 toggle sidebar，分配安全。
+        # build_log 刷新也一并延迟（不涉及布局但与 sidebar/preview 同属
+        # "文档切换后的后续更新"，合并在一次 idle 中减少帧间状态不一致）。
+        GLib.idle_add(self._deferred_post_activate)
+
+    def _deferred_post_activate(self):
+        '''on_new_active_document 中延迟到 idle 的后续更新。
+        首轮 size_allocate 完成后执行，避免在 OverlaySplitView 首次分配
+        期间调 set_show_sidebar 导致负尺寸分配。'''
         self.update_sidebar_visibility(False)
-        # Pass-10: 切换文档时弹窗若已打开，刷新内容为新文档的 build_log
-        # （不关闭重开，保留弹窗位置/尺寸）。
         self.refresh_build_log_if_open()
         self.update_preview_help_visibility(False)
+        return False
 
     def on_root_state_change(self, workspace, state):
         self.update_build_log_visibility()

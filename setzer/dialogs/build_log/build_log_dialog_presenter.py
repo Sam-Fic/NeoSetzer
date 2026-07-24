@@ -16,6 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 
+import os.path
+
+
 class BuildLogDialogPresenter(object):
     '''同步 build_log.items → dialog view，按设置项过滤显示哪些类型。
 
@@ -42,13 +45,36 @@ class BuildLogDialogPresenter(object):
         self.build_log.connect('build_log_finished_adding', self.on_build_log_finished_adding)
 
         # 弹窗关闭时跳过昂贵的行重建（clear_all + 数百行 make_row）。
-        # build_log_finished_adding 在每次构建完成/切换文档时触发，绝大多数时候
-        # 弹窗是关闭的，重建不可见的行纯属浪费。标记 _dirty，on_present 时再重建。
         self._dirty = True
         # 内容签名短路：切换到日志相同的文档或重编译产生相同日志时，签名未变则跳过。
         self._last_signature = None
+        self.search_text = ''
+
+        # 过滤器状态
+        self.file_filter = None
+        self.type_filter = None
+        self.line_min = 0
+        self.line_max = 999999
+        self._updating_filters = False
+
+    def set_search_text(self, text):
+        self.search_text = text.lower()
+        self._last_signature = None
+        self.populate()
+
+    def set_filter_values(self, file_filter, type_filter, line_min, line_max):
+        '''设置过滤器值并触发重建。'''
+        if self._updating_filters:
+            return
+        self.file_filter = file_filter
+        self.type_filter = type_filter
+        self.line_min = line_min
+        self.line_max = line_max if line_max > 0 else 999999
+        self._last_signature = None
+        self.populate()
 
     def on_build_log_finished_adding(self, build_log, has_been_built):
+        self._update_filter_dropdowns()
         self.populate()
 
     def populate(self):
@@ -68,10 +94,35 @@ class BuildLogDialogPresenter(object):
         has_been_built = bool(getattr(build_system, 'document_has_been_built', False)) if build_system is not None else False
         build_time = getattr(build_system, 'build_time', None) if build_system is not None else None
 
-        # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、可见 items 元组。
-        # 任一变化才重建；相同则行与标题都已正确，直接跳过。
-        visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items if it[0] in visible_types)
-        signature = (id(document), has_been_built, build_time, visible_items)
+        # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、搜索文本、过滤器、可见 items 元组。
+        def _matches_search(it):
+            if not self.search_text:
+                return True
+            description = (it[4] or '').lower()
+            filename = (it[2] or '').lower()
+            line_number = str(it[3]) if it[3] >= 0 else ''
+            return (self.search_text in description
+                    or self.search_text in filename
+                    or self.search_text in line_number)
+
+        def _matches_filters(it):
+            # 文件过滤
+            if self.file_filter and self.file_filter != _('All'):
+                if it[2] is None or os.path.basename(it[2]) != self.file_filter:
+                    return False
+            # 错误类型过滤
+            if self.type_filter and self.type_filter != _('All'):
+                desc = (it[4] or '').lower()
+                item_type = it[0]
+                if not self._matches_error_type(self.type_filter, desc, item_type):
+                    return False
+            # 行号范围过滤
+            if it[3] >= 0 and (it[3] < self.line_min or it[3] > self.line_max):
+                return False
+            return True
+
+        visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items if it[0] in visible_types and _matches_search(it) and _matches_filters(it))
+        signature = (id(document), has_been_built, build_time, self.search_text, self.file_filter, self.type_filter, self.line_min, self.line_max, visible_items)
         if signature == self._last_signature:
             self._dirty = False
             return
@@ -85,12 +136,14 @@ class BuildLogDialogPresenter(object):
             item_type = item[0]
             if item_type not in visible_types:
                 continue
+            # 应用过滤器
+            if not _matches_search(item) or not _matches_filters(item):
+                continue
             # item 元组：item[0]=type, item[2]=filename, item[3]=line_number, item[4]=description
             self.view.add_item(item_type, item[2], item[3], item[4])
             any_visible = True
 
         # group 显隐：仅显示「在 visible_types 中 且 有内容」的 group。
-        # 空 group 隐藏（含标题），避免「Warnings (0)」占位。
         for item_type, group in self.view.groups.items():
             has_content = self.view.lists[item_type].get_first_child() is not None
             group.set_visible(item_type in visible_types and has_content)
@@ -99,14 +152,41 @@ class BuildLogDialogPresenter(object):
         self.view.empty_state.set_visible(not any_visible)
         self.view.page.set_visible(any_visible)
 
-        # 滚动回顶：Adw.PreferencesPage 的第一个子是 ScrolledWindow（Pass-8 已验证）。
+        # 滚动回顶
         scrolled = self.view.page.get_first_child()
         if scrolled is not None:
             scrolled.get_vadjustment().set_value(0)
             scrolled.get_hadjustment().set_value(0)
 
-        # 更新 HeaderBar 标题为构建状态（原 BuildLogPresenter.set_header_data 的信息迁移至此）。
+        # 更新 HeaderBar 标题为构建状态
         self._update_header_title(has_been_built_implicit=True)
+
+    def _update_filter_dropdowns(self):
+        '''更新过滤器下拉框的选项列表。'''
+        self._updating_filters = True
+        try:
+            # 收集所有唯一文件名
+            filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]))
+            filenames.insert(0, _('All'))
+            self.view.update_file_filter(filenames)
+
+            # 收集错误类型选项
+            type_options = [_('All'), _('Undefined reference'), _('Missing package'), _('Syntax error')]
+            self.view.update_type_filter(type_options)
+        finally:
+            self._updating_filters = False
+
+    def _matches_error_type(self, type_filter, description, item_type):
+        '''检查日志项是否匹配指定的错误类型过滤。'''
+        if type_filter == _('Undefined reference'):
+            return 'undefined' in description and 'reference' in description
+        elif type_filter == _('Missing package'):
+            return 'missing' in description or 'not found' in description
+        elif type_filter == _('Syntax error'):
+            return 'syntax' in description
+        elif type_filter == _('All'):
+            return True
+        return True
 
     def _update_header_title(self, has_been_built_implicit):
         '''根据构建结果更新 HeaderBar 副标题。

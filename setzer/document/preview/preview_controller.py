@@ -36,6 +36,13 @@ class PreviewController(object):
 
         self.cursor_default = Gdk.Cursor.new_from_name('default')
         self.cursor_pointer = Gdk.Cursor.new_from_name('pointer')
+        # 缓存上次的 cursor / link_target：update_cursor 由滚动 + 鼠标移动每帧
+        # 触发，原每次都无条件 set_cursor / set_link_target_string。鼠标在无链接
+        # 区域移动时二者恒定，却每帧触发 GtkWidget cursor 属性设置 + Gtk.Label
+        # set_text（Pango 重排）。仅在值变化时设置，将 60 次/秒降为实际跨越链接
+        # 边界时（典型 0-2 次/秒）。
+        self._current_cursor = None
+        self._current_link_target = None
 
         self.view.content.connect('size_changed', self.on_size_change)
         self.view.content.connect('scrolling_offset_changed', self.on_scrolling_offset_change)
@@ -58,13 +65,9 @@ class PreviewController(object):
         manager = self.preview.zoom_manager
 
         gap = 1.25
-        stopping_points = []
-        if manager.zoom_level_fit_to_width != None:
-            stopping_points.append(manager.zoom_level_fit_to_width)
-        if manager.zoom_level_fit_to_text_width != None:
-            stopping_points.append(manager.zoom_level_fit_to_text_width)
-        if manager.zoom_level_fit_to_height != None:
-            stopping_points.append(manager.zoom_level_fit_to_height)
+        # 停靠点由 update_dynamic_zoom_levels 缓存为 tuple，避免每次缩放都
+        # 重建 3 元素列表。tuple 的 `in` 也略快于 list。
+        stopping_points = manager._stopping_points
 
         prev_zoom_level = manager.get_zoom_level()
         if prev_zoom_level in stopping_points:
@@ -127,8 +130,15 @@ class PreviewController(object):
                     link_target = _('Go to page ') + str(link[1].page_num)
                 break
 
-        self.view.set_cursor(cursor)
-        self.view.set_link_target_string(link_target)
+        # 仅在变化时设置：set_cursor 触发 GtkWidget cursor 属性流程，
+        # set_link_target_string 触发 Gtk.Label set_text + Pango 重排。
+        # 鼠标在无链接区移动时二者恒定，避免每帧重复设置。
+        if cursor is not self._current_cursor:
+            self._current_cursor = cursor
+            self.view.set_cursor(cursor)
+        if link_target != self._current_link_target:
+            self._current_link_target = link_target
+            self.view.set_link_target_string(link_target)
 
     def on_primary_button_press(self, content, data):
         if self.preview.layout == None: return True

@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk
+from gi.repository import Gtk, Adw, Gdk, Gio, GObject
 import os.path
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
@@ -55,28 +55,106 @@ class BuildLogDialogView(DialogView):
         self.set_content_width(640)
         self.set_content_height(480)
 
-        # HeaderBar 标题（Adw.WindowTitle 才会真正在 HeaderBar 内显示标题 + 副标题；
-        # Adw.Dialog.set_title 仅作用于窗口管理器层面）。
+        # HeaderBar 标题
         self.title_widget = Adw.WindowTitle()
         self.title_widget.set_title(_('Build Log'))
         self.title_widget.set_subtitle('')
         self.headerbar.set_title_widget(self.title_widget)
 
-        # Copy All 按钮：HeaderBar 右侧。flat 样式与 HeaderBar 默认按钮一致。
+        # Copy All 按钮
         self.copy_all_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_all_button.set_tooltip_text(_('Copy All'))
         self.copy_all_button.add_css_class('flat')
         self.copy_all_button.set_can_focus(False)
         self.headerbar.pack_end(self.copy_all_button)
 
-        # content: Adw.PreferencesPage 提供原生分组标题 + 滚动 + boxed-list 外观。
-        # vexpand 确保填满 dialog content 区域。
+        # Save Log As 按钮
+        self.save_log_button = Gtk.Button(icon_name='document-save-symbolic')
+        self.save_log_button.set_tooltip_text(_('Save Log As...'))
+        self.save_log_button.add_css_class('flat')
+        self.save_log_button.set_can_focus(False)
+        self.headerbar.pack_end(self.save_log_button)
+
+        # Filter 按钮 + 弹出菜单
+        self.filter_button = Gtk.MenuButton(icon_name='edit-select-all-symbolic')
+        self.filter_button.set_tooltip_text(_('Filters'))
+        self.filter_button.add_css_class('flat')
+        self.filter_button.set_can_focus(False)
+        self.headerbar.pack_end(self.filter_button)
+
+        self.filter_popover = Gtk.Popover()
+        self.filter_button.set_popover(self.filter_popover)
+        filter_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        filter_box.set_margin_top(8)
+        filter_box.set_margin_bottom(8)
+        filter_box.set_margin_start(8)
+        filter_box.set_margin_end(8)
+
+        # 文件过滤（使用 Gtk.ComboBoxText，GTK4 中仍可用且无 DropDown 的测量问题）
+        file_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        file_box.append(Gtk.Label(label=_('File:')))
+        self.file_filter_combo = Gtk.ComboBoxText()
+        self.file_filter_combo.append_text(_('All'))
+        self.file_filter_combo.set_active(0)
+        file_box.append(self.file_filter_combo)
+        filter_box.append(file_box)
+
+        # 错误类型过滤
+        type_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        type_box.append(Gtk.Label(label=_('Type:')))
+        self.type_filter_combo = Gtk.ComboBoxText()
+        self.type_filter_combo.append_text(_('All'))
+        self.type_filter_combo.set_active(0)
+        type_box.append(self.type_filter_combo)
+        filter_box.append(type_box)
+
+        # 行号范围过滤
+        line_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        line_box.append(Gtk.Label(label=_('Lines:')))
+        self.line_min_spin = Gtk.SpinButton.new_with_range(0, 999999, 1)
+        self.line_min_spin.set_size_request(80, -1)
+        line_box.append(self.line_min_spin)
+        line_box.append(Gtk.Label(label=_('–')))
+        self.line_max_spin = Gtk.SpinButton.new_with_range(0, 999999, 1)
+        self.line_max_spin.set_size_request(80, -1)
+        self.line_max_spin.set_value(999999)
+        line_box.append(self.line_max_spin)
+        filter_box.append(line_box)
+
+        self.filter_popover.set_child(filter_box)
+
+        # 搜索按钮 + 搜索栏（点击按钮展开/收起）
+        self.search_button = Gtk.ToggleButton(icon_name='edit-find-symbolic')
+        self.search_button.set_tooltip_text(_('Search build log'))
+        self.search_button.add_css_class('flat')
+        self.search_button.set_can_focus(False)
+        self.headerbar.pack_start(self.search_button)
+
+        self.search_revealer = Gtk.Revealer()
+        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self.search_revealer.set_transition_duration(150)
+
+        search_bar_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        search_bar_box.set_margin_top(4)
+        search_bar_box.set_margin_bottom(4)
+        search_bar_box.set_margin_start(6)
+        search_bar_box.set_margin_end(6)
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.set_hexpand(True)
+        search_bar_box.append(self.search_entry)
+        self.search_revealer.set_child(search_bar_box)
+
+        self.search_button.bind_property('active', self.search_revealer, 'reveal-child',
+                                         GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE)
+
+        # content
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_vexpand(True)
 
         self.page = Adw.PreferencesPage()
         self.page.set_vexpand(True)
         self.toast_overlay.set_child(self.page)
+        self.topbox.append(self.search_revealer)
         self.topbox.append(self.toast_overlay)
 
         # 3 个 group（按 TYPE_ORDER 顺序）。group 内嵌 BuildLogList。
@@ -124,6 +202,28 @@ class BuildLogDialogView(DialogView):
         '''更新 HeaderBar 的标题/副标题（构建状态信息）。'''
         self.title_widget.set_title(title)
         self.title_widget.set_subtitle(subtitle)
+
+    def update_file_filter(self, filenames):
+        '''更新文件过滤下拉框的选项列表。'''
+        if hasattr(self, '_file_filter_handler_id'):
+            self.file_filter_combo.handler_block(self._file_filter_handler_id)
+        self.file_filter_combo.remove_all()
+        for name in filenames:
+            self.file_filter_combo.append_text(name)
+        self.file_filter_combo.set_active(0)
+        if hasattr(self, '_file_filter_handler_id'):
+            self.file_filter_combo.handler_unblock(self._file_filter_handler_id)
+
+    def update_type_filter(self, error_types):
+        '''更新错误类型过滤下拉框的选项列表。'''
+        if hasattr(self, '_type_filter_handler_id'):
+            self.type_filter_combo.handler_block(self._type_filter_handler_id)
+        self.type_filter_combo.remove_all()
+        for name in error_types:
+            self.type_filter_combo.append_text(name)
+        self.type_filter_combo.set_active(0)
+        if hasattr(self, '_type_filter_handler_id'):
+            self.type_filter_combo.handler_unblock(self._type_filter_handler_id)
 
 
 class BuildLogList(Gtk.ListBox):

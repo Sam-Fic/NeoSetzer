@@ -50,6 +50,13 @@ class WelcomeScreen(object):
         # keep the recent list in sync with the workspace
         self.workspace.connect('update_recently_opened_documents', self.on_recently_opened_changed)
 
+        # Row 复用缓存：refresh_recent_documents 每次打开/关闭文档都会被调用，
+        # 原实现销毁全部 Adw.ActionRow + 2 个 Gtk.Image（prefix + suffix）再重建。
+        # 50 条最近文档 = 150 个 widget 销毁 + 150 个创建，每次 5-15ms。
+        # 改为按 filename 缓存 row：已存在的 row 直接 reparent 到 listbox（按
+        # date 排序位置），新增的 filename 才创建 row，已移除的 filename 才销毁。
+        self._row_cache = dict()
+
         self.refresh_recent_documents()
         self.activate()
 
@@ -91,9 +98,6 @@ class WelcomeScreen(object):
 
     def refresh_recent_documents(self):
         listbox = self.view.recent_listbox
-        # clear existing rows
-        while (child := listbox.get_first_child()) is not None:
-            listbox.remove(child)
 
         documents = self.workspace.recently_opened_documents.values()
         # most-recently-used first
@@ -101,26 +105,55 @@ class WelcomeScreen(object):
 
         if len(documents) == 0:
             self.view.empty_label.set_visible(True)
+            # 清空 listbox 但保留 row cache（下次有最近文档时复用）。
+            while (child := listbox.get_first_child()) is not None:
+                listbox.remove(child)
             return
 
         self.view.empty_label.set_visible(False)
+
+        # 先从 listbox 移除所有 row（不销毁——缓存的 row 仍被 _row_cache 引用）。
+        # 然后按 date 降序重新 append。这样：
+        # - 已存在的 filename：直接 reparent，不创建新 widget（省 3 widget/条）
+        # - 新 filename：创建 row 并加入 cache
+        # - 已移除的 filename：从 cache 删除，row 失去引用被 GC
+        while (child := listbox.get_first_child()) is not None:
+            listbox.remove(child)
+
+        valid_filenames = set()
+        row_cache = self._row_cache
         for doc in documents:
             filename = doc['filename']
-            row = Adw.ActionRow()
-            row.filename = filename
-            row.set_title(os.path.basename(filename))
-            row.set_subtitle(os.path.dirname(filename))
-            row.set_activatable(True)
-
-            if filename.endswith('.bib'):
-                icon_name = 'document-bibtex-symbolic'
-            else:
-                icon_name = 'document-latex-symbolic'
-            icon = Gtk.Image.new_from_icon_name(icon_name)
-            icon.set_pixel_size(16)
-            row.add_prefix(icon)
-
-            open_icon = Gtk.Image.new_from_icon_name('go-next-symbolic')
-            row.add_suffix(open_icon)
-
+            valid_filenames.add(filename)
+            row = row_cache.get(filename)
+            if row is None:
+                row = self._create_recent_row(filename)
+                row_cache[filename] = row
             listbox.append(row)
+
+        # 移除已不在最近文档列表中的 row（文件被删除或用户清除历史）
+        obsolete = set(row_cache.keys()) - valid_filenames
+        for filename in obsolete:
+            del row_cache[filename]
+
+    def _create_recent_row(self, filename):
+        '''创建单个最近文档 row。basename/dirname/icon 仅在此处计算一次，
+        后续 refresh 复用 row 时不再重复计算（原实现每次 refresh 都对每个
+        filename 调 os.path.basename + os.path.dirname）。'''
+        row = Adw.ActionRow()
+        row.filename = filename
+        row.set_title(os.path.basename(filename))
+        row.set_subtitle(os.path.dirname(filename))
+        row.set_activatable(True)
+
+        if filename.endswith('.bib'):
+            icon_name = 'document-bibtex-symbolic'
+        else:
+            icon_name = 'document-latex-symbolic'
+        icon = Gtk.Image.new_from_icon_name(icon_name)
+        icon.set_pixel_size(16)
+        row.add_prefix(icon)
+
+        open_icon = Gtk.Image.new_from_icon_name('go-next-symbolic')
+        row.add_suffix(open_icon)
+        return row

@@ -97,6 +97,7 @@ class Autocomplete(object):
         elif self.document.parser.last_edit[0] == 'insert':
             if len(self.document.parser.last_edit[2]) == 1:
                 self.activate_if_possible()
+        # else: 多字符插入或删除操作，不触发补全
 
     def on_cursor_position_change(self, buffer, position):
         if self.is_active:

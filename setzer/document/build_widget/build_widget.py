@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import gi
+gi.require_version('Adw', '1')
+from gi.repository import Adw
+
 import setzer.document.build_widget.build_widget_viewgtk as build_widget_view
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
@@ -102,6 +106,7 @@ class BuildWidget(Observable):
             self.show_message('')
         elif message == 'success':
             self.show_message(_('Success!'))
+            self._show_toast(_('Build succeeded'))
         elif message == 'error':
             error_count = build_system.get_error_count()
             error_color_rgba = ColorManager.get_ui_color_string('error_color')
@@ -112,6 +117,14 @@ class BuildWidget(Observable):
             else:
                 message += '(' + str(error_count) + ' ' + _('errors') + ')!'
             self.show_message(message)
+            self._show_toast(_('Build failed') + ' (' + str(error_count) + ' ' + _('errors') + ')')
+
+    def _show_toast(self, text):
+        main_window = ServiceLocator.get_main_window()
+        if hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(text)
+            toast.set_timeout(3)
+            main_window.toast_overlay.add_toast(toast)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter

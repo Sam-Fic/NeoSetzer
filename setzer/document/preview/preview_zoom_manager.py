@@ -30,6 +30,10 @@ class PreviewZoomManager(Observable):
         self.zoom_level_fit_to_height = None
         self.zoom_level = None
         self.zoom_set = False
+        # 缩放停靠点缓存：on_zoom_request 原每次 Ctrl+滚轮都重建 3 元素列表
+        # + `in` 线性扫描。fit_to_* 级别仅在 update_dynamic_zoom_levels 后变化，
+        # 故在那里缓存为 tuple，on_zoom_request 直接读取，tuple 的 `in` 也快于 list。
+        self._stopping_points = ()
 
     def update_dynamic_zoom_levels(self):
         if self.preview.layout == None: return
@@ -47,6 +51,13 @@ class PreviewZoomManager(Observable):
         if not self.zoom_set:
             self.zoom_set = True
             self.set_zoom_fit_to_width()
+
+        # fit_to_* 级别此刻已最终确定（含可能的 set_zoom_fit_to_width 回调后的
+        # 值），缓存停靠点供 on_zoom_request 读取。
+        self._stopping_points = tuple(
+            lvl for lvl in (self.zoom_level_fit_to_width, self.zoom_level_fit_to_text_width, self.zoom_level_fit_to_height)
+            if lvl is not None
+        )
 
     def update_fit_to_width(self):
         self.zoom_level_fit_to_width = self.view.get_allocated_width() / (self.preview.page_width * self.preview.layout.hidpi_factor)

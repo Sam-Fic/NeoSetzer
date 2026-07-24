@@ -203,11 +203,14 @@ class DocumentController(object):
         if self.changed_on_disk_dialog_shown_after_last_change:
             return True
 
-        if self.document.get_deleted_on_disk():
+        # 单次 os.stat 同时判定删除/变更（见 Document.get_disk_status），
+        # 替代原 get_deleted_on_disk + get_changed_on_disk 两次独立 stat。
+        deleted, changed = self.document.get_disk_status()
+        if deleted:
             self.deleted_on_disk_dialog_shown_after_last_save = True
             self.document.source_buffer.set_modified(True)
             DialogLocator.get_dialog('document_deleted_on_disk').run({'document': self.document})
-        elif self.document.get_changed_on_disk():
+        elif changed:
             self.changed_on_disk_dialog_shown_after_last_change = True
             DialogLocator.get_dialog('document_changed_on_disk').run({'document': self.document}, self.changed_on_disk_cb)
 

@@ -43,7 +43,10 @@ class AutocompleteWidget(object):
         self.height = None
         self.shortcutsbar_height = None
         self.x_position, self.y_position = (None, None)
-        self.focus_hide = self.model.document.source_view.has_focus()
+        # 初始 False：widget 构造时 source_view 可能尚未获焦（如刚创建文档），
+        # has_focus() 返回 False 导致 focus_hide=True，首次按键时 will_show=False
+        # 不显示。改为 False，等 on_focus_out 真正失焦时才隐藏。
+        self.focus_hide = False
         # max_chars 缓存：queue_draw 在每次滚动/光标移动时调用 update_size →
         # get_max_chars，后者遍历全部 items（可能上百项）。但 max_chars 仅在
         # items 内容变化时改变，用 items 对象身份做缓存键避免重复遍历。
@@ -70,7 +73,9 @@ class AutocompleteWidget(object):
         self.update_position()
         self.update_margins()
 
-        self.view.set_visible(self.model.is_active and self.position_is_visible() and not self.focus_hide)
+        pos_visible = self.position_is_visible()
+        will_show = self.model.is_active and pos_visible and not self.focus_hide
+        self.view.set_visible(will_show)
         self.view.populate()
 
     def update_size(self):
@@ -109,16 +114,31 @@ class AutocompleteWidget(object):
         x_offset += self.document.view.margin.get_allocated_width()
         y_offset = - self.document.view.scrolled_window.get_vadjustment().get_value()
         self.x_position = x_offset + iter_location.x
-        self.y_position = y_offset + iter_location.y + self.line_height
+        # 用 iter_location.y + iter_location.height（当前行实际底部）替代
+        # + self.line_height。iter_location.y 可能为负（GtkSourceView 文本区域
+        # 偏移），且 self.line_height 与实际行高有 2px 偏差，导致 y_position < 行底部，
+        # popover 顶部跑到当前行中间遮挡文字。用 rect 的 y+height 是精确行底部。
+        self.y_position = y_offset + iter_location.y + iter_location.height
 
     def update_margins(self):
         vertical_cutoff = self.document.view.scrolled_window.get_allocated_height() - self.height - self.line_height
         horizontal_cutoff = self.main_window.preview_split.get_allocated_width() - self.view.get_allocated_width()
 
-        if self.y_position >= self.line_height and self.y_position <= vertical_cutoff:
-            self.view.set_margin_top(self.y_position + self.shortcutsbar_height)
+        # 用 translate_coordinates 获取 source_view 顶部相对 overlay 的 y 偏移。
+        # 这包含 document_stack_wrapper 的 margin_top（headerbar 高度，46px）等
+        # 所有嵌套偏移。原先用 shortcutsbar_height（34px）是错的——shortcutsbar
+        # 不在 overlay 内，overlay 顶部已在 shortcutsbar 下方，source_view 顶部
+        # 还在 overlay 下方 46px（document_stack_wrapper margin_top），导致
+        # popover 偏上 12px，跑到当前行中间遮挡文字。
+        success, overlay_y = self.source_view.translate_coordinates(self.main_window.preview_paned_overlay, 0, 0)
+        y_adjust = overlay_y if success else (self.shortcutsbar_height or 0)
+
+        # 下方空间充足：popover 显示在光标下方。
+        if self.y_position <= vertical_cutoff:
+            self.view.set_margin_top(self.y_position + y_adjust)
         else:
-            self.view.set_margin_top(self.y_position + self.shortcutsbar_height - self.height - self.line_height)
+            # 下方空间不足：翻转上方
+            self.view.set_margin_top(self.y_position + y_adjust - self.height - self.line_height)
 
         if self.x_position >= 0 and self.x_position <= horizontal_cutoff:
             self.view.set_margin_start(self.x_position)
@@ -126,7 +146,9 @@ class AutocompleteWidget(object):
             self.view.set_margin_start(self.main_window.preview_split.get_allocated_width() - self.view.get_allocated_width())
 
     def position_is_visible(self):
-        return ((self.y_position >= self.line_height) and
+        # 放宽 y 下限：不再要求 y_position >= line_height（第一行 y_position 略小
+        # 会导致 False，popover 不显示）。只要 y_position >= 0（在编辑器内）即可。
+        return ((self.y_position >= 0) and
             (self.y_position <= self.document.view.scrolled_window.get_allocated_height()) and
             (self.x_position >= 0) and
             (self.x_position < self.main_window.preview_split.get_allocated_width()))

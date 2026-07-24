@@ -97,8 +97,7 @@ class BlankSlateView(Gtk.Box):
     def __init__(self):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.set_vexpand(True)
-        self.set_halign(Gtk.Align.CENTER)
-        self.set_valign(Gtk.Align.CENTER)
+        self.set_hexpand(True)
 
         self.building_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.building_box.set_halign(Gtk.Align.CENTER)
@@ -119,7 +118,13 @@ class BlankSlateView(Gtk.Box):
         self.stack.add_named(self.status_page, 'status')
         self.append(self.stack)
 
-        self._current_state = 'never_built'
+        # 初始化为 None 而非 'never_built'：Gtk.Stack 默认显示第一个添加的
+        # 子项（'building'），但初始状态应为 'never_built'。若 _current_state
+        # 初始化为 'never_built'，则 show_blank_slate → set_state('never_built')
+        # 因状态"未变"而提前 return，stack 永远停在 'building' 页面，导致
+        # 新建文档（未编译）的预览区显示 "Building…" 而非 "No preview available"。
+        # 初始化为 None 保证首次 set_state('never_built') 真正切换到 'status'。
+        self._current_state = None
 
     def set_state(self, state):
         if state == self._current_state:
@@ -128,10 +133,12 @@ class BlankSlateView(Gtk.Box):
 
         if state == 'building':
             self.stack.set_visible_child_name('building')
-            self.spinner.start()
+            # Adw.Spinner 没有 start()/stop()（那是 Gtk.Spinner 的 API）。
+            # Adw.Spinner 是常驻动画 widget，可见时自动旋转。stack 切到
+            # 'building' 时 building_box（含 spinner）可见，切到 'status'
+            # 时自动隐藏，无需显式 start/stop。
         else:
             self.stack.set_visible_child_name('status')
-            self.spinner.stop()
             if state == 'never_built':
                 self.status_page.set_title(_('No preview available'))
                 self.status_page.set_description(_('To show a .pdf preview of your document, click the build button in the headerbar.'))

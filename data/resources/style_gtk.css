@@ -223,11 +223,11 @@ toolbarview > * > * > * {
  * 预览构建失败回退到旧 PDF 时，右上角的错误图标徽标。
  * 半透明圆角底 + 警告色，悬浮于 PDF 卡片上方，提示用户构建实际失败。
  */
-.preview .error-badge {
+.preview .errorBadge {
     opacity: 0.9;
     -gtk-icon-size: 18px;
 }
-.preview .error-badge {
+.preview .errorBadge {
     background: rgba(255, 255, 255, 0.85);
     border-radius: 999px;
     padding: 3px;

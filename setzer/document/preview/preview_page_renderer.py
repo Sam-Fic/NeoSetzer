@@ -24,7 +24,6 @@ import _thread as thread, queue
 import time
 import math
 import numpy as np
-from PIL import Image, ImageFilter
 
 from setzer.app.color_manager import ColorManager
 from setzer.helpers.observable import Observable
@@ -167,14 +166,29 @@ class PreviewPageRenderer(Observable):
                     page.render(ctx)
 
                     if colors != None:
-                        pil_img = Image.frombuffer("RGBA", (width, height), surface.get_data(), "raw", "RGBA", 0, 1)
+                        # 直接从 cairo surface 取数据到 numpy，跳过 PIL Image 中转。
+                        # 原实现 4 次内存拷贝（12MB/页）：
+                        #   1. np.array(pil_img)：PIL → numpy（拷贝像素）
+                        #   2. np.ubyte(img_data)：numpy → 新数组（Image.fromarray 需要）
+                        #   3. pil_img.tobytes('raw', 'BGRa')：numpy → BGRa 字节（拷贝+重排）
+                        #   4. bytearray(...)：bytes → bytearray（create_for_data 需可变）
+                        # 优化后 2 次：np.frombuffer + .copy()（修改 alpha 需可写）→
+                        # bytearray(tobytes)。半内存、半 CPU 开销。
+                        #
+                        # 正确性：cairo FORMAT_ARGB32 在小端机器上字节序为 BGRA
+                        # （byte0=B, byte1=G, byte2=R, byte3=A）。原 PIL 路径用
+                        # Image.frombuffer("RGBA",...) 误把 B 当 R、R 当 B，但
+                        # 后续 cairo.Operator.IN 用 colors[0] 覆盖全部 RGB 像素，
+                        # 故中间 RGB 内容不影响最终视觉结果——只有 alpha 值重要。
+                        # 此处保持与原实现相同的 alpha 公式（用 byte0/1/2 即
+                        # B/G/R 通道），最终 alpha 值与原实现完全一致。
+                        buf = surface.get_data()
+                        img_data = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4).copy()
 
-                        img_data = np.array(pil_img, dtype=np.ubyte)
                         alpha = 255 - 0.3 * img_data[..., 0] - 0.6 * img_data[..., 1] - 0.1 * img_data[..., 2]
-                        img_data[:,:,-1] = alpha
-                        pil_img = Image.fromarray(np.ubyte(img_data))
+                        img_data[..., 3] = alpha.astype(np.uint8)
 
-                        im_bytes = bytearray(pil_img.tobytes('raw', 'BGRa'))
+                        im_bytes = bytearray(img_data.tobytes())
                         surface = cairo.ImageSurface.create_for_data(im_bytes, cairo.FORMAT_ARGB32, width, height)
                         temp_ctx = cairo.Context(surface)
 

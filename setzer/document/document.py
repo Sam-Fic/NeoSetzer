@@ -21,7 +21,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import GtkSource, Gtk, GObject, Adw, GLib, Gdk
 
-import os.path, time
+import os.path, stat, time
 
 import setzer.document.document_controller as document_controller
 import setzer.document.document_presenter as document_presenter
@@ -55,10 +55,6 @@ class Document(Observable):
         self.root_is_set = False
         self.highlight_tag_count = 0
         self.highlight_tags = dict()
-        # 跟踪高亮淡出 timeout 的 source id，以便文档关闭时取消。原实现仅靠
-        # 回调返回 bool(self.highlight_tags) 自终止，文档关闭时若仍有 tag 在
-        # 淡出（最多 ~1.75s），timeout 会持续访问已逻辑失效的 source_buffer
-        # 并持有 document 引用阻碍 GC。
         self._highlight_timeout_id = None
 
         self.source_buffer = GtkSource.Buffer()
@@ -80,6 +76,7 @@ class Document(Observable):
         self.code_folding = code_folding.CodeFolding(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
+
         # LaTeX 专属子系统（autocomplete / bracket_completion /
         # update_matching_blocks）延迟到 idle 构造，避免新建文档时主线程
         # 阻塞。它们只在用户按键交互时才需要，idle 调度时文档已可见可编辑。
@@ -113,10 +110,13 @@ class Document(Observable):
         # on_new_active_document 在 idle 之前就已执行，当时 autocomplete
         # 尚未构造，overlay 挂载被 try/except 跳过。此处补做。
         workspace = ServiceLocator.get_workspace()
-        if workspace is not None and workspace.active_document is self:
+        is_active = workspace is not None and workspace.active_document is self
+        if is_active:
             main_window = ServiceLocator.get_main_window()
-            try: main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
-            except AttributeError: pass
+            try:
+                main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
+            except AttributeError:
+                pass
         return False
 
     def shutdown(self):
@@ -304,11 +304,27 @@ class Document(Observable):
     def update_save_date(self):
         self.save_date = os.path.getmtime(self.filename)
 
-    def get_changed_on_disk(self):
-        return self.save_date <= os.path.getmtime(self.filename) - 0.001
+    def get_disk_status(self):
+        '''一次 os.stat 返回 (deleted, changed)，供 save_date_loop 每 2s 轮询。
 
-    def get_deleted_on_disk(self):
-        return not os.path.isfile(self.filename)
+        原实现分别用 get_deleted_on_disk（os.path.isfile）与
+        get_changed_on_disk（os.path.getmtime），两次独立 stat。正常情况
+        （文件存在且未变更）每文档每 2s 2 次 stat，N 文档 = N 次 stat/秒。
+        合并为单 os.stat 省 50% syscall；HDD/网络盘 stat 延迟叠加时收益显著。
+
+        deleted 语义保持与原 os.path.isfile 一致：不存在或非常规文件
+        （如被目录替换）均视为已删除。
+        '''
+        try:
+            st = os.stat(self.filename)
+        except FileNotFoundError:
+            return (True, False)
+        except OSError:
+            # 权限不足等：当作未删除未变更，避免误弹「已删除」对话框。
+            return (False, False)
+        if not stat.S_ISREG(st.st_mode):
+            return (True, False)
+        return (False, self.save_date <= st.st_mtime - 0.001)
 
     def set_root_state(self, is_root, root_is_set):
         self.is_root = is_root

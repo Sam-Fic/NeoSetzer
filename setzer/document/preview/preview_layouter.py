@@ -15,7 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+from collections import namedtuple
+
 from setzer.helpers.observable import Observable
+
+
+# Synctex 高亮矩形（经 scale_factor 缩放后的绘制坐标）。原用 5-key dict，
+# 每矩形 dict 创建 + 5 次键值设置开销高于 namedtuple；draw_synctex_rectangles
+# 中属性访问（.x）也快于 dict 查找（['x']）。namedtuple 不可变，避免误改。
+SynctexRect = namedtuple('SynctexRect', ['page', 'x', 'y', 'width', 'height'])
 
 
 class PreviewLayouter(Observable):
@@ -44,17 +52,18 @@ class PreviewLayouter(Observable):
 
     def update_synctex_rectangles(self, layout):
         layout.visible_synctex_rectangles = dict()
+        sf = layout.scale_factor
         for rectangle in self.preview.visible_synctex_rectangles:
-            new_rectangle = dict()
-            new_rectangle['page'] = rectangle['page']
-            new_rectangle['x'] = rectangle['h'] * layout.scale_factor
-            new_rectangle['y'] = (rectangle['v'] - rectangle['height']) * layout.scale_factor
-            new_rectangle['width'] = rectangle['width'] * layout.scale_factor
-            new_rectangle['height'] = rectangle['height'] * layout.scale_factor
-            try:
-                layout.visible_synctex_rectangles[rectangle['page'] - 1].append(new_rectangle)
-            except KeyError:
-                layout.visible_synctex_rectangles[rectangle['page'] - 1] = [new_rectangle]
+            new_rectangle = SynctexRect(
+                rectangle['page'],
+                rectangle['h'] * sf,
+                (rectangle['v'] - rectangle['height']) * sf,
+                rectangle['width'] * sf,
+                rectangle['height'] * sf,
+            )
+            # setdefault 替代 try/except KeyError：语义更清晰，且对已存在页
+            # 不触发异常抛掷开销。
+            layout.visible_synctex_rectangles.setdefault(rectangle['page'] - 1, []).append(new_rectangle)
 
 
 class PreviewLayout(object):

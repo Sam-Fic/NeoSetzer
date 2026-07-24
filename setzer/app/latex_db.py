@@ -17,6 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
+from gi.repository import GLib
 
 import os.path, re, bibtexparser
 import xml.etree.ElementTree as ET
@@ -43,6 +44,12 @@ class LaTeXDB():
     files = dict()
     languages_dict = None
     packages_dict = None
+    # LaTeXDB 刷新去抖：add_document / remove_document / parse_result 都会
+    # 触发 parse_included_files（对每个 included 文件做 stat + 可能 read +
+    # 正则扫描）。原实现同步调用，会话恢复连续打开 5 个文档即触发 5 次全量
+    # 刷新。改为 GLib.idle_add 合并：连续多次 schedule 只触发一次实际刷新，
+    # 且延迟到主线程空闲时执行，不阻塞当前帧的 UI 更新。
+    _refresh_idle_id = None
 
     def init(resources_path):
         LaTeXDB.resources_path = resources_path
@@ -54,9 +61,32 @@ class LaTeXDB():
         LaTeXDB.generate_static_proposals()
         LaTeXDB.parse_included_files()
         # 不再注册 3 秒常驻轮询。改为事件驱动：文档打开/关闭/构建完成时
-        # 由 workspace / build_system 显式调用 LaTeXDB.refresh()。
+        # 由 workspace / build_system 显式调用 LaTeXDB.schedule_parse_included_files()。
         # LaTeXDB 的数据用于 autocomplete 的 \ref/\cite 补全，仅在用户
         # 打字时查询；文档加载/构建完成时刷新一次即覆盖所有场景。
+
+    def schedule_parse_included_files():
+        '''去抖调度 parse_included_files：连续多次调用只触发一次实际刷新。
+
+        调用方：Workspace.add_document / remove_document、BuildSystem.parse_result。
+        场景：会话恢复连续打开 5 个文档 → 5 次 schedule 仅 1 次 parse_included_files；
+        构建完成 → 延迟到 idle 执行，不阻塞 parse_result 当前帧的 PDF 切换 / build_log 更新。
+
+        GLib.idle_add 默认优先级 DEFAULT，回调在主线程 GTK 事件循环空闲时执行。
+        若 schedule 后又调 schedule，旧 idle 仍在队列中，新 schedule 直接 return，
+        不重复入队——最终只刷新一次，反映最新的文档列表状态。
+        '''
+        if LaTeXDB._refresh_idle_id is not None:
+            return
+        LaTeXDB._refresh_idle_id = GLib.idle_add(LaTeXDB._do_parse_included_files)
+
+    def _do_parse_included_files():
+        LaTeXDB._refresh_idle_id = None
+        try:
+            LaTeXDB.parse_included_files()
+        except Exception:
+            pass
+        return False
 
     def get_items(word, top_item=None):
         # word.lower() 缓存：原代码在 L62 和 L64 各调一次 .lower()，每次按键

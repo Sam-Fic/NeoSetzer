@@ -45,6 +45,10 @@ class DocumentStructurePage(Gtk.Box):
         # 搜索过滤去抖 id：on_search_changed 原每次按键都对所有 section 的
         # ListBox 全量 filter_rows（大文档数百行）。150ms 停顿后合并为一次。
         self._filter_idle_id = None
+        # 滚动去抖 id：on_scroll_or_resize 由 vadjustment 的 value-changed 每像素
+        # 触发，原每次都遍历所有 group（get_visible_sections）+ 2 次 C 调用/group。
+        # 合并为一次 idle 更新按钮敏感度 + section 标签。
+        self._scroll_update_idle_id = None
 
         self.add_buttons()
 
@@ -102,6 +106,12 @@ class DocumentStructurePage(Gtk.Box):
             except (ValueError, RuntimeError):
                 pass
             self._filter_idle_id = None
+        if self._scroll_update_idle_id is not None:
+            try:
+                GLib.source_remove(self._scroll_update_idle_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._scroll_update_idle_id = None
 
     def add_section(self, name, title, widget):
         group = Adw.PreferencesGroup()
@@ -183,6 +193,14 @@ class DocumentStructurePage(Gtk.Box):
         self.append(self.search_revealer)
 
     def on_scroll_or_resize(self, *args):
+        # 去抖：vadjustment 的 value-changed 每像素触发一次，原每次都遍历所有
+        # group（get_visible_sections，每组 2 次 C 调用）+ 重算 section 标题。
+        # 合并为一次 idle：连续滚动期间仅在每个事件循环空隙更新一次 UI。
+        if self._scroll_update_idle_id is None:
+            self._scroll_update_idle_id = GLib.idle_add(self._on_scroll_or_resize_idle)
+
+    def _on_scroll_or_resize_idle(self):
+        self._scroll_update_idle_id = None
         scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
         self.prev_button.set_sensitive(scrolling_offset != 0)
 
@@ -199,6 +217,7 @@ class DocumentStructurePage(Gtk.Box):
         if current_title != self._current_section_title:
             self._current_section_title = current_title
             self.section_label.set_text(current_title)
+        return False
 
     def get_visible_sections(self):
         """返回 [(title, absolute_y), ...]，含所有 visible group 的内容绝对 Y 坐标。"""
@@ -345,5 +364,7 @@ class DocumentStructurePage(Gtk.Box):
             self.content_stack.set_visible_child_name('no-results')
         else:
             self.content_stack.set_visible_child_name('content')
-        if query:
-            self._groups_cache = None
+        # set_visible 仅改 group 可见性，不改变 group 列表结构，故 _groups_cache
+        #（持有全部 group 引用）仍有效。get_visible_sections 会重新读
+        # group.get_visible()，无需在此清空 cache 诱发 _collect_groups 全树遍历。
+        # 原实现每次搜索字符都清空，搜索期间滚动结果会反复重建 cache。

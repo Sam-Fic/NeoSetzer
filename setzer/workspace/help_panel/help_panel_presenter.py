@@ -32,28 +32,47 @@ class HelpPanelPresenter(object):
 
     def on_search_query_changed(self, help_panel):
         results_list = self.help_panel.search_results
-        for item in self.view.search_result_items:
-            self.view.search_results.remove(item)
-        self.view.search_result_items = list()
         if results_list:
             self.view.search_entry.remove_css_class('error')
             self.view.search_scroll.set_visible(True)
             self.view.no_results_slate.set_visible(False)
             self.view.initial_slate.set_visible(False)
-            for item in reversed(results_list):
-                list_item = help_panel_view.SearchResultView(item)
-                self.view.search_results.prepend(list_item)
-                self.view.search_result_items.append(list_item)
+
+            # 复用已存在的 row：搜索结果上限 8 条，原实现每次按键（去抖后）
+            # 都 8 次 ListBox.remove + 8 次 prepend（每次 remove 触发 ListBox
+            # 内部重新索引，N 次 remove 是 O(N²)）+ 8 次 SearchResultView
+            # 构造（每个含 ListBoxRow + Box + 2 Label = 4 widget）。
+            # 改为：已有的 row 调 update_content 仅 set_markup；不够才新建；
+            # 多余的 row set_visible(False) 保留在 ListBox 中以备下次复用。
+            existing = self.view.search_result_items
+            for i, item in enumerate(results_list):
+                if i < len(existing):
+                    row = existing[i]
+                    row.update_content(item)
+                    if not row.get_visible():
+                        row.set_visible(True)
+                else:
+                    row = help_panel_view.SearchResultView(item)
+                    self.view.search_results.append(row)
+                    existing.append(row)
+            # 隐藏多余 row（结果数比上次少时）
+            for i in range(len(results_list), len(existing)):
+                existing[i].set_visible(False)
         elif self.help_panel.query != '':
             self.view.search_entry.add_css_class('error')
             self.view.search_scroll.set_visible(False)
             self.view.no_results_slate.set_visible(True)
             self.view.initial_slate.set_visible(False)
+            # 隐藏所有已有 row 而非销毁，下次搜索可复用
+            for row in self.view.search_result_items:
+                row.set_visible(False)
         else:
             self.view.search_entry.remove_css_class('error')
             self.view.search_scroll.set_visible(False)
             self.view.no_results_slate.set_visible(False)
             self.view.initial_slate.set_visible(True)
+            for row in self.view.search_result_items:
+                row.set_visible(False)
 
     def on_uri_changed(self, help_panel, uri):
         if self.view.content.get_uri() != uri:

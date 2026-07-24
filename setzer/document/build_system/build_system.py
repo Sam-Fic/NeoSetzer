@@ -140,28 +140,37 @@ class BuildSystem(Observable):
         self.forward_sync_arguments['line_offset'] = sb.get_iter_at_mark(sb.get_insert()).get_line_offset() + 1
 
     def set_build_log_items(self, log_items):
+        # 单次遍历 log_items 完成计数与 (filename, items) 分组。
+        # 原实现外层 3 次 item_type × 中层 N 次 filename = 3N 次迭代，
+        # 且每次都做 3 个 `if item_type == '...'` 字符串比较（共 9N 次），
+        # 但只有 1 个分支会累加。优化后 N 次迭代，无字符串比较。
+        # 顺序保持与原实现一致：类型优先（Error → Warning → Badbox），
+        # 每类内当前文档先于其他文档（其他文档间保持 dict 迭代顺序）。
         build_log_items = list()
         error_count = 0
         warning_count = 0
         badbox_count = 0
+        main_filename = self.document.filename
 
-        def add_items(items_list, new_items, filename, item_type):
-            for item in new_items[item_type.lower()]:
-                items_list.append((item_type, item[0], filename, item[1], item[2]))
+        main_items = None
+        other_filenames = list()
+        for filename, items in log_items.items():
+            error_count += len(items['error'])
+            warning_count += len(items['warning'])
+            badbox_count += len(items['badbox'])
+            if filename == main_filename:
+                main_items = items
+            else:
+                other_filenames.append((filename, items))
 
-        for item_type in ['Error', 'Warning', 'Badbox']:
-            if self.document.filename in log_items:
-                add_items(build_log_items, log_items[self.document.filename], self.document.filename, item_type)
-
-            for filename, items in log_items.items():
-                if item_type == 'Error':
-                    error_count += len(items['error'])
-                if item_type == 'Warning':
-                    warning_count += len(items['warning'])
-                if item_type == 'Badbox':
-                    badbox_count += len(items['badbox'])
-                if filename != self.document.filename:
-                    add_items(build_log_items, log_items[filename], filename, item_type)
+        type_order = (('Error', 'error'), ('Warning', 'warning'), ('Badbox', 'badbox'))
+        for type_name, key in type_order:
+            if main_items is not None:
+                for item in main_items[key]:
+                    build_log_items.append((type_name, item[0], main_filename, item[1], item[2]))
+            for filename, items in other_filenames:
+                for item in items[key]:
+                    build_log_items.append((type_name, item[0], filename, item[1], item[2]))
 
         self.build_log_data = {'items': build_log_items, 'error_count': error_count, 'warning_count': warning_count, 'badbox_count': badbox_count}
 
@@ -259,11 +268,19 @@ class BuildSystem(Observable):
 
         if result_blob['build'] != None:
             self.invalidate_build_log()
+            # 构建完成后立即保存文档状态，确保日志持久化。
+            # 这样即使应用异常退出，下次启动也能恢复上次构建的日志。
+            from setzer.settings.document_settings import DocumentSettings
+            try: DocumentSettings.save_document_state(self.document)
+            except Exception: pass
 
         # 构建完成（可能伴随自动保存）后刷新 LaTeXDB 的 label/bibitem
         # 数据库（事件驱动，替代原 3 秒轮询）。
-        try: LaTeXDB.parse_included_files()
-        except Exception: pass
+        # 去抖：延迟到 idle 执行，让 parse_result 当前帧的 PDF 切换 /
+        # build_log 更新 / build_state 通知先完成，避免 LaTeXDB 的全量
+        # stat/read 扫描阻塞用户感知的"构建完成到 UI 就绪"延迟。
+        # 连续构建（自动构建）时多次 schedule 也只触发一次实际刷新。
+        LaTeXDB.schedule_parse_included_files()
 
     def add_query(self, query):
         self.stop_building(notify=False)
@@ -388,24 +405,49 @@ class BuildSystem(Observable):
         word = ' '.join(word)
         regex_pattern = re.escape(word)
 
-        for c in regex_pattern:
-            if ord(c) > 127:
-                regex_pattern = regex_pattern.replace(c, '(?:\\w)')
+        # 原 for c in regex_pattern 逐字符扫描 + replace 替换非 ASCII 字符。
+        # re.sub 一次扫描完成所有非 ASCII 字符的替换，语义等价（每个非 ASCII
+        # 字符都替换为 (?:\w)），且避免 N 次 str.replace 的字符串分配。
+        regex_pattern = re.sub(r'[^\x00-\x7f]', lambda m: r'(?:\w)', regex_pattern)
+
+        # 占位符替换：synctex 的 word 可能含 \x1b/\x1c/\x1d/\- 等文本标记，
+        # 替换为对应正则片段。保持原行为不变。
+        regex_pattern = regex_pattern.replace('\\x1b', r'(?:\w{2,3})').replace('\\x1c', r'(?:\w{2})').replace('\\x1d', r'(?:\w{2,3})').replace('\\-', r'(?:-{0,1})')
+        regex = ServiceLocator.get_regex_object(r'(\W{0,1})' + regex_pattern + r'(\W{0,1})')
+
+        # 循环不变量提到循环外：offset1/offset2 仅依赖 context 与 word，
+        # 与 match 无关。原实现每个 match 都重新计算 context.find(word)。
+        offset1 = context.find(word)
+        offset2 = len(context) - offset1 - len(word)
+        lo_pad = max(offset1, 0)
+        hi_pad = max(offset2, 0)
+        text_len = len(text)
 
         matches = list()
         top_score = 0.1
-        regex = ServiceLocator.get_regex_object(r'(\W{0,1})' + regex_pattern.replace('\\x1b', r'(?:\w{2,3})').replace('\\x1c', r'(?:\w{2})').replace('\\x1d', r'(?:\w{2,3})').replace('\\-', r'(?:-{0,1})') + r'(\W{0,1})')
+        # 复用 SequenceMatcher：set_seq2(context) 一次，循环内仅 set_seq1(match_text)。
+        # SequenceMatcher 的 ratio() 在 set_seqs 后会缓存 chaining/autojunk 等中间
+        # 状态，原实现每个 match 都新建 SequenceMatcher 重新计算。
+        matcher = difflib.SequenceMatcher(None)
+        matcher.set_seq2(context)
         for match in regex.finditer(text):
-            offset1 = context.find(word)
-            offset2 = len(context) - offset1 - len(word)
-            match_text = text[max(match.start() - max(offset1, 0), 0):min(match.end() + max(offset2, 0), len(text))]
-            score = difflib.SequenceMatcher(None, match_text, context).ratio()
-            if bool(match.group(1)) or bool(match.group(2)):
-                if score > top_score + 0.1:
-                    top_score = score
-                    matches = [[match.start() + len(match.group(1)), match.end() - len(match.group(2))]]
-                elif score > top_score - 0.1:
-                    matches.append([match.start() + len(match.group(1)), match.end() - len(match.group(2))])
+            if not (match.group(1) or match.group(2)):
+                # 原实现先算 score 再判断 group，但 score 仅在 group 非空时使用。
+                # 提前 continue 跳过 group 皆空的 match，省去 SequenceMatcher.ratio()。
+                continue
+            match_text = text[max(match.start() - lo_pad, 0):min(match.end() + hi_pad, text_len)]
+            matcher.set_seq1(match_text)
+            score = matcher.ratio()
+            if score > top_score + 0.1:
+                top_score = score
+                matches = [[match.start() + len(match.group(1)), match.end() - len(match.group(2))]]
+                # 提前终止：score >= 0.99 视为完美匹配，不再扫描后续 match。
+                # 文档含 N 个相同词的匹配时，原实现 N × SequenceMatcher.ratio()
+                # （每个最坏 O(n*m)），此处典型情况 1 次即退出。
+                if score >= 0.99:
+                    break
+            elif score > top_score - 0.1:
+                matches.append([match.start() + len(match.group(1)), match.end() - len(match.group(2))])
         if len(matches) > 0:
             return matches
         else:

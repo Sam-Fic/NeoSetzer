@@ -179,8 +179,11 @@ class Actions(object):
         can_sync = sync_document != None and sync_document.is_latex_document() and sync_document.build_system.can_sync
         can_build = (self.workspace.get_root_or_active_latex_document() != None)
         can_reset_zoom = (round(FontManager.zoom_level * 100) != 100)
-        can_zoom_in = (FontManager.get_font_desc().get_size() * 1.1 <= 24 * Pango.SCALE)
-        can_zoom_out = (FontManager.get_font_desc().get_size() / 1.1 >= 6 * Pango.SCALE)
+        # get_font_desc 内部 Pango.FontDescription.from_string(font_string) 每次构造
+        # 新对象，原调两次（zoom_in / zoom_out 各一）。取一次 size 复用。
+        font_size = FontManager.get_font_desc().get_size()
+        can_zoom_in = (font_size * 1.1 <= 24 * Pango.SCALE)
+        can_zoom_out = (font_size / 1.1 >= 6 * Pango.SCALE)
 
         self.actions['close-active-document'].set_enabled(document_active)
         self.actions['close-all-documents'].set_enabled(document_active)

@@ -20,6 +20,28 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, GLib
 
 
+# 自动补全 popover 样式：Adwaita 风格圆角/阴影/选中高亮。
+# 用 widget 级别 CssProvider（add_provider 到 StyleContext），优先级
+# STYLE_PROVIDER_PRIORITY_USER + 1，高于 display 级别的 libadwaita 默认样式，
+# 确保覆盖。原先放 data/resources/style_gtk.css（display 级别），但被
+# libadwaita 的 list 样式覆盖不生效。
+_AC_CSS = '''
+listbox.autocomplete-popup {
+    background-color: red;
+    border-radius: 12px;
+    padding: 4px;
+}
+listbox.autocomplete-popup row {
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+listbox.autocomplete-popup row:selected {
+    background-color: blue;
+    color: white;
+}
+'''
+
+
 class AutocompleteWidgetView(Gtk.ListBox):
     '''Autocomplete popup listing up to 5 matching commands.
 
@@ -40,7 +62,13 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self.set_valign(Gtk.Align.START)
         self.set_can_focus(False)
         self.set_can_target(False)
+        # monospace: FontManager 的 CSS 选择器 listbox.monospace row label
+        # 据此应用用户配置的字体/字号，跟随设置变化。
+        # boxed-list: libadwaita 原生列表卡片样式（圆角+边框+卡片背景），
+        # 自带明暗主题适配，无需自定义 CSS（自定义 CSS 被 libadwaita 高优先级
+        # 覆盖不生效，boxed-list 是 libadwaita 原生支持的 class）。
         self.add_css_class('monospace')
+        self.add_css_class('boxed-list')
 
         # 签名缓存：populate 在 select_next/select_previous/page_down/page_up
         # 以及滚动/焦点变化时都被调用，但此时 items 切片未变，仅选中项或位置

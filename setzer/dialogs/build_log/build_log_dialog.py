@@ -42,6 +42,7 @@ class BuildLogDialog(object):
         '''绑定 BuildLog 模型，建立 presenter + controller。'''
         self.presenter = presenter_module.BuildLogDialogPresenter(build_log, self.view)
         self.controller = controller_module.BuildLogDialogController(build_log, self.view)
+        self.controller.presenter = self.presenter
 
     def present(self):
         '''显示弹窗。Adw.Dialog.present 是幂等的：已打开时再 present 无副作用。'''

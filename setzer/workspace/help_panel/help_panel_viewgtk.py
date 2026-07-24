@@ -188,3 +188,11 @@ class SearchResultView(Gtk.ListBoxRow):
         self.box.append(self.text_label)
         self.box.append(self.location_label)
         self.set_child(self.box)
+
+    def update_content(self, data):
+        '''复用已有 row 仅更新内容，避免每次搜索都销毁/重建 4 个 widget
+        （ListBoxRow + Box + 2 Label）。搜索结果上限 8 条，原实现每次
+        按键（去抖后）仍要 8×4 = 32 次 widget 销毁 + 32 次创建。'''
+        self.uri_ending = data[0]
+        self.text_label.set_markup(data[1])
+        self.location_label.set_markup(data[2])

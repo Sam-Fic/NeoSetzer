@@ -41,6 +41,8 @@ from setzer.helpers.timer import timer
 class Preview(Observable):
 
     def __init__(self, document):
+        import time as _t, sys as _sys
+        _t0 = _t.perf_counter()
         Observable.__init__(self)
         self.document = document
 
@@ -55,14 +57,23 @@ class Preview(Observable):
         self.visible_synctex_rectangles = list()
         self.visible_synctex_rectangles_time = None
 
+        _ta = _t.perf_counter()
         self.view = preview_view.PreviewView()
+        _tb = _t.perf_counter()
         self.layouter = preview_layouter.PreviewLayouter(self, self.view)
+        _tc = _t.perf_counter()
         self.zoom_manager = preview_zoom_manager.PreviewZoomManager(self, self.view)
+        _td = _t.perf_counter()
         self.controller = preview_controller.PreviewController(self, self.view)
+        _te = _t.perf_counter()
         self.page_renderer = preview_page_renderer.PreviewPageRenderer(self)
+        _tf = _t.perf_counter()
         self.links_parser = preview_links_parser.PreviewLinksParser(self)
+        _tg = _t.perf_counter()
         self.presenter = preview_presenter.PreviewPresenter(self, self.page_renderer, self.view)
+        _th = _t.perf_counter()
         self.context_menu = context_menu.ContextMenu(self, self.view)
+        _ti = _t.perf_counter()
 
         self.document.connect('filename_change', self.on_filename_change)
         self.document.connect('pdf_updated', self.on_pdf_updated)
@@ -70,6 +81,8 @@ class Preview(Observable):
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
         self._settings_callback = self.on_settings_changed
         self.document.settings.connect('settings_changed', self._settings_callback)
+        _t1 = _t.perf_counter()
+        print(f'[TIMING] Preview.__init__: view={(_tb-_ta)*1000:.1f}ms layouter={(_tc-_tb)*1000:.1f}ms zoom={(_td-_tc)*1000:.1f}ms controller={(_te-_td)*1000:.1f}ms page_renderer={(_tf-_te)*1000:.1f}ms links_parser={(_tg-_tf)*1000:.1f}ms presenter={(_th-_tg)*1000:.1f}ms context_menu={(_ti-_th)*1000:.1f}ms rest={(_t1-_ti)*1000:.1f}ms total={(_t1-_t0)*1000:.1f}ms', file=_sys.stderr)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
