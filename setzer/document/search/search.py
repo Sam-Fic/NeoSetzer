@@ -180,6 +180,7 @@ class Search(Observable):
         self.on_search_next_match(None, True)
         self.document_view.source_view.grab_focus()
         self.view.set_search_mode(False)
+        self.view.replace_revealer.set_reveal_child(False)
         self.view.entry.set_text('')
         self.search_bar_mode = None
         self.add_change_code('mode_changed')
@@ -188,14 +189,14 @@ class Search(Observable):
         self.view.set_search_mode(True)
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'search'
-        self.view.replace_wrapper.set_visible(False)
+        self.view.replace_revealer.set_reveal_child(False)
         self.add_change_code('mode_changed')
 
     def set_mode_replace(self):
         self.view.set_search_mode(True)
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'replace'
-        self.view.replace_wrapper.set_visible(True)
+        self.view.replace_revealer.set_reveal_child(True)
         self.add_change_code('mode_changed')
 
     def search_entry_grab_focus(self, args=None):

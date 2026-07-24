@@ -84,7 +84,13 @@ class SearchBar(Gtk.SearchBar):
 
         content.append(find_row)
 
-        # --- replace row (shown only in replace mode) ---
+        # --- replace row (revealed only in replace mode) ---
+        # 用 Revealer 包住替换行，使其在切换 replace 模式时随 SearchBar
+        # 一起平滑滑出/收起，而不是生硬地显隐。
+        self.replace_revealer = Gtk.Revealer()
+        self.replace_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self.replace_revealer.set_transition_duration(200)
+
         self.replace_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.replace_wrapper.set_spacing(6)
 
@@ -109,7 +115,7 @@ class SearchBar(Gtk.SearchBar):
         self.replace_all_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_all_button)
 
-        self.replace_wrapper.set_visible(False)
-        content.append(self.replace_wrapper)
+        self.replace_revealer.set_child(self.replace_wrapper)
+        content.append(self.replace_revealer)
 
         self.set_child(content)
