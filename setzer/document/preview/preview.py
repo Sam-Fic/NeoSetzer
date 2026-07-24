@@ -130,7 +130,9 @@ class Preview(Observable):
             # the new PDF could not be loaded (e.g. it is still being
             # written or the build failed). Keep showing the previously
             # rendered PDF so the preview does not flicker to blank.
-            pass
+            # 不再静默：通知上层显示 toast + 错误图标，让用户知道构建
+            # 实际失败而非误以为成功。
+            self.add_change_code('pdf_load_failed')
 
     def reset_pdf_data(self):
         self.pdf_filename = None

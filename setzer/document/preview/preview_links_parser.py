@@ -44,7 +44,18 @@ class PreviewLinksParser(Observable):
         if page_number in self.links:
             if self.links[page_number] == None:
                 links = list()
-                link_mapping_list = self.preview.poppler_document.get_page(page_number).get_link_mappings()
+                # GTK4 配套的新版 Poppler 中 get_link_mappings()（复数，返回列表）
+                # 已更名为 get_link_mapping()（单数）。其返回类型在不同版本间
+                # 有差异（单个 LinkMapping / None / 旧版列表），统一规整成
+                # 列表再遍历，避免 AttributeError 与类型假设错误。
+                page = self.preview.poppler_document.get_page(page_number)
+                result = page.get_link_mapping()
+                if result is None:
+                    link_mapping_list = list()
+                elif isinstance(result, list):
+                    link_mapping_list = result
+                else:
+                    link_mapping_list = [result]
                 for link_mapping in link_mapping_list:
                     action = link_mapping.action
                     area = link_mapping.area

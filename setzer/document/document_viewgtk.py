@@ -35,7 +35,6 @@ class DocumentView(Gtk.Box):
         self.source_view.set_monospace(True)
         self.source_view.set_smart_home_end(True)
         self.source_view.set_auto_indent(True)
-        self.source_view.set_bottom_margin(120)
         self.source_view.set_left_margin(12)
         self.source_view.set_right_margin(12)
 
@@ -59,3 +58,15 @@ class DocumentView(Gtk.Box):
 
         self.vbox.append(self.overlay)
         self.append(self.vbox)
+
+    def do_size_allocate(self, width, height, baseline):
+        # GTK4 没有 GTK3 的 size-allocate 信号；改为覆写虚方法以在
+        # 控件实际分配高度变化时更新 source_view 的底部留白。
+        Gtk.Box.do_size_allocate(self, width, height, baseline)
+        self._update_bottom_margin(height)
+
+    def _update_bottom_margin(self, height):
+        margin = max(60, min(int(height * 0.3), 200))
+        current = self.source_view.get_bottom_margin()
+        if current != margin:
+            self.source_view.set_bottom_margin(margin)

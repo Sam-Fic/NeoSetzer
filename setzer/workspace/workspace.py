@@ -68,7 +68,7 @@ class Workspace(Observable):
         self.show_document_structure = self.settings.get_value('window_state', 'show_document_structure')
 
     def init_workspace_controller(self):
-        self.welcome_screen = welcome_screen.WelcomeScreen()
+        self.welcome_screen = welcome_screen.WelcomeScreen(self)
         self.sidebar = sidebar.Sidebar(self)
         self.actions = actions.Actions(self)
         self.shortcutsbar = shortcutsbar.Shortcutsbar(self)
@@ -164,9 +164,14 @@ class Workspace(Observable):
 
     def create_latex_document(self):
         document = Document('latex')
-        document.preview = preview.Preview(document)
+        # preview 的 presenter 在构造时即访问 document.build_system，
+        # 故须先于 preview 创建 build_system / build_widget。
         document.build_system = build_system.BuildSystem(document)
         document.build_widget = build_widget.BuildWidget(document)
+        document.preview = preview.Preview(document)
+        # BuildSystem.__init__ 内原本在此连接 preview 的 pdf_changed 信号，
+        # 因构造时 preview 尚不存在而推迟到此处（两者均已就绪）。
+        document.preview.connect('pdf_changed', document.build_system.update_can_sync)
         return document
 
     def create_bibtex_document(self):
@@ -251,7 +256,7 @@ class Workspace(Observable):
         else:
             if date == None: date = time.time()
             # 容量上限触发时只删一个最旧条目；用 min O(n) 替代 sorted O(n log n)。
-            if len(self.recently_opened_documents) >= 1000:
+            if len(self.recently_opened_documents) >= 50:
                 oldest = min(self.recently_opened_documents.values(), key=lambda val: val['date'])
                 del(self.recently_opened_documents[oldest['filename']])
             self.recently_opened_documents[filename] = {'filename': filename, 'date': date}
@@ -270,7 +275,7 @@ class Workspace(Observable):
         else:
             if date == None: date = time.time()
             self.recently_opened_session_files[filename] = {'filename': filename, 'date': date}
-            if len(self.recently_opened_session_files) > 5:
+            if len(self.recently_opened_session_files) > 15:
                 oldest = min(self.recently_opened_session_files.values(), key=lambda val: val['date'])
                 del(self.recently_opened_session_files[oldest['filename']])
         if notify:
@@ -294,14 +299,26 @@ class Workspace(Observable):
                     root_document_filename = data['root_document_filename']
                 except KeyError:
                     root_document_filename = None
+                active_filename = data.get('active_document_filename')
                 for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
                     document = self.create_document_from_filename(item['filename'])
                     if document != None:
                         document.set_last_activated(item['last_activated'])
+                        if 'cursor_offset' in item:
+                            document._restore_cursor_offset = item['cursor_offset']
+                        if 'scroll_offset' in item:
+                            document._restore_scroll_offset = item['scroll_offset']
+                        if 'folded_regions' in item:
+                            document.code_folding.set_initial_folded_regions(item['folded_regions'])
                         if item['filename'] == root_document_filename:
                             self.set_one_document_root(document)
                 for item in data['recently_opened_documents'].values():
                     self.update_recently_opened_document(item['filename'], item['date'], notify=False)
+                # 清理已删除文件：update_recently_opened_document 已会跳过不存在的文件，
+                # 但显式遍历一次确保旧 pickle 中的条目被移除。
+                stale = [f for f in self.recently_opened_documents if not os.path.isfile(f)]
+                for f in stale:
+                    del self.recently_opened_documents[f]
                 try:
                     self.help_panel.search_results_blank = data['recent_help_searches']
                 except KeyError:
@@ -312,6 +329,7 @@ class Workspace(Observable):
                     recently_opened_session_files = []
                 for item in recently_opened_session_files:
                     self.update_recently_opened_session_file(item['filename'], item['date'], notify=False)
+                self._restore_active_filename = active_filename
         self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
         self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
 
@@ -327,19 +345,37 @@ class Workspace(Observable):
                     root_document_filename = data['root_document_filename']
                 except KeyError:
                     root_document_filename = None
+                active_filename = data.get('active_document_filename')
                 for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
                     document = self.create_document_from_filename(item['filename'])
-                    # create_document_from_filename 可能返回 None（文件已删除或
-                    # 扩展名未知）。原代码无条件调用 document.set_last_activated，
-                    # 会抛 AttributeError 导致整个会话加载崩溃。与
-                    # populate_from_disk 一致地加 None 守卫。
                     if document is None:
                         continue
                     document.set_last_activated(item['last_activated'])
+                    if 'cursor_offset' in item:
+                        document._restore_cursor_offset = item['cursor_offset']
+                    if 'scroll_offset' in item:
+                        document._restore_scroll_offset = item['scroll_offset']
+                    if 'folded_regions' in item:
+                        document.code_folding.set_initial_folded_regions(item['folded_regions'])
                     if item['filename'] == root_document_filename:
                         self.set_one_document_root(document)
             if len(self.open_documents) > 0:
-                self.set_active_document(self.open_documents[-1])
+                if active_filename:
+                    target = next((d for d in self.open_documents if d.get_filename() == active_filename), None)
+                    if target is not None:
+                        self.set_active_document(target)
+                    else:
+                        self.set_active_document(self.open_documents[-1])
+                else:
+                    self.set_active_document(self.open_documents[-1])
+            # 恢复窗口状态
+            window_state = data.get('window_state')
+            if window_state:
+                self.show_symbols = window_state.get('show_symbols', self.show_symbols)
+                self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
+                self.show_preview = window_state.get('show_preview', self.show_preview)
+                self.show_help = window_state.get('show_help', self.show_help)
+                self.show_build_log = window_state.get('show_build_log', self.show_build_log)
             self.session_file_opened = filename
             self.update_recently_opened_session_file(filename, notify=True)
 
@@ -351,16 +387,35 @@ class Workspace(Observable):
             for document in self.open_documents:
                 filename = document.get_filename()
                 if filename != None:
-                    open_documents[filename] = {
+                    doc_data = {
                         'filename': filename,
                         'last_activated': document.get_last_activated()
                     }
+                    try:
+                        cursor_offset = document.source_buffer.get_property('cursor-position')
+                        doc_data['cursor_offset'] = cursor_offset
+                    except Exception:
+                        pass
+                    try:
+                        scroll_offset = document.view.scrolled_window.get_vadjustment().get_value()
+                        doc_data['scroll_offset'] = scroll_offset
+                    except Exception:
+                        pass
+                    try:
+                        folded_regions = document.code_folding.get_folded_regions()
+                        if folded_regions:
+                            doc_data['folded_regions'] = folded_regions
+                    except Exception:
+                        pass
+                    open_documents[filename] = doc_data
             data = {
                 'open_documents': open_documents,
                 'recently_opened_documents': self.recently_opened_documents,
                 'recently_opened_session_files': self.recently_opened_session_files,
-                'recent_help_searches': self.help_panel.search_results_blank
+                'recent_help_searches': getattr(self, 'help_panel', None) and self.help_panel.search_results_blank
             }
+            if self.active_document is not None:
+                data['active_document_filename'] = self.active_document.get_filename()
             if self.root_document != None:
                 data['root_document_filename'] = self.root_document.get_filename()
             pickle.dump(data, filehandle)
@@ -373,13 +428,39 @@ class Workspace(Observable):
             for document in self.open_documents:
                 filename = document.get_filename()
                 if filename != None:
-                    open_documents[filename] = {
+                    doc_data = {
                         'filename': filename,
                         'last_activated': document.get_last_activated()
                     }
+                    try:
+                        cursor_offset = document.source_buffer.get_property('cursor-position')
+                        doc_data['cursor_offset'] = cursor_offset
+                    except Exception:
+                        pass
+                    try:
+                        scroll_offset = document.view.scrolled_window.get_vadjustment().get_value()
+                        doc_data['scroll_offset'] = scroll_offset
+                    except Exception:
+                        pass
+                    try:
+                        folded_regions = document.code_folding.get_folded_regions()
+                        if folded_regions:
+                            doc_data['folded_regions'] = folded_regions
+                    except Exception:
+                        pass
+                    open_documents[filename] = doc_data
             data = {'open_documents': open_documents}
+            if self.active_document is not None:
+                data['active_document_filename'] = self.active_document.get_filename()
             if self.root_document != None:
                 data['root_document_filename'] = self.root_document.get_filename()
+            data['window_state'] = {
+                'show_symbols': self.show_symbols,
+                'show_document_structure': self.show_document_structure,
+                'show_preview': self.show_preview,
+                'show_help': self.show_help,
+                'show_build_log': self.show_build_log,
+            }
             pickle.dump(data, filehandle)
             self.session_file_opened = session_filename
             self.update_recently_opened_session_file(session_filename, notify=True)
@@ -449,17 +530,22 @@ class Workspace(Observable):
         if show_preview != self.show_preview or show_help != self.show_help:
             self.show_preview = show_preview
             self.show_help = show_help
+            self.settings.set_value('window_state', 'show_preview', show_preview)
+            self.settings.set_value('window_state', 'show_help', show_help)
             self.add_change_code('set_show_preview_or_help')
 
     def set_show_symbols_or_document_structure(self, show_symbols, show_document_structure):
         if show_symbols != self.show_symbols or show_document_structure != self.show_document_structure:
             self.show_symbols = show_symbols
             self.show_document_structure = show_document_structure
+            self.settings.set_value('window_state', 'show_symbols', show_symbols)
+            self.settings.set_value('window_state', 'show_document_structure', show_document_structure)
             self.add_change_code('set_show_symbols_or_document_structure')
 
     def set_show_build_log(self, show_build_log):
         if show_build_log != self.show_build_log:
             self.show_build_log = show_build_log
+            self.settings.set_value('window_state', 'show_build_log', show_build_log)
             self.add_change_code('show_build_log_state_change', show_build_log)
 
     def get_show_build_log(self):

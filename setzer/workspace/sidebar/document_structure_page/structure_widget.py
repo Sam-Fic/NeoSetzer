@@ -110,8 +110,9 @@ class StructureWidget(Gtk.Box):
         any_visible = False
         while child is not None:
             if isinstance(child, Adw.ActionRow):
-                title = child.get_title() or ''
-                match = not query or query in title.lower()
+                title = (child.get_title() or '').lower()
+                subtitle = (child.get_subtitle() or '').lower()
+                match = not query or query in title or query in subtitle
                 child.set_visible(match)
                 if match:
                     any_visible = True
@@ -123,14 +124,36 @@ class StructureWidget(Gtk.Box):
         row.set_selectable(False)
         row.set_activatable(True)
         prefix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        if indent > 0:
-            spaces = '\u00A0' * (indent // 6)
-            prefix_label = Gtk.Label(label=spaces)
-            prefix_label.set_xalign(1.0)
-            prefix_box.append(prefix_label)
+        # 用细竖线树形指示符（│ ）表达嵌套层级，替代原来每层约 18px 的
+        # 不间断空格缩进。深层嵌套（subsubsection 4+）时大幅减少横向占用，
+        # 让章节名保持可见。tree_depth 由像素 indent 还原（每层 18px）。
+        tree_depth = indent // 18
+        if tree_depth > 0:
+            tree_label = Gtk.Label(label='│ ' * tree_depth)
+            tree_label.set_xalign(0.0)
+            tree_label.set_valign(Gtk.Align.FILL)
+            tree_label.add_css_class('dim-label')
+            tree_label.add_css_class('structure-tree-line')
+            prefix_box.append(tree_label)
         prefix_box.append(Gtk.Image(icon_name=icon_name))
         row.add_prefix(prefix_box)
         row.set_title(text)
+        # 标题可能被容器宽度截断（ellipsize），hover 时给出完整文本。
+        row.set_tooltip_text(text)
+        # 无障碍：outline 行本质是文档结构的树形项，设为 tree-item 角色
+        # 并暴露层级，使屏幕阅读器能朗读「level N」而非仅标题文本。
+        # 防御性：旧版 GTK（< 4.10）无 AccessibleRole/Property 枚举时静默跳过。
+        role = getattr(Gtk.AccessibleRole, 'TREE_ITEM', None)
+        if role is not None:
+            row.set_accessible_role(role)
+        level_prop = getattr(Gtk.AccessibleProperty, 'LEVEL', None)
+        if level_prop is not None:
+            try:
+                row.update_property(level_prop, tree_depth + 1)
+            except TypeError:
+                # 某些 PyGObject 版本的 update_property 绑定与 GTK 头不匹配，
+                # 调用即抛 TypeError。a11y 层级为增强项，失败则跳过。
+                pass
         return row
 
     def _find_child_of_type(self, widget, type_):

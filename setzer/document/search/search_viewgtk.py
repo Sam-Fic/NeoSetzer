@@ -67,6 +67,35 @@ class SearchBar(Gtk.SearchBar):
         self.entry_overlay.add_overlay(self.match_counter)
         find_row.append(self.entry_overlay)
 
+        # --- match-option toggles (case / regex / whole-word) ---
+        # 与 gedit / GNOME Text Editor 一致的右侧一排开关。
+        options_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        options_box.set_spacing(2)
+        options_box.set_valign(Gtk.Align.CENTER)
+
+        self.case_toggle = Gtk.ToggleButton.new_with_label('Aa')
+        self.case_toggle.set_can_focus(False)
+        self.case_toggle.set_tooltip_text(_('Match case'))
+        options_box.append(self.case_toggle)
+
+        self.regex_toggle = Gtk.ToggleButton.new_with_label('.*')
+        self.regex_toggle.set_can_focus(False)
+        self.regex_toggle.set_tooltip_text(_('Use regular expressions'))
+        options_box.append(self.regex_toggle)
+
+        self.word_toggle = Gtk.ToggleButton.new_with_label('W')
+        self.word_toggle.set_can_focus(False)
+        self.word_toggle.set_tooltip_text(_('Match entire word'))
+        options_box.append(self.word_toggle)
+
+        self.selection_toggle = Gtk.ToggleButton.new_with_label('S')
+        self.selection_toggle.set_can_focus(False)
+        self.selection_toggle.set_tooltip_text(_('Search in selection'))
+        self.selection_toggle.set_visible(False)
+        options_box.append(self.selection_toggle)
+
+        find_row.append(options_box)
+
         self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
         self.prev_button.set_can_focus(False)
         self.prev_button.set_tooltip_text(_('Previous result') + ' (Ctrl+Shift+G)')
@@ -80,6 +109,7 @@ class SearchBar(Gtk.SearchBar):
         self.close_button = Gtk.Button(icon_name='window-close-symbolic')
         self.close_button.add_css_class('flat')
         self.close_button.set_can_focus(False)
+        self.close_button.set_tooltip_text(_('Close search') + ' (Esc)')
         find_row.append(self.close_button)
 
         content.append(find_row)
@@ -101,6 +131,7 @@ class SearchBar(Gtk.SearchBar):
         self.replace_entry = Gtk.Entry()
         self.replace_entry.set_width_chars(4)
         self.replace_entry.set_hexpand(True)
+        self.replace_entry.set_placeholder_text(_('Type replacement text…'))
         self.replace_wrapper.append(self.replace_entry)
 
         self.replace_button = Gtk.Button.new_with_label(_('Replace'))
@@ -109,7 +140,7 @@ class SearchBar(Gtk.SearchBar):
         self.replace_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_button)
 
-        self.replace_all_button = Gtk.Button.new_with_label(_('All'))
+        self.replace_all_button = Gtk.Button.new_with_label(_('Replace All'))
         self.replace_all_button.set_can_focus(False)
         self.replace_all_button.set_tooltip_text(_('Replace all results'))
         self.replace_all_button.set_sensitive(False)

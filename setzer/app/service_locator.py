@@ -35,6 +35,7 @@ class ServiceLocator():
     main_window = None
     workspace = None
     settings = None
+    shortcuts = None
     setzer_version = None
     resources_path = None
     app_icons_path = None
@@ -54,6 +55,12 @@ class ServiceLocator():
 
     def get_workspace():
         return ServiceLocator.workspace
+
+    def set_shortcuts(shortcuts):
+        ServiceLocator.shortcuts = shortcuts
+
+    def get_shortcuts():
+        return ServiceLocator.shortcuts
 
     def get_increment(key):
         if key not in ServiceLocator.increments:

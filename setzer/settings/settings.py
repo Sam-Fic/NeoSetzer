@@ -46,10 +46,13 @@ class Settings(Observable):
         self.defaults['window_state']['width'] = 1020
         self.defaults['window_state']['height'] = 550
         self.defaults['window_state']['is_maximized'] = False
+        # 窗口左上角坐标；-1 表示未持久化过，启动时由窗口管理器决定位置。
+        self.defaults['window_state']['x'] = -1
+        self.defaults['window_state']['y'] = -1
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
         self.defaults['window_state']['sidebar_paned_position'] = -1
-        self.defaults['window_state']['sidebar_width_fraction'] = 0.21
+        self.defaults['window_state']['sidebar_width_fraction'] = 0.14
         self.defaults['window_state']['show_help'] = False
         self.defaults['window_state']['show_preview'] = False
         self.defaults['window_state']['show_build_log'] = False
@@ -72,6 +75,7 @@ class Settings(Observable):
         self.defaults['app_include_bibtex_file_dialog']['presets'] = None
 
         self.defaults['app_recent_symbols'] = {'symbols': []}
+        self.defaults['app_favorite_symbols'] = {'symbols': []}
 
         self.defaults['preferences'] = dict()
         self.defaults['preferences']['cleanup_build_files'] = True
@@ -104,7 +108,63 @@ class Settings(Observable):
         font_string = textview.get_pango_context().get_font_description().to_string()
         self.defaults['preferences']['font_string'] = font_string
 
+        self.defaults['keyboard_shortcuts'] = dict()
+        self.defaults['keyboard_shortcuts']['new_document'] = '<Control>n'
+        self.defaults['keyboard_shortcuts']['open_document'] = '<Control>o'
+        self.defaults['keyboard_shortcuts']['save'] = '<Control>s'
+        self.defaults['keyboard_shortcuts']['save_as'] = '<Control><Shift>s'
+        self.defaults['keyboard_shortcuts']['close_document'] = '<Control>w'
+        self.defaults['keyboard_shortcuts']['quit'] = '<Control>q'
+        self.defaults['keyboard_shortcuts']['show_shortcuts'] = '<Control>question'
+        self.defaults['keyboard_shortcuts']['show_open_docs'] = '<Control>t'
+        self.defaults['keyboard_shortcuts']['switch_document'] = '<Control>Tab'
+        self.defaults['keyboard_shortcuts']['show_document_chooser'] = '<Control><Shift>o'
+        self.defaults['keyboard_shortcuts']['zoom_in'] = '<Control>plus'
+        self.defaults['keyboard_shortcuts']['zoom_out'] = '<Control>minus'
+        self.defaults['keyboard_shortcuts']['reset_zoom'] = '<Control>0'
+        self.defaults['keyboard_shortcuts']['find'] = '<Control>f'
+        self.defaults['keyboard_shortcuts']['find_and_replace'] = '<Control>h'
+        self.defaults['keyboard_shortcuts']['find_next'] = '<Control>g'
+        self.defaults['keyboard_shortcuts']['find_previous'] = '<Control><Shift>g'
+        self.defaults['keyboard_shortcuts']['help'] = 'F1'
+        self.defaults['keyboard_shortcuts']['document_structure'] = '<Control><Shift>b'
+        self.defaults['keyboard_shortcuts']['symbols'] = '<Control><Shift>s'
+        self.defaults['keyboard_shortcuts']['save_and_build'] = 'F5'
+        self.defaults['keyboard_shortcuts']['build'] = 'F6'
+        self.defaults['keyboard_shortcuts']['forward_sync'] = 'F7'
+        self.defaults['keyboard_shortcuts']['build_log'] = '<Control><Shift>l'
+        self.defaults['keyboard_shortcuts']['preview'] = '<Control><Shift>p'
+        self.defaults['keyboard_shortcuts']['hamburger_menu'] = 'F10'
+        self.defaults['keyboard_shortcuts']['context_menu'] = 'F12'
+        self.defaults['keyboard_shortcuts']['cut'] = '<Control>x'
+        self.defaults['keyboard_shortcuts']['copy'] = '<Control>c'
+        self.defaults['keyboard_shortcuts']['paste'] = '<Control>v'
+        self.defaults['keyboard_shortcuts']['undo'] = '<Control>z'
+        self.defaults['keyboard_shortcuts']['redo'] = '<Control><Shift>z'
+        self.defaults['keyboard_shortcuts']['select_all'] = '<Control>a'
+        self.defaults['keyboard_shortcuts']['toggle_comment'] = '<Control>k'
+        self.defaults['keyboard_shortcuts']['new_line'] = '<Control>Return'
+        self.defaults['keyboard_shortcuts']['bold'] = '<Control>b'
+        self.defaults['keyboard_shortcuts']['italic'] = '<Control>i'
+        self.defaults['keyboard_shortcuts']['underline'] = '<Control>u'
+        self.defaults['keyboard_shortcuts']['typewriter'] = '<Control><Shift>t'
+        self.defaults['keyboard_shortcuts']['emphasized'] = '<Control><Shift>e'
+        self.defaults['keyboard_shortcuts']['quotation_marks'] = '<Control>quotedbl'
+        self.defaults['keyboard_shortcuts']['list_item'] = '<Control><Shift>i'
+        self.defaults['keyboard_shortcuts']['environment'] = '<Control>e'
+        self.defaults['keyboard_shortcuts']['inline_math'] = '<Control>m'
+        self.defaults['keyboard_shortcuts']['display_math'] = '<Control><Shift>m'
+        self.defaults['keyboard_shortcuts']['equation'] = '<Control><Shift>n'
+        self.defaults['keyboard_shortcuts']['subscript'] = '<Control><Shift>d'
+        self.defaults['keyboard_shortcuts']['superscript'] = '<Control><Shift>u'
+        self.defaults['keyboard_shortcuts']['fraction'] = '<Alt><Shift>f'
+        self.defaults['keyboard_shortcuts']['left'] = '<Control><Shift>l'
+        self.defaults['keyboard_shortcuts']['right'] = '<Control><Shift>r'
+
     def get_value(self, section, item):
+        if item is None:
+            try: return self.data[section]
+            except KeyError: return self.defaults.get(section, {})
         try: value = self.data[section][item]
         except KeyError:
             value = self.defaults[section][item]
@@ -116,7 +176,10 @@ class Settings(Observable):
         except KeyError:
             section_dict = dict()
             self.data[section] = section_dict
-        section_dict[item] = value
+        if item is None:
+            self.data[section] = value
+        else:
+            section_dict[item] = value
         self.add_change_code('settings_changed', (section, item, value))
         
     def unpickle(self):
@@ -149,5 +212,10 @@ class Settings(Observable):
         try: filehandle = open(os.path.join(self.pathname, 'settings.pickle'), 'wb')
         except IOError: return False
         else: pickle.dump(self.data, filehandle)
+
+    def reset_preferences(self):
+        '''Reset all preferences to default values.'''
+        self.data['preferences'] = dict(self.defaults['preferences'])
+        self.add_change_code('settings_changed', ('preferences', None, None))
         
 

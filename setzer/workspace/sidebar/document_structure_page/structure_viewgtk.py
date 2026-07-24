@@ -59,5 +59,6 @@ class StructureSectionView(structure_widget.StructureWidget):
                 text = item[3]
             row = self.make_row(icon_name, text, level * 18)
             row.item_data = node
+            self.model.register_row(row, node)
             self.append_row(row)
             self.add_nodes(node['children'], level + 1)

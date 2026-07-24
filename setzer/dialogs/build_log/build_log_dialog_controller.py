@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import Gdk
+from gi.repository import Gdk, Adw
 
 # 延迟导入避免循环：controller 引用 presenter 的 TYPE_FILTER 常量。
 import setzer.dialogs.build_log.build_log_dialog_presenter as presenter_module
@@ -74,6 +74,7 @@ class BuildLogDialogController(object):
                 continue
             lines.append(self._format_item(item))
         Gdk.Display.get_default().get_clipboard().set('\n'.join(lines))
+        self.view.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
 
     @staticmethod
     def _format_item(item):

@@ -35,9 +35,16 @@ class ReplaceConfirmationDialog(object):
         self.view.choose(self.main_window, None, self.dialog_process_response)
 
     def setup(self, original, replacement, number_of_occurrences):
-        str_occurrences = ngettext('Replacing {amount} occurence of »{original}« with »{replacement}«.', 'Replacing {amount} occurrences of »{original}« with »{replacement}«.', number_of_occurrences)
+        if number_of_occurrences < 0:
+            # 数量尚未通过 GtkSource 异步扫描就绪（-1）：用不带数字的通用提示，
+            # 避免出现 "Replacing -1 occurrences" 这类误导文案。
+            str_occurrences = _('Replace all matches of »{original}« with »{replacement}«?')
+            heading = str_occurrences.format(original=original, replacement=replacement)
+        else:
+            str_occurrences = ngettext('Replacing {amount} occurence of »{original}« with »{replacement}«.', 'Replacing {amount} occurrences of »{original}« with »{replacement}«.', number_of_occurrences)
+            heading = str_occurrences.format(amount=str(number_of_occurrences), original=original, replacement=replacement)
         self.view = Adw.AlertDialog(
-            heading=str_occurrences.format(amount=str(number_of_occurrences), original=original, replacement=replacement),
+            heading=heading,
             body=_('Do you really want to do this?'))
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('replace', _('Yes, replace all occurrences'))

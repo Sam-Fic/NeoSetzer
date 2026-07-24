@@ -24,6 +24,11 @@ class FilesSectionView(structure_widget.StructureWidget):
 
     def __init__(self, model):
         structure_widget.StructureWidget.__init__(self, model)
+        self.set_empty_state(
+            'folder-symbolic',
+            _('No files'),
+            _('The main document is always shown. Add \\input{...} or \\include{...} to include other files.')
+        )
 
     def populate(self):
         # 签名 = id(document) + 主文件名 + 各 include 文件名元组。
@@ -58,6 +63,8 @@ class FilesSectionView(structure_widget.StructureWidget):
             )
             row.item_data = ('include', include)
             self.append_row(row)
+
+        self.set_empty_state_visible(False)
 
     def make_file_row(self, filename, doc_dir, icon_name, indent):
         basename = os.path.basename(filename)

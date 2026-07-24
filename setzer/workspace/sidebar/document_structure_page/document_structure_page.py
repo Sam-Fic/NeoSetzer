@@ -47,8 +47,30 @@ class DocumentStructurePage(Gtk.Box):
 
         self.page = Adw.PreferencesPage()
         self.page.set_vexpand(True)
-        # toolbar 已在 add_buttons() 内部 append 到 self，这里只追加 page
-        self.append(self.page)
+
+        self.no_results_status = Adw.StatusPage()
+        self.no_results_status.set_icon_name('edit-find-symbolic')
+        self.no_results_status.set_title(_('No Results'))
+        self.no_results_status.set_description(_('No sections match your search'))
+        self.no_results_status.set_vexpand(True)
+        self.no_results_status.set_valign(Gtk.Align.CENTER)
+
+        self.content_stack = Gtk.Stack()
+        self.content_stack.set_vexpand(True)
+        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.content_stack.set_transition_duration(150)
+        self.content_stack.add_named(self.page, 'content')
+        self.content_stack.add_named(self.no_results_status, 'no-results')
+
+        self.no_document_status = Adw.StatusPage()
+        self.no_document_status.set_icon_name('document-open-symbolic')
+        self.no_document_status.set_title(_('No Document'))
+        self.no_document_status.set_description(_('Open a document to see its structure.'))
+        self.no_document_status.set_vexpand(True)
+        self.no_document_status.set_valign(Gtk.Align.CENTER)
+        self.content_stack.add_named(self.no_document_status, 'no-document')
+
+        self.append(self.content_stack)
 
         # Adw.PreferencesPage 自身不暴露 get_vadjustment()，但其内部第一个
         # 子控件就是 Gtk.ScrolledWindow，从中取得 vadjustment 供滚动导航使用。
@@ -86,6 +108,12 @@ class DocumentStructurePage(Gtk.Box):
 
     def set_section_visible(self, name, visible):
         self.sections[name].set_visible(visible)
+
+    def show_no_document(self):
+        self.content_stack.set_visible_child_name('no-document')
+
+    def show_content(self):
+        self.content_stack.set_visible_child_name('content')
 
     def add_buttons(self):
         # 顶部内嵌工具栏：左侧为随滚动更新的“当前分区”标题，右侧为
@@ -285,14 +313,18 @@ class DocumentStructurePage(Gtk.Box):
         self.filter_sections(entry.get_text())
 
     def filter_sections(self, query):
+        any_visible = False
         for name, group in self.sections.items():
             widget = self.section_widgets.get(name)
             if widget and hasattr(widget, 'filter_rows'):
-                any_visible = widget.filter_rows(query)
-                # query 非空时按匹配结果显隐 group；query 为空时恢复全部 group
-                # 可见（修复：搜索清空后之前被隐藏的 group 未恢复）。
-                group.set_visible(any_visible if query else True)
+                section_visible = widget.filter_rows(query)
+                group.set_visible(section_visible if query else True)
+                any_visible |= section_visible
             else:
-                group.set_visible(True)
+                group.set_visible(not bool(query))
+        if query and not any_visible:
+            self.content_stack.set_visible_child_name('no-results')
+        else:
+            self.content_stack.set_visible_child_name('content')
         if query:
             self._groups_cache = None

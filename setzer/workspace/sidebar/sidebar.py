@@ -40,7 +40,15 @@ class Sidebar(object):
         self.view.add_named(self.document_structure_page, 'document_structure')
         self.view.add_named(self.symbols_page.view, 'symbols')
 
+        self.data_provider.connect('document_changed', self.on_document_changed)
+
         self.view.queue_draw()
+
+    def on_document_changed(self, data_provider, document):
+        if document is None:
+            self.document_structure_page.show_no_document()
+        else:
+            self.document_structure_page.show_content()
 
     def create_document_structure_page(self):
         self.document_structure_page = document_structure_page.DocumentStructurePage()

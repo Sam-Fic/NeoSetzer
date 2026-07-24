@@ -24,31 +24,33 @@ from gi.repository import Gtk, Adw
 class DocumentChooserView(object):
 
     def __init__(self):
-        # 标准 Libadwaita 对话框：自带标题栏、Esc 关闭、可聚焦、自适应宽度。
         self.dialog = Adw.PreferencesDialog()
         self.dialog.set_title(_('Open Document'))
         self.dialog.set_content_width(420)
         self.dialog.set_content_height(480)
 
-        # 顶部搜索框：Gtk.SearchEntry（注意 GTK 4 中 focusable 默认 False，
-        # 必须显式开启，否则焦点无法进入、无法输入、过滤失效）。
-        # 直接放进独立的 Adw.PreferencesGroup，让 libadwaita 把它渲染为
-        # 顶部搜索条样式。
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_focusable(True)
         self.search_entry.set_hexpand(True)
         self.search_group = Adw.PreferencesGroup()
         self.search_group.add(self.search_entry)
 
-        # 最近文档列表：标准 Adw.PreferencesPage + Adw.PreferencesGroup + Adw.ActionRow。
         self.page = Adw.PreferencesPage()
         self.page.set_title(_('Recent Documents'))
-        self.group = Adw.PreferencesGroup()
         self.page.add(self.search_group)
-        self.page.add(self.group)
-        self.dialog.add(self.page)
 
-        # 底部动作：Other Documents…（独立的 PreferencesGroup + ActionRow）。
+        self.group = Adw.PreferencesGroup()
+        self.page.add(self.group)
+
+        self.no_results_group = Adw.PreferencesGroup()
+        self.no_results_status = Adw.StatusPage()
+        self.no_results_status.set_icon_name('edit-find-symbolic')
+        self.no_results_status.set_title(_('No Results'))
+        self.no_results_status.set_description(_('No documents match your search'))
+        self.no_results_group.add(self.no_results_status)
+        self.no_results_group.set_visible(False)
+        self.page.add(self.no_results_group)
+
         self.other_group = Adw.PreferencesGroup()
         self.other_documents_row = Adw.ActionRow()
         self.other_documents_row.set_activatable(True)
@@ -56,6 +58,8 @@ class DocumentChooserView(object):
         self.other_documents_row.set_icon_name('document-open-symbolic')
         self.other_group.add(self.other_documents_row)
         self.page.add(self.other_group)
+
+        self.dialog.add(self.page)
 
         self.items = []
         self.rows = []
@@ -94,4 +98,10 @@ class DocumentChooserView(object):
             row.set_visible(match)
             if match:
                 count += 1
+        if count == 0 and query != '':
+            self.group.set_visible(False)
+            self.no_results_group.set_visible(True)
+        else:
+            self.group.set_visible(True)
+            self.no_results_group.set_visible(False)
         return count

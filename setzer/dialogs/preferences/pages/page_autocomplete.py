@@ -21,6 +21,8 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
+from setzer.app.service_locator import ServiceLocator
+
 
 class PageAutocomplete(object):
 
@@ -28,6 +30,7 @@ class PageAutocomplete(object):
         self.view = PageAutocompleteView()
         self.preferences = preferences
         self.settings = settings
+        self.main_window = ServiceLocator.get_main_window()
 
     def init(self):
         self.view.option_autocomplete.set_active(self.settings.get_value('preferences', 'enable_autocomplete'))
@@ -45,8 +48,31 @@ class PageAutocomplete(object):
         self.view.option_update_matching_blocks.set_active(self.settings.get_value('preferences', 'update_matching_blocks'))
         self.view.option_update_matching_blocks.connect('notify::active', self.on_switch_toggled, 'update_matching_blocks')
 
+        self.view.reset_button.connect('clicked', self.on_reset_clicked)
+
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
+
+    def on_reset_clicked(self, button):
+        dialog = Adw.AlertDialog(
+            heading=_('Reset to Defaults?'),
+            body=_('All autocomplete settings will be restored to their default values.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('reset', _('Reset'))
+        dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self.on_reset_confirmed)
+
+    def on_reset_confirmed(self, dialog, result):
+        response_id = dialog.choose_finish(result)
+        if response_id == 'reset':
+            defaults = self.settings.defaults['preferences']
+            self.view.option_autocomplete.set_active(defaults['enable_autocomplete'])
+            self.view.option_bracket_completion.set_active(defaults['enable_bracket_completion'])
+            self.view.option_selection_brackets.set_active(defaults['bracket_selection'])
+            self.view.option_tab_jump_brackets.set_active(defaults['tab_jump_brackets'])
+            self.view.option_update_matching_blocks.set_active(defaults['update_matching_blocks'])
 
 
 class PageAutocompleteView(Adw.PreferencesPage):
@@ -83,3 +109,11 @@ class PageAutocompleteView(Adw.PreferencesPage):
         self.option_update_matching_blocks = Adw.SwitchRow()
         self.option_update_matching_blocks.set_title(_('Update matching begin / end blocks'))
         group_others.add(self.option_update_matching_blocks)
+
+        group_reset = Adw.PreferencesGroup()
+        self.add(group_reset)
+
+        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
+        group_reset.add(self.reset_button)

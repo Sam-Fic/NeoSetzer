@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import os
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import GLib, Gio, Gtk, Gdk, Pango
@@ -33,6 +34,8 @@ class Actions(object):
         self.settings = ServiceLocator.get_settings()
 
         self.actions = dict()
+        # 最近关闭的已保存文档 filename 栈，供 Ctrl+Shift+T 重开（仅保留最多 5 个）。
+        self._closed_document_stack = []
         # idle 去抖 id：update_actions 被多路信号频繁触发（modified_changed、
         # can_sync_changed、notify::can-undo、notify::has-selection、
         # adjustment changed 等），单次按键可能连续触发若干次。去抖后合并为
@@ -51,6 +54,12 @@ class Actions(object):
         self.add_action('save-session', self.save_session)
         self.add_action('close-all-documents', self.close_all)
         self.add_action('close-active-document', self.close_active_document)
+        self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
+        self.add_action('go-to-line', self.go_to_line)
+        self.add_action('duplicate-line', self.duplicate_line)
+        self.add_action('delete-line', self.delete_line)
+        self.add_action('move-line-up', self.move_line_up)
+        self.add_action('move-line-down', self.move_line_down)
 
         self.add_action('show-document-wizard', self.start_wizard, None)
         self.add_action('insert-before-after', self.insert_before_after, GLib.VariantType('as'))
@@ -175,6 +184,7 @@ class Actions(object):
 
         self.actions['close-active-document'].set_enabled(document_active)
         self.actions['close-all-documents'].set_enabled(document_active)
+        self.actions['reopen-last-closed-document'].set_enabled(len(self._closed_document_stack) > 0)
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
         self.actions['save-as'].set_enabled(document_active)
@@ -199,6 +209,10 @@ class Actions(object):
         self.actions['include-latex-file'].set_enabled(document_active_is_latex)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['toggle-comment'].set_enabled(document_active_is_latex)
+        self.actions['go-to-line'].set_enabled(document_active_is_latex)
+        self.actions['duplicate-line'].set_enabled(document_active_is_latex)
+        self.actions['move-line-up'].set_enabled(document_active_is_latex)
+        self.actions['move-line-down'].set_enabled(document_active_is_latex)
         self.actions['forward-sync'].set_enabled(can_sync)
         self.actions['build'].set_enabled(can_build)
         self.actions['save-and-build'].set_enabled(can_build)
@@ -335,11 +349,166 @@ class Actions(object):
         if self.workspace.get_active_document() == None: return
 
         document = self.workspace.get_active_document()
+        # 仅当文档已保存（有 filename 且磁盘文件仍存在）才压入重开栈，
+        # 未保存文档无法安全重开。
+        filename = document.get_filename()
+        if filename != None and os.path.isfile(filename):
+            if filename in self._closed_document_stack:
+                self._closed_document_stack.remove(filename)
+            self._closed_document_stack.append(filename)
+            if len(self._closed_document_stack) > 5:
+                self._closed_document_stack.pop(0)
         if document.source_buffer.get_modified():
             dialog = DialogLocator.get_dialog('close_confirmation')
             dialog.run({'unsaved_document': document}, self.close_document_callback)
         else:
             self.workspace.remove_document(document)
+
+    def reopen_last_closed_document(self, action=None, parameter=None):
+        if len(self._closed_document_stack) == 0: return
+
+        filename = self._closed_document_stack.pop()
+        # 文件可能已被删除，丢弃无效项并继续尝试栈中更早的。
+        while filename != None and not os.path.isfile(filename):
+            if len(self._closed_document_stack) == 0:
+                filename = None
+                break
+            filename = self._closed_document_stack.pop()
+        if filename == None:
+            self.update_actions()
+            return
+
+        self.workspace.open_document_by_filename(filename)
+
+    def go_to_line(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        line_count = document.source_buffer.get_line_count()
+        dialog = DialogLocator.get_dialog('go_to_line')
+        dialog.run(line_count, self.go_to_line_callback)
+
+    def go_to_line_callback(self, line):
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        line_count = buffer.get_line_count()
+        if line < 1 or line > line_count: return
+
+        insert_iter = buffer.get_iter_at_line(line - 1)
+        buffer.place_cursor(insert_iter)
+        document.scroll_cursor_onscreen()
+        document.view.source_view.grab_focus()
+
+    def duplicate_line(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        has_selection = buffer.get_has_selection()
+        if has_selection:
+            start, end = buffer.get_selection_bounds()
+            first_line = start.get_line()
+            # 选区跨到 end 所在行；若 end 在行首(偏移0)则不计入该行。
+            last_line = end.get_line() if end.get_line_offset() > 0 else max(end.get_line() - 1, first_line)
+        else:
+            first_line = last_line = buffer.get_iter_at_mark(buffer.get_insert()).get_line()
+
+        buffer.begin_user_action()
+        # 自底向上复制，避免行号偏移。
+        for line_number in range(last_line, first_line - 1, -1):
+            found, line_start = buffer.get_iter_at_line(line_number)
+            line_end = line_start.copy()
+            if line_end.ends_line():
+                line_end.forward_char()
+            elif line_number == buffer.get_line_count() - 1:
+                # 末行无换行符：先补一个换行，再复制行内容。
+                buffer.insert(line_end, '\n')
+                line_end.forward_char()
+            line_text = buffer.get_slice(line_start, line_end, False)
+            buffer.insert(line_end, line_text)
+        buffer.end_user_action()
+        document.scroll_cursor_onscreen()
+
+    def delete_line(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        has_selection = buffer.get_has_selection()
+        if has_selection:
+            start, end = buffer.get_selection_bounds()
+            first_line = start.get_line()
+            last_line = end.get_line() if end.get_line_offset() > 0 else max(end.get_line() - 1, first_line)
+        else:
+            first_line = last_line = buffer.get_iter_at_mark(buffer.get_insert()).get_line()
+
+        buffer.begin_user_action()
+        # 自底向上删除，避免行号偏移。
+        for line_number in range(last_line, first_line - 1, -1):
+            found, line_start = buffer.get_iter_at_line(line_number)
+            line_end = line_start.copy()
+            if line_end.ends_line():
+                line_end.forward_char()
+            elif line_number == buffer.get_line_count() - 1:
+                if line_start.get_offset() > 0:
+                    line_start.backward_char()
+            buffer.delete(line_start, line_end)
+        buffer.end_user_action()
+
+    def move_line_up(self, action=None, parameter=None):
+        self._move_line(-1)
+
+    def move_line_down(self, action=None, parameter=None):
+        self._move_line(1)
+
+    def _move_line(self, direction):
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        line_count = buffer.get_line_count()
+        has_selection = buffer.get_has_selection()
+        if has_selection:
+            start, end = buffer.get_selection_bounds()
+            first_line = start.get_line()
+            last_line = end.get_line() if end.get_line_offset() > 0 else max(end.get_line() - 1, first_line)
+        else:
+            first_line = last_line = buffer.get_iter_at_mark(buffer.get_insert()).get_line()
+
+        if direction < 0 and first_line == 0: return
+        if direction > 0 and last_line == line_count - 1: return
+
+        buffer.begin_user_action()
+        if direction < 0:
+            # 与上一行交换：取 first_line-1 行块，移到 first_line..last_line 之后。
+            upper_start = buffer.get_iter_at_line(first_line - 1)
+            upper_end = buffer.get_iter_at_line(first_line)
+            block = buffer.get_slice(upper_start, upper_end, False)
+            buffer.delete(upper_start, upper_end)
+            lower_start = buffer.get_iter_at_line(first_line)
+            lower_end = buffer.get_iter_at_line(last_line + 1)
+            lower_end = lower_end if lower_end.get_line_offset() == 0 or lower_end.ends_line() else lower_end
+            # 在块尾（last_line 行末）后插入原上一行内容。
+            insert_at = buffer.get_iter_at_line(last_line)
+            if not insert_at.ends_line():
+                insert_at.forward_to_line_end()
+            insert_at.forward_char()
+            buffer.insert(insert_at, block)
+        else:
+            # 与下一行交换：取 last_line+1 行块，移到 first_line 之前。
+            lower_start = buffer.get_iter_at_line(last_line + 1)
+            lower_end = buffer.get_iter_at_line(last_line + 2) if last_line + 2 <= line_count - 1 else buffer.get_end_iter()
+            if last_line + 1 == line_count - 1:
+                lower_end = buffer.get_end_iter()
+            block = buffer.get_slice(lower_start, lower_end, False)
+            buffer.delete(lower_start, lower_end)
+            upper_start = buffer.get_iter_at_line(first_line)
+            buffer.insert(upper_start, block)
+        buffer.end_user_action()
+        document.scroll_cursor_onscreen()
+
 
     def close_document_callback(self, parameters):
         if parameters['response'] == 0:
@@ -499,12 +668,18 @@ class Actions(object):
     def find_next(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
-        self.workspace.get_active_document().search.on_search_next_match()
+        search = self.workspace.get_active_document().search
+        if not search.view.get_search_mode():
+            search.set_mode_search()
+        search.on_search_next_match()
 
     def find_previous(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
-        self.workspace.get_active_document().search.on_search_previous_match()
+        search = self.workspace.get_active_document().search
+        if not search.view.get_search_mode():
+            search.set_mode_search()
+        search.on_search_previous_match()
 
     def stop_search(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -556,6 +731,7 @@ class Actions(object):
         font_desc.set_size(min(font_desc.get_size() * 1.1, 24 * Pango.SCALE))
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
+        self.settings.set_value('preferences', 'font_string', FontManager.font_string)
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 
@@ -564,6 +740,7 @@ class Actions(object):
         font_desc.set_size(max(font_desc.get_size() / 1.1, 6 * Pango.SCALE))
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
+        self.settings.set_value('preferences', 'font_string', FontManager.font_string)
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 

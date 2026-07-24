@@ -48,7 +48,10 @@ class ContextMenuView(Gtk.PopoverMenu):
         self.set_size_request(288, -1)
 
         self.latex_section = Gio.Menu()
-        self.set_menu_model(self._build_model())
+        # 暴露 model 引用供共享：编辑器右键菜单（workspace ContextMenu.popover_pointer）
+        # 用同一份 Gio.Menu model，使两者样式与内容完全一致（LaTeX section 重建对两者同效）。
+        self.model = self._build_model()
+        self.set_menu_model(self.model)
         self.add_child(self._build_zoom_widget(), 'zoom-controls')
 
     def _build_model(self):
@@ -119,5 +122,5 @@ class ContextMenuView(Gtk.PopoverMenu):
         '''Populate (or clear) the LaTeX-only section for the active document.'''
         self.latex_section.remove_all()
         if visible:
-            self.latex_section.append_item(_action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>k'))
+            self.latex_section.append_item(_action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>slash'))
             self.latex_section.append(_('Show in Preview'), 'win.forward-sync')

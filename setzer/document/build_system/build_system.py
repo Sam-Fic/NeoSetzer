@@ -71,8 +71,6 @@ class BuildSystem(Observable):
         self.builders['forward_sync'] = builder_forward_sync.BuilderForwardSync()
         self.builders['backward_sync'] = builder_backward_sync.BuilderBackwardSync()
 
-        self.document.preview.connect('pdf_changed', self.update_can_sync)
-
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用。
         不再有定时器需移除；置 active_query=None 使任何在途的

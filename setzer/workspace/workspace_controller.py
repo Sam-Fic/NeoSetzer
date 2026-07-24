@@ -19,6 +19,7 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 
 import time
+from gi.repository import GLib
 
 
 class WorkspaceController(object):
@@ -39,7 +40,38 @@ class WorkspaceController(object):
         self.workspace.populate_from_disk()
         open_documents = self.workspace.open_documents
         if len(open_documents) > 0:
-            self.workspace.set_active_document(open_documents[-1])
+            active_filename = getattr(self.workspace, '_restore_active_filename', None)
+            if active_filename:
+                target = next((d for d in open_documents if d.get_filename() == active_filename), None)
+                if target is not None:
+                    self.workspace.set_active_document(target)
+                else:
+                    self.workspace.set_active_document(open_documents[-1])
+            else:
+                self.workspace.set_active_document(open_documents[-1])
+            self.workspace._restore_active_filename = None
+        GLib.idle_add(self._restore_document_states)
+
+    def _restore_document_states(self):
+        for document in self.workspace.get_all_documents():
+            cursor_offset = getattr(document, '_restore_cursor_offset', None)
+            if cursor_offset is not None:
+                try:
+                    buf = document.source_buffer
+                    if cursor_offset <= buf.get_end_iter().get_offset():
+                        document.source_buffer.place_cursor(buf.get_iter_at_offset(cursor_offset))
+                except Exception:
+                    pass
+                document._restore_cursor_offset = None
+            scroll_offset = getattr(document, '_restore_scroll_offset', None)
+            if scroll_offset is not None:
+                try:
+                    adj = document.view.scrolled_window.get_vadjustment()
+                    GLib.idle_add(lambda a=adj, v=scroll_offset: (a.set_value(v), False))
+                except Exception:
+                    pass
+                document._restore_scroll_offset = None
+        return False
 
     def on_preview_toggle_toggled(self, toggle_button, parameter=None):
         show_preview = toggle_button.get_active()

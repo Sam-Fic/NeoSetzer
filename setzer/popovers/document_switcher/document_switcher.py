@@ -133,7 +133,7 @@ class DocumentSwitcher(Observable):
         self.activate_normal_mode()
 
     def update_items(self):
-        self.view.update_items(self.workspace.open_documents, self.root_selection_mode)
+        self.view.update_items(self.workspace.open_documents, self.root_selection_mode, self.workspace.get_active_document())
         # (re)wire row + close-button handlers for the freshly built rows
         for row in self.view.rows:
             row.connect('activated', self.on_row_activated)
@@ -154,14 +154,14 @@ class DocumentSwitcher(Observable):
         self.root_selection_mode = False
         self.activate_set_root_document_button()
         self.update_unset_root_button()
-        self.view.explaination_group.set_visible(False)
+        self.view.explanation_group.set_visible(False)
         self.update_items()
 
     def activate_selection_mode(self):
         self.root_selection_mode = True
         self.view.set_root_document_row.set_sensitive(False)
         self.view.unset_root_document_row.set_sensitive(True)
-        self.view.explaination_group.set_visible(True)
+        self.view.explanation_group.set_visible(True)
         self.update_items()
 
     def activate_set_root_document_button(self):

@@ -25,6 +25,7 @@ import setzer.dialogs.preferences.pages.page_build_system as page_build_system
 import setzer.dialogs.preferences.pages.page_editor as page_editor
 import setzer.dialogs.preferences.pages.page_autocomplete as page_autocomplete
 import setzer.dialogs.preferences.pages.page_appearance as page_appearance
+import setzer.dialogs.preferences.pages.page_shortcuts as page_shortcuts
 from setzer.app.service_locator import ServiceLocator
 
 
@@ -45,16 +46,18 @@ class PreferencesDialog(object):
         self.page_build_system = page_build_system.PageBuildSystem(self, self.settings)
         self.page_editor = page_editor.PageEditor(self, self.settings)
         self.page_autocomplete = page_autocomplete.PageAutocomplete(self, self.settings)
+        self.page_shortcuts = page_shortcuts.PageShortcuts(self, self.settings)
 
         self.view.add(self.page_appearance.view)
         self.view.add(self.page_build_system.view)
-        self.view.add(self.page_editor.view)
         self.view.add(self.page_autocomplete.view)
+        self.view.add(self.page_shortcuts.view)
 
         self.page_appearance.init()
         self.page_build_system.init()
         self.page_editor.init()
         self.page_autocomplete.init()
+        self.page_shortcuts.init()
 
     def on_check_button_toggle(self, button, preference_name):
         self.settings.set_value('preferences', preference_name, button.get_active())

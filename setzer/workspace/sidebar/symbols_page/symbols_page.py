@@ -22,6 +22,7 @@ from gi.repository import Gtk, Gdk, Gio, GLib, GObject
 import setzer.workspace.sidebar.symbols_page.symbols_page_viewgtk as symbols_page_view
 from setzer.app.service_locator import ServiceLocator
 import setzer.helpers.timer as timer
+from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview
 
 import math
 import time
@@ -47,9 +48,20 @@ class SymbolsPage(object):
         self.recent_view_size = None
         self.update_recent_widget()
 
+        self.favorites = ServiceLocator.get_settings().get_value('app_favorite_symbols', 'symbols')
+        self.favorites_details = list()
+        self.update_favorites_widget()
+        # 无收藏时隐藏整个 Favorites 分类。
+        self.view.favorites_group.set_visible(len(self.favorites) > 0)
+
         for symbols_list_view in self.view.symbols_views:
             symbols_list_view.connect('child-activated', self.on_flowbox_activated, symbols_list_view)
         self.view.symbols_view_recent.connect('child-activated', self.on_recent_activated)
+        self.view.symbols_view_favorites.connect('child-activated', self.on_recent_activated)
+
+        # 主列表符号的 hover 预览需要在页面初始化完成后挂载（才能拿到
+        # favorites 回调），故在此统一补挂。
+        self.wire_favorites()
 
         self.view.scrolled_window.get_hadjustment().connect('changed', self.on_symbols_view_size_allocate)
         self.view.scrolled_window.get_vadjustment().connect('changed', self.on_scroll_or_resize)
@@ -124,6 +136,12 @@ class SymbolsPage(object):
             button = Gtk.Button(child=image)
             button.add_css_class('flat')
             button.set_tooltip_text(tooltip_text)
+            button.set_accessible_name(_('Insert') + ' ' + symbol[1])
+            # 悬停时弹出放大预览（放大版符号 + LaTeX 命令 + 收藏切换按钮）。
+            attach_symbol_hover_preview(
+                button, symbol, folder=category,
+                favorite_state_func=self.is_favorite_symbol,
+                favorite_toggle_func=self.toggle_favorite_symbol)
             child = Gtk.FlowBoxChild()
             child.set_child(button)
             # recent 点击只需 (category_folder, command) 即可重新插入并更新 recency
@@ -134,6 +152,86 @@ class SymbolsPage(object):
             self.view.symbols_view_recent.insert(child, 0)
             self.view.queue_draw()
 
+    # --- Favorites ---
+    # 与 Recent 平行：存储 (category_folder, command)，渲染逻辑与 Recent 一致，
+    # 但点击/悬停预览都基于 (folder, command)，且 hover 气泡提供收藏切换按钮。
+
+    def update_favorites_widget(self):
+        for item in [item for item in self.favorites]:
+            self.add_favorite_symbol_to_flowbox(item)
+
+    def add_favorite_symbol(self, new_item):
+        # 去重：已收藏则忽略（保持首次收藏顺序）。
+        for item in self.favorites:
+            if item[1] == new_item[1]:
+                return
+        self.favorites.append(new_item)
+        self.add_favorite_symbol_to_flowbox(new_item)
+        self.view.favorites_group.set_visible(True)
+        self.save_favorites()
+
+    def remove_favorite_symbol(self, item):
+        if item in self.favorites:
+            self.favorites.remove(item)
+        for symbol in [symbol for symbol in self.favorites_details]:
+            if item[1] == symbol[1]:
+                self.view.symbols_view_favorites.remove(symbol[5])
+                self.favorites_details.remove(symbol)
+        if len(self.favorites) == 0:
+            self.view.favorites_group.set_visible(False)
+        self.save_favorites()
+
+    def toggle_favorite_symbol(self, folder, command):
+        item = (folder, command)
+        if any(i[1] == command for i in self.favorites):
+            self.remove_favorite_symbol(item)
+        else:
+            self.add_favorite_symbol(item)
+
+    def is_favorite_symbol(self, folder, command):
+        return any(i[1] == command for i in self.favorites)
+
+    def save_favorites(self):
+        ServiceLocator.get_settings().set_value('app_favorite_symbols', 'symbols', list(self.favorites))
+
+    def add_favorite_symbol_to_flowbox(self, item):
+        (category, command) = item
+        xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', category + '.xml'))
+        xml_root = xml_tree.getroot()
+        elements = xml_root.findall('./symbol[@command=\'' + command + '\']')
+        if len(elements) == 0:
+            self.remove_favorite_symbol(item)
+            return
+        attrib = elements[0].attrib
+        symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
+        size = max(symbol[3], symbol[4])
+
+        image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
+        image.set_pixel_size(int(size * 1.5))
+        image.set_size_request(25 + 11, -1)
+        tooltip_text = symbol[1]
+        if symbol[2] != None:
+            tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
+        image.set_tooltip_text(tooltip_text)
+
+        button = Gtk.Button(child=image)
+        button.add_css_class('flat')
+        button.set_tooltip_text(tooltip_text)
+        button.set_accessible_name(_('Insert') + ' ' + symbol[1])
+        # 收藏列表内符号的 hover 预览同样提供收藏切换（此时显示「移除」）。
+        attach_symbol_hover_preview(
+            button, symbol, folder=category,
+            favorite_state_func=self.is_favorite_symbol,
+            favorite_toggle_func=self.toggle_favorite_symbol)
+        child = Gtk.FlowBoxChild()
+        child.set_child(button)
+        child.symbol_data = (category, command)
+        symbol.append(child)
+        self.favorites_details.append(symbol)
+
+        self.view.symbols_view_favorites.insert(child, 0)
+        self.view.queue_draw()
+
     def on_flowbox_activated(self, flowbox, child, symbols_view):
         if self.workspace.active_document is None:
             return
@@ -141,6 +239,27 @@ class SymbolsPage(object):
         self.workspace.actions.insert_symbol(None, [symbol[1]])
         self.add_recent_symbol((symbols_view.symbol_folder, symbol[1]))
         return True
+
+    def wire_favorites(self):
+        '''为主列表（SidebarSymbolsList）的每个符号按钮挂载 hover 预览。
+
+        主列表按钮在 SymbolsPageView 构造时创建，早于本页面实例，故无法在
+        构造期拿到 favorites 回调；统一在此（self 已就绪）补挂，使预览气泡
+        带收藏切换按钮。Recent / Favorites 列表的按钮在各自 add_* 方法中创建，
+        已直接挂载，无需重复。
+        '''
+        for symbols_view in self.view.symbols_views:
+            folder = symbols_view.symbol_folder
+            child = symbols_view.get_first_child()
+            while child is not None:
+                button = child.get_child()
+                symbol = child.symbol_data
+                if button is not None and symbol is not None:
+                    attach_symbol_hover_preview(
+                        button, symbol, folder=folder,
+                        favorite_state_func=self.is_favorite_symbol,
+                        favorite_toggle_func=self.toggle_favorite_symbol)
+                child = child.get_next_sibling()
 
     def on_scroll_or_resize(self, *args):
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
@@ -235,8 +354,13 @@ class SymbolsPage(object):
 
     def update_symbols(self):
         any_symbols_found = False
+        search_active = self.view.search_entry.get_text().strip() != ''
 
         search_words = self.view.search_entry.get_text().split()
+        # labels / placeholders 除主分类外还含 Favorites、Recent 两个分组，
+        # 故主分类 i 对应的 group 索引需跳过它们。原实现直接用 labels[i]，会
+        # 错位把 Favorites/Recent 的可见性误判为主分类，且漏掉最后一个主分类。
+        offset = len(self.view.labels) - len(self.view.symbols_views)
         for i, symbols_view in enumerate(self.view.symbols_views):
             for symbol in symbols_view.visible_symbols:
                 symbols_view.remove(symbol[5])
@@ -246,7 +370,10 @@ class SymbolsPage(object):
                 child = symbol[5]
                 symbol_found = True
                 for word in search_words:
-                    if symbol[0].find(word) == -1:
+                    # 同时按图标名（symbol[0]，如 'alpha'）与 LaTeX 命令
+                    #（symbol[1]，如 '\alpha'）匹配，输入 'alpha' 或 '\alpha'
+                    # 均可命中。
+                    if symbol[0].find(word) == -1 and symbol[1].find(word) == -1:
                         symbol_found = False
                 if symbol_found:
                     symbols_view.visible_symbols.append(symbol)
@@ -255,13 +382,15 @@ class SymbolsPage(object):
             symbols_found = (len(symbols_view.visible_symbols) > 0)
             any_symbols_found |= symbols_found
             symbols_view.set_visible(symbols_found)
-            self.view.labels[i].set_visible(symbols_found)
-            self.view.placeholders[i].set_visible(symbols_found)
+            self.view.labels[i + offset].set_visible(symbols_found)
+            self.view.placeholders[i + offset].set_visible(symbols_found)
 
-        if any_symbols_found:
-            self.view.search_entry.remove_css_class('error')
-        else:
+        if search_active and not any_symbols_found:
             self.view.search_entry.add_css_class('error')
+            self.view.content_stack.set_visible_child_name('no-results')
+        else:
+            self.view.search_entry.remove_css_class('error')
+            self.view.content_stack.set_visible_child_name('content')
 
     def on_symbols_view_size_allocate(self, *arguments):
         for symbols_view in self.view.symbols_views:

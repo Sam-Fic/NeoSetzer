@@ -19,59 +19,57 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gdk, Gtk
 
-from setzer.popovers.helpers.adw_popover_menu import AdwPopoverMenu
 from setzer.popovers.popover_manager import PopoverManager
 
 
 class ContextMenu(object):
     '''Workspace right-click (secondary-button) context menu for documents.
 
-    Built on AdwPopoverMenu (Gtk.Popover + Gtk.ListBox + Adw.ActionRow with
-    the ``boxed-list`` style). Action items use add_item (the GAction
-    auto-triggers on activation and the popover closes via row-activated).
-    The LaTeX-only items (comment/sync/separator) are toggled as whole rows
-    via set_visible. The zoom controls live in a non-activatable custom row.
+    popover_pointer 与 F12「更多」弹出菜单（PopoverManager 'context_menu' /
+    ContextMenuView）共享同一份 ``Gio.Menu`` model，因此右键菜单与 F12 菜单
+    样式与内容完全一致——均为原生 ``Gtk.PopoverMenu``（同汉堡菜单），而非早先
+    的 AdwPopoverMenu（Gtk.Popover + ListBox + boxed-list）。LaTeX-only section
+    由 ContextMenuView.rebuild_latex_section() 重建，对两个 popover 同时生效
+    （共享 model 中的 latex_section 引用）。zoom 控件是每个 popover 各自的
+    custom child（各持一个 reset 按钮，标签由 actions.py 分别更新），因为
+    Gtk.PopoverMenu.add_child 注册的 custom widget 是 per-popover 的。
     '''
 
     def __init__(self, workspace):
         self.workspace = workspace
         self.document = None
 
-        # The shortcutsbar "more" popover (F12). Retained because actions.py
-        # updates its reset_zoom_button label on zoom changes.
+        # The shortcutsbar "more" popover (F12). Also the source of the shared
+        # Gio.Menu model — actions.py updates its reset_zoom_button on zoom.
         self.popover_more = PopoverManager.create_popover('context_menu')
 
-        # The right-click popover, parented to the active document's view.
-        self.popover_pointer = AdwPopoverMenu()
-        self.popover_pointer.set_size_request(300, -1)
+        # 右键 popover：原生 Gtk.PopoverMenu，共享 F12 菜单的 model。
+        # 样式（菜单项排版、快捷键标签、分隔线、zoom 行）与 F12 完全一致。
+        # 定位见 popup_at_cursor：标准上下文菜单——光标落在 popover 的一个角上
+        # （默认左上角，靠近窗口边界时 GTK 自动翻转/贴边切到右上/左下/右下角）。
+        self.popover_pointer = Gtk.PopoverMenu()
+        self.popover_pointer.set_size_request(288, -1)
         self.popover_pointer.set_has_arrow(False)
-        self.popover_pointer.set_offset(150, 0)
         self.popover_pointer.set_can_focus(False)
-        self.build_popover_pointer()
+        self.popover_pointer.set_menu_model(self.popover_more.view.model)
+        self.popover_pointer.add_child(self._build_zoom_widget(), 'zoom-controls')
 
         self.workspace.connect('new_active_document', self.on_new_active_document)
 
-    def on_new_active_document(self, workspace=None, parameter=None):
-        self.document = self.workspace.active_document
-        visible = self.document != None and self.document.is_latex_document()
-        self.comment_button_pointer.set_visible(visible)
-        self.sync_button_pointer.set_visible(visible)
-        self.latex_buttons_separator_pointer.set_visible(visible)
-
-    def build_popover_pointer(self):
-        self.add_basic_buttons(self.popover_pointer)
-
-        self.comment_button_pointer = self.add_action_button(self.popover_pointer, _('Toggle Comment'), 'win.toggle-comment', shortcut=_('Ctrl') + '+K')
-        self.sync_button_pointer = self.add_action_button(self.popover_pointer, _('Show in Preview'), 'win.forward-sync')
-        self.latex_buttons_separator_pointer = self.popover_pointer.add_separator()
-
-        # Zoom row: label + zoom-out / reset / zoom-in. These trigger actions
-        # but must not close the popover, so they live in a custom row.
+    def _build_zoom_widget(self):
+        '''右键 popover 自己的 zoom 控件行。与 ContextMenuView._build_zoom_widget
+        结构一致（label + 减/重置/增），但 reset 按钮引用存为 reset_zoom_button_pointer，
+        供 actions.py 在缩放变化时更新标签。'''
         box = Gtk.CenterBox()
         box.set_orientation(Gtk.Orientation.HORIZONTAL)
+        box.set_margin_start(6)
+        box.set_margin_end(6)
+        box.set_margin_top(6)
+        box.set_margin_bottom(6)
+
         zoom_label = Gtk.Label(label=_('Zoom'))
-        zoom_label.set_margin_start(12)
         box.set_start_widget(zoom_label)
+
         inner_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         button_zoom_out = Gtk.Button()
@@ -79,39 +77,52 @@ class ContextMenu(object):
         button_zoom_out.set_has_frame(False)
         button_zoom_out.set_action_name('win.zoom-out')
         inner_box.append(button_zoom_out)
+
         self.reset_zoom_button_pointer = Gtk.Button.new_with_label('100%')
         self.reset_zoom_button_pointer.set_has_frame(False)
         self.reset_zoom_button_pointer.set_action_name('win.reset-zoom')
-        self.reset_zoom_button_pointer.set_size_request(53, -1)
         inner_box.append(self.reset_zoom_button_pointer)
+
         button_zoom_in = Gtk.Button()
         button_zoom_in.set_icon_name('value-increase-symbolic')
         button_zoom_in.set_has_frame(False)
         button_zoom_in.set_action_name('win.zoom-in')
         inner_box.append(button_zoom_in)
+
         box.set_end_widget(inner_box)
-        self.popover_pointer.add_custom(box)
+        return box
 
-    def add_basic_buttons(self, popover):
-        self.add_action_button(popover, _('Undo'), 'win.undo', shortcut=_('Ctrl') + '+Z')
-        self.add_action_button(popover, _('Redo'), 'win.redo', shortcut=_('Shift') + '+' + _('Ctrl') + '+Z')
-        popover.add_separator()
-        self.add_action_button(popover, _('Cut'), 'win.cut', shortcut=_('Ctrl') + '+X')
-        self.add_action_button(popover, _('Copy'), 'win.copy', shortcut=_('Ctrl') + '+C')
-        self.add_action_button(popover, _('Paste'), 'win.paste', shortcut=_('Ctrl') + '+V')
-        self.add_action_button(popover, _('Delete'), 'win.delete-selection')
-        popover.add_separator()
-        self.add_action_button(popover, _('Select All'), 'win.select-all', shortcut=_('Ctrl') + '+A')
-        popover.add_separator()
-
-    def add_action_button(self, popover, label, action_name, shortcut=None):
-        return popover.add_item(label, action_name, shortcut=shortcut)
+    def on_new_active_document(self, workspace=None, parameter=None):
+        # LaTeX section 的显隐由 ContextMenuView.rebuild_latex_section 处理
+        # （popovers/context_menu 的 on_new_active_document 回调），对共享 model
+        # 生效，本 popover 自动反映。此处只更新 document 引用供 popup_at_cursor 判空。
+        self.document = self.workspace.active_document
 
     def popup_at_cursor(self, x, y):
         if self.document == None: return
 
+        # 挂到 source_view：x, y 来自挂在 source_view 上的
+        # secondary_click_controller（document_controller.py:61），是 source_view
+        # 坐标系。挂到 source_view 后 set_pointing_to 的 rect 与坐标系统一，
+        # 避免之前挂到 document.view 导致的 gutter 宽度横向偏移。
+        #
+        # 标准上下文菜单定位——让光标落在 popover 的一个角上。
+        # GTK 默认让 popover 横向居中于 pointing-to rect（光标在 popover 顶边
+        # 中央）。要把光标推到左上角，需把 popover 整体右移半个宽度，使光标
+        # 对齐 popover 左边缘——与 preview 的 context_menu set_offset(130, 0)
+        # （宽度 260 / 2）同思路。这里用 measure 动态取自然宽度，避免硬编码
+        # （菜单项长度随 locale/快捷键变化）。纵向默认在 pointing-to 下方展开
+        # （光标落在顶边），空间不足时 GTK 自动翻到上方（光标落到底边）；横向
+        # 接近右边界时 GTK 自动贴边/翻转。配合左移偏移，光标始终落在四个角
+        # 之一：默认左上，下方不够翻到左下，右边不够翻到右上/右下。
+        source_view = self.document.view.source_view
         self.popover_pointer.unparent()
-        self.popover_pointer.set_parent(self.document.view)
+        self.popover_pointer.set_parent(source_view)
+
+        _, nat_w, _, _ = self.popover_pointer.measure(Gtk.Orientation.HORIZONTAL, -1)
+        offset_x = max(0, nat_w // 2)
+        self.popover_pointer.set_offset(offset_x, 0)
+
         rect = Gdk.Rectangle()
         rect.x = x
         rect.y = y

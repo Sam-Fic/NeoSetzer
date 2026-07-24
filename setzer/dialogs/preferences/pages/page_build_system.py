@@ -19,11 +19,12 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-gi.require_version('Xdp', '1.0')
-from gi.repository import Gtk, Adw, Xdp, GLib
+from gi.repository import Gtk, Adw, GLib
 
 import subprocess
 import _thread as thread
+
+from setzer.app.service_locator import ServiceLocator
 
 
 class PageBuildSystem(object):
@@ -35,6 +36,7 @@ class PageBuildSystem(object):
         self.view = PageBuildSystemView()
         self.preferences = preferences
         self.settings = settings
+        self.main_window = ServiceLocator.get_main_window()
         self.latex_interpreters = list()
         self.latexmk_available = False
 
@@ -63,6 +65,8 @@ class PageBuildSystem(object):
         self.update_auto_build_delay_sensitivity()
 
         self.setup_latex_interpreters()
+
+        self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
     def on_auto_build_toggled(self, switch, pspec):
         value = switch.get_active()
@@ -97,6 +101,31 @@ class PageBuildSystem(object):
         if selected == Gtk.INVALID_LIST_POSITION:
             return
         self.settings.set_value('preferences', 'build_option_system_commands', self.shell_values[selected])
+
+    def on_reset_clicked(self, button):
+        dialog = Adw.AlertDialog(
+            heading=_('Reset to Defaults?'),
+            body=_('All build system settings will be restored to their default values.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('reset', _('Reset'))
+        dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self.on_reset_confirmed)
+
+    def on_reset_confirmed(self, dialog, result):
+        response_id = dialog.choose_finish(result)
+        if response_id == 'reset':
+            defaults = self.settings.defaults['preferences']
+            self.view.option_cleanup_build_files.set_active(defaults['cleanup_build_files'])
+            self.view.option_autoshow_build_log.set_selected(
+                self.autoshow_values.index(defaults['autoshow_build_log']))
+            self.view.option_system_commands.set_selected(
+                self.shell_values.index(defaults['build_option_system_commands']))
+            self.view.option_auto_build.set_active(defaults['auto_build'])
+            self.view.option_auto_build_delay.set_property('value', defaults['auto_build_delay'])
+            if self.latexmk_available:
+                self.view.option_use_latexmk.set_active(defaults['use_latexmk'])
 
     def setup_latex_interpreters(self):
         # 异步检测：5 个 subprocess（xelatex/pdflatex/lualatex/tectonic/latexmk
@@ -189,7 +218,15 @@ class PageBuildSystemView(Adw.PreferencesPage):
 
         self.no_interpreter_label = Gtk.Label()
         self.no_interpreter_label.set_wrap(True)
-        if Xdp.Portal().running_under_flatpak():
+        running_under_flatpak = False
+        try:
+            gi.require_version('Xdp', '1.0')
+            from gi.repository import Xdp
+            running_under_flatpak = Xdp.Portal().running_under_flatpak()
+        except (ValueError, ImportError):
+            # Xdp (xdg-desktop-portal) GI namespace not available in this runtime.
+            pass
+        if running_under_flatpak:
             self.no_interpreter_label.set_markup(_('''No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:
 flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         else:
@@ -274,3 +311,11 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
             shell_model.append(label)
         self.option_system_commands.set_model(shell_model)
         group_shell_escape.add(self.option_system_commands)
+
+        group_reset = Adw.PreferencesGroup()
+        self.add(group_reset)
+
+        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
+        group_reset.add(self.reset_button)

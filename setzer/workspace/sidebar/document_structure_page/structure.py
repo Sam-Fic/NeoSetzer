@@ -27,24 +27,30 @@ class StructureSection(object):
     def __init__(self, data_provider):
         self.data_provider = data_provider
         self.data_provider.connect('data_updated', self.update_items)
+        self.data_provider.connect('cursor_position_changed', self.on_cursor_position_changed)
 
         self.levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6, 'file': 7}
 
         self.icon_map = {
-            'part': 'view-list-symbolic',
-            'chapter': 'x-office-document-symbolic',
-            'section': 'folder-symbolic',
-            'subsection': 'text-x-generic-symbolic',
-            'subsubsection': 'accessories-text-editor-symbolic',
-            'paragraph': 'format-justify-left-symbolic',
-            'subparagraph': 'format-justify-fill-symbolic',
+            'part': 'part-symbolic',
+            'chapter': 'chapter-symbolic',
+            'section': 'section-symbolic',
+            'subsection': 'subsection-symbolic',
+            'subsubsection': 'subsubsection-symbolic',
+            'paragraph': 'paragraph-symbolic',
+            'subparagraph': 'subparagraph-symbolic',
             'file': 'file-symbolic',
+            'figure': 'image-x-generic-symbolic',
+            'table': 'view-grid-symbolic',
+            'equation': 'insert-math-symbolic',
         }
 
         self.view = structure_section_view.StructureSectionView(self)
 
         self.nodes = list()
         self.nodes_in_line = list()
+        self._row_map = dict()
+        self._current_highlight_row = None
 
     def on_row_activated(self, row):
         node = row.item_data
@@ -65,6 +71,38 @@ class StructureSection(object):
         document.place_cursor(line_number)
         document.scroll_cursor_onscreen()
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
+
+    def register_row(self, row, node):
+        self._row_map[id(node)] = row
+
+    def on_cursor_position_changed(self, data_provider, document):
+        if document is None:
+            return
+        line_number = document.source_buffer.get_iter_at_offset(
+            document.source_buffer.get_property('cursor-position')).get_line()
+        self.highlight_current_section(line_number, document)
+
+    def highlight_current_section(self, line_number, document):
+        target_node = None
+        for node in self.nodes_in_line:
+            node_doc = node['item'][0]
+            node_line = node['item'][1]
+            if node_doc is document and node_line <= line_number:
+                target_node = node
+            elif node_doc is not None and node_doc is not document:
+                continue
+            elif node_doc is document and node_line > line_number:
+                break
+
+        if self._current_highlight_row is not None:
+            self._current_highlight_row.remove_css_class('accent')
+            self._current_highlight_row = None
+
+        if target_node is not None:
+            row = self._row_map.get(id(target_node))
+            if row is not None:
+                row.add_css_class('accent')
+                self._current_highlight_row = row
 
     #@timer
     def update_items(self, *params):
@@ -125,7 +163,7 @@ class StructureSection(object):
         for section in sections.values():
             section_type = section['block'][4]
             level = self.levels[section_type]
-            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list()}
+            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list()}
             if predecessor[level] == None:
                 nodes.append(node)
             else:
@@ -137,4 +175,8 @@ class StructureSection(object):
 
         self.nodes_in_line = nodes_in_line
         self.nodes = nodes
+        self._row_map.clear()
+        self._current_highlight_row = None
         self.view.populate()
+        if self.data_provider.document is not None:
+            self.on_cursor_position_changed(self.data_provider, self.data_provider.document)

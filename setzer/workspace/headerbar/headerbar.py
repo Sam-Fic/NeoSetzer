@@ -47,6 +47,19 @@ class Headerbar(object):
 
         self.activate_welcome_screen_mode()
 
+        # Compact 模式：窄窗（<700px breakpoint）时隐藏 save / help 按钮（有 Ctrl+S、
+        # F1 兜底），缓解 headerbar 在 360px 下的按钮溢出。不能直接用
+        # Adw.Breakpoint.add_setter(visible)：本 presenter 频繁 set_visible 这些按钮
+        # （welcome/document 模式切换、show/hide_*_toggles），add_setter 会被覆盖。
+        # 通过 _compact 标志在 show 路径末尾覆盖隐藏；set_compact 重跑当前模式生效/恢复。
+        # F1/F9 直接操作 toggle 的 set_active（见 shortcut_controller_app），不受
+        # set_visible 影响，故隐藏 help_toggle 不会困住用户。
+        self._compact = False
+        main_window = ServiceLocator.get_main_window()
+        main_window.connect('notify::current-breakpoint', self._on_breakpoint_change)
+        # 同步初始状态（窗口启动时可能已在窄窗，breakpoint 已 apply）
+        self._on_breakpoint_change(main_window, None)
+
     def on_document_removed(self, workspace, document):
         if self.workspace.active_document == None:
             self.set_build_button_state()
@@ -114,6 +127,9 @@ class Headerbar(object):
         self.view.center_button.set_sensitive(True)
         self.view.center_widget.set_visible_child_name('button')
         self.view.widget.remove_css_class('welcome')
+        # compact 覆盖：窄窗隐藏 save（Ctrl+S 兜底，hamburger 有 Save Document 项）
+        if self._compact:
+            self.view.save_document_button.set_visible(False)
 
     def show_document_name(self, document):
         mod_text = '*' if document.source_buffer.get_modified() else ''
@@ -162,5 +178,31 @@ class Headerbar(object):
         self.view.preview_toggle.set_sensitive(True)
         self.view.help_toggle.set_visible(True)
         self.view.help_toggle.set_sensitive(True)
+        # compact 覆盖：窄窗隐藏 help（F1 直接 set_active 兜底，隐藏后仍可切换）
+        if self._compact:
+            self.view.help_toggle.set_visible(False)
+
+    def set_compact(self, compact):
+        '''窄窗 compact 模式开关。设标志后重跑当前模式的可见性逻辑，
+        让 activate_document_mode / show_preview_help_toggles 末尾的 compact
+        覆盖生效（compact=True）或恢复（compact=False）。幂等。
+
+        不能只 set_visible：welcome/document 模式与 toggle 状态共同决定可见性，
+        必须重跑对应路径以保证 save/help 与其它按钮状态一致。'''
+        if self._compact == compact:
+            return
+        self._compact = compact
+        if self.workspace.active_document is not None:
+            self.activate_document_mode()
+        else:
+            self.activate_welcome_screen_mode()
+        self.update_toggles()
+
+    def _on_breakpoint_change(self, window, pspec):
+        '''notify::current-breakpoint 回调：当前 breakpoint 为 narrow_breakpoint
+        时进入 compact 模式，否则（含 None=宽窗）退出。'''
+        bp = window.get_current_breakpoint()
+        narrow = getattr(window, 'narrow_breakpoint', None)
+        self.set_compact(bp is not None and bp is narrow)
 
 

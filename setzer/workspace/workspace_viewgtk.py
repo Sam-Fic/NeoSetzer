@@ -115,9 +115,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.sidebar_split = Adw.OverlaySplitView()
         self.sidebar_split.set_sidebar(self.sidebar)
         self.sidebar_split.set_content(self.preview_paned_overlay)
-        self.sidebar_split.set_min_sidebar_width(252)
+        self.sidebar_split.set_min_sidebar_width(180)
         self.sidebar_split.set_max_sidebar_width(600)
-        self.sidebar_split.set_sidebar_width_fraction(0.21)
+        self.sidebar_split.set_sidebar_width_fraction(0.14)
 
         self.welcome_screen = welcome_screen_view.WelcomeScreenView()
 
@@ -164,10 +164,20 @@ class MainWindow(Adw.ApplicationWindow):
         self.content_overlay.set_child(self.mode_stack)
         self.popoverlay.set_child(self.content_overlay)
 
-        # 窄窗口自动把侧边栏折叠为浮层抽屉（Adw.OverlaySplitView 的 collapsed 属性）
+        # 窄窗口（<700px）自动把侧边栏与预览侧栏折叠为浮层抽屉
+        # （Adw.OverlaySplitView 的 collapsed 属性）。两者同款控件、同一 breakpoint，
+        # 行为一致：宽窗 inline 推挤，窄窗 overlay drawer（自带 backdrop + 点击外部关闭）。
+        # preview_split 之前显式保持 collapsed=False，导致窄窗时预览（min 300px）inline
+        # 挤死编辑器（360px 窗口下编辑器仅剩 ~60px）。折叠为 drawer 后编辑器不再被挤，
+        # 预览按需打开（preview_toggle / F9），与 sidebar 行为对称。
+        # collapsed 属性 presenter 从不触碰（只调 set_show_sidebar），add_setter 无冲突。
         sidebar_breakpoint = Adw.Breakpoint.new(
             Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 700, Adw.LengthUnit.PX))
         sidebar_breakpoint.add_setter(self.sidebar_split, 'collapsed', True)
+        sidebar_breakpoint.add_setter(self.preview_split, 'collapsed', True)
+        # 暴露 narrow breakpoint 引用供 headerbar presenter 比较
+        # （notify::current-breakpoint 触发 compact 模式切换）。
+        self.narrow_breakpoint = sidebar_breakpoint
         self.add_breakpoint(sidebar_breakpoint)
         # 注意：shortcutsbar overflow 现在由 Shortcutsbar.do_size_allocate
         # 连续测量后动态计算（每像素自适应），不再用 Adw.Breakpoint 阶梯。

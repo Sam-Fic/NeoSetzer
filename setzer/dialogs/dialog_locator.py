@@ -28,6 +28,7 @@ from setzer.dialogs.include_latex_file.include_latex_file import IncludeLaTeXFil
 from setzer.dialogs.interpreter_missing.interpreter_missing import InterpreterMissingDialog
 from setzer.dialogs.keyboard_shortcuts.keyboard_shortcuts import KeyboardShortcutsDialog
 from setzer.dialogs.open_document.open_document import OpenDocumentDialog
+from setzer.dialogs.go_to_line.go_to_line import GoToLineDialog
 from setzer.dialogs.open_session.open_session import OpenSessionDialog
 from setzer.dialogs.preferences.preferences import PreferencesDialog
 from setzer.dialogs.replace_confirmation.replace_confirmation import ReplaceConfirmationDialog
@@ -51,6 +52,7 @@ class DialogLocator():
         dialogs['include_latex_file'] = IncludeLaTeXFile(main_window)
         dialogs['keyboard_shortcuts'] = KeyboardShortcutsDialog(main_window)
         dialogs['open_document'] = OpenDocumentDialog(main_window, workspace)
+        dialogs['go_to_line'] = GoToLineDialog(main_window)
         dialogs['open_session'] = OpenSessionDialog(main_window, workspace)
         dialogs['preferences'] = PreferencesDialog(main_window)
         dialogs['replace_confirmation'] = ReplaceConfirmationDialog(main_window)

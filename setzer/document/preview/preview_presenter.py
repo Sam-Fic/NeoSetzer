@@ -37,26 +37,50 @@ class PreviewPresenter(object):
 
         self.highlight_duration = 1.5
         self.count = 1
-        # 跟踪 synctex 高亮淡出动画的 timeout id。原实现每次 start_fade_loop
-        # 都新建一个 timeout，连续 forward/backward sync 会叠加多个 15ms
-        # timeout 同时 queue_draw，浪费 CPU；文档关闭时挂起的淡出也会继续
-        # 访问已销毁的 drawing_area。改为跟踪 id，新淡出取消旧的，并由
-        # preview.shutdown 取消挂起的。
         self._fade_loop_id = None
+
+        self._build_in_progress = False
+        self._last_build_result = None
 
         self.view.drawing_area.set_draw_func(self.draw)
 
         self.preview.connect('pdf_changed', self.on_pdf_changed)
         self.preview.connect('layout_changed', self.on_layout_changed)
+        self.preview.connect('pdf_load_failed', self.on_pdf_load_failed)
         self.page_renderer.connect('rendered_pages_changed', self.on_rendered_pages_changed)
+
+        build_system = self.preview.document.build_system
+        build_system.connect('build_state_change', self.on_build_state_change)
+        build_system.connect('build_state', self.on_build_state)
 
         self.show_blank_slate()
 
     def on_pdf_changed(self, preview):
         if self.preview.poppler_document != None:
+            # 成功加载新 PDF 时清除上次的构建失败提示。
+            self.view.hide_pdf_load_failed()
             self.show_pdf()
         else:
+            # 回到空白状态（无旧 PDF 可回退）时也清除失败提示。
+            self.view.hide_pdf_load_failed()
             self.show_blank_slate()
+
+    def on_pdf_load_failed(self, preview):
+        # 新 PDF 加载失败，回退到旧 PDF：显示错误图标，弹出 toast 告知用户。
+        self.view.show_pdf_load_failed()
+
+    def on_build_state_change(self, build_system, state):
+        if state == 'building_in_progress':
+            self._build_in_progress = True
+            self._last_build_result = None
+            if self.view.stack.get_visible_child_name() == 'blank_slate':
+                self.view.blank_slate.set_state('building')
+        elif state == 'idle':
+            self._build_in_progress = False
+
+    def on_build_state(self, build_system, message):
+        if message in ('error', 'success'):
+            self._last_build_result = message
 
     def on_layout_changed(self, preview):
         if self.preview.layout != None:
@@ -71,6 +95,12 @@ class PreviewPresenter(object):
         self.view.drawing_area.queue_draw()
 
     def show_blank_slate(self):
+        if self._last_build_result == 'error':
+            self.view.blank_slate.set_state('build_failed')
+        elif self._build_in_progress:
+            self.view.blank_slate.set_state('building')
+        else:
+            self.view.blank_slate.set_state('never_built')
         self.view.stack.set_visible_child_name('blank_slate')
 
     def show_pdf(self):
@@ -143,7 +173,7 @@ class PreviewPresenter(object):
         else:
             bg = Gdk.RGBA(1, 1, 1, 1)
         ctx.rectangle(0, 0, drawing_area.get_allocated_width(), drawing_area.get_allocated_height())
-        Gdk.cairo_set_source_rgba(ctx, bg)
+        ctx.set_source_rgba(bg.red, bg.green, bg.blue, bg.alpha)
         ctx.fill()
 
     #@timer
@@ -153,12 +183,12 @@ class PreviewPresenter(object):
         border_width = layout.border_width
         page_width = layout.page_width
         page_height = layout.page_height
-        Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('borders'))
+        b_ = ColorManager.get_ui_color('borders'); ctx.set_source_rgba(b_.red, b_.green, b_.blue, b_.alpha)
         ctx.rectangle(- border_width, - border_width, page_width + 2 * border_width, page_height + 2 * border_width)
         ctx.fill()
 
         if self.preview.recolor_pdf:
-            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_bg_color'))
+            vb_ = ColorManager.get_ui_color('view_bg_color'); ctx.set_source_rgba(vb_.red, vb_.green, vb_.blue, vb_.alpha)
         else:
             ctx.set_source_rgba(1, 1, 1, 1)
         ctx.rectangle(0, 0, page_width, page_height)
@@ -196,7 +226,7 @@ class PreviewPresenter(object):
             else:
                 color = ColorManager.get_ui_color('highlight_tag_preview')
                 color.alpha *= time_factor
-                Gdk.cairo_set_source_rgba(ctx, color)
+                ctx.set_source_rgba(color.red, color.green, color.blue, color.alpha)
                 ctx.set_operator(cairo.Operator.MULTIPLY)
                 for rectangle in rectangles:
                     ctx.rectangle(rectangle['x'], rectangle['y'], rectangle['width'], rectangle['height'])

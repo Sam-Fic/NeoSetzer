@@ -35,12 +35,20 @@ class DocumentDeletedOnDiskDialog(object):
         self.view.choose(self.main_window, None, self.dialog_process_response)
 
     def setup(self, document):
+        self.document = document
         self.view = Adw.AlertDialog(
             heading=_('Document »{document}« was deleted from disk or moved.').format(document=document.get_displayname()),
             body=_('If you close it or close Setzer without saving, this document will be lost.'))
+        self.view.add_response('save_as', _('Save As…'))
         self.view.add_response('ok', _('Ok'))
-        self.view.set_default_response('ok')
+        self.view.set_response_appearance('save_as', Adw.ResponseAppearance.SUGGESTED)
+        self.view.set_default_response('save_as')
         self.view.set_close_response('ok')
 
     def dialog_process_response(self, dialog, result):
-        dialog.choose_finish(result)
+        response = dialog.choose_finish(result)
+        if response == 'save_as':
+            # 延迟导入避免与 dialog_locator 的循环导入
+            # （dialog_locator 顶层 import 本模块）。
+            from setzer.dialogs.dialog_locator import DialogLocator
+            DialogLocator.get_dialog('save_document').run(self.document)

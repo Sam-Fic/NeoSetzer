@@ -97,7 +97,19 @@ class DocumentController(object):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB]:
-            if state & modifiers == 0:
+            if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
+                # Shift+Tab：选区存在时反缩进，否则回退到 previous placeholder。
+                if self.document.source_buffer.get_has_selection():
+                    self.indent_selection(outdent=True)
+                    return True
+                self.document.select_previous_placeholder()
+                if self.document.dot_selected():
+                    return True
+            else:
+                # Tab：选区存在时缩进，否则处理 placeholder / 括号跳转。
+                if self.document.source_buffer.get_has_selection():
+                    self.indent_selection(outdent=False)
+                    return True
                 self.document.select_next_placeholder()
                 if self.document.dot_selected():
                     return True
@@ -113,12 +125,48 @@ class DocumentController(object):
                 self.document.source_buffer.place_cursor(insert_iter)
                 return True
 
-        if (state & modifiers, keyval) == (Gdk.ModifierType.SHIFT_MASK, _KEYVAL_ISO_LEFT_TAB):
-            self.document.select_previous_placeholder()
-            if self.document.dot_selected():
-                return True
-
         return False
+
+    def indent_selection(self, outdent=False):
+        '''对选区覆盖的每一行前插 / 删除一个缩进单元。
+
+        缩进单元取自偏好设置（spaces_instead_of_tabs / tab_width），与
+        document.indent_text_with_whitespace_at_iter 保持一致。整段操作包在
+        单个 user_action 内，保证可一次撤销。
+        '''
+        buffer = self.document.source_buffer
+        use_spaces = self.document.settings.get_value('preferences', 'spaces_instead_of_tabs')
+        tab_width = self.document.settings.get_value('preferences', 'tab_width')
+        indent_unit = ' ' * tab_width if use_spaces else '\t'
+
+        start, end = buffer.get_selection_bounds()
+        first_line = start.get_line()
+        last_line = end.get_line() if end.get_line_offset() > 0 else max(end.get_line() - 1, first_line)
+
+        buffer.begin_user_action()
+        for line_number in range(first_line, last_line + 1):
+            found, line_start = buffer.get_iter_at_line(line_number)
+            if outdent:
+                # 删除行首至多一个缩进单元（空格数不超过 tab_width 或单个 \t）。
+                line_text = self.document.get_line(line_number)
+                if line_text.startswith('\t'):
+                    delete_end = line_start.copy()
+                    delete_end.forward_char()
+                    buffer.delete(line_start, delete_end)
+                elif line_text.startswith(' '):
+                    spaces = 0
+                    for ch in line_text:
+                        if ch == ' ':
+                            spaces += 1
+                        else:
+                            break
+                    remove = min(spaces, tab_width)
+                    delete_end = line_start.copy()
+                    delete_end.forward_chars(remove)
+                    buffer.delete(line_start, delete_end)
+            else:
+                buffer.insert(line_start, indent_unit)
+        buffer.end_user_action()
 
     def on_scroll(self, controller, dx, dy):
         modifiers = Gtk.accelerator_get_default_mod_mask()
@@ -134,12 +182,14 @@ class DocumentController(object):
                 font_desc.set_size(min(font_desc.get_size() * 1.1, 24 * Pango.SCALE))
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
+                ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
                 self.zoom_threshold = 0
             elif self.zoom_threshold >= 1:
                 font_desc = Pango.FontDescription.from_string(FontManager.font_string)
                 font_desc.set_size(max(font_desc.get_size() / 1.1, 6 * Pango.SCALE))
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
+                ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
                 self.zoom_threshold = 0
             return True
         return False

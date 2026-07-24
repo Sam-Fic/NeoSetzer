@@ -129,8 +129,7 @@ class BuildWidget(Observable):
         if self.build_button_state[0] == 'building':
             document = self.document
             if document != None:
-                if document.filename != None:
-                    self.document.build_system.stop_building()
+                self.document.build_system.stop_building()
 
     def set_clean_button_state(self):
         def get_clean_button_state(document):

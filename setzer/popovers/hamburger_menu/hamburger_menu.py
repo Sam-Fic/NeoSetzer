@@ -20,8 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, GLib, Gio
-
-from setzer.dialogs.dialog_locator import DialogLocator
+import os.path
 
 
 class HamburgerMenu(object):
@@ -34,10 +33,12 @@ class HamburgerMenu(object):
 
         self.build_static_items()
         self.build_session_submenu()
+        self.build_recent_documents_submenu()
 
         self.register_actions()
 
         self.workspace.connect('update_recently_opened_session_files', self.on_update_recently_opened_session_files)
+        self.workspace.connect('update_recently_opened_documents', self.on_update_recently_opened_documents)
 
     def register_actions(self):
         main_window = ServiceLocator_get_main_window()
@@ -49,14 +50,27 @@ class HamburgerMenu(object):
         action_open = Gio.SimpleAction.new('open-session-file', GLib.VariantType('s'))
         action_open.connect('activate', self.on_restore_session_click)
         main_window.add_action(action_open)
+        # Open a specific recent document
+        action_open_recent = Gio.SimpleAction.new('open-recent-document', GLib.VariantType('s'))
+        action_open_recent.connect('activate', self.on_open_recent_document)
+        main_window.add_action(action_open_recent)
 
     def build_static_items(self):
         # GMenu 的分隔线由 section 自动渲染：每个 append_section 之间出一条标准分隔线，
         # 不要用自定义 role=separator 的 MenuItem（会被 Gtk 渲染成空白行=空白项 bug）。
         section_save = Gio.Menu()
+        # Save Document（win.save）：补回普通 Save 项。原 section 只有 Save As / Save All，
+        # 缺普通 Save——窄窗 headerbar compact 模式隐藏 save 按钮后，用户仍可从这里保存
+        # （Ctrl+S 兜底，菜单项提升可发现性）。
+        save_doc = Gio.MenuItem.new(_('Save Document'), 'win.save')
+        save_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>s'))
+        section_save.append_item(save_doc)
         section_save.append(_('Save Document As…'), 'win.save-as')
         section_save.append(_('Save All Documents'), 'win.save-all')
         self.menu_model.append_section(None, section_save)
+
+        self.recent_documents_section = Gio.Menu()
+        self.menu_model.append_submenu(_('Recent Documents'), self.recent_documents_section)
 
         self.session_section = Gio.Menu()
         self.menu_model.append_submenu(_('Session'), self.session_section)
@@ -91,6 +105,27 @@ class HamburgerMenu(object):
         self.recent_item = Gio.MenuItem.new_section(_('Recent Sessions'), self.recent_section)
         self.session_section.append_item(self.recent_item)
 
+    def build_recent_documents_submenu(self):
+        self.recent_documents_section.remove_all()
+
+    def on_update_recently_opened_documents(self, workspace, recently_opened_documents):
+        self.recent_documents_section.remove_all()
+        items = list(recently_opened_documents.values())
+        for item in sorted(items, key=lambda val: -val['date'])[:10]:
+            filename = item['filename']
+            displayname = os.path.basename(filename)
+            menu_item = Gio.MenuItem.new(displayname, 'win.open-recent-document')
+            menu_item.set_action_and_target_value('win.open-recent-document', GLib.Variant('s', filename))
+            self.recent_documents_section.append_item(menu_item)
+
+    def on_open_recent_document(self, action, parameter):
+        filename = parameter.unpack()
+        if filename:
+            if not os.path.isfile(filename):
+                self.workspace.remove_recently_opened_document(filename)
+                return
+            self.workspace.open_document_by_filename(filename)
+
     def on_update_recently_opened_session_files(self, workspace, recently_opened_session_files):
         self.recent_section.remove_all()
         items = list(recently_opened_session_files.values())
@@ -111,6 +146,7 @@ class HamburgerMenu(object):
         return button
 
     def on_restore_session_click(self, action, parameter):
+        from setzer.dialogs.dialog_locator import DialogLocator
         if parameter is None:
             DialogLocator.get_dialog('open_session').run(self.restore_session_cb)
         else:
@@ -120,6 +156,7 @@ class HamburgerMenu(object):
     def restore_session_cb(self, filename):
         if filename == None: return
 
+        from setzer.dialogs.dialog_locator import DialogLocator
         unsaved_documents = self.workspace.get_unsaved_documents()
         if len(unsaved_documents) > 0:
             self.workspace.set_active_document(unsaved_documents[0])
@@ -132,6 +169,7 @@ class HamburgerMenu(object):
             self.workspace.load_documents_from_session_file(filename)
 
     def close_confirmation_cb(self, parameters):
+        from setzer.dialogs.dialog_locator import DialogLocator
         document = parameters['unsaved_document']
 
         if parameters['response'] == 0:

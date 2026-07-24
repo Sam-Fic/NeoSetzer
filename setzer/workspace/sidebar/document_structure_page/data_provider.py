@@ -62,6 +62,9 @@ class DataProvider(Observable):
     def on_buffer_changed(self, document, parameter=None):
         self._schedule_update_data()
 
+    def on_cursor_position_changed(self, document):
+        self.add_change_code('cursor_position_changed', document)
+
     def _schedule_update_data(self):
         '''所有触发侧边栏刷新的路径（文档新增/移除/切换/文本改动）共用一个
         idle 去抖。打开文档时 new_document + new_active_document 会在同一帧
@@ -91,10 +94,14 @@ class DataProvider(Observable):
             if self.document != None:
                 self.document.disconnect('changed', self.on_buffer_changed)
                 self.document.disconnect('is_root_changed', self.on_is_root_changed)
+                self.document.disconnect('cursor_position_changed', self.on_cursor_position_changed)
             self.document = document
             if self.document != None:
                 self.document.connect('changed', self.on_buffer_changed)
                 self.document.connect('is_root_changed', self.on_is_root_changed)
+                self.document.connect('cursor_position_changed', self.on_cursor_position_changed)
+            # 通知文档结构页文档已变更（包括 None）。
+            self.add_change_code('document_changed', self.document)
             # update_data（触发四个 section 的 clear_rows + 重建 Adw.ActionRow）
             # 延迟到 idle：让 set_visible_child / grab_focus 先返回，编辑器立即可
             # 交互，侧边栏在空闲时刻补上。打开大文档时这是 575ms → ~0ms 感知延迟

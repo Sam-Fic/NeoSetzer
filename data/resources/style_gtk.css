@@ -75,6 +75,12 @@ textview gutter {
 .compact-rows row image {
     -gtk-icon-size: 16px;
 }
+/* 文档结构嵌套层级的细竖线树形指示符（替代大缩进）。调暗、收窄，
+   与行高对齐，呈现层级而非占用过多横向空间。 */
+.compact-rows .structure-tree-line {
+    opacity: 0.45;
+    margin-right: 2px;
+}
 
 /*
  * 侧边栏分区组标题：降低视觉重量，更现代、紧凑。
@@ -211,4 +217,19 @@ toolbarview > * > * > * {
     border: none;
     outline: none;
     background-image: none;
+}
+
+/*
+ * 预览构建失败回退到旧 PDF 时，右上角的错误图标徽标。
+ * 半透明圆角底 + 警告色，悬浮于 PDF 卡片上方，提示用户构建实际失败。
+ */
+.preview .error-badge {
+    opacity: 0.9;
+    -gtk-icon-size: 18px;
+}
+.preview .error-badge {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 999px;
+    padding: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }

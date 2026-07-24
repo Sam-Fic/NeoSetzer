@@ -31,14 +31,24 @@ class ShortcutControllerDocument(ShortcutController):
         self.main_window = ServiceLocator.get_main_window()
         self.workspace = ServiceLocator.get_workspace()
         self.actions = self.workspace.actions
+        self.settings = ServiceLocator.get_settings()
 
         self.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
 
-        self.create_and_add_shortcut('<Control>x', self.actions.cut)
-        self.create_and_add_shortcut('<Control>c', self.actions.copy)
-        self.create_and_add_shortcut('<Control>v', self.actions.paste)
-        self.create_and_add_shortcut('<Control>z', self.actions.undo)
-        self.create_and_add_shortcut('<Control><Shift>z', self.actions.redo)
-        self.create_and_add_shortcut('F12', self.actions.show_context_menu)
+        self.load_shortcuts()
+
+    def load_shortcuts(self):
+        shortcuts = self.settings.get_value('keyboard_shortcuts', None)
+        if shortcuts is None:
+            shortcuts = self.settings.defaults['keyboard_shortcuts']
+        
+        self.create_and_add_shortcut(shortcuts.get('cut', '<Control>x'), self.actions.cut)
+        self.create_and_add_shortcut(shortcuts.get('copy', '<Control>c'), self.actions.copy)
+        self.create_and_add_shortcut(shortcuts.get('paste', '<Control>v'), self.actions.paste)
+        self.create_and_add_shortcut(shortcuts.get('undo', '<Control>z'), self.actions.undo)
+        self.create_and_add_shortcut(shortcuts.get('redo', '<Control><Shift>z'), self.actions.redo)
+        self.create_and_add_shortcut('<Control>y', self.actions.redo)
+        self.create_and_add_shortcut('<Control>d', self.actions.delete_line)
+        self.create_and_add_shortcut(shortcuts.get('context_menu', '<Shift>F10'), self.actions.show_context_menu)
 
 

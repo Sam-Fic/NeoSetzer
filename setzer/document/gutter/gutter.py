@@ -56,14 +56,34 @@ class Gutter(object):
         self.cursor_x, self.cursor_y = None, None
         self.hovered_folding_region = None
 
-        # 字体度量缓存：char_width / line_height 仅在 FontManager.font_string
-        # 变化（字体/缩放改变）时重算。原实现每次 update_size 都重建
-        # Pango.Layout 并遍历显示行，而 update_size 在每次文本/光标/滚动变化
-        # 时都被调用——是打字期间的主要无谓开销之一。
+        # 字体度量缓存：char_width / line_height 仅在字体实际变化时重算。
+        # 原实现每次 update_size 都重建 Pango.Layout 并遍历显示行，而
+        # update_size 在每次文本/光标/滚动变化时都被调用——是打字期间
+        # 的主要无谓开销之一。
+        #
+        # 仅比对 font_string 不足以检测字体实际变化：__init__ 在 source_view
+        # realize 前就调用了 get_line_height/get_char_width，此时 textview.monospace
+        # CSS 尚未应用到 widget 的 pango context，拿到的度量要么为零、要么基于
+        # 系统默认字体（如 MiWithJBMonoNL 10pt），而非 CSS 指定的字体。font_string
+        # 在此过程中并不变化，缓存永不失效，self.line_height 长期为陈旧值。
+        #
+        # 旧版 draw_line_number 用 (self.line_height - text_height) / 2 做垂直
+        # 居中，self.line_height 陈旧时该公式引入恒定偏移，表现为"行高一样但
+        # 行号轻微上下错位"。现已移除居中（直接画在行顶，与 GtkSourceView
+        # 一致），但 draw_folding_region 仍用 self.line_height 计算图标位置，
+        # 故保留缓存并在 update_size + draw 两处都做 font_description 比对，
+        # 确保 realize 后首帧（信号尚未触发 update_size 时）也能拿到正确度量。
         self._last_font_string = FontManager.font_string
+        self._last_actual_font_str = None
 
         self.layout = Pango.Layout(self.source_view.get_pango_context())
         self.layout.set_alignment(Pango.Alignment.RIGHT)
+        # 当前行加粗用的独立 Layout。原先只有这一个共享 Layout，循环里对当前行
+        # set_markup('<b>')、对其它行 set_text()，两者复用同一 Layout 在 GTK cairo
+        # 重绘时偶发加粗属性泄漏，表现为“光标明明在一行，却有多行号被加粗”。
+        # 拆成两个 Layout 后，加粗与普通文本互不干扰，不再串扰。
+        self.layout_current = Pango.Layout(self.source_view.get_pango_context())
+        self.layout_current.set_alignment(Pango.Alignment.RIGHT)
 
         # idle 去抖 id：5 路信号（文档变化/光标移动/滚动/折叠状态）共用一次
         # idle 刷新，避免单次按键触发 on_document_change + on_cursor_change
@@ -251,14 +271,34 @@ class Gutter(object):
             line = self.source_view.get_line_at_y(self.cursor_y + self.adjustment.get_value()).target_iter.get_line()
             self.hovered_folding_region = self.document.code_folding.get_region_by_line(line)
 
-    def update_size(self):
-        # 仅在字体/缩放变化时重算度量（get_char_width 新建 Pango.Layout，
-        # get_line_height 遍历显示行，均不廉价）。其余情况复用缓存值。
+    def _refresh_font_metrics_if_changed(self):
+        # 缓存失效检查：除 FontManager.font_string（用户字体/缩放设置）外，
+        # 还需比对 source_view 实际生效的 font_description。原因是 Gutter.__init__
+        # 在 source_view realize 前就首次取了度量，此时 textview.monospace CSS
+        # 尚未应用到 widget 的 pango context，拿到的度量要么为零、要么基于系统
+        # 默认字体（如 MiWithJBMonoNL 10pt）而非 CSS 指定的字体（如 monospace
+        # 11pt），导致 self.line_height 偏离实际行高。
+        #
+        # font_string 在此过程中并不变化，仅比对 font_string 无法触发重算。
+        # get_font_description / to_string 均为 O(1)，不会成为绘制热点。
+        #
+        # 该检查在 update_size（idle 去抖路径）和 draw（每帧）中都调用：
+        # update_size 依赖信号触发，但 source_view realize 后的首帧 draw 可能
+        # 早于任何信号到达（cursor/scroll/change 都尚未发生），此时若不做
+        # 检查，self.line_height 仍是 realize 前的陈旧值，draw_folding_region
+        # 等用到 self.line_height 的地方会错位。
         font_string = FontManager.font_string
-        if font_string != self._last_font_string:
+        actual_fd = self.source_view.get_pango_context().get_font_description()
+        actual_font_str = actual_fd.to_string() if actual_fd is not None else ''
+        if (font_string != self._last_font_string
+                or actual_font_str != self._last_actual_font_str):
             self._last_font_string = font_string
+            self._last_actual_font_str = actual_font_str
             self.char_width = FontManager.get_char_width(self.source_view)
             self.line_height = FontManager.get_line_height(self.source_view)
+
+    def update_size(self):
+        self._refresh_font_metrics_if_changed()
         total_width = 0
         line_numbers_width = 0
         if self.line_numbers_visible:
@@ -274,12 +314,18 @@ class Gutter(object):
             self.total_width = total_width
             self.line_numbers_width = line_numbers_width
             self.layout.set_width((line_numbers_width - self.char_width) * Pango.SCALE)
+            self.layout_current.set_width((line_numbers_width - self.char_width) * Pango.SCALE)
             self.drawing_area.set_size_request(total_width, -1)
             self.document_view.margin.set_size_request(total_width, -1)
 
     #@timer
     def draw(self, drawing_area, ctx, width, height, data=None):
         if self.total_width == 0: return
+
+        # realize 后首帧可能早于任何信号到达 update_size，此处补一次字体
+        # 度量检查，确保 draw_folding_region 等用到 self.line_height 的地方
+        # 不会用到 realize 前的陈旧值。O(1) 检查，仅在字体变化时重算。
+        self._refresh_font_metrics_if_changed()
 
         self.draw_background_and_border(ctx, width, height)
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
@@ -288,13 +334,13 @@ class Gutter(object):
         # get_line_at_y），每次 self.source_view 经 __dict__ 哈希。50 可见行
         # × 60fps = 6000 次/秒无谓查找。
         source_view = self.source_view
-        # 仅当没有文本选区时，光标行才作为“当前行”被加粗。有选区时
-        # get_insert 落在选区末端，会把选区内每一行都误判为当前行，
-        # 导致大量行号被加粗——行号加粗应只在光标独占某行时出现。
-        if self.source_buffer.get_has_selection():
-            current_line = -1
-        else:
-            current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
+        # 光标所在行始终作为“当前行”加粗，无论是否有文本选区。
+        # get_insert() 返回单一光标位置，get_line() 返回单一行号，
+        # current_line == line 只会匹配一行，不会因选区而多行加粗。
+        # 之前曾误以为选区会导致多行误判而加 has_selection 短路，反而
+        # 让加粗在选区时全部消失——点击/选中/取消选区时加粗时有时无，
+        # 行为不可预测。恢复为始终加粗光标行，规则清晰一致。
+        current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
         # 提前计算循环上界，避免每次循环都调用 adjustment getter（C 调用）。
         scroll_top = self.adjustment.get_value()
         scroll_bottom = scroll_top + height
@@ -343,7 +389,10 @@ class Gutter(object):
         else:
             text = str(line + 1)
 
-        if is_current and self.highlight_current_line:
+        # 行高亮（背景色）仅在无文本选区时绘制，与 GtkSourceView 的
+        # current-line-highlighting 在选区时自动取消的行为保持一致。
+        # 行号加粗（上面的 <b>）不受此影响，光标行始终加粗。
+        if is_current and self.highlight_current_line and not self.source_buffer.get_has_selection():
             Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('line_highlighting_color'))
             ctx.rectangle(0, offset, self.total_width, line_height)
             ctx.fill()
@@ -351,20 +400,44 @@ class Gutter(object):
             ctx.fill()
             Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
 
-        # 非当前行用 set_text 避免 Pango markup 解析（每帧每可见行一次）。
-        # 仅当前行需要 <b> 加粗，用 set_markup。
+        # 非当前行用普通 Layout + set_text；当前行用独立的 layout_current +
+        # set_markup('<b>')。两个 Layout 互不复用，避免加粗属性泄漏到邻近行。
         if is_current:
-            self.layout.set_markup(text)
+            self.layout_current.set_markup(text)
+            layout = self.layout_current
         else:
             self.layout.set_text(text, -1)
+            layout = self.layout
 
-        # 行号在第一条 visual line 内垂直居中。wrap 行时 line_height 是整个
-        # 逻辑行高度，用 self.line_height（单行高度）居中才对齐到第一行。
-        text_height = self.layout.get_extents().logical_rect.height / Pango.SCALE
-        offset += (self.line_height - text_height) / 2
+        # 行号颜色：当前行用更亮的 view_fg_color，普通行用更灰的 dim_fg_color，
+        # 拉大两者对比，使“光标所在行”在视觉上与其它行区分更明显。
+        if is_current:
+            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
+        else:
+            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('dim_fg_color'))
+
+        # 直接画在行的顶部（offset = 行顶），不做垂直居中。
+        #
+        # 原代码 offset += (self.line_height - text_height) / 2 试图把行号
+        # 在"第一条 visual line"内垂直居中。但 self.line_height 来自
+        # context.get_metrics() 的 ascent+descent（font metrics 路径），
+        # 而 text_height 来自 layout.get_extents().logical_rect.height
+        # （layout 渲染路径）。两者在 Pango 内部走不同计算路径，对同一字体
+        # 也常有亚像素级差异，导致行号相对文本出现轻微上下偏移。
+        #
+        # 更关键的是：self.line_height 是缓存值，仅在字体变化时重算。若
+        # source_view realize 后 CSS 字体生效，但首帧 draw 早于 update_size
+        # 的信号触发，self.line_height 仍是 realize 前的陈旧值（基于系统
+        # 默认字体），与 text_height（layout 实时取值）相差较大，导致行号
+        # 整体上下偏移——这正是用户报告的"行高一样但有轻微偏移"。
+        #
+        # GtkSourceView 自身绘制文本时，也是把 layout 的 logical_rect 顶边
+        # 对齐到行顶（get_line_yrange().y），不做居中。直接 draw at offset
+        # 即可与之完全对齐。wrap 行时 offset 是第一条 visual line 的顶部，
+        # 行号落在第一行顶部，符合预期。
         ctx.move_to(0, offset)
 
-        PangoCairo.show_layout(ctx, self.layout)
+        PangoCairo.show_layout(ctx, layout)
 
     def draw_folding_region(self, ctx, line, is_current, offset):
         folding_region = self.document.code_folding.get_region_by_line(line)

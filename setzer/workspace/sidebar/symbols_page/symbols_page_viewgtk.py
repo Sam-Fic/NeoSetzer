@@ -91,7 +91,22 @@ class SymbolsPageView(Gtk.Box):
         # Gtk.ScrolledWindow，逻辑层通过 self.scrolled_window 访问其 vadjustment。
         self.page = Adw.PreferencesPage()
         self.page.set_vexpand(True)
-        self.append(self.page)
+
+        self.no_results_status = Adw.StatusPage()
+        self.no_results_status.set_icon_name('edit-find-symbolic')
+        self.no_results_status.set_title(_('No Results'))
+        self.no_results_status.set_description(_('No symbols match your search'))
+        self.no_results_status.set_vexpand(True)
+        self.no_results_status.set_valign(Gtk.Align.CENTER)
+
+        self.content_stack = Gtk.Stack()
+        self.content_stack.set_vexpand(True)
+        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.content_stack.set_transition_duration(150)
+        self.content_stack.add_named(self.page, 'content')
+        self.content_stack.add_named(self.no_results_status, 'no-results')
+        self.append(self.content_stack)
+
         self.scrolled_window = self.page.get_first_child()
 
         self.symbols_views = list()
@@ -105,6 +120,15 @@ class SymbolsPageView(Gtk.Box):
         # 关闭选中态：插入符号后不残留高亮（child-activated 仍会正常触发）。
         self.symbols_view_recent.set_selection_mode(Gtk.SelectionMode.NONE)
         self.add_category(_('Recent'), self.symbols_view_recent)
+
+        self.symbols_view_favorites = Gtk.FlowBox()
+        self.symbols_view_favorites.add_css_class('symbols-flowbox')
+        self.symbols_view_favorites.set_homogeneous(False)
+        self.symbols_view_favorites.set_valign(Gtk.Align.START)
+        self.symbols_view_favorites.set_selection_mode(Gtk.SelectionMode.NONE)
+        # Favorites 放在 Recent 之前：用户最常点，减少滚动。空时由
+        # SymbolsPage 控制可见性（无收藏则隐藏整个分类）。
+        self.favorites_group = self.add_category(_('Favorites'), self.symbols_view_favorites)
 
         self.symbols_lists = list()
         self.symbols_lists.append(['greek_letters', 'own-symbols-greek-letters-symbolic', _('Greek Letters'),
@@ -182,6 +206,16 @@ class SidebarSymbolsList(Gtk.FlowBox):
             button = Gtk.Button(child=image)
             button.add_css_class('flat')
             button.set_tooltip_text(tooltip_text)
+            label_prop = getattr(Gtk.AccessibleProperty, 'LABEL', None)
+            if label_prop is not None:
+                try:
+                    button.update_property(label_prop, _('Insert') + ' ' + symbol[1])
+                except TypeError:
+                    # 某些 PyGObject 版本的 update_property 绑定与 GTK 头不匹配，
+                    # 调用即抛 TypeError。a11y 标签为增强项，失败则跳过。
+                    pass
+            # 主列表符号的 hover 预览（含收藏按钮）由 SymbolsPage.wire_favorites
+            # 在页面初始化完成后统一挂载：此时才能拿到 favorites 回调。
             child = Gtk.FlowBoxChild()
             child.set_child(button)
             child.symbol_data = symbol

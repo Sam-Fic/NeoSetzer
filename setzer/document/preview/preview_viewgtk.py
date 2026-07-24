@@ -46,19 +46,41 @@ class PreviewView(Gtk.Box):
         self.overlay = Gtk.Overlay()
         self.overlay.set_vexpand(True)
         self.overlay.set_child(self.stack)
-        self.append(self.overlay)
+
+        # 构建失败回退到旧 PDF 时，预览角落显示错误图标（右上角）。
+        self.error_badge = Gtk.Image(icon_name='dialog-warning-symbolic')
+        self.error_badge.set_halign(Gtk.Align.END)
+        self.error_badge.set_valign(Gtk.Align.START)
+        self.error_badge.set_margin_top(8)
+        self.error_badge.set_margin_end(8)
+        self.error_badge.set_can_target(False)
+        self.error_badge.set_tooltip_text(_('PDF build failed, showing previous version'))
+        self.error_badge.add_css_class('error-badge')
+        self.error_badge.set_visible(False)
+        self.overlay.add_overlay(self.error_badge)
 
         self.target_label = Gtk.Label()
         self.target_label.set_halign(Gtk.Align.START)
         self.target_label.set_valign(Gtk.Align.END)
         self.target_label.set_can_target(False)
         self.overlay.add_overlay(self.target_label)
-        # 缓存上次的 link_target_string：update_cursor 在每次滚动/鼠标移动时
-        # 都调 set_link_target_string，绝大多数调用 target_string 不变（光标
-        # 仍在同一链接/无链接区域）。set_text + set_visible 即使值相同也会
-        # 经 GTK 属性通知链；签名比对为 O(1) 字符串比较，省去无谓的 widget 更新。
         self._current_link_target = None
         self.set_link_target_string('')
+
+        # ToastOverlay 包裹内容区，用于构建失败回退时弹出提示。
+        self.toast_overlay = Adw.ToastOverlay()
+        self.toast_overlay.set_vexpand(True)
+        self.toast_overlay.set_child(self.overlay)
+        self.append(self.toast_overlay)
+
+    def show_pdf_load_failed(self):
+        self.error_badge.set_visible(True)
+        toast = Adw.Toast.new(_('PDF build failed, showing previous version'))
+        toast.set_timeout(4)
+        self.toast_overlay.add_toast(toast)
+
+    def hide_pdf_load_failed(self):
+        self.error_badge.set_visible(False)
 
     def set_layout_data(self, layout_data):
         self.layout_data = layout_data
@@ -70,16 +92,53 @@ class PreviewView(Gtk.Box):
             self.target_label.set_visible(target_string != '')
 
 
-def BlankSlateView():
-    '''Preview empty-state placeholder.
+class BlankSlateView(Gtk.Box):
 
-    Returns a compact Adw.StatusPage. Adw.StatusPage 是 final 类型无法子类化，
-    故以工厂函数返回实例，替代原手绘 Gtk.Box + Gtk.Image + Gtk.Label 布局。'''
-    page = Adw.StatusPage()
-    page.add_css_class('compact')
-    page.set_icon_name('document-properties-symbolic')
-    page.set_title(_('No preview available'))
-    page.set_description(_('To show a .pdf preview of your document, click the build button in the headerbar.'))
-    return page
+    def __init__(self):
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
+        self.set_vexpand(True)
+        self.set_halign(Gtk.Align.CENTER)
+        self.set_valign(Gtk.Align.CENTER)
+
+        self.building_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.building_box.set_halign(Gtk.Align.CENTER)
+        self.building_box.set_valign(Gtk.Align.CENTER)
+        self.spinner = Adw.Spinner()
+        self.spinner.set_size_request(32, 32)
+        self.building_label = Gtk.Label(label=_('Building\u2026'))
+        self.building_label.add_css_class('heading')
+        self.building_box.append(self.spinner)
+        self.building_box.append(self.building_label)
+
+        self.status_page = Adw.StatusPage()
+        self.status_page.add_css_class('compact')
+        self.status_page.set_icon_name('document-properties-symbolic')
+
+        self.stack = Gtk.Stack()
+        self.stack.add_named(self.building_box, 'building')
+        self.stack.add_named(self.status_page, 'status')
+        self.append(self.stack)
+
+        self._current_state = 'never_built'
+
+    def set_state(self, state):
+        if state == self._current_state:
+            return
+        self._current_state = state
+
+        if state == 'building':
+            self.stack.set_visible_child_name('building')
+            self.spinner.start()
+        else:
+            self.stack.set_visible_child_name('status')
+            self.spinner.stop()
+            if state == 'never_built':
+                self.status_page.set_title(_('No preview available'))
+                self.status_page.set_description(_('To show a .pdf preview of your document, click the build button in the headerbar.'))
+                self.status_page.set_icon_name('document-properties-symbolic')
+            elif state == 'build_failed':
+                self.status_page.set_title(_('Build failed'))
+                self.status_page.set_description(_('Check the build log for errors.'))
+                self.status_page.set_icon_name('dialog-error-symbolic')
 
 

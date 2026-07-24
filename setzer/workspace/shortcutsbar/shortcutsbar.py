@@ -91,7 +91,7 @@ class Shortcutsbar(object):
         # 不会意外显示被 update_buttons 隐藏的非 latex 按钮。
         for btn in [self.view.beamer_button, self.view.bibliography_button,
                     self.view.text_button, self.view.quotes_button,
-                    self.view.math_button, self.view.insert_object_button,
+                    self.view.math_button, self.view.object_button,
                     self.view.italic_button, self.view.bold_button,
                     self.view.document_button]:
             btn._base_visible = is_latex

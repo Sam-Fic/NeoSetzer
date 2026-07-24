@@ -51,16 +51,31 @@ class PageEditor(object):
         self.view.option_highlight_matching_brackets.set_active(self.settings.get_value('preferences', 'highlight_matching_brackets'))
         self.view.option_highlight_matching_brackets.connect('notify::active', self.on_switch_toggled, 'highlight_matching_brackets')
 
+        # 重置按钮由 Appearance 页统一接管（合并后 Editor 不再是独立页），
+        # 故此处不再连接 editor 自身的 reset_button；on_reset_clicked 供
+        # Appearance 的 reset 调用以重置编辑相关项。
+
+
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
+
+    def on_reset_clicked(self, button):
+        defaults = self.settings.defaults['preferences']
+        self.view.option_spaces_instead_of_tabs.set_active(defaults['spaces_instead_of_tabs'])
+        self.view.tab_width_spinbutton.set_property('value', defaults['tab_width'])
+        self.view.option_show_line_numbers.set_active(defaults['show_line_numbers'])
+        self.view.option_line_wrapping.set_active(defaults['enable_line_wrapping'])
+        self.view.option_code_folding.set_active(defaults['enable_code_folding'])
+        self.view.option_highlight_current_line.set_active(defaults['highlight_current_line'])
+        self.view.option_highlight_matching_brackets.set_active(defaults['highlight_matching_brackets'])
 
 
 class PageEditorView(Adw.PreferencesPage):
 
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
-        self.set_title(_('Editor'))
-        self.set_icon_name('accessories-text-editor-symbolic')
+        # Editor 不再是独立标签页：其各组会在 PreferencesDialog.setup() 中
+        # reparent 进 Appearance 页；故此处不设置 page title / icon。
 
         group_tab_stops = Adw.PreferencesGroup()
         group_tab_stops.set_title(_('Tab Stops'))
@@ -112,3 +127,14 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_highlight_matching_brackets = Adw.SwitchRow()
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
         group_highlighting.add(self.option_highlight_matching_brackets)
+
+        group_reset = Adw.PreferencesGroup()
+        # 标记以便 PreferencesDialog.setup() reparent 时跳过 editor 自身的
+        # 重置按钮（重置由 Appearance 页统一处理）。
+        group_reset._is_editor_reset = True
+        self.add(group_reset)
+
+        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
+        group_reset.add(self.reset_button)

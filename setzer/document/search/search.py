@@ -66,10 +66,58 @@ class Search(Observable):
         self.view.prev_button.connect('clicked', self.on_search_prev_button_click)
         self.view.replace_button.connect('clicked', self.on_replace_button_click)
         self.view.replace_all_button.connect('clicked', self.on_replace_all_button_click)
+        self.view.case_toggle.connect('toggled', self.on_match_option_toggled)
+        self.view.regex_toggle.connect('toggled', self.on_match_option_toggled)
+        self.view.word_toggle.connect('toggled', self.on_match_option_toggled)
+        self.view.selection_toggle.connect('toggled', self.on_selection_toggle_toggled)
         self.document.connect('cursor_position_changed', self.on_selection_might_have_changed)
+
+        self._search_in_selection = False
+        self._selection_start = None
+        self._selection_end = None
 
     def on_selection_might_have_changed(self, document):
         self.update_replace_button()
+        self.update_selection_toggle_visibility()
+
+    def on_match_option_toggled(self, toggle_button=None):
+        '''Apply case / regex / whole-word flags to GtkSource.SearchSettings
+        and re-run the current search so the highlights and counter update.'''
+        self.search_settings.set_case_sensitive(self.view.case_toggle.get_active())
+        self.search_settings.set_regex_enabled(self.view.regex_toggle.get_active())
+        self.search_settings.set_at_word_boundaries(self.view.word_toggle.get_active())
+        # 重新执行当前搜索（若搜索框非空），刷新高亮与计数。
+        self.on_search_entry_changed(self.view.entry)
+
+    def on_selection_toggle_toggled(self, toggle_button=None):
+        if toggle_button.get_active():
+            buffer = self.document.source_buffer
+            if buffer.get_has_selection():
+                start, end = buffer.get_selection_bounds()
+                self._selection_start = start.get_offset()
+                self._selection_end = end.get_offset()
+                self._search_in_selection = True
+            else:
+                toggle_button.set_active(False)
+                self._search_in_selection = False
+                self._selection_start = None
+                self._selection_end = None
+        else:
+            self._search_in_selection = False
+            self._selection_start = None
+            self._selection_end = None
+        self.on_search_entry_changed(self.view.entry)
+
+    def update_selection_toggle_visibility(self):
+        buffer = self.document.source_buffer
+        if buffer.get_has_selection():
+            start, end = buffer.get_selection_bounds()
+            if start.get_line() != end.get_line():
+                self.view.selection_toggle.set_visible(True)
+                return
+        self.view.selection_toggle.set_visible(False)
+        if self._search_in_selection:
+            self.view.selection_toggle.set_active(False)
 
     def on_search_close_button_click(self, button_object=None):
         self.on_search_stop()
@@ -90,11 +138,38 @@ class Search(Observable):
     def on_replace_all_button_click(self, button_object=None):
         original = self.view.entry.get_text()
         replacement = self.view.replace_entry.get_text()
+
+        if self._search_in_selection:
+            buffer = self.search_context.get_buffer()
+            start = buffer.get_iter_at_offset(self._selection_start)
+            end = buffer.get_iter_at_offset(self._selection_end)
+            count = 0
+            search_iter = start.copy()
+            while True:
+                result = self.search_context.forward(search_iter)
+                if not result[0] or result[1].get_offset() > self._selection_end:
+                    break
+                self.search_context.replace(result[1], result[2], replacement, -1)
+                count += 1
+                search_iter = buffer.get_iter_at_offset(result[1].get_offset() + len(replacement))
+            self.on_search_entry_changed(self.view.entry)
+            return
+
         number_of_occurrences = self.search_context.get_occurrences_count()
 
-        if number_of_occurrences > 0:
+        # 没有匹配则不操作（0 明确无匹配；-1 是 GtkSource 异步扫描尚未就绪，
+        # 此时直接返回，用户稍后重按即可得到真实数量，避免显示错误数字）。
+        if number_of_occurrences == 0:
+            return
+
+        # 仅当匹配数较多（>50）或数量未知（-1）时才弹出二次确认对话框，
+        # 少量替换（1–50）直接执行，降低高频确认摩擦。
+        if number_of_occurrences > 50 or number_of_occurrences < 0:
             dialog = DialogLocator.get_dialog('replace_confirmation')
             dialog.run(original, replacement, number_of_occurrences, self.search_context)
+        else:
+            self.search_context.replace_all(replacement, -1)
+            self.on_search_entry_changed(self.view.entry)
 
     def on_search_entry_activate(self, entry=None):
         self.on_search_next_match(entry, True)
@@ -115,12 +190,21 @@ class Search(Observable):
             result = self.search_context.forward(search_iter)
 
         if result[0] == True:
+            if self._search_in_selection and not self._is_in_selection(result[1], result[2]):
+                self._skip_to_selection_end(buffer, forward=True)
+                return
             self._select_match(buffer, result)
         else:
-            search_iter = buffer.get_start_iter()
+            if self._search_in_selection:
+                search_iter = buffer.get_iter_at_offset(self._selection_start)
+            else:
+                search_iter = buffer.get_start_iter()
             result = self.search_context.forward(search_iter)
 
             if result[0] == True:
+                if self._search_in_selection and not self._is_in_selection(result[1], result[2]):
+                    self._skip_to_selection_end(buffer, forward=True)
+                    return
                 self._select_match(buffer, result)
 
     def on_search_previous_match(self, entry=None):
@@ -133,13 +217,42 @@ class Search(Observable):
         result = self.search_context.backward(search_iter)
 
         if result[0] == True:
+            if self._search_in_selection and not self._is_in_selection(result[1], result[2]):
+                self._skip_to_selection_end(buffer, forward=False)
+                return
             self._select_match(buffer, result, reverse=True)
         else:
-            search_iter = buffer.get_end_iter()
+            if self._search_in_selection:
+                search_iter = buffer.get_iter_at_offset(self._selection_end)
+            else:
+                search_iter = buffer.get_end_iter()
             result = self.search_context.backward(search_iter)
 
             if result[0] == True:
+                if self._search_in_selection and not self._is_in_selection(result[1], result[2]):
+                    self._skip_to_selection_end(buffer, forward=False)
+                    return
                 self._select_match(buffer, result, reverse=True)
+
+    def _is_in_selection(self, start_iter, end_iter):
+        start_offset = start_iter.get_offset()
+        end_offset = end_iter.get_offset()
+        return (start_offset >= self._selection_start and
+                end_offset <= self._selection_end)
+
+    def _skip_to_selection_end(self, buffer, forward=True):
+        if forward:
+            search_iter = buffer.get_iter_at_offset(self._selection_end)
+            result = self.search_context.forward(search_iter)
+        else:
+            search_iter = buffer.get_iter_at_offset(self._selection_start)
+            result = self.search_context.backward(search_iter)
+
+        if result[0] == True:
+            if self._is_in_selection(result[1], result[2]):
+                self._select_match(buffer, result, reverse=not forward)
+            else:
+                self.set_match_counter(-1, 0)
 
     def _select_match(self, buffer, result, reverse=False):
         '''统一处理 next/previous 命中的选中 + 滚动 + 计数器更新。
@@ -207,11 +320,21 @@ class Search(Observable):
             search_view.replace_all_button.set_sensitive(False)
 
     def update_replace_button(self):
-        selected_text = self.document.get_selected_text()
-        if selected_text != None and selected_text == self.view.entry.get_text():
+        search_text = self.view.entry.get_text()
+        if not search_text:
+            self.view.replace_button.set_sensitive(False)
+            return
+        buffer = self.document.source_buffer
+        cursor = buffer.get_iter_at_mark(buffer.get_insert())
+        found, start, end = self.search_context.forward(cursor)
+        if found and start.get_offset() <= cursor.get_offset() <= end.get_offset():
             self.view.replace_button.set_sensitive(True)
         else:
-            self.view.replace_button.set_sensitive(False)
+            found, start, end = self.search_context.backward(cursor)
+            if found and start.get_offset() <= cursor.get_offset() <= end.get_offset():
+                self.view.replace_button.set_sensitive(True)
+            else:
+                self.view.replace_button.set_sensitive(False)
 
     def on_search_stop(self, entry=None):
         self.hide_search_bar()
@@ -226,6 +349,11 @@ class Search(Observable):
         self.view.set_search_mode(False)
         self.view.replace_revealer.set_reveal_child(False)
         self.view.entry.set_text('')
+        self.view.selection_toggle.set_active(False)
+        self.view.selection_toggle.set_visible(False)
+        self._search_in_selection = False
+        self._selection_start = None
+        self._selection_end = None
         self.search_bar_mode = None
         self.add_change_code('mode_changed')
 
@@ -259,18 +387,29 @@ class Search(Observable):
 
     def set_match_counter(self, match_no=-1, total=-1):
         search_bar = self.view
-        # total <= 0 统一视为「无可用计数」：total == -1 是 GtkSource 仍在
-        # 异步扫描；total == 0 是扫描完成但无匹配。两者都应清空计数器并
-        # 禁用 prev/next 按钮。原实现仅判 total == -1，导致 total == 0 时
-        # 走 else 分支显示 "-1 of 0"（match_no 默认 -1），即用户看到
-        # 错误的计数文本且按钮被误启用。
-        if total <= 0:
-            search_bar.match_counter.set_text('')
+        if total == 0:
+            search_bar.match_counter.set_text(_('No matches'))
             search_bar.prev_button.set_sensitive(False)
             search_bar.next_button.set_sensitive(False)
+            search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
+        elif total == -1:
+            if match_no > 0:
+                search_bar.match_counter.set_text(str(match_no) + ' of \u2026')
+            else:
+                search_bar.match_counter.set_text('')
+            search_bar.prev_button.set_sensitive(False)
+            search_bar.next_button.set_sensitive(False)
+            search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
         else:
             search_bar.match_counter.set_text(str(match_no) + ' of ' + str(total))
             search_bar.prev_button.set_sensitive(True)
             search_bar.next_button.set_sensitive(True)
+            # 仅在替换模式下预览「将替换 N 处匹配」，避免普通搜索时误导。
+            if self.search_bar_mode == 'replace':
+                search_bar.replace_all_button.set_tooltip_text(
+                    ngettext('Replace all {amount} match',
+                              'Replace all {amount} matches', total).format(amount=total))
+            else:
+                search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
 
 

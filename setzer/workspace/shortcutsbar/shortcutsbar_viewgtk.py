@@ -423,11 +423,11 @@ class Shortcutsbar(Gtk.Box):
         self._add_left_button(self.math_button)
 
     def insert_object_button(self):
-        self.insert_object_button = Gtk.MenuButton()
-        self.insert_object_button.set_icon_name('insert-object-symbolic')
-        self.insert_object_button.set_tooltip_text(_('Objects'))
-        self._setup_menu_button(self.insert_object_button, ObjectMenu())
-        self._add_left_button(self.insert_object_button)
+        self.object_button = Gtk.MenuButton()
+        self.object_button.set_icon_name('insert-object-symbolic')
+        self.object_button.set_tooltip_text(_('Objects'))
+        self._setup_menu_button(self.object_button, ObjectMenu())
+        self._add_left_button(self.object_button)
 
     def insert_bold_button(self):
         self.bold_button = Gtk.Button()
@@ -478,7 +478,7 @@ class Shortcutsbar(Gtk.Box):
 
     def insert_more_button(self):
         self.button_more = Gtk.MenuButton()
-        self.button_more.set_icon_name('view-more-symbolic')
+        self.button_more.set_icon_name('open-menu-symbolic')
         self.button_more.set_popover(PopoverManager.create_popover('context_menu').view)
         self.button_more.set_tooltip_text(_('Context Menu') + ' (F12)')
         self._add_right_button(self.button_more)

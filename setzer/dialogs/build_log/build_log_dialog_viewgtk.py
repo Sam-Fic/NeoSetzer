@@ -71,9 +71,13 @@ class BuildLogDialogView(DialogView):
 
         # content: Adw.PreferencesPage 提供原生分组标题 + 滚动 + boxed-list 外观。
         # vexpand 确保填满 dialog content 区域。
+        self.toast_overlay = Adw.ToastOverlay()
+        self.toast_overlay.set_vexpand(True)
+
         self.page = Adw.PreferencesPage()
         self.page.set_vexpand(True)
-        self.topbox.append(self.page)
+        self.toast_overlay.set_child(self.page)
+        self.topbox.append(self.toast_overlay)
 
         # 3 个 group（按 TYPE_ORDER 顺序）。group 内嵌 BuildLogList。
         # 显隐由 presenter.populate 按 settings.autoshow_build_log 控制。
@@ -97,7 +101,7 @@ class BuildLogDialogView(DialogView):
 
         # 空状态占位：全部 group 都为空时显示。
         self.empty_state = Adw.StatusPage()
-        self.empty_state.set_icon_name('dialog-error-symbolic')
+        self.empty_state.set_icon_name('object-select-symbolic')
         self.empty_state.set_title(_('Build Log'))
         self.empty_state.set_description(_('No build log items to show.'))
         self.empty_state.set_vexpand(True)
@@ -184,11 +188,13 @@ class BuildLogList(Gtk.ListBox):
         '''点击行尾复制按钮：复制该单条文本（含行号）。'''
         text = self._format_row_text(row)
         Gdk.Display.get_default().get_clipboard().set(text)
+        self.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
 
     def on_right_click(self, gesture, n_press, x, y, row):
         '''右键直接 copy 单行，格式与 Copy All 一致：file:line: description。'''
         text = self._format_row_text(row)
         Gdk.Display.get_default().get_clipboard().set(text)
+        self.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
 
     @staticmethod
     def _format_row_text(row):

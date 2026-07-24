@@ -83,6 +83,8 @@ class PageAppearanceColors(object):
         self.view.preview_width_scale.set_value(int(fraction * 100))
         self.view.preview_width_scale.connect('value-changed', self.on_preview_width_changed)
 
+        self.view.reset_button.connect('clicked', self.on_reset_clicked)
+
     # ---- theme ----
     def on_theme_changed(self, combo, pspec=None):
         value = THEME_MODES[combo.get_selected()][1]
@@ -121,6 +123,34 @@ class PageAppearanceColors(object):
         self.settings.set_value('window_state', 'preview_width_fraction', fraction)
         if self.main_window is not None:
             self.main_window.preview_split.set_sidebar_width_fraction(fraction)
+
+    def on_reset_clicked(self, button):
+        dialog = Adw.AlertDialog(
+            heading=_('Reset to Defaults?'),
+            body=_('All appearance settings will be restored to their default values.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('reset', _('Reset'))
+        dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self.on_reset_confirmed)
+
+    def on_reset_confirmed(self, dialog, result):
+        response_id = dialog.choose_finish(result)
+        if response_id == 'reset':
+            defaults = self.settings.defaults['preferences']
+            current_theme = defaults['app_theme_mode']
+            theme_index = next((i for i, m in enumerate(THEME_MODES) if m[1] == current_theme), 0)
+            self.view.theme_combo.set_selected(theme_index)
+            current_lang = defaults['language']
+            lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
+            self.view.language_combo.set_selected(lang_index)
+            self.view.option_use_system_font.set_active(defaults['use_system_font'])
+            self.view.font_chooser_button.set_font_desc(
+                Pango.FontDescription.from_string(defaults['font_string']))
+            fraction = self.settings.defaults['window_state']['preview_width_fraction']
+            self.view.preview_width_scale.set_value(int(fraction * 100))
+            self.preferences.page_editor.on_reset_clicked(None)
 
 
 class PageAppearanceColorsView(Adw.PreferencesPage):
@@ -168,7 +198,7 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.option_use_system_font.set_subtitle(font_string)
         group_font.add(self.option_use_system_font)
 
-        self.font_chooser_button = Gtk.FontDialogButton()
+        self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
         self.font_chooser_button.set_valign(Gtk.Align.CENTER)
         self.font_chooser_row = Adw.ActionRow()
         self.font_chooser_row.set_title(_('Set Editor Font'))
@@ -192,3 +222,14 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.preview_width_row.set_subtitle(_('Percentage of the window width allocated to the PDF preview.'))
         self.preview_width_row.add_suffix(self.preview_width_scale)
         group_preview.add(self.preview_width_row)
+
+        group_reset = Adw.PreferencesGroup()
+        # 标记以便 PreferencesDialog.setup() 在合并 Editor 组后将其重置按钮
+        # 重新移到末尾（保持“重置”在所有设置项之后）。
+        group_reset._is_appearance_reset = True
+        self.add(group_reset)
+
+        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
+        group_reset.add(self.reset_button)

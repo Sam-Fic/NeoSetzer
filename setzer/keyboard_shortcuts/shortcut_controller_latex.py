@@ -31,28 +31,36 @@ class ShortcutControllerLaTeX(ShortcutController):
         self.main_window = ServiceLocator.get_main_window()
         self.workspace = ServiceLocator.get_workspace()
         self.actions = self.workspace.actions
+        self.settings = ServiceLocator.get_settings()
 
         self.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
 
-        self.set_accels_for_insert_before_after_action(['\\textbf{', '}'], ['<Control>b'])
-        self.set_accels_for_insert_before_after_action(['\\textit{', '}'], ['<Control>i'])
-        self.set_accels_for_insert_before_after_action(['\\underline{', '}'], ['<Control>u'])
-        self.set_accels_for_insert_before_after_action(['\\texttt{', '}'], ['<Control><Shift>t'])
-        self.set_accels_for_insert_before_after_action(['\\emph{', '}'], ['<Control><Shift>e'])
-        self.set_accels_for_insert_before_after_action(['$ ', ' $'], ['<Control>m'])
-        self.set_accels_for_insert_before_after_action(['\\[ ', ' \\]'], ['<Control><Shift>m'])
-        self.set_accels_for_insert_before_after_action(['\\begin{equation}\n\t', '\n\\end{equation}'], ['<Control><Shift>n'])
-        self.set_accels_for_insert_before_after_action(['\\begin{•}\n\t', '\n\\end{•}'], ['<Control>e'])
-        self.set_accels_for_insert_before_after_action(['_{', '}'], ['<Control><Shift>d'])
-        self.set_accels_for_insert_before_after_action(['^{', '}'], ['<Control><Shift>u'])
-        self.set_accels_for_insert_symbol_action(['\\frac{•}{•}'], ['<Alt><Shift>f'])
-        self.set_accels_for_insert_symbol_action(['\\left •'], ['<Control><Shift>l'])
-        self.set_accels_for_insert_symbol_action(['\\right •'], ['<Control><Shift>r'])
-        self.set_accels_for_insert_symbol_action(['\\item •'], ['<Control><Shift>i'])
-        self.set_accels_for_insert_symbol_action(['\\\\\n'], ['<Control>Return'])
+        self.load_shortcuts()
 
-        self.create_and_add_shortcut('<Control>k', self.actions.toggle_comment)
-        self.create_and_add_shortcut('<Control>quotedbl', self.shortcut_quotes)
+    def load_shortcuts(self):
+        shortcuts = self.settings.get_value('keyboard_shortcuts', None)
+        if shortcuts is None:
+            shortcuts = self.settings.defaults['keyboard_shortcuts']
+        
+        self.set_accels_for_insert_before_after_action(['\\textbf{', '}'], [shortcuts.get('bold', '<Control>b')])
+        self.set_accels_for_insert_before_after_action(['\\textit{', '}'], [shortcuts.get('italic', '<Control>i')])
+        self.set_accels_for_insert_before_after_action(['\\underline{', '}'], [shortcuts.get('underline', '<Control>u')])
+        self.set_accels_for_insert_before_after_action(['\\texttt{', '}'], [shortcuts.get('typewriter', '<Control><Shift>y')])
+        self.set_accels_for_insert_before_after_action(['\\emph{', '}'], [shortcuts.get('emphasized', '<Control><Shift>e')])
+        self.set_accels_for_insert_before_after_action(['$ ', ' $'], [shortcuts.get('inline_math', '<Control>m')])
+        self.set_accels_for_insert_before_after_action(['\\[ ', ' \\]'], [shortcuts.get('display_math', '<Control><Shift>m')])
+        self.set_accels_for_insert_before_after_action(['\\begin{equation}\n\t', '\n\\end{equation}'], [shortcuts.get('equation', '<Control><Shift>n')])
+        self.set_accels_for_insert_before_after_action(['\\begin{•}\n\t', '\n\\end{•}'], [shortcuts.get('environment', '<Control>e')])
+        self.set_accels_for_insert_before_after_action(['_{', '}'], [shortcuts.get('subscript', '<Control><Shift>d')])
+        self.set_accels_for_insert_before_after_action(['^{', '}'], [shortcuts.get('superscript', '<Control><Shift>u')])
+        self.set_accels_for_insert_symbol_action(['\\frac{•}{•}'], [shortcuts.get('fraction', '<Alt><Shift>f')])
+        self.set_accels_for_insert_symbol_action(['\\left •'], [shortcuts.get('left', '<Control><Shift>l')])
+        self.set_accels_for_insert_symbol_action(['\\right •'], [shortcuts.get('right', '<Control><Shift>r')])
+        self.set_accels_for_insert_symbol_action(['\\item •'], [shortcuts.get('list_item', '<Control><Shift>i')])
+        self.set_accels_for_insert_symbol_action(['\\\\\n'], [shortcuts.get('new_line', '<Control>Return')])
+
+        self.create_and_add_shortcut(shortcuts.get('toggle_comment', '<Control>slash'), self.actions.toggle_comment)
+        self.create_and_add_shortcut(shortcuts.get('quotation_marks', '<Control>quotedbl'), self.shortcut_quotes)
 
     def set_accels_for_insert_before_after_action(self, parameter, accels):
         self.main_window.app.set_accels_for_action(Gio.Action.print_detailed_name('win.insert-before-after', GLib.Variant('as', parameter)), accels)
