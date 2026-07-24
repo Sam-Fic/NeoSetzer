@@ -40,6 +40,13 @@ class HamburgerMenu(object):
         self.workspace.connect('update_recently_opened_session_files', self.on_update_recently_opened_session_files)
         self.workspace.connect('update_recently_opened_documents', self.on_update_recently_opened_documents)
 
+        # recent 列表签名缓存：update_recently_opened_documents 在每次打开/关闭
+        # 文档时触发。若列表内容（filename+date）未变（如打开一个已在列表中的
+        # 文档仅刷新其 date 之外无变化），签名短路避免 remove_all + 重建 10 个
+        # Gio.MenuItem。session files 同理。
+        self._recent_documents_signature = None
+        self._recent_sessions_signature = None
+
     def register_actions(self):
         main_window = ServiceLocator_get_main_window()
         # Restore Previous Session: open the session file chooser
@@ -109,9 +116,16 @@ class HamburgerMenu(object):
         self.recent_documents_section.remove_all()
 
     def on_update_recently_opened_documents(self, workspace, recently_opened_documents):
-        self.recent_documents_section.remove_all()
         items = list(recently_opened_documents.values())
-        for item in sorted(items, key=lambda val: -val['date'])[:10]:
+        # 仅取前 10（与展示一致）参与签名，避免对完整列表排序后再比较。
+        top_items = sorted(items, key=lambda val: val['date'], reverse=True)[:10]
+        signature = tuple((item['filename'], item['date']) for item in top_items)
+        if signature == self._recent_documents_signature:
+            return
+        self._recent_documents_signature = signature
+
+        self.recent_documents_section.remove_all()
+        for item in top_items:
             filename = item['filename']
             displayname = os.path.basename(filename)
             menu_item = Gio.MenuItem.new(displayname, 'win.open-recent-document')
@@ -127,9 +141,15 @@ class HamburgerMenu(object):
             self.workspace.open_document_by_filename(filename)
 
     def on_update_recently_opened_session_files(self, workspace, recently_opened_session_files):
-        self.recent_section.remove_all()
         items = list(recently_opened_session_files.values())
-        for item in sorted(items, key=lambda val: -val['date']):
+        sorted_items = sorted(items, key=lambda val: val['date'], reverse=True)
+        signature = tuple((item['filename'], item['date']) for item in sorted_items)
+        if signature == self._recent_sessions_signature:
+            return
+        self._recent_sessions_signature = signature
+
+        self.recent_section.remove_all()
+        for item in sorted_items:
             filename = item['filename']
             menu_item = Gio.MenuItem.new(filename, 'win.open-session-file')
             menu_item.set_action_and_target_value('win.open-session-file', GLib.Variant('s', filename))

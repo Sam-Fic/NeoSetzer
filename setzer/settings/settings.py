@@ -52,7 +52,7 @@ class Settings(Observable):
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
         self.defaults['window_state']['sidebar_paned_position'] = -1
-        self.defaults['window_state']['sidebar_width_fraction'] = 0.14
+        self.defaults['window_state']['sidebar_width_fraction'] = 0.20
         self.defaults['window_state']['show_help'] = False
         self.defaults['window_state']['show_preview'] = False
         self.defaults['window_state']['show_build_log'] = False
@@ -91,6 +91,10 @@ class Settings(Observable):
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         self.defaults['preferences']['show_line_numbers'] = True
+        # 行号垂直微调（像素）。不同字体的 ascent/descent 比例不同，行号相对
+        # 文本的视觉重心会有轻微偏移；此处提供用户可调偏移量来补偿。正值下移，
+        # 负值上移。默认 0.0 = 与 GtkSourceView 行顶对齐。
+        self.defaults['preferences']['line_numbers_vertical_offset'] = 0.0
         self.defaults['preferences']['enable_code_folding'] = True
         self.defaults['preferences']['enable_line_wrapping'] = True
         self.defaults['preferences']['highlight_current_line'] = False
@@ -162,14 +166,18 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['right'] = '<Control><Shift>r'
 
     def get_value(self, section, item):
+        # 读操作不应有写副作用。原实现读缺失键时调 set_value 把默认值写回
+        # self.data 并广播 settings_changed，导致首次启动/升级新增设置项时每个
+        # 观察者首次 get_value 该键都触发一次假通知（FontManager 重算字体、
+        # CodeFolding 重应用折叠、Gutter 重绘等数十处无谓响应）。此处直接返回
+        # 默认值，不写回 data、不广播。默认值仅在用户显式 set_value 时进入 data
+        # 并被 pickle 持久化；未持久化的键每次 get_value 都回退到 defaults。
         if item is None:
-            try: return self.data[section]
-            except KeyError: return self.defaults.get(section, {})
-        try: value = self.data[section][item]
+            return self.data.get(section, self.defaults.get(section, {}))
+        try:
+            return self.data[section][item]
         except KeyError:
-            value = self.defaults[section][item]
-            self.set_value(section, item, value)
-        return value
+            return self.defaults[section][item]
 
     def set_value(self, section, item, value):
         try: section_dict = self.data[section]

@@ -290,8 +290,10 @@ class Document(Observable):
         if text == None: return False
 
         dirname = os.path.dirname(self.filename)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+        # exist_ok=True 一次调用替代 exists + makedirs：dirname 几乎总是存在，
+        # 原实现每次保存都做一次多余 stat；exist_ok 时已存在不报错，省一次系统调用。
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
 
         with open(self.filename, 'w') as f:
             f.write(text)

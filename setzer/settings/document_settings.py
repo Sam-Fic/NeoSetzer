@@ -42,7 +42,7 @@ class DocumentSettings():
         # 直接恢复其余状态（折叠区域等不依赖 save_date）。
         if document_data.get('save_date') is not None:
             try:
-                if document_data['save_date'] <= os.path.getmtime(document.filename) - 0.001: return
+                if document_data['save_date'] <= os.stat(document.filename).st_mtime - 0.001: return
             except OSError:
                 pass
 
@@ -60,9 +60,14 @@ class DocumentSettings():
         zoom_level = document_data['zoom_level']
 
         if pdf_filename == None: return
-        if not os.path.isfile(pdf_filename): return
+        # 原: os.path.isfile(pdf_filename) + os.path.getmtime(pdf_filename) 两次
+        # stat。改用单次 os.stat：FileNotFoundError 即文件不存在；st_mtime 兼用。
+        try:
+            pdf_st = os.stat(pdf_filename)
+        except FileNotFoundError:
+            return
         if pdf_date == None: return
-        if pdf_date <= os.path.getmtime(pdf_filename) - 10: return
+        if pdf_date <= pdf_st.st_mtime - 10: return
 
         document.preview.set_pdf_filename(pdf_filename)
         document.preview.zoom_manager.set_zoom_level(zoom_level)

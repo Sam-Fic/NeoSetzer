@@ -78,6 +78,11 @@ class PageAppearanceColors(object):
         self.view.font_chooser_row.set_sensitive(not self.view.option_use_system_font.get_active())
         self.view.option_use_system_font.connect('notify::active', self.on_use_system_font_toggled)
 
+        # line numbers vertical offset
+        self.view.line_numbers_offset_spin.set_value(
+            self.settings.get_value('preferences', 'line_numbers_vertical_offset'))
+        self.view.line_numbers_offset_spin.connect('notify::value', self.on_line_numbers_offset_changed)
+
         # preview width fraction
         fraction = self.settings.get_value('window_state', 'preview_width_fraction')
         self.view.preview_width_scale.set_value(int(fraction * 100))
@@ -117,6 +122,9 @@ class PageAppearanceColors(object):
             button.set_font_desc(font_desc)
         self.settings.set_value('preferences', 'font_string', font_desc.to_string())
 
+    def on_line_numbers_offset_changed(self, spin, pspec=None):
+        self.settings.set_value('preferences', 'line_numbers_vertical_offset', spin.get_value())
+
     # ---- preview width ----
     def on_preview_width_changed(self, scale):
         fraction = scale.get_value() / 100.0
@@ -148,6 +156,7 @@ class PageAppearanceColors(object):
             self.view.option_use_system_font.set_active(defaults['use_system_font'])
             self.view.font_chooser_button.set_font_desc(
                 Pango.FontDescription.from_string(defaults['font_string']))
+            self.view.line_numbers_offset_spin.set_value(defaults['line_numbers_vertical_offset'])
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
             self.preferences.page_editor.on_reset_clicked(None)
@@ -204,6 +213,17 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.font_chooser_row.set_title(_('Set Editor Font'))
         self.font_chooser_row.add_suffix(self.font_chooser_button)
         group_font.add(self.font_chooser_row)
+
+        # 行号垂直微调：不同字体的 ascent/descent 比例不同，行号相对文本可能
+        # 有轻微上下偏移。提供 -10..+10 像素、0.5 步进的 SpinRow 供用户补偿。
+        # 正值下移、负值上移，默认 0.0。
+        self.line_numbers_offset_spin = Adw.SpinRow.new_with_range(-10.0, 10.0, 0.5)
+        self.line_numbers_offset_spin.set_digits(1)
+        self.line_numbers_offset_spin.set_title(_('Line Number Vertical Offset'))
+        self.line_numbers_offset_spin.set_subtitle(
+            _('Fine-tune line numbers vertical position in pixels. '
+              'Adjust if line numbers appear slightly misaligned with text.'))
+        group_font.add(self.line_numbers_offset_spin)
 
         # preview width
         group_preview = Adw.PreferencesGroup()

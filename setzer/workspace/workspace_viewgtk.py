@@ -117,7 +117,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.sidebar_split.set_content(self.preview_paned_overlay)
         self.sidebar_split.set_min_sidebar_width(180)
         self.sidebar_split.set_max_sidebar_width(600)
-        self.sidebar_split.set_sidebar_width_fraction(0.14)
+        self.sidebar_split.set_sidebar_width_fraction(0.20)
 
         self.welcome_screen = welcome_screen_view.WelcomeScreenView()
 

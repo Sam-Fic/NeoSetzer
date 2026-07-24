@@ -49,6 +49,9 @@ class Gutter(object):
         self.code_folding_width = None
 
         self.highlight_current_line = self.settings.get_value('preferences', 'highlight_current_line')
+        # 行号垂直微调（像素）：用户可在外观设置中调整，补偿不同字体
+        # ascent/descent 比例差异导致的行号视觉偏移。正值下移、负值上移。
+        self.line_numbers_vertical_offset = self.settings.get_value('preferences', 'line_numbers_vertical_offset')
 
         self.char_width = FontManager.get_char_width(self.source_view)
         self.line_height = FontManager.get_line_height(self.source_view)
@@ -154,6 +157,10 @@ class Gutter(object):
 
         if item == 'highlight_current_line':
             self.highlight_current_line = self.settings.get_value('preferences', 'highlight_current_line')
+            self.drawing_area.queue_draw()
+
+        if item == 'line_numbers_vertical_offset':
+            self.line_numbers_vertical_offset = value
             self.drawing_area.queue_draw()
 
         if item == 'enable_code_folding':
@@ -435,7 +442,12 @@ class Gutter(object):
         # 对齐到行顶（get_line_yrange().y），不做居中。直接 draw at offset
         # 即可与之完全对齐。wrap 行时 offset 是第一条 visual line 的顶部，
         # 行号落在第一行顶部，符合预期。
-        ctx.move_to(0, offset)
+        #
+        # 用户可调偏移量（line_numbers_vertical_offset）：不同字体的
+        # ascent/descent 比例不同，即使 logical_rect 顶边对齐了行顶，
+        # 行号数字的视觉重心可能仍与文本略有错位。提供一个像素级偏移
+        # 让用户自行补偿。正值下移、负值上移。
+        ctx.move_to(0, offset + self.line_numbers_vertical_offset)
 
         PangoCairo.show_layout(ctx, layout)
 

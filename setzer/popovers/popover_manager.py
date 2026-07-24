@@ -91,12 +91,19 @@ class PopoverManager():
         return popover
 
     def add_change_code(change_code, parameter=None):
-        if change_code in PopoverManager.connected_functions:
-            for callback in PopoverManager.connected_functions[change_code]:
-                if parameter != None:
-                    callback(parameter)
-                else:
-                    callback()
+        # 与 Observable.add_change_code 对齐：迭代前 list() 拷贝回调集合，避免
+        # 某回调内 connect/disconnect 同一 change_code 触发
+        # `RuntimeError: Set changed size during iteration` 吞掉后续回调。
+        # `is not None` 替代 `!= None`：避免 parameter 为重载 __eq__ 的对象
+        # （如 GVariant）时误判及 __eq__ 自身开销。
+        callbacks = PopoverManager.connected_functions.get(change_code)
+        if not callbacks:
+            return
+        for callback in list(callbacks):
+            if parameter is not None:
+                callback(parameter)
+            else:
+                callback()
 
     def connect(change_code, callback):
         if change_code in PopoverManager.connected_functions:
