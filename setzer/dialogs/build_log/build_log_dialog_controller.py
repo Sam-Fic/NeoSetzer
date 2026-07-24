@@ -46,14 +46,21 @@ class BuildLogDialogController(object):
         if row is None or row.filename is None:
             return
 
-        self.build_log.workspace.open_document_by_filename(row.filename)
+        # open_document_by_filename 在文件无法打开时返回 None 且不改变
+        # active_document。原代码无视返回值继续对 active_document 调用
+        # place_cursor：若文件打不开会把光标定位到「上一个活动文档」的错误
+        # 位置;若没有任何文档打开则 active_document 为 None,此处会抛
+        # AttributeError 崩溃。故必须检查返回值。
+        document = self.build_log.workspace.open_document_by_filename(row.filename)
+        if document is None:
+            return
         line_number = row.line_number - 1
         if line_number < 0:
             return
 
-        self.build_log.workspace.active_document.place_cursor(row.line_number - 1)
-        self.build_log.workspace.active_document.scroll_cursor_onscreen()
-        self.build_log.workspace.active_document.source_view.grab_focus()
+        document.place_cursor(row.line_number - 1)
+        document.scroll_cursor_onscreen()
+        document.source_view.grab_focus()
 
     def on_copy_all_clicked(self, button):
         '''Copy 所有当前显示的 items（按设置项过滤后），格式 file:line: description per line。'''

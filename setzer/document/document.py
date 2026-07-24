@@ -55,6 +55,11 @@ class Document(Observable):
         self.root_is_set = False
         self.highlight_tag_count = 0
         self.highlight_tags = dict()
+        # 跟踪高亮淡出 timeout 的 source id，以便文档关闭时取消。原实现仅靠
+        # 回调返回 bool(self.highlight_tags) 自终止，文档关闭时若仍有 tag 在
+        # 淡出（最多 ~1.75s），timeout 会持续访问已逻辑失效的 source_buffer
+        # 并持有 document 引用阻碍 GC。
+        self._highlight_timeout_id = None
 
         self.source_buffer = GtkSource.Buffer()
         self.source_buffer.set_language(ServiceLocator.get_source_language(language))
@@ -79,18 +84,27 @@ class Document(Observable):
         # update_matching_blocks）延迟到 idle 构造，避免新建文档时主线程
         # 阻塞。它们只在用户按键交互时才需要，idle 调度时文档已可见可编辑。
         self._latex_features_ready = False
+        self._is_shutdown = False
+        self._latex_features_idle_id = None
         if self.is_latex_document():
-            GLib.idle_add(self._init_latex_features)
+            self._latex_features_idle_id = GLib.idle_add(self._init_latex_features)
 
         self.settings.connect('settings_changed', self.on_settings_changed)
 
         self.style_manager = Adw.StyleManager.get_default()
-        self.style_manager.connect('notify::dark', self.on_theme_colors_changed)
+        self._theme_handler_id = self.style_manager.connect('notify::dark', self.on_theme_colors_changed)
 
     def _init_latex_features(self):
         '''延迟构造 LaTeX 专属子系统（autocomplete / bracket_completion /
         update_matching_blocks）。它们只在用户按键交互时才需要，idle 调度
         时文档已可见可编辑，从而把构造开销从「新建文档」主帧移到空闲时刻。'''
+        self._latex_features_idle_id = None
+        # 文档可能在 idle 排队期间被关闭（如快速新建后立即关闭）。
+        # 此时不应再构造组件——它们会向已失效的 source_view 挂控制器、
+        # 向主窗口 overlay 挂已失效的补全 widget，造成引用泄漏与报错。
+        if self._is_shutdown:
+            return False
+
         self.update_matching_blocks = update_matching_blocks.UpdateMatchingBlocks(self)
         self.bracket_completion = bracket_completion.BracketCompletion(self)
         self.autocomplete = autocomplete.Autocomplete(self)
@@ -104,6 +118,105 @@ class Document(Observable):
             try: main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
             except AttributeError: pass
         return False
+
+    def shutdown(self):
+        '''文档关闭时由 workspace.remove_document 调用，清理信号连接与
+        挂起的 idle 回调，防止已关闭文档的回调仍被触发（内存泄漏 + 报错）。
+
+        settings / style_manager 是进程级单例，不随文档释放。若不断开
+        连接，单例会持续持有文档的回调引用，文档对象无法被 GC 回收，
+        且后续设置/主题变更会调到已失效的 on_settings_changed /
+        on_theme_colors_changed（后者会 set_style_scheme 到已销毁的
+        source_buffer，可能触发 GTK 警告）。
+        '''
+        self._is_shutdown = True
+
+        # 取消尚未执行的 idle 回调；若已执行则 id 已在回调内清为 None。
+        if self._latex_features_idle_id is not None:
+            GLib.Source.remove(self._latex_features_idle_id)
+            self._latex_features_idle_id = None
+
+        # 断开单例信号连接。
+        # settings 是 Observable（自定义观察者模式），disconnect 接受
+        # (change_code, callback)；Python 3 中同一实例的绑定方法 hash/eq
+        # 一致，故可在 disconnect 时再次传 self.on_settings_changed。
+        # style_manager 是 GObject，disconnect 接受 handler_id。
+        try:
+            self.settings.disconnect('settings_changed', self.on_settings_changed)
+        except (TypeError, KeyError, AttributeError):
+            pass
+        try:
+            self.style_manager.disconnect(self._theme_handler_id)
+        except (TypeError, AttributeError):
+            pass
+
+        # 取消预览滚动减速动画的 timeout,避免回调在 widget 已销毁后继续
+        # 访问 adjustment 等已释放对象。bibtex/other 文档没有 preview 属性。
+        preview = getattr(self, 'preview', None)
+        if preview is not None:
+            try:
+                preview.shutdown()
+            except Exception:
+                pass
+
+        # gutter 连接了 settings 单例信号 + idle 回调 + 减速 timeout,
+        # 需显式清理,否则 settings 单例持有 gutter→document 引用导致无法 GC。
+        gutter = getattr(self, 'gutter', None)
+        if gutter is not None:
+            try:
+                gutter.shutdown()
+            except Exception:
+                pass
+
+        # bracket_completion / autocomplete 连接了 settings 单例信号 + idle
+        # 回调,需断开 + 取消挂起 idle。它们是 LaTeX 专属子系统,延迟到 idle
+        # 构造,文档可能在构造前就被关闭(此时属性不存在)。
+        for attr in ('bracket_completion', 'autocomplete'):
+            module = getattr(self, attr, None)
+            if module is not None and hasattr(module, 'shutdown'):
+                try:
+                    module.shutdown()
+                except Exception:
+                    pass
+
+        # 以下模块仅连接了 settings 单例信号(无 idle/timeout 资源),
+        # 集中断开即可。settings 是进程级单例,不断开会导致单例持续持有
+        # 模块→document 引用,文档对象无法被 GC 回收,且后续设置变更会调到
+        # 已失效的 on_settings_changed。
+        for module in (self.presenter, self.code_folding):
+            try:
+                self.settings.disconnect('settings_changed', module.on_settings_changed)
+            except (TypeError, KeyError, AttributeError):
+                pass
+        # LaTeX 专属模块,可能尚未构造。
+        # update_matching_blocks 仅连接 settings,断开即可。
+        umb = getattr(self, 'update_matching_blocks', None)
+        if umb is not None:
+            try:
+                self.settings.disconnect('settings_changed', umb.on_settings_changed)
+            except (TypeError, KeyError, AttributeError):
+                pass
+        # build_widget 连接 settings 且持有构建计时器 timeout,需 shutdown
+        # 停止计时器 + 断开 settings。
+        bw = getattr(self, 'build_widget', None)
+        if bw is not None:
+            try:
+                bw.shutdown()
+            except Exception:
+                pass
+            try:
+                self.settings.disconnect('settings_changed', bw.on_settings_changed)
+            except (TypeError, KeyError, AttributeError):
+                pass
+
+        # 取消高亮淡出 timeout：文档关闭时若仍有 tag 在淡出（最多 ~1.75s），
+        # 回调会持续访问已逻辑失效的 source_buffer 并持有 document 引用阻碍 GC。
+        if self._highlight_timeout_id is not None:
+            try:
+                GLib.Source.remove(self._highlight_timeout_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._highlight_timeout_id = None
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -394,8 +507,11 @@ class Document(Observable):
         self.source_buffer.create_tag('highlight-' + str(self.highlight_tag_count), background_rgba=color, background_full_height=True)
         tag = self.source_buffer.get_tag_table().lookup('highlight-' + str(self.highlight_tag_count))
         self.source_buffer.apply_tag(tag, start_iter, end_iter)
-        if not self.highlight_tags:
-            GObject.timeout_add(15, self.remove_or_color_highlight_tags)
+        # 仅在无运行中的淡出 timeout 时启动新的。highlight_tags 为空意味着
+        # 上一轮 timeout 已自终止；此时 _highlight_timeout_id 也应已清空，
+        # 双重判断防止异常状态下重复挂 timeout。
+        if not self.highlight_tags and self._highlight_timeout_id is None:
+            self._highlight_timeout_id = GObject.timeout_add(15, self.remove_or_color_highlight_tags)
         self.highlight_tags[self.highlight_tag_count] = {'tag': tag, 'time': time.time()}
 
     def remove_or_color_highlight_tags(self):
@@ -423,7 +539,12 @@ class Document(Observable):
                     self.source_buffer.remove_tag(item['tag'], start, end)
                     self.source_buffer.get_tag_table().remove(item['tag'])
                     del(self.highlight_tags[tag_count])
-        return bool(self.highlight_tags)
+        # 无剩余 tag 时返回 False 让 GLib 自动移除 source，并清空缓存的 id，
+        # 以便 highlight_section 判断「无运行中 timeout」、shutdown 判断「无需取消」。
+        if not self.highlight_tags:
+            self._highlight_timeout_id = None
+            return False
+        return True
 
     def ease(self, factor): return (factor - 1)**3 + 1
 

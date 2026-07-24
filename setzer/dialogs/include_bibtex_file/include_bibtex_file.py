@@ -47,10 +47,12 @@ class IncludeBibTeXFile(object):
         self.view.include_button.connect('clicked', self.on_include_button_clicked)
         self.setup()
 
+        # set_active(True) 在状态由默认 False 变为 True 时已会发射 'toggled'
+        # 信号,从而触发 on_style_chosen / on_natbib_style_chosen 完成预览栈的
+        # 可见子项初始化,无需再手动调用 toggled()(原代码重复触发会导致
+        # 过渡方向判定为 SLIDE_RIGHT,产生轻微视觉瑕疵)。
         self.view.style_buttons[self.current_values['style']].set_active(True)
-        self.view.style_buttons[self.current_values['style']].toggled()
         self.view.natbib_style_buttons[self.current_values['natbib_style']].set_active(True)
-        self.view.natbib_style_buttons[self.current_values['natbib_style']].toggled()
         self.view.natbib_option.set_active(self.current_values['natbib_toggle'])
         self.update_style_chooser_visibility()
 

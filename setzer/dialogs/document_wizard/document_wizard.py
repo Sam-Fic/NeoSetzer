@@ -35,6 +35,10 @@ import pickle
 import os
 
 
+# on_keypress 每次按键都跑，模块级预计算避免每次 C 查表。
+_KEYVAL_RETURN = Gdk.keyval_from_name('Return')
+
+
 class DocumentWizard(object):
 
     def __init__(self, main_window):
@@ -63,7 +67,14 @@ class DocumentWizard(object):
         self.save_presets()
 
         document_class = self.current_values['document_class']
-        template_start, template_end = eval('self.get_insert_text_' + document_class + '()')
+        # 用 getattr 替代 eval:既避免任意代码执行风险(若 presets 被篡改,
+        # document_class 可能是任意字符串),也使方法不存在时抛出更清晰的
+        # AttributeError 而非 SyntaxError/NameError。
+        try:
+            get_insert_text = getattr(self, 'get_insert_text_' + document_class)
+        except AttributeError:
+            return
+        template_start, template_end = get_insert_text()
         self.insert_template(template_start, template_end)
 
         self.view.close()
@@ -155,7 +166,15 @@ class DocumentWizard(object):
     def load_presets(self):
         if self.presets == None:
             presets = self.settings.get_value('app_document_wizard', 'presets')
-            if presets != None: self.presets = pickle.loads(presets)
+            if presets != None:
+                # presets 来自磁盘持久化的 pickle 数据。若文件损坏或格式
+                # 不兼容（升级后字段变更），pickle.loads 会抛
+                # UnpicklingError / AttributeError / EOFError 等，导致向导
+                # 无法打开。静默回退到 None（默认值），让各 page 用默认预设。
+                try:
+                    self.presets = pickle.loads(presets)
+                except Exception:
+                    self.presets = None
 
         for page in self.pages:
             page.load_presets(self.presets)
@@ -198,7 +217,7 @@ class DocumentWizard(object):
     def on_keypress(self, controller, keyval, keycode, state, data=None):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
-        if keyval == Gdk.keyval_from_name('Return'):
+        if keyval == _KEYVAL_RETURN:
             if state & modifiers == 0:
                 if self.current_page in range(0, 6):
                     self.goto_page_next()

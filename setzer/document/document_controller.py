@@ -105,7 +105,7 @@ class DocumentController(object):
                 if not self.document.settings.get_value('preferences', 'tab_jump_brackets'): return False
                 chars_at_cursor = self.document.get_chars_at_cursor(2)
                 if chars_at_cursor in ['\\}', '\\)', '\\]']: forward_chars = 2
-                elif chars_at_cursor[0] in ['}', ')', ']']: forward_chars = 1
+                elif len(chars_at_cursor) > 0 and chars_at_cursor[0] in ['}', ')', ']']: forward_chars = 1
                 else: return False
 
                 insert_iter = self.document.source_buffer.get_iter_at_mark(self.document.source_buffer.get_insert())

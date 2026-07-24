@@ -54,8 +54,22 @@ class CodeFolding(Observable):
         if parser.last_edit[0] == 'insert':
             _, location_iter, text, text_length = parser.last_edit
             length = len(text)
-            offset_start = location_iter.get_offset() + length - 1
-            offset_end = offset_start + 1
+            # location_iter.get_offset() 是 insert-text 信号触发时（插入前）的
+            # 位置（记为 P）。旧 region 的偏移基于插入前的文档，取值范围
+            # [0, old_doc_length]。正确的平移规则：
+            #   index < P  → 保持原偏移（region 在插入点之前，不受影响）
+            #   index >= P → 平移 +length（region 在插入点及之后，内容后移）
+            # 因此 offset_start = P - 1（使 index <= offset_start 等价于 index < P），
+            # offset_end = P（使 index >= offset_end 等价于 index >= P）。
+            #
+            # 原代码 offset_start = P + length - 1, offset_end = P + length 把
+            # [P, P+length) 范围内的旧 region 当成"既不在前也不在后"而丢弃。
+            # 单字符输入时该范围只含 P 本身，仅丢失插入点处的 region；但粘贴
+            # 大段文本时 length 很，[P, min(P+length, old_doc_length)] 内的所有
+            # 旧 region 都会被丢弃，导致这些区域的折叠状态丢失（被后续 unfold
+            # 循环展开）。修复后所有旧 region 都能正确保留并平移。
+            offset_start = location_iter.get_offset() - 1
+            offset_end = location_iter.get_offset()
         elif parser.last_edit[0] == 'delete':
             _, start_iter, end_iter = parser.last_edit
             offset_start = start_iter.get_offset()

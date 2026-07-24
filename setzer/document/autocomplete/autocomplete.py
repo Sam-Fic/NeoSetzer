@@ -66,7 +66,21 @@ class Autocomplete(object):
         self.source_buffer.connect('notify::cursor-position', self.on_cursor_position_change)
         self.adjustment.connect('changed', self.on_adjustment_change)
         self.adjustment.connect('value-changed', self.on_adjustment_value_change)
-        self.document.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存回调引用以便 shutdown 时断开 settings 单例连接。
+        self._settings_callback = self.on_settings_changed
+        self.document.settings.connect('settings_changed', self._settings_callback)
+
+    def shutdown(self):
+        '''文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
+        取消挂起的 idle 回调，防止 settings 持有引用导致文档无法 GC，以及
+        idle 回调在文档已销毁后访问 source_buffer。'''
+        try:
+            self.document.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
+        if self._update_suggestions_idle_id is not None:
+            GLib.source_remove(self._update_suggestions_idle_id)
+            self._update_suggestions_idle_id = None
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter

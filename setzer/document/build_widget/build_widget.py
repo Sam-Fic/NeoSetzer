@@ -57,13 +57,15 @@ class BuildWidget(Observable):
         self.document.connect('filename_change', self.on_filename_change)
         self.document.build_system.connect('build_state_change', self.on_build_state_change)
         self.document.build_system.connect('build_state', self.on_build_state)
-        self.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存回调引用以便 shutdown 时断开 settings 单例连接。
+        self._settings_callback = self.on_settings_changed
+        self.settings.connect('settings_changed', self._settings_callback)
 
-        self.view.result_revealer.connect('notify::child-revealed', self.on_revealer_finished)
-
-    def on_revealer_finished(self, revealer, params):
-        if not revealer.get_child_revealed():
-            self.view.result_revealer.set_visible(False)
+    def shutdown(self):
+        '''文档关闭时由 Document.shutdown 调用。停止构建计时器,避免在构建
+        进行中文档被关闭时计时器 timeout 永久泄漏。settings 连接由
+        Document.shutdown 集中处理。'''
+        self.view.stop_timer()
 
     def on_filename_change(self, document, filename=None):
         self.set_clean_button_state()

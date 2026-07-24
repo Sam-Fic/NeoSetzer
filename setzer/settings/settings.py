@@ -121,16 +121,25 @@ class Settings(Observable):
         
     def unpickle(self):
         ''' Load settings from home folder. '''
-        
+
         # create folder if it does not exist
         if not os.path.isdir(self.pathname):
             os.makedirs(self.pathname)
-        
+
         try: filehandle = open(os.path.join(self.pathname, 'settings.pickle'), 'rb')
         except IOError: return False
         else:
-            try: self.data = pickle.load(filehandle)
-            except EOFError: False
+            try:
+                self.data = pickle.load(filehandle)
+            except (EOFError, pickle.UnpicklingError, ValueError, AttributeError):
+                # pickle 文件损坏或为空时，原代码写 `except EOFError: False`
+                # ——这只是一条空表达式语句（求值 False 后丢弃），并非 return False。
+                # 结果 self.data 保持为空 dict，unpickle 仍返回 True，__init__ 不
+                # 走 defaults 恢复分支。改为 return False 让 __init__ 用 defaults
+                # 重置并重新 pickle，确保损坏文件不会导致设置永久丢失。
+                # 同时扩展异常覆盖：UnpicklingError/ValueError/AttributeError 也
+                # 是 pickle 文件损坏的常见表现。
+                return False
 
         return True
         

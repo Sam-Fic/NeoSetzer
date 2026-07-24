@@ -259,7 +259,12 @@ class Search(Observable):
 
     def set_match_counter(self, match_no=-1, total=-1):
         search_bar = self.view
-        if total == -1:
+        # total <= 0 统一视为「无可用计数」：total == -1 是 GtkSource 仍在
+        # 异步扫描；total == 0 是扫描完成但无匹配。两者都应清空计数器并
+        # 禁用 prev/next 按钮。原实现仅判 total == -1，导致 total == 0 时
+        # 走 else 分支显示 "-1 of 0"（match_no 默认 -1），即用户看到
+        # 错误的计数文本且按钮被误启用。
+        if total <= 0:
             search_bar.match_counter.set_text('')
             search_bar.prev_button.set_sensitive(False)
             search_bar.next_button.set_sensitive(False)

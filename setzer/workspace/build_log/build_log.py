@@ -57,6 +57,13 @@ class BuildLog(Observable):
             self.document.build_system.disconnect('build_log_update', self.on_build_log_update)
 
         self.document = document
+        # document 可能为 None（最后一个文档关闭后 set_build_log 虽然不会
+        # 主动传 None，但防御性处理避免 AttributeError 崩溃）。此时仅清空
+        # items 引用，不访问 build_system。
+        if document is None:
+            self.items = list()
+            self.add_change_code('build_log_finished_adding', False)
+            return
         self.update_items()
         self.document.build_system.connect('build_log_update', self.on_build_log_update)
 
@@ -74,6 +81,9 @@ class BuildLog(Observable):
         return self.count_items(types) > 0
 
     def count_items(self, types='all'):
+        # document 可能为 None（所有文档已关闭）。此时无构建日志可统计。
+        if self.document is None:
+            return 0
         if types == 'errors':
             return self.document.build_system.get_error_count()
         elif types == 'errors_warnings':

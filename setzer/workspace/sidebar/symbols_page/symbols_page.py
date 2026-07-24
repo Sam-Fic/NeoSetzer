@@ -37,6 +37,10 @@ class SymbolsPage(object):
 
         self.scroll_to = None
         self._current_section_title = ''  # 缓存 section title，用于变化检测
+        # 跟踪 section 导航滚动动画的 timeout id。原实现不跟踪，连续点击
+        # 下一/上一段时多个 timeout 同时写 adjustment 造成抖动；widget 销毁
+        # 时（duration 0.2s 内）timeout 仍访问已释放的 scrolled_window。
+        self._scroll_timeout_id = None
 
         self.recent = ServiceLocator.get_settings().get_value('app_recent_symbols', 'symbols')
         self.recent_details = list()
@@ -55,6 +59,18 @@ class SymbolsPage(object):
         self.view.search_button.connect('toggled', self.on_search_button_toggled)
         self.view.search_entry.connect('stop-search', self.on_search_stopped)
         self.view.search_entry.connect('changed', self.on_search_changed)
+        # widget 销毁时取消进行中的滚动动画 timeout，避免回调访问已释放的
+        # scrolled_window 并持有引用阻碍 GC。SymbolsPage 非控件，故连接
+        # 其持有的 scrolled_window 的 destroy。
+        self.view.scrolled_window.connect('destroy', self._on_destroy)
+
+    def _on_destroy(self, widget=None):
+        if self._scroll_timeout_id is not None:
+            try:
+                GObject.source_remove(self._scroll_timeout_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._scroll_timeout_id = None
 
     def update_recent_widget(self):
         for item in [item for item in self.recent]:
@@ -259,10 +275,15 @@ class SymbolsPage(object):
             self.recent_view_size = (allocation.width, allocation.height)
 
     def scroll_view(self, position, duration=0.2):
+        # 取消进行中的动画：连续点击下一/上一段时，旧 timeout 仍在写
+        # adjustment，与新动画叠加产生抖动。
+        if self._scroll_timeout_id is not None:
+            GObject.source_remove(self._scroll_timeout_id)
+            self._scroll_timeout_id = None
         adjustment = self.view.scrolled_window.get_vadjustment()
         self.scroll_to = {'position_start': adjustment.get_value(), 'position_end': position, 'time_start': time.time(), 'duration': duration}
         self.view.scrolled_window.set_kinetic_scrolling(False)
-        GObject.timeout_add(15, self.do_scroll)
+        self._scroll_timeout_id = GObject.timeout_add(15, self.do_scroll)
 
     def do_scroll(self):
         if self.scroll_to != None:
@@ -276,10 +297,13 @@ class SymbolsPage(object):
                 adjustment.set_value(self.scroll_to['position_end'])
                 self.scroll_to = None
                 self.view.scrolled_window.set_kinetic_scrolling(True)
+                self._scroll_timeout_id = None
                 return False
             else:
                 adjustment.set_value(self.scroll_to['position_start'] * (1 - self.ease(time_elapsed_percent)) + self.scroll_to['position_end'] * self.ease(time_elapsed_percent))
                 return True
+        # scroll_to 已被取消（新动画或销毁），停止本 timeout。
+        self._scroll_timeout_id = None
         return False
 
     def ease(self, time): return (time - 1)**3 + 1

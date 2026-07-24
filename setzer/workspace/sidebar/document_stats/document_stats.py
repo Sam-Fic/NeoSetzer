@@ -114,13 +114,23 @@ class DocumentStats(object):
             return
         process.wait()
 
-        with self.values_lock:
-            raw_result = process.communicate()[0].decode('utf-8').split('+')
-            count_0 = raw_result[0].split('\n')[-1]
-            count_1 = raw_result[1]
-            count_2 = raw_result[2].split(' ')[0]
-            self.values[filename]['counts'] = [count_0, count_1, count_2]
-            self.texcount_missing = False
+        # texcount 输出形如 "123+45+67 ..."（text+headers+outside 以 '+'
+        # 分隔）。但 texcount 缺失、文件不可读或版本输出格式变化时，stdout
+        # 可能是错误信息（无 '+'），split('+') 后不足 3 段，raw_result[1/2]
+        # 抛 IndexError 导致后台线程静默崩溃，update_view 永不被触发、视图
+        # 永久停滞在旧值。用 try/except 守卫：解析失败时置 counts=None，
+        # 视图回退到 '?' 显示。
+        try:
+            with self.values_lock:
+                raw_result = process.communicate()[0].decode('utf-8').split('+')
+                count_0 = raw_result[0].split('\n')[-1]
+                count_1 = raw_result[1]
+                count_2 = raw_result[2].split(' ')[0]
+                self.values[filename]['counts'] = [count_0, count_1, count_2]
+                self.texcount_missing = False
+        except (IndexError, UnicodeDecodeError):
+            with self.values_lock:
+                self.values[filename]['counts'] = None
         # 后台线程拿到新值后立即触发主线程刷新，无需等 2000ms 兜底轮询。
         GLib.idle_add(self.update_view)
 

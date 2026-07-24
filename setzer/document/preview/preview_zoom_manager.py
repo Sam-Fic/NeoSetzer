@@ -89,7 +89,10 @@ class PreviewZoomManager(Observable):
         try:
             zoom_level = max([level for level in self.get_list_of_zoom_levels() if level < self.zoom_level])
         except ValueError:
-            zoom_level = min(self.zoom_levels)
+            # 原代码写 self.zoom_levels（未定义属性），在已达最小缩放级别时
+            # 触发此分支会抛 AttributeError。应为 self.get_list_of_zoom_levels()，
+            # 与 zoom_in 的对应分支一致。
+            zoom_level = min(self.get_list_of_zoom_levels())
         self.set_zoom_level_auto_offset(zoom_level)
 
     def get_list_of_zoom_levels(self):
@@ -104,6 +107,11 @@ class PreviewZoomManager(Observable):
 
     def set_zoom_level_auto_offset(self, zoom_level):
         layout = self.preview.layout
+        if layout == None or self.zoom_level == None:
+            # 首次设置缩放（zoom_level 仍为 None）或布局尚未建立时，
+            # 无法计算偏移量，直接设置级别即可。
+            self.set_zoom_level(zoom_level)
+            return
         factor = zoom_level / self.zoom_level
 
         x = factor * self.view.content.scrolling_offset_x + (factor - 1) * self.view.content.width / 2

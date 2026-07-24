@@ -67,7 +67,9 @@ class Preview(Observable):
         self.document.connect('filename_change', self.on_filename_change)
         self.document.connect('pdf_updated', self.on_pdf_updated)
 
-        self.document.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存回调引用以便 shutdown 时断开 settings 单例连接。
+        self._settings_callback = self.on_settings_changed
+        self.document.settings.connect('settings_changed', self._settings_callback)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -165,12 +167,17 @@ class Preview(Observable):
 
     def scroll_dest_on_screen(self, dest):
         if self.layout == None: return
+        if dest == None: return
 
         page_number = dest.page_num
         content = self.view.content
         left = dest.left * self.layout.scale_factor
         top = dest.top * self.layout.scale_factor
-        x = max(min(left, content.scrolling_offset_x), content.scrolling_offset_x + content.width)
+        # width 原代码未定义直接使用，导致 NameError 崩溃。
+        # Poppler.Dest 有 right/left 属性，但 XYZ 型链接目标通常只设
+        # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
+        width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
+        x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
         y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap
 
         self.view.content.scroll_to_position([x, y])
@@ -224,5 +231,23 @@ class Preview(Observable):
         word = poppler_page.get_selected_text(Poppler.SelectionStyle.WORD, rect)
         context = poppler_page.get_selected_text(Poppler.SelectionStyle.LINE, rect)
         self.document.build_system.backward_sync(page, x, y, word, context)
+
+    def shutdown(self):
+        '''文档关闭时由 Document.shutdown 调用。取消滚动减速动画的 timeout、
+        synctex 高亮淡出动画、断开 settings 单例信号连接，防止回调在 widget
+        已销毁后继续访问 adjustment/drawing_area 等已释放对象，以及 settings
+        持有引用导致文档无法 GC。'''
+        try:
+            self.view.content.cancel_deceleration()
+        except AttributeError:
+            pass
+        try:
+            self.presenter.cancel_fade_loop()
+        except AttributeError:
+            pass
+        try:
+            self.document.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
 
 

@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GObject, Gdk, Gtk
+from gi.repository import GLib, GObject, Gdk, Gtk
 
 import time
 
@@ -44,6 +44,9 @@ class ScrollingWidget(Observable):
         self.width, self.height = 0, 0
         self.cursor_x, self.cursor_y = None, None
         self.scrolling_multiplier = 2.5
+        # 跟踪当前减速动画的 timeout 源 ID,以便在 widget 销毁或发起新的
+        # 滚动时取消它,避免回调访问已释放的对象或在后台反复触发。
+        self._deceleration_id = None
 
         self.view = Gtk.ScrolledWindow()
         self.view.set_overlay_scrolling(True)
@@ -81,6 +84,15 @@ class ScrollingWidget(Observable):
         self.secondary_click_controller.set_button(3)
         self.secondary_click_controller.connect('pressed', self.on_secondary_button_press)
         self.content.add_controller(self.secondary_click_controller)
+
+        # widget 销毁时自动取消减速动画 timeout。原实现仅靠各调用方
+        # (preview.shutdown 等)手动调 cancel_deceleration，若有调用方遗漏，
+        # ScrolledWindow 销毁后 timeout 仍会反复触发，访问已释放的 adjustment
+        # 并持有 widget 引用阻碍 GC。连接 'destroy' 使本组件自清理。
+        self.view.connect('destroy', self._on_destroy)
+
+    def _on_destroy(self, widget=None):
+        self.cancel_deceleration()
 
     def queue_draw(self):
         self.content.queue_draw()
@@ -123,10 +135,21 @@ class ScrollingWidget(Observable):
     def on_decelerate(self, controller, vel_x, vel_y):
         if abs(vel_x) > 0 and abs(vel_y / vel_x) > 1: vel_x = 0
 
+        # 取消任何正在进行的减速动画,避免多个 timeout 同时驱动滚动
+        # (用户在减速期间再次滑动时会出现这种情况)。
+        self.cancel_deceleration()
         data = {'starting_time': time.time(), 'initial_position': self.scrolling_offset_y, 'position': self.scrolling_offset_y, 'vel_y': vel_y * self.scrolling_multiplier}
         self.deceleration(data)
 
+    def cancel_deceleration(self):
+        '''取消当前正在运行的减速动画 timeout。应在 widget 销毁时调用,
+        以免回调继续访问已释放的 Gtk 对象。'''
+        if self._deceleration_id is not None:
+            GLib.source_remove(self._deceleration_id)
+            self._deceleration_id = None
+
     def deceleration(self, data):
+        # 若已被取消(新滑动开始或 widget 销毁),立即停止。
         if data['position'] != self.scrolling_offset_y: return False
 
         time_elapsed = time.time() - data['starting_time']
@@ -135,13 +158,15 @@ class ScrollingWidget(Observable):
         position = data['initial_position'] + (1 - exponential_factor) * (data['vel_y'] / 4)
         velocity = data['vel_y'] * exponential_factor
 
-        if abs(velocity) < 0.1: return False
+        if abs(velocity) < 0.1:
+            self._deceleration_id = None
+            return False
 
         x = self.scrolling_offset_x
         y = position
         self.scroll_now([x, y])
         data['position'] = y
-        GObject.timeout_add(15, self.deceleration, data)
+        self._deceleration_id = GObject.timeout_add(15, self.deceleration, data)
 
         return False
 

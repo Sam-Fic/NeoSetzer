@@ -86,7 +86,21 @@ class UpdateMatchingBlocks(object):
         if keyval == _KEYVAL_BACKSPACE and len(match_begin_end.group(2)) == 0: return False
         if keyval == _KEYVAL_DELETE and len(match_begin_end.group(3)) == 0: return False
 
-        orig_offset = cursor_offset - insert_iter.get_line_offset() + match_begin_end.start()
+        # 计算 \begin/\end 在 buffer 中的绝对偏移。
+        # cursor_offset - line_offset = 当前行的起始偏移。
+        # match_begin_end.start(1) 是 group(1)（"begin"/"end"）在修改后行中的
+        # 起始位置；-1 退到前面的反斜杠，即 \begin/\end 的真正起点。
+        #
+        # 原代码用 match.begin_end.start()，但 re.match() 的整体匹配始终从
+        # 位置 0 开始（正则开头的 .* 会吞掉 \begin 前的所有内容），所以
+        # start() 恒为 0，orig_offset 恒等于行首偏移。当 \begin/\end 前有
+        # 缩进空格或其他文本时，block[0]/block[1]（记录的是 \begin/\end 的
+        # 实际偏移）不等于行首偏移，下面的 for 循环找不到匹配 block，功能
+        # 静默失效。改用 start(1) - 1 后，无论前面是否有空白都能正确定位。
+        #
+        # %•% 标记插在光标处（即 {…} 内部），位于 \begin/\end 之后，不会
+        # 改变 \begin/\end 在行中的位置，故修改后行的 start(1) 与原始行一致。
+        orig_offset = cursor_offset - insert_iter.get_line_offset() + match_begin_end.start(1) - 1
         offset = None
         for block in self.document.parser.symbols['blocks']:
             if block[0] == orig_offset:

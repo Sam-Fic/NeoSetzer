@@ -50,7 +50,13 @@ class OpenDocumentDialog(object):
         except Exception: pass
         else:
             if files != None:
+                # 逐个文件独立 try/except:单个文件打开失败(损坏、权限等)
+                # 不应中断其余文件的打开。异常若逃逸到 GTK 异步回调外,
+                # 会被主循环静默吞掉或导致不稳定。
                 for file in files:
-                    self.workspace.open_document_by_filename(file.get_path())
+                    try:
+                        self.workspace.open_document_by_filename(file.get_path())
+                    except Exception:
+                        pass
 
 

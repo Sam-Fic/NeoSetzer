@@ -37,6 +37,12 @@ class PreviewPresenter(object):
 
         self.highlight_duration = 1.5
         self.count = 1
+        # 跟踪 synctex 高亮淡出动画的 timeout id。原实现每次 start_fade_loop
+        # 都新建一个 timeout，连续 forward/backward sync 会叠加多个 15ms
+        # timeout 同时 queue_draw，浪费 CPU；文档关闭时挂起的淡出也会继续
+        # 访问已销毁的 drawing_area。改为跟踪 id，新淡出取消旧的，并由
+        # preview.shutdown 取消挂起的。
+        self._fade_loop_id = None
 
         self.view.drawing_area.set_draw_func(self.draw)
 
@@ -72,13 +78,26 @@ class PreviewPresenter(object):
         self.view.drawing_area.queue_draw()
 
     def start_fade_loop(self):
+        # 取消进行中的淡出动画，避免连续 sync 叠加多个 timeout 同时 queue_draw。
+        self.cancel_fade_loop()
+
         def draw():
             timer = (self.highlight_duration + 0.25 - time.time() + self.preview.visible_synctex_rectangles_time)
             if timer <= 0.4:
                 self.view.drawing_area.queue_draw()
-            return timer >= 0
+            if timer >= 0:
+                return True
+            self._fade_loop_id = None
+            return False
         self.view.drawing_area.queue_draw()
-        GObject.timeout_add(15, draw)
+        self._fade_loop_id = GObject.timeout_add(15, draw)
+
+    def cancel_fade_loop(self):
+        '''取消挂起的 synctex 高亮淡出动画。由 preview.shutdown 调用，
+        避免文档关闭后回调继续访问已销毁的 drawing_area。'''
+        if self._fade_loop_id is not None:
+            GObject.source_remove(self._fade_loop_id)
+            self._fade_loop_id = None
 
     #@timer
     def draw(self, drawing_area, ctx, width, height):

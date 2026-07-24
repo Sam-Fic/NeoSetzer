@@ -64,8 +64,9 @@ class AutocompleteController(object):
                 return True
 
         if (state & modifiers, keyval) == (0, _KEYVAL_ESCAPE):
-            self.autocomplete.deactivate()
-            return True
+            if self.autocomplete.is_active:
+                self.autocomplete.deactivate()
+                return True
 
         if (state & modifiers, keyval) == (0, _KEYVAL_DOWN):
             if self.autocomplete.is_active:

@@ -39,6 +39,12 @@ class PreviewPageRenderer(Observable):
 
         self.visible_pages_lock = thread.allocate_lock()
         self.visible_pages = list()
+        # visible_pages_additional 在 update_rendered_pages 中赋值。但后台线程
+        # render_page_loop 在 is_active=True 时会访问它；activate() 先置
+        # is_active=True 再调 update_rendered_pages，理论上存在竞态窗口。
+        # 预初始化为空区间 [0, -1] 使线程访问时 is_visible 恒为 False，避免
+        # AttributeError 导致渲染线程静默崩溃（线程异常不会冒泡到主线程）。
+        self.visible_pages_additional = [0, -1]
         self.page_width = None
         self.pdf_date = None
         self.rendered_pages = dict()
@@ -48,7 +54,9 @@ class PreviewPageRenderer(Observable):
         self.preview.connect('position_changed', self.on_layout_or_position_changed)
         self.preview.connect('layout_changed', self.on_layout_or_position_changed)
         self.preview.connect('recolor_pdf_changed', self.on_recolor_pdf_changed)
-        self.preview.document.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存回调引用以便 shutdown 时断开 settings 单例连接。
+        self._settings_callback = self.on_settings_changed
+        self.preview.document.settings.connect('settings_changed', self._settings_callback)
 
         self.page_render_count_lock = thread.allocate_lock()
         self.page_render_count = dict()
@@ -105,7 +113,8 @@ class PreviewPageRenderer(Observable):
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器并
         置 is_active=False。后台线程检测到 is_active=False 后会进入
-        time.sleep(0.05) 空转，不再占 CPU；其随进程退出自然结束。'''
+        time.sleep(0.05) 空转，不再占 CPU；其随进程退出自然结束。
+        同时断开 settings 单例信号连接，防止持有引用导致文档无法 GC。'''
         self._shutting_down = True
         if self._rendered_pages_timeout_id is not None:
             GLib.Source.remove(self._rendered_pages_timeout_id)
@@ -115,6 +124,10 @@ class PreviewPageRenderer(Observable):
         self.rendered_pages = dict()
         with self.visible_pages_lock:
             self.visible_pages = list()
+        try:
+            self.preview.document.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
 
     def render_page_loop(self):
         while True:

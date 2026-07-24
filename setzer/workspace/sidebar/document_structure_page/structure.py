@@ -57,6 +57,10 @@ class StructureSection(object):
         if document is None:
             filename = item[3]
             document = self.data_provider.workspace.open_document_by_filename(filename)
+        # open_document_by_filename 可能返回 None（文件不存在/无法打开），
+        # 此时不能继续 set_active_document/place_cursor，否则 AttributeError。
+        if document is None:
+            return
         self.data_provider.workspace.set_active_document(document)
         document.place_cursor(line_number)
         document.scroll_cursor_onscreen()
@@ -81,7 +85,11 @@ class StructureSection(object):
                             block_included.append(inc['document'])
                         blocks.append(block_included)
                 else:
-                    file_block = [0, 0, 0, 0, 'file', inc['filename'], inc['document']]
+                    # file_block 用 include 的 offset 作为 block[0]，使每个
+                    # include 的 file_block 有唯一 offset。原代码 block[0]=0
+                    # 导致下方 sections dict 以 block[2](=0) 为 key 时多个
+                    # include 互相覆盖，结构视图只显示最后一个 include。
+                    file_block = [inc['offset'], 0, 0, 0, 'file', inc['filename'], inc['document']]
                     blocks.append(file_block)
                 include_idx += 1
             if len(block) < 7:
@@ -96,14 +104,18 @@ class StructureSection(object):
                         block.append(inc['document'])
                     blocks.append(block)
             else:
-                file_block = [0, 0, 0, 0, 'file', inc['filename'], inc['document']]
+                file_block = [inc['offset'], 0, 0, 0, 'file', inc['filename'], inc['document']]
                 blocks.append(file_block)
             include_idx += 1
 
         last_line = -1
         for block in blocks:
             if block[1] != None and block[4] in self.levels and block[2] != last_line:
-                sections[block[2]] = {'document': block[6], 'offset_start': block[0], 'starting_line': block[2], 'block': block}
+                # 用 block[0]（offset）作为 key 而非 block[2]（line_number）。
+                # section block 的 offset 唯一；file_block 用 include 的 offset
+                # 也唯一。原代码用 block[2]，多个 file_block 的 line_number
+                # 均为 0，dict key 碰撞导致互相覆盖。
+                sections[block[0]] = {'document': block[6], 'offset_start': block[0], 'starting_line': block[2], 'block': block}
                 last_line = block[2]
 
         current_level = 0

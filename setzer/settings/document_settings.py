@@ -30,14 +30,21 @@ class DocumentSettings():
 
         filename = base64.urlsafe_b64encode(str.encode(document.filename)).decode()
         try:
-            filehandle = open(ServiceLocator.get_config_folder() + '/' + filename + '.pickle', 'rb')
-            document_data = pickle.load(filehandle)
+            with open(ServiceLocator.get_config_folder() + '/' + filename + '.pickle', 'rb') as filehandle:
+                document_data = pickle.load(filehandle)
             DocumentSettings.update_document(document, document_data)
         except Exception:
             pass
 
     def update_document(document, document_data):
-        if document_data['save_date'] <= os.path.getmtime(document.filename) - 0.001: return
+        # save_date 可能为 None（极端情况：文档状态在文件已被删除后保存）。
+        # None <= number 在 Python 3 中抛 TypeError，用 is None 守卫跳过比较，
+        # 直接恢复其余状态（折叠区域等不依赖 save_date）。
+        if document_data.get('save_date') is not None:
+            try:
+                if document_data['save_date'] <= os.path.getmtime(document.filename) - 0.001: return
+            except OSError:
+                pass
 
         document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
         document.build_system.build_log_data = document_data['build_log_data']
@@ -81,9 +88,9 @@ class DocumentSettings():
 
         filename = base64.urlsafe_b64encode(str.encode(document.filename)).decode()
         if document.filename != None:
-            try: filehandle = open(ServiceLocator.get_config_folder() + '/' + filename + '.pickle', 'wb')
+            try:
+                with open(ServiceLocator.get_config_folder() + '/' + filename + '.pickle', 'wb') as filehandle:
+                    pickle.dump(document_data, filehandle)
             except IOError: pass
-            else:
-                pickle.dump(document_data, filehandle)
 
 

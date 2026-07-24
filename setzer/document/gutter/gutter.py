@@ -69,10 +69,18 @@ class Gutter(object):
         # idle 刷新，避免单次按键触发 on_document_change + on_cursor_change
         # 两路各跑一遍 update_hovered_folding_region + update_size + queue_draw。
         self._refresh_idle_id = None
+        # 跟踪减速动画 timeout 源 ID，以便在文档关闭时取消，避免回调访问
+        # 已销毁的 adjustment。
+        self._deceleration_id = None
 
         self.update_size()
 
         self.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存 settings 信号连接的回调引用，shutdown 时据此断开。
+        # settings 是进程级单例，若不断开，单例会持续持有 gutter 回调引用，
+        # 进而通过 gutter 持有 document，导致文档关闭后无法被 GC，且后续
+        # 设置变更会调到已失效的 on_settings_changed。
+        self._settings_callback = self.on_settings_changed
         self.document.connect('changed', self.on_document_change)
         self.document.connect('cursor_position_changed', self.on_cursor_change)
         self.document.code_folding.connect('folding_state_changed', self.on_folding_state_changed)
@@ -95,6 +103,25 @@ class Gutter(object):
         event_controller.connect('motion', self.on_hover)
         event_controller.connect('leave', self.on_leave)
         self.drawing_area.add_controller(event_controller)
+
+    def shutdown(self):
+        '''文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
+        取消挂起的 idle 回调和减速动画 timeout。
+
+        settings 是进程级单例，不断开会导致单例持续持有 gutter 回调引用，
+        进而通过 gutter 持有 document，文档对象无法被 GC 回收，且后续设置
+        变更会调到已失效的 on_settings_changed（访问已销毁的 drawing_area）。
+        '''
+        try:
+            self.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
+
+        if self._refresh_idle_id is not None:
+            GLib.source_remove(self._refresh_idle_id)
+            self._refresh_idle_id = None
+
+        self.cancel_deceleration()
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -169,11 +196,22 @@ class Gutter(object):
             self.document_view.scrolled_window.set_kinetic_scrolling(True)
 
     def on_decelerate(self, controller, vel_x, vel_y):
+        # 取消任何正在进行的减速动画，避免多个 timeout 同时驱动滚动。
+        self.cancel_deceleration()
         data = {'starting_time': time.time(), 'initial_position': self.adjustment.get_value(), 'position': self.adjustment.get_value(), 'vel_y': vel_y * 2.5}
         self.deceleration(data)
 
+    def cancel_deceleration(self):
+        '''取消当前正在运行的减速动画 timeout。'''
+        if self._deceleration_id is not None:
+            GLib.source_remove(self._deceleration_id)
+            self._deceleration_id = None
+
     def deceleration(self, data):
-        if data['position'] != self.adjustment.get_value(): return False
+        # 若已被取消（新滑动开始或文档关闭），立即停止。
+        if data['position'] != self.adjustment.get_value():
+            self._deceleration_id = None
+            return False
 
         time_elapsed = time.time() - data['starting_time']
         exponential_factor = 2.71828 ** (-4 * time_elapsed)
@@ -182,7 +220,9 @@ class Gutter(object):
         if abs(velocity) >= 0.1:
             self.adjustment.set_value(position)
             data['position'] = position
-            GObject.timeout_add(15, self.deceleration, data)
+            self._deceleration_id = GObject.timeout_add(15, self.deceleration, data)
+        else:
+            self._deceleration_id = None
 
         return False
 
@@ -248,7 +288,13 @@ class Gutter(object):
         # get_line_at_y），每次 self.source_view 经 __dict__ 哈希。50 可见行
         # × 60fps = 6000 次/秒无谓查找。
         source_view = self.source_view
-        current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
+        # 仅当没有文本选区时，光标行才作为“当前行”被加粗。有选区时
+        # get_insert 落在选区末端，会把选区内每一行都误判为当前行，
+        # 导致大量行号被加粗——行号加粗应只在光标独占某行时出现。
+        if self.source_buffer.get_has_selection():
+            current_line = -1
+        else:
+            current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
         # 提前计算循环上界，避免每次循环都调用 adjustment getter（C 调用）。
         scroll_top = self.adjustment.get_value()
         scroll_bottom = scroll_top + height
@@ -297,7 +343,7 @@ class Gutter(object):
         else:
             text = str(line + 1)
 
-        if is_current and self.highlight_current_line and not self.source_buffer.get_has_selection():
+        if is_current and self.highlight_current_line:
             Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('line_highlighting_color'))
             ctx.rectangle(0, offset, self.total_width, line_height)
             ctx.fill()

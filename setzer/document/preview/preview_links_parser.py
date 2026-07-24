@@ -44,15 +44,22 @@ class PreviewLinksParser(Observable):
         if page_number in self.links:
             if self.links[page_number] == None:
                 links = list()
-                link_mapping_list = self.preview.poppler_document.get_page(page_number).get_link_mapping()
+                link_mapping_list = self.preview.poppler_document.get_page(page_number).get_link_mappings()
                 for link_mapping in link_mapping_list:
                     action = link_mapping.action
                     area = link_mapping.area
                     if action.type == Poppler.ActionType.URI:
                         links.append([area, action.uri.uri, 'uri'])
                     elif action.type == Poppler.ActionType.GOTO_DEST:
-                        dest = self.preview.poppler_document.find_dest(action.goto_dest.dest.named_dest)
-                        links.append([area, dest, 'goto'])
+                        # find_dest 对未知 named_dest 返回 None。若存入 None，
+                        # 点击链接时 scroll_dest_on_screen(None) 会 AttributeError 崩溃。
+                        # 跳过此类无效目标链接。
+                        try:
+                            dest = self.preview.poppler_document.find_dest(action.goto_dest.dest.named_dest)
+                        except Exception:
+                            dest = None
+                        if dest is not None:
+                            links.append([area, dest, 'goto'])
                 self.links[page_number] = links
             return self.links[page_number]
         else:

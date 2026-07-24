@@ -41,8 +41,9 @@ class IncludeLaTeXFile(object):
         self.view = view.IncludeLaTeXFileView(self.main_window)
         self.setup()
 
+        # set_active(True) 在状态由默认 False 变为 True 时已会发射 'toggled'
+        # 信号,从而触发 on_pathtype_chosen 完成初始化,无需再手动调用 toggled()。
         self.view.pathtype_buttons[self.current_values['pathtype']].set_active(True)
-        self.view.pathtype_buttons[self.current_values['pathtype']].toggled()
         self.view.pathtype_info_button.set_active(False)
 
         self.view.include_button.set_sensitive(False)
@@ -88,9 +89,11 @@ class IncludeLaTeXFile(object):
                 self.view.pathtype_buttons[pathtype].set_group(first_button)
             self.view.pathtype_switcher.append(self.view.pathtype_buttons[pathtype])
             self.view.pathtype_buttons[pathtype].connect('toggled', self.on_pathtype_chosen, pathtype)
-            self.view.pathtype_info_button.connect('toggled', self.on_info_button_toggled)
             if first_button == None: first_button = self.view.pathtype_buttons[pathtype]
 
+        # 注意:此连接必须在循环外执行,否则会在每次迭代中重复连接,
+        # 导致 info 按钮每次切换触发多次回调。
+        self.view.pathtype_info_button.connect('toggled', self.on_info_button_toggled)
         self.view.file_chooser_button.connect('file-set', self.on_file_chosen)
 
     def on_file_chosen(self, widget=None):

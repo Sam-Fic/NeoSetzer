@@ -284,7 +284,7 @@ class Actions(object):
         active_document = self.workspace.get_active_document()
         return_to_active_document = False
         documents = self.workspace.get_unsaved_documents()
-        if len(documents) > 0: 
+        if len(documents) > 0:
             for document in documents:
                 if document.get_filename() == None:
                     self.workspace.set_active_document(document)
@@ -293,7 +293,12 @@ class Actions(object):
                 else:
                     document.save_to_disk()
             if return_to_active_document == True:
-                self.workspace.set_active_document(document)
+                # 恢复到「保存全部」开始前的活动文档，而非循环里最后一个文档。
+                # 原代码 set_active_document(document) 中 document 是 for 循环
+                # 的最后一次迭代值——若未保存列表为 [B, C] 而原活动文档是 A，
+                # 且 B 需要另存为对话框，则保存完成后焦点会落在 C（或 B）上，
+                # 而非用户原本所在的 A。
+                self.workspace.set_active_document(active_document)
 
     def save_session(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

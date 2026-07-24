@@ -64,9 +64,15 @@ class SaveDocumentDialog(object):
         else:
             if file != None:
                 filename = file.get_path()
-                self.document.set_filename(filename)
-                self.document.save_to_disk()
-                self.workspace.update_recently_opened_document(filename)
+                # 包裹保存操作:若磁盘错误(权限/空间)抛异常,不能让其
+                # 阻断后续 callback——调用方(如关闭确认流程)依赖 callback
+                # 推进状态,否则会卡死。
+                try:
+                    self.document.set_filename(filename)
+                    self.document.save_to_disk()
+                    self.workspace.update_recently_opened_document(filename)
+                except Exception:
+                    pass
 
         if self.callback != None:
             self.callback(self.arguments)

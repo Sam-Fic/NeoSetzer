@@ -45,7 +45,14 @@ class FilesSection(object):
             self.data_provider.workspace.set_active_document(document)
         else:
             filename = include['filename']
+            # open_document_by_filename 内部已调用 set_active_document，
+            # 此处不再重复调用——重复调用会再次触发 new_inactive_document /
+            # new_active_document 信号，导致 headerbar/shortcutsbar 等做
+            # 无谓的重复刷新。
             document = self.data_provider.workspace.open_document_by_filename(filename)
+        # document 可能为 None（文件不存在/无法打开），此时不继续操作。
+        if document is None:
+            return
         document.scroll_cursor_onscreen()
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
 

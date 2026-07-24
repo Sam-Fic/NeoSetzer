@@ -31,6 +31,14 @@ class AsyncSvg(Gtk.Picture):
         GLib.idle_add(self.load_image)
 
     def load_image(self):
-        self.set_filename(self.filename)
+        # idle 回调必须显式返回 False,否则在部分 PyGObject 版本中
+        # None 会被当作“继续调用”,导致该回调被无限重复触发、CPU 占满。
+        # 用 try/except 守卫:若 widget 在 idle 触发前已被销毁,
+        # set_filename 会抛异常,静默忽略即可。
+        try:
+            self.set_filename(self.filename)
+        except Exception:
+            pass
+        return False
 
 

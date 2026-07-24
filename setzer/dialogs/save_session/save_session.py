@@ -58,6 +58,11 @@ class SaveSessionDialog(object):
         else:
             if file != None:
                 filename = file.get_path()
-                self.workspace.save_session(filename)
+                # 异步回调中的异常会被 GTK 主循环吞掉或导致不可预期的崩溃,
+                # 此处包裹 save_session 以隔离磁盘错误(权限不足、空间不足等)。
+                try:
+                    self.workspace.save_session(filename)
+                except Exception:
+                    pass
 
 

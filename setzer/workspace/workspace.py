@@ -131,6 +131,13 @@ class Workspace(Observable):
         except Exception:
             pass
 
+        # 断开 settings / style_manager 单例信号连接 + 取消挂起的
+        # _init_latex_features idle 回调。详见 Document.shutdown 文档。
+        try:
+            document.shutdown()
+        except Exception:
+            pass
+
         self.open_documents.remove(document)
         if document.is_latex_document():
             self.open_latex_documents.remove(document)
@@ -171,11 +178,13 @@ class Workspace(Observable):
         return document
 
     def create_document_from_filename(self, filename):
-        if filename[-4:] == '.tex':
+        # 文件名可能短于 4 字符（极端但合法），[-4:] 会返回整个字符串，
+        # endswith 在此情形下仍能正确比较，且语义更清晰。
+        if filename.endswith('.tex'):
             document = self.create_latex_document()
-        elif filename[-4:] == '.bib':
+        elif filename.endswith('.bib'):
             document = self.create_bibtex_document()
-        elif filename[-4:] in ['.cls', '.sty']:
+        elif filename.endswith('.cls') or filename.endswith('.sty'):
             document = self.create_other_document()
         else:
             return None
@@ -320,9 +329,15 @@ class Workspace(Observable):
                     root_document_filename = None
                 for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
                     document = self.create_document_from_filename(item['filename'])
+                    # create_document_from_filename 可能返回 None（文件已删除或
+                    # 扩展名未知）。原代码无条件调用 document.set_last_activated，
+                    # 会抛 AttributeError 导致整个会话加载崩溃。与
+                    # populate_from_disk 一致地加 None 守卫。
+                    if document is None:
+                        continue
                     document.set_last_activated(item['last_activated'])
-                    if item['filename'] == root_document_filename and document != None:
-                        self.set_one_document_root(document)        
+                    if item['filename'] == root_document_filename:
+                        self.set_one_document_root(document)
             if len(self.open_documents) > 0:
                 self.set_active_document(self.open_documents[-1])
             self.session_file_opened = filename

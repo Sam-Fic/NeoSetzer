@@ -18,6 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
+from gi.repository import Gio
 from gi.repository import Pango
 
 import os.path
@@ -75,8 +76,17 @@ class FilechooserButton(Observable):
         self.dialog.set_modal(True)
         self.dialog.set_title(self.title)
 
-        for file_filter in self.filters:
-            self.dialog.set_default_filter(file_filter)
+        # GTK4 的 FileDialog 通过 set_filters(GListModel) 提供可选过滤器列表,
+        # 通过 set_default_filter 指定默认项。原代码在循环里反复调用
+        # set_default_filter,只有最后一次生效,其余过滤器从未被注册,
+        # 用户在对话框中根本看不到它们。这里用 Gio.ListStore 把全部过滤器
+        # 注册进去,并保留“最后一个为默认”的原有行为。
+        if len(self.filters) > 0:
+            store = Gio.ListStore.new(Gtk.FileFilter)
+            for file_filter in self.filters:
+                store.append(file_filter)
+            self.dialog.set_filters(store)
+            self.dialog.set_default_filter(self.filters[-1])
 
         if self.default_folder != None:
             self.dialog.set_current_folder(self.default_folder)

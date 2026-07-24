@@ -54,7 +54,20 @@ class BracketCompletion(object):
         self._reconsider_idle_id = None
         self.document.connect('cursor_position_changed', self.on_cursor_position_changed)
         self.document.connect('changed', self.on_buffer_changed)
-        self.document.settings.connect('settings_changed', self.on_settings_changed)
+        # 保存回调引用以便 shutdown 时断开 settings 单例连接。
+        self._settings_callback = self.on_settings_changed
+        self.document.settings.connect('settings_changed', self._settings_callback)
+
+    def shutdown(self):
+        '''文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
+        取消挂起的 idle 回调，防止 settings 持有引用导致文档无法 GC。'''
+        try:
+            self.document.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
+        if self._reconsider_idle_id is not None:
+            GLib.source_remove(self._reconsider_idle_id)
+            self._reconsider_idle_id = None
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
