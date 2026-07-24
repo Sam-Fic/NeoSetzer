@@ -17,17 +17,13 @@
 
 import setzer.workspace.help_panel.help_panel_viewgtk as help_panel_view
 
-from setzer.app.service_locator import ServiceLocator
-
 
 class HelpPanelPresenter(object):
-    '''Pass-11: search_button 已迁移到 headerbar（help_search_button），
-    通过 ServiceLocator.get_main_window().headerbar 引用。'''
+    '''Pass-12: 按钮回到 help_panel 内嵌工具栏，直接通过 self.view.* 访问。'''
 
     def __init__(self, help_panel, view):
         self.help_panel = help_panel
         self.view = view
-        self.headerbar = ServiceLocator.get_main_window().headerbar
 
         self.help_panel.connect('search_query_changed', self.on_search_query_changed)
         self.help_panel.connect('uri_changed', self.on_uri_changed)
@@ -62,6 +58,6 @@ class HelpPanelPresenter(object):
     def on_uri_changed(self, help_panel, uri):
         if self.view.content.get_uri() != uri:
             self.view.content.load_uri(uri)
-        self.headerbar.help_search_button.set_active(False)
+        self.view.search_button.set_active(False)
 
 

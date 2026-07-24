@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -34,10 +34,8 @@ class BuildWidgetView(Gtk.Box):
         self.build_button = Gtk.Button()
 
         self.idle_icon = Gtk.Image(icon_name='system-run-symbolic')
-        self.idle_label = Gtk.Label(label=_('Save and Build'))
-        self.idle_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.idle_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.idle_box.append(self.idle_icon)
-        self.idle_box.append(self.idle_label)
 
         self.active_icon = Gtk.Image(icon_name='process-stop-symbolic')
         self.timer_label = Gtk.Label(label='0:00')
@@ -65,7 +63,7 @@ class BuildWidgetView(Gtk.Box):
         self.append(self.clean_button)
         self.append(self.result_revealer)
         self.prepend(self.build_button)
-        
+
     def switch_to_building(self):
         self.build_button.set_child(self.active_box)
         self.build_button.set_tooltip_text(_('Stop building'))
@@ -129,5 +127,3 @@ class BuildWidgetView(Gtk.Box):
         if self.state_change_count == state_change_count:
             self.result_revealer.set_reveal_child(False)
         return False
-
-

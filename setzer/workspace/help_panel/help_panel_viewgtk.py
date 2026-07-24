@@ -25,11 +25,15 @@ from setzer.widgets.search_entry.search_entry import SearchEntry
 class HelpPanelView(Gtk.Box):
     '''帮助面板的视图层。
 
-    Pass-11 重构：原 ActionBar（home / up / back / next / search）已全部
-    迁移到 headerbar，由 HeaderBar.help_buttons 持有，并通过
-    HeaderBar.panel_buttons_stack 在帮助展开时显示。本视图仅保留 WebView
-    内容栈与搜索页（search_clamp）。控制器对按钮的引用统一改为
-    ServiceLocator.get_main_window().headerbar.help_*。
+    Pass-12 重构：与左侧栏（Symbols / Document Structure）保持一致的
+    "内嵌工具栏 + 内容区" 结构：
+      - 顶部 .sidebar-toolbar 工具栏：home / up / back / next（左侧），
+        search_button（右侧）。
+      - 下方 WebView 内容栈 + 搜索页。
+    工具栏样式与左侧栏统一（.sidebar-toolbar CSS class），不再使用 Gtk.ActionBar
+    （原 ActionBar 顶部有 inset 分隔线，与左侧栏样式不一致）。
+    标题栏不再覆盖帮助面板，由 workspace_viewgtk 将 headerbar overlay 移到
+    document_stack_wrapper 上，帮助侧栏整体与左侧栏行为一致。
     '''
 
     def __init__(self):
@@ -37,6 +41,50 @@ class HelpPanelView(Gtk.Box):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_size_request(396, -1)
         self.add_css_class('help')
+
+        # ---- 顶部内嵌工具栏（与左侧栏 .sidebar-toolbar 统一外观）----
+        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.toolbar.add_css_class('sidebar-toolbar')
+        self.toolbar.set_valign(Gtk.Align.START)
+        self.toolbar.set_halign(Gtk.Align.FILL)
+
+        self.home_button = Gtk.Button(icon_name='go-home-symbolic')
+        self.home_button.set_tooltip_text(_('Home'))
+        self.home_button.add_css_class('flat')
+        self.home_button.set_can_focus(False)
+        self.toolbar.append(self.home_button)
+
+        self.up_button = Gtk.Button(icon_name='go-up-symbolic')
+        self.up_button.set_tooltip_text(_('Top'))
+        self.up_button.add_css_class('flat')
+        self.up_button.set_can_focus(False)
+        self.toolbar.append(self.up_button)
+
+        self.back_button = Gtk.Button(icon_name='go-previous-symbolic')
+        self.back_button.set_tooltip_text(_('Back'))
+        self.back_button.add_css_class('flat')
+        self.back_button.set_can_focus(False)
+        self.toolbar.append(self.back_button)
+
+        self.next_button = Gtk.Button(icon_name='go-next-symbolic')
+        self.next_button.set_tooltip_text(_('Forward'))
+        self.next_button.add_css_class('flat')
+        self.next_button.set_can_focus(False)
+        self.toolbar.append(self.next_button)
+
+        # 占位 spacer 把 search_button 推到右侧
+        self.toolbar_spacer = Gtk.Box()
+        self.toolbar_spacer.set_hexpand(True)
+        self.toolbar.append(self.toolbar_spacer)
+
+        self.search_button = Gtk.ToggleButton()
+        self.search_button.set_icon_name('edit-find-symbolic')
+        self.search_button.set_tooltip_text(_('Find'))
+        self.search_button.add_css_class('flat')
+        self.search_button.set_can_focus(False)
+        self.toolbar.append(self.search_button)
+
+        self.append(self.toolbar)
 
         # Search page: a single Adw.Clamp wraps the vertical search content,
         # giving native bounded/centered width. The entry sits at the top,

@@ -11,10 +11,11 @@
  */
 
 /*
- * 侧边栏（Document Structure / Symbols）两页共享的内嵌工具栏。
+ * 侧边栏（Document Structure / Symbols / Preview / Help）共享的内嵌工具栏。
  *
+ * Pass-12: 预览/帮助侧栏也采用此工具栏样式，与左侧栏外观一致。
  * - 水平内边距让导航按钮不贴边；
- * - min-height 使两页工具栏等高，切换时无跳动；
+ * - min-height 使各侧栏工具栏等高，切换时无跳动；
  * - 底部一条极淡分隔线，把固定工具栏与下方滚动内容区分开。
  *   用 currentColor 的 alpha，自动跟随明暗主题。
  */
@@ -141,6 +142,19 @@ textview gutter {
 }
 
 /*
+ * Pass-12: 预览内容卡片样式。
+ * PDF stack 作为带边距 + 圆角的"卡片"嵌在侧栏中，与左侧栏的视觉密度一致。
+ * - margin: 卡片四周留白，不贴侧栏边缘；
+ * - border-radius: 圆角（配合 widget.set_overflow(HIDDEN) 裁剪 PDF 到圆角内）。
+ * GTK4 CSS 不支持 overflow 属性，故在 preview_panel_viewgtk.py 中通过
+ * Gtk.Widget.set_overflow(Gtk.Overflow.HIDDEN) 实现。
+ */
+.preview-card {
+    margin: 6px;
+    border-radius: 8px;
+}
+
+/*
  * 预览面板最外缘描边：来自两处 Libadwaita 原生分隔线——
  *   (1) Gtk.Paned 的 wide_handle 分隔条（编辑器与预览之间）带 border/阴影；
  *   (2) 预览底部 Gtk.ActionBar 顶缘的 inset 分隔线。
@@ -152,6 +166,8 @@ paned > separator {
     background: transparent;
     background-image: none;
 }
+/* Pass-12: Gtk.ActionBar 已被 .sidebar-toolbar 取代，原 actionbar 描边清除
+ * 规则保留以兼容残留引用（若有），不再实际生效。 */
 .preview actionbar {
     border: none;
     box-shadow: none;
