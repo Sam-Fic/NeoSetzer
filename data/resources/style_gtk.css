@@ -310,11 +310,4 @@ toolbarview > * > * > * {
  * libadwaita icon button 默认 min-width/min-height 约 32px，
  * 此处强制相同，文字居中即可。
  */
-.search-toggle {
-    min-width: 32px;
-    min-height: 32px;
-    padding: 0;
-}
-.search-toggle label {
-    font-size: 0.85em;
-}
+/* search-toggle: default button sizing, no manual overrides */

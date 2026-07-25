@@ -73,7 +73,8 @@ class SearchBar(Gtk.SearchBar):
         options_box.set_spacing(2)
         options_box.set_valign(Gtk.Align.CENTER)
 
-        self.case_toggle = Gtk.ToggleButton.new_with_label('Aa')
+        self.case_toggle = Gtk.ToggleButton()
+        self.case_toggle.set_child(Gtk.Image(icon_name='xapp-text-case-symbolic'))
         self.case_toggle.set_can_focus(False)
         self.case_toggle.set_hexpand(False)
         self.case_toggle.add_css_class('flat')
@@ -81,7 +82,8 @@ class SearchBar(Gtk.SearchBar):
         self.case_toggle.set_tooltip_text(_('Match case'))
         options_box.append(self.case_toggle)
 
-        self.regex_toggle = Gtk.ToggleButton.new_with_label('.*')
+        self.regex_toggle = Gtk.ToggleButton()
+        self.regex_toggle.set_child(Gtk.Image(icon_name='xsi-use-regex-symbolic'))
         self.regex_toggle.set_can_focus(False)
         self.regex_toggle.set_hexpand(False)
         self.regex_toggle.add_css_class('flat')
@@ -89,7 +91,8 @@ class SearchBar(Gtk.SearchBar):
         self.regex_toggle.set_tooltip_text(_('Use regular expressions'))
         options_box.append(self.regex_toggle)
 
-        self.word_toggle = Gtk.ToggleButton.new_with_label('W')
+        self.word_toggle = Gtk.ToggleButton()
+        self.word_toggle.set_child(Gtk.Image(icon_name='completion-word-symbolic'))
         self.word_toggle.set_can_focus(False)
         self.word_toggle.set_hexpand(False)
         self.word_toggle.add_css_class('flat')

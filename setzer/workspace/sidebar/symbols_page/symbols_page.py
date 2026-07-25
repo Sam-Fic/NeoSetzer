@@ -181,7 +181,6 @@ class SymbolsPage(ScrollAnimatorMixin):
 
         image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
         image.set_pixel_size(int(size * 1.5))
-        image.set_size_request(25 + 11, -1)
         tooltip_text = symbol[1]
         if symbol[2] != None:
             tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
