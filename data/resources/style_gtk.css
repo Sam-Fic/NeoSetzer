@@ -47,7 +47,6 @@ window {
  */
 .sidebar-toolbar {
     padding: var(--setzer-spacing-sm) 10px;
-    min-height: 36px;
 }
 
 /*
