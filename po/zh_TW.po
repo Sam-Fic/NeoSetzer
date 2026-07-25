@@ -1,0 +1,1946 @@
+# Setzer 繁體中文翻譯.
+# Copyright (C) 2023 Setzer contributors
+# This file is distributed under the same license as the Setzer package.
+# Setzer contributors.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Setzer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-14 15:33+0200\n"
+"PO-Revision-Date: 2026-07-25\n"
+"Last-Translator: Setzer contributors\n"
+"Language-Team: Chinese (Traditional)\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: CodeBuddy\n"
+
+msgid "Simple yet full-featured LaTeX editor"
+msgstr "簡約但功能完整的 LaTeX 編輯器"
+
+msgid ""
+"Setzer lets you Write LaTeX documents with an easy to use yet full-featured "
+"editor."
+msgstr "Setzer 讓您使用易用且功能完整的編輯器撰寫 LaTeX 文件。"
+
+msgid "Features include:"
+msgstr "功能包括："
+
+msgid "Buttons and shortcuts for many LaTeX elements and special characters"
+msgstr "提供許多 LaTeX 元素與特殊字符的按鈕和快捷鍵"
+
+msgid "Comfortable document creation wizard"
+msgstr "便利的文件建立精靈"
+
+msgid "Dark mode"
+msgstr "深色模式"
+
+msgid "Helpful error messages in the build log"
+msgstr "建置紀錄中實用的錯誤訊息"
+
+msgid "Looks great on the Gnome desktop"
+msgstr "在 GNOME 桌面上外觀精美"
+
+msgid "Good screen to content ratio"
+msgstr "良好的螢幕內容比例"
+
+msgid "Arguably the best .pdf viewer of any LaTeX editor"
+msgstr "堪稱所有 LaTeX 編輯器中最佳的 .pdf 檢視器"
+
+msgid "Document creation wizard"
+msgstr "文件建立精靈"
+
+#, python-brace-format
+msgid "Reference to '{label}'"
+msgstr "參考「{label}」"
+
+msgid "Reference"
+msgstr "參考"
+
+#, python-brace-format
+msgid "Reference to page of '{label}'"
+msgstr "參考「{label}」的頁碼"
+
+msgid "Page reference"
+msgstr "頁碼參考"
+
+#, python-brace-format
+msgid "Reference to '{label}', with parantheses"
+msgstr "參考「{label}」（加括號）"
+
+msgid "Reference with parantheses"
+msgstr "加括號的參考"
+
+#, python-brace-format
+msgid "Cite '{label}'"
+msgstr "引用「{label}」"
+
+msgid "Citation"
+msgstr "引用"
+
+#, python-brace-format
+msgid "Cite '{label}' (abbreviated)"
+msgstr "引用「{label}」（縮寫）"
+
+msgid "Citation (abbreviated)"
+msgstr "引用（縮寫）"
+
+#, python-brace-format
+msgid "Cite '{label}' (abbreviated with brackets)"
+msgstr "引用「{label}」（縮寫並加括號）"
+
+msgid "Citation (abbreviated with brackets)"
+msgstr "引用（縮寫並加括號）"
+
+#, python-brace-format
+msgid "Cite '{label}' (detailed)"
+msgstr "引用「{label}」（詳細）"
+
+msgid "Citation (detailed)"
+msgstr "引用（詳細）"
+
+#, python-brace-format
+msgid "Cite '{label}' (detailed with brackets)"
+msgstr "引用「{label}」（詳細並加括號）"
+
+msgid "Citation (detailed with brackets)"
+msgstr "引用（詳細並加括號）"
+
+#, python-brace-format
+msgid "Cite '{label}' (alternative style 1)"
+msgstr "引用「{label}」（替代樣式 1）"
+
+msgid "Citation (alternative style 1)"
+msgstr "引用（替代樣式 1）"
+
+#, python-brace-format
+msgid "Cite '{label}' (alternative style 2)"
+msgstr "引用「{label}」（替代樣式 2）"
+
+msgid "Citation (alternative style 2)"
+msgstr "引用（替代樣式 2）"
+
+#, python-brace-format
+msgid "Cite '{label}' (author)"
+msgstr "引用「{label}」（作者）"
+
+msgid "Citation (author)"
+msgstr "引用（作者）"
+
+#, python-brace-format
+msgid "Cite '{label}' (author detailed)"
+msgstr "引用「{label}」（作者詳細）"
+
+msgid "Citation (author detailed)"
+msgstr "引用（作者詳細）"
+
+#, python-brace-format
+msgid "Cite '{label}' (year)"
+msgstr "引用「{label}」（年份）"
+
+msgid "Citation (year)"
+msgstr "引用（年份）"
+
+#, python-brace-format
+msgid "Cite '{label}' (year with brackets)"
+msgstr "引用「{label}」（年份加括號）"
+
+msgid "Citation (year with brackets)"
+msgstr "引用（年份加括號）"
+
+#, python-brace-format
+msgid "Cite '{label}' (BibLaTeX)"
+msgstr "引用「{label}」（BibLaTeX）"
+
+msgid "BibLaTeX citation"
+msgstr "BibLaTeX 引用"
+
+#, python-brace-format
+msgid "Cite '{label}' (BibLaTeX, with brackets)"
+msgstr "引用「{label}」（BibLaTeX，加括號）"
+
+msgid "BibLaTeX citation (with brackets)"
+msgstr "BibLaTeX 引用（加括號）"
+
+msgid "Setzer is a LaTeX editor."
+msgstr "Setzer 是一個 LaTeX 編輯器。"
+
+msgid "translator-credits"
+msgstr "繁體中文翻譯：Setzer 貢獻者"
+
+msgid "Add / Remove Packages"
+msgstr "新增/移除套件"
+
+msgid "Add Package"
+msgstr "新增套件"
+
+msgid "Remove Package"
+msgstr "移除套件"
+
+msgid "Article in Journal"
+msgstr "期刊文章"
+
+msgid ""
+"An article in a journal, magazine, newspaper, or other periodical which "
+"forms a self-contained unit with its own title. The title of the periodical "
+"is given in the <tt>journaltitle</tt> field. If the issue has its own title "
+"in addition to the main title of the periodical, it goes in the "
+"<tt>issuetitle</tt> field. Note that <tt>editor</tt> and related fields "
+"refer to the journal while <tt>translator</tt> and related fields refer to "
+"the article."
+msgstr "期刊、雜誌、報紙或其他定期出版品中自成一篇、擁有獨立標題的文章。期刊名稱填入 <tt>journaltitle</tt> 欄位。若該期除主標題外另有獨立標題，則填入 <tt>issuetitle</tt> 欄位。請注意：<tt>editor</tt> 及相關欄位指期刊，而 <tt>translator</tt> 及相關欄位指文章。"
+
+msgid "Book"
+msgstr "書籍"
+
+msgid ""
+"A single-volume book with one or more authors where the authors share credit "
+"for the work as a whole. This entry type also covers the function of the "
+"@inbook type of traditional BibTeX."
+msgstr "由一位或多位作者合著的單卷書籍，作者共同享有整部作品的署名。此條目類型也涵蓋傳統 BibTeX 中 @inbook 類型的功能。"
+
+msgid "Multi-volume Book"
+msgstr "多卷本書籍"
+
+msgid ""
+"A multi-volume @book. For backwards compatibility, multi-volume books are "
+"also supported by the entry type @book. However, it is advisable to make use "
+"of the dedicated entry type @mvbook."
+msgstr "多卷本 @book。為向後相容，多卷本也受 @book 條目類型支援。不過，建議使用專用的 @mvbook 條目類型。"
+
+msgid "Part of a Book With Its Own Title"
+msgstr "書籍中具獨立標題的一部分"
+
+msgid ""
+"A part of a book which forms a self-contained unit with its own title. Note "
+"that the profile of this entry type is different from standard BibTeX."
+msgstr "書籍中自成一個單元、擁有獨立標題的一部分。請注意，此條目類型的定位不同於標準 BibTeX。"
+
+msgid "Book in Book"
+msgstr "書中書"
+
+msgid ""
+"This type is similar to @inbook but intended for works originally published "
+"as a stand-alone book. A typical example are books reprinted in the "
+"collected works of an author."
+msgstr "此類型類似 @inbook，但用於最初作為獨立書籍出版的作品。典型例子是收錄於某作者全集中的再版書籍。"
+
+msgid "Supplemental Material in a Book"
+msgstr "書籍中的補充資料"
+
+msgid ""
+"Supplemental material in a @book. This type is closely related to the "
+"@inbook entry type. While @inbook is primarily intended for a part of a book "
+"with its own title (e. g., a single essay in a collection of essays by the "
+"same author), this type is provided for elements such as prefaces, "
+"introductions, forewords, afterwords, etc. which often have a generic title "
+"only. Style guides may require such items to be formatted differently from "
+"other @inbook items. The standard styles will treat this entry type as an "
+"alias for @inbook."
+msgstr "書籍中的補充資料。此類型與 @inbook 條目類型密切相關。@inbook 主要用於書籍中擁有獨立標題的一部分（例如同一作者隨筆集中的單篇文章），而此類型用於前言、導論、序、後記等通常僅有通用標題的內容。樣式指南可能要求此類項目採用與其他 @inbook 項目不同的格式。標準樣式會將此條目類型視為 @inbook 的別名。"
+
+msgid "Booklet"
+msgstr "小冊子"
+
+msgid ""
+"A book-like work without a formal publisher or sponsoring institution. Use "
+"the field <tt>howpublished</tt> to supply publishing information in free "
+"format, if applicable. The field <tt>type</tt> may be useful as well."
+msgstr "無正式出版者或贊助機構的類書籍作品。如適用，可使用 <tt>howpublished</tt> 欄位以自由格式提供出版資訊。<tt>type</tt> 欄位也可能有用。"
+
+msgid "Single-volume Collection"
+msgstr "單卷合集"
+
+msgid ""
+"A single-volume collection with multiple, self-contained contributions by "
+"distinct authors which have their own title. The work as a whole has no "
+"overall author but it will usually have an editor."
+msgstr "由不同作者撰寫、各篇擁有獨立標題且自成一篇的多篇貢獻組成的單卷合集。整部作品沒有總作者，但通常會有編輯。"
+
+msgid "Multi-volume Collection"
+msgstr "多卷合集"
+
+msgid ""
+"A multi-volume @collection. For backwards compatibility, multi-volume "
+"collections are also supported by the entry type @collection. However, it is "
+"advisable to make use of the dedicated entry type @mvcollection."
+msgstr "多卷本 @collection。為向後相容，多卷合集也受 @collection 條目類型支援。不過，建議使用專用的 @mvcollection 條目類型。"
+
+msgid "Article in a Collection"
+msgstr "合集中的文章"
+
+msgid ""
+"A contribution to a collection which forms a self-contained unit with a "
+"distinct author and title. The <tt>author</tt> refers to the <tt>title</tt>, "
+"the <tt>editor</tt> to the <tt>booktitle</tt>, i. e., the title of the "
+"collection."
+msgstr "合集中自成一篇、擁有獨立作者與標題的貢獻。<tt>author</tt> 對應 <tt>title</tt>，<tt>editor</tt> 對應 <tt>booktitle</tt>，亦即合集的標題。"
+
+msgid "Supplemental Material in a Collection"
+msgstr "合集中的補充資料"
+
+msgid ""
+"Supplemental material in a @collection. This type is similar to @suppbook "
+"but related to the @collection entry type. The standard styles will treat "
+"this entry type as an alias for @incollection."
+msgstr "合集中的補充資料。此類型類似 @suppbook，但對應 @collection 條目類型。標準樣式會將此條目類型視為 @incollection 的別名。"
+
+msgid "Data Set"
+msgstr "資料集"
+
+msgid "A data set or a similar collection of (mostly) raw data."
+msgstr "資料集或類似的（主要為）原始資料集合。"
+
+msgid "Technical Manual"
+msgstr "技術手冊"
+
+msgid ""
+"Technical or other documentation, not necessarily in printed form. The "
+"<tt>author</tt> or <tt>editor</tt> is omissible under certain terms."
+msgstr "技術或其他文件，不一定為印刷形式。在某些條件下 <tt>author</tt> 或 <tt>editor</tt> 可省略。"
+
+msgid "Miscellaneous"
+msgstr "雜項"
+
+msgid ""
+"A fallback type for entries which do not fit into any other category. Use "
+"the field <tt>howpublished</tt> to supply publishing information in free "
+"format, if applicable. The field type may be useful as well. <tt>author</"
+"tt>, <tt>editor</tt>, and <tt>year</tt> are omissible under certain terms."
+msgstr "用於無法歸入其他類別的條目的備用類型。如適用，可使用 <tt>howpublished</tt> 欄位以自由格式提供出版資訊。<tt>type</tt> 欄位也可能有用。在某些條件下 <tt>author</tt>、<tt>editor</tt> 和 <tt>year</tt> 可省略。"
+
+msgid "Online Resource"
+msgstr "線上資源"
+
+msgid ""
+"An online resource. <tt>author</tt>, <tt>editor</tt>, and <tt>year</tt> are "
+"omissible under certain terms. This entry type is intended for sources such "
+"as web sites which are intrinsically online resources. Note that all entry "
+"types support the <tt>url</tt> field. For example, when adding an article "
+"from an online journal, it may be preferable to use the @article type and "
+"its <tt>url</tt> field."
+msgstr "線上資源。在某些條件下 <tt>author</tt>、<tt>editor</tt> 和 <tt>year</tt> 可省略。此條目類型用於網站等本質上為線上資源的來源。請注意，所有條目類型都支援 <tt>url</tt> 欄位。例如，新增來自線上期刊的文章時，使用 @article 類型及其 <tt>url</tt> 欄位可能更合適。"
+
+msgid "Patent"
+msgstr "專利"
+
+msgid ""
+"A patent or patent request. The number or record token is given in the "
+"<tt>number</tt> field. Use the <tt>type</tt> field to specify the type and "
+"the <tt>location</tt> field to indicate the scope of the patent, if "
+"different from the scope implied by the <tt>type</tt>. Note that the "
+"<tt>location</tt> field is treated as a key list with this entry type."
+msgstr "專利或專利申請。編號或記錄權杖填入 <tt>number</tt> 欄位。使用 <tt>type</tt> 欄位指定類型，使用 <tt>location</tt> 欄位標示專利範圍（若與 <tt>type</tt> 隱含的範圍不同）。請注意，對於此條目類型，<tt>location</tt> 欄位被視為鍵值清單。"
+
+msgid "Complete Issue of a Periodical"
+msgstr "期刊完整期號"
+
+msgid ""
+"An complete issue of a periodical, such as a special issue of a journal. The "
+"title of the periodical is given in the <tt>title</tt> field. If the issue "
+"has its own title in addition to the main title of the periodical, it goes "
+"in the <tt>issuetitle</tt> field. The <tt>editor</tt> is omissible under "
+"certain terms."
+msgstr "定期出版品的完整一期，例如期刊的特刊。出版品名稱填入 <tt>title</tt> 欄位。若該期除主標題外另有獨立標題，則填入 <tt>issuetitle</tt> 欄位。在某些條件下 <tt>editor</tt> 可省略。"
+
+msgid "Supplemental Material in a Periodical"
+msgstr "期刊中的補充資料"
+
+msgid ""
+"Supplemental material in a @periodical. This type is similar to @suppbook "
+"but related to the @periodical entry type. The role of this entry type may "
+"be more obvious if you bear in mind that the @article type could also be "
+"called @inperiodical. This type may be useful when referring to items such "
+"as regular columns, obituaries, letters to the editor, etc. which only have "
+"a generic title. Style guides may require such items to be formatted "
+"differently from articles in the strict sense of the word. The standard "
+"styles will treat this entry type as an alias for @article."
+msgstr "定期出版品中的補充資料。此類型類似 @suppbook，但對應 @periodical 條目類型。若記住 @article 類型也可稱為 @inperiodical，便更容易理解此類型的作用。參照常規專欄、訃聞、讀者來信等僅有通用標題的項目時，此類型可能很有用。樣式指南可能要求此類項目採用不同於嚴格意義上文章的格式。標準樣式會將此條目類型視為 @article 的別名。"
+
+msgid "Conference Proceedings"
+msgstr "會議論文集"
+
+msgid ""
+"A single-volume conference proceedings. This type is very similar to "
+"@collection. It supports an optional <tt>organization</tt> field which holds "
+"the sponsoring institution. The <tt>editor</tt> is omissible under certain "
+"terms."
+msgstr "單卷本會議論文集。此類型與 @collection 非常相似。它支援選用的 <tt>organization</tt> 欄位，用於存放贊助機構。在某些條件下 <tt>editor</tt> 可省略。"
+
+msgid "Multi-volume Proceedings Entry"
+msgstr "多卷會議論文集條目"
+
+msgid ""
+"A multi-volume @proceedings entry. For backwards compatibility, multi-volume "
+"proceedings are also supported by the entry type @proceedings. However, it "
+"is advisable to make use of the dedicated entry type @mvproceedings."
+msgstr "多卷本 @proceedings 條目。為向後相容，多卷本會議論文集也受 @proceedings 條目類型支援。不過，建議使用專用的 @mvproceedings 條目類型。"
+
+msgid "Article in Conference Proceedings"
+msgstr "會議論文集中的文章"
+
+msgid ""
+"An article in a conference proceedings. This type is similar to "
+"@incollection. It supports an optional <tt>organization</tt> field."
+msgstr "會議論文集中的文章。此類型類似 @incollection。它支援選用的 <tt>organization</tt> 欄位。"
+
+msgid ""
+"A single-volume work of reference such as an encyclopedia or a dictionary. "
+"This is a more specific variant of the generic @collection entry type. The "
+"standard styles will treat this entry type as an alias for @collection."
+msgstr "單卷本參考工具書，如百科全書或詞典。這是通用 @collection 條目類型較具體的變體。標準樣式會將此條目類型視為 @collection 的別名。"
+
+msgid "Multi-volume Reference Entry"
+msgstr "多卷參考工具書條目"
+
+msgid ""
+"A multi-volume @reference entry. The standard styles will treat this entry "
+"type as an alias for @mvcollection. For backwards compatibility, multi-"
+"volume references are also supported by the entry type @reference. However, "
+"it is advisable to make use of the dedicated entry type @mvreference."
+msgstr "多卷本 @reference 條目。標準樣式會將此條目類型視為 @mvcollection 的別名。為向後相容，多卷本參考工具書也受 @reference 條目類型支援。不過，建議使用專用的 @mvreference 條目類型。"
+
+msgid "Article in a Reference"
+msgstr "參考工具書中的文章"
+
+msgid ""
+"An article in a work of reference. This is a more specific variant of the "
+"generic @incollection entry type. The standard styles will treat this entry "
+"type as an alias for @incollection."
+msgstr "參考工具書中的文章。這是通用 @incollection 條目類型較具體的變體。標準樣式會將此條目類型視為 @incollection 的別名。"
+
+msgid "Report"
+msgstr "報告"
+
+msgid ""
+"A technical report, research report, or white paper published by a "
+"university or some other institution. Use the <tt>type</tt> field to specify "
+"the type of report. The sponsoring institution goes in the <tt>institution</"
+"tt> field."
+msgstr "由大學或其他機構發布的技術報告、研究報告或白皮書。使用 <tt>type</tt> 欄位指定報告類型。贊助機構填入 <tt>institution</tt> 欄位。"
+
+msgid "Software"
+msgstr "軟體"
+
+msgid ""
+"Computer software. The standard styles will treat this entry type as an "
+"alias for @misc."
+msgstr "電腦軟體。標準樣式會將此條目類型視為 @misc 的別名。"
+
+msgid "Thesis"
+msgstr "學位論文"
+
+msgid ""
+"A thesis written for an educational institution to satisfy the requirements "
+"for a degree. Use the <tt>type</tt> field to specify the type of thesis."
+msgstr "為教育機構撰寫、用以滿足學位要求的學位論文。使用 <tt>type</tt> 欄位指定論文類型。"
+
+msgid "Unpublished"
+msgstr "未發表"
+
+msgid ""
+"A work with an author and a title which has not been formally published, "
+"such as a manuscript or the script of a talk. Use the fields "
+"<tt>howpublished</tt> and <tt>note</tt> to supply additional information in "
+"free format, if applicable."
+msgstr "擁有作者與標題但未正式出版的作品，例如手稿或演講稿。如適用，可使用 <tt>howpublished</tt> 和 <tt>note</tt> 欄位以自由格式提供補充資訊。"
+
+msgid "Create a new BibTeX Entry"
+msgstr "建立新的 BibTeX 條目"
+
+msgid "Add BibTeX Entry"
+msgstr "新增 BibTeX 條目"
+
+msgid "_Cancel"
+msgstr "取消(_C)"
+
+msgid "_Back"
+msgstr "上一步(_B)"
+
+msgid "_Next"
+msgstr "下一步(_N)"
+
+msgid "_Create"
+msgstr "建立(_C)"
+
+msgid "Choose a document type"
+msgstr "選擇文件類型"
+
+msgid "Step"
+msgstr "步驟"
+
+msgid "Required fields"
+msgstr "必填欄位"
+
+msgid "Optional fields"
+msgstr "選填欄位"
+
+msgid "Entry fields"
+msgstr "條目欄位"
+
+msgid "Insert empty optional fields"
+msgstr "插入空白的選填欄位"
+
+msgid "Something went wrong."
+msgstr "發生問題。"
+
+#, python-brace-format
+msgid ""
+"The build process ended unexpectedly returning \"{error_message}\".\n"
+"\n"
+"To configure your build system go to Preferences."
+msgstr ""
+"建置程序意外結束，並回傳「{error_message}」。\n"
+"\n"
+"要設定建置系統，請前往偏好設定。"
+
+msgid "_Go to Preferences"
+msgstr "前往偏好設定(_G)"
+
+#, python-brace-format
+msgid "Document »{document}« has no filename."
+msgstr "文件 »{document}« 沒有檔案名稱。"
+
+msgid ""
+"Please save your document to a file, so the build system knows where to put "
+"the .pdf (it will be in the same folder as your document)."
+msgstr "請將文件儲存為檔案，建置系統才能知道 .pdf 的位置（它會放在與文件相同的資料夾中）。"
+
+msgid "_Save document now"
+msgstr "立即儲存文件(_S)"
+
+#, python-brace-format
+msgid "Document »{document}« has unsaved changes."
+msgstr "文件 »{document}« 有未儲存的變更。"
+
+msgid "If you close without saving, these changes will be lost."
+msgstr "如果直接關閉而不儲存，這些變更將會遺失。"
+
+#, python-brace-format
+msgid ""
+"There are {amount} documents with unsaved changes.\n"
+"Save changes before closing?"
+msgstr ""
+"有 {amount} 份文件有未儲存的變更。\n"
+"要在關閉前儲存變更嗎？"
+
+msgid "Select the documents you want to save:"
+msgstr "選擇要儲存的文件："
+
+msgid "If you close without saving, all changes will be lost."
+msgstr "如果直接關閉而不儲存，所有變更將會遺失。"
+
+msgid "Close _without Saving"
+msgstr "不儲存並關閉(_W)"
+
+msgid "_Save"
+msgstr "儲存(_S)"
+
+#, python-brace-format
+msgid "Document »{document}« has changed on disk."
+msgstr "文件 »{document}« 在磁碟上已變更。"
+
+msgid "Should Setzer reload it now?"
+msgstr "要讓 Setzer 立即重新載入嗎？"
+
+msgid "_Keep the current Version"
+msgstr "保留目前版本(_K)"
+
+msgid "_Reload from Disk"
+msgstr "從磁碟重新載入(_R)"
+
+#, python-brace-format
+msgid "Document »{document}« was deleted from disk or moved."
+msgstr "文件 »{document}« 已從磁碟刪除或移動。"
+
+msgid ""
+"If you close it or close Setzer without saving, this document will be lost."
+msgstr "如果關閉它，或關閉 Setzer 而不儲存，這份文件將會遺失。"
+
+msgid "Ok"
+msgstr "確定"
+
+msgid "Your name"
+msgstr "您的姓名"
+
+msgid "Your address"
+msgstr "您的地址"
+
+msgid "Your phone number"
+msgstr "您的電話號碼"
+
+msgid "Destination"
+msgstr "收件者"
+
+msgid "Address of the destination"
+msgstr "收件者地址"
+
+msgid "Phone number of the destination"
+msgstr "收件者電話號碼"
+
+msgid "Dear addressee,"
+msgstr "敬愛的收件者，"
+
+msgid "Yours sincerely,"
+msgstr "敬上，"
+
+msgid "Other destination"
+msgstr "其他收件者"
+
+msgid "PS: PostScriptum"
+msgstr "附言：後記"
+
+msgid "Enclosures"
+msgstr "附件"
+
+msgid ""
+"% NOTE: The content of your document has been commented out\n"
+"% by the wizard. Just do a CTRL+Z (undo) to put it back in\n"
+"% or remove the \"%\" before each line you want to keep.\n"
+"% You can remove this note as well.\n"
+"%\n"
+msgstr ""
+"% 注意：精靈已將您文件的內容註解掉。\n"
+"% 只要按下 CTRL+Z（復原）即可將其恢復，\n"
+"% 或移除想保留的每一行前方的「%」。\n"
+"% 您也可以移除這則註記。\n"
+"%\n"
+
+msgid "Create a template document"
+msgstr "建立範本文件"
+
+msgid "Article settings"
+msgstr "文章設定"
+
+msgid "Options"
+msgstr "選項"
+
+msgid "Two-column layout"
+msgstr "雙欄版面配置"
+
+msgid "Beamer settings"
+msgstr "Beamer 設定"
+
+msgid "Themes"
+msgstr "主題"
+
+msgid "Show navigation buttons"
+msgstr "顯示導覽按鈕"
+
+msgid "Align content to the top of pages"
+msgstr "將內容對齊至頁面頂端"
+
+msgid "(\"t\" option, it's centered by default)"
+msgstr "（「t」選項，預設為置中）"
+
+msgid "Book settings"
+msgstr "書籍設定"
+
+msgid "Choose a document class"
+msgstr "選擇文件類別"
+
+msgid ""
+"<b>Article:</b>  For articles in scientific journals, term papers, handouts, "
+"short reports, …\n"
+"\n"
+"This class on its own is pretty simplistic and is often used as a starting "
+"point for more custom layouts."
+msgstr ""
+"<b>文章（Article）：</b>  用於科學期刊文章、學期論文、講義、短篇報告等……\n"
+"\n"
+"此類別本身相當簡潔，常作為自訂版面配置的起點。"
+
+msgid "<b>Book:</b>  For actual books containing many chapters and sections."
+msgstr "<b>書籍（Book）：</b>  用於包含許多章節的實際書籍。"
+
+msgid ""
+"<b>Report:</b>  For longer reports and articles containing more than one "
+"chapter, small books, thesis."
+msgstr "<b>報告（Report）：</b>  用於較長的報告，以及包含多章的文章、小型書籍、學位論文。"
+
+msgid "<b>Letter:</b>  For writing letters."
+msgstr "<b>信件（Letter）：</b>  用於撰寫信件。"
+
+msgid ""
+"<b>Beamer:</b>  A class for making presentation slides with LaTeX.\n"
+"\n"
+"There are many predefined presentation styles."
+msgstr ""
+"<b>Beamer：</b>  用於以 LaTeX 製作簡報投影片的類別。\n"
+"\n"
+"有許多預先定義的簡報樣式。"
+
+msgid "Others…"
+msgstr "其他…"
+
+msgid "General document settings"
+msgstr "一般文件設定"
+
+msgid "Title"
+msgstr "標題"
+
+msgid "Author"
+msgstr "作者"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Language"
+msgstr "語言"
+
+msgid ""
+"The main language for this document. This is used to apply rules for "
+"hyphenation and other purposes."
+msgstr "此文件的主要語言。這會用於套用連字規則及其他用途。"
+
+msgid "Packages"
+msgstr "套件"
+
+msgid "AMS math packages"
+msgstr "AMS 數學套件"
+
+msgid ""
+"<b>AMS packages:</b> provide mathematical symbols, math-related "
+"environments, …"
+msgstr "<b>AMS 套件：</b>提供數學符號、數學相關環境等……"
+
+msgid "recommended"
+msgstr "建議"
+
+msgid "contains symbols to be used in textmode."
+msgstr "包含用於文字模式的符號。"
+
+msgid "include graphics in your document."
+msgstr "在文件中包含圖形。"
+
+msgid "foreground and background color."
+msgstr "前景與背景顏色。"
+
+msgid "enables colored text."
+msgstr "啟用彩色文字。"
+
+msgid "type urls with the \\url{..} command without escaping them."
+msgstr "使用 \\url{..} 命令輸入網址，無需轉義。"
+
+msgid "create hyperlinks within your document."
+msgstr "在文件內建立超連結。"
+
+msgid ""
+"define theorem environments (like \"definition\", \"lemma\", …) with custom "
+"styling."
+msgstr "以自訂樣式定義定理環境（如「定義」、「引理」等）。"
+
+msgid "provides the \\listing environment for embedding programming code."
+msgstr "提供用於嵌入程式碼的 \\listing 環境。"
+
+msgid "create a glossary for your document."
+msgstr "為文件建立詞彙表。"
+
+msgid "paragraphs without indentation."
+msgstr "不縮排的段落。"
+
+msgid "Letter settings"
+msgstr "信件設定"
+
+msgid "Page format"
+msgstr "頁面格式"
+
+msgid "Portrait"
+msgstr "直向"
+
+msgid "Landscape"
+msgstr "橫向"
+
+msgid "Page margins"
+msgstr "頁面邊界"
+
+msgid "Use default margins"
+msgstr "使用預設邊界"
+
+msgid "All values are in cm (1 inch ≅ 2.54 cm)."
+msgstr "所有數值單位為 cm（1 英寸 ≅ 2.54 公分）。"
+
+msgid "Font size"
+msgstr "字型大小"
+
+msgid "Report settings"
+msgstr "報告設定"
+
+msgid "BibTeX Files"
+msgstr "BibTeX 檔案"
+
+msgid "BibTeX file to include"
+msgstr "要引入的 BibTeX 檔案"
+
+msgid "Select a BibTeX File"
+msgstr "選擇 BibTeX 檔案"
+
+msgid "Bibliography style"
+msgstr "參考文獻樣式"
+
+msgid "Show bibliography styles for the 'natbib' package"
+msgstr "顯示「natbib」套件的參考文獻樣式"
+
+msgid "Include BibTeX file"
+msgstr "引入 BibTeX 檔案"
+
+msgid "_Include"
+msgstr "引入(_I)"
+
+msgid "Relative Path"
+msgstr "相對路徑"
+
+msgid "Absolute Path"
+msgstr "絕對路徑"
+
+msgid "LaTeX Files"
+msgstr "LaTeX 檔案"
+
+msgid "LaTeX file to include"
+msgstr "要引入的 LaTeX 檔案"
+
+msgid "Select a LaTeX File"
+msgstr "選擇 LaTeX 檔案"
+
+msgid "Type of path to included file"
+msgstr "引入檔案的路徑類型"
+
+msgid ""
+"<b>Relative Path:</b> Set the path relative to the main document. This is "
+"useful when the included file is in the same folder as the main document and "
+"you want to move around both of them together."
+msgstr "<b>相對路徑：</b>設定相對於主文件的路徑。當引入的檔案與主文件位於同一資料夾，且希望一起移動兩者時，這很有用。"
+
+msgid ""
+"<b>Absolute Path:</b> Specify the absolute location of the included file in "
+"your filesystem."
+msgstr "<b>絕對路徑：</b>指定引入檔案在檔案系統中的絕對位置。"
+
+msgid "Include LaTeX file"
+msgstr "引入 LaTeX 檔案"
+
+msgid "LateX Interpreter is missing."
+msgstr "缺少 LaTeX 解譯器。"
+
+#, python-brace-format
+msgid ""
+"Setzer is configured to use »{interpreter}« which seems to be missing on "
+"this system.\n"
+"\n"
+"To choose a different interpreter go to Preferences.\n"
+"\n"
+"To install interpreters in Flatpak, open a terminal and run the following "
+"command:\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+msgstr ""
+"Setzer 已設定使用 »{interpreter}«，但此系統上似乎缺少該解譯器。\n"
+"\n"
+"要選擇其他解譯器，請前往偏好設定。\n"
+"\n"
+"若要在 Flatpak 中安裝解譯器，請開啟終端機並執行以下命令：\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+
+#, python-brace-format
+msgid ""
+"Setzer is configured to use »{interpreter}« which seems to be missing on "
+"this system.\n"
+"\n"
+"To choose a different interpreter go to Preferences.\n"
+"\n"
+"For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/"
+"wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</"
+"a>"
+msgstr ""
+"Setzer 已設定使用 »{interpreter}«，但此系統上似乎缺少該解譯器。\n"
+"\n"
+"要選擇其他解譯器，請前往偏好設定。\n"
+"\n"
+"有關安裝 LaTeX 的說明，請參閱 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+
+msgid "Documents"
+msgstr "文件"
+
+msgid "Create new document"
+msgstr "建立新文件"
+
+msgid "Open a document"
+msgstr "開啟文件"
+
+msgid "Show recent documents"
+msgstr "顯示最近使用的文件"
+
+msgid "Show open documents"
+msgstr "顯示已開啟的文件"
+
+msgid "Switch to the next open document"
+msgstr "切換至下一份已開啟的文件"
+
+msgid "Save the current document"
+msgstr "儲存目前文件"
+
+msgid "Save the document with a new filename"
+msgstr "以新檔案名稱儲存文件"
+
+msgid "Close the current document"
+msgstr "關閉目前文件"
+
+msgid "Tools"
+msgstr "工具"
+
+msgid "Save and build .pdf-file from document"
+msgstr "儲存文件並建置 .pdf 檔案"
+
+msgid "Build .pdf-file from document"
+msgstr "從文件建置 .pdf 檔案"
+
+msgid "Show current position in preview"
+msgstr "在預覽中顯示目前位置"
+
+msgid "Show help panel"
+msgstr "顯示說明面板"
+
+msgid "Show document structure panel"
+msgstr "顯示文件結構面板"
+
+msgid "Show symbols panel"
+msgstr "顯示符號面板"
+
+msgid "Spellchecking dialog"
+msgstr "拼字檢查對話框"
+
+msgid "Show build log"
+msgstr "顯示建置紀錄"
+
+msgid "Show preview panel"
+msgstr "顯示預覽面板"
+
+msgid "Show global menu"
+msgstr "顯示全域選單"
+
+msgid "Show keyboard shortcuts"
+msgstr "顯示鍵盤快捷鍵"
+
+msgid "Close Application"
+msgstr "關閉應用程式"
+
+msgid "Find and Replace"
+msgstr "尋找與取代"
+
+msgid "Find"
+msgstr "尋找"
+
+msgid "Find the next match"
+msgstr "尋找下一個符合項"
+
+msgid "Find the previous match"
+msgstr "尋找上一個符合項"
+
+msgid "Zoom"
+msgstr "縮放"
+
+msgid "Zoom in"
+msgstr "放大"
+
+msgid "Zoom out"
+msgstr "縮小"
+
+msgid "Reset zoom"
+msgstr "重設縮放"
+
+msgid "Copy selected text to clipboard"
+msgstr "複製選取文字至剪貼簿"
+
+msgid "Cut selected text to clipboard"
+msgstr "剪下選取文字至剪貼簿"
+
+msgid "Paste text from clipboard"
+msgstr "從剪貼簿貼上文字"
+
+msgid "Undo and Redo"
+msgstr "復原與重做"
+
+msgid "Undo previous text edit"
+msgstr "復原上一次文字編輯"
+
+msgid "Redo previous text edit"
+msgstr "重做上一次文字編輯"
+
+msgid "Selection"
+msgstr "選取"
+
+msgid "Select all text"
+msgstr "選取所有文字"
+
+msgid "Editing"
+msgstr "編輯"
+
+msgid "Toggle insert / overwrite"
+msgstr "切換插入/覆寫"
+
+msgid "Move current line up"
+msgstr "上移目前行"
+
+msgid "Move current line down"
+msgstr "下移目前行"
+
+msgid "Move current word left"
+msgstr "左移目前單字"
+
+msgid "Move current word right"
+msgstr "右移目前單字"
+
+msgid "Increment number at cursor"
+msgstr "增加游標處數字"
+
+msgid "Decrement number at cursor"
+msgstr "減少游標處數字"
+
+msgid "LaTeX Shortcuts"
+msgstr "LaTeX 快捷鍵"
+
+msgid "Comment / Uncomment current line(s)"
+msgstr "註解/取消註解目前行"
+
+msgid "New Line"
+msgstr "新行"
+
+msgid "Bold Text"
+msgstr "粗體文字"
+
+msgid "Italic Text"
+msgstr "斜體文字"
+
+msgid "Underlined Text"
+msgstr "底線文字"
+
+msgid "Typewriter Text"
+msgstr "打字機文字"
+
+msgid "Emphasized Text"
+msgstr "強調文字"
+
+msgid "Quotation Marks"
+msgstr "引號"
+
+msgid "List Item"
+msgstr "清單項目"
+
+msgid "Environment"
+msgstr "環境"
+
+msgid "Math Shortcuts"
+msgstr "數學快捷鍵"
+
+msgid "Inline Math Section"
+msgstr "行內數學區段"
+
+msgid "Display Math Section"
+msgstr "顯示數學區段"
+
+msgid "Equation"
+msgstr "方程式"
+
+msgid "Subscript"
+msgstr "下標"
+
+msgid "Superscript"
+msgstr "上標"
+
+msgid "Fraction"
+msgstr "分數"
+
+msgid "_Open"
+msgstr "開啟(_O)"
+
+msgid "Open"
+msgstr "開啟"
+
+msgid "LaTeX and BibTeX Files"
+msgstr "LaTeX 與 BibTeX 檔案"
+
+msgid "Load Session"
+msgstr "載入工作階段"
+
+msgid "Setzer Session"
+msgstr "Setzer 工作階段"
+
+msgid "LaTeX Interpreter"
+msgstr "LaTeX 解譯器"
+
+msgid ""
+"No LaTeX interpreter found. To install interpreters in Flatpak, open a "
+"terminal and run the following command:\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+msgstr ""
+"找不到 LaTeX 解譯器。若要在 Flatpak 中安裝解譯器，請開啟終端機並執行以下命令：\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+
+msgid ""
+"No LaTeX interpreter found. For instructions on installing LaTeX see <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en."
+"wikibooks.org/wiki/LaTeX/Installation</a>"
+msgstr "找不到 LaTeX 解譯器。有關安裝 LaTeX 的說明，請參閱 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+
+msgid ""
+"Please note: the Tectonic backend uses only the V1 command-line interface. "
+"Tectonic.toml configuration files are ignored."
+msgstr "請注意：Tectonic 後端僅使用 V1 命令列介面。Tectonic.toml 設定檔會被忽略。"
+
+msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
+msgstr "建置 .pdf 後自動移除輔助檔案（.log、.dvi 等）。"
+
+msgid "Use Latexmk"
+msgstr "使用 Latexmk"
+
+msgid "Automatically show build log .."
+msgstr "自動顯示建置紀錄…"
+
+msgid ".. only when errors occurred."
+msgstr "僅在發生錯誤時。"
+
+msgid ".. on errors and warnings."
+msgstr "發生錯誤與警告時。"
+
+msgid ".. on errors, warnings and badboxes."
+msgstr "發生錯誤、警告與 badbox 時。"
+
+msgid "Embedded system commands"
+msgstr "內嵌系統命令"
+
+msgid ""
+"Warning: enable this only if you have to. It can cause security problems "
+"when building files from untrusted sources."
+msgstr "警告：僅在必要時啟用此選項。建置來自不可信來源的檔案時，可能造成安全問題。"
+
+msgid "Disable"
+msgstr "停用"
+
+msgid "Enable restricted \\write18{SHELL COMMAND}"
+msgstr "啟用受限的 \\write18{SHELL COMMAND}"
+
+msgid "Fully enable \\write18{SHELL COMMAND}"
+msgstr "完全啟用 \\write18{SHELL COMMAND}"
+
+msgid "Tab Stops"
+msgstr "定位點"
+
+msgid "Insert spaces instead of tabs"
+msgstr "插入空格取代定位符號"
+
+msgid "Set Tab Width:"
+msgstr "設定定位寬度："
+
+msgid "Line Numbers"
+msgstr "行號"
+
+msgid "Show line numbers"
+msgstr "顯示行號"
+
+msgid "Line Wrapping"
+msgstr "自動換行"
+
+msgid "Enable line wrapping"
+msgstr "啟用自動換行"
+
+msgid "Code Folding"
+msgstr "程式碼摺疊"
+
+msgid "Enable code folding"
+msgstr "啟用程式碼摺疊"
+
+msgid "Highlighting"
+msgstr "突顯"
+
+msgid "Highlight current line"
+msgstr "突顯目前行"
+
+msgid "Highlight matching brackets"
+msgstr "突顯相符括號"
+
+msgid "Font"
+msgstr "字型"
+
+msgid "Use the system fixed width font ("
+msgstr "使用系統固定寬度字型 ("
+
+msgid "Set Editor Font:"
+msgstr "設定編輯器字型："
+
+msgid "UI Colors"
+msgstr "介面顏色"
+
+msgid "Default"
+msgstr "預設"
+
+msgid "Light Theme"
+msgstr "亮色主題"
+
+msgid "Dark Theme"
+msgstr "深色主題"
+
+msgid "Invert Colors in .pdf-Preview"
+msgstr "在 .pdf 預覽中反轉顏色"
+
+msgid "Editor Colors"
+msgstr "編輯器顏色"
+
+msgid "Remove active scheme"
+msgstr "移除使用中的配置"
+
+msgid "Add from file…"
+msgstr "從檔案新增…"
+
+msgid "Preview"
+msgstr "預覽"
+
+msgid "_Add Scheme"
+msgstr "新增配置(_A)"
+
+msgid "Add Scheme"
+msgstr "新增配置"
+
+msgid "Color Scheme Files"
+msgstr "顏色配置檔案"
+
+#, python-brace-format
+msgid "Removing syntax scheme »{name}«."
+msgstr "正在移除語法配置 »{name}«。"
+
+msgid "Do you really want to do this?"
+msgstr "確定要這樣做嗎？"
+
+msgid "_Yes, remove it"
+msgstr "是，移除它(_Y)"
+
+msgid "Build System"
+msgstr "建置系統"
+
+msgid "Editor"
+msgstr "編輯器"
+
+msgid "Font & Colors"
+msgstr "字型與顏色"
+
+msgid "Preferences"
+msgstr "偏好設定"
+
+#, python-brace-format
+msgid "Replacing {amount} occurence of »{original}« with »{replacement}«."
+msgid_plural ""
+"Replacing {amount} occurrences of »{original}« with »{replacement}«."
+msgstr[0] "正在將 {amount} 處 »{original}« 取代為 »{replacement}«。"
+
+msgid "_Yes, replace all occurrences"
+msgstr "是，取代所有出現項目(_Y)"
+
+msgid "Save document"
+msgstr "儲存文件"
+
+msgid "Save Session"
+msgstr "儲存工作階段"
+
+msgid "Spellchecking Language"
+msgstr "拼字檢查語言"
+
+#, python-brace-format
+msgid "<span color=\"{color}\">Failed</span> ({amount} error)!"
+msgid_plural "<span color=\"{color}\">Failed</span> ({amount} errors)!"
+msgstr[0] "<span color=\"{color}\">失敗</span>（{amount} 個錯誤）！"
+
+msgid "Success!"
+msgstr "成功！"
+
+msgid "Stop building"
+msgstr "停止建置"
+
+msgid "Cleanup build files"
+msgstr "清理建置檔案"
+
+msgid "Undo"
+msgstr "復原"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Redo"
+msgstr "重做"
+
+msgid "Shift"
+msgstr "Shift"
+
+msgid "Cut"
+msgstr "剪下"
+
+msgid "Copy"
+msgstr "複製"
+
+msgid "Paste"
+msgstr "貼上"
+
+msgid "Delete"
+msgstr "刪除"
+
+msgid "Select All"
+msgstr "全選"
+
+msgid "Toggle Comment"
+msgstr "切換註解"
+
+msgid "Show in Preview"
+msgstr "在預覽中顯示"
+
+msgid "Page "
+msgstr "第 "
+
+msgid " of "
+msgstr " / "
+
+msgid "Go to page "
+msgstr "前往第 "
+
+msgid "External Viewer"
+msgstr "外部檢視器"
+
+msgid "Show Source"
+msgstr "顯示原始碼"
+
+msgid "Zoom In"
+msgstr "放大"
+
+msgid "Zoom Out"
+msgstr "縮小"
+
+msgid "Fit to Width"
+msgstr "符合寬度"
+
+msgid "Fit to Text Width"
+msgstr "符合文字寬度"
+
+msgid "Fit to Height"
+msgstr "符合高度"
+
+msgid "No preview available"
+msgstr "沒有可用預覽"
+
+msgid ""
+"To show a .pdf preview of your document, click the build button in the "
+"headerbar."
+msgstr "要顯示文件的 .pdf 預覽，請點選標題列中的建置按鈕。"
+
+msgid "Set zoom level"
+msgstr "設定縮放等級"
+
+msgid "Previous result"
+msgstr "上一個結果"
+
+msgid "Next result"
+msgstr "下一個結果"
+
+msgid "Replace"
+msgstr "取代"
+
+msgid "Replace selected result"
+msgstr "取代選取的結果"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Replace all results"
+msgstr "取代所有結果"
+
+msgid "More Actions"
+msgstr "更多操作"
+
+msgid "Find and Replace (Ctrl+H)"
+msgstr "尋找與取代（Ctrl+H）"
+
+msgid "Find (Ctrl+F)"
+msgstr "尋找（Ctrl+F）"
+
+msgid "New Document Wizard"
+msgstr "新文件精靈"
+
+msgid "(None)"
+msgstr "（無）"
+
+msgid "Choose File"
+msgstr "選擇檔案"
+
+msgid "_Select"
+msgstr "選擇(_S)"
+
+#, python-brace-format
+msgid "Line {number}"
+msgstr "第 {number} 行"
+
+#, python-brace-format
+msgid "Building failed with {amount} error"
+msgid_plural "Building failed with {amount} errors"
+msgstr[0] "建置失敗，有 {amount} 個錯誤"
+
+#, python-brace-format
+msgid "{amount} warning or badbox"
+msgid_plural "{amount} warnings or badboxes"
+msgstr[0] "{amount} 個警告或 badbox"
+
+msgid "Building successful"
+msgstr "建置成功"
+
+msgid "no warnings or badboxes"
+msgstr "沒有警告或 badbox"
+
+msgid "No results"
+msgstr "沒有結果"
+
+msgid "Other Documents"
+msgstr "其他文件"
+
+msgid "Welcome to Setzer"
+msgstr "歡迎使用 Setzer"
+
+msgid "Set one Document as Root"
+msgstr "將一份文件設為根文件"
+
+msgid "Unset Root Document"
+msgstr "取消根文件設定"
+
+msgid "Click on a document in the list below to set it as root."
+msgstr "點選下方清單中的文件，將其設為根文件。"
+
+msgid ""
+"The root document will get built, no matter which document\n"
+"you are currently editing, and it will always display in the .pdf\n"
+"preview. The build log will also refer to the root document.\n"
+"This is often useful for working on large projects where typically\n"
+"a top level document (the root) will contain multiple lower\n"
+"level files via include statements."
+msgstr ""
+"無論您目前編輯哪份文件，根文件都會被建置，並一律顯示於 .pdf\n"
+"預覽中。建置紀錄也會參考根文件。\n"
+"這對大型專案通常很有用，因為頂層文件（根文件）通常會透過 include 語句包含多個下層檔案。"
+
+msgid "Toggle document structure"
+msgstr "切換文件結構"
+
+msgid "Toggle symbols"
+msgstr "切換符號"
+
+msgid "New LaTeX Document"
+msgstr "新增 LaTeX 文件"
+
+msgid "New BibTeX Document"
+msgstr "新增 BibTeX 文件"
+
+msgid "Create a new document"
+msgstr "建立新文件"
+
+msgid "Save"
+msgstr "儲存"
+
+msgid "Toggle preview"
+msgstr "切換預覽"
+
+msgid "Toggle help"
+msgstr "切換說明"
+
+msgid "Session"
+msgstr "工作階段"
+
+msgid ""
+"Save the list of open documents in a session file\n"
+"and restore it later, a convenient way to work\n"
+"on multiple projects."
+msgstr ""
+"將開啟文件清單儲存為工作階段檔案，\n"
+"並稍後恢復，是處理多個專案的便利方式。"
+
+msgid "Restore Previous Session"
+msgstr "恢復先前工作階段"
+
+msgid "Save Current Session"
+msgstr "儲存目前工作階段"
+
+msgid "Save Document As"
+msgstr "另存文件"
+
+msgid "Save All Documents"
+msgstr "儲存所有文件"
+
+msgid "View"
+msgstr "檢視"
+
+msgid "Keyboard Shortcuts"
+msgstr "鍵盤快捷鍵"
+
+msgid "About"
+msgstr "關於"
+
+msgid "Close All Documents"
+msgstr "關閉所有文件"
+
+msgid "Close Document"
+msgstr "關閉文件"
+
+msgid "Quit"
+msgstr "結束"
+
+msgid "Dark Mode"
+msgstr "深色模式"
+
+msgid "Check Spelling"
+msgstr "檢查拼字"
+
+msgid "Automatic Spellchecking"
+msgstr "自動拼字檢查"
+
+msgid "Set Spellchecking Language"
+msgstr "設定拼字檢查語言"
+
+msgid "Home"
+msgstr "首頁"
+
+msgid "Top"
+msgstr "頂端"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Forward"
+msgstr "前進"
+
+msgid "Create New Entry"
+msgstr "建立新條目"
+
+msgid "Create a New BibTeX Entry"
+msgstr "建立新的 BibTeX 條目"
+
+msgid "Previously Used Entries"
+msgstr "先前使用的條目"
+
+msgid "Add a Previously Used BibTeX Entry"
+msgstr "新增先前使用的 BibTeX 條目"
+
+msgid "Search For Entries Online"
+msgstr "線上搜尋條目"
+
+msgid "Add a BibTeX Entry from an Online Database"
+msgstr "從線上資料庫新增 BibTeX 條目"
+
+msgid "Build log"
+msgstr "建置紀錄"
+
+msgid "Italic"
+msgstr "斜體"
+
+msgid "Bold"
+msgstr "粗體"
+
+msgid "Document"
+msgstr "文件"
+
+msgid "Document Info"
+msgstr "文件資訊"
+
+msgid "Document Environment"
+msgstr "文件環境"
+
+msgid "Show Title"
+msgstr "顯示標題"
+
+msgid "Table of Contents"
+msgstr "目錄"
+
+msgid "Include LaTeX File"
+msgstr "引入 LaTeX 檔案"
+
+msgid "Date Today"
+msgstr "今天日期"
+
+msgid "Beamer"
+msgstr "Beamer"
+
+msgid "Hide Navigation"
+msgstr "隱藏導覽"
+
+msgid "Title Page"
+msgstr "標題頁"
+
+msgid "Frame"
+msgstr "影格"
+
+msgid "Frame with Title"
+msgstr "帶標題的影格"
+
+msgid "\\frametitle"
+msgstr "\\frametitle"
+
+msgid "Bibliography"
+msgstr "參考文獻"
+
+msgid "Include BibTeX File"
+msgstr "引入 BibTeX 檔案"
+
+msgid "Include 'natbib' Package"
+msgstr "引入「natbib」套件"
+
+msgid "Citation with Page Number"
+msgstr "帶頁碼的引用"
+
+msgid "Natbib Citations"
+msgstr "Natbib 引用"
+
+msgid "Include non-cited BibTeX Entries with '\\nocite'"
+msgstr "以「\\nocite」引入未引用的 BibTeX 條目"
+
+msgid "Abbreviated"
+msgstr "縮寫"
+
+msgid "Abbreviated with Brackets"
+msgstr "縮寫並加括號"
+
+msgid "Detailed"
+msgstr "詳細"
+
+msgid "Detailed with Brackets"
+msgstr "詳細並加括號"
+
+msgid "Alternative 1"
+msgstr "替代樣式 1"
+
+msgid "Alternative 2"
+msgstr "替代樣式 2"
+
+msgid "Cite Author"
+msgstr "引用作者"
+
+msgid "Cite Author Detailed"
+msgstr "引用作者（詳細）"
+
+msgid "Cite Year"
+msgstr "引用年份"
+
+msgid "Cite Year with Brackets"
+msgstr "引用年份（加括號）"
+
+msgid "Text"
+msgstr "文字"
+
+msgid "Font Styles"
+msgstr "字型樣式"
+
+msgid "Font Sizes"
+msgstr "字型大小"
+
+msgid "Alignment"
+msgstr "對齊"
+
+msgid "Vertical Spacing"
+msgstr "垂直間距"
+
+msgid "International Accents"
+msgstr "國際重音符號"
+
+msgid "Sectioning"
+msgstr "章節劃分"
+
+msgid "Verbatim Environment"
+msgstr "逐字環境"
+
+msgid "List Environments"
+msgstr "清單環境"
+
+msgid "Quotations"
+msgstr "引文"
+
+msgid "Cross References"
+msgstr "交叉參考"
+
+msgid "Footnote"
+msgstr "腳註"
+
+msgid "Underline"
+msgstr "底線"
+
+msgid "Sans Serif"
+msgstr "無襯線體"
+
+msgid "Typewriter"
+msgstr "等寬字型"
+
+msgid "Small Caps"
+msgstr "小型大寫字母"
+
+msgid "Slanted"
+msgstr "傾斜體"
+
+msgid "Emphasis"
+msgstr "強調"
+
+msgid "Centered"
+msgstr "置中"
+
+msgid "Left-aligned"
+msgstr "靠左對齊"
+
+msgid "Right-aligned"
+msgstr "靠右對齊"
+
+msgid "Part"
+msgstr "部"
+
+msgid "Chapter"
+msgstr "章"
+
+msgid "Section"
+msgstr "節"
+
+msgid "Subsection"
+msgstr "小節"
+
+msgid "Subsubsection"
+msgstr "子小節"
+
+msgid "Paragraph"
+msgstr "段"
+
+msgid "Subparagraph"
+msgstr "子段"
+
+msgid "Bulleted List"
+msgstr "項目符號清單"
+
+msgid "Numbered List"
+msgstr "編號清單"
+
+msgid "List with Bold Labels"
+msgstr "粗體標籤清單"
+
+msgid "Short Quotation"
+msgstr "短引文"
+
+msgid "Longer Quotation"
+msgstr "較長引文"
+
+msgid "Poetry Quotation"
+msgstr "詩歌引文"
+
+msgid "Quotes"
+msgstr "引號"
+
+msgid "Label"
+msgstr "標籤"
+
+msgid "Equation Reference"
+msgstr "方程式參考"
+
+msgid "Page Reference"
+msgstr "頁碼參考"
+
+msgid "Primary Quotes"
+msgstr "主引號"
+
+msgid "Secondary Quotes"
+msgstr "次引號"
+
+msgid "German Quotes"
+msgstr "德語引號"
+
+msgid "German Single Quotes"
+msgstr "德語單引號"
+
+msgid "French Quotes"
+msgstr "法語引號"
+
+msgid "French Single Quotes"
+msgstr "法語單引號"
+
+msgid "German Alt Quotes"
+msgstr "德語替代引號"
+
+msgid "German Alt Single Quotes"
+msgstr "德語替代單引號"
+
+msgid "Math"
+msgstr "數學"
+
+msgid "Include AMS Packages"
+msgstr "引入 AMS 套件"
+
+msgid "Math Environments"
+msgstr "數學環境"
+
+msgid "Square Root"
+msgstr "平方根"
+
+msgid "Math Functions"
+msgstr "數學函式"
+
+msgid "Math Font Styles"
+msgstr "數學字型樣式"
+
+msgid "Math Stacking Symbols"
+msgstr "數學堆疊符號"
+
+msgid "Math Accents"
+msgstr "數學重音"
+
+msgid "Math Spaces"
+msgstr "數學空格"
+
+msgid "Roman"
+msgstr "羅馬體"
+
+msgid "Calligraphic"
+msgstr "手寫體"
+
+msgid "Blackboard Bold"
+msgstr "黑板粗體"
+
+msgid "Fraktur"
+msgstr "哥特體"
+
+msgid "Objects"
+msgstr "物件"
+
+msgid "Figure (image inside freestanding block)"
+msgstr "圖（獨立區塊中的圖片）"
+
+msgid "Inline Image"
+msgstr "行內圖片"
+
+msgid "Code Listing"
+msgstr "程式碼清單"
+
+msgid "Url (\\url)"
+msgstr "網址（\\url）"
+
+msgid "Hyperlink (\\href)"
+msgstr "超連結（\\href）"
+
+msgid "Include 'listings' Package"
+msgstr "引入「listings」套件"
+
+msgid "Other Language"
+msgstr "其他語言"
+
+msgid "Plain Text"
+msgstr "純文字"
+
+msgid "These counts are updated after the document is saved."
+msgstr "這些計數會在文件儲存後更新。"
+
+msgid "Document Structure"
+msgstr "文件結構"
+
+msgid "Labels"
+msgstr "標籤"
+
+msgid "To-Dos"
+msgstr "待辦事項"
+
+msgid "Document Stats"
+msgstr "文件統計"
+
+msgid "Package"
+msgstr "套件"
+
+msgid "Recent"
+msgstr "最近使用"
+
+msgid "Greek Letters"
+msgstr "希臘字母"
+
+msgid "Arrows"
+msgstr "箭號"
+
+msgid "Relations"
+msgstr "關係符號"
+
+msgid "Operators"
+msgstr "運算子"
+
+msgid "Misc. Math"
+msgstr "其他數學符號"
+
+msgid "Misc. Symbols"
+msgstr "其他符號"
+
+msgid "Write beautiful LaTeX documents with ease!"
+msgstr "輕鬆撰寫精美的 LaTeX 文件！"
+
+msgid ""
+"Click the open or create buttons in the headerbar above to start editing."
+msgstr "點選上方標題列中的開啟或建立按鈕，即可開始編輯。"
+
+#, python-brace-format
+msgid "Untitled Document {number}"
+msgstr "未命名文件 {number}"
+
+msgid "additional math fonts from AMS."
+msgstr "來自 AMS 的附加數學字型。"
+
+msgid "mathematics package from AMS."
+msgstr "來自 AMS 的數學套件。"
+
+msgid "mathematical symbols from AMS."
+msgstr "來自 AMS 的數學符號。"
+
+msgid "math theorems setting package from AMS."
+msgstr "來自 AMS 的數學定理設定套件。"
+
+msgid "multilingual documents."
+msgstr "多語言文件。"
+
+msgid "dirac braket and set notations."
+msgstr "狄拉克 bra-ket 與集合符號。"
+
+msgid "bibliographies in LaTeX."
+msgstr "LaTeX 中的參考文獻。"
+
+msgid "simple arithmetic in LaTeX commands."
+msgstr "LaTeX 命令中的簡單算術。"
+
+msgid "foreground and background colors."
+msgstr "前景與背景顏色。"
+
+msgid "colored tables."
+msgstr "彩色表格。"
+
+msgid "enumerate with redefinable labels."
+msgstr "可重新定義標籤的列舉清單。"
+
+msgid "interface to document dimensions."
+msgstr "文件尺寸介面。"
+
+msgid "conditional commands."
+msgstr "條件命令。"
+
+msgid "provides a listing environment for embedding programming code."
+msgstr "提供用於嵌入程式碼的清單環境。"
+
+msgid "provides additional bibliography and citation styles."
+msgstr "提供額外參考文獻與引用樣式。"
+
+msgid "create plots in two and three dimensions."
+msgstr "繪製二維與三維圖形。"
+
+msgid ""
+"define theorem environments (like &quot;definition&quot;, &quot;lemma&quot;, "
+"…) with custom styling."
+msgstr "以自訂樣式定義定理環境（如 &quot;definition&quot;、&quot;lemma&quot; 等）。"
+
+msgid "graphics and plotting."
+msgstr "圖形與繪圖。"
+
+msgid "set transparency for sections in your document."
+msgstr "為文件中的章節設定透明度。"
+
+msgid "type urls with the \\\\url{..} command without escaping them."
+msgstr "使用 \\\\url{..} 命令輸入網址，無需轉義。"
