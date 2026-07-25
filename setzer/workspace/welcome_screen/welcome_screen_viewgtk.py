@@ -142,6 +142,7 @@ def WelcomeScreenView():
     empty_state.set_title(_('No recent documents'))
     empty_state.set_description(_('Documents you open will appear here for quick access.'))
     empty_state.set_vexpand(False)
+    empty_state.set_size_request(-1, 300)
     empty_state.set_visible(False)
     content.append(empty_state)
 
