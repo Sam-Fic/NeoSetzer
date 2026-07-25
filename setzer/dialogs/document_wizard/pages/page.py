@@ -60,6 +60,12 @@ class PageView(Gtk.Box):
         scroll vertically when its content (e.g. the long Packages list
         on the General settings page) is taller than the dialog.
         '''
+        # 给滚动内容加底部边距：防止列表滚到底时最后一行紧贴容器底边
+        # 被裁切（即"没有合适的空白"）。这是 libadwaita PreferencesPage
+        # 等标准组件会自带的底部内边距效果，手动拼 Box + PreferencesGroup
+        # 时需要补上。
+        content.set_margin_bottom(18)
+
         clamp = Adw.Clamp()
         clamp.set_maximum_size(maximum_size)
         clamp.set_tightening_threshold(tightening_threshold)

@@ -30,6 +30,7 @@ class DocumentWizardView(DialogView):
         DialogView.__init__(self, main_window)
 
         self.set_content_width(750)
+        self.set_content_height(650)
         self.headerbar.set_title_widget(Gtk.Label(label=_('Create a template document')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
