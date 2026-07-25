@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, GObject, GLib, Pango, PangoCairo
+gi.require_version('GtkSource', '5')
+from gi.repository import Gtk, Gdk, GObject, GLib, Pango, PangoCairo, GtkSource, Gsk
 
 import math, time
 
@@ -49,15 +50,13 @@ class Gutter(object):
         self.code_folding_width = None
 
         self.highlight_current_line = self.settings.get_value('preferences', 'highlight_current_line')
-        # 行号垂直微调（像素）：用户可在外观设置中调整，补偿不同字体
-        # ascent/descent 比例差异导致的行号视觉偏移。正值下移、负值上移。
-        self.line_numbers_vertical_offset = self.settings.get_value('preferences', 'line_numbers_vertical_offset')
 
         self.char_width = FontManager.get_char_width(self.source_view)
         self.line_height = FontManager.get_line_height(self.source_view)
         self.total_width = None
         self.cursor_x, self.cursor_y = None, None
         self.hovered_folding_region = None
+        self._folding_icon_nodes = dict()
 
         # 字体度量缓存：char_width / line_height 仅在字体实际变化时重算。
         # 原实现每次 update_size 都重建 Pango.Layout 并遍历显示行，而
@@ -70,12 +69,13 @@ class Gutter(object):
         # 系统默认字体（如 MiWithJBMonoNL 10pt），而非 CSS 指定的字体。font_string
         # 在此过程中并不变化，缓存永不失效，self.line_height 长期为陈旧值。
         #
-        # 旧版 draw_line_number 用 (self.line_height - text_height) / 2 做垂直
-        # 居中，self.line_height 陈旧时该公式引入恒定偏移，表现为"行高一样但
-        # 行号轻微上下错位"。现已移除居中（直接画在行顶，与 GtkSourceView
-        # 一致），但 draw_folding_region 仍用 self.line_height 计算图标位置，
-        # 故保留缓存并在 update_size + draw 两处都做 font_description 比对，
-        # 确保 realize 后首帧（信号尚未触发 update_size 时）也能拿到正确度量。
+        # self.char_width / self.line_height 仅用于字符宽度估算、gutter 总宽
+        # 计算等，不参与"行内竖直定位"——竖直定位一律使用 draw() 主循环传入
+        # 的真实行高（source_view.get_line_yrange().height，含行距）。
+        # 之所以要在 update_size + draw 两处都做 font_description 比对，
+        # 是因为 self.line_height 缓存的是 realize 前的字体度量，若首帧 draw
+        # 早于任何信号触发 update_size，比对能及时用实际字体重算，避免
+        # gutter 总宽/字符宽用陈旧值。
         self._last_font_string = FontManager.font_string
         self._last_actual_font_str = None
 
@@ -109,6 +109,7 @@ class Gutter(object):
         self.document.code_folding.connect('folding_state_changed', self.on_folding_state_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('changed', self.on_adjustment_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
+        self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
 
         scrolling_controller = Gtk.EventControllerScroll()
         scrolling_controller.set_flags(Gtk.EventControllerScrollFlags.BOTH_AXES | Gtk.EventControllerScrollFlags.KINETIC)
@@ -159,10 +160,6 @@ class Gutter(object):
             self.highlight_current_line = self.settings.get_value('preferences', 'highlight_current_line')
             self.drawing_area.queue_draw()
 
-        if item == 'line_numbers_vertical_offset':
-            self.line_numbers_vertical_offset = value
-            self.drawing_area.queue_draw()
-
         if item == 'enable_code_folding':
             self.code_folding_visible = self.document.is_latex_document() and self.settings.get_value('preferences', 'enable_code_folding')
             self.update_hovered_folding_region()
@@ -171,6 +168,9 @@ class Gutter(object):
 
     def on_document_change(self, document):
         self._schedule_refresh()
+
+    def on_scheme_changed(self, buffer, pspec):
+        self.drawing_area.queue_draw()
 
     def on_cursor_change(self, document):
         self._schedule_refresh()
@@ -303,6 +303,8 @@ class Gutter(object):
             self._last_actual_font_str = actual_font_str
             self.char_width = FontManager.get_char_width(self.source_view)
             self.line_height = FontManager.get_line_height(self.source_view)
+            # 图标渲染节点是按尺寸缓存的，字体变化导致尺寸变化需失效重算。
+            self._folding_icon_nodes.clear()
 
     def update_size(self):
         self._refresh_font_metrics_if_changed()
@@ -330,8 +332,9 @@ class Gutter(object):
         if self.total_width == 0: return
 
         # realize 后首帧可能早于任何信号到达 update_size，此处补一次字体
-        # 度量检查，确保 draw_folding_region 等用到 self.line_height 的地方
-        # 不会用到 realize 前的陈旧值。O(1) 检查，仅在字体变化时重算。
+        # 度量检查，确保用于 gutter 总宽/字符宽的 self.line_height、
+        # self.char_width 不会用到 realize 前的陈旧值。O(1) 检查，
+        # 仅在字体变化时重算。
         self._refresh_font_metrics_if_changed()
 
         ctx.save()
@@ -339,7 +342,8 @@ class Gutter(object):
         ctx.clip()
 
         self.draw_background_and_border(ctx, width, height)
-        Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
+        fg, _ = self._get_scheme_colors()
+        Gdk.cairo_set_source_rgba(ctx, fg)
 
         # 缓存 source_view 到局部变量：循环内每轮访问 2 次（get_line_yrange +
         # get_line_at_y），每次 self.source_view 经 __dict__ 哈希。50 可见行
@@ -379,18 +383,72 @@ class Gutter(object):
         ctx.restore()
 
     def draw_background_and_border(self, ctx, width, height):
-        Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_bg_color'))
+        fg, bg = self._get_scheme_colors()
+        Gdk.cairo_set_source_rgba(ctx, bg)
         ctx.rectangle(0, 0, self.total_width, height)
         ctx.fill()
+
+    def _get_scheme_colors(self):
+        scheme = self.source_buffer.get_style_scheme()
+        style = scheme.get_style('text') if scheme else None
+
+        def _parse_hex(s):
+            if not s:
+                return None
+            s = s.strip().lstrip('#')
+            if len(s) == 6:
+                return Gdk.RGBA(red=int(s[0:2], 16)/255.0,
+                                green=int(s[2:4], 16)/255.0,
+                                blue=int(s[4:6], 16)/255.0, alpha=1.0)
+            elif len(s) == 8:
+                return Gdk.RGBA(red=int(s[0:2], 16)/255.0,
+                                green=int(s[2:4], 16)/255.0,
+                                blue=int(s[4:6], 16)/255.0,
+                                alpha=int(s[6:8], 16)/255.0)
+            return None
+
+        fg = _parse_hex(style.props.foreground) if style else None
+        bg = _parse_hex(style.props.background) if style else None
+        if fg is None:
+            fg = ColorManager.get_ui_color('view_fg_color')
+        if bg is None:
+            bg = ColorManager.get_ui_color('view_bg_color')
+        return fg, bg
+
+    def _get_current_line_bg(self):
+        scheme = self.source_buffer.get_style_scheme()
+        style = scheme.get_style('current-line') if scheme else None
+
+        def _parse_hex(s):
+            if not s:
+                return None
+            s = s.strip().lstrip('#')
+            if len(s) == 6:
+                return Gdk.RGBA(red=int(s[0:2], 16)/255.0,
+                                green=int(s[2:4], 16)/255.0,
+                                blue=int(s[4:6], 16)/255.0, alpha=1.0)
+            elif len(s) == 8:
+                return Gdk.RGBA(red=int(s[0:2], 16)/255.0,
+                                green=int(s[2:4], 16)/255.0,
+                                blue=int(s[4:6], 16)/255.0,
+                                alpha=int(s[6:8], 16)/255.0)
+            return None
+
+        cl_bg = _parse_hex(style.props.background) if style else None
+        if cl_bg is None:
+            cl_bg = ColorManager.get_ui_color('line_highlighting_color')
+        return cl_bg
 
     def draw_line(self, ctx, line, is_current, offset, line_height):
         if self.line_numbers_visible:
             self.draw_line_number(ctx, line, is_current, offset, line_height)
 
         if self.code_folding_visible:
-            self.draw_folding_region(ctx, line, is_current, offset)
+            self.draw_folding_region(ctx, line, is_current, offset, line_height)
 
     def draw_line_number(self, ctx, line, is_current, offset, line_height):
+        fg, bg = self._get_scheme_colors()
+
         if is_current:
             text = '<b>' + str(line + 1) + '</b>'
         else:
@@ -400,12 +458,13 @@ class Gutter(object):
         # current-line-highlighting 在选区时自动取消的行为保持一致。
         # 行号加粗（上面的 <b>）不受此影响，光标行始终加粗。
         if is_current and self.highlight_current_line and not self.source_buffer.get_has_selection():
-            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('line_highlighting_color'))
+            cl_bg = self._get_current_line_bg()
+            Gdk.cairo_set_source_rgba(ctx, cl_bg)
             ctx.rectangle(0, offset, self.total_width, line_height)
             ctx.fill()
             ctx.rectangle(self.total_width + 1, offset, self.char_width, line_height)
             ctx.fill()
-            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
+            Gdk.cairo_set_source_rgba(ctx, fg)
 
         # 非当前行用普通 Layout + set_text；当前行用独立的 layout_current +
         # set_markup('<b>')。两个 Layout 互不复用，避免加粗属性泄漏到邻近行。
@@ -416,81 +475,64 @@ class Gutter(object):
             self.layout.set_text(text, -1)
             layout = self.layout
 
-        # 行号颜色：当前行用更亮的 view_fg_color，普通行用更灰的 dim_fg_color，
-        # 拉大两者对比，使“光标所在行”在视觉上与其它行区分更明显。
-        if is_current:
-            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
-        else:
-            Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('dim_fg_color'))
+        # 行号颜色：与源码同用 scheme 的 text foreground 色。
+        Gdk.cairo_set_source_rgba(ctx, fg)
 
-        # 直接画在行的顶部（offset = 行顶），不做垂直居中。
-        #
-        # 原代码 offset += (self.line_height - text_height) / 2 试图把行号
-        # 在"第一条 visual line"内垂直居中。但 self.line_height 来自
-        # context.get_metrics() 的 ascent+descent（font metrics 路径），
-        # 而 text_height 来自 layout.get_extents().logical_rect.height
-        # （layout 渲染路径）。两者在 Pango 内部走不同计算路径，对同一字体
-        # 也常有亚像素级差异，导致行号相对文本出现轻微上下偏移。
-        #
-        # 更关键的是：self.line_height 是缓存值，仅在字体变化时重算。若
-        # source_view realize 后 CSS 字体生效，但首帧 draw 早于 update_size
-        # 的信号触发，self.line_height 仍是 realize 前的陈旧值（基于系统
-        # 默认字体），与 text_height（layout 实时取值）相差较大，导致行号
-        # 整体上下偏移——这正是用户报告的"行高一样但有轻微偏移"。
-        #
-        # GtkSourceView 自身绘制文本时，也是把 layout 的 logical_rect 顶边
-        # 对齐到行顶（get_line_yrange().y），不做居中。直接 draw at offset
-        # 即可与之完全对齐。wrap 行时 offset 是第一条 visual line 的顶部，
-        # 行号落在第一行顶部，符合预期。
-        #
-        # 用户可调偏移量（line_numbers_vertical_offset）：不同字体的
-        # ascent/descent 比例不同，即使 logical_rect 顶边对齐了行顶，
-        # 行号数字的视觉重心可能仍与文本略有错位。提供一个像素级偏移
-        # 让用户自行补偿。正值下移、负值上移。
-        ctx.move_to(0, offset + self.line_numbers_vertical_offset)
+        # 真正的行内垂直居中：用 layout 自身的 logical_rect 度量来居中，
+        # 而非混用 font metrics 的 line_height，避免两套 Pango 计算路径
+        # 的亚像素差异导致的偏移。text_height 与 line_height 都来自同一
+        # layout 渲染路径，居中结果稳定。
+        text_rect = layout.get_extents().logical_rect
+        text_height = text_rect.height / Pango.SCALE
+        vertical_offset = (line_height - text_height) / 2
+        ctx.move_to(0, offset + vertical_offset)
 
         PangoCairo.show_layout(ctx, layout)
 
-    def draw_folding_region(self, ctx, line, is_current, offset):
+    def _get_folding_icon_node(self, icon_name, size):
+        # 把系统图标（symbolic）渲染成 Gsk.RenderNode 并缓存，避免每帧重复
+        # lookup + snapshot。size 跟随字符宽度变化，按 (名称, 尺寸) 缓存即可。
+        key = (icon_name, size)
+        node = self._folding_icon_nodes.get(key)
+        if node is not None:
+            return node
+        theme = Gtk.IconTheme.get_for_display(self.source_view.get_display())
+        paintable = theme.lookup_icon(icon_name, None, size, 1,
+                                      Gtk.TextDirection.NONE, Gtk.IconLookupFlags(0))
+        snapshot = Gtk.Snapshot()
+        paintable.snapshot(snapshot, size, size)
+        node = snapshot.to_node()
+        self._folding_icon_nodes[key] = node
+        return node
+
+    def draw_folding_region(self, ctx, line, is_current, offset, line_height):
         folding_region = self.document.code_folding.get_region_by_line(line)
         if folding_region == None: return
 
-        ctx.set_line_width(0)
-
-        # 缓存到局部变量：原代码 self.char_width / self.line_numbers_width /
-        # self.line_height 在下方被访问 13+ 次，每次都经 __dict__ 哈希。
-        # 同时移除 xoff3/xoff4/xoff5/xoff9/yoff1/yoff4 等从未使用的死代码
-        # （原代码计算了但下方 if/else 两分支均未引用）。
         cw = self.char_width
         lnw = self.line_numbers_width
-        lh = self.line_height
+        # 用 draw() 主循环传来的真实行高（含行距，来自 get_line_yrange），
+        # 而非 self.line_height（ascent+descent，不含行距）。两者不等时
+        # 用后者做居中会把图标算得偏下。
+        lh = line_height
 
-        xoff1 = 6.5 * cw / 6
-        xoff2 = 9.5 * cw / 6
-        xoff6 = 6 * cw / 8
-        xoff7 = 11 * cw / 8
-        xoff8 = 16 * cw / 8
-        yoff2 = 2.5 * cw / 4
-        yoff3 = 5 * cw / 4
-        yoff5 = 1 * cw / 2
-        line_gap_folded = ((lh - cw * 5 / 4) / 2)
-        line_gap_unfolded = ((lh - cw * 1 / 2) / 2)
-
-        if folding_region['is_folded']:
-            ctx.move_to(lnw + xoff1, offset + line_gap_folded + 0.5)
-            ctx.line_to(lnw + xoff2, offset + line_gap_folded + yoff2 + 0.5)
-            ctx.line_to(lnw + xoff1, offset + line_gap_folded + yoff3 + 0.5)
-            ctx.line_to(lnw + xoff1, offset + line_gap_folded + 0.5)
-            ctx.fill()
-            for i in range(4):
-                ctx.rectangle(lnw + (i + 0.5) * cw, offset + lh, cw / 2, 1)
-                ctx.fill()
-        else:
-            ctx.move_to(lnw + xoff6, offset + line_gap_unfolded)
-            ctx.line_to(lnw + xoff7, offset + line_gap_unfolded + yoff5)
-            ctx.line_to(lnw + xoff8, offset + line_gap_unfolded)
-            ctx.line_to(lnw + xoff6, offset + line_gap_unfolded)
-            ctx.fill()
+        # 用系统自带 symbolic 箭头替换原先手绘的三角形：
+        #   is_folded=True  → 区域被折叠、"可展开"，显示右指箭头 pan-end-symbolic
+        #   is_folded=False → 区域已展开，显示下指箭头 pan-down-symbolic
+        # 颜色随主题（symbolic 默认前景色），与系统其它控件风格一致。
+        icon_name = 'pan-end-symbolic' if folding_region['is_folded'] else 'pan-down-symbolic'
+        size = max(8, round(cw * 1.5))
+        node = self._get_folding_icon_node(icon_name, size)
+        if node is not None:
+            # 行高方向居中：图标中心对齐到行中心（offset + lh/2）。
+            # 用 round 对齐到整数像素，避免半像素 translate 被 cairo 四舍五入
+            # 到像素网格，导致图标视觉上偏上/偏下、看起来不居中。
+            x = round(lnw + (self.code_folding_width - size) / 2)
+            y = round(offset + (lh - size) / 2)
+            ctx.save()
+            ctx.translate(x, y)
+            node.draw(ctx)
+            ctx.restore()
 
     def draw_hovered_folding_region(self, ctx):
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('code_folding_hover'))
