@@ -334,6 +334,10 @@ class Gutter(object):
         # 不会用到 realize 前的陈旧值。O(1) 检查，仅在字体变化时重算。
         self._refresh_font_metrics_if_changed()
 
+        ctx.save()
+        ctx.rectangle(0, 0, width, height)
+        ctx.clip()
+
         self.draw_background_and_border(ctx, width, height)
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_fg_color'))
 
@@ -363,12 +367,6 @@ class Gutter(object):
             line_height = source_view.get_line_yrange(line_iter).height
             if line != prev_line:
                 drawing_offset = offset - scroll_top
-                if drawing_offset < 0:
-                    # 原代码 min(0, drawing_offset) 在 drawing_offset<0 时
-                    # 返回 drawing_offset 自身（负 < 0），是无操作。意图显然
-                    # 是 clamp 到 0：行号文字在视觉顶部裁切时仍贴边对齐，
-                    # 不再向上溢出到 gutter 边界外。改用 max(0, ...) 达成。
-                    drawing_offset = 0
                 self.draw_line(ctx, line, current_line == line, drawing_offset, line_height)
 
             prev_line = line
@@ -377,6 +375,8 @@ class Gutter(object):
             line_iter, _ = source_view.get_line_at_y(offset)
 
         self.draw_hovered_folding_region(ctx)
+
+        ctx.restore()
 
     def draw_background_and_border(self, ctx, width, height):
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('view_bg_color'))
