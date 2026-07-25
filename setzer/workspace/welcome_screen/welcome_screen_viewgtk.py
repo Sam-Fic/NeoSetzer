@@ -40,16 +40,18 @@ def WelcomeScreenView():
     scrolled = Gtk.ScrolledWindow()
     scrolled.set_vexpand(True)
     scrolled.set_hexpand(True)
-    scrolled.set_propagate_natural_height(True)
+    # 不启用 propagate_natural_height：让 ScrolledWindow 自身按视口高度工作，
+    # 内容超出时产生内部滚动条。若启用自然高度传播，窗口变矮时整页会被
+    # 压扁、顶部 StatusPage 被裁切且无法滚回。
 
     column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
     # 四向页面级外边距由 .welcome-content CSS class 统一提供
     # （引用 --setzer-spacing-xl 变量），替代原 4 次 set_margin_*(24) 硬编码。
     # spacing=18 对应 --setzer-spacing-lg（Gtk.Box.spacing 无法用 CSS 设置）。
     column.add_css_class('welcome-content')
-    # 在高屏上 ScrolledWindow 的视口比内容高，valign=CENTER 让内容垂直
-    # 居中而非贴顶，避免大屏上内容挤在顶部、下方大片空白的失衡感。
-    column.set_valign(Gtk.Align.CENTER)
+    # 注意：此处不再设 valign=CENTER。窗口高度足够时内容自然贴顶排布；
+    # 窗口变矮时 ScrolledWindow 内部滚动，整页可从顶部完整滚回，
+    # 避免居中把顶部 StatusPage 挤出视口导致裁切且滚动失效。
     scrolled.set_child(column)
 
     # --- top: status page (icon + title + hint) ---
@@ -59,6 +61,10 @@ def WelcomeScreenView():
     status.set_description(_('Start a new document below, pick a template, '
                             'or jump back into one of your recent files.'))
     status.set_vexpand(False)
+    # 最小尺寸限制：宽度防止标题/描述在窗口过窄时被压缩裁切；
+    # 高度兜底保证窗口很矮时 StatusPage 优先保住自身（图标+标题+描述），
+    # 整页交给 ScrolledWindow 滚动，而非被压扁。
+    status.set_size_request(360, 320)
     column.append(status)
 
     # --- width-limited content ---
@@ -68,6 +74,14 @@ def WelcomeScreenView():
     column.append(clamp)
 
     content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+
+    # open document button
+    open_button = Gtk.Button()
+    open_button.set_icon_name('document-open-symbolic')
+    open_button.set_label(_('Open a Document…'))
+    open_button.set_hexpand(True)
+    open_button.set_action_name('win.open-document-dialog')
+    content.append(open_button)
 
     # quick actions heading
     actions_heading = Gtk.Label(label=_('Create a new document'))
@@ -111,7 +125,7 @@ def WelcomeScreenView():
 
     recent_clear_button = Gtk.Button(label=_('Clear All'))
     recent_clear_button.set_valign(Gtk.Align.CENTER)
-    recent_clear_button.add_css_class('flat')
+    recent_clear_button.add_css_class('destructive-action')
     recent_clear_button.set_tooltip_text(_('Remove all documents from the recent list'))
     recent_header.append(recent_clear_button)
 
@@ -152,6 +166,7 @@ def WelcomeScreenView():
     scrolled.recent_listbox = recent_listbox
     scrolled.recent_clear_button = recent_clear_button
     scrolled.empty_state = empty_state
+    scrolled.open_button = open_button
     scrolled.new_latex_button = new_latex_button
     scrolled.new_bibtex_button = new_bibtex_button
     scrolled.wizard_button = wizard_button

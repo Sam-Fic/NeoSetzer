@@ -72,6 +72,10 @@ window {
     margin: var(--setzer-spacing-xl);
 }
 
+headerbar.welcome {
+    background-color: transparent;
+}
+
 /* 工具栏左侧的“当前分区”标题：随滚动更新，dim-label 提供灰化，
    此处只加粗以与正文区分。配合 ellipsize 截断长标题。 */
 .sidebar-section-title {

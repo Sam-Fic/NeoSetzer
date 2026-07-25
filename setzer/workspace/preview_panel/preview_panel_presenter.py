@@ -142,23 +142,29 @@ class PreviewPanelPresenter(object):
 
     def update_buttons(self):
         self.document = self.workspace.get_root_or_active_latex_document()
-        if self.document == None or self.document.preview.poppler_document == None:
-            self.view.external_viewer_button.set_visible(False)
-            self.view.recolor_pdf_toggle.set_visible(False)
-            self.view.zoom_out_button.set_visible(False)
-            self.view.zoom_level_button.set_visible(False)
-            self.view.zoom_in_button.set_visible(False)
-        else:
-            self.view.external_viewer_button.set_visible(True)
-            self.view.recolor_pdf_toggle.set_visible(True)
-            self.view.zoom_out_button.set_visible(True)
-            self.view.zoom_level_button.set_visible(True)
-            self.view.zoom_in_button.set_visible(True)
+        has_pdf = self.document != None and self.document.preview.poppler_document != None
 
+        self.view.toolbar.set_visible(True)
+        self.view.paging_label.set_visible(True)
+        self.view.external_viewer_button.set_visible(True)
+        self.view.recolor_pdf_toggle.set_visible(True)
+        self.view.zoom_out_button.set_visible(True)
+        self.view.zoom_level_button.set_visible(True)
+        self.view.zoom_in_button.set_visible(True)
+
+        self.view.external_viewer_button.set_sensitive(has_pdf)
+        self.view.recolor_pdf_toggle.set_sensitive(has_pdf)
+        self.view.zoom_out_button.set_sensitive(has_pdf)
+        self.view.zoom_level_button.set_sensitive(has_pdf)
+        self.view.zoom_in_button.set_sensitive(has_pdf)
+
+        if has_pdf:
+            self.update_label()
             zoom_level = self.document.preview.zoom_manager.get_zoom_level()
-
             self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
             self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
+        else:
+            self.view.paging_label.set_text(_('No preview'))
 
     def update_zoom_level(self):
         zoom_level = self.document.preview.zoom_manager.get_zoom_level()

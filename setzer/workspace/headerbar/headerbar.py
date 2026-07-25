@@ -91,6 +91,10 @@ class Headerbar(object):
         self.show_document_name(document)
 
     def on_update_recently_opened_documents(self, workspace, recently_opened_documents):
+        if self.workspace.active_document is None:
+            self.view.open_document_button.set_visible(False)
+            self.view.open_document_blank_button.set_visible(False)
+            return
         data = recently_opened_documents.values()
         if len(data) > 0:
             self.view.open_document_button.set_sensitive(True)
@@ -122,12 +126,17 @@ class Headerbar(object):
         self.hide_sidebar_toggles()
         self.hide_preview_help_toggles()
         self.view.save_document_button.set_visible(False)
+        self.view.open_document_button.set_visible(False)
+        self.view.open_document_blank_button.set_visible(False)
+        self.view.new_document_button.set_visible(False)
         self.view.center_button.set_sensitive(False)
         self.view.center_widget.set_visible_child_name('welcome')
         self.view.widget.add_css_class('welcome')
 
     def activate_document_mode(self):
         self.view.save_document_button.set_visible(True)
+        self.view.new_document_button.set_visible(True)
+        self.on_update_recently_opened_documents(None, self.workspace.recently_opened_documents)
         self.view.center_button.set_sensitive(True)
         self.view.center_widget.set_visible_child_name('button')
         self.view.widget.remove_css_class('welcome')

@@ -179,9 +179,6 @@ class WelcomeScreen(object):
         icon = Gtk.Image.new_from_icon_name(icon_name)
         row.add_prefix(icon)
 
-        open_icon = Gtk.Image.new_from_icon_name('go-next-symbolic')
-        row.add_suffix(open_icon)
-
         # 单条移除按钮：点击时仅从最近列表移除（不删除文件）。
         # Gtk.Button 在 ListBox row 内会消费点击事件，不会触发 row-activated。
         remove_button = Gtk.Button(icon_name='window-close-symbolic')
@@ -274,7 +271,4 @@ class WelcomeScreen(object):
         # 不设 set_pixel_size：与 _create_recent_row 一致，让图标随 HIDPI 自适应。
         icon = Gtk.Image.new_from_icon_name(icon_name)
         row.add_prefix(icon)
-
-        open_icon = Gtk.Image.new_from_icon_name('go-next-symbolic')
-        row.add_suffix(open_icon)
         return row

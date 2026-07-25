@@ -240,6 +240,10 @@ class WorkspacePresenter(object):
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
         self.main_window.preview_split.set_show_sidebar(preview_help_visible)
+        if show_preview and not preview_help_visible:
+            self.main_window.headerbar.preview_toggle.set_active(False)
+        elif show_preview and preview_help_visible:
+            self.main_window.headerbar.preview_toggle.set_active(True)
 
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()
