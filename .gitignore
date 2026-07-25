@@ -3,7 +3,6 @@ builddir
 **/__pycache__/
 .flatpak-builder/
 flatpak/
-ignore
 .trae/
 .vscode/
 
@@ -34,6 +33,7 @@ build
 
 # Gettext compiled translations
 *.mo
+*.pot
 
 # Packaging artifacts
 *.deb
