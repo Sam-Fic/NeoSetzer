@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -40,7 +40,7 @@ class Settings(Observable):
         # 保留 .pickle 文件作为备份，不删除（用户可手动清理）。
         self._json_path = os.path.join(self.pathname, 'settings.json')
         self._pickle_path = os.path.join(self.pathname, 'settings.pickle')
-    
+
         self.data = dict()
         self.defaults = dict()
         self.set_defaults()
@@ -79,7 +79,7 @@ class Settings(Observable):
                         AttributeError, TypeError):
                     data[section]['presets'] = None
         return data
-            
+
     def set_defaults(self):
         self.defaults['window_state'] = dict()
         self.defaults['window_state']['width'] = 1020
@@ -103,13 +103,13 @@ class Settings(Observable):
         self.defaults['window_state']['notebook_paned_position'] = -1
         # Pass-10: build_log_paned_position 已废弃（build_log 改为 Adw.Dialog 弹窗，
         # 尺寸由 dialog 自管理）。旧 pickle 文件中若有该 key 不影响，只是不再读它。
-        
+
         self.defaults['app_document_wizard'] = dict()
         self.defaults['app_document_wizard']['presets'] = None
-        
+
         self.defaults['app_bibtex_wizard'] = dict()
         self.defaults['app_bibtex_wizard']['presets'] = None
-        
+
         self.defaults['app_include_bibtex_file_dialog'] = dict()
         self.defaults['app_include_bibtex_file_dialog']['presets'] = None
 
@@ -161,6 +161,9 @@ class Settings(Observable):
         # 选默认开是因为 LaTeX 写作场景中崩溃恢复价值高于磁盘写入开销）。
         self.defaults['preferences']['auto_save_enabled'] = True
         self.defaults['preferences']['auto_save_delay'] = 60
+        # 当检测到外部程序修改磁盘文件时，是否自动静默重载。
+        # 仅对本地 buffer 无未保存修改的文档生效；有未保存修改时回退到对话框。
+        self.defaults['preferences']['auto_reload_on_external_change'] = True
 
         self.defaults['preferences']['use_system_font'] = True
         textview = Gtk.TextView()
@@ -250,7 +253,7 @@ class Settings(Observable):
         else:
             section_dict[item] = value
         self.add_change_code('settings_changed', (section, item, value))
-        
+
     def unpickle(self):
         ''' Load settings from home folder.
 
@@ -287,5 +290,3 @@ class Settings(Observable):
         '''Reset all preferences to default values.'''
         self.data['preferences'] = dict(self.defaults['preferences'])
         self.add_change_code('settings_changed', ('preferences', None, None))
-        
-

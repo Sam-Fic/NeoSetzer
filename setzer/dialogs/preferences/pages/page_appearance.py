@@ -255,7 +255,6 @@ class PageAppearanceColors(object):
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
-            self.preferences.page_editor.on_reset_clicked(None)
 
 
 class PageAppearanceColorsView(Adw.PreferencesPage):
@@ -358,9 +357,6 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         group_preview.add(self.option_recolor_pdf)
 
         group_reset = Adw.PreferencesGroup()
-        # 标记以便 PreferencesDialog.setup() 在合并 Editor 组后将其重置按钮
-        # 重新移到末尾（保持“重置”在所有设置项之后）。
-        group_reset._is_appearance_reset = True
         self.add(group_reset)
 
         self.reset_button = Gtk.Button(label=_('Reset to Defaults'))

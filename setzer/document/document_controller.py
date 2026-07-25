@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -33,7 +33,7 @@ _KEYVAL_ISO_LEFT_TAB = Gdk.keyval_from_name('ISO_Left_Tab')
 
 
 class DocumentController(object):
-    
+
     def __init__(self, document, document_view):
 
         self.document = document
@@ -47,6 +47,9 @@ class DocumentController(object):
         # 内存值（实时刷新字体），但 settings.set_value（磁盘写 + ~10 观察者通知）
         # 延迟到缩放停止 500ms 后执行一次，避免每帧写盘。
         self._zoom_persist_timeout_id = None
+        # 自动静默重载的去抖 timeout id：检测到外部磁盘变更后延迟 1000ms 再重载，
+        # 期间若再次检测到变更则重置 timer，避免文件写入过程中频繁重载。
+        self._auto_reload_timeout_id = None
         # 保存 timeout id 以便文档关闭时移除。原实现仅置 continue_save_date_loop=False，
         # 定时器仍会再触发一次才退出；直接 remove 更及时。
         # 2000ms 而非 500ms：检测外部磁盘变更不需要亚秒级响应，2 秒足够
@@ -110,6 +113,10 @@ class DocumentController(object):
         if self._zoom_persist_timeout_id is not None:
             GLib.Source.remove(self._zoom_persist_timeout_id)
             self._persist_zoom()
+        # 取消挂起的自动静默重载，避免文档关闭后回调访问已释放对象。
+        if self._auto_reload_timeout_id is not None:
+            GLib.Source.remove(self._auto_reload_timeout_id)
+            self._auto_reload_timeout_id = None
         # 断开窗口焦点信号：main_window 生命周期长于文档，不手动断开会
         # 导致已关闭文档的 _on_window_active_changed 被调用（访问已销毁的
         # self.document）。motion controller 随 source_view 销毁自动断开。
@@ -332,12 +339,64 @@ class DocumentController(object):
             self.document.source_buffer.set_modified(True)
             DialogLocator.get_dialog('document_deleted_on_disk').run({'document': self.document})
         elif changed:
-            self.changed_on_disk_dialog_shown_after_last_change = True
-            DialogLocator.get_dialog('document_changed_on_disk').run({'document': self.document}, self.changed_on_disk_cb)
+            if self._can_auto_reload_silently():
+                self._schedule_auto_reload()
+            else:
+                self.changed_on_disk_dialog_shown_after_last_change = True
+                DialogLocator.get_dialog('document_changed_on_disk').run({'document': self.document}, self.changed_on_disk_cb)
 
         return self.continue_save_date_loop
 
+    def _can_auto_reload_silently(self):
+        '''判断是否满足自动静默重载条件。'''
+        if self.document.filename is None:
+            return False
+        if not self.document.settings.get_value('preferences', 'auto_reload_on_external_change'):
+            return False
+        # 安全行为：本地有未保存修改时不静默覆盖，回退到对话框让用户决定。
+        if self.document.source_buffer.get_modified():
+            return False
+        return True
+
+    def _schedule_auto_reload(self):
+        '''调度去防抖的自动静默重载。若已有挂起 timeout 则重置。'''
+        if self._auto_reload_timeout_id is not None:
+            GLib.Source.remove(self._auto_reload_timeout_id)
+        self._auto_reload_timeout_id = GLib.timeout_add(1000, self._on_auto_reload_timeout)
+
+    def _on_auto_reload_timeout(self):
+        '''去防抖 timeout 触发：重新检查条件后执行静默重载或回退对话框。'''
+        self._auto_reload_timeout_id = None
+
+        if self.document.filename is None or self.document._is_shutdown:
+            return False
+
+        # 触发前重新读取磁盘状态：文件可能已被删除或恢复。
+        deleted, changed = self.document.get_disk_status()
+        if deleted:
+            self.deleted_on_disk_dialog_shown_after_last_save = True
+            self.document.source_buffer.set_modified(True)
+            DialogLocator.get_dialog('document_deleted_on_disk').run({'document': self.document})
+            return False
+        if not changed:
+            return False
+        if not self.document.settings.get_value('preferences', 'auto_reload_on_external_change'):
+            return False
+        # 触发期间用户若开始编辑，回退到对话框避免覆盖未保存修改。
+        if self.document.source_buffer.get_modified():
+            self.changed_on_disk_dialog_shown_after_last_change = True
+            DialogLocator.get_dialog('document_changed_on_disk').run({'document': self.document}, self.changed_on_disk_cb)
+            return False
+
+        # 执行静默重载：populate_from_filename 会更新 buffer、modified flag 与 save_date。
+        self.document.populate_from_filename()
+        return False
+
     def changed_on_disk_cb(self, do_reload):
+        # 用户已通过对话框处理，取消任何挂起的自动重载。
+        if self._auto_reload_timeout_id is not None:
+            GLib.Source.remove(self._auto_reload_timeout_id)
+            self._auto_reload_timeout_id = None
         if do_reload:
             self.document.populate_from_filename()
             self.document.source_buffer.set_modified(False)
@@ -345,5 +404,3 @@ class DocumentController(object):
             self.document.source_buffer.set_modified(True)
         self.changed_on_disk_dialog_shown_after_last_change = False
         self.document.update_save_date()
-
-

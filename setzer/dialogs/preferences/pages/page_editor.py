@@ -30,6 +30,8 @@ class PageEditor(object):
         self.settings = settings
 
     def init(self):
+        self.view.reset_button.connect('clicked', self.on_reset_clicked)
+
         self.view.option_spaces_instead_of_tabs.set_active(self.settings.get_value('preferences', 'spaces_instead_of_tabs'))
         self.view.option_spaces_instead_of_tabs.connect('notify::active', self.on_switch_toggled, 'spaces_instead_of_tabs')
 
@@ -54,6 +56,11 @@ class PageEditor(object):
         self.view.option_auto_save_enabled.set_active(self.settings.get_value('preferences', 'auto_save_enabled'))
         self.view.option_auto_save_enabled.connect('notify::active', self.on_switch_toggled, 'auto_save_enabled')
 
+        self.view.option_auto_reload_on_external_change.set_active(
+            self.settings.get_value('preferences', 'auto_reload_on_external_change'))
+        self.view.option_auto_reload_on_external_change.connect(
+            'notify::active', self.on_switch_toggled, 'auto_reload_on_external_change')
+
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
 
@@ -76,14 +83,16 @@ class PageEditor(object):
         self.view.option_highlight_matching_brackets.set_active(defaults['highlight_matching_brackets'])
         self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
+        self.view.option_auto_reload_on_external_change.set_active(
+            defaults['auto_reload_on_external_change'])
 
 
 class PageEditorView(Adw.PreferencesPage):
 
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
-        # Editor 不再是独立标签页：其各组会在 PreferencesDialog.setup() 中
-        # reparent 进 Appearance 页；故此处不设置 page title / icon。
+        self.set_title(_('Editor'))
+        self.set_icon_name('accessories-text-editor-symbolic')
 
         group_tab_stops = Adw.PreferencesGroup()
         group_tab_stops.set_title(_('Tab Stops'))
@@ -153,10 +162,18 @@ class PageEditorView(Adw.PreferencesPage):
         self.auto_save_delay_row.set_adjustment(adjustment_auto_save)
         group_auto_save.add(self.auto_save_delay_row)
 
+        # 外部变更：自动静默重载磁盘上被其他程序修改的文件。
+        group_external_changes = Adw.PreferencesGroup()
+        group_external_changes.set_title(_('External Changes'))
+        self.add(group_external_changes)
+
+        self.option_auto_reload_on_external_change = Adw.SwitchRow()
+        self.option_auto_reload_on_external_change.set_title(_('Automatically reload changed files'))
+        self.option_auto_reload_on_external_change.set_subtitle(
+            _('Reload files modified by external applications without prompting'))
+        group_external_changes.add(self.option_auto_reload_on_external_change)
+
         group_reset = Adw.PreferencesGroup()
-        # 标记以便 PreferencesDialog.setup() reparent 时跳过 editor 自身的
-        # 重置按钮（重置由 Appearance 页统一处理）。
-        group_reset._is_editor_reset = True
         self.add(group_reset)
 
         self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
