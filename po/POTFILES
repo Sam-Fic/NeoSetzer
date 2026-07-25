@@ -1,4 +1,4 @@
-# generated on Sat Jul 25 05:23:39 AM UTC 2026
+# generated on Sat Jul 25 02:28:01 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -12,6 +12,8 @@
 ./setzer/dialogs/add_remove_packages/add_remove_packages.py
 ./setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py
 ./setzer/dialogs/add_remove_packages/__init__.py
+./setzer/dialogs/autosave_recovery/autosave_recovery.py
+./setzer/dialogs/autosave_recovery/__init__.py
 ./setzer/dialogs/building_failed/building_failed.py
 ./setzer/dialogs/building_failed/__init__.py
 ./setzer/dialogs/build_log/build_log_dialog_controller.py
@@ -43,6 +45,8 @@
 ./setzer/dialogs/document_wizard/pages/page_report_settings.py
 ./setzer/dialogs/go_to_line/go_to_line.py
 ./setzer/dialogs/go_to_line/__init__.py
+./setzer/dialogs/go_to_page/go_to_page.py
+./setzer/dialogs/go_to_page/__init__.py
 ./setzer/dialogs/helpers/dialog_viewgtk.py
 ./setzer/dialogs/helpers/__init__.py
 ./setzer/dialogs/include_bibtex_file/include_bibtex_file.py
@@ -69,6 +73,8 @@
 ./setzer/dialogs/preferences/pages/page_shortcuts.py
 ./setzer/dialogs/preferences/preferences.py
 ./setzer/dialogs/preferences/preferences_viewgtk.py
+./setzer/dialogs/print/__init__.py
+./setzer/dialogs/print/print.py
 ./setzer/dialogs/replace_confirmation/__init__.py
 ./setzer/dialogs/replace_confirmation/replace_confirmation.py
 ./setzer/dialogs/save_document/__init__.py
@@ -127,14 +133,20 @@
 ./setzer/document/search/__init__.py
 ./setzer/document/search/search.py
 ./setzer/document/search/search_viewgtk.py
+./setzer/document/statusbar/__init__.py
+./setzer/document/statusbar/statusbar.py
+./setzer/document/statusbar/statusbar_viewgtk.py
 ./setzer/document/update_matching_blocks/begin_end_match.py
 ./setzer/document/update_matching_blocks/__init__.py
 ./setzer/document/update_matching_blocks/update_matching_blocks.py
+./setzer/helpers/document_state_paths.py
 ./setzer/helpers/drawing.py
+./setzer/helpers/help_search.py
 ./setzer/helpers/__init__.py
 ./setzer/helpers/observable.py
 ./setzer/helpers/path.py
 ./setzer/helpers/persistence.py
+./setzer/helpers/scroll_animator.py
 ./setzer/helpers/symbol_categories.py
 ./setzer/helpers/timer.py
 ./setzer/keyboard_shortcuts/__init__.py
@@ -180,8 +192,6 @@
 ./setzer/widgets/async_svg/__init__.py
 ./setzer/widgets/filechooser_button/filechooser_button.py
 ./setzer/widgets/filechooser_button/__init__.py
-./setzer/widgets/fixed_width_label/fixed_width_label.py
-./setzer/widgets/fixed_width_label/__init__.py
 ./setzer/widgets/__init__.py
 ./setzer/widgets/scrolling_widget/__init__.py
 ./setzer/widgets/scrolling_widget/scrolling_widget.py
@@ -190,6 +200,8 @@
 ./setzer/workspace/actions/__init__.py
 ./setzer/workspace/auto_build/auto_build.py
 ./setzer/workspace/auto_build/__init__.py
+./setzer/workspace/auto_save/auto_save.py
+./setzer/workspace/auto_save/__init__.py
 ./setzer/workspace/build_log/build_log.py
 ./setzer/workspace/build_log/__init__.py
 ./setzer/workspace/context_menu/context_menu.py

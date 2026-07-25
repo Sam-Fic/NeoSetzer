@@ -76,7 +76,7 @@ msgstr "参考“{label}”"
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:63
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:331
 msgid "Reference"
-msgstr "参考文献"
+msgstr "交叉引用"
 
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:49
 #, python-brace-format
@@ -197,15 +197,15 @@ msgstr "lumingzh <lumingzh@qq.com>"
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:51
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:109
 msgid "Add / Remove Packages"
-msgstr "添加/移除包体"
+msgstr "添加/移除宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:77
 msgid "Add Package"
-msgstr "添加包体"
+msgstr "添加宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:115
 msgid "Remove Package"
-msgstr "移除包体"
+msgstr "移除宏包"
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:42
 msgid "Article in Journal"
@@ -816,7 +816,7 @@ msgstr "<b>书籍（Book）：</b>  用于包含许多章节的实际书籍。"
 msgid ""
 "<b>Report:</b>  For longer reports and articles containing more than one "
 "chapter, small books, thesis."
-msgstr "<b>报告（Report）：</b>  用于较长的报告，以及包含多章的文章、小册子、学位论文。"
+msgstr "<b>报告（Report）：</b>  用于较长的报告，以及包含多章的文章、小型书籍、学位论文。"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:85
 msgid "<b>Letter:</b>  For writing letters."
 msgstr "<b>信件（Letter）：</b>  用于撰写信件。"
@@ -826,8 +826,8 @@ msgid ""
 "\n"
 "There are many predefined presentation styles."
 msgstr ""
-"<b>Beamer：</b>  用于通过 LaTeX 制作演示文稿幻灯片的文档类。"
-""
+"<b>Beamer：</b>  用于通过 LaTeX 制作演示文稿幻灯片的文档类。\n"
+"\n"
 "有许多预定义的演示样式。"
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:116
 msgid "Others…"
@@ -865,17 +865,17 @@ msgstr "用于该文档的主语言。这是用来应用连字符规则和其它
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
 msgid "Packages"
-msgstr "包体"
+msgstr "宏包"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:198
 msgid "AMS math packages"
-msgstr "AMS 数学包"
+msgstr "AMS 数学宏包"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:225
 msgid ""
 "<b>AMS packages:</b> provide mathematical symbols, math-related "
 "environments, …"
-msgstr "<b>AMS 包体：</b>提供了数学符号，数学相关的环境等……"
+msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等……"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:225
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:226
@@ -992,7 +992,7 @@ msgstr "参考文献样式"
 
 #: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:75
 msgid "Show bibliography styles for the 'natbib' package"
-msgstr "显示“natbib”包体的参考文献样式"
+msgstr "显示“natbib”宏包的参考文献样式"
 
 #: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
 msgid "Include BibTeX file"
@@ -1609,7 +1609,7 @@ msgstr[1] "正在将 {amount} 处 »{original}« 替换为 »{replacement}«。"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
 msgid "_Yes, replace all occurrences"
-msgstr "_是，替换全部出现"
+msgstr "是，替换全部出现(_Y)"
 #: setzer/dialogs/save_document/save_document.py:64
 msgid "Save document"
 msgstr "保存文档"
@@ -1829,7 +1829,7 @@ msgstr "选择文件"
 #: setzer/widgets/filechooser_button/filechooser_button.py:75
 #: setzer/widgets/filechooser_button/filechooser_button.py:82
 msgid "_Select"
-msgstr "_选择"
+msgstr "选择(_S)"
 #: setzer/workspace/build_log/build_log_presenter.py:131
 #, python-brace-format
 msgid "Line {number}"
@@ -1845,15 +1845,15 @@ msgstr[1] "构建失败，有 {amount} 个错误"
 #, python-brace-format
 msgid "{amount} warning or badbox"
 msgid_plural "{amount} warnings or badboxes"
-msgstr[0] "{amount} 个警告或 badbox"
-msgstr[1] "{amount} 个警告或 badbox"
+msgstr[0] "{amount} 个警告或坏盒"
+msgstr[1] "{amount} 个警告或坏盒"
 
 #: setzer/workspace/build_log/build_log_presenter.py:157
 msgid "Building successful"
 msgstr "构建成功"
 #: setzer/workspace/build_log/build_log_presenter.py:162
 msgid "no warnings or badboxes"
-msgstr "无警告或 badbox"
+msgstr "无警告或坏盒"
 #: setzer/workspace/document_chooser/document_chooser_viewgtk.py:55
 msgid "No results"
 msgstr "无结果"
@@ -2034,7 +2034,7 @@ msgid "Date Today"
 msgstr "今天的日期"
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:137
 msgid "Beamer"
-msgstr "Beamer 演示"
+msgstr "Beamer"
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:153
 msgid "Hide Navigation"
 msgstr "隐藏导航"
@@ -2121,7 +2121,7 @@ msgstr "垂直间距"
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:232
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:288
 msgid "International Accents"
-msgstr "国际音标重音"
+msgstr "国际字符重音"
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:234
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:297
 msgid "Sectioning"
@@ -2441,144 +2441,3 @@ msgstr "为文档中的章节设置透明度。"
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
 msgstr "使用 \\\\url{..} 命令输入网址，无需转义。"
-#: data/resources/document_wizard/languages.xml:2
-#: data/resources/document_wizard/languages.xml:20
-#: data/resources/document_wizard/languages.xml:21
-#: data/resources/document_wizard/languages.xml:22
-#: data/resources/document_wizard/languages.xml:23
-#: data/resources/document_wizard/languages.xml:24
-msgid "English"
-msgstr "英语"
-#: data/resources/document_wizard/languages.xml:3
-msgid "Spanish"
-msgstr "西班牙语"
-#: data/resources/document_wizard/languages.xml:4
-#: data/resources/document_wizard/languages.xml:28
-msgid "French"
-msgstr "法语"
-#: data/resources/document_wizard/languages.xml:5
-msgid "Russian"
-msgstr "俄语"
-#: data/resources/document_wizard/languages.xml:6
-#: data/resources/document_wizard/languages.xml:7
-msgid "Portuguese"
-msgstr "葡萄牙语"
-#: data/resources/document_wizard/languages.xml:8
-#: data/resources/document_wizard/languages.xml:30
-#: data/resources/document_wizard/languages.xml:31
-#: data/resources/document_wizard/languages.xml:32
-msgid "German"
-msgstr "德语"
-#: data/resources/document_wizard/languages.xml:9
-msgid "Italian"
-msgstr "意大利语"
-#: data/resources/document_wizard/languages.xml:10
-msgid "Afrikaans"
-msgstr "南非荷兰语"
-#: data/resources/document_wizard/languages.xml:11
-msgid "Azerbaijani"
-msgstr "阿塞拜疆语"
-#: data/resources/document_wizard/languages.xml:12
-msgid "Basque"
-msgstr "巴斯克语"
-#: data/resources/document_wizard/languages.xml:13
-msgid "Breton"
-msgstr "布列塔尼语"
-#: data/resources/document_wizard/languages.xml:14
-msgid "Bulgarian"
-msgstr "保加利亚语"
-#: data/resources/document_wizard/languages.xml:15
-msgid "Catalan"
-msgstr "加泰罗尼亚语"
-#: data/resources/document_wizard/languages.xml:16
-msgid "Croatian"
-msgstr "克罗地亚语"
-#: data/resources/document_wizard/languages.xml:17
-msgid "Czech"
-msgstr "捷克语"
-#: data/resources/document_wizard/languages.xml:18
-msgid "Danish"
-msgstr "丹麦语"
-#: data/resources/document_wizard/languages.xml:19
-msgid "Dutch"
-msgstr "荷兰语"
-#: data/resources/document_wizard/languages.xml:25
-msgid "Esperanto"
-msgstr "世界语"
-#: data/resources/document_wizard/languages.xml:26
-msgid "Estonian"
-msgstr "爱沙尼亚语"
-#: data/resources/document_wizard/languages.xml:27
-msgid "Finnish"
-msgstr "芬兰语"
-#: data/resources/document_wizard/languages.xml:29
-msgid "Galician"
-msgstr "加利西亚语"
-#: data/resources/document_wizard/languages.xml:33
-#: data/resources/document_wizard/languages.xml:34
-msgid "Greek"
-msgstr "希腊语"
-#: data/resources/document_wizard/languages.xml:35
-msgid "Hebrew"
-msgstr "希伯来语"
-#: data/resources/document_wizard/languages.xml:36
-msgid "Icelandic"
-msgstr "冰岛语"
-#: data/resources/document_wizard/languages.xml:37
-msgid "Indonesian"
-msgstr "印尼语"
-#: data/resources/document_wizard/languages.xml:38
-msgid "Interlingua"
-msgstr "国际语"
-#: data/resources/document_wizard/languages.xml:39
-msgid "Irish Gaelic"
-msgstr "爱尔兰盖尔语"
-#: data/resources/document_wizard/languages.xml:40
-msgid "Latin"
-msgstr "拉丁语"
-#: data/resources/document_wizard/languages.xml:41
-msgid "Lower Sorbian"
-msgstr "下索布语"
-#: data/resources/document_wizard/languages.xml:42
-msgid "Malay"
-msgstr "马来语"
-#: data/resources/document_wizard/languages.xml:43
-msgid "Northern Sami"
-msgstr "北萨米语"
-#: data/resources/document_wizard/languages.xml:44
-#: data/resources/document_wizard/languages.xml:45
-msgid "Norwegian"
-msgstr "挪威语"
-#: data/resources/document_wizard/languages.xml:46
-msgid "Polish"
-msgstr "波兰语"
-#: data/resources/document_wizard/languages.xml:47
-msgid "Romanian"
-msgstr "罗马尼亚语"
-#: data/resources/document_wizard/languages.xml:48
-msgid "Scottish Gaelic"
-msgstr "苏格兰盖尔语"
-#: data/resources/document_wizard/languages.xml:49
-msgid "Slovakian"
-msgstr "斯洛伐克语"
-#: data/resources/document_wizard/languages.xml:50
-msgid "Slovenian"
-msgstr "斯洛文尼亚语"
-#: data/resources/document_wizard/languages.xml:51
-msgid "Swedish"
-msgstr "瑞典语"
-#: data/resources/document_wizard/languages.xml:52
-msgid "Serbian"
-msgstr "塞尔维亚语"
-#: data/resources/document_wizard/languages.xml:53
-msgid "Turkish"
-msgstr "土耳其语"
-#: data/resources/document_wizard/languages.xml:54
-msgid "Ukrainian"
-msgstr "乌克兰语"
-#: data/resources/document_wizard/languages.xml:55
-msgid "Upper Sorbian"
-msgstr "上索布语"
-#: data/resources/document_wizard/languages.xml:56
-msgid "Welsh"
-msgstr "威尔士语"

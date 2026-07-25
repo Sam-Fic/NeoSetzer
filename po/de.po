@@ -351,6 +351,10 @@ msgid ""
 "the field <tt>howpublished</tt> to supply publishing information in free "
 "format, if applicable. The field <tt>type</tt> may be useful as well."
 msgstr ""
+"Eine buchähnliche Arbeit ohne formellen Herausgeber oder fördernde "
+"Institution. Nutzen Sie das Feld <tt>howpublished</tt>, um "
+"Veröffentlichungsinformationen in freier Form anzugeben, falls zutreffend. "
+"Das Feld <tt>type</tt> kann ebenfalls nützlich sein."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:49
 msgid "Single-volume Collection"
@@ -362,6 +366,9 @@ msgid ""
 "distinct authors which have their own title. The work as a whole has no "
 "overall author but it will usually have an editor."
 msgstr ""
+"Ein einbändiger Sammelband mit mehreren, in sich geschlossenen Beiträgen "
+"verschiedener Autoren, die jeweils einen eigenen Titel haben. Das Werk als "
+"Ganzes hat keinen Gesamtautor, aber in der Regel einen Herausgeber."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:50
 msgid "Multi-volume Collection"
@@ -373,6 +380,10 @@ msgid ""
 "collections are also supported by the entry type @collection. However, it is "
 "advisable to make use of the dedicated entry type @mvcollection."
 msgstr ""
+"Ein mehrbändiger @collection. Aus Gründen der Abwärtskompatibilität werden "
+"mehrbändige Sammelbände auch vom Eintragstyp @collection unterstützt. Es "
+"ist jedoch empfehlenswert, den eigens dafür vorgesehenen Eintragstyp "
+"@mvcollection zu verwenden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:51
 msgid "Article in a Collection"
@@ -385,6 +396,10 @@ msgid ""
 "the <tt>editor</tt> to the <tt>booktitle</tt>, i. e., the title of the "
 "collection."
 msgstr ""
+"Ein Beitrag zu einem Sammelband, der eine in sich geschlossene Einheit mit "
+"eigenem Autor und Titel bildet. Der <tt>author</tt> bezieht sich auf den "
+"<tt>title</tt>, der <tt>editor</tt> auf den <tt>booktitle</tt>, also den "
+"Titel des Sammelbandes."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:52
 msgid "Supplemental Material in a Collection"
@@ -396,6 +411,9 @@ msgid ""
 "but related to the @collection entry type. The standard styles will treat "
 "this entry type as an alias for @incollection."
 msgstr ""
+"Ergänzendes Material in einem @collection. Dieser Typ ist ähnlich zu "
+"@suppbook, bezieht sich jedoch auf den Eintragstyp @collection. Die "
+"Standardstile behandeln diesen Eintragstyp als Alias für @incollection."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:53
 msgid "Data Set"
@@ -403,7 +421,7 @@ msgstr "Datensatz"
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:53
 msgid "A data set or a similar collection of (mostly) raw data."
-msgstr ""
+msgstr "Ein Datensatz oder eine ähnliche Sammlung von (größtenteils) Rohdaten."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:54
 msgid "Technical Manual"
@@ -414,6 +432,9 @@ msgid ""
 "Technical or other documentation, not necessarily in printed form. The "
 "<tt>author</tt> or <tt>editor</tt> is omissible under certain terms."
 msgstr ""
+"Technische oder andere Dokumentation, nicht zwangsläufig in gedruckter "
+"Form. Der <tt>author</tt> oder <tt>editor</tt> kann unter bestimmten "
+"Bedingungen weggelassen werden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:55
 msgid "Miscellaneous"
@@ -426,6 +447,11 @@ msgid ""
 "format, if applicable. The field type may be useful as well. <tt>author</"
 "tt>, <tt>editor</tt>, and <tt>year</tt> are omissible under certain terms."
 msgstr ""
+"Ein Auffangtyp für Einträge, die in keine andere Kategorie passen. Nutzen "
+"Sie das Feld <tt>howpublished</tt>, um Veröffentlichungsinformationen in "
+"freier Form anzugeben, falls zutreffend. Das Feld type kann ebenfalls "
+"nützlich sein. <tt>author</tt>, <tt>editor</tt> und <tt>year</tt> können "
+"unter bestimmten Bedingungen weggelassen werden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:56
 msgid "Online Resource"
@@ -440,6 +466,13 @@ msgid ""
 "from an online journal, it may be preferable to use the @article type and "
 "its <tt>url</tt> field."
 msgstr ""
+"Eine Online-Ressource. <tt>author</tt>, <tt>editor</tt> und <tt>year</tt> "
+"können unter bestimmten Bedingungen weggelassen werden. Dieser Eintragstyp "
+"ist für Quellen gedacht, die von Natur aus Online-Ressourcen sind, wie "
+"beispielsweise Webseiten. Beachten Sie, dass alle Eintragstypen das Feld "
+"<tt>url</tt> unterstützen. Wenn Sie beispielsweise einen Artikel aus einer "
+"Online-Zeitschrift hinzufügen, ist es unter Umständen vorzuziehen, den Typ "
+"@article und dessen Feld <tt>url</tt> zu verwenden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:57
 msgid "Patent"
@@ -453,6 +486,12 @@ msgid ""
 "different from the scope implied by the <tt>type</tt>. Note that the "
 "<tt>location</tt> field is treated as a key list with this entry type."
 msgstr ""
+"Ein Patent oder eine Patentanmeldung. Die Nummer oder das Kennzeichen des "
+"Eintrags wird im Feld <tt>number</tt> angegeben. Nutzen Sie das Feld "
+"<tt>type</tt>, um die Art und das Feld <tt>location</tt>, um den "
+"Geltungsbereich des Patents anzugeben, sofern er vom durch <tt>type</tt> "
+"implizierten Bereich abweicht. Beachten Sie, dass das Feld <tt>location</tt> "
+"bei diesem Eintragstyp als Schlüsselliste behandelt wird."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:58
 msgid "Complete Issue of a Periodical"
@@ -466,6 +505,12 @@ msgid ""
 "in the <tt>issuetitle</tt> field. The <tt>editor</tt> is omissible under "
 "certain terms."
 msgstr ""
+"Eine vollständige Ausgabe einer Zeitschrift, beispielsweise eine "
+"Sonderausgabe eines Journals. Der Titel der Zeitschrift wird im Feld "
+"<tt>title</tt> angegeben. Hat die Ausgabe zusätzlich zum Haupttitel der "
+"Zeitschrift einen eigenen Titel, so gehört dieser in das Feld "
+"<tt>issuetitle</tt>. Der <tt>editor</tt> kann unter bestimmten Bedingungen "
+"weggelassen werden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:59
 msgid "Supplemental Material in a Periodical"
@@ -482,6 +527,15 @@ msgid ""
 "differently from articles in the strict sense of the word. The standard "
 "styles will treat this entry type as an alias for @article."
 msgstr ""
+"Ergänzendes Material in einer @periodical. Dieser Typ ist ähnlich zu "
+"@suppbook, bezieht sich jedoch auf den Eintragstyp @periodical. Die Rolle "
+"dieses Eintragstyps wird deutlicher, wenn man bedenkt, dass der Typ "
+"@article auch @inperiodical genannt werden könnte. Dieser Typ kann nützlich "
+"sein, wenn es um Elemente wie regelmäßige Kolumnen, Nachrufe, "
+"Leserbriefe usw. geht, die nur einen generischen Titel haben. "
+"Gestaltungsrichtlinien können verlangen, dass solche Elemente anders "
+"formatiert werden als Artikel im engeren Sinne. Die Standardstile behandeln "
+"diesen Eintragstyp als Alias für @article."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:60
 msgid "Conference Proceedings"
@@ -494,6 +548,10 @@ msgid ""
 "the sponsoring institution. The <tt>editor</tt> is omissible under certain "
 "terms."
 msgstr ""
+"Ein einbändiger Konferenzband. Dieser Typ ist dem Typ @collection sehr "
+"ähnlich. Er unterstützt ein optionales Feld <tt>organization</tt>, das die "
+"veranstaltende Institution enthält. Der <tt>editor</tt> kann unter "
+"bestimmten Bedingungen weggelassen werden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:61
 msgid "Multi-volume Proceedings Entry"
@@ -505,6 +563,10 @@ msgid ""
 "proceedings are also supported by the entry type @proceedings. However, it "
 "is advisable to make use of the dedicated entry type @mvproceedings."
 msgstr ""
+"Ein mehrbändiger @proceedings-Eintrag. Aus Gründen der "
+"Abwärtskompatibilität werden mehrbändige Konferenzbände auch vom "
+"Eintragstyp @proceedings unterstützt. Es ist jedoch empfehlenswert, den "
+"eigens dafür vorgesehenen Eintragstyp @mvproceedings zu verwenden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:62
 msgid "Article in Conference Proceedings"
@@ -515,6 +577,8 @@ msgid ""
 "An article in a conference proceedings. This type is similar to "
 "@incollection. It supports an optional <tt>organization</tt> field."
 msgstr ""
+"Ein Artikel in einem Konferenzband. Dieser Typ ist dem Typ @incollection "
+"ähnlich. Er unterstützt ein optionales Feld <tt>organization</tt>."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:63
 msgid ""
@@ -522,6 +586,10 @@ msgid ""
 "This is a more specific variant of the generic @collection entry type. The "
 "standard styles will treat this entry type as an alias for @collection."
 msgstr ""
+"Ein einbändiges Nachschlagewerk wie eine Enzyklopädie oder ein Wörterbuch. "
+"Dies ist eine spezifischere Variante des allgemeinen Eintragstyps "
+"@collection. Die Standardstile behandeln diesen Eintragstyp als Alias für "
+"@collection."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:64
 msgid "Multi-volume Reference Entry"
@@ -534,6 +602,11 @@ msgid ""
 "volume references are also supported by the entry type @reference. However, "
 "it is advisable to make use of the dedicated entry type @mvreference."
 msgstr ""
+"Ein mehrbändiger @reference-Eintrag. Die Standardstile behandeln diesen "
+"Eintragstyp als Alias für @mvcollection. Aus Gründen der "
+"Abwärtskompatibilität werden mehrbändige Nachschlagewerke auch vom "
+"Eintragstyp @reference unterstützt. Es ist jedoch empfehlenswert, den "
+"eigens dafür vorgesehenen Eintragstyp @mvreference zu verwenden."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:65
 msgid "Article in a Reference"
@@ -545,6 +618,9 @@ msgid ""
 "generic @incollection entry type. The standard styles will treat this entry "
 "type as an alias for @incollection."
 msgstr ""
+"Ein Artikel in einem Nachschlagewerk. Dies ist eine spezifischere Variante "
+"des allgemeinen Eintragstyps @incollection. Die Standardstile behandeln "
+"diesen Eintragstyp als Alias für @incollection."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:66
 msgid "Report"
@@ -557,6 +633,10 @@ msgid ""
 "the type of report. The sponsoring institution goes in the <tt>institution</"
 "tt> field."
 msgstr ""
+"Ein technischer Bericht, Forschungsbericht oder White Paper, herausgegeben "
+"von einer Universität oder einer anderen Institution. Nutzen Sie das Feld "
+"<tt>type</tt>, um die Art des Berichts anzugeben. Die fördernde Institution "
+"wird im Feld <tt>institution</tt> eingetragen."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:67
 msgid "Software"
@@ -579,6 +659,9 @@ msgid ""
 "A thesis written for an educational institution to satisfy the requirements "
 "for a degree. Use the <tt>type</tt> field to specify the type of thesis."
 msgstr ""
+"Eine für eine Bildungseinrichtung verfasste Abschlussarbeit, die die "
+"Anforderungen für einen akademischen Grad erfüllt. Nutzen Sie das Feld "
+"<tt>type</tt>, um die Art der Arbeit anzugeben."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:69
 msgid "Unpublished"
@@ -591,6 +674,10 @@ msgid ""
 "<tt>howpublished</tt> and <tt>note</tt> to supply additional information in "
 "free format, if applicable."
 msgstr ""
+"Ein Werk mit Autor und Titel, das nicht formell veröffentlicht wurde, wie "
+"etwa ein Manuskript oder das Skript eines Vortrags. Nutzen Sie die Felder "
+"<tt>howpublished</tt> und <tt>note</tt>, um zusätzliche Informationen in "
+"freier Form anzugeben, falls zutreffend."
 
 #: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:154
 msgid "Create a new BibTeX Entry"
@@ -1272,7 +1359,7 @@ msgstr "Hilfe anzeigen"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:54
 msgid "Show document structure panel"
-msgstr ""
+msgstr "Dokumentstruktur anzeigen"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:55
 msgid "Show symbols panel"
@@ -1292,7 +1379,7 @@ msgstr "Vorschau anzeigen"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:59
 msgid "Show global menu"
-msgstr ""
+msgstr "Hauptmenü anzeigen"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:60
 msgid "Show keyboard shortcuts"
@@ -1522,6 +1609,10 @@ msgid ""
 "\n"
 "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 msgstr ""
+"Kein LaTeX-Interpreter gefunden. Um Interpreter in Flatpak zu installieren, "
+"öffnen Sie ein Terminal und führen Sie folgendes Kommando aus:\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:138
 msgid ""
@@ -1538,6 +1629,9 @@ msgid ""
 "Please note: the Tectonic backend uses only the V1 command-line interface. "
 "Tectonic.toml configuration files are ignored."
 msgstr ""
+"Bitte beachten Sie: Das Tectonic-Backend verwendet ausschließlich die "
+"V1-Befehlszeilenschnittstelle. Tectonic.toml-Konfigurationsdateien werden "
+"ignoriert."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:178
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
@@ -1650,7 +1744,7 @@ msgstr "Bestimme die Satzschrift des Editors:"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:268
 msgid "UI Colors"
-msgstr ""
+msgstr "Benutzeroberflächenfarben"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:274
 msgid "Default"
@@ -1675,11 +1769,11 @@ msgstr "Editorfarben"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:309
 msgid "Remove active scheme"
-msgstr ""
+msgstr "Aktives Schema entfernen"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:312
 msgid "Add from file…"
-msgstr ""
+msgstr "Aus Datei hinzufügen…"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:317
 msgid "Preview"
@@ -1688,7 +1782,7 @@ msgstr "Vorschau"
 #: setzer/dialogs/preferences/pages/page_font_color.py:369
 #: setzer/dialogs/preferences/pages/page_font_color.py:375
 msgid "_Add Scheme"
-msgstr ""
+msgstr "_Schema hinzufügen"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:370
 msgid "Add Scheme"
@@ -1696,7 +1790,7 @@ msgstr "Schema hinzufügen"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:382
 msgid "Color Scheme Files"
-msgstr ""
+msgstr "FarbSchema-Dateien"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:410
 #, python-brace-format
@@ -1710,7 +1804,7 @@ msgstr "Wollen Sie das wirklich tun?"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:414
 msgid "_Yes, remove it"
-msgstr ""
+msgstr "_Ja, entfernen"
 
 #: setzer/dialogs/preferences/preferences.py:51
 msgid "Build System"
@@ -1971,13 +2065,12 @@ msgstr "(Nichts)"
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:50
 msgid "Choose File"
-msgstr ""
+msgstr "Datei wählen"
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:75
 #: setzer/widgets/filechooser_button/filechooser_button.py:82
-#, fuzzy
 msgid "_Select"
-msgstr "Textauswahl"
+msgstr "_Auswählen"
 
 #: setzer/workspace/build_log/build_log_presenter.py:131
 #, python-brace-format
@@ -2046,14 +2139,12 @@ msgstr ""
 "Hauptdokument typischerweise mehrere Subdokumente einbindet."
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:45
-#, fuzzy
 msgid "Toggle document structure"
-msgstr "Aus- / Entkommentieren"
+msgstr "Dokumentstruktur anzeigen / verbergen"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:50
-#, fuzzy
 msgid "Toggle symbols"
-msgstr "Seitenleiste anzeigen / verbergen"
+msgstr "Symbole anzeigen / verbergen"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:78
 msgid "New LaTeX Document"
@@ -2655,7 +2746,7 @@ msgstr "Paket"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:95
 msgid "Recent"
-msgstr ""
+msgstr "Zuletzt verwendet"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:112
 msgid "Greek Letters"
@@ -2683,12 +2774,14 @@ msgstr "Verschiedene Symbole"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:31
 msgid "Write beautiful LaTeX documents with ease!"
-msgstr ""
+msgstr "Schreiben Sie mühelos schöne LaTeX-Dokumente!"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:34
 msgid ""
 "Click the open or create buttons in the headerbar above to start editing."
 msgstr ""
+"Klicken Sie auf die Schaltflächen zum Öffnen oder Erstellen in der "
+"Kopfbalkenleiste oben, um mit dem Bearbeiten zu beginnen."
 
 #: setzer/workspace/workspace.py:120
 #, python-brace-format
@@ -2753,7 +2846,7 @@ msgstr "stellt die \\listings Umgebung für eingebetteten Code bereit."
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr "sellt zusätzliche Bibliotheks- und Zitierstile bereit."
+msgstr "stellt zusätzliche Literaturverzeichnis- und Zitierstile bereit."
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
@@ -2776,7 +2869,6 @@ msgid "set transparency for sections in your document."
 msgstr "transparente Abschnitte."
 
 #: data/resources/latexdb/packages/general.xml:26
-#, fuzzy
 msgid "type urls with the \\\\url{..} command without escaping them."
 msgstr "URLs schreiben mit dem \\url{..} Befehl."
 
@@ -2897,7 +2989,7 @@ msgstr "Interlingua"
 
 #: data/resources/document_wizard/languages.xml:39
 msgid "Irish Gaelic"
-msgstr ""
+msgstr "Irisches Gälisch"
 
 #: data/resources/document_wizard/languages.xml:40
 msgid "Latin"
@@ -2930,7 +3022,7 @@ msgstr "Rumänisch"
 
 #: data/resources/document_wizard/languages.xml:48
 msgid "Scottish Gaelic"
-msgstr ""
+msgstr "Schottisches Gälisch"
 
 #: data/resources/document_wizard/languages.xml:49
 msgid "Slovakian"

@@ -203,21 +203,21 @@ msgstr "Citação (ano com colchetes)"
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:65
 #, python-brace-format
 msgid "Cite '{label}' (BibLaTeX)"
-msgstr ""
+msgstr "Citar '{label}' (BibLaTeX)"
 
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:63
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:65
 msgid "BibLaTeX citation"
-msgstr ""
+msgstr "Citação BibLaTeX"
 
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:64
 #, python-brace-format
 msgid "Cite '{label}' (BibLaTeX, with brackets)"
-msgstr ""
+msgstr "Citar '{label}' (BibLaTeX, com colchetes)"
 
 #: setzer/app/autocomplete_provider/autocomplete_provider.py:64
 msgid "BibLaTeX citation (with brackets)"
-msgstr ""
+msgstr "Citação BibLaTeX (com colchetes)"
 
 #: setzer/dialogs/about/about.py:44
 msgid "Setzer is a LaTeX editor."
@@ -848,60 +848,61 @@ msgstr "_Recarregue do disco"
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43
 #, python-brace-format
 msgid "Document »{document}« was deleted from disk or moved."
-msgstr ""
+msgstr "Documento »{document}« foi excluído do disco ou movido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:44
 msgid ""
 "If you close it or close Setzer without saving, this document will be lost."
 msgstr ""
+"Se você fechá-lo ou fechar o Setzer sem salvar, este documento será perdido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:46
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:310
 msgid "Your name"
-msgstr ""
+msgstr "Seu nome"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:310
 msgid "Your address"
-msgstr ""
+msgstr "Seu endereço"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:310
 msgid "Your phone number"
-msgstr ""
+msgstr "Seu número de telefone"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:316
 msgid "Destination"
-msgstr ""
+msgstr "Destinatário"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:316
 msgid "Address of the destination"
-msgstr ""
+msgstr "Endereço do destinatário"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:316
 msgid "Phone number of the destination"
-msgstr ""
+msgstr "Número de telefone do destinatário"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:318
 msgid "Dear addressee,"
-msgstr ""
+msgstr "Prezado destinatário,"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:322
 msgid "Yours sincerely,"
-msgstr ""
+msgstr "Atenciosamente,"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:324
 msgid "Other destination"
-msgstr ""
+msgstr "Outro destinatário"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:325
 msgid "PS: PostScriptum"
-msgstr ""
+msgstr "PS: Postscriptum"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:326
 msgid "Enclosures"
-msgstr ""
+msgstr "Anexos"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:399
 msgid ""
@@ -980,6 +981,11 @@ msgid ""
 "This class on its own is pretty simplistic and is often used as a starting "
 "point for more custom layouts."
 msgstr ""
+"<b>Artigo:</b>  Para artigos em periódicos científicos, trabalhos acadêmicos, "
+"folhetos, relatórios curtos, …\n"
+"\n"
+"Esta classe por si só é bem simples e é frequentemente usada como ponto de "
+"partida para leiautes mais personalizados."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:83
 msgid "<b>Book:</b>  For actual books containing many chapters and sections."
@@ -1010,7 +1016,7 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:116
 msgid "Others…"
-msgstr ""
+msgstr "Outros…"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:136
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
@@ -1034,13 +1040,15 @@ msgstr "Data"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:164
 msgid "Language"
-msgstr ""
+msgstr "Língua"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:178
 msgid ""
 "The main language for this document. This is used to apply rules for "
 "hyphenation and other purposes."
 msgstr ""
+"A língua principal para este documento. É usada para aplicar regras de "
+"hifenização e outros propósitos."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
 msgid "Packages"
@@ -1055,6 +1063,8 @@ msgid ""
 "<b>AMS packages:</b> provide mathematical symbols, math-related "
 "environments, …"
 msgstr ""
+"<b>Pacotes AMS:</b> fornecem símbolos matemáticos, ambientes "
+"relacionados à matemática, …"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:225
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:226
@@ -1100,6 +1110,8 @@ msgid ""
 "define theorem environments (like \"definition\", \"lemma\", …) with custom "
 "styling."
 msgstr ""
+"definir ambientes de teoremas (como \"definição\", \"lema\", …) com estilo "
+"personalizado."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:233
 msgid "provides the \\listing environment for embedding programming code."
@@ -1245,6 +1257,10 @@ msgid ""
 "\n"
 "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 msgstr ""
+"Para instalar interpretadores no Flatpak, abra um terminal e execute o "
+"seguinte comando:\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:57
 #, python-brace-format
@@ -1316,7 +1332,7 @@ msgstr "Ferramentas"
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
 #: setzer/document/build_widget/build_widget_viewgtk.py:37
 msgid "Save and build .pdf-file from document"
-msgstr ""
+msgstr "Salvar e compilar arquivo .pdf a partir do documento"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
 msgid "Build .pdf-file from document"
@@ -1324,7 +1340,7 @@ msgstr "Compilar arquivo .pdf a partir do documento"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:49
 msgid "Show current position in preview"
-msgstr ""
+msgstr "Mostrar posição atual na pré-visualização"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:53
 msgid "Show help panel"
@@ -1332,11 +1348,11 @@ msgstr "Mostrar painel de ajuda"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:54
 msgid "Show document structure panel"
-msgstr ""
+msgstr "Mostrar painel de estrutura do documento"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:55
 msgid "Show symbols panel"
-msgstr ""
+msgstr "Mostrar painel de símbolos"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:56
 msgid "Spellchecking dialog"
@@ -1352,11 +1368,11 @@ msgstr "Mostrar painel de pré-visualização"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:59
 msgid "Show global menu"
-msgstr ""
+msgstr "Mostrar menu global"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:60
 msgid "Show keyboard shortcuts"
-msgstr ""
+msgstr "Mostrar atalhos de teclado"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
 msgid "Close Application"
@@ -1573,7 +1589,7 @@ msgstr "Sessão Setzer"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:126
 msgid "LaTeX Interpreter"
-msgstr ""
+msgstr "Interpretador LaTeX"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:134
 msgid ""
@@ -1582,6 +1598,10 @@ msgid ""
 "\n"
 "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 msgstr ""
+"Nenhum interpretador LaTeX encontrado. Para instalar interpretadores no "
+"Flatpak, abra um terminal e execute o seguinte comando:\n"
+"\n"
+"    flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:138
 msgid ""
@@ -1589,134 +1609,141 @@ msgid ""
 "href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en."
 "wikibooks.org/wiki/LaTeX/Installation</a>"
 msgstr ""
+"Nenhum interpretador LaTeX encontrado. Para instruções sobre como instalar o "
+"LaTeX, veja <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation"
+"\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:164
 msgid ""
 "Please note: the Tectonic backend uses only the V1 command-line interface. "
 "Tectonic.toml configuration files are ignored."
 msgstr ""
+"Observe: o backend Tectonic usa apenas a interface de linha de comando V1. "
+"Arquivos de configuração Tectonic.toml são ignorados."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:178
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
-msgstr ""
+msgstr "Remover automaticamente arquivos auxiliares (.log, .dvi, …) após compilar o .pdf."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:183
 msgid "Use Latexmk"
-msgstr ""
+msgstr "Usar Latexmk"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:188
 msgid "Automatically show build log .."
-msgstr ""
+msgstr "Mostrar o registro de compilação automaticamente.."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:193
 msgid ".. only when errors occurred."
-msgstr ""
+msgstr ".. apenas quando ocorrerem erros."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:194
 msgid ".. on errors and warnings."
-msgstr ""
+msgstr ".. em erros e avisos."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:195
 msgid ".. on errors, warnings and badboxes."
-msgstr ""
+msgstr ".. em erros, avisos e badboxes."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:204
 msgid "Embedded system commands"
-msgstr ""
+msgstr "Comandos de sistema embutidos"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:211
 msgid ""
 "Warning: enable this only if you have to. It can cause security problems "
 "when building files from untrusted sources."
 msgstr ""
+"Aviso: ative isto apenas se necessário. Pode causar problemas de segurança ao "
+"compilar arquivos de fontes não confiáveis."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:216
 msgid "Disable"
-msgstr ""
+msgstr "Desativar"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:217
 msgid "Enable restricted \\write18{SHELL COMMAND}"
-msgstr ""
+msgstr "Ativar restrito \\write18{COMANDO DO SHELL}"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:218
 msgid "Fully enable \\write18{SHELL COMMAND}"
-msgstr ""
+msgstr "Ativar totalmente \\write18{COMANDO DO SHELL}"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:65
 msgid "Tab Stops"
-msgstr ""
+msgstr "Paradas de Tabulação"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:70
 msgid "Insert spaces instead of tabs"
-msgstr ""
+msgstr "Inserir espaços em vez de tabulações"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:74
 msgid "Set Tab Width:"
-msgstr ""
+msgstr "Definir Largura da Tabulação:"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:85
 msgid "Line Numbers"
-msgstr ""
+msgstr "Números de Linha"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:90
 msgid "Show line numbers"
-msgstr ""
+msgstr "Mostrar números de linha"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:94
 msgid "Line Wrapping"
-msgstr ""
+msgstr "Quebra de Linha"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:99
 msgid "Enable line wrapping"
-msgstr ""
+msgstr "Ativar quebra de linha"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:103
 msgid "Code Folding"
-msgstr ""
+msgstr "Dobra de Código"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:108
 msgid "Enable code folding"
-msgstr ""
+msgstr "Ativar dobra de código"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:112
 msgid "Highlighting"
-msgstr ""
+msgstr "Realce"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:117
 msgid "Highlight current line"
-msgstr ""
+msgstr "Realçar linha atual"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:119
 msgid "Highlight matching brackets"
-msgstr ""
+msgstr "Realçar parênteses/colchetes correspondentes"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:240
 msgid "Font"
-msgstr ""
+msgstr "Fonte"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:247
 msgid "Use the system fixed width font ("
-msgstr ""
+msgstr "Usar a fonte de largura fixa do sistema ("
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:254
 msgid "Set Editor Font:"
-msgstr ""
+msgstr "Definir Fonte do Editor:"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:268
 msgid "UI Colors"
-msgstr ""
+msgstr "Cores da Interface"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:274
 msgid "Default"
-msgstr ""
+msgstr "Padrão"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:276
 msgid "Light Theme"
-msgstr ""
+msgstr "Tema Claro"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:278
 msgid "Dark Theme"
-msgstr ""
+msgstr "Tema Escuro"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:284
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:190
@@ -1725,37 +1752,37 @@ msgstr "Inverter Cores na Pré-Visualização .pdf"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:289
 msgid "Editor Colors"
-msgstr ""
+msgstr "Cores do Editor"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:309
 msgid "Remove active scheme"
-msgstr ""
+msgstr "Remover esquema ativo"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:312
 msgid "Add from file…"
-msgstr ""
+msgstr "Adicionar de arquivo…"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:317
 msgid "Preview"
-msgstr ""
+msgstr "Pré-visualização"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:369
 #: setzer/dialogs/preferences/pages/page_font_color.py:375
 msgid "_Add Scheme"
-msgstr ""
+msgstr "_Adicionar Esquema"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:370
 msgid "Add Scheme"
-msgstr ""
+msgstr "Adicionar Esquema"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:382
 msgid "Color Scheme Files"
-msgstr ""
+msgstr "Arquivos de Esquema de Cores"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:410
 #, python-brace-format
 msgid "Removing syntax scheme »{name}«."
-msgstr ""
+msgstr "Removendo esquema de sintaxe »{name}«."
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:412
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
@@ -1764,19 +1791,19 @@ msgstr "Quer realmente fazer isso?"
 
 #: setzer/dialogs/preferences/pages/page_font_color.py:414
 msgid "_Yes, remove it"
-msgstr ""
+msgstr "_Sim, removê-lo"
 
 #: setzer/dialogs/preferences/preferences.py:51
 msgid "Build System"
-msgstr ""
+msgstr "Sistema de Compilação"
 
 #: setzer/dialogs/preferences/preferences.py:52
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: setzer/dialogs/preferences/preferences.py:53
 msgid "Font & Colors"
-msgstr ""
+msgstr "Fontes e Cores"
 
 #: setzer/dialogs/preferences/preferences_viewgtk.py:40
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:174
@@ -1828,7 +1855,7 @@ msgstr "Limpar arquivos de compilação"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:33
 msgid "Undo"
-msgstr ""
+msgstr "Desfazer"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:33
 #: setzer/document/context_menu/context_menu_viewgtk.py:34
@@ -1865,7 +1892,7 @@ msgstr "Ctrl"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:34
 msgid "Redo"
-msgstr ""
+msgstr "Refazer"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:34
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:62
@@ -1887,49 +1914,49 @@ msgstr "Shift"
 #: setzer/document/context_menu/context_menu_viewgtk.py:35
 #: setzer/document/context_menu/context_menu_viewgtk.py:113
 msgid "Cut"
-msgstr ""
+msgstr "Recortar"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:36
 #: setzer/document/context_menu/context_menu_viewgtk.py:114
 msgid "Copy"
-msgstr ""
+msgstr "Copiar"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:37
 #: setzer/document/context_menu/context_menu_viewgtk.py:115
 msgid "Paste"
-msgstr ""
+msgstr "Colar"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:38
 #: setzer/document/context_menu/context_menu_viewgtk.py:116
 msgid "Delete"
-msgstr ""
+msgstr "Excluir"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:39
 #: setzer/document/context_menu/context_menu_viewgtk.py:117
 msgid "Select All"
-msgstr ""
+msgstr "Selecionar Tudo"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:60
 #: setzer/document/context_menu/context_menu_viewgtk.py:118
 msgid "Toggle Comment"
-msgstr ""
+msgstr "(Des)ativar Comentário"
 
 #: setzer/document/context_menu/context_menu_viewgtk.py:61
 #: setzer/document/context_menu/context_menu_viewgtk.py:119
 msgid "Show in Preview"
-msgstr ""
+msgstr "Mostrar na Pré-visualização"
 
 #: setzer/document/preview/paging_widget/paging_widget.py:67
 msgid "Page "
-msgstr ""
+msgstr "Página "
 
 #: setzer/document/preview/paging_widget/paging_widget.py:70
 msgid " of "
-msgstr ""
+msgstr " de "
 
 #: setzer/document/preview/preview_controller.py:122
 msgid "Go to page "
-msgstr ""
+msgstr "Ir para a página "
 
 #: setzer/document/preview/preview_viewgtk.py:36
 msgid "External Viewer"
@@ -1980,11 +2007,11 @@ msgstr "Definir nível de zoom"
 
 #: setzer/document/search/search_viewgtk.py:53
 msgid "Previous result"
-msgstr ""
+msgstr "Resultado anterior"
 
 #: setzer/document/search/search_viewgtk.py:56
 msgid "Next result"
-msgstr ""
+msgstr "Próximo resultado"
 
 #: setzer/document/search/search_viewgtk.py:57
 msgid "Replace"
@@ -2021,16 +2048,16 @@ msgstr "Novo Documento com Passo a Passo"
 #: setzer/widgets/filechooser_button/filechooser_button.py:34
 #: setzer/widgets/filechooser_button/filechooser_button.py:59
 msgid "(None)"
-msgstr ""
+msgstr "(Nenhum)"
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:50
 msgid "Choose File"
-msgstr ""
+msgstr "Escolher Arquivo"
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:75
 #: setzer/widgets/filechooser_button/filechooser_button.py:82
 msgid "_Select"
-msgstr ""
+msgstr "_Selecionar"
 
 #: setzer/workspace/build_log/build_log_presenter.py:131
 #, python-brace-format
@@ -2069,19 +2096,19 @@ msgstr "Outros Documentos"
 
 #: setzer/workspace/document_switcher/document_switcher_viewgtk.py:59
 msgid "Welcome to Setzer"
-msgstr ""
+msgstr "Bem-vindo ao Setzer"
 
 #: setzer/workspace/document_switcher/document_switcher_viewgtk.py:107
 msgid "Set one Document as Root"
-msgstr ""
+msgstr "Definir um Documento como Raiz"
 
 #: setzer/workspace/document_switcher/document_switcher_viewgtk.py:113
 msgid "Unset Root Document"
-msgstr ""
+msgstr "Cancelar Documento Raiz"
 
 #: setzer/workspace/document_switcher/document_switcher_viewgtk.py:119
 msgid "Click on a document in the list below to set it as root."
-msgstr ""
+msgstr "Clique em um documento na lista abaixo para defini-lo como raiz."
 
 #: setzer/workspace/document_switcher/document_switcher_viewgtk.py:123
 msgid ""
@@ -2092,14 +2119,20 @@ msgid ""
 "a top level document (the root) will contain multiple lower\n"
 "level files via include statements."
 msgstr ""
+"O documento raiz será compilado, não importa qual documento\n"
+"você estiver editando no momento, e ele sempre será exibido na\n"
+"pré-visualização do .pdf. O registro de compilação também se\n"
+"referirá ao documento raiz. Isso é frequentemente útil ao trabalhar\n"
+"em grandes projetos onde tipicamente um documento de nível superior\n"
+"(a raiz) conterá múltiplos arquivos de nível inferior via comandos include."
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:45
 msgid "Toggle document structure"
-msgstr ""
+msgstr "(Des)ativar estrutura do documento"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:50
 msgid "Toggle symbols"
-msgstr ""
+msgstr "(Des)ativar símbolos"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:78
 msgid "New LaTeX Document"
@@ -2289,27 +2322,27 @@ msgstr "Data de Hoje"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:137
 msgid "Beamer"
-msgstr ""
+msgstr "Beamer"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:153
 msgid "Hide Navigation"
-msgstr ""
+msgstr "Ocultar Navegação"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:155
 msgid "Title Page"
-msgstr ""
+msgstr "Página de Título"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:158
 msgid "Frame"
-msgstr ""
+msgstr "Quadro"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:159
 msgid "Frame with Title"
-msgstr ""
+msgstr "Quadro com Título"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:160
 msgid "\\frametitle"
-msgstr ""
+msgstr "\\frametitle"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:170
 msgid "Bibliography"
@@ -2657,11 +2690,11 @@ msgstr "Listagem de Código"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:500
 msgid "Url (\\url)"
-msgstr ""
+msgstr "URL (\\url)"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:501
 msgid "Hyperlink (\\href)"
-msgstr ""
+msgstr "Hiperlink (\\href)"
 
 #: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:509
 msgid "Include 'listings' Package"
@@ -2677,23 +2710,23 @@ msgstr "Texto Simples"
 
 #: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:30
 msgid "These counts are updated after the document is saved."
-msgstr ""
+msgstr "Estas contagens são atualizadas após o documento ser salvo."
 
 #: setzer/workspace/sidebar/sidebar.py:53
 msgid "Document Structure"
-msgstr ""
+msgstr "Estrutura do Documento"
 
 #: setzer/workspace/sidebar/sidebar.py:57
 msgid "Labels"
-msgstr ""
+msgstr "Indicadores"
 
 #: setzer/workspace/sidebar/sidebar.py:61
 msgid "To-Dos"
-msgstr ""
+msgstr "Tarefas"
 
 #: setzer/workspace/sidebar/sidebar.py:65
 msgid "Document Stats"
-msgstr ""
+msgstr "Estatísticas do Documento"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:118
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:186
@@ -2702,7 +2735,7 @@ msgstr "Pacote"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:95
 msgid "Recent"
-msgstr ""
+msgstr "Recentes"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:112
 msgid "Greek Letters"
@@ -2730,12 +2763,13 @@ msgstr "Diverso, Símbolos"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:31
 msgid "Write beautiful LaTeX documents with ease!"
-msgstr ""
+msgstr "Escreva belos documentos LaTeX com facilidade!"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:34
 msgid ""
 "Click the open or create buttons in the headerbar above to start editing."
 msgstr ""
+"Clique nos botões abrir ou criar na barra de topo acima para começar a editar."
 
 #: setzer/workspace/workspace.py:120
 #, python-brace-format
@@ -2744,85 +2778,87 @@ msgstr "Documento sem Título {number}"
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
-msgstr ""
+msgstr "fontes matemáticas adicionais da AMS."
 
 #: data/resources/latexdb/packages/general.xml:3
 msgid "mathematics package from AMS."
-msgstr ""
+msgstr "pacote de matemática da AMS."
 
 #: data/resources/latexdb/packages/general.xml:4
 msgid "mathematical symbols from AMS."
-msgstr ""
+msgstr "símbolos matemáticos da AMS."
 
 #: data/resources/latexdb/packages/general.xml:5
 msgid "math theorems setting package from AMS."
-msgstr ""
+msgstr "pacote de configuração de teoremas matemáticos da AMS."
 
 #: data/resources/latexdb/packages/general.xml:6
 msgid "multilingual documents."
-msgstr ""
+msgstr "documentos multilíngues."
 
 #: data/resources/latexdb/packages/general.xml:7
 msgid "dirac braket and set notations."
-msgstr ""
+msgstr "notações bra-ket de Dirac e de conjuntos."
 
 #: data/resources/latexdb/packages/general.xml:8
 msgid "bibliographies in LaTeX."
-msgstr ""
+msgstr "bibliografias em LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:9
 msgid "simple arithmetic in LaTeX commands."
-msgstr ""
+msgstr "aritmética simples em comandos LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:10
 msgid "foreground and background colors."
-msgstr ""
+msgstr "cores de primeiro plano e de fundo."
 
 #: data/resources/latexdb/packages/general.xml:11
 msgid "colored tables."
-msgstr ""
+msgstr "tabelas coloridas."
 
 #: data/resources/latexdb/packages/general.xml:12
 msgid "enumerate with redefinable labels."
-msgstr ""
+msgstr "enumeração com indicadores redefiníveis."
 
 #: data/resources/latexdb/packages/general.xml:13
 msgid "interface to document dimensions."
-msgstr ""
+msgstr "interface para dimensões do documento."
 
 #: data/resources/latexdb/packages/general.xml:17
 msgid "conditional commands."
-msgstr ""
+msgstr "comandos condicionais."
 
 #: data/resources/latexdb/packages/general.xml:18
 msgid "provides a listing environment for embedding programming code."
-msgstr ""
+msgstr "fornece um ambiente listing para embutir código de programação."
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr ""
+msgstr "fornece estilos adicionais de bibliografia e de citação."
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
-msgstr ""
+msgstr "criar gráficos em duas e três dimensões."
 
 #: data/resources/latexdb/packages/general.xml:23
 msgid ""
 "define theorem environments (like &quot;definition&quot;, &quot;lemma&quot;, "
 "…) with custom styling."
 msgstr ""
+"definir ambientes de teoremas (como &quot;definição&quot;, &quot;lema&quot;, "
+"…) com estilo personalizado."
 
 #: data/resources/latexdb/packages/general.xml:24
 msgid "graphics and plotting."
-msgstr ""
+msgstr "gráficos e plotagem."
 
 #: data/resources/latexdb/packages/general.xml:25
 msgid "set transparency for sections in your document."
-msgstr ""
+msgstr "definir transparência para seções no seu documento."
 
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
+msgstr "digitar urls com o comando \\\\url{..} sem escapá-las."
 
 #: data/resources/document_wizard/languages.xml:2
 #: data/resources/document_wizard/languages.xml:20
@@ -2831,179 +2867,179 @@ msgstr ""
 #: data/resources/document_wizard/languages.xml:23
 #: data/resources/document_wizard/languages.xml:24
 msgid "English"
-msgstr ""
+msgstr "Inglês"
 
 #: data/resources/document_wizard/languages.xml:3
 msgid "Spanish"
-msgstr ""
+msgstr "Espanhol"
 
 #: data/resources/document_wizard/languages.xml:4
 #: data/resources/document_wizard/languages.xml:28
 msgid "French"
-msgstr ""
+msgstr "Francês"
 
 #: data/resources/document_wizard/languages.xml:5
 msgid "Russian"
-msgstr ""
+msgstr "Russo"
 
 #: data/resources/document_wizard/languages.xml:6
 #: data/resources/document_wizard/languages.xml:7
 msgid "Portuguese"
-msgstr ""
+msgstr "Português"
 
 #: data/resources/document_wizard/languages.xml:8
 #: data/resources/document_wizard/languages.xml:30
 #: data/resources/document_wizard/languages.xml:31
 #: data/resources/document_wizard/languages.xml:32
 msgid "German"
-msgstr ""
+msgstr "Alemão"
 
 #: data/resources/document_wizard/languages.xml:9
 msgid "Italian"
-msgstr ""
+msgstr "Italiano"
 
 #: data/resources/document_wizard/languages.xml:10
 msgid "Afrikaans"
-msgstr ""
+msgstr "Africâner"
 
 #: data/resources/document_wizard/languages.xml:11
 msgid "Azerbaijani"
-msgstr ""
+msgstr "Azerbaijano"
 
 #: data/resources/document_wizard/languages.xml:12
 msgid "Basque"
-msgstr ""
+msgstr "Basco"
 
 #: data/resources/document_wizard/languages.xml:13
 msgid "Breton"
-msgstr ""
+msgstr "Bretão"
 
 #: data/resources/document_wizard/languages.xml:14
 msgid "Bulgarian"
-msgstr ""
+msgstr "Búlgaro"
 
 #: data/resources/document_wizard/languages.xml:15
 msgid "Catalan"
-msgstr ""
+msgstr "Catalão"
 
 #: data/resources/document_wizard/languages.xml:16
 msgid "Croatian"
-msgstr ""
+msgstr "Croata"
 
 #: data/resources/document_wizard/languages.xml:17
 msgid "Czech"
-msgstr ""
+msgstr "Tcheco"
 
 #: data/resources/document_wizard/languages.xml:18
 msgid "Danish"
-msgstr ""
+msgstr "Dinamarquês"
 
 #: data/resources/document_wizard/languages.xml:19
 msgid "Dutch"
-msgstr ""
+msgstr "Holandês"
 
 #: data/resources/document_wizard/languages.xml:25
 msgid "Esperanto"
-msgstr ""
+msgstr "Esperanto"
 
 #: data/resources/document_wizard/languages.xml:26
 msgid "Estonian"
-msgstr ""
+msgstr "Estoniano"
 
 #: data/resources/document_wizard/languages.xml:27
 msgid "Finnish"
-msgstr ""
+msgstr "Finlandês"
 
 #: data/resources/document_wizard/languages.xml:29
 msgid "Galician"
-msgstr ""
+msgstr "Galego"
 
 #: data/resources/document_wizard/languages.xml:33
 #: data/resources/document_wizard/languages.xml:34
 msgid "Greek"
-msgstr ""
+msgstr "Grego"
 
 #: data/resources/document_wizard/languages.xml:35
 msgid "Hebrew"
-msgstr ""
+msgstr "Hebraico"
 
 #: data/resources/document_wizard/languages.xml:36
 msgid "Icelandic"
-msgstr ""
+msgstr "Islandês"
 
 #: data/resources/document_wizard/languages.xml:37
 msgid "Indonesian"
-msgstr ""
+msgstr "Indonésio"
 
 #: data/resources/document_wizard/languages.xml:38
 msgid "Interlingua"
-msgstr ""
+msgstr "Interlíngua"
 
 #: data/resources/document_wizard/languages.xml:39
 msgid "Irish Gaelic"
-msgstr ""
+msgstr "Gaélico Irlandês"
 
 #: data/resources/document_wizard/languages.xml:40
 msgid "Latin"
-msgstr ""
+msgstr "Latim"
 
 #: data/resources/document_wizard/languages.xml:41
 msgid "Lower Sorbian"
-msgstr ""
+msgstr "Sórbio Baixo"
 
 #: data/resources/document_wizard/languages.xml:42
 msgid "Malay"
-msgstr ""
+msgstr "Malaio"
 
 #: data/resources/document_wizard/languages.xml:43
 msgid "Northern Sami"
-msgstr ""
+msgstr "Sami do Norte"
 
 #: data/resources/document_wizard/languages.xml:44
 #: data/resources/document_wizard/languages.xml:45
 msgid "Norwegian"
-msgstr ""
+msgstr "Norueguês"
 
 #: data/resources/document_wizard/languages.xml:46
 msgid "Polish"
-msgstr ""
+msgstr "Polonês"
 
 #: data/resources/document_wizard/languages.xml:47
 msgid "Romanian"
-msgstr ""
+msgstr "Romeno"
 
 #: data/resources/document_wizard/languages.xml:48
 msgid "Scottish Gaelic"
-msgstr ""
+msgstr "Gaélico Escocês"
 
 #: data/resources/document_wizard/languages.xml:49
 msgid "Slovakian"
-msgstr ""
+msgstr "Eslovaco"
 
 #: data/resources/document_wizard/languages.xml:50
 msgid "Slovenian"
-msgstr ""
+msgstr "Esloveno"
 
 #: data/resources/document_wizard/languages.xml:51
 msgid "Swedish"
-msgstr ""
+msgstr "Sueco"
 
 #: data/resources/document_wizard/languages.xml:52
 msgid "Serbian"
-msgstr ""
+msgstr "Sérvio"
 
 #: data/resources/document_wizard/languages.xml:53
 msgid "Turkish"
-msgstr ""
+msgstr "Turco"
 
 #: data/resources/document_wizard/languages.xml:54
 msgid "Ukrainian"
-msgstr ""
+msgstr "Ucraniano"
 
 #: data/resources/document_wizard/languages.xml:55
 msgid "Upper Sorbian"
-msgstr ""
+msgstr "Sórbio Alto"
 
 #: data/resources/document_wizard/languages.xml:56
 msgid "Welsh"
-msgstr ""
+msgstr "Galês"
