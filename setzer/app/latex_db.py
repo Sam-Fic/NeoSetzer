@@ -210,7 +210,11 @@ class LaTeXDB():
         return commands
 
     def parse_included_files():
-        workspace = ServiceLocator.get_workspace()
+        # 直接读 ServiceLocator.workspace 属性，而非调用 get_workspace()：
+        # 后者在 workspace 尚未注入时会主动发出 RuntimeWarning（init-order
+        # bug 提示）。此处只是早期守护，workspace 为 None 时安全跳过，
+        # 不应制造噪声。
+        workspace = ServiceLocator.workspace
         if workspace == None: return
 
         def get_file_dict(filename):
