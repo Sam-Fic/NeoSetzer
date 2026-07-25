@@ -124,6 +124,12 @@ class PageAppearanceColors(object):
         self.view.preview_width_scale.set_value(int(fraction * 100))
         self.view.preview_width_scale.connect('value-changed', self.on_preview_width_changed)
 
+        # recolor_pdf
+        self.view.option_recolor_pdf.set_active(
+            self.settings.get_value('preferences', 'recolor_pdf'))
+        self.view.option_recolor_pdf.connect(
+            'notify::active', self.on_recolor_pdf_toggled)
+
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
     # ---- theme ----
@@ -222,6 +228,9 @@ class PageAppearanceColors(object):
         if self.main_window is not None:
             self.main_window.preview_split.set_sidebar_width_fraction(fraction)
 
+    def on_recolor_pdf_toggled(self, switch, pspec=None):
+        self.settings.set_value('preferences', 'recolor_pdf', switch.get_active())
+
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
             heading=_('Reset to Defaults?'),
@@ -254,6 +263,7 @@ class PageAppearanceColors(object):
             self.view.line_spacing_spin.set_value(defaults['line_spacing'])
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
+            self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
             self.preferences.page_editor.on_reset_clicked(None)
 
 
@@ -357,6 +367,15 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.preview_width_row.set_subtitle(_('Percentage of the window width allocated to the PDF preview.'))
         self.preview_width_row.add_suffix(self.preview_width_scale)
         group_preview.add(self.preview_width_row)
+
+        # 预览 PDF 配色随主题：深色模式下把 PDF 前景/背景重着色以匹配编辑器
+        # 深浅色（recolor_pdf）。该值在 preview 工具栏有快速切换按钮，此处暴露
+        # 为偏好以便持久化与重置。
+        self.option_recolor_pdf = Adw.SwitchRow()
+        self.option_recolor_pdf.set_title(_('Match PDF colors to theme'))
+        self.option_recolor_pdf.set_subtitle(
+            _('Recolor the PDF preview to match the light/dark theme.'))
+        group_preview.add(self.option_recolor_pdf)
 
         group_reset = Adw.PreferencesGroup()
         # 标记以便 PreferencesDialog.setup() 在合并 Editor 组后将其重置按钮
