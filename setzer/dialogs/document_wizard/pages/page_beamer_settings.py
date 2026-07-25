@@ -133,6 +133,9 @@ class BeamerSettingsPageView(PageView):
             self.themes_list_rows[name] = row
             self.themes_list.prepend(row)
         self.themes_list.set_vexpand(False)
+        # 内嵌滚动窗口定高，列表滚到底时最后一项需底部留白，
+        # 否则紧贴 230px 窗口底边（与 page.py wrap_content 修复同因）。
+        self.themes_list.set_margin_bottom(18)
         self.themes_list_scrolled_window.set_child(self.themes_list)
 
         self.group_options = Adw.PreferencesGroup()

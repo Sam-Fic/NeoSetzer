@@ -57,6 +57,7 @@ class AddRemovePackagesDialogView(DialogView):
         self.add_scrolled_window = Gtk.ScrolledWindow()
         self.add_scrolled_window.set_size_request(-1, 200)
         self.add_scrolled_window.set_vexpand(False)
+        self.add_list.set_margin_bottom(18)
         self.add_scrolled_window.set_child(self.add_list)
         self.add_group.add(self.add_scrolled_window)
 
@@ -79,6 +80,7 @@ class AddRemovePackagesDialogView(DialogView):
         self.remove_scrolled_window = Gtk.ScrolledWindow()
         self.remove_scrolled_window.set_size_request(-1, 200)
         self.remove_scrolled_window.set_vexpand(False)
+        self.remove_list.set_margin_bottom(18)
         self.remove_scrolled_window.set_child(self.remove_list)
         self.remove_group.add(self.remove_scrolled_window)
 

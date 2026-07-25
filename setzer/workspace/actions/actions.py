@@ -192,6 +192,7 @@ class Actions(object):
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
         self.actions['save-as'].set_enabled(document_active)
+        self.actions['print'].set_enabled(document_active)
         self.actions['save-all'].set_enabled(len(self.workspace.get_unsaved_documents()) > 0)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['redo'].set_enabled(document_active and document.source_buffer.get_can_redo())
