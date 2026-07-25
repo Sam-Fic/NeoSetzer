@@ -19,7 +19,6 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
-from setzer.widgets.fixed_width_label.fixed_width_label import FixedWidthLabel
 from setzer.popovers.popover_manager import PopoverManager
 
 
@@ -44,13 +43,13 @@ class PreviewPanelView(Gtk.Box):
         self.add_css_class('preview')
 
         # ---- 顶部内嵌工具栏（与左侧栏 .sidebar-toolbar 统一外观）----
-        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
 
         # 左侧：page xx of xx（类似左侧栏的 section_label，dim-label 灰化）
-        self.paging_label = FixedWidthLabel(100)
+        self.paging_label = Gtk.Label()
         self.paging_label.set_xalign(0)
         self.paging_label.add_css_class('dim-label')
         self.paging_label.set_halign(Gtk.Align.START)
@@ -64,7 +63,9 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_out_button.set_can_focus(False)
         self.toolbar.append(self.zoom_out_button)
 
-        self.zoom_level_label = FixedWidthLabel(66)
+        self.zoom_level_label = Gtk.Label()
+        self.zoom_level_label.set_xalign(0.5)
+        self.zoom_level_label.set_halign(Gtk.Align.CENTER)
         self.zoom_level_button = Gtk.MenuButton()
         self.zoom_level_button.set_popover(PopoverManager.create_popover('preview_zoom_level').view)
         self.zoom_level_button.set_can_focus(False)
