@@ -34,3 +34,9 @@ build
 
 # Gettext compiled translations
 *.mo
+
+# Packaging artifacts
+*.deb
+*.rpm
+*.tar.xz
+AppDir/
