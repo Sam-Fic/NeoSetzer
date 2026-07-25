@@ -130,6 +130,26 @@ class StructureSection(object):
             self._last_highlight_line = None
             self._next_highlight_line = None
 
+    def _append_include_blocks(self, inc, blocks):
+        '''将一个 include 的 blocks 追加到 blocks 列表。
+
+        include 有两种情况：
+        - ``inc['document']`` 非 None：include 的文档已打开，从其 parser
+          取 blocks 并追加。每个 block 追加 document 引用到 block[6]
+          （长度 < 7 时 append，幂等防重复追加）。
+        - ``inc['document']`` 为 None：include 文件未打开（找不到/未加载），
+          创建 file_block 占位。用 inc['offset'] 作为 block[0] 保证唯一性
+          （原代码 block[0]=0 导致多个 file_block 在 sections dict 中互相覆盖）。
+        '''
+        if inc['document'] is not None:
+            for block_included in inc['document'].parser.symbols['blocks']:
+                if len(block_included) < 7:
+                    block_included.append(inc['document'])
+                blocks.append(block_included)
+        else:
+            file_block = [inc['offset'], 0, 0, 0, 'file', inc['filename'], inc['document']]
+            blocks.append(file_block)
+
     #@timer
     def update_items(self, *params):
         sections = dict()
@@ -141,35 +161,18 @@ class StructureSection(object):
         include_count = len(includes)
         blocks = list()
         for block in self.data_provider.document.parser.symbols['blocks']:
+            # 处理 offset 在当前 block 之前的 include（按文档顺序交错合并）。
             while include_idx < include_count and includes[include_idx]['offset'] < block[0]:
-                inc = includes[include_idx]
-                if inc['document'] != None:
-                    for block_included in inc['document'].parser.symbols['blocks']:
-                        if len(block_included) < 7:
-                            block_included.append(inc['document'])
-                        blocks.append(block_included)
-                else:
-                    # file_block 用 include 的 offset 作为 block[0]，使每个
-                    # include 的 file_block 有唯一 offset。原代码 block[0]=0
-                    # 导致下方 sections dict 以 block[2](=0) 为 key 时多个
-                    # include 互相覆盖，结构视图只显示最后一个 include。
-                    file_block = [inc['offset'], 0, 0, 0, 'file', inc['filename'], inc['document']]
-                    blocks.append(file_block)
+                self._append_include_blocks(includes[include_idx], blocks)
                 include_idx += 1
             if len(block) < 7:
                 block.append(self.data_provider.document)
             blocks.append(block)
 
+        # 处理所有 block 之后的尾部 include（报告曾误判为死代码，实则必要：
+        # 没有 block 的 offset 大于这些 include 时，上面的内层 while 不会处理它们）。
         while include_idx < include_count:
-            inc = includes[include_idx]
-            if inc['document'] != None:
-                for block in inc['document'].parser.symbols['blocks']:
-                    if len(block) < 7:
-                        block.append(inc['document'])
-                    blocks.append(block)
-            else:
-                file_block = [inc['offset'], 0, 0, 0, 'file', inc['filename'], inc['document']]
-                blocks.append(file_block)
+            self._append_include_blocks(includes[include_idx], blocks)
             include_idx += 1
 
         last_line = -1
@@ -185,7 +188,9 @@ class StructureSection(object):
         current_level = 0
         nodes = list()
         nodes_in_line = list()
-        predecessor = {0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None}
+        # 动态生成 predecessor 字典：levels 有 N 个层级就初始化 N 个 None，
+        # 避免硬编码 8 个后新增层级时遗漏更新。
+        predecessor = {i: None for i in range(len(self.levels))}
         for section in sections.values():
             section_type = section['block'][4]
             level = self.levels[section_type]
@@ -196,7 +201,7 @@ class StructureSection(object):
                 predecessor[level]['children'].append(node)
             nodes_in_line.append(node)
 
-            for i in range(level + 1, 8):
+            for i in range(level + 1, len(self.levels)):
                 predecessor[i] = node
 
         self.nodes_in_line = nodes_in_line

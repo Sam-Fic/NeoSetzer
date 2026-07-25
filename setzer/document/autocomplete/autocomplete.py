@@ -47,6 +47,10 @@ class Autocomplete(object):
         self.last_tabbed_item = None
         self.first_item_index = None
         self.selected_item_index = None
+        # LaTeXDB 解析错误标志：当 last_parse_error 非空且当前是 \ref/\cite
+        # 动态查询时为 True。view 据此在补全列表底部显示"标签数据库不可用"
+        # 提示行（UX 报告 #8）。items 为空时也保持激活，使提示行可见。
+        self.db_error = False
 
         # suggestions 缓存键 + idle 去抖。
         # 1) 缓存：update_suggestions 在 is_active 时由 on_document_change +
@@ -170,6 +174,7 @@ class Autocomplete(object):
         self.last_tabbed_item = None
         self.first_item_index = None
         self.selected_item_index = None
+        self.db_error = False
         # 清空缓存键与挂起的 idle 回调，避免 deactivate 后 idle 仍跑
         # update_suggestions（is_active=False 时虽会早退，但残留 id 会阻止
         # 下次激活期间新的 idle 调度，导致补全列表不刷新）。
@@ -190,6 +195,14 @@ class Autocomplete(object):
 
         self.current_word = line_before_cursor[self.current_word_offset - line_offset:]
 
+        # 刷新 db_error 标志：LaTeXDB.last_parse_error 是外部状态，可能在
+        # current_word 未变时改变（如构建完成后 idle 刷新触发 parse）。每次
+        # update_suggestions 都重新求值，不依赖 items 缓存。
+        # 仅对 \ref/\cite 动态查询设标志——静态命令补全（\section 等）来自
+        # XML，不受 parse 错误影响，不需要提示。
+        self.db_error = (LaTeXDB.last_parse_error is not None and
+                         LaTeXDB.is_dynamic_query(self.current_word))
+
         # 缓存命中：current_word 与 last_tabbed_item 都未变时（例如 queue_draw
         # 链路重复触发、或 idle 与直接调用同帧到达），LaTeXDB.get_items 结果
         # 必然相同，跳过遍历。current_word 是从 cursor 位置派生的，光标在词内
@@ -203,17 +216,26 @@ class Autocomplete(object):
             if len(self.items) > 0:
                 self.first_item_index = 0
                 self.selected_item_index = 0
+            elif self.db_error:
+                # \ref/\cite 查询无结果且 LaTeXDB 解析失败：保持激活，
+                # 让 view 显示"标签数据库不可用"提示行。设索引为 0 使
+                # populate() 不因 None 检查提前返回（items 为空时不会
+                # 渲染任何命令行，仅渲染错误提示行）。
+                self.first_item_index = 0
+                self.selected_item_index = 0
             else:
                 self.deactivate()
                 return
         self.widget.queue_draw()
 
     def select_next(self):
+        if len(self.items) == 0: return
         self.selected_item_index = (self.selected_item_index + 1) % len(self.items)
         self.update_first_item_index()
         self.widget.queue_draw()
 
     def select_previous(self):
+        if len(self.items) == 0: return
         self.selected_item_index = (self.selected_item_index - 1) % len(self.items)
         self.update_first_item_index()
         self.widget.queue_draw()
@@ -225,6 +247,7 @@ class Autocomplete(object):
             self.first_item_index = self.selected_item_index - 4
 
     def page_down(self):
+        if len(self.items) == 0: return
         s_index = self.selected_item_index
         f_index = self.first_item_index
         page_size = min(len(self.items), 5)
@@ -242,6 +265,7 @@ class Autocomplete(object):
         self.widget.queue_draw()
 
     def page_up(self):
+        if len(self.items) == 0: return
         s_index = self.selected_item_index
         f_index = self.first_item_index
         page_size = min(len(self.items), 5)
@@ -347,9 +371,14 @@ class Autocomplete(object):
         text = self.document.replace_tabs_with_spaces_if_set(text)
         text = self.document.indent_text_with_whitespace_at_iter(text, start_iter)
 
+        # try/finally 确保 end_user_action 总被调用：若 insert_at_cursor 抛异常
+        # （如 buffer 被外部修改或未来引入只读模式），不调用 end_user_action 会让
+        # 后续所有编辑被合并进同一个 undo 单元，破坏撤销粒度。
         self.source_buffer.begin_user_action()
-        self.source_buffer.insert_at_cursor(text)
-        self.source_buffer.end_user_action()
+        try:
+            self.source_buffer.insert_at_cursor(text)
+        finally:
+            self.source_buffer.end_user_action()
 
         if select_dot_and_scroll:
             self.document.select_first_dot_around_cursor(offset_before=len(text), offset_after=0)

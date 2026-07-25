@@ -16,8 +16,20 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
-gi.require_versions({'Gtk': '4.0', 'WebKit': '6.0', 'Adw': '1'})
-from gi.repository import WebKit, Gtk, Adw, Pango
+gi.require_version('Gtk', '4.0')
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Adw, Pango
+
+# WebKit 是可选依赖：某些 Linux 发行版（如极简 Flatpak 运行时）可能未安装
+# webkit2gtk-6.0。缺失时帮助面板降级为"纯搜索 + 系统浏览器打开 HTML"模式：
+# 搜索索引不依赖 WebKit，结果列表照常显示；点击结果时由 controller 调
+# webbrowser.open 打开本地 HTML 文件。WebView 不可用时用 Gtk.Label 占位。
+try:
+    gi.require_version('WebKit', '6.0')
+    from gi.repository import WebKit
+    HAS_WEBKIT = True
+except (ValueError, ImportError):
+    HAS_WEBKIT = False
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 
@@ -98,6 +110,16 @@ class HelpPanelView(Gtk.Box):
         self.search_entry.set_placeholder_text(_('Search help'))
         self.search_content_box.append(self.search_entry)
 
+        # 搜索结果计数：显示 "{n} results" 或空查询时隐藏。
+        # dim-label 让计数低调不抢眼，与结果列表区分。
+        self.result_count_label = Gtk.Label()
+        self.result_count_label.set_xalign(0)
+        self.result_count_label.set_margin_top(8)
+        self.result_count_label.set_margin_start(2)
+        self.result_count_label.add_css_class('dim-label')
+        self.result_count_label.set_visible(False)
+        self.search_content_box.append(self.result_count_label)
+
         self.search_results = Gtk.ListBox()
         self.search_results.set_selection_mode(Gtk.SelectionMode.NONE)
         self.search_results.set_can_focus(False)
@@ -135,18 +157,78 @@ class HelpPanelView(Gtk.Box):
         self.search_clamp.set_margin_end(12)
         self.search_clamp.set_child(self.search_content_box)
 
-        self.content = WebKit.WebView()
-        self.content.set_hexpand(True)
-        self.content.set_vexpand(True)
-        self.user_content_manager = self.content.get_user_content_manager()
+        # WebKit 可用时创建 WebView 渲染帮助页面；不可用时降级为 Gtk.Label
+        # 占位（显示提示文案）。搜索功能不依赖 WebKit，仍正常工作。
+        if HAS_WEBKIT:
+            self.content = WebKit.WebView()
+            self.content.set_hexpand(True)
+            self.content.set_vexpand(True)
+            self.user_content_manager = self.content.get_user_content_manager()
 
-        self.settings = self.content.get_settings()
-        self.settings.set_enable_javascript(False)
-        self.settings.set_enable_javascript_markup(False)
-        self.settings.set_enable_developer_extras(False)
-        self.settings.set_enable_page_cache(False)
-        # Make help pages scroll smoothly with touchpads/mice.
-        self.settings.set_enable_smooth_scrolling(True)
+            self.settings = self.content.get_settings()
+            self.settings.set_enable_javascript(False)
+            self.settings.set_enable_javascript_markup(False)
+            self.settings.set_enable_developer_extras(False)
+            self.settings.set_enable_page_cache(False)
+            # Make help pages scroll smoothly with touchpads/mice.
+            self.settings.set_enable_smooth_scrolling(True)
+
+            # JavaScript 已禁用的可见指示器：原实现仅静默 set_enable_javascript(False)，
+            # 若某帮助页依赖 JS 渲染（数学公式、交互示例），用户看到空白却不知原因。
+            # 这里在工具栏右侧加一个 flat info 按钮，点击弹出 popover 说明策略。
+            # 仅在 HAS_WEBKIT 时创建——无 WebKit 分支已有占位 Label 解释降级情形。
+            # 用 MenuButton + Popover 而非常驻 Label：info 图标低调不抢眼，需要时
+            # 点击查看详情，避免对绝大多数不依赖 JS 的静态帮助页造成视觉噪声。
+            self.js_info_button = Gtk.MenuButton()
+            self.js_info_button.set_icon_name('dialog-information-symbolic')
+            self.js_info_button.set_tooltip_text(_('JavaScript is disabled'))
+            self.js_info_button.add_css_class('flat')
+            self.js_info_button.set_can_focus(False)
+
+            js_popover = Gtk.Popover()
+            js_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            js_box.set_spacing(6)
+            js_box.set_margin_start(12)
+            js_box.set_margin_end(12)
+            js_box.set_margin_top(12)
+            js_box.set_margin_bottom(12)
+
+            js_title = Gtk.Label(label=_('JavaScript is disabled'))
+            js_title.set_xalign(0)
+            js_title.add_css_class('heading')
+            js_box.append(js_title)
+
+            js_body = Gtk.Label(
+                label=_('Help pages render with JavaScript disabled for security. '
+                        'Static documentation displays normally; interactive '
+                        'examples that depend on JavaScript will not run.'))
+            js_body.set_xalign(0)
+            js_body.set_wrap(True)
+            js_body.set_max_width_chars(42)
+            js_body.add_css_class('dim-label')
+            js_box.append(js_body)
+
+            js_popover.set_child(js_box)
+            self.js_info_button.set_popover(js_popover)
+            self.toolbar.append(self.js_info_button)
+        else:
+            # 无 WebKit：用 Gtk.Label 提示用户。搜索仍可用（索引不依赖 WebKit），
+            # 点击搜索结果时 controller 会调 webbrowser.open 打开 HTML。
+            self.content = Gtk.Label()
+            self.content.set_hexpand(True)
+            self.content.set_vexpand(True)
+            self.content.set_wrap(True)
+            self.content.set_text(
+                _('Help page rendering requires WebKit6. '
+                  'Search is still available — click a result to open it '
+                  'in your web browser.'))
+            self.content.add_css_class('dim-label')
+            self.content.set_margin_start(12)
+            self.content.set_margin_end(12)
+            self.content.set_margin_top(12)
+            self.content.set_margin_bottom(12)
+            self.user_content_manager = None
+            self.settings = None
 
         self.stack = Gtk.Stack()
         self.stack.set_vexpand(True)

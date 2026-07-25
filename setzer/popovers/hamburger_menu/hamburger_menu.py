@@ -74,6 +74,9 @@ class HamburgerMenu(object):
         section_save.append_item(save_doc)
         section_save.append(_('Save Document As…'), 'win.save-as')
         section_save.append(_('Save All Documents'), 'win.save-all')
+        print_item = Gio.MenuItem.new(_('Print…'), 'win.print')
+        print_item.set_attribute_value('accel', GLib.Variant('s', '<Control>p'))
+        section_save.append_item(print_item)
         self.menu_model.append_section(None, section_save)
 
         self.recent_documents_section = Gio.Menu()
@@ -98,6 +101,13 @@ class HamburgerMenu(object):
         close_doc = Gio.MenuItem.new(_('Close Document'), 'win.close-active-document')
         close_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>w'))
         section_close.append_item(close_doc)
+        # Reopen Closed Document：原只有 Ctrl+Shift+T 快捷键、无菜单入口，可发现性为零。
+        # 复用 actions 已注册的 win.reopen-last-closed-document action（enabled 状态
+        # 由 update_actions 根据 _closed_document_stack 是否为空管理）。放在 Close 旁边
+        # 语义最近，Ctrl+Shift+T accel 与 shortcut_controller_app.py 注册的一致。
+        reopen_item = Gio.MenuItem.new(_('Reopen Closed Document'), 'win.reopen-last-closed-document')
+        reopen_item.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>t'))
+        section_close.append_item(reopen_item)
         quit_item = Gio.MenuItem.new(_('Quit'), 'win.quit')
         quit_item.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>q'))
         section_close.append_item(quit_item)
@@ -136,7 +146,7 @@ class HamburgerMenu(object):
         filename = parameter.unpack()
         if filename:
             if not os.path.isfile(filename):
-                self.workspace.remove_recently_opened_document(filename)
+                self.workspace.remove_recently_opened_document(filename, notify=True)
                 return
             self.workspace.open_document_by_filename(filename)
 
@@ -181,7 +191,8 @@ class HamburgerMenu(object):
         if len(unsaved_documents) > 0:
             self.workspace.set_active_document(unsaved_documents[0])
             dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': unsaved_documents[0], 'session_filename': filename}, self.close_confirmation_cb)
+            # 传 'documents' 字段：≥2 个未保存文档时弹批量对话框（多文档路径用批量）。
+            dialog.run({'unsaved_document': unsaved_documents[0], 'documents': unsaved_documents, 'session_filename': filename}, self.close_confirmation_cb)
         else:
             documents = self.workspace.get_all_documents()
             for document in documents:
@@ -191,16 +202,57 @@ class HamburgerMenu(object):
     def close_confirmation_cb(self, parameters):
         from setzer.dialogs.dialog_locator import DialogLocator
         document = parameters['unsaved_document']
+        unsaved_documents = parameters['documents']
+        session_filename = parameters['session_filename']
+        response = parameters['response']
 
-        if parameters['response'] == 0:
+        if response == 0:  # discard (单)：移除当前，继续恢复会话
             self.workspace.remove_document(document)
-            self.restore_session_cb(parameters['session_filename'])
-        elif parameters['response'] == 2:
+            self.restore_session_cb(session_filename)
+        elif response == 4:  # discard_all (批量)：移除所有未保存，继续恢复会话
+            for d in list(unsaved_documents):
+                self.workspace.remove_document(d)
+            self.restore_session_cb(session_filename)
+        elif response == 2:  # save (单)
             if document.get_filename() == None:
-                DialogLocator.get_dialog('save_document').run(document, self.restore_session_cb, parameters['session_filename'])
+                DialogLocator.get_dialog('save_document').run(document, self.restore_session_cb, session_filename)
             else:
                 document.save_to_disk()
-                self.restore_session_cb(parameters['session_filename'])
+                self.restore_session_cb(session_filename)
+        elif response == 3:  # save_all (批量)
+            # 保存所有有 filename 的；无 filename 的逐个弹 save_document。
+            # save_all_processed 跟踪已提示的 untitled，避免取消时无限循环。
+            for d in list(unsaved_documents):
+                if d.get_filename() is not None:
+                    d.save_to_disk()
+            parameters['save_all_processed'] = set()
+            untitled = [d for d in unsaved_documents if d.get_filename() is None]
+            if untitled:
+                first = untitled[0]
+                parameters['save_all_processed'].add(id(first))
+                self.workspace.set_active_document(first)
+                parameters['unsaved_document'] = first
+                DialogLocator.get_dialog('save_document').run(first, self.restore_session_save_all_cb, parameters)
+            else:
+                self.restore_session_cb(session_filename)
+
+    def restore_session_save_all_cb(self, parameters):
+        '''save_all 模式下逐个 untitled 文档的 save_document 回调。'''
+        from setzer.dialogs.dialog_locator import DialogLocator
+        unsaved_documents = parameters['documents']
+        session_filename = parameters['session_filename']
+        processed = parameters.get('save_all_processed', set())
+        untitled = [d for d in unsaved_documents
+                    if d.get_filename() is None and id(d) not in processed]
+        if untitled:
+            next_doc = untitled[0]
+            processed.add(id(next_doc))
+            self.workspace.set_active_document(next_doc)
+            parameters['unsaved_document'] = next_doc
+            DialogLocator.get_dialog('save_document').run(next_doc, self.restore_session_save_all_cb, parameters)
+        else:
+            # 所有 untitled 已提示过，继续恢复会话（仍有未保存的会再次弹批量对话框）
+            self.restore_session_cb(session_filename)
 
 
 def ServiceLocator_get_main_window():

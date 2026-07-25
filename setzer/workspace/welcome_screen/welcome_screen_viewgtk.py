@@ -43,10 +43,13 @@ def WelcomeScreenView():
     scrolled.set_propagate_natural_height(True)
 
     column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-    column.set_margin_top(24)
-    column.set_margin_bottom(24)
-    column.set_margin_start(24)
-    column.set_margin_end(24)
+    # 四向页面级外边距由 .welcome-content CSS class 统一提供
+    # （引用 --setzer-spacing-xl 变量），替代原 4 次 set_margin_*(24) 硬编码。
+    # spacing=18 对应 --setzer-spacing-lg（Gtk.Box.spacing 无法用 CSS 设置）。
+    column.add_css_class('welcome-content')
+    # 在高屏上 ScrolledWindow 的视口比内容高，valign=CENTER 让内容垂直
+    # 居中而非贴顶，避免大屏上内容挤在顶部、下方大片空白的失衡感。
+    column.set_valign(Gtk.Align.CENTER)
     scrolled.set_child(column)
 
     # --- top: status page (icon + title + hint) ---
@@ -77,17 +80,17 @@ def WelcomeScreenView():
     actions_box.set_homogeneous(True)
 
     new_latex_button = Gtk.Button()
-    new_latex_button.set_icon_name('document-new')
+    new_latex_button.set_icon_name('document-new-symbolic')
     new_latex_button.set_label(_('New LaTeX Document'))
     new_latex_button.set_hexpand(True)
 
     new_bibtex_button = Gtk.Button()
-    new_bibtex_button.set_icon_name('document-new')
+    new_bibtex_button.set_icon_name('document-new-symbolic')
     new_bibtex_button.set_label(_('New BibTeX File'))
     new_bibtex_button.set_hexpand(True)
 
     wizard_button = Gtk.Button()
-    wizard_button.set_icon_name('preferences-other')
+    wizard_button.set_icon_name('preferences-other-symbolic')
     wizard_button.set_label(_('Use a Template…'))
     wizard_button.set_hexpand(True)
 
@@ -96,11 +99,23 @@ def WelcomeScreenView():
     actions_box.append(wizard_button)
     content.append(actions_box)
 
-    # recent documents heading
+    # recent documents heading + clear-all button
+    recent_header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+    recent_header.set_spacing(12)
+
     recent_heading = Gtk.Label(label=_('Recent documents'))
     recent_heading.set_halign(Gtk.Align.START)
     recent_heading.add_css_class('title-4')
-    content.append(recent_heading)
+    recent_heading.set_hexpand(True)
+    recent_header.append(recent_heading)
+
+    recent_clear_button = Gtk.Button(label=_('Clear All'))
+    recent_clear_button.set_valign(Gtk.Align.CENTER)
+    recent_clear_button.add_css_class('flat')
+    recent_clear_button.set_tooltip_text(_('Remove all documents from the recent list'))
+    recent_header.append(recent_clear_button)
+
+    content.append(recent_header)
 
     recent_listbox = Gtk.ListBox()
     recent_listbox.add_css_class('boxed-list')
@@ -108,18 +123,42 @@ def WelcomeScreenView():
     content.append(recent_listbox)
 
     # shown only when there are no recent documents
-    empty_label = Gtk.Label(label=_('No recent documents yet.'))
-    empty_label.add_css_class('dim-label')
-    empty_label.set_halign(Gtk.Align.START)
-    content.append(empty_label)
+    empty_state = Adw.StatusPage()
+    empty_state.set_icon_name('document-open-recent-symbolic')
+    empty_state.set_title(_('No recent documents'))
+    empty_state.set_description(_('Documents you open will appear here for quick access.'))
+    empty_state.set_vexpand(False)
+    empty_state.set_visible(False)
+    content.append(empty_state)
+
+    # --- recently closed documents ---
+    # 仅在栈非空时显示。用户关闭所有文档后看到 welcome screen，可从这里
+    # 一键重开刚关掉的文档，比 Ctrl+Shift+T（只能重开最后一个）更灵活。
+    closed_heading = Gtk.Label(label=_('Recently closed'))
+    closed_heading.set_halign(Gtk.Align.START)
+    closed_heading.add_css_class('title-4')
+    closed_heading.set_visible(False)
+    content.append(closed_heading)
+
+    closed_listbox = Gtk.ListBox()
+    closed_listbox.add_css_class('boxed-list')
+    closed_listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+    closed_listbox.set_visible(False)
+    content.append(closed_listbox)
 
     clamp.set_child(content)
 
     # expose dynamic widgets to the presenter
     scrolled.recent_listbox = recent_listbox
-    scrolled.empty_label = empty_label
+    scrolled.recent_clear_button = recent_clear_button
+    scrolled.empty_state = empty_state
     scrolled.new_latex_button = new_latex_button
     scrolled.new_bibtex_button = new_bibtex_button
     scrolled.wizard_button = wizard_button
+    scrolled.closed_heading = closed_heading
+    scrolled.closed_listbox = closed_listbox
+    # 暴露 actions_box 供 MainWindow 在窄窗口 breakpoint 下切 orientation
+    # （HORIZONTAL → VERTICAL），避免三个按钮在 ~360px 窗口下挤压 ellipsize。
+    scrolled.actions_box = actions_box
 
     return scrolled

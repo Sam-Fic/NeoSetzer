@@ -22,7 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib
 
 import subprocess
-import _thread as thread
+import threading
 
 from setzer.app.service_locator import ServiceLocator
 
@@ -64,6 +64,13 @@ class PageBuildSystem(object):
         self.view.option_auto_build_delay.connect('notify::value', self.on_delay_changed, 'auto_build_delay')
         self.update_auto_build_delay_sensitivity()
 
+        # Auto-build error popup：仅在 auto_build 开启时有意义，故 sensitivity 跟随。
+        self.view.option_auto_build_autoshow_errors.set_active(
+            self.settings.get_value('preferences', 'auto_build_autoshow_errors'))
+        self.view.option_auto_build_autoshow_errors.connect(
+            'notify::active', self.on_switch_toggled, 'auto_build_autoshow_errors')
+        self.update_auto_build_autoshow_errors_sensitivity()
+
         self.setup_latex_interpreters()
 
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
@@ -72,12 +79,18 @@ class PageBuildSystem(object):
         value = switch.get_active()
         self.settings.set_value('preferences', 'auto_build', value)
         self.update_auto_build_delay_sensitivity()
+        self.update_auto_build_autoshow_errors_sensitivity()
 
     def on_delay_changed(self, spin, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, int(spin.get_property('value')))
 
     def update_auto_build_delay_sensitivity(self):
         self.view.option_auto_build_delay.set_sensitive(self.view.option_auto_build.get_active())
+
+    def update_auto_build_autoshow_errors_sensitivity(self):
+        # auto_build 关闭时此设置无意义（不会触发自动构建），置灰避免误导。
+        self.view.option_auto_build_autoshow_errors.set_sensitive(
+            self.view.option_auto_build.get_active())
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
@@ -124,6 +137,7 @@ class PageBuildSystem(object):
                 self.shell_values.index(defaults['build_option_system_commands']))
             self.view.option_auto_build.set_active(defaults['auto_build'])
             self.view.option_auto_build_delay.set_property('value', defaults['auto_build_delay'])
+            self.view.option_auto_build_autoshow_errors.set_active(defaults['auto_build_autoshow_errors'])
             if self.latexmk_available:
                 self.view.option_use_latexmk.set_active(defaults['use_latexmk'])
 
@@ -132,7 +146,7 @@ class PageBuildSystem(object):
         # --version）串行执行约 250–750ms。原实现同步阻塞主线程，打开 Preferences
         # 时窗口冻结。改为后台线程检测，完成后 idle 回主线程更新 UI。
         # 检测期间解释器选择器暂时不可见（保持初始空状态）。
-        thread.start_new_thread(self._detect_interpreters, ())
+        threading.Thread(target=self._detect_interpreters, daemon=True).start()
 
     def _detect_interpreters(self):
         '''后台线程：检测可用 LaTeX 解释器和 latexmk。
@@ -279,6 +293,18 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         adjustment_auto_build = Gtk.Adjustment(value=2, lower=1, upper=10, step_increment=1)
         self.option_auto_build_delay.set_adjustment(adjustment_auto_build)
         group_auto_build.add(self.option_auto_build_delay)
+
+        # 自动构建报错时是否弹出构建日志弹窗。与上方 autoshow_build_log 不同：
+        # autoshow_build_log 控制所有构建路径的日志显示阈值（errors/warnings/all）；
+        # 此开关仅作用于自动构建路径——用户打字途中触发自动构建，文档可能尚未
+        # 输完导致报错，频繁弹窗打扰写作。关闭后自动构建报错不再弹窗，但手动
+        # 构建（F5/F6）仍遵循 autoshow_build_log。
+        self.option_auto_build_autoshow_errors = Adw.SwitchRow()
+        self.option_auto_build_autoshow_errors.set_title(_('Pop up build log on auto-build errors'))
+        self.option_auto_build_autoshow_errors.set_subtitle(
+            _('When auto-build is on, automatically show the build log when errors occur. '
+              'Disable to avoid interruptions while typing.'))
+        group_auto_build.add(self.option_auto_build_autoshow_errors)
 
         group_build_log = Adw.PreferencesGroup()
         group_build_log.set_title(_('Automatically show build log'))

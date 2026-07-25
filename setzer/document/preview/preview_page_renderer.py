@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -20,7 +20,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import GObject, Gdk, GLib
 import cairo
 
-import _thread as thread, queue
+import threading, queue
 import time
 import math
 import numpy as np
@@ -36,7 +36,7 @@ class PreviewPageRenderer(Observable):
         self.preview = preview
         self.maximum_rendered_pixels = 20000000
 
-        self.visible_pages_lock = thread.allocate_lock()
+        self.visible_pages_lock = threading.Lock()
         self.visible_pages = list()
         # visible_pages_additional 在 update_rendered_pages 中赋值。但后台线程
         # render_page_loop 在 is_active=True 时会访问它；activate() 先置
@@ -47,7 +47,7 @@ class PreviewPageRenderer(Observable):
         self.page_width = None
         self.pdf_date = None
         self.rendered_pages = dict()
-        self.is_active_lock = thread.allocate_lock()
+        self.is_active_lock = threading.Lock()
         self.is_active = False
 
         self.preview.connect('position_changed', self.on_layout_or_position_changed)
@@ -57,7 +57,7 @@ class PreviewPageRenderer(Observable):
         self._settings_callback = self.on_settings_changed
         self.preview.document.settings.connect('settings_changed', self._settings_callback)
 
-        self.page_render_count_lock = thread.allocate_lock()
+        self.page_render_count_lock = threading.Lock()
         self.page_render_count = dict()
         self.render_queue = queue.Queue()
         self.render_queue_low_priority = queue.Queue()
@@ -68,6 +68,12 @@ class PreviewPageRenderer(Observable):
         # 预览不可见）就常驻一个线程 + 一个 50ms 定时器，且文档关闭后不释放。
         self._render_thread_started = False
         self._rendered_pages_timeout_id = None
+        # 渲染线程句柄。shutdown 时通过 join 等待线程退出，否则线程闭包
+        # render_page_loop（绑定方法）持有 self → preview → document 引用链，
+        # 整个文档对象图（含 GtkSource.Buffer、parser 符号表等）无法被 GC，
+        # 长会话反复开/关文档导致内存随会话时长线性增长。详见
+        # perf-10 问题 1 / perf-12 问题 1。
+        self._render_thread = None
         self._shutting_down = False
 
     def on_layout_or_position_changed(self, notifying_object):
@@ -75,6 +81,13 @@ class PreviewPageRenderer(Observable):
             self.update_rendered_pages()
         else:
             self.rendered_pages = dict()
+            # layout 为 None 通常意味着 PDF 切换（preview.load_pdf 置 layout=None
+            # 并发 layout_changed）。清空 page_render_count，避免旧 PDF 的高页号
+            # 条目残留（perf-12 问题 3）：若新 PDF 页数少于旧 PDF，多出的高页号
+            # 渲染计数会永久残留，且 render_page_loop 可能 KeyError（todo 入队
+            # 后 poppler_document 被替换，render_count 字典中已无该页号）。
+            with self.page_render_count_lock:
+                self.page_render_count = dict()
 
     def on_recolor_pdf_changed(self, preview):
         self.update_rendered_pages()
@@ -96,7 +109,8 @@ class PreviewPageRenderer(Observable):
         # （如新建未保存的空文档）也常驻线程/定时器。
         if not self._render_thread_started:
             self._render_thread_started = True
-            thread.start_new_thread(self.render_page_loop, ())
+            self._render_thread = threading.Thread(target=self.render_page_loop, daemon=True)
+            self._render_thread.start()
         if self._rendered_pages_timeout_id is None:
             self._rendered_pages_timeout_id = GObject.timeout_add(50, self.rendered_pages_loop)
 
@@ -110,10 +124,18 @@ class PreviewPageRenderer(Observable):
         self.pdf_date = None
 
     def shutdown(self):
-        '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器并
-        置 is_active=False。后台线程检测到 is_active=False 后会进入
-        time.sleep(0.05) 空转，不再占 CPU；其随进程退出自然结束。
-        同时断开 settings 单例信号连接，防止持有引用导致文档无法 GC。'''
+        '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器、
+        置 is_active=False、唤醒并 join 后台渲染线程、断开 settings 单例信号。
+
+        关键点（perf-10 问题 1 / perf-12 问题 1）：原实现仅置 is_active=False，
+        render_page_loop 检测到后进入 time.sleep(0.05) 永久空转循环，**从不退出**。
+        因线程入口是绑定方法 self.render_page_loop，闭包持 self → preview →
+        document 整条引用链，文档对象（含 GtkSource.Buffer 全文文本、parser
+        符号表、Gtk widget 树）无法被 GC，长会话内存随开/关文档数线性增长。
+
+        修复：用 _shutting_down 标志让循环退出，向 render_queue 投递哨兵 None
+        唤醒阻塞在 get(timeout=0.05) 上的线程（避免最长 50ms 等待），再 join(2s)
+        确保线程真的退出后才返回。daemon=True 是兜底，防止极端情况下死锁。'''
         self._shutting_down = True
         if self._rendered_pages_timeout_id is not None:
             GLib.Source.remove(self._rendered_pages_timeout_id)
@@ -123,13 +145,34 @@ class PreviewPageRenderer(Observable):
         self.rendered_pages = dict()
         with self.visible_pages_lock:
             self.visible_pages = list()
+        # 清空渲染计数表，丢弃所有积压 todo（perf-12 问题 3：原 shutdown 不清，
+        # PDF 切换后旧 PDF 高页号条目残留）。
+        with self.page_render_count_lock:
+            self.page_render_count = dict()
+        # 清空队列，避免 join 期间线程继续处理已失效的 todo（poppler_document
+        # 已可能被释放）。投递哨兵 None 唤醒阻塞 get。
+        try:
+            while True:
+                self.render_queue.get_nowait()
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                self.render_queue_low_priority.get_nowait()
+        except queue.Empty:
+            pass
+        self.render_queue.put(None)
+        if self._render_thread is not None and self._render_thread.is_alive():
+            self._render_thread.join(timeout=2.0)
+            if self._render_thread.is_alive():
+                print('Warning: PreviewPageRenderer render thread did not exit within 2s')
         try:
             self.preview.document.settings.disconnect('settings_changed', self._settings_callback)
         except (TypeError, KeyError, AttributeError):
             pass
 
     def render_page_loop(self):
-        while True:
+        while not self._shutting_down:
             with self.is_active_lock:
                 is_active = self.is_active
             todo = None
@@ -138,6 +181,8 @@ class PreviewPageRenderer(Observable):
                 # 原实现在队列空时每 50ms 轮询一次，高优先级渲染任务入队后最多
                 # 等 50ms 才被取走；改用阻塞 get 后任务入队即唤醒线程，延迟趋近 0。
                 # timeout=0.05 保证 is_active 变 False 时能在 50ms 内检测到并退出。
+                # shutdown 时投递哨兵 None 唤醒阻塞 get，让线程即时退出而非
+                # 等满 50ms。
                 try: todo = self.render_queue.get(block=True, timeout=0.05)
                 except queue.Empty:
                     try: todo = self.render_queue_low_priority.get(block=False)
@@ -145,59 +190,65 @@ class PreviewPageRenderer(Observable):
                         todo = None
             else:
                 time.sleep(0.05)
-            if todo != None:
-                with self.page_render_count_lock:
-                    render_count = self.page_render_count[todo['page_number']]
-                with self.visible_pages_lock:
-                    is_visible = (todo['page_number'] >= self.visible_pages_additional[0] and todo['page_number'] <= self.visible_pages_additional[1])
-                if todo['render_count'] == render_count and is_visible:
-                    colors = todo['matching_theme_colors']
-                    width = todo['page_width'] * todo['hidpi_factor']
-                    height = todo['page_height'] * 2
-                    surface = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
-                    ctx = cairo.Context(surface)
+            # 哨兵 None（shutdown 投递）或 deactivate 期间积压的 None：跳过。
+            if todo is None:
+                continue
+            with self.page_render_count_lock:
+                # .get(-1) 哨兵避免 KeyError：on_layout_or_position_changed 在
+                # PDF 切换时清空 page_render_count，若此时仍有 stale todo 在
+                # 队列里被取出，直接访问会 KeyError。todo['render_count'] 恒为
+                # ≥1 的正整数，与 -1 不等 → 被判为过时渲染任务并丢弃。
+                render_count = self.page_render_count.get(todo['page_number'], -1)
+            with self.visible_pages_lock:
+                is_visible = (todo['page_number'] >= self.visible_pages_additional[0] and todo['page_number'] <= self.visible_pages_additional[1])
+            if todo['render_count'] == render_count and is_visible:
+                colors = todo['matching_theme_colors']
+                width = todo['page_width'] * todo['hidpi_factor']
+                height = todo['page_height'] * 2
+                surface = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
+                ctx = cairo.Context(surface)
 
-                    ctx.set_source_rgba(1, 1, 1, 1)
-                    ctx.rectangle(0, 0, width, height)
-                    ctx.fill()
+                ctx.set_source_rgba(1, 1, 1, 1)
+                ctx.rectangle(0, 0, width, height)
+                ctx.fill()
 
-                    ctx.scale(todo['scale_factor'] * todo['hidpi_factor'], todo['scale_factor'] * todo['hidpi_factor'])
-                    page = self.preview.poppler_document.get_page(todo['page_number'])
-                    page.render(ctx)
+                ctx.scale(todo['scale_factor'] * todo['hidpi_factor'], todo['scale_factor'] * todo['hidpi_factor'])
+                page = self.preview.poppler_document.get_page(todo['page_number'])
+                page.render(ctx)
 
-                    if colors != None:
-                        # 直接从 cairo surface 取数据到 numpy，跳过 PIL Image 中转。
-                        # 原实现 4 次内存拷贝（12MB/页）：
-                        #   1. np.array(pil_img)：PIL → numpy（拷贝像素）
-                        #   2. np.ubyte(img_data)：numpy → 新数组（Image.fromarray 需要）
-                        #   3. pil_img.tobytes('raw', 'BGRa')：numpy → BGRa 字节（拷贝+重排）
-                        #   4. bytearray(...)：bytes → bytearray（create_for_data 需可变）
-                        # 优化后 2 次：np.frombuffer + .copy()（修改 alpha 需可写）→
-                        # bytearray(tobytes)。半内存、半 CPU 开销。
-                        #
-                        # 正确性：cairo FORMAT_ARGB32 在小端机器上字节序为 BGRA
-                        # （byte0=B, byte1=G, byte2=R, byte3=A）。原 PIL 路径用
-                        # Image.frombuffer("RGBA",...) 误把 B 当 R、R 当 B，但
-                        # 后续 cairo.Operator.IN 用 colors[0] 覆盖全部 RGB 像素，
-                        # 故中间 RGB 内容不影响最终视觉结果——只有 alpha 值重要。
-                        # 此处保持与原实现相同的 alpha 公式（用 byte0/1/2 即
-                        # B/G/R 通道），最终 alpha 值与原实现完全一致。
-                        buf = surface.get_data()
-                        img_data = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4).copy()
+                if colors != None:
+                    # 直接从 cairo surface 取数据到 numpy，跳过 PIL Image 中转。
+                    # 原实现 4 次内存拷贝（12MB/页）：
+                    #   1. np.array(pil_img)：PIL → numpy（拷贝像素）
+                    #   2. np.ubyte(img_data)：numpy → 新数组（Image.fromarray 需要）
+                    #   3. pil_img.tobytes('raw', 'BGRa')：numpy → BGRa 字节（拷贝+重排）
+                    #   4. bytearray(...)：bytes → bytearray（create_for_data 需可变）
+                    # 优化后 2 次：np.frombuffer + .copy()（修改 alpha 需可写）→
+                    # bytearray(tobytes)。半内存、半 CPU 开销。
+                    #
+                    # 正确性：cairo FORMAT_ARGB32 在小端机器上字节序为 BGRA
+                    # （byte0=B, byte1=G, byte2=R, byte3=A）。原 PIL 路径用
+                    # Image.frombuffer("RGBA",...) 误把 B 当 R、R 当 B，但
+                    # 后续 cairo.Operator.IN 用 colors[0] 覆盖全部 RGB 像素，
+                    # 故中间 RGB 内容不影响最终视觉结果——只有 alpha 值重要。
+                    # 此处保持与原实现相同的 alpha 公式（用 byte0/1/2 即
+                    # B/G/R 通道），最终 alpha 值与原实现完全一致。
+                    buf = surface.get_data()
+                    img_data = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4).copy()
 
-                        alpha = 255 - 0.3 * img_data[..., 0] - 0.6 * img_data[..., 1] - 0.1 * img_data[..., 2]
-                        img_data[..., 3] = alpha.astype(np.uint8)
+                    alpha = 255 - 0.3 * img_data[..., 0] - 0.6 * img_data[..., 1] - 0.1 * img_data[..., 2]
+                    img_data[..., 3] = alpha.astype(np.uint8)
 
-                        im_bytes = bytearray(img_data.tobytes())
-                        surface = cairo.ImageSurface.create_for_data(im_bytes, cairo.FORMAT_ARGB32, width, height)
-                        temp_ctx = cairo.Context(surface)
+                    im_bytes = bytearray(img_data.tobytes())
+                    surface = cairo.ImageSurface.create_for_data(im_bytes, cairo.FORMAT_ARGB32, width, height)
+                    temp_ctx = cairo.Context(surface)
 
-                        Gdk.cairo_set_source_rgba(temp_ctx, colors[0])
-                        temp_ctx.set_operator(cairo.Operator.IN)
-                        temp_ctx.rectangle(0, 0, width, height)
-                        temp_ctx.fill()
+                    Gdk.cairo_set_source_rgba(temp_ctx, colors[0])
+                    temp_ctx.set_operator(cairo.Operator.IN)
+                    temp_ctx.rectangle(0, 0, width, height)
+                    temp_ctx.fill()
 
-                    self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['pdf_date'], colors]})
+                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['pdf_date'], colors]})
 
     def rendered_pages_loop(self):
         with self.is_active_lock:
@@ -313,5 +364,3 @@ class PreviewPageRenderer(Observable):
                         render_queue.put(render_task)
                     else:
                         render_queue_low_priority.put(render_task)
-
-

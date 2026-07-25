@@ -36,6 +36,9 @@ class WorkspacePresenter(object):
         # 停止后一次 idle 落盘，消除拖动期间的级联通知。
         self._sidebar_width_idle_id = None
         self._preview_width_idle_id = None
+        # _deferred_post_activate 的 50ms timeout id。快速切换文档时取消
+        # 旧 timeout，避免对已非 active 的文档状态做 sidebar/preview 显隐。
+        self._dpa_timeout_id = None
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -66,6 +69,17 @@ class WorkspacePresenter(object):
 
     def on_new_document(self, workspace, document):
         self.main_window.document_stack.add_child(document.view)
+        # 挂钩 build 完成事件：首次编译成功后，若用户已开启预览
+        # （show_preview=True），之前因「从未编译」而被抑制的预览侧栏
+        # 需要重新评估显隐——此时文档已有 PDF，预览有内容可展示。
+        if document.is_latex_document():
+            document.build_system.connect('build_state', self.on_build_state)
+
+    def on_build_state(self, build_system, message):
+        # 编译成功后重新评估预览侧栏显隐。用 idle 延迟到当前 build_state
+        # 通知链完成之后，避免在 build 回调中同步操作 OverlaySplitView。
+        if message == 'success':
+            GLib.idle_add(self.update_preview_help_visibility)
 
     def on_document_removed(self, workspace, document):
         self.main_window.document_stack.remove(document.view)
@@ -76,36 +90,54 @@ class WorkspacePresenter(object):
             self.main_window.reparent_headerbar(to_welcome=True)
 
     def on_new_active_document(self, workspace, document):
+        # 快速切换文档时取消上一次尚未触发的 _deferred_post_activate，
+        # 避免对旧文档状态做 sidebar/preview 显隐（新文档会重新调度）。
+        if self._dpa_timeout_id is not None:
+            GLib.Source.remove(self._dpa_timeout_id)
+            self._dpa_timeout_id = None
         self.main_window.mode_stack.set_visible_child_name('documents')
-        # 进入文档视图：headerbar 迁回 preview_paned_overlay，只覆盖右侧
-        # 编辑器/预览区，保留左侧 sidebar 通顶设计。
         self.main_window.reparent_headerbar(to_welcome=False)
         self.main_window.document_stack.set_visible_child(document.view)
         self.focus_active_document()
 
         if document.is_latex_document():
             # autocomplete 延迟到 idle 构造（_init_latex_features），首次
-            # 激活时可能尚未就绪，try/except 跳过；idle 中补做挂载。
-            try:
-                self.main_window.preview_paned_overlay.add_overlay(document.autocomplete.widget.view)
-            except AttributeError:
-                pass
+            # 激活时 document.autocomplete 属性尚不存在（__init__ 未设默认值）。
+            # 用 getattr 显式取默认 None，替代原 try/except AttributeError: pass——
+            # 后者会静默吞掉 widget / view 意外为 None 等其他 AttributeError，
+            # 让自动补全失效时无任何线索（用户直到按键才察觉）。getattr + None
+            # 检查把「lazy 未就绪」与「异常状态」区分开：未就绪跳过等 idle 补做
+            # （_init_latex_features 检查 is_active 后挂载），异常状态则正常冒泡。
+            autocomplete = getattr(document, 'autocomplete', None)
+            if autocomplete is not None and autocomplete.widget is not None:
+                self.main_window.preview_paned_overlay.add_overlay(autocomplete.widget.view)
 
-        # sidebar/preview 可见性更新延迟到 idle：mode_stack 切换使 sidebar_split /
-        # preview_split（Adw.OverlaySplitView）从不可见变为可见，首次分配尚未
-        # 完成。此时同步调 set_show_sidebar(True) 会让 OverlaySplitView 在
-        # 总宽度=0/未确定的状态下分配 sidebar + content，内部计算可能产生
-        # 负宽度（GTK 警告：AdwBin width=-2147482112），导致界面错乱一会
-        # 才恢复。idle 时首轮 size_allocate 已完成，OverlaySplitView 拿到
-        # 正确的总宽度后再 toggle sidebar，分配安全。
-        # build_log 刷新也一并延迟（不涉及布局但与 sidebar/preview 同属
-        # "文档切换后的后续更新"，合并在一次 idle 中减少帧间状态不一致）。
-        GLib.idle_add(self._deferred_post_activate)
+        # sidebar/preview 可见性更新延迟到首轮 size_allocate 之后：mode_stack
+        # 切换使 sidebar_split / preview_split（Adw.OverlaySplitView）从不可见
+        # 变为可见，首次分配尚未完成。此时同步调 set_show_sidebar(True) 会让
+        # OverlaySplitView 在总宽度=0/未确定的状态下分配 sidebar + content，
+        # 内部计算可能产生负宽度（GTK 警告：AdwBin width=-2147482112），导致
+        # 界面错乱一会才恢复。
+        #
+        # 调度方式选择（经运行时证据验证）：
+        # - GLib.idle_add 默认优先级 PRIORITY_DEFAULT_IDLE (200) 低于
+        #   GDK_PRIORITY_REDRAW (120)，首轮 GtkSource.View 渲染产生的 ~1.5s
+        #   连续帧会持续抢占 idle → sidebar/preview 延迟 1.5s 出现。
+        # - GLib.idle_add PRIORITY_HIGH_IDLE (100) 高于 REDRAW，在首轮
+        #   size_allocate 之前就执行 → 负宽度 bug 复发 + 掉帧。
+        # - GLib.timeout_add(50, ...) 在 50ms 后以 PRIORITY_DEFAULT (0) 触发，
+        #   高于 REDRAW 故不被帧抢占；50ms 足够首轮 layout（~16ms/帧 × 3 帧）
+        #   完成，又远小于 1.5s。经实测 _deferred_post_activate 在 ~50ms 触发，
+        #   sidebar/preview 与文档视图几乎同时出现。30ms 经用户验证偏早
+        #   （首轮分配未完全稳定），50ms 为最佳平衡点。
+        # build_log 刷新也一并合并（不涉及布局）。
+        self._dpa_timeout_id = GLib.timeout_add(50, self._deferred_post_activate)
 
     def _deferred_post_activate(self):
-        '''on_new_active_document 中延迟到 idle 的后续更新。
-        首轮 size_allocate 完成后执行，避免在 OverlaySplitView 首次分配
+        '''on_new_active_document 中延迟到首轮 size_allocate 之后的后续更新。
+        由 GLib.timeout_add(50, ...) 触发，避免在 OverlaySplitView 首次分配
         期间调 set_show_sidebar 导致负尺寸分配。'''
+        self._dpa_timeout_id = None
         self.update_sidebar_visibility(False)
         self.refresh_build_log_if_open()
         self.update_preview_help_visibility(False)
@@ -117,8 +149,12 @@ class WorkspacePresenter(object):
 
     def on_new_inactive_document(self, workspace, document):
         if document.is_latex_document():
-            try: self.main_window.preview_paned_overlay.remove_overlay(document.autocomplete.widget.view)
-            except AttributeError: pass
+            # 同 on_new_active_document：getattr 安全访问，避免静默吞
+            # AttributeError（文档刚切换为 inactive 时 autocomplete 可能
+            # 尚未 lazy 构造完成，此时无可移除的 overlay，跳过即可）。
+            autocomplete = getattr(document, 'autocomplete', None)
+            if autocomplete is not None and autocomplete.widget is not None:
+                self.main_window.preview_paned_overlay.remove_overlay(autocomplete.widget.view)
 
     def on_set_show_symbols_or_document_structure(self, workspace):
         if self.workspace.show_symbols:
@@ -142,7 +178,10 @@ class WorkspacePresenter(object):
                 self.focus_active_document()
         else:
             self.focus_active_document()
-        self.update_preview_help_visibility()
+        # 用户手动切换预览/帮助：即使文档从未编译也展开（显示 "No preview
+        # available" 占位，提示用户点编译按钮）。suppress_unbuilt=False 跳过
+        # 「从未编译则抑制」的自动展开逻辑。
+        self.update_preview_help_visibility(suppress_unbuilt=False)
 
     def on_show_build_log_state_change(self, workspace, show_build_log):
         self.update_build_log_visibility()
@@ -183,12 +222,24 @@ class WorkspacePresenter(object):
         if build_log.is_open and build_log.view.presenter is not None:
             build_log.view.presenter.populate()
 
-    def update_preview_help_visibility(self, animate=True):
-        preview_help_visible_for_latex_docs = self.workspace.show_preview or self.workspace.show_help
-        show_preview_help = self.workspace.get_root_or_active_latex_document() and preview_help_visible_for_latex_docs
+    def update_preview_help_visibility(self, animate=True, suppress_unbuilt=True):
+        show_preview = self.workspace.show_preview
+        show_help = self.workspace.show_help
+        target_doc = self.workspace.get_root_or_active_latex_document()
+        preview_help_visible = (show_preview or show_help) and target_doc is not None
+        # 新建/从未编译过的文档没有 PDF，预览侧栏只会显示空白占位（"No preview
+        # available"）。自动展开（文档激活时）默认抑制，避免无意义地占据屏幕空间。
+        # 一旦文档首次编译成功（document_has_been_built=True）或重新打开时磁盘上
+        # 已有 PDF（poppler_document 非 None），恢复正常显隐
+        # （on_build_state 在编译成功后回调本方法重新评估）。
+        # 用户手动点预览按钮时传 suppress_unbuilt=False，始终展开（显示占位提示
+        # 用户去编译）。help 侧栏与编译无关，始终尊重用户设置，不受此抑制影响。
+        if suppress_unbuilt and preview_help_visible and show_preview and not show_help:
+            if not target_doc.build_system.document_has_been_built and target_doc.preview.poppler_document is None:
+                preview_help_visible = False
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
-        self.main_window.preview_split.set_show_sidebar(show_preview_help)
+        self.main_window.preview_split.set_show_sidebar(preview_help_visible)
 
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()

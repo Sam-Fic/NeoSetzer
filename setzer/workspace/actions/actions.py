@@ -52,6 +52,7 @@ class Actions(object):
         self.add_action('save-as', self.save_as)
         self.add_action('save-all', self.save_all)
         self.add_action('save-session', self.save_session)
+        self.add_action('print', self.print_document)
         self.add_action('close-all-documents', self.close_all)
         self.add_action('close-active-document', self.close_active_document)
         self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
@@ -212,10 +213,14 @@ class Actions(object):
         self.actions['include-latex-file'].set_enabled(document_active_is_latex)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['toggle-comment'].set_enabled(document_active_is_latex)
-        self.actions['go-to-line'].set_enabled(document_active_is_latex)
-        self.actions['duplicate-line'].set_enabled(document_active_is_latex)
-        self.actions['move-line-up'].set_enabled(document_active_is_latex)
-        self.actions['move-line-down'].set_enabled(document_active_is_latex)
+        # 通用编辑功能（跳行、复制行、上下移行）对任何活动文档启用——
+        # 原实现限定为 LaTeX 文档，BibTeX 与 cls/sty 文档用户无法使用这些
+        # 基本编辑功能。LaTeX 专属动作（insert-*、add-packages、wizard 等）
+        # 仍保持 document_active_is_latex 限制。
+        self.actions['go-to-line'].set_enabled(document_active)
+        self.actions['duplicate-line'].set_enabled(document_active)
+        self.actions['move-line-up'].set_enabled(document_active)
+        self.actions['move-line-down'].set_enabled(document_active)
         self.actions['forward-sync'].set_enabled(can_sync)
         self.actions['build'].set_enabled(can_build)
         self.actions['save-and-build'].set_enabled(can_build)
@@ -249,6 +254,9 @@ class Actions(object):
             DialogLocator.get_dialog('build_save').run(document)
         else:
             self.save()
+            # 手动构建：确保 is_auto_build = False，使 build_log 始终遵循
+            # autoshow_build_log 设置弹出日志（不受 auto_build_autoshow_errors 影响）。
+            document.build_system.is_auto_build = False
             document.build_system.build_and_forward_sync(active_document)
 
     def build(self, action=None, parameter=None):
@@ -261,6 +269,9 @@ class Actions(object):
         if document.filename == None:
             DialogLocator.get_dialog('build_save').run(document)
         else:
+            # 手动构建：确保 is_auto_build = False，使 build_log 始终遵循
+            # autoshow_build_log 设置弹出日志（不受 auto_build_autoshow_errors 影响）。
+            document.build_system.is_auto_build = False
             document.build_system.build_and_forward_sync(active_document)
 
     def forward_sync(self, action=None, parameter=''):
@@ -294,6 +305,13 @@ class Actions(object):
 
         document = self.workspace.get_active_document()
         DialogLocator.get_dialog('save_document').run(document)
+
+    def print_document(self, action=None, parameter=None):
+        if self.workspace.get_active_document() == None: return
+
+        from setzer.dialogs.print.print import PrintDialog
+        document = self.workspace.get_active_document()
+        PrintDialog().run(document)
 
     def save_all(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -329,7 +347,9 @@ class Actions(object):
         if len(unsaved_documents) > 0:
             self.workspace.set_active_document(unsaved_documents[0])
             dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': unsaved_documents[0]}, self.close_all_callback)
+            # 传 'documents' 字段：≥2 个未保存文档时弹批量对话框（用户选择
+            # "多文档路径用批量"）。单文档时仍走原单文档对话框。
+            dialog.run({'unsaved_document': unsaved_documents[0], 'documents': unsaved_documents}, self.close_all_callback)
         else:
             documents = self.workspace.get_all_documents()
             for document in documents:
@@ -337,16 +357,98 @@ class Actions(object):
 
     def close_all_callback(self, parameters):
         document = parameters['unsaved_document']
+        unsaved_documents = parameters['documents']
+        response = parameters['response']
 
-        if parameters['response'] == 0:
+        if response == 0:  # discard (单)：移除当前，继续 close_all
             self.workspace.remove_document(document)
             self.close_all()
-        elif parameters['response'] == 2:
+        elif response == 4:  # discard_all (批量)：移除所有未保存，继续 close_all
+            for d in list(unsaved_documents):
+                self.workspace.remove_document(d)
+            self.close_all()
+        elif response == 2:  # save (单)
             if document.get_filename() == None:
                 DialogLocator.get_dialog('save_document').run(document, self.close_all)
             else:
                 document.save_to_disk()
                 self.close_all()
+        elif response == 3:  # save_all (批量)
+            # 保存所有有 filename 的；无 filename 的逐个弹 save_document。
+            # save_all_processed 记录本次 save_all 流程已提示过的 untitled 文档，
+            # 避免用户取消保存时同一文档被重复提示（无限循环）。
+            for d in list(unsaved_documents):
+                if d.get_filename() is not None:
+                    d.save_to_disk()
+            parameters['save_all_processed'] = set()
+            untitled = [d for d in unsaved_documents if d.get_filename() is None]
+            if untitled:
+                first = untitled[0]
+                parameters['save_all_processed'].add(id(first))
+                self.workspace.set_active_document(first)
+                parameters['unsaved_document'] = first
+                DialogLocator.get_dialog('save_document').run(first, self.close_all_save_all_cb, parameters)
+            else:
+                self.close_all()
+
+    def close_all_save_all_cb(self, parameters):
+        '''save_all 模式下逐个 untitled 文档的 save_document 回调。
+
+        用户可能取消保存（doc 仍 untitled+modified）；用 save_all_processed
+        集合跳过已提示过的文档，继续下一个。全部提示完后回到 close_all 重新
+        评估——若仍有未保存文档，再次弹批量对话框，用户可选 Discard All 终止。'''
+        unsaved_documents = parameters['documents']
+        processed = parameters.get('save_all_processed', set())
+        untitled = [d for d in unsaved_documents
+                    if d.get_filename() is None and id(d) not in processed]
+        if untitled:
+            next_doc = untitled[0]
+            processed.add(id(next_doc))
+            self.workspace.set_active_document(next_doc)
+            parameters['unsaved_document'] = next_doc
+            DialogLocator.get_dialog('save_document').run(next_doc, self.close_all_save_all_cb, parameters)
+        else:
+            # 所有 untitled 已提示过（保存或取消）。回到 close_all 重新评估。
+            self.close_all()
+
+    def push_closed_document(self, filename):
+        '''Push a filename onto the closed-document stack for Ctrl+Shift+T reopen.
+
+        Only documents with a filename that still exists on disk are tracked—
+        unsaved (unnamed) documents cannot be safely reopened. The stack is
+        capped at 5 entries; the oldest is evicted when full. If the filename
+        is already in the stack it is moved to the top (most-recently-closed).
+        '''
+        if filename is None or not os.path.isfile(filename):
+            return
+        if filename in self._closed_document_stack:
+            self._closed_document_stack.remove(filename)
+        self._closed_document_stack.append(filename)
+        if len(self._closed_document_stack) > 5:
+            self._closed_document_stack.pop(0)
+        # 通知 welcome screen 等 observers 刷新「最近关闭」列表
+        self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
+
+    def get_closed_document_stack(self):
+        '''返回最近关闭文档栈的副本，most-recently-closed 在前（用于 UI 展示）。
+
+        原栈用 list 末尾作栈顶（pop() 取最新），UI 展示需倒序。
+        '''
+        return list(reversed(self._closed_document_stack))
+
+    def reopen_closed_document(self, filename):
+        '''从栈中移除指定 filename 并打开它（用于 welcome screen 点击重开）。
+
+        与 reopen_last_closed_document 不同，本方法可重开栈中任意一项
+        （不限于栈顶）。文件已删除时从栈中移除但不打开。
+        '''
+        if filename in self._closed_document_stack:
+            self._closed_document_stack.remove(filename)
+        if not os.path.isfile(filename):
+            self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
+            return
+        self.workspace.open_document_by_filename(filename)
+        self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
 
     def close_active_document(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -354,13 +456,7 @@ class Actions(object):
         document = self.workspace.get_active_document()
         # 仅当文档已保存（有 filename 且磁盘文件仍存在）才压入重开栈，
         # 未保存文档无法安全重开。
-        filename = document.get_filename()
-        if filename != None and os.path.isfile(filename):
-            if filename in self._closed_document_stack:
-                self._closed_document_stack.remove(filename)
-            self._closed_document_stack.append(filename)
-            if len(self._closed_document_stack) > 5:
-                self._closed_document_stack.pop(0)
+        self.push_closed_document(document.get_filename())
         if document.source_buffer.get_modified():
             dialog = DialogLocator.get_dialog('close_confirmation')
             dialog.run({'unsaved_document': document}, self.close_document_callback)
@@ -379,17 +475,21 @@ class Actions(object):
             filename = self._closed_document_stack.pop()
         if filename == None:
             self.update_actions()
+            self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
             return
 
         self.workspace.open_document_by_filename(filename)
+        self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
 
     def go_to_line(self, action=None, parameter=None):
         document = self.workspace.get_active_document()
         if document == None: return
 
         line_count = document.source_buffer.get_line_count()
+        current_line = document.source_buffer.get_iter_at_offset(
+            document.source_buffer.get_property('cursor-position')).get_line() + 1
         dialog = DialogLocator.get_dialog('go_to_line')
-        dialog.run(line_count, self.go_to_line_callback)
+        dialog.run(line_count, self.go_to_line_callback, current_line)
 
     def go_to_line_callback(self, line):
         document = self.workspace.get_active_document()

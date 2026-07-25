@@ -74,18 +74,18 @@ class ContextMenu(object):
 
         button_zoom_out = Gtk.Button()
         button_zoom_out.set_icon_name('value-decrease-symbolic')
-        button_zoom_out.set_has_frame(False)
+        button_zoom_out.add_css_class('flat')
         button_zoom_out.set_action_name('win.zoom-out')
         inner_box.append(button_zoom_out)
 
         self.reset_zoom_button_pointer = Gtk.Button.new_with_label('100%')
-        self.reset_zoom_button_pointer.set_has_frame(False)
+        self.reset_zoom_button_pointer.add_css_class('flat')
         self.reset_zoom_button_pointer.set_action_name('win.reset-zoom')
         inner_box.append(self.reset_zoom_button_pointer)
 
         button_zoom_in = Gtk.Button()
         button_zoom_in.set_icon_name('value-increase-symbolic')
-        button_zoom_in.set_has_frame(False)
+        button_zoom_in.add_css_class('flat')
         button_zoom_in.set_action_name('win.zoom-in')
         inner_box.append(button_zoom_in)
 

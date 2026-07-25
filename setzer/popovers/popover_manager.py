@@ -19,6 +19,9 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
+import sys
+import traceback
+
 from setzer.popovers.hamburger_menu.hamburger_menu import HamburgerMenu
 from setzer.popovers.preview_zoom_level.preview_zoom_level import PreviewZoomLevel
 from setzer.popovers.context_menu.context_menu import ContextMenu
@@ -100,10 +103,18 @@ class PopoverManager():
         if not callbacks:
             return
         for callback in list(callbacks):
-            if parameter is not None:
-                callback(parameter)
-            else:
-                callback()
+            # 单个回调异常不能中断通知链：与 Observable.add_change_code 一致，
+            # try/except 包裹每个回调，异常时打印 traceback 到 stderr 便于诊断。
+            # 原实现无保护——'popup'/'popdown' 的首个观察者抛异常会让后续观察者
+            # （如 Shortcuts 暂停快捷键控制器）收不到通知，导致快捷键状态错乱。
+            try:
+                if parameter is not None:
+                    callback(parameter)
+                else:
+                    callback()
+            except Exception:
+                print(f'[PopoverManager] callback {getattr(callback, "__qualname__", callback)!r} for {change_code!r} raised:', file=sys.stderr)
+                traceback.print_exc(file=sys.stderr)
 
     def connect(change_code, callback):
         if change_code in PopoverManager.connected_functions:

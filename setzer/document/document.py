@@ -28,6 +28,7 @@ import setzer.document.document_presenter as document_presenter
 import setzer.document.document_viewgtk as document_view
 import setzer.document.search.search as search
 import setzer.document.gutter.gutter as gutter
+import setzer.document.statusbar.statusbar as statusbar
 import setzer.document.parser.parser_latex as parser_latex
 import setzer.document.parser.parser_bibtex as parser_bibtex
 import setzer.document.parser.parser_dummy as parser_dummy
@@ -76,6 +77,10 @@ class Document(Observable):
         self.code_folding = code_folding.CodeFolding(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
+        # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
+        # 更新行/列、语言、编码、缩进、选区词数。构造后注入 view。
+        self.statusbar = statusbar.StatusBar(self)
+        self.view.set_statusbar(self.statusbar.view)
 
         # LaTeX 专属子系统（autocomplete / bracket_completion /
         # update_matching_blocks）延迟到 idle 构造，避免新建文档时主线程
@@ -83,6 +88,11 @@ class Document(Observable):
         self._latex_features_ready = False
         self._is_shutdown = False
         self._latex_features_idle_id = None
+        # 懒加载：会话恢复时非活跃文档不立即读取文件内容，标记 _content_pending
+        # 后由 idle 回调或激活时同步加载。_lazy_load_idle_id 跟踪挂起的 idle
+        # 以便激活/关闭时取消。详见 populate_from_disk / _load_content_if_pending。
+        self._content_pending = False
+        self._lazy_load_idle_id = None
         if self.is_latex_document():
             self._latex_features_idle_id = GLib.idle_add(self._init_latex_features)
 
@@ -117,6 +127,7 @@ class Document(Observable):
                 main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
             except AttributeError:
                 pass
+
         return False
 
     def shutdown(self):
@@ -135,6 +146,10 @@ class Document(Observable):
         if self._latex_features_idle_id is not None:
             GLib.Source.remove(self._latex_features_idle_id)
             self._latex_features_idle_id = None
+        # 取消懒加载 idle：文档关闭时内容可能尚未加载，无需再读。
+        if self._lazy_load_idle_id is not None:
+            GLib.Source.remove(self._lazy_load_idle_id)
+            self._lazy_load_idle_id = None
 
         # 断开单例信号连接。
         # settings 是 Observable（自定义观察者模式），disconnect 接受
@@ -221,9 +236,12 @@ class Document(Observable):
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
-        # 编辑器配色现跟随应用深浅色（见 on_theme_colors_changed），
-        # 不再有独立的 color_scheme 设置项。
-        pass
+        # 用户在 Preferences 中切换了编辑器配色方案。
+        # ServiceLocator.set_style_scheme_name 在 set_value 前已清空缓存，
+        # 此处 get_style_scheme 会重新读取设置返回新方案；应用到 source_buffer。
+        # 系统主题切换走 on_theme_colors_changed 路径，与此互不干扰。
+        if item == 'editor_style_scheme':
+            self.source_buffer.set_style_scheme(ServiceLocator.get_style_scheme())
 
     def on_theme_colors_changed(self, style_manager, pspec=None):
         self.source_buffer.set_style_scheme(ServiceLocator.get_style_scheme())
@@ -272,6 +290,18 @@ class Document(Observable):
             self.set_filename(None)
             return False
 
+        self._load_file_content()
+        return True
+
+    def _load_file_content(self):
+        '''读取文件内容并填入 source_buffer。
+
+        从 populate_from_filename 抽出，供懒加载复用：会话恢复时非活跃文档
+        延迟调用此方法（idle 或激活时），避免启动期同步读取 N 个大文件。
+        加载后应用 _restore_cursor_offset / _restore_scroll_offset（若存在），
+        因为懒加载文档在 _restore_document_states idle 时缓冲区尚为空，
+        偏移恢复会失败——此处补做。
+        '''
         with open(self.filename) as f:
             text = f.read()
 
@@ -281,10 +311,76 @@ class Document(Observable):
         self.source_buffer.set_modified(False)
         self.place_cursor(0, 0)
         self.update_save_date()
-        return True
+
+        # 懒加载文档的游标/滚动恢复：_restore_document_states idle 在内容
+        # 加载前运行时偏移无效（缓冲区空），此处内容已就绪，补做恢复。
+        cursor_offset = getattr(self, '_restore_cursor_offset', None)
+        if cursor_offset is not None:
+            try:
+                if cursor_offset <= self.source_buffer.get_end_iter().get_offset():
+                    self.source_buffer.place_cursor(self.source_buffer.get_iter_at_offset(cursor_offset))
+            except Exception:
+                pass
+            self._restore_cursor_offset = None
+        scroll_offset = getattr(self, '_restore_scroll_offset', None)
+        if scroll_offset is not None:
+            try:
+                adj = self.view.scrolled_window.get_vadjustment()
+                GLib.idle_add(lambda a=adj, v=scroll_offset: (a.set_value(v), False))
+            except Exception:
+                pass
+            self._restore_scroll_offset = None
+
+    def _load_content_if_pending(self):
+        '''懒加载入口：若文档内容尚未加载（_content_pending），同步加载。
+
+        调用时机：
+        - workspace.set_active_document：激活文档前同步加载（用户切换到该文档）
+        - GLib.idle_add 回调：启动后空闲时后台加载非活跃文档
+
+        幂等：_content_pending 为 False 时直接返回，避免重复加载。
+        取消挂起的 idle（若由激活触发，idle 不应再执行）。
+        '''
+        if not self._content_pending:
+            return
+        # 取消挂起的 idle 回调（激活时同步加载，idle 不必再跑）
+        if self._lazy_load_idle_id is not None:
+            GLib.Source.remove(self._lazy_load_idle_id)
+            self._lazy_load_idle_id = None
+        self._content_pending = False
+        if self.filename is not None and os.path.isfile(self.filename):
+            self._load_file_content()
+        else:
+            # 文件在会话恢复后已被删除：清空文件名，显示空文档
+            self.set_filename(None)
+
+    def schedule_lazy_load(self):
+        '''调度 idle 加载文档内容（会话恢复时对非活跃文档调用）。
+
+        使用 PRIORITY_LOW（=300）让 UI 渲染与交互优先于后台文件读取。
+        多个文档各自调度一个 idle，按 GTK 事件循环顺序依次执行——
+        不会一次性占满主线程，每个 idle 只读一个文件。
+        '''
+        self._content_pending = True
+        self._lazy_load_idle_id = GLib.idle_add(self._on_lazy_load_idle)
+
+    def _on_lazy_load_idle(self):
+        self._lazy_load_idle_id = None
+        # 文档可能在 idle 排队期间被关闭（schedule 后立即关闭）
+        if self._is_shutdown or not self._content_pending:
+            return False
+        self._load_content_if_pending()
+        return False
 
     def save_to_disk(self):
         if self.filename == None: return False
+
+        # 懒加载安全守卫：内容未加载时缓冲区为空，直接保存会用空内容覆盖
+        # 原文件（数据丢失）。先同步加载内容再保存。正常流程下非活跃文档
+        # 不会被保存（UI 仅对活跃文档触发保存），此守卫防御 Save All /
+        # AutoSave 等批量保存路径。
+        if self._content_pending:
+            self._load_content_if_pending()
 
         text = self.get_all_text()
         if text == None: return False
@@ -300,6 +396,10 @@ class Document(Observable):
         self.update_save_date()
         self.controller.deleted_on_disk_dialog_shown_after_last_save = False
         self.source_buffer.set_modified(False)
+        # 通知监听者文档已成功保存（AutoSave 据此删除对应的崩溃恢复临时文件，
+        # 避免下次启动误把已保存的旧版本当作可恢复内容）。无参数，与 'changed'
+        # 同模式：回调签名 callback(document)。
+        self.add_change_code('saved')
 
     def update_save_date(self):
         self.save_date = os.path.getmtime(self.filename)
@@ -392,12 +492,17 @@ class Document(Observable):
         self.source_buffer.begin_user_action()
         package_data = self.parser.symbols['packages_detailed']
         if package_data:
-            max_end = 0
-            for package_match_list in package_data.values():
-                for package_match in package_match_list:
-                    offset, match_obj = package_match
-                    if offset > max_end:
-                        max_end = offset + match_obj.end() - match_obj.start()
+            # 找所有 \usepackage match 中最大的 end offset，确定插入位置。
+            # 原双层循环 O(P×M) 手写比较；改用 max + 生成器，仍是 O(P×M) 但
+            # 比较逻辑下沉到 C 层，Python 字节码循环更少。default=0 处理
+            # package_data 非空但所有 match list 为空的边界（max() 空序列会抛
+            # ValueError）。
+            max_end = max(
+                (offset + match_obj.end() - match_obj.start()
+                 for match_list in package_data.values()
+                 for offset, match_obj in match_list),
+                default=0,
+            )
             insert_iter = self.source_buffer.get_iter_at_offset(max_end)
             if not insert_iter.ends_line():
                 insert_iter.forward_to_line_end()
@@ -421,15 +526,19 @@ class Document(Observable):
             if package in packages_data:
                 self.source_buffer.begin_user_action()
 
+                # 原实现对每个 match 调 get_text 取出文本与 match_obj.group(0)
+                # 比较验证 buffer 未变。但 remove_packages 在 begin_user_action
+                # 内执行，期间 buffer 不会被外部并发修改；parser 数据在 buffer
+                # 变化时同步刷新。若 parser 数据过期，正确做法是重新解析而非逐
+                # match 验证。移除 N 次 get_text（GtkTextIter→C→Python 字符串
+                # 分配）调用，直接按 offset 删除。
                 for package_match in reversed(packages_data[package]):
                     offset, match_obj = package_match
                     start_iter = self.source_buffer.get_iter_at_offset(offset)
                     end_iter = self.source_buffer.get_iter_at_offset(offset + match_obj.end() - match_obj.start())
-                    text = self.source_buffer.get_text(start_iter, end_iter, False)
-                    if text == match_obj.group(0):  
-                        if start_iter.get_line_offset() == 0:
-                            start_iter.backward_char()
-                        self.source_buffer.delete(start_iter, end_iter)
+                    if start_iter.get_line_offset() == 0:
+                        start_iter.backward_char()
+                    self.source_buffer.delete(start_iter, end_iter)
 
                 self.source_buffer.end_user_action()
 

@@ -11,6 +11,32 @@
  */
 
 /*
+ * Setzer 间距标度 —— 单一事实来源（single source of truth）。
+ *
+ * GTK 4.10+ 支持 CSS 自定义属性与 var() 引用（运行时 GTK 4.22 已验证）。
+ * Python 代码应优先添加语义化 CSS class，而非 set_margin_*() 硬编码数值。
+ * 定义在 window 上，自定义属性沿 widget 树继承，所有后代可用。
+ *
+ * 命名约定：--setzer-spacing-{xs|sm|md|lg|xl}
+ *   xs=4px  细微留白（如卡片内图标与文字间）
+ *   sm=6px  工具栏按钮间距、卡片内边距（对齐 Adw.HeaderBar 默认间距）
+ *   md=12px 内容块间距、列表行间留白
+ *   lg=18px 次级分区间距
+ *   xl=24px 页面级外边距（welcome screen 等）
+ *
+ * 注意：Gtk.Box 的 spacing 属性无法通过 CSS 设置（GTK 无 box-gap 属性），
+ * 此类间距仍在 Python 中以 spacing=N 指定，但应在注释中标注对应变量名
+ * （如 spacing=6 对应 --setzer-spacing-sm）以保持可追溯。
+ */
+window {
+    --setzer-spacing-xs: 4px;
+    --setzer-spacing-sm: 6px;
+    --setzer-spacing-md: 12px;
+    --setzer-spacing-lg: 18px;
+    --setzer-spacing-xl: 24px;
+}
+
+/*
  * 侧边栏（Document Structure / Symbols / Preview / Help）共享的内嵌工具栏。
  *
  * Pass-12: 预览/帮助侧栏也采用此工具栏样式，与左侧栏外观一致。
@@ -20,8 +46,31 @@
  *   用 currentColor 的 alpha，自动跟随明暗主题。
  */
 .sidebar-toolbar {
-    padding: 6px 10px;
+    padding: var(--setzer-spacing-sm) 10px;
     min-height: 36px;
+}
+
+/*
+ * 工具栏内独立按钮（如 symbols 页的查找按钮）与左侧相邻控件组的间距。
+ * 原在 Python 中 set_margin_start(6) 硬编码，迁移到 CSS 引用间距变量。
+ *
+ * GTK CSS 无 margin-start/end 逻辑属性（那只是 GtkWidget 的 Python 属性名），
+ * 故用 margin-left + :dir(rtl) 覆盖实现 RTL 感知，等效于 set_margin_start()。
+ */
+.toolbar-button-spaced {
+    margin-left: var(--setzer-spacing-sm);
+}
+.toolbar-button-spaced:dir(rtl) {
+    margin-left: 0;
+    margin-right: var(--setzer-spacing-sm);
+}
+
+/*
+ * Welcome screen 主内容列的页面级外边距。
+ * 原在 Python 中 4 次 set_margin_*(24)，迁移到单一 CSS class。
+ */
+.welcome-content {
+    margin: var(--setzer-spacing-xl);
 }
 
 /* 工具栏左侧的“当前分区”标题：随滚动更新，dim-label 提供灰化，
@@ -40,7 +89,7 @@ textview gutter {
 }
 
 .sidebar-search-bar {
-    padding: 6px 10px 8px;
+    padding: var(--setzer-spacing-sm) 10px 8px;
 }
 
 /*
@@ -155,21 +204,43 @@ textview gutter {
  * GTK4 CSS 不支持 overflow 属性，故在 preview_panel_viewgtk.py 中通过
  * Gtk.Widget.set_overflow(Gtk.Overflow.HIDDEN) 实现。
  */
+
+/*
+ * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片外观。
+ */
+.editor-card {
+    border-radius: 8px;
+    margin: 0 6px;
+    background: @card_bg_color;
+}
+
 .preview-card {
     margin: 0 6px 6px 6px;
     border-radius: 8px;
     background: @card_bg_color;
 }
+.preview-card.target-visible {
+    margin-bottom: 0;
+}
 
 /*
- * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片外观，但仅设置左右与下边距
- * （不要上边距），利用 document_stack_wrapper 已有的 margin_top 避免与浮层
- * headerbar 重叠。
+ * 预览链接目标提示栏：与编辑器状态栏同款定位。
+ * 提示文字水平位置对齐编辑器状态栏文字（同 margin + padding）。
  */
-.editor-card {
-    border-radius: 8px;
-    margin: 0 6px 6px 6px;
-    background: @card_bg_color;
+.preview-target-bar {
+    margin: 0 6px 0 6px;
+}
+.preview-target-label {
+    padding: 2px 12px;
+}
+
+/*
+ * 编辑器底部状态栏：位于卡片下方，独立于圆角矩形。
+ * 与卡片共享左右 margin（6px），文字 dim-label 灰化，caption 小字号。
+ */
+.editor-statusbar {
+    padding: 2px 12px;
+    margin: 0 6px 0 6px;
 }
 
 /*
@@ -232,4 +303,18 @@ toolbarview > * > * > * {
     border-radius: 999px;
     padding: 3px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/*
+ * 搜索栏选项按钮（Aa / .* / W / S）：与旁边 icon 按钮等尺寸。
+ * libadwaita icon button 默认 min-width/min-height 约 32px，
+ * 此处强制相同，文字居中即可。
+ */
+.search-toggle {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+}
+.search-toggle label {
+    font-size: 0.85em;
 }

@@ -59,7 +59,7 @@ class _NoNaturalWidthLayout(Gtk.BoxLayout):
             return Gtk.BoxLayout.do_measure(self, widget, orientation, for_size)
 
 
-class Shortcutsbar(Gtk.Box):
+class ShortcutsBar(Gtk.Box):
     '''Icon bar above the editor. Uses libadwaita-style overflow menu
     (GNOME Builder/Text Editor pattern) instead of fixed-width wrapping:
     when the window is narrow, the rightmost left-side buttons are hidden
@@ -71,6 +71,14 @@ class Shortcutsbar(Gtk.Box):
     the actual allocated width (instead of discrete Adw.Breakpoints that
     would only flip at fixed thresholds). The number of overflowed buttons
     matches the available space on every layout pass.'''
+
+    # Overflow 安全余量（像素）。覆盖 GTK4 按钮 measure() 未计入的部分：
+    # box-shadow（不参与布局测量）、CSS border/margin 在某些主题下的额外
+    # 像素、子像素取整误差。8-12px 足以覆盖默认 Adwaita 主题；30px 是保守
+    # 值，确保较厚阴影的主题（如自定义暗色主题）下按钮不被裁切。若改用
+    # 更紧凑的主题可适当减小。GTK4 的 measure() 不暴露 box-shadow 尺寸，
+    # 故无法精确动态计算——保守常量是最可靠的方案。
+    _OVERFLOW_SAFETY_MARGIN = 30
 
     def __init__(self):
         Gtk.Box.__init__(self)
@@ -260,11 +268,10 @@ class Shortcutsbar(Gtk.Box):
         right_total = sum(right_widths) + spacing * max(0, n_right - 1)
         fixed = right_total + 2 * self._margin_horizontal + overflow_nat + spacing
 
-        # 安全余量：让"下一级收起"判定更积极，避免 measure() 未计入的
-        # 边框/内边距/子像素取整导致按钮被轻微裁切。8-12px 足够覆盖 GTK4
-        # 默认按钮的 box-shadow/border 未完全包含在 natural width 中的情况。
-        safety_margin = 30
-        avail = available_width - fixed - safety_margin
+        # 安全余量：覆盖 measure() 未计入的 box-shadow/border/子像素取整，
+        # 让"下一级收起"判定更积极，避免按钮被轻微裁切。详见类常量
+        # _OVERFLOW_SAFETY_MARGIN 的文档。
+        avail = available_width - fixed - self._OVERFLOW_SAFETY_MARGIN
 
         if left_total <= avail:
             target = 0
@@ -342,8 +349,10 @@ class Shortcutsbar(Gtk.Box):
             if meta is None:
                 continue
             icon_name = meta['icon_name']
-            tooltip = meta['tooltip']
-            label = tooltip.split(' (', 1)[0]
+            # label 独立存储，不依赖 tooltip 格式（tooltip 可能含快捷键后缀
+            # 如 "Bold (Ctrl+B)"，旧代码用 split(' (') 解析，对 tooltip 中
+            # 含其他括号的按钮如 "Beamer (Presentation)" 会错误截断）。
+            label = meta.get('label', meta['tooltip'])
             menu_model = meta.get('menu_model')
             if menu_model is not None:
                 self._overflow_model.append_submenu(label, menu_model)
@@ -372,6 +381,7 @@ class Shortcutsbar(Gtk.Box):
         self.wizard_button.set_action_name('win.show-document-wizard')
         self._button_meta[id(self.wizard_button)] = {
             'icon_name': 'document-new-symbolic',
+            'label': _('New Document'),
             'tooltip': _('Create a template document'),
             'menu_model': None,
             'action_name': 'win.show-document-wizard',
@@ -437,6 +447,7 @@ class Shortcutsbar(Gtk.Box):
         self.bold_button.set_tooltip_text(_('Bold') + ' (' + _('Ctrl') + '+B)')
         self._button_meta[id(self.bold_button)] = {
             'icon_name': 'format-text-bold-symbolic',
+            'label': _('Bold'),
             'tooltip': _('Bold') + ' (' + _('Ctrl') + '+B)',
             'menu_model': None,
             'action_name': 'win.insert-before-after',
@@ -452,6 +463,7 @@ class Shortcutsbar(Gtk.Box):
         self.italic_button.set_tooltip_text(_('Italic') + ' (' + _('Ctrl') + '+I)')
         self._button_meta[id(self.italic_button)] = {
             'icon_name': 'format-text-italic-symbolic',
+            'label': _('Italic'),
             'tooltip': _('Italic') + ' (' + _('Ctrl') + '+I)',
             'menu_model': None,
             'action_name': 'win.insert-before-after',
@@ -486,7 +498,7 @@ class Shortcutsbar(Gtk.Box):
     def insert_build_log_button(self):
         self.button_build_log = Gtk.ToggleButton()
         self.button_build_log.set_icon_name('build-log-symbolic')
-        self.button_build_log.set_tooltip_text(_('Build log') + ' (F8)')
+        self.button_build_log.set_tooltip_text(_('Build log') + ' (Ctrl+Shift+L)')
         self._add_right_button(self.button_build_log)
 
     def _setup_menu_button(self, button, menu_builder):
@@ -498,8 +510,11 @@ class Shortcutsbar(Gtk.Box):
         popover = button.get_popover()
         if popover is not None:
             popover.add_css_class('menu')
+        tooltip = button.get_tooltip_text() or ''
         self._button_meta[id(button)] = {
             'icon_name': button.get_icon_name(),
-            'tooltip': button.get_tooltip_text() or '',
+            # menu button 的 tooltip 不含快捷键后缀，直接用作 label。
+            'label': tooltip,
+            'tooltip': tooltip,
             'menu_model': menu_builder.model,
         }

@@ -15,22 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import _thread as thread
+import threading
 
 
 class Query(object):
 
     def __init__(self, tex_filename):
         self.build_result = None
-        self.build_result_lock = thread.allocate_lock()
+        self.build_result_lock = threading.Lock()
         self.forward_sync_result = None
-        self.forward_sync_result_lock = thread.allocate_lock()
+        self.forward_sync_result_lock = threading.Lock()
         self.backward_sync_result = None
-        self.backward_sync_result_lock = thread.allocate_lock()
+        self.backward_sync_result_lock = threading.Lock()
         self.done_executing = False
-        self.done_executing_lock = thread.allocate_lock()
+        self.done_executing_lock = threading.Lock()
         self.synctex_file = None
-        self.synctex_file_lock = thread.allocate_lock()
+        self.synctex_file_lock = threading.Lock()
 
         self.build_data = {'rerun_latex_reasons': set()}
         self.biber_data = {'ran_on_files': []}

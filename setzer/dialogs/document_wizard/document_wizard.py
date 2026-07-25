@@ -28,9 +28,13 @@ from setzer.dialogs.document_wizard.pages.page_book_settings import BookSettings
 from setzer.dialogs.document_wizard.pages.page_letter_settings import LetterSettingsPage
 from setzer.dialogs.document_wizard.pages.page_beamer_settings import BeamerSettingsPage
 from setzer.dialogs.document_wizard.pages.page_general_settings import GeneralSettingsPage
+from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.latex_db import LaTeXDB
 
+# pickle 仅用于 load_presets 中兼容旧 settings 数据（迁移期：旧版用
+# pickle.dumps(current_values) 存为 bytes）。settings.json 迁移完成后
+# presets 字段是 dict，此处 isinstance(bytes) 分支不再触发。后续可移除。
 import pickle
 import os
 
@@ -49,6 +53,7 @@ class DocumentWizard(object):
 
     def run(self, document):
         self.document = document
+        self.completed = False
 
         self.init_current_values()
         self.setup()
@@ -56,7 +61,7 @@ class DocumentWizard(object):
         self.presets = None
         self.current_page = -1
         self.load_presets()
-        self.goto_page(0)
+        self.goto_page(page_map.DOCUMENT_CLASS_PAGE_INDEX)
 
         self.view.present(self.main_window)
 
@@ -65,6 +70,7 @@ class DocumentWizard(object):
 
     def on_create_button_clicked(self, button):
         self.save_presets()
+        self.completed = True
 
         document_class = self.current_values['document_class']
         # 用 getattr 替代 eval:既避免任意代码执行风险(若 presets 被篡改,
@@ -85,6 +91,9 @@ class DocumentWizard(object):
         self.current_values['author'] = ''
         self.current_values['date'] = '\\today'
         self.current_values['languages'] = LaTeXDB.get_languages_dict()
+        # Problem 5: 字体包选择。lmodern（默认，pdfLaTeX 推荐）、
+        # fontspec（XeLaTeX/LuaLaTeX）、none（用户自行处理）。
+        self.current_values['font_package'] = 'lmodern'
         self.current_values['packages'] = dict()
         self.current_values['packages']['ams'] = True
         self.current_values['packages']['graphicx'] = True
@@ -166,41 +175,42 @@ class DocumentWizard(object):
     def load_presets(self):
         if self.presets == None:
             presets = self.settings.get_value('app_document_wizard', 'presets')
-            if presets != None:
-                # presets 来自磁盘持久化的 pickle 数据。若文件损坏或格式
-                # 不兼容（升级后字段变更），pickle.loads 会抛
-                # UnpicklingError / AttributeError / EOFError 等，导致向导
-                # 无法打开。静默回退到 None（默认值），让各 page 用默认预设。
+            # 迁移期兼容：旧版 settings 中 presets 是 pickle.dumps(current_values)
+            # 的 bytes；settings.json 迁移完成后 _migrate_presets_bytes 已把它
+            # 解为 dict，此处 isinstance(bytes) 分支不再触发。
+            # 保留 bytes 解包以兼容：用户从旧版直接升级且 settings.pickle
+            # 损坏导致迁移跳过时，presets 仍是 bytes。
+            if isinstance(presets, (bytes, bytearray)):
                 try:
-                    self.presets = pickle.loads(presets)
-                except Exception:
-                    self.presets = None
+                    presets = pickle.loads(presets)
+                except (pickle.UnpicklingError, EOFError, ValueError,
+                        AttributeError, TypeError):
+                    presets = None
+            # 类型校验：必须是 dict。None / 非 dict 一律回退到默认预设。
+            if not isinstance(presets, dict):
+                presets = None
+            self.presets = presets
 
         for page in self.pages:
             page.load_presets(self.presets)
 
     def save_presets(self):
-        self.settings.set_value('app_document_wizard', 'presets', pickle.dumps(self.current_values))
+        # 直接存 dict（JSON 兼容），不再 pickle.dumps。
+        # settings.set_value → settings.json 持久化时自动 JSON 序列化。
+        self.settings.set_value('app_document_wizard', 'presets', self.current_values)
 
     def goto_page_next(self, button=None, data=None):
-        if self.current_page == 0:
-            if self.current_values['document_class'] == 'article': self.goto_page(1)
-            elif self.current_values['document_class'] == 'report': self.goto_page(2)
-            elif self.current_values['document_class'] == 'book': self.goto_page(3)
-            elif self.current_values['document_class'] == 'letter': self.goto_page(4)
-            elif self.current_values['document_class'] == 'beamer': self.goto_page(5)
-        elif self.current_page in range(1, 6):
-            self.goto_page(6)
+        # 页面流转集中在 page_map.next_page：避免本方法散落 0/1-5/6 魔法数字，
+        # 新增/删除页面只改 page_map.py 一处。返回 None 表示无下一页
+        # （如 document_class 非法时留在原页），与原 if/elif 链行为一致。
+        next_idx = page_map.next_page(self.current_page, self.current_values['document_class'])
+        if next_idx is not None:
+            self.goto_page(next_idx)
 
     def goto_page_prev(self, button=None, data=None):
-        if self.current_page == 6:
-            if self.current_values['document_class'] == 'article': self.goto_page(1)
-            elif self.current_values['document_class'] == 'report': self.goto_page(2)
-            elif self.current_values['document_class'] == 'book': self.goto_page(3)
-            elif self.current_values['document_class'] == 'letter': self.goto_page(4)
-            elif self.current_values['document_class'] == 'beamer': self.goto_page(5)
-        elif self.current_page in range(1, 6):
-            self.goto_page(0)
+        prev_idx = page_map.prev_page(self.current_page, self.current_values['document_class'])
+        if prev_idx is not None:
+            self.goto_page(prev_idx)
 
     def goto_page(self, page_number):
         if self.current_page != page_number:
@@ -210,19 +220,25 @@ class DocumentWizard(object):
 
             self.pages[page_number].on_activation()
 
-            self.view.back_button.set_visible(page_number != 0)
-            self.view.next_button.set_visible(page_number < 6)
-            self.view.create_button.set_visible(page_number >= 6)
+            # 按钮可见性也走 page_map 谓词，避免 0 / 6 硬编码：
+            #   back  : 非首页（!= DOCUMENT_CLASS_PAGE_INDEX）
+            #   next  : 未到 GeneralSettings（< GENERAL_PAGE_INDEX）
+            #   create: 已到 GeneralSettings（>= GENERAL_PAGE_INDEX）
+            self.view.back_button.set_visible(page_number != page_map.DOCUMENT_CLASS_PAGE_INDEX)
+            self.view.next_button.set_visible(page_map.is_before_general(page_number))
+            self.view.create_button.set_visible(page_map.is_at_or_after_general(page_number))
 
     def on_keypress(self, controller, keyval, keycode, state, data=None):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if keyval == _KEYVAL_RETURN:
             if state & modifiers == 0:
-                if self.current_page in range(0, 6):
+                # 回车在 GeneralSettings 之前 → 前进；在/之后 → 创建。
+                # 用谓词替代 ``current_page in range(0, 6)`` / ``== 6``。
+                if page_map.is_before_general(self.current_page):
                     self.goto_page_next()
                     return True
-                elif self.current_page == 6:
+                elif page_map.is_at_or_after_general(self.current_page):
                     self.on_create_button_clicked(self.view.create_button)
                     return True
         return False
@@ -231,141 +247,127 @@ class DocumentWizard(object):
     *** templates
     '''
     
+    # ---- template helpers (Problem 2: 提取公共逻辑，消除 90% 重复) ----
+
+    def _get_font_package_line(self):
+        '''Problem 5: 根据用户选择返回字体包 \\usepackage 行。
+        lmodern（默认，pdfLaTeX）、fontspec（XeLaTeX/LuaLaTeX）、none。'''
+        choice = self.current_values.get('font_package', 'lmodern')
+        if choice == 'lmodern':
+            return '\\usepackage{lmodern}\n'
+        elif choice == 'fontspec':
+            return '\\usepackage{fontspec}\n'
+        return ''
+
+    def _get_preamble_packages(self):
+        '''生成 fontenc + inputenc + babel + 字体包 + 其他包的公共 preamble。
+        被 5 个 get_insert_text_* 方法共享。返回值以最后一个包的 \\n 结尾。'''
+        return (
+            '\\usepackage[T1]{fontenc}\n'
+            '\\usepackage[utf8]{inputenc}\n'
+            '\\usepackage[' + next(iter(self.current_values['languages'])) + ']{babel}\n'
+            + self._get_font_package_line()
+            + self.get_insert_packages()
+        )
+
+    def _get_geometry_line(self, doc_class):
+        '''生成 geometry 包行（非默认边距时），否则返回空字符串。
+        注意：返回值无尾部 \\n——与原实现一致，geometry 与 fontenc 在同一行。'''
+        s = self.current_values[doc_class]
+        if s['option_default_margins']:
+            return ''
+        return ('\\usepackage[top={}cm, bottom={}cm, left={}cm, right={}cm]{{geometry}}'
+                .format(s['margin_top'], s['margin_bottom'], s['margin_left'], s['margin_right']))
+
+    def _get_standard_document(self, doc_class, section_cmd, include_abstract):
+        '''article / report / book 共享模板。
+        三者仅文档类名、章节命令（\\section vs \\chapter）、是否含 abstract 不同。'''
+        s = self.current_values[doc_class]
+        options = (
+            self.page_formats[s['page_format']] + ','
+            + str(s['font_size']) + 'pt'
+            + (',twocolumn' if s['option_twocolumn'] else '')
+            + (',landscape' if s['is_landscape'] else '')
+        )
+        preamble = (
+            '\\documentclass[' + options + ']{' + doc_class + '}\n'
+            + self._get_geometry_line(doc_class)
+            + self._get_preamble_packages()
+        )
+        body = (
+            '\n\\title{' + self.current_values['title'] + '}\n'
+            '\\author{' + self.current_values['author'] + '}\n'
+            '\\date{' + self.current_values['date'] + '}\n\n'
+            '\\begin{document}\n\n'
+            '\\maketitle\n'
+            '\\tableofcontents\n\n'
+        )
+        if include_abstract:
+            body += '\\begin{abstract}\n\\end{abstract}\n\n'
+        body += '\\' + section_cmd + '{}\n\n'
+        return (preamble + body, '\n\n\\end{document}')
+
+    # ---- templates ----
+
     def get_insert_text_article(self):
-        return ('''\\documentclass[''' + self.page_formats[self.current_values['article']['page_format']] + ''',''' + str(self.current_values['article']['font_size']) + '''pt''' + (',twocolumn' if self.current_values['article']['option_twocolumn'] else '') + (',landscape' if self.current_values['article']['is_landscape'] else '') + ''']{article}
-''' +
-('''\\usepackage[top=''' + str(self.current_values['article']['margin_top']) + '''cm, bottom=''' + str(self.current_values['article']['margin_bottom']) + '''cm, left=''' + str(self.current_values['article']['margin_left']) + '''cm, right=''' + str(self.current_values['article']['margin_right']) + '''cm]{geometry}''' if not self.current_values['article']['option_default_margins'] else '')
-+ '''\\usepackage[T1]{fontenc}
-\\usepackage[utf8]{inputenc}
-\\usepackage[''' + next(iter(self.current_values['languages'])) + ''']{babel}
-\\usepackage{lmodern}
-''' + self.get_insert_packages() + '''
-\\title{''' + self.current_values['title'] + '''}
-\\author{''' + self.current_values['author'] + '''}
-\\date{''' + self.current_values['date'] + '''}
-
-\\begin{document}
-
-\\maketitle
-\\tableofcontents
-
-\\begin{abstract}
-\\end{abstract}
-
-\\section{}
-
-''', '''
-
-\\end{document}''')
+        return self._get_standard_document('article', 'section', include_abstract=True)
 
     def get_insert_text_report(self):
-        return ('''\\documentclass[''' + self.page_formats[self.current_values['report']['page_format']] + ''',''' + str(self.current_values['report']['font_size']) + '''pt''' + (',twocolumn' if self.current_values['report']['option_twocolumn'] else '') + (',landscape' if self.current_values['report']['is_landscape'] else '') + ''']{report}
-''' +
-('''\\usepackage[top=''' + str(self.current_values['report']['margin_top']) + '''cm, bottom=''' + str(self.current_values['report']['margin_bottom']) + '''cm, left=''' + str(self.current_values['report']['margin_left']) + '''cm, right=''' + str(self.current_values['report']['margin_right']) + '''cm]{geometry}''' if not self.current_values['report']['option_default_margins'] else '')
-+ '''\\usepackage[T1]{fontenc}
-\\usepackage[utf8]{inputenc}
-\\usepackage[''' + next(iter(self.current_values['languages'])) + ''']{babel}
-\\usepackage{lmodern}
-''' + self.get_insert_packages() + '''
-\\title{''' + self.current_values['title'] + '''}
-\\author{''' + self.current_values['author'] + '''}
-\\date{''' + self.current_values['date'] + '''}
-
-\\begin{document}
-
-\\maketitle
-\\tableofcontents
-
-\\begin{abstract}
-\\end{abstract}
-
-\\chapter{}
-
-''', '''
-
-\\end{document}''')
+        return self._get_standard_document('report', 'chapter', include_abstract=True)
 
     def get_insert_text_book(self):
-        return ('''\\documentclass[''' + self.page_formats[self.current_values['book']['page_format']] + ''',''' + str(self.current_values['book']['font_size']) + '''pt''' + (',twocolumn' if self.current_values['book']['option_twocolumn'] else '') + (',landscape' if self.current_values['book']['is_landscape'] else '') + ''']{book}
-''' +
-('''\\usepackage[top=''' + str(self.current_values['book']['margin_top']) + '''cm, bottom=''' + str(self.current_values['book']['margin_bottom']) + '''cm, left=''' + str(self.current_values['book']['margin_left']) + '''cm, right=''' + str(self.current_values['book']['margin_right']) + '''cm]{geometry}''' if not self.current_values['book']['option_default_margins'] else '')
-+ '''\\usepackage[T1]{fontenc}
-\\usepackage[utf8]{inputenc}
-\\usepackage[''' + next(iter(self.current_values['languages'])) + ''']{babel}
-\\usepackage{lmodern}
-''' + self.get_insert_packages() + '''
-\\title{''' + self.current_values['title'] + '''}
-\\author{''' + self.current_values['author'] + '''}
-\\date{''' + self.current_values['date'] + '''}
-
-\\begin{document}
-
-\\maketitle
-\\tableofcontents
-
-\\chapter{}
-
-''', '''
-
-\\end{document}''')
+        return self._get_standard_document('book', 'chapter', include_abstract=False)
 
     def get_insert_text_letter(self):
-        return ('''\\documentclass[''' + self.page_formats[self.current_values['letter']['page_format']] + ''',''' + str(self.current_values['letter']['font_size']) + '''pt]{letter}
-''' +
-('''\\usepackage[top=''' + str(self.current_values['letter']['margin_top']) + '''cm, bottom=''' + str(self.current_values['letter']['margin_bottom']) + '''cm, left=''' + str(self.current_values['letter']['margin_left']) + '''cm, right=''' + str(self.current_values['letter']['margin_right']) + '''cm]{geometry}''' if not self.current_values['letter']['option_default_margins'] else '')
-+ '''\\usepackage[T1]{fontenc}
-\\usepackage[utf8]{inputenc}
-\\usepackage[''' + next(iter(self.current_values['languages'])) + ''']{babel}
-\\usepackage{lmodern}
-''' + self.get_insert_packages() + '''
-\\address{''' + _('Your name') + '''\\\\''' + _('Your address') + '''\\\\''' + _('Your phone number') + '''}
-\\date{''' + self.current_values['date'] + '''}
-\\signature{''' + self.current_values['author'] + '''}
-
-\\begin{document}
-
-\\begin{letter}{''' + _('Destination') + '''\\\\''' + _('Address of the destination') + '''\\\\''' + _('Phone number of the destination') + ('''\\\\~\\\\\\textbf{''' + self.current_values['title'] + '''}''' if len(self.current_values['title']) > 0 else '') + '''}
-
-\\opening{''' + _('Dear addressee,') + '''}
-
-''', '''
-
-\\closing{''' + _('Yours sincerely,') + '''}
-
-%\\cc{''' + _('Other destination') + '''}
-%\\ps{''' + _('PS: PostScriptum') + '''}
-%\\encl{''' + _('Enclosures') + '''}
-
-\\end{letter}
-\\end{document}''')
+        s = self.current_values['letter']
+        options = self.page_formats[s['page_format']] + ',' + str(s['font_size']) + 'pt'
+        preamble = (
+            '\\documentclass[' + options + ']{letter}\n'
+            + self._get_geometry_line('letter')
+            + self._get_preamble_packages()
+        )
+        # Letter body 结构独特：address / date / signature + letter 环境
+        title_line = ('\\\\~\\\\\\textbf{' + self.current_values['title'] + '}'
+                      if len(self.current_values['title']) > 0 else '')
+        body = (
+            '\n\\address{' + _('Your name') + '\\\\' + _('Your address') + '\\\\' + _('Your phone number') + '}\n'
+            '\\date{' + self.current_values['date'] + '}\n'
+            '\\signature{' + self.current_values['author'] + '}\n\n'
+            '\\begin{document}\n\n'
+            '\\begin{letter}{' + _('Destination') + '\\\\' + _('Address of the destination') + '\\\\'
+            + _('Phone number of the destination') + title_line + '}\n\n'
+            '\\opening{' + _('Dear addressee,') + '}\n\n'
+        )
+        end = (
+            '\n\n\\closing{' + _('Yours sincerely,') + '}\n\n'
+            '%\\cc{' + _('Other destination') + '}\n'
+            '%\\ps{' + _('PS: PostScriptum') + '}\n'
+            '%\\encl{' + _('Enclosures') + '}\n\n'
+            '\\end{letter}\n'
+            '\\end{document}'
+        )
+        return (preamble + body, end)
 
     def get_insert_text_beamer(self):
         theme = self.current_values['beamer']['theme']
         top_align = '[t]' if self.current_values['beamer']['option_top_align'] else ''
-        show_navigation = '''
+        show_navigation = '\n\n\\beamertemplatenavigationsymbolsempty' if not self.current_values['beamer']['option_show_navigation'] else ''
 
-\\beamertemplatenavigationsymbolsempty''' if not self.current_values['beamer']['option_show_navigation'] else ''
-
-        return ('''\\documentclass''' + top_align + '''{beamer}
-\\usepackage[T1]{fontenc}
-\\usepackage[utf8]{inputenc}
-\\usepackage[''' + next(iter(self.current_values['languages'])) + ''']{babel}
-\\usepackage{lmodern}
-''' + self.get_insert_packages() + '''\\usetheme{''' + theme + '''}''' + show_navigation + '''
-
-\\title{''' + self.current_values['title'] + '''}
-\\author{''' + self.current_values['author'] + '''}
-\\date{''' + self.current_values['date'] + '''}
-
-\\begin{document}
-
-\\begin{frame}
-	\\titlepage
-\\end{frame}
-
-''', '''
-
-\\end{document}''')
+        preamble = (
+            '\\documentclass' + top_align + '{beamer}\n'
+            + self._get_preamble_packages()
+        )
+        body = (
+            '\\usetheme{' + theme + '}' + show_navigation + '\n\n'
+            '\\title{' + self.current_values['title'] + '}\n'
+            '\\author{' + self.current_values['author'] + '}\n'
+            '\\date{' + self.current_values['date'] + '}\n\n'
+            '\\begin{document}\n\n'
+            '\\begin{frame}\n'
+            '\t\\titlepage\n'
+            '\\end{frame}\n\n'
+        )
+        return (preamble + body, '\n\n\\end{document}')
 
     def get_insert_packages(self):
         text = ''

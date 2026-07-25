@@ -78,50 +78,24 @@ class ParserLaTeX(Observable):
             after_iter.backward_char()
 
         text_length = offset_end - offset_start
-        text = buffer.get_text(start_iter, end_iter, True)
-        deleted_line_count = text.count('\n')
+        deleted_text = buffer.get_text(start_iter, end_iter, True)
+        deleted_line_count = deleted_text.count('\n')
         text_before = buffer.get_text(before_iter, start_iter, True)
         text_after = buffer.get_text(end_iter, after_iter, True)
         offset_line_start = before_iter.get_offset()
-        self.text_length = char_count - offset_end + offset_start
-
-        # 缓存旧匹配列表引用：原代码在 6 个循环中各做一次
-        # self.block_symbol_matches['xxx'] / self.other_symbols 属性链查找
-        # （self.__dict__ → dict → key）。提到局部变量后走 LOAD_FAST。
-        old_begin_or_end = self.block_symbol_matches['begin_or_end']
-        old_others = self.block_symbol_matches['others']
-        old_other_symbols = self.other_symbols
-
-        block_symbol_matches = {'begin_or_end': list(), 'others': list()}
-        for match in old_begin_or_end:
-            if match[1] < line_start:
-                block_symbol_matches['begin_or_end'].append(match)
-        for match in old_others:
-            if match[1] < line_start:
-                block_symbol_matches['others'].append(match)
-        other_symbols = list()
-        for match in old_other_symbols:
-            if match[1] < offset_line_start:
-                other_symbols.append((match[0], match[1]))
-
         offset_line_end = offset_end + len(text_after)
-        text = text_before + text_after
+        self.text_length = char_count - text_length
+        modified_text = text_before + text_after
 
-        additional_matches = self.parse_for_blocks(text, line_start, offset_line_start)
-        block_symbol_matches['begin_or_end'] += additional_matches['begin_or_end']
-        block_symbol_matches['others'] += additional_matches['others']
-        for match in self._other_symbols_regex.finditer(text):
-            other_symbols.append((match, match.start() + offset_line_start))
-
-        for match in old_begin_or_end:
-            if match[1] > line_end:
-                block_symbol_matches['begin_or_end'].append((match[0], match[1] - deleted_line_count, match[2] - text_length))
-        for match in old_others:
-            if match[1] > line_end:
-                block_symbol_matches['others'].append((match[0], match[1] - deleted_line_count, match[2] - text_length))
-        for match in old_other_symbols:
-            if match[1] > offset_line_end:
-                other_symbols.append((match[0], match[1] - text_length))
+        # 删除后修改区为 [line_start, line_start]（删除区域塌缩到一行），
+        # 故 shift 阈值取 line_end：行号 > line_end 的匹配才需要平移。
+        block_symbol_matches, other_symbols = self._rebuild_matches(
+            modified_text, line_start, offset_line_start,
+            shift_line_threshold=line_end,
+            shift_offset_threshold=offset_line_end,
+            line_delta=-deleted_line_count,
+            offset_delta=-text_length,
+        )
 
         self.block_symbol_matches = block_symbol_matches
         self.number_of_lines = self.number_of_lines - deleted_line_count
@@ -151,41 +125,18 @@ class ParserLaTeX(Observable):
         text_after = buffer.get_text(location_iter, after_iter, True)
         offset_line_end = offset + len(text_after)
         self.text_length = char_count + text_length
-        text_parse = text_before + text + text_after
+        modified_text = text_before + text + text_after
 
-        # 缓存旧匹配列表引用（同 on_text_deleted）：避免 6 个循环各做一次
-        # self.block_symbol_matches['xxx'] / self.other_symbols 属性链查找。
-        old_begin_or_end = self.block_symbol_matches['begin_or_end']
-        old_others = self.block_symbol_matches['others']
-        old_other_symbols = self.other_symbols
-
-        block_symbol_matches = {'begin_or_end': list(), 'others': list()}
-        for match in old_begin_or_end:
-            if match[1] < line_start:
-                block_symbol_matches['begin_or_end'].append(match)
-        for match in old_others:
-            if match[1] < line_start:
-                block_symbol_matches['others'].append(match)
-        other_symbols = list()
-        for match in old_other_symbols:
-            if match[1] < offset_line_start:
-                other_symbols.append((match[0], match[1]))
-
-        additional_matches = self.parse_for_blocks(text_parse, line_start, offset_line_start)
-        block_symbol_matches['begin_or_end'] += additional_matches['begin_or_end']
-        block_symbol_matches['others'] += additional_matches['others']
-        for match in self._other_symbols_regex.finditer(text_parse):
-            other_symbols.append((match, match.start() + offset_line_start))
-
-        for match in old_begin_or_end:
-            if match[1] > line_start:
-                block_symbol_matches['begin_or_end'].append((match[0], match[1] + new_line_count, match[2] + text_length))
-        for match in old_others:
-            if match[1] > line_start:
-                block_symbol_matches['others'].append((match[0], match[1] + new_line_count, match[2] + text_length))
-        for match in old_other_symbols:
-            if match[1] > offset_line_end:
-                other_symbols.append((match[0], match[1] + text_length))
+        # 插入只发生在 line_start 一行，无「塌缩」概念，故 shift 阈值取
+        # line_start：行号 > line_start 的匹配需要平移（行号 == line_start
+        # 的匹配落入修改区，由 _rebuild_matches 重新解析覆盖）。
+        block_symbol_matches, other_symbols = self._rebuild_matches(
+            modified_text, line_start, offset_line_start,
+            shift_line_threshold=line_start,
+            shift_offset_threshold=offset_line_end,
+            line_delta=new_line_count,
+            offset_delta=text_length,
+        )
 
         self.block_symbol_matches = block_symbol_matches
         self.number_of_lines = self.number_of_lines + new_line_count
@@ -195,6 +146,73 @@ class ParserLaTeX(Observable):
         self.parse_symbols()
 
         self.add_change_code('finished_parsing')
+
+    def _rebuild_matches(self, modified_text, line_start, offset_line_start,
+                         shift_line_threshold, shift_offset_threshold,
+                         line_delta, offset_delta):
+        '''重建 block_symbol_matches 与 other_symbols，逻辑由
+        on_insert_text / on_text_deleted 共享，避免两处维护 6 个对称循环。
+
+        三步：
+        1. 保留修改区之前的匹配（行号 < line_start，offset < offset_line_start）。
+        2. 重新解析修改区文本，得到修改行内的全新匹配。
+        3. 平移修改区之后的匹配：行号 > shift_line_threshold 的块级匹配
+           按 (line_delta, offset_delta) 平移；offset > shift_offset_threshold
+           的文档级匹配按 offset_delta 平移。
+
+        两个调用方的差异仅在阈值与 delta 符号：
+        - on_insert_text: shift_line_threshold = line_start, delta 为正
+          （行号 == line_start 的匹配落入修改区被重解析覆盖，> line_start
+          的需要平移）。
+        - on_text_deleted: shift_line_threshold = line_end, delta 为负
+          （删除区域 [line_start, line_end] 内的匹配被丢弃，> line_end
+          的需要平移）。
+
+        Args:
+            modified_text: 修改区文本（修改后的整行内容），供重解析。
+            line_start, offset_line_start: 修改区起点的行号与字节偏移。
+            shift_line_threshold: 块级匹配平移的行号下界（exclusive）。
+            shift_offset_threshold: 文档级匹配平移的偏移下界（exclusive）。
+            line_delta, offset_delta: 平移量（insert 为正，delete 为负）。
+
+        Returns:
+            (block_symbol_matches_dict, other_symbols_list)
+        '''
+        # 缓存旧匹配列表引用：原代码在 6 个循环中各做一次
+        # self.block_symbol_matches['xxx'] / self.other_symbols 属性链查找
+        # （self.__dict__ → dict → key）。提到局部变量后走 LOAD_FAST。
+        old_begin_or_end = self.block_symbol_matches['begin_or_end']
+        old_others = self.block_symbol_matches['others']
+        old_other_symbols = self.other_symbols
+
+        # 1. 保留修改区之前的匹配（不变）
+        new_begin_or_end = [match for match in old_begin_or_end if match[1] < line_start]
+        new_others = [match for match in old_others if match[1] < line_start]
+        # other_symbols 存储为 2-tuple (match, offset)；重建以剥离可能的
+        # 历史结构（防御性，与原实现一致）。
+        new_other_symbols = [(match[0], match[1]) for match in old_other_symbols
+                             if match[1] < offset_line_start]
+
+        # 2. 重新解析修改区
+        additional_matches = self.parse_for_blocks(modified_text, line_start, offset_line_start)
+        new_begin_or_end += additional_matches['begin_or_end']
+        new_others += additional_matches['others']
+        for match in self._other_symbols_regex.finditer(modified_text):
+            new_other_symbols.append((match, match.start() + offset_line_start))
+
+        # 3. 平移修改区之后的匹配
+        for match in old_begin_or_end:
+            if match[1] > shift_line_threshold:
+                new_begin_or_end.append((match[0], match[1] + line_delta, match[2] + offset_delta))
+        for match in old_others:
+            if match[1] > shift_line_threshold:
+                new_others.append((match[0], match[1] + line_delta, match[2] + offset_delta))
+        # other_symbols 只有 offset（无行号计数器），只平移 offset。
+        for match in old_other_symbols:
+            if match[1] > shift_offset_threshold:
+                new_other_symbols.append((match[0], match[1] + offset_delta))
+
+        return {'begin_or_end': new_begin_or_end, 'others': new_others}, new_other_symbols
 
     #@timer
     def parse_for_blocks(self, text, line_start, offset_line_start):
@@ -232,25 +250,30 @@ class ParserLaTeX(Observable):
                 if group2_stripped == 'document':
                     begin_document_offset = offset
                     begin_document_line = line_number
-                try: blocks[group2].append([offset, None, line_number, None])
-                except KeyError: blocks[group2] = [[offset, None, line_number, None]]
+                # setdefault 替代原 try/except KeyError 控制流：原实现依赖
+                # 异常路径做 dict 初始化，每次新增 key 都付出异常构造开销。
+                # setdefault 一次属性查找完成「取或建」语义。
+                blocks.setdefault(group2, []).append([offset, None, line_number, None])
             else:
                 if group2_stripped == 'document':
                     end_document_offset = offset
                     end_document_line = line_number
-                try: blocks_begin = blocks[group2]
-                except KeyError: pass
-                else:
-                    try: block_begin = blocks_begin.pop()
-                    except IndexError: pass
-                    else:
-                        block_begin[1] = offset
-                        block_begin[3] = line_number
-                        block_begin.append(group2)
-                        blocks_list.append(block_begin)
+                # 原实现用 try/except KeyError + try/except IndexError 两层异常
+                # 控制流。改用 dict.get（key 不存在返回 None）+ truthy 检查
+                # （空列表为 falsy，自动覆盖「key 存在但列表已 pop 空」的分支）。
+                blocks_begin = blocks.get(group2)
+                if blocks_begin:
+                    block_begin = blocks_begin.pop()
+                    block_begin[1] = offset
+                    block_begin[3] = line_number
+                    block_begin.append(group2)
+                    blocks_list.append(block_begin)
 
-        relevant_following_blocks = [list(), list(), list(), list(), list(), list(), list()]
+        # levels 定义先于 relevant_following_blocks：用 len(levels) 派生
+        # 列表容量，避免「7 个 list()」与 levels 条目数耦合。新增层级
+        # （如 subsubparagraph）时只改 levels 一处即可。
         levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6}
+        relevant_following_blocks = [list() for _ in range(len(levels))]
         for (match, line_number, offset) in reversed(self.block_symbol_matches['others']):
             if line_number == 0:
                 add_preamble_folding = False
@@ -277,7 +300,9 @@ class ParserLaTeX(Observable):
             block.append(group3)
             block.append(match.group(4))
             blocks_list.append(block)
-            for i in range(level, 7):
+            # range 上界用 len(levels) 替代硬编码 7：与 levels 字典长度
+            # 绑定，未来新增层级无需同步修改此循环。
+            for i in range(level, len(levels)):
                 relevant_following_blocks[i].append(block)
 
         if add_preamble_folding and begin_document_offset and begin_document_line:

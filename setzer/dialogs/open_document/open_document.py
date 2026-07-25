@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, GLib, Adw
 
 
 class OpenDocumentDialog(object):
@@ -47,16 +48,37 @@ class OpenDocumentDialog(object):
     def dialog_process_response(self, dialog, result):
         try:
             files = dialog.open_multiple_finish(result)
-        except Exception: pass
+        except GLib.Error:
+            # 用户取消了对话框。
+            return
+
+        if files is None:
+            return
+
+        # 逐个文件独立 try/except:单个文件打开失败(损坏、权限等)
+        # 不应中断其余文件的打开。收集失败列表，操作完成后统一提示。
+        failed_files = []
+        for file in files:
+            path = file.get_path()
+            try:
+                self.workspace.open_document_by_filename(path)
+            except Exception:
+                failed_files.append(path)
+
+        if failed_files:
+            self._show_open_errors(failed_files)
+
+    def _show_open_errors(self, failed_files):
+        '''批量打开失败时弹出 toast 提示用户哪些文件未能打开。'''
+        from setzer.app.service_locator import ServiceLocator
+        main_window = ServiceLocator.get_main_window()
+        if len(failed_files) == 1:
+            msg = _('Could not open: {filename}').format(
+                filename=failed_files[0].split('/')[-1])
         else:
-            if files != None:
-                # 逐个文件独立 try/except:单个文件打开失败(损坏、权限等)
-                # 不应中断其余文件的打开。异常若逃逸到 GTK 异步回调外,
-                # 会被主循环静默吞掉或导致不稳定。
-                for file in files:
-                    try:
-                        self.workspace.open_document_by_filename(file.get_path())
-                    except Exception:
-                        pass
+            msg = _('Could not open {count} files').format(count=len(failed_files))
+        toast = Adw.Toast.new(msg)
+        toast.set_timeout(5)
+        main_window.toast_overlay.add_toast(toast)
 
 

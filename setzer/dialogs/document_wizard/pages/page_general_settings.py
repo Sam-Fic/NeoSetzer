@@ -45,6 +45,14 @@ class GeneralSettingsPage(Page):
                 code = self.view.language_codes[selected]
                 self.update_languages_list(code)
 
+        def font_package_changed(combo, pspec):
+            # Problem 5: 用户在 ComboRow 选择字体包, 反查为字符串键
+            # 存入 current_values['font_package'], 供 document_wizard
+            # 的 _get_font_package_line() 生成对应 \usepackage 行。
+            selected = combo.get_selected()
+            if selected != Gtk.INVALID_LIST_POSITION:
+                self.current_values['font_package'] = self.view.font_package_codes[selected]
+
         def option_toggled(row, pspec, package_name):
             self.current_values['packages'][package_name] = row.get_active()
 
@@ -53,6 +61,7 @@ class GeneralSettingsPage(Page):
         self.view.date_entry.connect('changed', text_changed, 'date')
 
         self.view.language_combo.connect('notify::selected', language_changed)
+        self.view.font_package_combo.connect('notify::selected', font_package_changed)
 
         for name, row in self.view.option_packages.items():
             row.connect('notify::active', option_toggled, name)
@@ -72,6 +81,19 @@ class GeneralSettingsPage(Page):
             langs = self.current_values['languages']
         self.current_values['languages'] = langs
         self.add_languages_list(langs)
+
+        # Problem 5: 恢复字体包选择。presets 是旧版数据时没有 'font_package'
+        # 键——KeyError 时回退到 current_values 默认值('lmodern')。
+        # 未知值(如 presets 被篡改)同样回退到 lmodern, 保持向后兼容。
+        try:
+            font_package = presets['font_package']
+        except (TypeError, KeyError):
+            font_package = self.current_values['font_package']
+        if font_package not in self.view.font_package_codes:
+            font_package = 'lmodern'
+        self.current_values['font_package'] = font_package
+        self.view.font_package_combo.set_selected(
+            self.view.font_package_codes.index(font_package))
 
         for name, option in self.view.option_packages.items():
             try:
@@ -149,6 +171,31 @@ class GeneralSettingsPageView(PageView):
         self.language_codes = list()
         self.group_language.add(self.language_combo)
 
+        # Font package (Problem 5) -------------------------------------------
+        # 让用户选择字体包, 而非总是插入 \usepackage{lmodern}。
+        #   lmodern  : Latin Modern, pdfLaTeX 推荐(默认, 与原行为一致)
+        #   fontspec : XeLaTeX/LuaLaTeX 下用系统字体
+        #   none     : 不插字体包, 用户自行处理
+        # font_package_codes 与下方 StringList 顺序一一对应; 选中索引通过
+        # font_package_codes[index] 反查为存储到 current_values['font_package']
+        # 的字符串键。这与 language_codes 的索引↔键映射模式对称。
+        self.group_font = Adw.PreferencesGroup()
+        self.group_font.set_title(_('Font package'))
+        self.group_font.set_description(_('Select the font package to include in the preamble. lmodern is recommended for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX.'))
+        self.font_package_combo = Adw.ComboRow()
+        self.font_package_combo.set_title(_('Font package'))
+        font_package_model = Gtk.StringList()
+        self.font_package_codes = ['lmodern', 'fontspec', 'none']
+        font_package_labels = {
+            'lmodern': _('Latin Modern (lmodern)') + ' (' + _('recommended') + ')',
+            'fontspec': _('Fontspec (for XeLaTeX/LuaLaTeX)'),
+            'none': _('None'),
+        }
+        for code in self.font_package_codes:
+            font_package_model.append(font_package_labels[code])
+        self.font_package_combo.set_model(font_package_model)
+        self.group_font.add(self.font_package_combo)
+
         # Packages -----------------------------------------------------------
         self.option_packages = dict()
         self.option_packages['ams'] = self._create_package_row(_('AMS math packages'), 'ams')
@@ -172,6 +219,7 @@ class GeneralSettingsPageView(PageView):
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
         self.content.append(self.group_document_properties)
         self.content.append(self.group_language)
+        self.content.append(self.group_font)
         self.content.append(self.group_packages)
 
         self.append(self.wrap_content(self.content))

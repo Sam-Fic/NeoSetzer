@@ -20,12 +20,11 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, GLib, GObject, Adw, Pango
 
-import time
-
 from setzer.widgets.search_entry.search_entry import SearchEntry
+from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 
 
-class DocumentStructurePage(Gtk.Box):
+class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
     def __init__(self):
         Gtk.Box.__init__(self)
@@ -94,12 +93,7 @@ class DocumentStructurePage(Gtk.Box):
         self.connect('destroy', self._on_destroy)
 
     def _on_destroy(self, widget=None):
-        if self._scroll_timeout_id is not None:
-            try:
-                GObject.source_remove(self._scroll_timeout_id)
-            except (ValueError, RuntimeError):
-                pass
-            self._scroll_timeout_id = None
+        self._cancel_scroll_animation()
         if self._filter_idle_id is not None:
             try:
                 GLib.source_remove(self._filter_idle_id)
@@ -287,39 +281,8 @@ class DocumentStructurePage(Gtk.Box):
                 self.scroll_view(label_offset)
                 break
 
-    def scroll_view(self, position, duration=0.2):
-        # 取消进行中的动画：连续点击下一/上一段时，旧 timeout 仍在写
-        # adjustment，与新动画叠加产生抖动。
-        if self._scroll_timeout_id is not None:
-            GObject.source_remove(self._scroll_timeout_id)
-            self._scroll_timeout_id = None
-        adjustment = self.scrolled_window.get_vadjustment()
-        self.scroll_to = {'position_start': adjustment.get_value(), 'position_end': position, 'time_start': time.time(), 'duration': duration}
-        self.scrolled_window.set_kinetic_scrolling(False)
-        self._scroll_timeout_id = GObject.timeout_add(15, self.do_scroll)
-
-    def do_scroll(self):
-        if self.scroll_to != None:
-            adjustment = self.scrolled_window.get_vadjustment()
-            time_elapsed = time.time() - self.scroll_to['time_start']
-            if self.scroll_to['duration'] == 0:
-                time_elapsed_percent = 1
-            else:
-                time_elapsed_percent = time_elapsed / self.scroll_to['duration']
-            if time_elapsed_percent >= 1:
-                adjustment.set_value(self.scroll_to['position_end'])
-                self.scroll_to = None
-                self.scrolled_window.set_kinetic_scrolling(True)
-                self._scroll_timeout_id = None
-                return False
-            else:
-                adjustment.set_value(self.scroll_to['position_start'] * (1 - self.ease(time_elapsed_percent)) + self.scroll_to['position_end'] * self.ease(time_elapsed_percent))
-                return True
-        # scroll_to 已被取消（新动画或销毁），停止本 timeout。
-        self._scroll_timeout_id = None
-        return False
-
-    def ease(self, time): return (time - 1)**3 + 1
+    def _get_scrolled_window(self):
+        return self.scrolled_window
 
     def on_search_button_toggled(self, button):
         if button.get_active():

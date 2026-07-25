@@ -23,6 +23,8 @@ from gi.repository import Gtk
 import setzer.dialogs.include_bibtex_file.include_bibtex_file_viewgtk as view
 from setzer.app.service_locator import ServiceLocator
 
+# pickle 仅用于迁移期兼容旧 settings（presets 字段旧版是 bytes）。
+# settings.json 迁移完成后 presets 是 dict，isinstance(bytes) 分支不再触发。
 import pickle
 import os
 
@@ -75,8 +77,15 @@ class IncludeBibTeXFile(object):
         self.current_values['natbib_toggle'] = False
         self.current_values['filename'] = ''
         presets = self.settings.get_value('app_include_bibtex_file_dialog', 'presets')
-        if presets != None:
-            presets = pickle.loads(presets)
+        # 迁移期兼容：旧版 presets 是 pickle.dumps 的 bytes；settings.json
+        # 迁移完成后 _migrate_presets_bytes 已解为 dict。
+        if isinstance(presets, (bytes, bytearray)):
+            try:
+                presets = pickle.loads(presets)
+            except (pickle.UnpicklingError, EOFError, ValueError,
+                    AttributeError, TypeError):
+                presets = None
+        if isinstance(presets, dict):
             try:
                 style = presets['style']
                 if style in self.styles:
@@ -181,7 +190,8 @@ class IncludeBibTeXFile(object):
             return self.current_values['style']
 
     def insert_template(self):
-        self.settings.set_value('app_include_bibtex_file_dialog', 'presets', pickle.dumps(self.current_values))
+        # 直接存 dict（JSON 兼容），不再 pickle.dumps。
+        self.settings.set_value('app_include_bibtex_file_dialog', 'presets', self.current_values)
 
         self.document.insert_before_document_end('''\\bibliographystyle{''' + self.get_style() + '''}
 \\bibliography{''' + self.get_display_filename() + '''}''')

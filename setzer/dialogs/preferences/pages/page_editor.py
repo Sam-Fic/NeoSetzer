@@ -51,6 +51,12 @@ class PageEditor(object):
         self.view.option_highlight_matching_brackets.set_active(self.settings.get_value('preferences', 'highlight_matching_brackets'))
         self.view.option_highlight_matching_brackets.connect('notify::active', self.on_switch_toggled, 'highlight_matching_brackets')
 
+        self.view.option_auto_save_enabled.set_active(self.settings.get_value('preferences', 'auto_save_enabled'))
+        self.view.option_auto_save_enabled.connect('notify::active', self.on_switch_toggled, 'auto_save_enabled')
+
+        self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
+        self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
+
         # 重置按钮由 Appearance 页统一接管（合并后 Editor 不再是独立页），
         # 故此处不再连接 editor 自身的 reset_button；on_reset_clicked 供
         # Appearance 的 reset 调用以重置编辑相关项。
@@ -68,6 +74,8 @@ class PageEditor(object):
         self.view.option_code_folding.set_active(defaults['enable_code_folding'])
         self.view.option_highlight_current_line.set_active(defaults['highlight_current_line'])
         self.view.option_highlight_matching_brackets.set_active(defaults['highlight_matching_brackets'])
+        self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
+        self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
 
 
 class PageEditorView(Adw.PreferencesPage):
@@ -128,6 +136,23 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
         group_highlighting.add(self.option_highlight_matching_brackets)
 
+        # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
+        # 应用崩溃后下次启动可恢复未保存的编辑。
+        group_auto_save = Adw.PreferencesGroup()
+        group_auto_save.set_title(_('Auto Save'))
+        self.add(group_auto_save)
+
+        self.option_auto_save_enabled = Adw.SwitchRow()
+        self.option_auto_save_enabled.set_title(_('Enable auto save (crash recovery)'))
+        self.option_auto_save_enabled.set_subtitle(_('Periodically save buffer to a temp file for crash recovery'))
+        group_auto_save.add(self.option_auto_save_enabled)
+
+        self.auto_save_delay_row = Adw.SpinRow()
+        self.auto_save_delay_row.set_title(_('Auto save interval (seconds)'))
+        adjustment_auto_save = Gtk.Adjustment(value=60, lower=10, upper=600, step_increment=5)
+        self.auto_save_delay_row.set_adjustment(adjustment_auto_save)
+        group_auto_save.add(self.auto_save_delay_row)
+
         group_reset = Adw.PreferencesGroup()
         # 标记以便 PreferencesDialog.setup() reparent 时跳过 editor 自身的
         # 重置按钮（重置由 Appearance 页统一处理）。
@@ -136,5 +161,4 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
-        self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)

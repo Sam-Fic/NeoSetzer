@@ -30,6 +30,10 @@ class PreviewZoomManager(Observable):
         self.zoom_level_fit_to_height = None
         self.zoom_level = None
         self.zoom_set = False
+        # 递归保护：update_dynamic_zoom_levels 内部可能调用
+        # set_zoom_fit_to_width_auto_offset → set_zoom_level → update_dynamic_zoom_levels，
+        # 此标志防止递归调用导致多余的布局重建。
+        self._in_update_dynamic_levels = False
         # 缩放停靠点缓存：on_zoom_request 原每次 Ctrl+滚轮都重建 3 元素列表
         # + `in` 线性扫描。fit_to_* 级别仅在 update_dynamic_zoom_levels 后变化，
         # 故在那里缓存为 tuple，on_zoom_request 直接读取，tuple 的 `in` 也快于 list。
@@ -41,23 +45,27 @@ class PreviewZoomManager(Observable):
 
         old_level = self.zoom_level_fit_to_width
 
-        self.update_fit_to_width()
-        self.update_fit_to_text_width()
-        self.update_fit_to_height()
+        self._in_update_dynamic_levels = True
+        try:
+            self.update_fit_to_width()
+            self.update_fit_to_text_width()
+            self.update_fit_to_height()
 
-        if self.zoom_level == old_level and self.zoom_level_fit_to_width != old_level:
-            self.set_zoom_fit_to_width_auto_offset()
+            if self.zoom_level == old_level and self.zoom_level_fit_to_width != old_level:
+                self.set_zoom_fit_to_width_auto_offset()
 
-        if not self.zoom_set:
-            self.zoom_set = True
-            self.set_zoom_fit_to_width()
+            if not self.zoom_set:
+                self.zoom_set = True
+                self.set_zoom_fit_to_width()
 
-        # fit_to_* 级别此刻已最终确定（含可能的 set_zoom_fit_to_width 回调后的
-        # 值），缓存停靠点供 on_zoom_request 读取。
-        self._stopping_points = tuple(
-            lvl for lvl in (self.zoom_level_fit_to_width, self.zoom_level_fit_to_text_width, self.zoom_level_fit_to_height)
-            if lvl is not None
-        )
+            # fit_to_* 级别此刻已最终确定（含可能的 set_zoom_fit_to_width 回调后的
+            # 值），缓存停靠点供 on_zoom_request 读取。
+            self._stopping_points = tuple(
+                lvl for lvl in (self.zoom_level_fit_to_width, self.zoom_level_fit_to_text_width, self.zoom_level_fit_to_height)
+                if lvl is not None
+            )
+        finally:
+            self._in_update_dynamic_levels = False
 
     def update_fit_to_width(self):
         self.zoom_level_fit_to_width = self.view.get_allocated_width() / (self.preview.page_width * self.preview.layout.hidpi_factor)
@@ -100,9 +108,12 @@ class PreviewZoomManager(Observable):
         try:
             zoom_level = max([level for level in self.get_list_of_zoom_levels() if level < self.zoom_level])
         except ValueError:
-            # 原代码写 self.zoom_levels（未定义属性），在已达最小缩放级别时
-            # 触发此分支会抛 AttributeError。应为 self.get_list_of_zoom_levels()，
-            # 与 zoom_in 的对应分支一致。
+            # 已达最小缩放级别（无更小的级别可选）。回退到 min(levels)——
+            # 通常等于当前 zoom_level，set_zoom_level_auto_offset → set_zoom_level
+            # 内 `if level == self.zoom_level: return` 会直接返回，即 no-op。
+            # 这是有意行为：缩到最小后再按缩小不应循环到最大或报错。
+            # 原代码此处误写 self.zoom_levels（未定义属性）会抛 AttributeError，
+            # 已修正为 self.get_list_of_zoom_levels()，与 zoom_in 对应分支一致。
             zoom_level = min(self.get_list_of_zoom_levels())
         self.set_zoom_level_auto_offset(zoom_level)
 
@@ -142,7 +153,12 @@ class PreviewZoomManager(Observable):
 
         self.preview.layout = self.preview.layouter.create_layout()
         self.preview.add_change_code('layout_changed')
-        self.update_dynamic_zoom_levels()
+        # 仅在非递归调用时更新动态缩放级别——update_dynamic_zoom_levels
+        # 内部可能调用 set_zoom_fit_to_width_auto_offset → set_zoom_level，
+        # 递归调用会导致多余的布局重建。递归路径中的 set_zoom_level 仍会
+        # 设置 zoom_level + 创建 layout，只是跳过再次 update_dynamic。
+        if not self._in_update_dynamic_levels:
+            self.update_dynamic_zoom_levels()
 
         self.zoom_set = True
         self.add_change_code('zoom_level_changed')

@@ -35,7 +35,12 @@ class InterpreterMissingDialog(object):
             heading=_('LateX Interpreter is missing.'),
             body=_('''Setzer is configured to use »{interpreter}« which seems to be missing on this system.
 
-To choose a different interpreter go to Preferences.''').format(interpreter=interpreter_name))
+You can install it with:
+• Ubuntu/Debian: sudo apt install texlive-latex-base
+• Fedora: sudo dnf install texlive-scheme-medium
+• Arch Linux: sudo pacman -S texlive-core
+
+Or choose a different interpreter in Preferences.''').format(interpreter=interpreter_name))
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('preferences', _('Go to Preferences'))
         self.view.set_response_appearance('preferences', Adw.ResponseAppearance.SUGGESTED)

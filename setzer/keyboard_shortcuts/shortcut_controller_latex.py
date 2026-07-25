@@ -59,7 +59,10 @@ class ShortcutControllerLaTeX(ShortcutController):
         self.set_accels_for_insert_symbol_action(['\\item •'], [shortcuts.get('list_item', '<Control><Shift>i')])
         self.set_accels_for_insert_symbol_action(['\\\\\n'], [shortcuts.get('new_line', '<Control>Return')])
 
-        self.create_and_add_shortcut(shortcuts.get('toggle_comment', '<Control>slash'), self.actions.toggle_comment)
+        # fallback 与 settings.py 默认值 '<Control>k' 保持一致：settings 始终提供
+        # 该值，fallback 实际不会命中，但若两边写法不同（此处原为 '<Control>slash'）
+        # 会误导阅读者以为实际快捷键是 Ctrl+/。统一写法避免混淆。
+        self.create_and_add_shortcut(shortcuts.get('toggle_comment', '<Control>k'), self.actions.toggle_comment)
         self.create_and_add_shortcut(shortcuts.get('quotation_marks', '<Control>quotedbl'), self.shortcut_quotes)
 
     def set_accels_for_insert_before_after_action(self, parameter, accels):

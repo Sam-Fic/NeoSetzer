@@ -144,12 +144,17 @@ class BracketCompletion(object):
         text = char + self.document.get_selected_text() + closing_char
 
         self.source_buffer.begin_user_action()
-        self.source_buffer.delete_selection(True, True)
-        self.source_buffer.insert_at_cursor(text)
-        start_iter = self.source_buffer.get_iter_at_offset(offset_start + 1)
-        end_iter = self.source_buffer.get_iter_at_offset(offset_start + len(text) - len(closing_char))
-        self.source_buffer.select_range(start_iter, end_iter)
-        self.source_buffer.end_user_action()
+        try:
+            self.source_buffer.delete_selection(True, True)
+            self.source_buffer.insert_at_cursor(text)
+            start_iter = self.source_buffer.get_iter_at_offset(offset_start + 1)
+            end_iter = self.source_buffer.get_iter_at_offset(offset_start + len(text) - len(closing_char))
+            self.source_buffer.select_range(start_iter, end_iter)
+        finally:
+            # try/finally 保证 end_user_action 总被调用：若 delete_selection 或
+            # insert_at_cursor 抛异常（buffer 被外部修改等），不保护的化后续所有
+            # 编辑会被合并进这个未关闭的 user-action，破坏 undo 粒度。
+            self.source_buffer.end_user_action()
         return True
 
     def autoclose_brackets(self, char):
@@ -160,8 +165,10 @@ class BracketCompletion(object):
             closing_char = '\\' + closing_char
 
         self.source_buffer.begin_user_action()
-        self.source_buffer.insert_at_cursor(char + closing_char)
-        self.source_buffer.end_user_action()
+        try:
+            self.source_buffer.insert_at_cursor(char + closing_char)
+        finally:
+            self.source_buffer.end_user_action()
 
         insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
         insert_iter.backward_chars(len(closing_char))
@@ -219,6 +226,11 @@ class BracketCompletion(object):
         # 后者会返回该位置上所有 mark（含 GTK 内置的 insert / selection_bound），
         # 在每次按键时徒增一次完整 mark 集合迭代开销。
         insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        # char 为 ]/}) 时跳 1 个字符（单个闭合括号）；char 为 '\\' 时跳 2 个，
+        # 因为 autoclose_brackets 在前一个字符是 '\' 时会把闭合括号扩展为 LaTeX
+        # 命令形式（\}、\]、\)），共 2 个字符。跳 2 才能越过整个 LaTeX 闭合对，
+        # 与 completion_marks 里 end_mark 的位置（add_completion_marks 在闭合串
+        # 末尾设的 mark）对齐。
         target_iter = insert_iter.copy()
         target_iter.forward_chars(2 if char == '\\' else 1)
         target_offset = target_iter.get_offset()
@@ -227,12 +239,19 @@ class BracketCompletion(object):
             end_iter = self.source_buffer.get_iter_at_mark(end_mark)
             if end_iter.get_offset() == target_offset:
                 self.source_buffer.begin_user_action()
-                if char == '\\':
-                    target_iter.backward_chars(1)
-                    self.source_buffer.place_cursor(target_iter)
-                else:
-                    self.source_buffer.place_cursor(target_iter)
-                self.source_buffer.end_user_action()
+                try:
+                    if char == '\\':
+                        # '\\' 不是闭合括号而是 LaTeX 命令前缀。用户在已自动补全
+                        # 的 '\}' 处再按 '\' 时，不重复插入反斜杠（否则变成 '\\}'
+                        # 即换行命令），而是回退 1 字符把光标放在 '\' 与 '}' 之间
+                        # （\|}），复用已有的反斜杠让用户接着输入命令名，例如
+                        # '\textbf}'。对 ]/}) 则直接跳过到闭合括号之后。
+                        target_iter.backward_chars(1)
+                        self.source_buffer.place_cursor(target_iter)
+                    else:
+                        self.source_buffer.place_cursor(target_iter)
+                finally:
+                    self.source_buffer.end_user_action()
                 self.reconsider_completion_marks()
                 return True
 

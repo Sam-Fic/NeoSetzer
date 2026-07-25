@@ -71,7 +71,9 @@ class SymbolsPageView(Gtk.Box):
         self.search_button.set_can_focus(False)
         self.search_button.add_css_class('flat')
         self.search_button.set_tooltip_text(_('Find'))
-        self.search_button.set_margin_start(6)
+        # 与左侧 nav_box 的间距由 .toolbar-button-spaced CSS class 提供
+        # （引用 --setzer-spacing-sm 变量），替代原 set_margin_start(6) 硬编码。
+        self.search_button.add_css_class('toolbar-button-spaced')
         self.toolbar.append(self.search_button)
 
         self.search_revealer = Gtk.Revealer()
@@ -130,19 +132,18 @@ class SymbolsPageView(Gtk.Box):
         # SymbolsPage 控制可见性（无收藏则隐藏整个分类）。
         self.favorites_group = self.add_category(_('Favorites'), self.symbols_view_favorites)
 
+        # 每项: [folder, icon_name(预留备用), label, symbol_width]。
+        # 原实现第 4 项是 'SidebarSymbolsList("folder", width)' 字符串，再 eval()
+        # 执行——eval 是反模式（无法静态分析、linter 无法追踪调用关系），且若
+        # 将来改为从外部数据加载即成 RCE 入口。改为直接存 width 整数，在
+        # init_symbols_lists 中直接调用构造函数。
         self.symbols_lists = list()
-        self.symbols_lists.append(['greek_letters', 'own-symbols-greek-letters-symbolic', _('Greek Letters'),
-                           'SidebarSymbolsList("greek_letters", 25)'])
-        self.symbols_lists.append(['arrows', 'own-symbols-arrows-symbolic', _('Arrows'),
-                           'SidebarSymbolsList("arrows", 48)'])
-        self.symbols_lists.append(['relations', 'own-symbols-relations-symbolic', _('Relations'),
-                           'SidebarSymbolsList("relations", 39)'])
-        self.symbols_lists.append(['operators', 'own-symbols-operators-symbolic', _('Operators'),
-                           'SidebarSymbolsList("operators", 47)'])
-        self.symbols_lists.append(['misc_math', 'own-symbols-misc-math-symbolic', _('Misc. Math'),
-                           'SidebarSymbolsList("misc_math", 42)'])
-        self.symbols_lists.append(['misc_text', 'insert-text-symbolic', _('Misc. Symbols'),
-                           'SidebarSymbolsList("misc_text", 38)'])
+        self.symbols_lists.append(['greek_letters', 'own-symbols-greek-letters-symbolic', _('Greek Letters'), 25])
+        self.symbols_lists.append(['arrows', 'own-symbols-arrows-symbolic', _('Arrows'), 48])
+        self.symbols_lists.append(['relations', 'own-symbols-relations-symbolic', _('Relations'), 39])
+        self.symbols_lists.append(['operators', 'own-symbols-operators-symbolic', _('Operators'), 47])
+        self.symbols_lists.append(['misc_math', 'own-symbols-misc-math-symbolic', _('Misc. Math'), 42])
+        self.symbols_lists.append(['misc_text', 'insert-text-symbolic', _('Misc. Symbols'), 38])
 
         self.init_symbols_lists()
 
@@ -156,9 +157,9 @@ class SymbolsPageView(Gtk.Box):
         return group
 
     def init_symbols_lists(self):
-        for symbols_list in self.symbols_lists:
-            symbols_list_view = eval(symbols_list[3])
-            self.add_category(symbols_list[2], symbols_list_view)
+        for folder, icon, label, width in self.symbols_lists:
+            symbols_list_view = SidebarSymbolsList(folder, width)
+            self.add_category(label, symbols_list_view)
             self.symbols_views.append(symbols_list_view)
 
 

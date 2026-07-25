@@ -72,6 +72,12 @@ class BuildLog(Observable):
         self.signal_finish_adding()
 
         if just_built and self.has_items(self.settings.get_value('preferences', 'autoshow_build_log')):
+            # 自动构建路径：若用户关闭了 auto_build_autoshow_errors，则不自动弹出
+            # 日志弹窗。避免打字途中触发自动构建、文档尚未输完导致报错时频繁打扰。
+            # 手动构建（F5/F6）is_auto_build 为 False，始终遵循 autoshow_build_log。
+            is_auto = getattr(self.document.build_system, 'is_auto_build', False)
+            if is_auto and not self.settings.get_value('preferences', 'auto_build_autoshow_errors'):
+                return
             self.workspace.set_show_build_log(True)
 
     def signal_finish_adding(self):
@@ -99,6 +105,12 @@ class BuildLog(Observable):
     def on_present(self):
         '''由 workspace_presenter 在 present 弹窗后调用，更新 is_open 标志。'''
         self.is_open = True
+        # 调试断言：is_open 与 workspace.show_build_log 应保持一致。
+        # 若不一致，说明 present/close 路径有遗漏（如外部直接 present 但未
+        # set_show_build_log(True)），需要排查调用方。python -O 时自动剥离。
+        assert self.workspace.get_show_build_log(), (
+            'BuildLog.on_present: is_open=True 但 workspace.show_build_log=False，状态不一致'
+        )
         if self.view.presenter is not None and getattr(self.view.presenter, '_dirty', False):
             self.view.presenter._update_filter_dropdowns()
             self.view.presenter.populate()
@@ -115,5 +127,7 @@ class BuildLog(Observable):
         self.is_open = False
         # 仅当当前 workspace 状态认为弹窗仍打开时才同步，避免 close→set(False)→
         # state_change→close 的无谓递归（虽然 close 幂等，但减少信号噪声）。
+        # 若 workspace 已认为弹窗关闭（外部先调了 set_show_build_log(False)），
+        # 此处跳过——is_open 与 show_build_log 此时一致（均为 False）。
         if self.workspace.get_show_build_log():
             self.workspace.set_show_build_log(False)

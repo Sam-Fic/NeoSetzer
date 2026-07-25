@@ -19,10 +19,14 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 from gi.repository import Pango
+import os
 import os.path
 import pickle
 
 from setzer.helpers.observable import Observable
+from setzer.helpers.persistence import (
+    load_json, save_json, migrate_pickle_to_json,
+)
 
 
 class Settings(Observable):
@@ -32,14 +36,49 @@ class Settings(Observable):
         Observable.__init__(self)
 
         self.pathname = pathname
+        # JSON 是首选持久化格式；旧 settings.pickle 一次性迁移到 settings.json。
+        # 保留 .pickle 文件作为备份，不删除（用户可手动清理）。
+        self._json_path = os.path.join(self.pathname, 'settings.json')
+        self._pickle_path = os.path.join(self.pathname, 'settings.pickle')
     
         self.data = dict()
         self.defaults = dict()
         self.set_defaults()
 
+        # 一次性迁移：旧 settings.pickle → settings.json。
+        # migrate_value 解包嵌套 pickle bytes（三个 wizard 的 presets 字段
+        # 旧实现存的是 pickle.dumps(current_values) 的 bytes）。
+        migrate_pickle_to_json(self._json_path, self._pickle_path,
+                               migrate_value=self._migrate_presets_bytes)
+
         if not self.unpickle():
             self.data = self.defaults
             self.pickle()
+
+    @staticmethod
+    def _migrate_presets_bytes(data):
+        '''settings 数据中 presets 字段从 pickle bytes 迁移为 dict。
+
+        旧实现：document_wizard/include_bibtex_file/include_latex_file 的
+        save_presets 调 pickle.dumps(current_values) 后存入 settings.data，
+        再随 settings 整体 pickle 到 settings.pickle —— 双重 pickle。
+        迁移到 JSON 前必须先解内层 bytes，否则 json.dump 遇 bytes 抛
+        TypeError。三个 section 一并处理（未使用 wizard 时 presets 为 None，
+        isinstance 检查跳过）。
+        '''
+        for section in ('app_document_wizard', 'app_bibtex_wizard',
+                        'app_include_bibtex_file_dialog'):
+            section_dict = data.get(section)
+            if not isinstance(section_dict, dict):
+                continue
+            v = section_dict.get('presets')
+            if isinstance(v, (bytes, bytearray)):
+                try:
+                    data[section]['presets'] = pickle.loads(v)
+                except (pickle.UnpicklingError, EOFError, ValueError,
+                        AttributeError, TypeError):
+                    data[section]['presets'] = None
+        return data
             
     def set_defaults(self):
         self.defaults['window_state'] = dict()
@@ -84,7 +123,18 @@ class Settings(Observable):
         self.defaults['preferences']['use_latexmk'] = False
         self.defaults['preferences']['auto_build'] = False
         self.defaults['preferences']['auto_build_delay'] = 2
+        # 自动构建报错时是否自动弹出构建日志。手动构建（F5/F6）始终遵循
+        # autoshow_build_log；此开关仅影响自动构建路径——用户打字途中触发
+        # 自动构建，文档可能尚未输完导致报错，频繁弹窗打扰写作。默认开启
+        # 保持与原行为一致，用户可在 Build System 偏好中关闭。
+        self.defaults['preferences']['auto_build_autoshow_errors'] = True
         self.defaults['preferences']['color_scheme'] = 'default'
+        # 编辑器（GtkSourceView）配色方案 ID。空字符串 = 跟随应用深浅色主题
+        # （由 ServiceLocator.get_style_scheme 根据 Adw.StyleManager.get_dark
+        # 选择 default / default-dark）。非空时使用 GtkSource.StyleSchemeManager
+        # 中对应的方案 ID（如 'default-dark'、'oblivion' 等），不再随系统主题
+        # 切换变化。用户可在 Appearance 偏好中选择。
+        self.defaults['preferences']['editor_style_scheme'] = ''
         self.defaults['preferences']['app_theme_mode'] = 'system'
         self.defaults['preferences']['language'] = 'en'
         self.defaults['preferences']['recolor_pdf'] = False
@@ -109,6 +159,12 @@ class Settings(Observable):
         self.defaults['preferences']['bracket_selection'] = True
         self.defaults['preferences']['tab_jump_brackets'] = True
         self.defaults['preferences']['update_matching_blocks'] = True
+        # 自动保存（崩溃恢复模式）：定时把缓冲区内容写入
+        # ~/.config/setzer/autosave/<hash>.tex，应用崩溃后下次启动弹恢复对话框。
+        # 默认开启，间隔 60 秒（与 VS Code 默认 files.autoSave=off 不同；Setzer
+        # 选默认开是因为 LaTeX 写作场景中崩溃恢复价值高于磁盘写入开销）。
+        self.defaults['preferences']['auto_save_enabled'] = True
+        self.defaults['preferences']['auto_save_delay'] = 60
 
         self.defaults['preferences']['use_system_font'] = True
         textview = Gtk.TextView()
@@ -121,6 +177,7 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['open_document'] = '<Control>o'
         self.defaults['keyboard_shortcuts']['save'] = '<Control>s'
         self.defaults['keyboard_shortcuts']['save_as'] = '<Control><Shift>s'
+        self.defaults['keyboard_shortcuts']['print'] = '<Control>p'
         self.defaults['keyboard_shortcuts']['close_document'] = '<Control>w'
         self.defaults['keyboard_shortcuts']['quit'] = '<Control>q'
         self.defaults['keyboard_shortcuts']['show_shortcuts'] = '<Control>question'
@@ -150,7 +207,11 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['undo'] = '<Control>z'
         self.defaults['keyboard_shortcuts']['redo'] = '<Control><Shift>z'
         self.defaults['keyboard_shortcuts']['select_all'] = '<Control>a'
+        self.defaults['keyboard_shortcuts']['delete_line'] = '<Control><Shift>k'
         self.defaults['keyboard_shortcuts']['toggle_comment'] = '<Control>k'
+        self.defaults['keyboard_shortcuts']['duplicate_line'] = '<Alt><Shift>d'
+        self.defaults['keyboard_shortcuts']['move_line_up'] = '<Alt>Up'
+        self.defaults['keyboard_shortcuts']['move_line_down'] = '<Alt>Down'
         self.defaults['keyboard_shortcuts']['new_line'] = '<Control>Return'
         self.defaults['keyboard_shortcuts']['bold'] = '<Control>b'
         self.defaults['keyboard_shortcuts']['italic'] = '<Control>i'
@@ -195,35 +256,36 @@ class Settings(Observable):
         self.add_change_code('settings_changed', (section, item, value))
         
     def unpickle(self):
-        ''' Load settings from home folder. '''
+        ''' Load settings from home folder.
 
+        优先读 settings.json；旧 settings.pickle 已在 __init__ 中通过
+        migrate_pickle_to_json 一次性迁移到 JSON。保留方法名以兼容
+        setzer.in 入口中 `self.settings.pickle()` 的调用。
+        '''
         # create folder if it does not exist
         if not os.path.isdir(self.pathname):
             os.makedirs(self.pathname)
 
-        try: filehandle = open(os.path.join(self.pathname, 'settings.pickle'), 'rb')
-        except IOError: return False
-        else:
-            try:
-                self.data = pickle.load(filehandle)
-            except (EOFError, pickle.UnpicklingError, ValueError, AttributeError):
-                # pickle 文件损坏或为空时，原代码写 `except EOFError: False`
-                # ——这只是一条空表达式语句（求值 False 后丢弃），并非 return False。
-                # 结果 self.data 保持为空 dict，unpickle 仍返回 True，__init__ 不
-                # 走 defaults 恢复分支。改为 return False 让 __init__ 用 defaults
-                # 重置并重新 pickle，确保损坏文件不会导致设置永久丢失。
-                # 同时扩展异常覆盖：UnpicklingError/ValueError/AttributeError 也
-                # 是 pickle 文件损坏的常见表现。
-                return False
-
+        data = load_json(self._json_path)
+        if data is None:
+            return False
+        # 防御性：JSON 顶层必须是 dict（与 self.data 结构一致）
+        if not isinstance(data, dict):
+            return False
+        self.data = data
         return True
-        
+
     def pickle(self):
-        ''' Save settings in home folder. '''
-        
-        try: filehandle = open(os.path.join(self.pathname, 'settings.pickle'), 'wb')
-        except IOError: return False
-        else: pickle.dump(self.data, filehandle)
+        ''' Save settings in home folder.
+
+        写入 settings.json（原子替换）。保留方法名以兼容 setzer.in 入口
+        中 `self.settings.pickle()` 的调用。
+        '''
+        try:
+            save_json(self._json_path, self.data)
+        except (OSError, TypeError, ValueError):
+            return False
+        return True
 
     def reset_preferences(self):
         '''Reset all preferences to default values.'''

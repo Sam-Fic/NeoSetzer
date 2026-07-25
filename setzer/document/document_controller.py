@@ -19,7 +19,8 @@ import os.path
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, GLib, Gtk, GObject, Pango
+gi.require_version('Adw', '1')
+from gi.repository import Gdk, GLib, Gtk, GObject, Pango, Adw
 
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
@@ -42,6 +43,10 @@ class DocumentController(object):
         self.changed_on_disk_dialog_shown_after_last_change = False
         self.continue_save_date_loop = True
         self.zoom_threshold = 0
+        # 缩放持久化去抖 id：Ctrl+滚轮快速缩放时每个阈值跨越都更新 FontManager
+        # 内存值（实时刷新字体），但 settings.set_value（磁盘写 + ~10 观察者通知）
+        # 延迟到缩放停止 500ms 后执行一次，避免每帧写盘。
+        self._zoom_persist_timeout_id = None
         # 保存 timeout id 以便文档关闭时移除。原实现仅置 continue_save_date_loop=False，
         # 定时器仍会再触发一次才退出；直接 remove 更及时。
         # 2000ms 而非 500ms：检测外部磁盘变更不需要亚秒级响应，2 秒足够
@@ -72,19 +77,93 @@ class DocumentController(object):
         key_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.document.view.source_view.add_controller(key_controller)
 
+        # Ctrl+Click 前向同步的视觉反馈：Ctrl 按下并悬停时显示 pointer 光标，
+        # 提示此处可 Ctrl+Click 跳转到 PDF。EventControllerMotion 在鼠标进入/
+        # 移动时检查修饰键状态；静止时 Ctrl 按下/释放 不触发（局限性，但移动
+        # 鼠标即可刷新光标，满足 Low 优先级增强需求）。控制器随 source_view
+        # 销毁自动断开，shutdown 无需处理。
+        # 缓存两个光标对象：motion 事件高频触发，避免每次 new_from_name 重建。
+        self._cursor_pointer = Gdk.Cursor.new_from_name('pointer')
+        self._cursor_text = Gdk.Cursor.new_from_name('text')
+        self._motion_controller = Gtk.EventControllerMotion()
+        self._motion_controller.connect('enter', self._on_motion_enter)
+        self._motion_controller.connect('motion', self._on_motion_motion)
+        self._motion_controller.connect('leave', self._on_motion_leave)
+        self.view.source_view.add_controller(self._motion_controller)
+
+        # 窗口获得焦点时立即检查外部磁盘变更，缩短用户切回 Setzer 时的感知
+        # 延迟（原仅靠 2 秒轮询，Alt+Tab 切回后最多等 2 秒才提示）。2 秒
+        # 轮询照常运行作为兜底。main_window 生命周期长于文档，shutdown 需断开。
+        self._window_active_handler = None
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None:
+            self._window_active_handler = main_window.connect(
+                'notify::is-active', self._on_window_active_changed)
+
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用，移除 500ms 轮询定时器。'''
         self.continue_save_date_loop = False
         if self._save_date_loop_timeout_id is not None:
             GLib.Source.remove(self._save_date_loop_timeout_id)
             self._save_date_loop_timeout_id = None
+        # 若有待持久化的缩放，立即写入（避免丢失最后一次缩放调整）。
+        if self._zoom_persist_timeout_id is not None:
+            GLib.Source.remove(self._zoom_persist_timeout_id)
+            self._persist_zoom()
+        # 断开窗口焦点信号：main_window 生命周期长于文档，不手动断开会
+        # 导致已关闭文档的 _on_window_active_changed 被调用（访问已销毁的
+        # self.document）。motion controller 随 source_view 销毁自动断开。
+        if self._window_active_handler is not None:
+            main_window = ServiceLocator.get_main_window()
+            if main_window is not None:
+                main_window.disconnect(self._window_active_handler)
+            self._window_active_handler = None
 
     def on_primary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if n_press == 1:
             if controller.get_current_event_state() & modifiers == Gdk.ModifierType.CONTROL_MASK:
-                GLib.idle_add(ServiceLocator.get_workspace().actions.forward_sync)
+                workspace = ServiceLocator.get_workspace()
+                active_document = workspace.get_active_document()
+                if active_document is not None:
+                    # forward_sync action 仅在 can_sync 时启用，但 Ctrl+Click
+                    # 绕过 action enablement 直接调用。这里复用相同的可同步
+                    # 判定：不可同步时（PDF 未生成 / 非 LaTeX）弹 toast 提示，
+                    # 避免无声失败让用户困惑「为什么没反应」。
+                    sync_document = workspace.root_document or active_document
+                    if sync_document.is_latex_document() and sync_document.build_system.can_sync:
+                        GLib.idle_add(workspace.actions.forward_sync)
+                    else:
+                        self._show_sync_unavailable_toast()
+
+    def _show_sync_unavailable_toast(self):
+        '''Ctrl+Click 前向同步不可用时提示用户。常见原因：PDF 尚未构建。'''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('No PDF available for forward sync. Build the document first.'))
+            toast.set_timeout(3)
+            main_window.toast_overlay.add_toast(toast)
+
+    def _on_motion_enter(self, controller, x, y):
+        self._update_ctrl_cursor(controller)
+
+    def _on_motion_motion(self, controller, x, y):
+        self._update_ctrl_cursor(controller)
+
+    def _on_motion_leave(self, controller):
+        # 离开编辑区：恢复文本光标（I-beam）。
+        self.view.source_view.set_cursor(self._cursor_text)
+
+    def _update_ctrl_cursor(self, controller):
+        '''Ctrl 按下时切换为 pointer 光标，提示可 Ctrl+Click 前向同步；
+        否则恢复文本光标。仅在鼠标移动/进入时触发，静止状态下 Ctrl 按下/
+        释放不刷新（移动鼠标即可刷新，局限性见 __init__ 注释）。'''
+        modifiers = Gtk.accelerator_get_default_mod_mask()
+        if controller.get_current_event_state() & modifiers == Gdk.ModifierType.CONTROL_MASK:
+            self.view.source_view.set_cursor(self._cursor_pointer)
+        else:
+            self.view.source_view.set_cursor(self._cursor_text)
 
     def on_secondary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
@@ -109,6 +188,15 @@ class DocumentController(object):
                 # Tab：选区存在时缩进，否则处理 placeholder / 括号跳转。
                 if self.document.source_buffer.get_has_selection():
                     self.indent_selection(outdent=False)
+                    return True
+                # 非 LaTeX 文档（BibTeX 等）无 placeholder / 括号跳转：
+                # 直接插入缩进字符（Tab 或空格，取决于偏好设置）。
+                if not self.document.is_latex_document():
+                    if self.document.settings.get_value('preferences', 'spaces_instead_of_tabs'):
+                        tab_width = self.document.settings.get_value('preferences', 'tab_width')
+                        self.document.source_buffer.insert_at_cursor(' ' * tab_width)
+                    else:
+                        self.document.source_buffer.insert_at_cursor('\t')
                     return True
                 self.document.select_next_placeholder()
                 if self.document.dot_selected():
@@ -179,23 +267,56 @@ class DocumentController(object):
 
             if self.zoom_threshold <= -1:
                 font_desc = Pango.FontDescription.from_string(FontManager.font_string)
-                font_desc.set_size(min(font_desc.get_size() * 1.1, 24 * Pango.SCALE))
+                font_desc.set_size(min(font_desc.get_size() * FontManager.FONT_ZOOM_FACTOR, FontManager.FONT_SIZE_MAX_PT * Pango.SCALE))
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
-                ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
+                self._schedule_zoom_persist()
                 self.zoom_threshold = 0
             elif self.zoom_threshold >= 1:
                 font_desc = Pango.FontDescription.from_string(FontManager.font_string)
-                font_desc.set_size(max(font_desc.get_size() / 1.1, 6 * Pango.SCALE))
+                font_desc.set_size(max(font_desc.get_size() / FontManager.FONT_ZOOM_FACTOR, FontManager.FONT_SIZE_MIN_PT * Pango.SCALE))
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
-                ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
+                self._schedule_zoom_persist()
                 self.zoom_threshold = 0
             return True
         return False
 
+    def _schedule_zoom_persist(self):
+        '''去抖持久化 font_string 到 settings。快速滚动时每个阈值跨越都
+        即时更新 FontManager 内存值（propagate_font_setting 刷新所有文档字体），
+        但 settings.set_value（磁盘写 + settings_changed 通知链）延迟到缩放
+        停止 500ms 后执行一次。'''
+        if self._zoom_persist_timeout_id is not None:
+            GLib.Source.remove(self._zoom_persist_timeout_id)
+        self._zoom_persist_timeout_id = GLib.timeout_add(500, self._persist_zoom)
+
+    def _persist_zoom(self):
+        self._zoom_persist_timeout_id = None
+        ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
+        return False
+
     def on_decelerate(self, controller, vel_x, vel_y):
         self.zoom_threshold = 0
+        # 滚动手势结束，立即持久化（不再有后续缩放，无需等 500ms）。
+        if self._zoom_persist_timeout_id is not None:
+            GLib.Source.remove(self._zoom_persist_timeout_id)
+            self._persist_zoom()
+
+    def _on_window_active_changed(self, window, gparam):
+        '''窗口获得焦点时立即检查外部磁盘变更，缩短用户切回 Setzer 时的
+        感知延迟（原仅靠 2s 轮询）。save_date_loop 内部有 dialog_shown
+        标志位防御重复弹窗。'''
+        if window.is_active():
+            # 用 one-shot idle 包装：save_date_loop 返回 continue_save_date_loop
+            # （True），若直接传给 idle_add 会被 GLib 当作「返回 True 则重复
+            # 调用」而无限触发。_check_external_changes_once 返回 False 终止。
+            GLib.idle_add(self._check_external_changes_once)
+
+    def _check_external_changes_once(self):
+        '''窗口焦点触发的单次外部变更检查。返回 False 确保 idle 不重复。'''
+        self.save_date_loop()
+        return False
 
     def save_date_loop(self):
         if self.document.filename == None: return True

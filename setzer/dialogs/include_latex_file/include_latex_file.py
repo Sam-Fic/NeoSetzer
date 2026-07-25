@@ -20,7 +20,10 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
-import os.path, pickle
+import os.path
+# pickle 仅用于迁移期兼容旧 settings（presets 字段旧版是 bytes）。
+# settings.json 迁移完成后 presets 是 dict，isinstance(bytes) 分支不再触发。
+import pickle
 
 import setzer.dialogs.include_latex_file.include_latex_file_viewgtk as view
 from setzer.app.service_locator import ServiceLocator
@@ -67,9 +70,15 @@ class IncludeLaTeXFile(object):
         self.current_values['pathtype'] = 'rel'
         try:
             presets = self.settings.get_value('app_include_latex_file_dialog', 'presets')
-            presets = pickle.loads(presets)
-            self.current_values['pathtype'] = presets['pathtype']
-        except Exception: pass
+            # 迁移期兼容：旧版 presets 是 pickle.dumps 的 bytes；settings.json
+            # 迁移完成后 _migrate_presets_bytes 已解为 dict。
+            if isinstance(presets, (bytes, bytearray)):
+                presets = pickle.loads(presets)
+            if isinstance(presets, dict):
+                self.current_values['pathtype'] = presets['pathtype']
+        except (KeyError, pickle.UnpicklingError, EOFError, ValueError,
+                AttributeError, TypeError):
+            pass
 
     def setup(self):
         file_filter1 = Gtk.FileFilter()
@@ -114,7 +123,8 @@ class IncludeLaTeXFile(object):
             return self.current_values['filename']
 
     def insert_template(self):
-        self.settings.set_value('app_include_latex_file_dialog', 'presets', pickle.dumps(self.current_values))
+        # 直接存 dict（JSON 兼容），不再 pickle.dumps。
+        self.settings.set_value('app_include_latex_file_dialog', 'presets', self.current_values)
 
         text = '\\input{' + self.get_display_filename() + '}'
 

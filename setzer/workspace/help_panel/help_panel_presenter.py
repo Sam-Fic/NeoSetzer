@@ -38,6 +38,12 @@ class HelpPanelPresenter(object):
             self.view.no_results_slate.set_visible(False)
             self.view.initial_slate.set_visible(False)
 
+            # 结果计数：ngettext 处理单复数（"1 result" vs "N results"）。
+            count = len(results_list)
+            self.view.result_count_label.set_text(
+                ngettext('{n} result', '{n} results', count).format(n=count))
+            self.view.result_count_label.set_visible(True)
+
             # 复用已存在的 row：搜索结果上限 8 条，原实现每次按键（去抖后）
             # 都 8 次 ListBox.remove + 8 次 prepend（每次 remove 触发 ListBox
             # 内部重新索引，N 次 remove 是 O(N²)）+ 8 次 SearchResultView
@@ -63,6 +69,7 @@ class HelpPanelPresenter(object):
             self.view.search_scroll.set_visible(False)
             self.view.no_results_slate.set_visible(True)
             self.view.initial_slate.set_visible(False)
+            self.view.result_count_label.set_visible(False)
             # 隐藏所有已有 row 而非销毁，下次搜索可复用
             for row in self.view.search_result_items:
                 row.set_visible(False)
@@ -71,6 +78,7 @@ class HelpPanelPresenter(object):
             self.view.search_scroll.set_visible(False)
             self.view.no_results_slate.set_visible(False)
             self.view.initial_slate.set_visible(True)
+            self.view.result_count_label.set_visible(False)
             for row in self.view.search_result_items:
                 row.set_visible(False)
 

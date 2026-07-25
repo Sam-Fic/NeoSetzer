@@ -76,22 +76,27 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self._last_items_signature = None
 
     def populate(self):
-        '''Rebuild the visible rows from the model's current state.
+        r'''Rebuild the visible rows from the model's current state.
 
         Mirrors the former draw(): shows items[first:first+5], bolds the
         matched prefix (current_word) and renders dotlabels in place of the
-        '•' placeholder at reduced alpha.
+        '•' placeholder at reduced alpha. When LaTeXDB has a parse error
+        (model.db_error), appends a non-selectable "database unavailable"
+        row at the bottom so the user knows why \ref/\cite completions are
+        empty/stale (UX report #8).
         '''
         model = self.model.model
         si = model.selected_item_index
         fi = model.first_item_index
+        db_error = model.db_error
 
-        # 签名 = (current_word, first_item_index, 可见 items 的 command+dotlabels)
-        # current_word 决定加粗前缀长度，fi 决定切片起点，items 决定内容。
-        # 三者都不变时 row 内容完全相同，跳过重建只更新选中项。
-        if model.current_word is not None and fi is not None and len(model.items) > 0:
-            visible = model.items[fi:fi + 5]
-            signature = (model.current_word, fi, tuple(
+        # 签名 = (current_word, first_item_index, db_error, 可见 items 的 command+dotlabels)
+        # current_word 决定加粗前缀长度，fi 决定切片起点，items 决定内容，
+        # db_error 决定是否追加错误提示行。四者都不变时 row 内容完全相同，
+        # 跳过重建只更新选中项。db_error 纳入签名确保 parse 错误状态变化时重建。
+        if model.current_word is not None and fi is not None and (len(model.items) > 0 or db_error):
+            visible = model.items[fi:fi + 5] if len(model.items) > 0 else []
+            signature = (model.current_word, fi, db_error, tuple(
                 (item['command'], item['dotlabels']) for item in visible))
         else:
             signature = None
@@ -110,7 +115,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
             self.remove(child)
             child = sibling
 
-        if model.current_word is None or si is None or fi is None or len(model.items) == 0:
+        if model.current_word is None or si is None or fi is None or (len(model.items) == 0 and not db_error):
             return
 
         offset = len(model.current_word)
@@ -143,6 +148,32 @@ class AutocompleteWidgetView(Gtk.ListBox):
 
         if selected_row is not None:
             self.select_row(selected_row)
+
+        # LaTeXDB 解析失败时在列表底部追加"标签数据库不可用"提示行。
+        # 仅对 \ref/\cite 动态查询显示（model.db_error 已在 autocomplete.py
+        # 中按此条件设置）。提示行不可选中，避免干扰键盘导航（Tab/Enter/
+        # Up/Down 仅作用于上方命令行）。
+        if db_error:
+            self.append(self._build_db_error_row())
+
+    def _build_db_error_row(self):
+        '''构建不可选中的"标签数据库不可用"提示行。'''
+        label = Gtk.Label()
+        label.set_markup('⚠ ' + GLib.markup_escape_text(_('Label database unavailable (parse error)')))
+        label.set_halign(Gtk.Align.START)
+        label.set_xalign(0.0)
+        label.set_margin_start(6)
+        label.set_margin_end(6)
+        label.set_margin_top(2)
+        label.set_margin_bottom(2)
+        label.add_css_class('dim-label')
+        label.add_css_class('caption')
+
+        row = Gtk.ListBoxRow()
+        row.set_child(label)
+        row.set_activatable(False)
+        row.set_selectable(False)
+        return row
 
     def _update_selection(self, si, fi):
         '''items 未变时仅更新选中行，避免重建全部 row。'''

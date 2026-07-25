@@ -41,12 +41,14 @@ from setzer.helpers.timer import timer
 class Preview(Observable):
 
     def __init__(self, document):
-        import time as _t, sys as _sys
-        _t0 = _t.perf_counter()
         Observable.__init__(self)
         self.document = document
 
         self.pdf_filename = None
+        # 构建失败但保留旧 PDF 时为 True：预览面板据此显示「构建失败，显示的是
+        # 上一次成功的 PDF」横幅，避免用户误以为构建成功。由 build_system 置 True，
+        # set_pdf_filename / reset_pdf_data 置 False。
+        self.pdf_is_stale = False
         self.recolor_pdf = self.document.settings.get_value('preferences', 'recolor_pdf')
 
         self.poppler_document = None
@@ -57,23 +59,14 @@ class Preview(Observable):
         self.visible_synctex_rectangles = list()
         self.visible_synctex_rectangles_time = None
 
-        _ta = _t.perf_counter()
         self.view = preview_view.PreviewView()
-        _tb = _t.perf_counter()
         self.layouter = preview_layouter.PreviewLayouter(self, self.view)
-        _tc = _t.perf_counter()
         self.zoom_manager = preview_zoom_manager.PreviewZoomManager(self, self.view)
-        _td = _t.perf_counter()
         self.controller = preview_controller.PreviewController(self, self.view)
-        _te = _t.perf_counter()
         self.page_renderer = preview_page_renderer.PreviewPageRenderer(self)
-        _tf = _t.perf_counter()
         self.links_parser = preview_links_parser.PreviewLinksParser(self)
-        _tg = _t.perf_counter()
         self.presenter = preview_presenter.PreviewPresenter(self, self.page_renderer, self.view)
-        _th = _t.perf_counter()
         self.context_menu = context_menu.ContextMenu(self, self.view)
-        _ti = _t.perf_counter()
 
         self.document.connect('filename_change', self.on_filename_change)
         self.document.connect('pdf_updated', self.on_pdf_updated)
@@ -81,8 +74,6 @@ class Preview(Observable):
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
         self._settings_callback = self.on_settings_changed
         self.document.settings.connect('settings_changed', self._settings_callback)
-        _t1 = _t.perf_counter()
-        print(f'[TIMING] Preview.__init__: view={(_tb-_ta)*1000:.1f}ms layouter={(_tc-_tb)*1000:.1f}ms zoom={(_td-_tc)*1000:.1f}ms controller={(_te-_td)*1000:.1f}ms page_renderer={(_tf-_te)*1000:.1f}ms links_parser={(_tg-_tf)*1000:.1f}ms presenter={(_th-_tg)*1000:.1f}ms context_menu={(_ti-_th)*1000:.1f}ms rest={(_t1-_ti)*1000:.1f}ms total={(_t1-_t0)*1000:.1f}ms', file=_sys.stderr)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -105,6 +96,22 @@ class Preview(Observable):
     def set_pdf_filename(self, pdf_filename):
         if pdf_filename != self.pdf_filename:
             self.pdf_filename = pdf_filename
+        # 新 PDF 产出（构建成功或文档打开时发现已有 PDF）：清除 stale 标记。
+        # 即使 filename 相同（重建同一文件），只要构建产出了新 PDF 就不算 stale。
+        if self.pdf_is_stale:
+            self.set_pdf_is_stale(False)
+
+    def set_pdf_is_stale(self, stale):
+        '''标记预览显示的 PDF 是否来自之前成功的构建（当前构建失败未产出 PDF）。
+
+        build_system.parse_result 在构建未产出 PDF 但旧 PDF 仍显示时置 True；
+        set_pdf_filename（新 PDF 产出）与 reset_pdf_data（无 PDF）置 False。
+        预览面板据此显示/隐藏「构建失败，显示的是上一次成功的 PDF」横幅。
+        仅在状态变化时发 change_code，避免无谓的通知。
+        '''
+        if self.pdf_is_stale != stale:
+            self.pdf_is_stale = stale
+            self.add_change_code('pdf_stale_changed')
 
     def get_pdf_date(self):
         if self.pdf_filename != None:
@@ -153,6 +160,8 @@ class Preview(Observable):
         self.page_width = None
         self.page_height = None
         self.layout = None
+        if self.pdf_is_stale:
+            self.set_pdf_is_stale(False)
         self.add_change_code('pdf_changed')
         self.add_change_code('layout_changed')
 
@@ -165,13 +174,40 @@ class Preview(Observable):
         self.add_change_code('layout_changed')
 
     def update_vertical_margin(self):
-        current_min = self.page_width
-        for page_number in range(0, min(self.poppler_document.get_n_pages(), 3)):
+        # 均匀采样最多 10 页（含首页/末页），取每页最小 x1 的中位数作为
+        # 垂直边距。原实现仅扫前 3 页取全局最小值——若前 3 页是标题页/目录页
+        # （边距与正文不同，如全宽标题或居中文字），边距会被错误计算。
+        # 中位数对异常页更鲁棒：单个标题页的偏小/偏大 x1 不会左右结果。
+        n_pages = self.poppler_document.get_n_pages()
+        if n_pages == 0:
+            self.vertical_margin = self.page_width - 20
+            return
+
+        max_samples = 10
+        if n_pages <= max_samples:
+            page_indices = range(n_pages)
+        else:
+            # 均匀采样：含首页(index 0)和末页(index n-1)
+            page_indices = [int(i * (n_pages - 1) / (max_samples - 1)) for i in range(max_samples)]
+
+        per_page_mins = []
+        for page_number in page_indices:
             page = self.poppler_document.get_page(page_number)
             layout = page.get_text_layout()
+            page_min = self.page_width
             for rect in layout[1]:
-                if rect.x1 < current_min:
-                    current_min = rect.x1
+                if rect.x1 < page_min:
+                    page_min = rect.x1
+            # 仅收集有文本的页面（page_min 被更新过），跳过空白页
+            if page_min < self.page_width:
+                per_page_mins.append(page_min)
+
+        if len(per_page_mins) > 0:
+            per_page_mins.sort()
+            # 中位数：偶数个时取下中位数（margin 精度到 pt 级，两中值差异可忽略）
+            current_min = per_page_mins[(len(per_page_mins) - 1) // 2]
+        else:
+            current_min = self.page_width
         current_min -= 20
         self.vertical_margin = current_min
 

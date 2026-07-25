@@ -40,7 +40,11 @@ class DocumentDeletedOnDiskDialog(object):
             heading=_('Document »{document}« was deleted from disk or moved.').format(document=document.get_displayname()),
             body=_('If you close it or close Setzer without saving, this document will be lost.'))
         self.view.add_response('save_as', _('Save As…'))
-        self.view.add_response('ok', _('Ok'))
+        # 「Ok」语义不清（用户可能误以为「关闭文档」）。实际行为是：保留文档
+        # 在内存中继续编辑（buffer 已在 document_controller.save_date_loop 中
+        # 标记 modified）。改为「Keep Open」让按钮语义与行为一致。
+        # 注意：不可加「Close Anyway」——文件已从磁盘删除，关闭即永久丢失。
+        self.view.add_response('ok', _('Keep Open'))
         self.view.set_response_appearance('save_as', Adw.ResponseAppearance.SUGGESTED)
         self.view.set_default_response('save_as')
         self.view.set_close_response('ok')

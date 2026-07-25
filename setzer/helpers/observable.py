@@ -37,19 +37,28 @@ class Observable(object):
         # set，回调内一旦改集合就抛 RuntimeError: Set changed size during
         # iteration，导致后续回调被吞掉且整个通知链中断。tuple() 拷贝 O(k)
         # 仅与已注册观察者数量相关，远小于一次回调本身的代价；不可变更快于 list。
-        import time as _t, sys as _sys, os as _os
+        import time as _t, sys as _sys, os as _os, traceback as _tb
         _timing = _os.environ.get('SETZER_PROFILE') and change_code in ('new_active_document', 'new_document', 'new_inactive_document')
         for callback in tuple(callbacks):
-            if _timing:
-                _s = _t.perf_counter()
-            if parameter is not None:
-                callback(self, parameter)
-            else:
-                callback(self)
-            if _timing:
-                _d = (_t.perf_counter() - _s) * 1000
-                if _d > 1:
-                    print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=_sys.stderr)
+            # 单个回调异常不能中断通知链：例如 10 个观察者监听 settings_changed，
+            # 第 3 个因 KeyError 崩溃不应让第 4-10 个收不到通知——否则会导致
+            # UI 状态不一致（某面板主题色未更新、build_log 未刷新等）。打印
+            # traceback 到 stderr 便于诊断；不弹窗——Observable 是底层基础设施，
+            # 不应假设有 UI 可交互，且 notify 可能发生在窗口构造早期。
+            try:
+                if _timing:
+                    _s = _t.perf_counter()
+                if parameter is not None:
+                    callback(self, parameter)
+                else:
+                    callback(self)
+                if _timing:
+                    _d = (_t.perf_counter() - _s) * 1000
+                    if _d > 1:
+                        print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=_sys.stderr)
+            except Exception:
+                print(f'[Observable] callback {getattr(callback, "__qualname__", callback)!r} for {change_code!r} raised:', file=_sys.stderr)
+                _tb.print_exc(file=_sys.stderr)
 
     def connect(self, change_code, callback):
         if change_code in self.connected_functions:

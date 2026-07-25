@@ -16,19 +16,55 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
-gi.require_versions({'Gtk': '4.0', 'WebKit': '6.0'})
-from gi.repository import WebKit, Gtk
+
+# WebKit 是可选依赖（见 help_panel_viewgtk.py 的 HAS_WEBKIT 说明）。
+# 此模块（model 层）原在 import 期硬性 require_version('WebKit')，导致
+# 无 WebKit 的系统上整个 workspace 模块加载失败、应用无法启动——即便
+# 帮助面板的搜索功能本身不依赖 WebKit。改为可选 import：仅在
+# update_colors 注入 UserStyleSheet 时需要 WebKit API，无 WebKit 时
+# 跳过样式注入（WebView 不可用，本就不渲染页面）。
+try:
+    gi.require_version('WebKit', '6.0')
+    from gi.repository import WebKit
+    HAS_WEBKIT = True
+except (ValueError, ImportError):
+    HAS_WEBKIT = False
 
 import os.path
 import pickle
 import html
 import re
+from string import Template
 
 from setzer.helpers.observable import Observable
+from setzer.helpers.persistence import load_json, load_pickle_restricted
+from setzer.helpers.help_search import build_trigram_index, search as fuzzy_search
 import setzer.workspace.help_panel.help_panel_controller as help_panel_controller
 import setzer.workspace.help_panel.help_panel_presenter as help_panel_presenter
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
+
+
+# 帮助页 CSS 模板：$var 占位符由 update_colors 用 string.Template.safe_substitute
+# 单次替换为当前主题颜色。替代原 5 次链式 str.replace：新增颜色变量只需在
+# 模板加一个 $name 并在 _COLOR_KEYS 补一项，无需再叠一行 replace。
+# safe_substitute 对未提供的 $name 保留原样（不抛 KeyError），且 CSS 不含
+# '$' 字符，无需 '$$' 转义。
+_CSS_TEMPLATE = Template('''body {margin: 1em; margin-top: 0px; padding-top: 1px; background: $view_bg_color; color: $view_fg_color; }
+a {color: $link_color; }
+a:visited {color: $link_color_visited; }
+a:active {color: $link_color_active; }
+a.external:after {text-decoration: underline; text-decoration-color: $view_bg_color; content: ' 🡭'; }''')
+
+# 占位符名 → ColorManager 键的映射。集中定义便于扩展：未来加颜色变量
+# 只需在此 dict 增一行，模板里用对应 $name 即可。
+_COLOR_KEYS = {
+    'view_bg_color': 'view_bg_color',
+    'view_fg_color': 'view_fg_color',
+    'link_color_visited': 'link_color_visited',
+    'link_color_active': 'link_color_active',
+    'link_color': 'link_color',
+}
 
 
 class HelpPanel(Observable):
@@ -44,11 +80,21 @@ class HelpPanel(Observable):
         self.current_uri = self.home_uri
 
         self.search_index = None
+        # Trigram 索引：与 search_index 同生命周期懒构建。每项是 (key, trigram_set)。
+        # 模糊搜索用 Jaccard 相似度比对 query 与 key 的 trigram 集合。
+        # 2080 项 × 平均 ~30 trigrams/项 ≈ 6 万短字符串，内存占用可忽略；
+        # 构建一次约 5ms，远小于 pickle.load 的一次性开销。
+        self._trigram_index = None
         # 懒加载搜索索引：原实现在 workspace 构造（应用启动早期）同步
         # open + pickle.load 读取 search_index.pickle。该索引仅用于帮助面板搜索，
         # 若用户从不打开帮助面板（常见场景），这次 I/O + 反序列化（数千到上万项）
         # 完全是浪费，却推后了主窗口可交互时间。改为记录路径，首次搜索时才加载。
+        # search_index.pickle 是程序打包资源（非用户文件），但仍用 pickle.load
+        # 存在 RCE 风险（若资源被替换）。改为 JSON 优先 + 受限 pickle 回退：
+        # 未来重新生成索引时应输出 search_index.json；现版仍读 .pickle 但用
+        # RestrictedUnpickler 限制仅 builtins 容器类型，阻断 RCE。
         self._search_index_path = os.path.join(ServiceLocator.get_resources_path(), 'help', 'search_index.pickle')
+        self._search_index_json_path = os.path.join(ServiceLocator.get_resources_path(), 'help', 'search_index.json')
         self.search_results_blank = list()
         self.search_results = self.search_results_blank
         self.query = ''
@@ -68,8 +114,22 @@ class HelpPanel(Observable):
 
     def _ensure_search_index(self):
         if self.search_index is None:
-            with open(self._search_index_path, 'rb') as filehandle:
-                self.search_index = pickle.load(filehandle)
+            # 优先读 JSON（未来重新生成索引时应输出此格式）
+            self.search_index = load_json(self._search_index_json_path)
+            if self.search_index is None:
+                # 回退到旧 search_index.pickle：用 RestrictedUnpickler 限制
+                # 仅 builtins 容器类型，阻断 RCE（资源文件被替换时的防御）。
+                try:
+                    self.search_index = load_pickle_restricted(self._search_index_path)
+                except (OSError, pickle.UnpicklingError, EOFError,
+                        AttributeError, ValueError) as e:
+                    # 索引文件损坏或 Python 版本不兼容时不应让应用崩溃。
+                    # 回退到空索引：用户仍可浏览帮助页面，仅搜索功能不可用。
+                    print(f'Warning: failed to load help search index: {e}')
+                    self.search_index = []
+            # 构建模糊搜索用的 trigram 索引（纯逻辑见 help_search.py）。
+            # 与 search_index 同生命周期，首次搜索时随索引一起懒加载。
+            self._trigram_index = build_trigram_index(self.search_index)
         return self.search_index
 
     def set_uri(self, uri):
@@ -108,34 +168,34 @@ class HelpPanel(Observable):
             self.search_results = self.search_results_blank
         else:
             words = query.split()
-            # 预小写化查询词：原实现循环内每次 item[0].find(word.lower()) 都重新
-            # .lower()，且 item[0] 未预小写导致大小写敏感漏匹配。此处统一小写比较。
+            # 预小写化查询词：高亮与模糊搜索都用小写比较。
             words_lower = [w.lower() for w in words]
             self.search_results = list()
             index = self._ensure_search_index()
-            # `in` 是 C 实现的子串检查，比 str.find(...) == -1 快约 30%，
-            # 且语义更清晰。搜索索引数千项 × 多个查询词时累积收益可观。
-            for item in index:
-                if len(self.search_results) == 8: break
-
-                item_key = item[0]
-                if all(word_lower in item_key for word_lower in words_lower):
-                    headline = self._highlight(item[2], words_lower)
-                    location = self._highlight(item[3], words_lower)
-                    self.search_results.append([item[1], headline, location])
+            # 模糊搜索逻辑见 setzer.helpers.help_search：trigram 逐词 Jaccard，
+            # 全词精确子串命中优先 → 部分命中 → 纯模糊相似度，至多 8 项。
+            ranked_idxs = fuzzy_search(query, index, self._trigram_index)
+            for idx in ranked_idxs:
+                item = index[idx]
+                # 高亮用查询词子串：模糊匹配项可能不含完整查询词，
+                # 此时 _highlight 不会插入 <b> 标记，结果仅显示原文（可接受）。
+                headline = self._highlight(item[2], words_lower)
+                location = self._highlight(item[3], words_lower)
+                self.search_results.append([item[1], headline, location])
         self.add_change_code('search_query_changed')
 
     def update_colors(self):
-        css = '''body {margin: 1em; margin-top: 0px; padding-top: 1px; background: @view_bg_color; color: @view_fg_color; }
-a {color: @link_color; }
-a:visited {color: @link_color_visited; }
-a:active {color: @link_color_active; }
-a.external:after {text-decoration: underline; text-decoration-color: @view_bg_color; content: ' 🡭'; }'''
-        css = css.replace('@view_bg_color', ColorManager.get_ui_color_string('view_bg_color'))
-        css = css.replace('@view_fg_color', ColorManager.get_ui_color_string('view_fg_color'))
-        css = css.replace('@link_color_visited', ColorManager.get_ui_color_string('link_color_visited'))
-        css = css.replace('@link_color_active', ColorManager.get_ui_color_string('link_color_active'))
-        css = css.replace('@link_color', ColorManager.get_ui_color_string('link_color'))
+        # 无 WebKit 时跳过样式注入：WebView 不存在，CSS 无注入目标。
+        # view.user_content_manager 在无 WebKit 时为 None（见 viewgtk.py）。
+        if not HAS_WEBKIT:
+            return
+
+        # 单次 safe_substitute 替换全部颜色变量，替代原 5 次链式 str.replace。
+        # substitutions 通过推导式从 _COLOR_KEYS 一次性取全部颜色，新增变量
+        # 只需在 _COLOR_KEYS 加一行 + 模板用 $name，无需改此方法。
+        substitutions = {name: ColorManager.get_ui_color_string(key)
+                         for name, key in _COLOR_KEYS.items()}
+        css = _CSS_TEMPLATE.safe_substitute(substitutions)
 
         style_sheet = WebKit.UserStyleSheet.new(css, WebKit.UserContentInjectedFrames.ALL_FRAMES, WebKit.UserStyleLevel.USER, None, None)
 

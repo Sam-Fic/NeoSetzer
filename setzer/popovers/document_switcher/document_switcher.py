@@ -17,7 +17,9 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Gio, GLib
+
+import os.path
 
 from setzer.helpers.observable import Observable
 from setzer.popovers.document_switcher.document_switcher_viewgtk import DocumentSwitcherView
@@ -43,6 +45,10 @@ class DocumentSwitcher(Observable):
         self._is_visible = False
         self._dirty = False
 
+        # 右键上下文菜单：每次右键新建 PopoverMenu + Gio.Menu model，
+        # 通过 action target = filename 传递被右键的 document。
+        self._register_context_actions()
+
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
@@ -53,6 +59,151 @@ class DocumentSwitcher(Observable):
 
         self.update_items()
         self.update_unset_root_button()
+
+    def _register_context_actions(self):
+        '''注册右键菜单用到的 Gio.SimpleAction。
+
+        所有 action 接收 string 参数（被右键文档的 filename）。未保存文档
+        filename 为 None，菜单项会被禁用（由 _build_context_menu 根据
+        document.get_filename() 判断）。
+        '''
+        main_window = self.main_window
+
+        def add_action(name, callback):
+            action = Gio.SimpleAction.new(name, GLib.VariantType('s'))
+            action.connect('activate', callback)
+            main_window.add_action(action)
+
+        add_action('tab-ctx-copy-path', self._on_copy_path)
+        add_action('tab-ctx-copy-relative-path', self._on_copy_relative_path)
+        add_action('tab-ctx-open-folder', self._on_open_containing_folder)
+        add_action('tab-ctx-close-others', self._on_close_others)
+
+    def _on_copy_path(self, action, parameter):
+        filename = parameter.get_string()
+        if not filename:
+            return
+        display = Gdk.Display.get_default()
+        if display is not None:
+            display.get_clipboard().set(filename)
+
+    def _on_copy_relative_path(self, action, parameter):
+        filename = parameter.get_string()
+        if not filename:
+            return
+        # 相对路径基准：root 文档所在目录（无 root 则取 active document 目录）
+        base_dir = None
+        root_doc = self.workspace.root_document
+        if root_doc is not None and root_doc.get_filename() is not None:
+            base_dir = root_doc.get_dirname()
+        else:
+            active = self.workspace.get_active_document()
+            if active is not None and active.get_filename() is not None:
+                base_dir = active.get_dirname()
+        if base_dir is None:
+            relpath = filename
+        else:
+            try:
+                relpath = os.path.relpath(filename, base_dir)
+            except ValueError:
+                # Windows 跨盘符等情况下 relpath 会抛 ValueError，回退绝对路径
+                relpath = filename
+        display = Gdk.Display.get_default()
+        if display is not None:
+            display.get_clipboard().set(relpath)
+
+    def _on_open_containing_folder(self, action, parameter):
+        filename = parameter.get_string()
+        if not filename:
+            return
+        folder = os.path.dirname(filename)
+        try:
+            folder_uri = GLib.filename_to_uri(folder)
+        except Exception:
+            return
+        Gio.AppInfo.launch_default_for_uri_async(folder_uri, None, None, None, None)
+
+    def _on_close_others(self, action, parameter):
+        keep_filename = parameter.get_string()
+        # 复制一份列表，避免在迭代中修改 open_documents
+        to_close = [d for d in list(self.workspace.open_documents)
+                    if d.get_filename() != keep_filename]
+        for document in to_close:
+            # 仅关闭已保存的文档；有未保存修改的跳过（避免误丢数据，
+            # 用户仍可逐个确认关闭）。与 on_close_button_clicked 不同，
+            # 这里不弹确认对话框——批量确认对话框是未来增强项。
+            if not document.source_buffer.get_modified():
+                self.workspace.actions.push_closed_document(document.get_filename())
+                self.workspace.remove_document(document)
+
+    def _build_context_menu(self, document):
+        '''为指定 document 构建 Gio.Menu model。
+
+        未保存文档（filename 为 None）时不添加文件路径相关项——Gio action
+        的 enabled 状态是全局的，无法按 target 单独禁用，故改为条件添加。
+        '''
+        menu = Gio.Menu()
+        filename = document.get_filename()
+        has_path = filename is not None
+
+        if has_path:
+            section_file = Gio.Menu()
+            item_copy_path = Gio.MenuItem.new(_('Copy Path'), 'win.tab-ctx-copy-path')
+            item_copy_path.set_action_and_target_value('win.tab-ctx-copy-path',
+                                                        GLib.Variant('s', filename))
+            section_file.append_item(item_copy_path)
+
+            item_copy_rel = Gio.MenuItem.new(_('Copy Relative Path'), 'win.tab-ctx-copy-relative-path')
+            item_copy_rel.set_action_and_target_value('win.tab-ctx-copy-relative-path',
+                                                       GLib.Variant('s', filename))
+            section_file.append_item(item_copy_rel)
+
+            item_open_folder = Gio.MenuItem.new(_('Open Containing Folder'), 'win.tab-ctx-open-folder')
+            item_open_folder.set_action_and_target_value('win.tab-ctx-open-folder',
+                                                          GLib.Variant('s', filename))
+            section_file.append_item(item_open_folder)
+            menu.append_section(None, section_file)
+
+        section_close = Gio.Menu()
+        item_close_others = Gio.MenuItem.new(_('Close Others'), 'win.tab-ctx-close-others')
+        item_close_others.set_action_and_target_value('win.tab-ctx-close-others',
+                                                       GLib.Variant('s', filename or ''))
+        section_close.append_item(item_close_others)
+        menu.append_section(None, section_close)
+
+        return menu
+
+    def _show_context_menu(self, row, document, x, y):
+        '''在右键位置弹出上下文菜单。
+
+        每次右键新建 popover + menu model（document 不同，action target 不同）。
+        popover closed 时 unparent 释放对 row 的引用，让 GC 回收。比复用单例
+        更简单（无需处理 reparent 警告），创建开销可忽略。
+        '''
+        menu_model = self._build_context_menu(document)
+        popover = Gtk.PopoverMenu()
+        popover.set_has_arrow(False)
+        popover.set_menu_model(menu_model)
+        rect = Gdk.Rectangle()
+        rect.x = int(x)
+        rect.y = int(y)
+        rect.width = 1
+        rect.height = 1
+        popover.set_pointing_to(rect)
+        popover.set_parent(row)
+        # closed 后 unparent，避免 row 持有已关闭 popover 的引用导致泄漏
+        popover.connect('closed', lambda p: p.unparent())
+        popover.popup()
+
+    def _on_row_right_click(self, gesture, n_press, x, y):
+        '''Gtk.GestureClick pressed 回调：gesture 已 set_button(3)，仅右键触发。'''
+        if n_press != 1:
+            return
+        row = gesture.get_widget()
+        document = getattr(row, 'document', None)
+        if document is None:
+            return
+        self._show_context_menu(row, document, int(x), int(y))
 
     def show(self):
         self._is_visible = True
@@ -69,6 +220,13 @@ class DocumentSwitcher(Observable):
         for row in self.view.rows:
             row.connect('activated', self.on_row_activated)
             row.close_button.connect('clicked', self.on_close_button_clicked)
+            # 右键上下文菜单：set_button(3) 使 gesture 仅响应右键，左键事件
+            # 不被 claim、正常传播到 row 的 activated 信号。每行一个 gesture
+            # （GTK4 controller 不能跨 widget 共享）。
+            gesture = Gtk.GestureClick()
+            gesture.set_button(3)
+            gesture.connect('pressed', self._on_row_right_click)
+            row.add_controller(gesture)
 
     def on_new_document(self, workspace, document):
         document.connect('filename_change', self.on_name_change)
@@ -114,6 +272,10 @@ class DocumentSwitcher(Observable):
     def on_close_button_clicked(self, button):
         row = button.row
         document = row.document
+        # 与 actions.close_active_document 一致：在确认对话框之前压入重开栈，
+        # 使 Ctrl+Shift+T 对切换器关闭路径同样生效。push_closed_document 内部
+        # 仅对已保存到磁盘的文档入栈，未保存文档会被忽略。
+        self.workspace.actions.push_closed_document(document.get_filename())
         if document.source_buffer.get_modified():
             active_document = self.workspace.get_active_document()
             if document != active_document:

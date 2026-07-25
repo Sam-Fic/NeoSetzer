@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -50,6 +50,11 @@ class LaTeXDB():
     # 刷新。改为 GLib.idle_add 合并：连续多次 schedule 只触发一次实际刷新，
     # 且延迟到主线程空闲时执行，不阻塞当前帧的 UI 更新。
     _refresh_idle_id = None
+    # 最近一次 parse_included_files 的错误信息（traceback 文本）。
+    # None 表示成功（或尚未运行）；非 None 表示解析失败，\ref/\cite 动态
+    # 补全会降级为空列表。autocomplete 据此在补全弹窗显示提示行，避免
+    # "补全静默不工作"的问题（UX 报告 #8）。
+    last_parse_error = None
 
     def init(resources_path):
         LaTeXDB.resources_path = resources_path
@@ -84,11 +89,44 @@ class LaTeXDB():
         LaTeXDB._refresh_idle_id = None
         try:
             LaTeXDB.parse_included_files()
+            # 解析成功：清除错误标志，使 autocomplete 提示行消失。
+            LaTeXDB.last_parse_error = None
         except Exception:
-            pass
+            # 静默吞掉会让 \ref/\cite 自动补全静默失效且无任何诊断线索
+            # （用户只感到"补全不工作"但不知原因）。打印 traceback 到 stderr
+            # 便于诊断；同时记录到 last_parse_error，autocomplete 据此在
+            # 补全弹窗显示"标签数据库不可用"提示行（UX 报告 #8）。
+            # 不弹窗——parse 失败时补全降级为空列表，用户仍可正常编辑，
+            # 弹窗反而扰人。
+            import traceback
+            LaTeXDB.last_parse_error = traceback.format_exc()
+            traceback.print_exc()
         return False
 
+    def is_dynamic_query(word):
+        r'''判断 word 是否为 \ref/\cite 类动态补全查询。
+
+        动态补全依赖 parse_included_files 收集的 labels/bibitems；静态命令
+        补全（\section 等）来自 XML，不受 parse 错误影响。autocomplete 仅在
+        动态查询且 parse 失败时显示"数据库不可用"提示，避免对静态补全也
+        弹出误导性提示。
+        '''
+        if LaTeXDB._ref_regex is None or LaTeXDB._cite_regex is None:
+            return False
+        return (LaTeXDB._ref_regex.match(word) is not None or
+                LaTeXDB._cite_regex.match(word) is not None)
+
     def get_items(word, top_item=None):
+        r'''返回 word 的补全提案列表（动态 labels/bibitems + 静态命令）。
+
+        排序策略（当 static 与 dynamic 同时存在且 dynamic>4 时）：
+            dynamic[:5] + static + dynamic[5:]
+        意图：\ref/\cite 补全时，最相关的 5 个 label 排最前（用户刚输入
+        前缀时通常想选最近的 label），静态命令（\refeq 等）紧随其后不被
+        埋没，剩余 label 排最后。当 dynamic≤4 或无 static 时简单拼接即可。
+
+        top_item（如刚用过的 \ref 命令）无论在 dynamic 还是 static 中，
+        都被移到列表首位（下方循环），不会被 dynamic[:5] 覆盖。'''
         # word.lower() 缓存：原代码在 L62 和 L64 各调一次 .lower()，每次按键
         # 都执行。缓存到局部变量避免重复字符串分配。
         word_lower = word.lower()
@@ -154,12 +192,21 @@ class LaTeXDB():
             return list()
 
         commands = list()
+        # 跨文件去重：单文件内 labels/bibitems 已是 set（见 parse_latex_file/
+        # parse_bibtex_file），但同一 label 可能同时出现在 master.tex 和
+        # chapter1.tex 的 \label{sec:intro} 中——不去重会在补全列表显示重复项。
+        seen = set()
         prefix = matching.group(1)
         for file in LaTeXDB.files.values():
             for value in file[key]:
                 command = prefix + '{' + value + '}'
-                if command.startswith(word):
+                if command.startswith(word) and command not in seen:
+                    seen.add(command)
                     commands.append({'command': command, 'description': '', 'lowpriority': False, 'dotlabels': ''})
+        # 按字母排序（大小写不敏感）：大文档可能有数百个 label，无序时用户难定位；
+        # 排序后用户可按字母顺序快速跳转。casefold 比 lower 更适合 Unicode，
+        # 但 LaTeX label 几乎都是 ASCII，lower 足够且更快。
+        commands.sort(key=lambda item: item['command'].lower())
         return commands
 
     def parse_included_files():
@@ -253,5 +300,3 @@ class LaTeXDB():
                 attrib = child.attrib
                 LaTeXDB.packages_dict[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description'])}
         return LaTeXDB.packages_dict
-
-

@@ -17,13 +17,15 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GLib
 
 
 class BuildWidgetView(Gtk.Box):
 
     def __init__(self):
-        # spacing=6 对齐 Adw.HeaderBar 默认子控件间距（Gtk.Box 自身默认 spacing=0 会粘连）
+        # spacing=6 对齐 Adw.HeaderBar 默认子控件间距，对应 CSS 变量
+        # --setzer-spacing-sm（见 style_gtk.css）。Gtk.Box.spacing 无法用
+        # CSS 设置，此处保留 Python 指定但与 CSS 变量值保持一致。
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.set_can_focus(False)
 
@@ -74,6 +76,13 @@ class BuildWidgetView(Gtk.Box):
         self.result_popover.set_has_arrow(True)
         self.result_popover.set_position(Gtk.PositionType.BOTTOM)
 
+        # 鼠标悬停时取消自动隐藏，移开后短延迟隐藏。
+        # 构建结果含错误计数等信息，1.6 秒不够用户阅读。
+        hover = Gtk.EventControllerMotion()
+        hover.connect('enter', self._on_result_hover_enter)
+        hover.connect('leave', self._on_result_hover_leave)
+        self.result_label.add_controller(hover)
+
         self.append(self.clean_button)
         self.prepend(self.build_button)
 
@@ -84,7 +93,7 @@ class BuildWidgetView(Gtk.Box):
     def _on_destroy(self, widget=None):
         self.stop_timer()
         if self._hide_result_timeout_id is not None:
-            GObject.source_remove(self._hide_result_timeout_id)
+            GLib.source_remove(self._hide_result_timeout_id)
             self._hide_result_timeout_id = None
 
     def switch_to_building(self):
@@ -103,11 +112,13 @@ class BuildWidgetView(Gtk.Box):
 
     def start_timer(self):
         self.timer_active = True
-        self._timer_timeout_id = GObject.timeout_add(500, self.increment_timer)
+        # 1000ms 间隔（原 500ms）：显示精度为 1 秒，无需更高频率。
+        # 用 timeout_add_seconds 允许系统聚合定时器以节省功耗。
+        self._timer_timeout_id = GLib.timeout_add_seconds(1, self.increment_timer)
 
     def increment_timer(self):
         if self.timer_active:
-            self.timer += 500
+            self.timer += 1000
             if self.timer // 1000 >= 1:
                 self.timer_label.set_text('{}:{:02}'.format(self.timer // 60000, (self.timer % 60000) // 1000))
         else:
@@ -117,7 +128,7 @@ class BuildWidgetView(Gtk.Box):
     def stop_timer(self):
         self.timer_active = False
         if self._timer_timeout_id is not None:
-            GObject.source_remove(self._timer_timeout_id)
+            GLib.source_remove(self._timer_timeout_id)
             self._timer_timeout_id = None
 
     def reset_timer(self):
@@ -140,13 +151,13 @@ class BuildWidgetView(Gtk.Box):
         # 取消前一个挂起的隐藏回调，避免多个 timeout 叠加（连续构建时
         # 旧回调仍会 popdown 刚弹出的新结果）。
         if self._hide_result_timeout_id is not None:
-            GObject.source_remove(self._hide_result_timeout_id)
-        self._hide_result_timeout_id = GObject.timeout_add(duration, self._hide_result, self.state_change_count)
+            GLib.source_remove(self._hide_result_timeout_id)
+        self._hide_result_timeout_id = GLib.timeout_add(duration, self._hide_result, self.state_change_count)
 
     def hide_result_now(self):
         self.state_change_count += 1
         if self._hide_result_timeout_id is not None:
-            GObject.source_remove(self._hide_result_timeout_id)
+            GLib.source_remove(self._hide_result_timeout_id)
             self._hide_result_timeout_id = None
         self._hide_result(self.state_change_count)
 
@@ -155,3 +166,14 @@ class BuildWidgetView(Gtk.Box):
         if self.state_change_count == state_change_count:
             self.result_popover.popdown()
         return False
+
+    def _on_result_hover_enter(self, controller):
+        '''鼠标进入 popover 区域：取消自动隐藏，让用户充分阅读结果。'''
+        if self._hide_result_timeout_id is not None:
+            GLib.source_remove(self._hide_result_timeout_id)
+            self._hide_result_timeout_id = None
+
+    def _on_result_hover_leave(self, controller):
+        '''鼠标离开 popover 区域：2 秒后隐藏（比首次 5 秒短，因为用户已看过）。'''
+        if self._hide_result_timeout_id is None and self.result_popover.get_visible():
+            self.hide_result(2000)

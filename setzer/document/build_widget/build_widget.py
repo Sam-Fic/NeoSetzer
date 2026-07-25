@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Adw', '1')
-from gi.repository import Adw
+from gi.repository import Adw, GLib
 
 import setzer.document.build_widget.build_widget_viewgtk as build_widget_view
 from setzer.helpers.observable import Observable
@@ -81,6 +81,8 @@ class BuildWidget(Observable):
             selfstate = self.build_button_state
             if state == 'idle' or state == '':
                 build_button_state = ('idle', int(time.time()*1000))
+            elif state == 'building_to_stop':
+                build_button_state = ('stopping', int(time.time()*1000))
             else:
                 build_button_state = ('building', int(time.time()*1000))
 
@@ -89,6 +91,10 @@ class BuildWidget(Observable):
                 if build_button_state[0] == 'idle':
                     self.view.switch_to_idle()
                     self.view.build_button.set_sensitive(True)
+                elif build_button_state[0] == 'stopping':
+                    # 构建正在停止：按钮保持停止图标但不可点击，
+                    # 防止用户在进程退出前重复点击。
+                    self.view.build_button.set_sensitive(False)
                 else:
                     self.view.switch_to_building()
                     self.view.build_button.set_sensitive(True)
@@ -111,13 +117,17 @@ class BuildWidget(Observable):
             error_count = build_system.get_error_count()
             error_color_rgba = ColorManager.get_ui_color_string('error_color')
 
-            message = '<span color="' + error_color_rgba + '">' + _('Failed') + '</span> '
-            if error_count == 1:
-                message += '(' + _('1 error') + ')!'
-            else:
-                message += '(' + str(error_count) + ' ' + _('errors') + ')!'
+            # ngettext 处理单复数：英语 "1 error" / "N errors"，
+            # 俄语等有 3 种复数形式（1 ошибка / 2 ошибки / 5 ошибок）。
+            # 旧实现拆分 "Failed" + "errors" 分别翻译，无法处理语序差异和复数形式。
+            # Pango markup：error_color_rgba 作为 XML 属性值不转义；译文作为元素
+            # 文本内容必须转义（GLib.markup_escape_text）以防 < > & 破坏解析。
+            errors_text = ngettext('{count} error', '{count} errors', error_count).format(count=error_count)
+            failed_text = GLib.markup_escape_text(_('Failed'), -1)
+            error_text = GLib.markup_escape_text(errors_text, -1)
+            message = '<span color="' + error_color_rgba + '">' + failed_text + '</span> (' + error_text + ')!'
             self.show_message(message)
-            self._show_toast(_('Build failed') + ' (' + str(error_count) + ' ' + _('errors') + ')')
+            self._show_toast(_('Build failed') + ' (' + errors_text + ')')
 
     def _show_toast(self, text):
         main_window = ServiceLocator.get_main_window()
@@ -136,7 +146,7 @@ class BuildWidget(Observable):
         self.view.switch_to_idle()
         self.view.show_result(message)
         if self.view.get_parent() != None:
-            self.view.hide_result(1600)
+            self.view.hide_result(5000)
 
     def on_build_button_click(self, button_object=None):
         if self.build_button_state[0] == 'building':
@@ -148,17 +158,19 @@ class BuildWidget(Observable):
         def get_clean_button_state(document):
             if document != None:
                 if document.filename != None:
-                    pathname = document.get_filename().rsplit('/', 1)
+                    # 与 on_clean_button_click 一致用 os.path.splitext 去扩展名：
+                    # 原 rsplit('/', 1) + rsplit('.', 1) 对无 '/' 的相对路径会
+                    # IndexError，且与 on_clean_button_click 写法不统一。
+                    filename_base = os.path.splitext(document.get_filename())[0]
                     for ending in _CLEANUP_FILE_ENDINGS:
-                        filename = pathname[0] + '/' + pathname[1].rsplit('.', 1)[0] + ending
-                        if os.path.exists(filename): return True
+                        if os.path.exists(filename_base + ending): return True
             return False
 
         if self.settings.get_value('preferences', 'cleanup_build_files') == True:
             self.view.clean_button.set_visible(False)
         else:
-            self.view.clean_button.set_visible(True)
-            self.view.clean_button.set_sensitive(get_clean_button_state(self.document))
+            # 无构建产物时隐藏按钮（而非显示灰色不可点击按钮），减少视觉干扰。
+            self.view.clean_button.set_visible(get_clean_button_state(self.document))
 
     def on_clean_button_click(self, button_object=None):
         document = self.document

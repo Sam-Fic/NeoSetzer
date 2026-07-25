@@ -25,6 +25,7 @@ from gi.repository import Adw
 
 import re
 import os, os.path
+import warnings
 import xml.etree.ElementTree as ET
 
 import setzer.settings.settings as settingscontroller
@@ -54,13 +55,44 @@ class ServiceLocator():
         ServiceLocator.main_window = main_window
 
     def get_main_window():
+        # 早期访问检测：main_window 在 app bootstrap 早期由 set_main_window
+        # 注入。若调用方在此之前访问，原实现静默返回 None，调用方随后的
+        # `.something` 会抛 AttributeError，但栈帧看不出根因是初始化顺序。
+        # 这里发出 RuntimeWarning（含调用位置）帮助定位 init-order bug；
+        # 仍返回 None 以保持原行为，避免在生产环境把"顺序问题"变成"崩溃"。
+        if ServiceLocator.main_window is None:
+            warnings.warn(
+                'ServiceLocator.get_main_window() returned None — called before '
+                'set_main_window(). This is an initialization-order bug; the '
+                'caller will likely raise AttributeError next.',
+                RuntimeWarning, stacklevel=2)
         return ServiceLocator.main_window
 
     def set_workspace(workspace):
         ServiceLocator.workspace = workspace
 
     def get_workspace():
+        # 同 get_main_window：workspace 在 bootstrap 早期注入，此前访问返回
+        # None 并发出 RuntimeWarning，便于定位 init-order bug。
+        if ServiceLocator.workspace is None:
+            warnings.warn(
+                'ServiceLocator.get_workspace() returned None — called before '
+                'set_workspace(). This is an initialization-order bug; the '
+                'caller will likely raise AttributeError next.',
+                RuntimeWarning, stacklevel=2)
         return ServiceLocator.workspace
+
+    def is_initialized():
+        '''检查核心服务（main_window、workspace）是否已注入。
+
+        在 bootstrap 早期、不确定服务是否就绪时可用于守卫访问，避免静默
+        拿到 None 后再下游崩溃。settings 有懒初始化故不需检查；其余服务
+        （shortcuts/version/paths）通常在更早期就绪，按需单独判断即可。
+
+        返回 True 当且仅当 main_window 与 workspace 均非 None。
+        '''
+        return (ServiceLocator.main_window is not None
+                and ServiceLocator.workspace is not None)
 
     def set_shortcuts(shortcuts):
         ServiceLocator.shortcuts = shortcuts
@@ -122,7 +154,12 @@ class ServiceLocator():
             if not os.path.isdir(os.path.join(ServiceLocator.get_config_folder(), 'themes')):
                 os.mkdir(os.path.join(ServiceLocator.get_config_folder(), 'themes'))
             path2 = os.path.join(ServiceLocator.get_config_folder(), 'themes')
-            ServiceLocator.source_style_scheme_manager.set_search_path((path1, path2))
+            # 应用自定义路径在前，确保 Setzer 的 default / default-dark 优先于
+            # 同名系统方案；同时保留系统默认搜索路径，使用户在 Appearance 偏好
+            # 中可选择 Adwaita / Solarized / Oblivion 等 GtkSource 内置方案。
+            default_paths = ServiceLocator.source_style_scheme_manager.get_search_path()
+            combined_paths = (path1, path2) + tuple(p for p in default_paths if p not in (path1, path2))
+            ServiceLocator.source_style_scheme_manager.set_search_path(combined_paths)
         return ServiceLocator.source_style_scheme_manager
 
     def get_source_language(language):
@@ -131,15 +168,30 @@ class ServiceLocator():
         else: return source_language_manager.get_language('latex')
 
     def get_style_scheme():
-        # 编辑器配色跟随应用深浅色（Preferences 中不再提供独立选择）
+        # 编辑器配色优先使用用户在 Preferences 中显式选择的方案（editor_style_scheme）；
+        # 为空时跟随应用深浅色主题（default / default-dark）。
+        # _style_scheme 缓存命中时省去 settings 读取 + get_scheme 查找；
+        # notify::dark 触发 _invalidate_style_scheme 清空缓存，下次重新计算。
+        # 用户切换方案时 set_style_scheme_name 也会清空缓存并 set_value，
+        # settings_changed 信号驱动已打开文档 on_settings_changed 重新应用。
         if ServiceLocator._style_scheme is None:
-            try:
-                dark = Adw.StyleManager.get_default().get_dark()
-            except Exception:
-                dark = False
-            name = 'default-dark' if dark else 'default'
-            ServiceLocator._style_scheme = ServiceLocator.get_source_style_scheme_manager().get_scheme(name)
+            scheme_name = ServiceLocator.get_settings().get_value('preferences', 'editor_style_scheme')
+            if scheme_name is None or scheme_name == '':
+                # 未设置：跟随系统主题
+                dark = ServiceLocator._get_dark()
+                scheme_name = 'default-dark' if dark else 'default'
+            scheme = ServiceLocator.get_source_style_scheme_manager().get_scheme(scheme_name)
+            if scheme is None:
+                # 方案 ID 不存在（用户手动改 settings.json 或方案文件被删除）：
+                # 回退到跟随系统主题，避免 set_style_scheme(None) 报错。
+                dark = ServiceLocator._get_dark()
+                scheme = ServiceLocator.get_source_style_scheme_manager().get_scheme(
+                    'default-dark' if dark else 'default')
+            ServiceLocator._style_scheme = scheme
             # 首次构建时连接 notify::dark 失效缓存（仅连一次）。
+            # 即使用户选择了固定方案，系统主题变化时 _invalidate_style_scheme
+            # 仍会清空缓存，下次 get_style_scheme 重新读取用户设置返回同一方案——
+            # 略有冗余但无害，且 document.on_theme_colors_changed 据此重应用。
             if not ServiceLocator._style_scheme_handler_connected:
                 try:
                     Adw.StyleManager.get_default().connect('notify::dark', ServiceLocator._invalidate_style_scheme)
@@ -147,6 +199,34 @@ class ServiceLocator():
                     pass
                 ServiceLocator._style_scheme_handler_connected = True
         return ServiceLocator._style_scheme
+
+    def _get_dark():
+        '''返回当前是否深色主题。Adw.StyleManager 不可用时回退到 light。
+
+        get_default() 在非 GNOME / headless 测试环境可能返回 None，此时
+        .get_dark() 抛 AttributeError。精确捕获 AttributeError 而非 bare
+        except Exception——避免吞掉其他真正的 bug（如 GLib 初始化异常），
+        同时打印诊断信息到 stderr：原实现静默回退 light，配色不匹配时
+        难以排查。connect notify::dark 处仍保留 except Exception，因为
+        connect 失败的根因多样且仅影响缓存失效（非功能性）。
+        '''
+        try:
+            return Adw.StyleManager.get_default().get_dark()
+        except AttributeError:
+            import sys
+            print('[ServiceLocator] Adw.StyleManager.get_default() unavailable, falling back to light theme.', file=sys.stderr)
+            return False
+
+    def set_style_scheme_name(name):
+        '''用户在偏好设置中选择编辑器配色方案。
+
+        先清空缓存使下次 get_style_scheme 重新读取设置；再 set_value 触发
+        settings_changed，已打开文档的 on_settings_changed 会重新调用
+        set_style_scheme(get_style_scheme()) 应用新方案。name 为空字符串
+        表示恢复跟随系统主题。
+        '''
+        ServiceLocator._style_scheme = None
+        ServiceLocator.get_settings().set_value('preferences', 'editor_style_scheme', name)
 
     def _invalidate_style_scheme(*args):
         ServiceLocator._style_scheme = None

@@ -1,4 +1,4 @@
-# generated on Thu Jul 23 02:41:14 PM UTC 2026
+# generated on Sat Jul 25 05:23:39 AM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -31,6 +31,7 @@
 ./setzer/dialogs/document_wizard/document_wizard.py
 ./setzer/dialogs/document_wizard/document_wizard_viewgtk.py
 ./setzer/dialogs/document_wizard/__init__.py
+./setzer/dialogs/document_wizard/page_map.py
 ./setzer/dialogs/document_wizard/pages/__init__.py
 ./setzer/dialogs/document_wizard/pages/page_article_settings.py
 ./setzer/dialogs/document_wizard/pages/page_beamer_settings.py
@@ -40,6 +41,8 @@
 ./setzer/dialogs/document_wizard/pages/page_letter_settings.py
 ./setzer/dialogs/document_wizard/pages/page.py
 ./setzer/dialogs/document_wizard/pages/page_report_settings.py
+./setzer/dialogs/go_to_line/go_to_line.py
+./setzer/dialogs/go_to_line/__init__.py
 ./setzer/dialogs/helpers/dialog_viewgtk.py
 ./setzer/dialogs/helpers/__init__.py
 ./setzer/dialogs/include_bibtex_file/include_bibtex_file.py
@@ -63,6 +66,7 @@
 ./setzer/dialogs/preferences/pages/page_autocomplete.py
 ./setzer/dialogs/preferences/pages/page_build_system.py
 ./setzer/dialogs/preferences/pages/page_editor.py
+./setzer/dialogs/preferences/pages/page_shortcuts.py
 ./setzer/dialogs/preferences/preferences.py
 ./setzer/dialogs/preferences/preferences_viewgtk.py
 ./setzer/dialogs/replace_confirmation/__init__.py
@@ -123,12 +127,15 @@
 ./setzer/document/search/__init__.py
 ./setzer/document/search/search.py
 ./setzer/document/search/search_viewgtk.py
+./setzer/document/update_matching_blocks/begin_end_match.py
 ./setzer/document/update_matching_blocks/__init__.py
 ./setzer/document/update_matching_blocks/update_matching_blocks.py
 ./setzer/helpers/drawing.py
 ./setzer/helpers/__init__.py
 ./setzer/helpers/observable.py
 ./setzer/helpers/path.py
+./setzer/helpers/persistence.py
+./setzer/helpers/symbol_categories.py
 ./setzer/helpers/timer.py
 ./setzer/keyboard_shortcuts/__init__.py
 ./setzer/keyboard_shortcuts/shortcut_controller_app.py
@@ -207,6 +214,7 @@
 ./setzer/workspace/sidebar/document_stats/document_stats.py
 ./setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py
 ./setzer/workspace/sidebar/document_stats/__init__.py
+./setzer/workspace/sidebar/document_stats/stats_text.py
 ./setzer/workspace/sidebar/document_structure_page/data_provider.py
 ./setzer/workspace/sidebar/document_structure_page/document_structure_page.py
 ./setzer/workspace/sidebar/document_structure_page/files.py
@@ -223,6 +231,7 @@
 ./setzer/workspace/sidebar/sidebar.py
 ./setzer/workspace/sidebar/sidebar_viewgtk.py
 ./setzer/workspace/sidebar/symbols_page/__init__.py
+./setzer/workspace/sidebar/symbols_page/symbol_preview.py
 ./setzer/workspace/sidebar/symbols_page/symbols_page.py
 ./setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py
 ./setzer/workspace/welcome_screen/__init__.py

@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import Pango
 
 import os.path
@@ -58,6 +59,7 @@ class FilechooserButton(Observable):
         self.default_folder = None
         self.filename = None
         self.view.button_label.set_text(_('(None)'))
+        self.view.set_tooltip_text('')
 
     def set_default_folder(self, folder):
         self.default_folder = folder
@@ -96,11 +98,27 @@ class FilechooserButton(Observable):
     def dialog_process_response(self, dialog, result):
         try:
             file = dialog.open_finish(result)
-        except Exception: pass
+        except GLib.Error:
+            # GTK4 FileDialog 用户取消/关闭对话框时 open_finish 抛 GLib.Error
+            # (gtk-dialog-error-quark: "Dialog was dismissed")。这是正常流程，
+            # 静默忽略——不应报错或提示用户。
+            pass
+        except Exception:
+            # 非取消异常（权限不足/IO 错误等，理论上少见）。原实现 except Exception: pass
+            # 会连同真实错误一起吞掉，用户点文件后无任何反馈不知是失败还是取消。
+            # 打印 traceback 便于诊断；不弹窗——FilechooserButton 是底层组件，
+            # 不应假设有 toast 容器，且调用方（如 include_bibtex_file 对话框）
+            # 可能有自己的错误处理逻辑。
+            import traceback
+            traceback.print_exc()
         else:
             if file != None:
                 self.filename = file.get_path()
                 self.view.button_label.set_text(os.path.basename(self.filename))
+                # tooltip 显示完整路径：basename 无法区分同名不同目录的文件
+                # (如 project1/main.tex vs project2/main.tex)，tooltip 让用户
+                # 悬停即可确认选的是哪个。
+                self.view.set_tooltip_text(self.filename)
                 self.add_change_code('file-set')
 
 

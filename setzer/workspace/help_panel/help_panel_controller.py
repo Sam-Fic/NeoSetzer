@@ -16,17 +16,31 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
-gi.require_version('WebKit', '6.0')
-from gi.repository import WebKit
 from gi.repository import GLib
 
+# WebKit 是可选依赖（见 help_panel_viewgtk.py 的 HAS_WEBKIT 说明）。
+# controller 中 on_policy_decision / on_context_menu / 导航按钮依赖 WebKit
+# API，无 WebKit 时需跳过这些信号连接和方法。
+try:
+    gi.require_version('WebKit', '6.0')
+    from gi.repository import WebKit
+    HAS_WEBKIT = True
+except (ValueError, ImportError):
+    HAS_WEBKIT = False
+
 import webbrowser
-import _thread as thread
+import threading
+import os.path
 
 
 class HelpPanelController(object):
     '''Pass-12: 按钮回到 help_panel 内嵌工具栏（与左侧栏一致），
-    控制器直接通过 self.view.* 访问，无需 headerbar 引用。'''
+    控制器直接通过 self.view.* 访问，无需 headerbar 引用。
+
+    无 WebKit 时：导航按钮（back/next/up/home）禁用（无法控制 WebView），
+    但搜索功能完整可用。点击搜索结果时用 webbrowser.open 打开本地 HTML
+    文件替代 WebView 内导航。
+    '''
 
     def __init__(self, help_panel, view):
         self.help_panel = help_panel
@@ -37,10 +51,17 @@ class HelpPanelController(object):
         # 扫一遍，大索引时明显卡顿。改为 150ms 停顿后才搜索，合并连续按键。
         self._search_idle_id = None
 
-        self.view.content.connect('decide-policy', self.on_policy_decision)
-        self.view.content.connect('context-menu', self.on_context_menu)
+        if HAS_WEBKIT:
+            self.view.content.connect('decide-policy', self.on_policy_decision)
+            self.view.content.connect('context-menu', self.on_context_menu)
+            self.view.content.get_back_forward_list().connect('changed', self.on_back_forward_list_changed)
+        else:
+            # 无 WebKit：导航按钮无 WebView 可控制，禁用以明确告知用户。
+            self.view.back_button.set_sensitive(False)
+            self.view.next_button.set_sensitive(False)
+            self.view.up_button.set_sensitive(False)
+            self.view.home_button.set_sensitive(False)
 
-        self.view.content.get_back_forward_list().connect('changed', self.on_back_forward_list_changed)
         self.view.back_button.connect('clicked', self.on_back_button_clicked)
         self.view.next_button.connect('clicked', self.on_next_button_clicked)
         self.view.up_button.connect('clicked', self.on_up_button_clicked)
@@ -52,14 +73,17 @@ class HelpPanelController(object):
         self.view.search_results.connect('row-activated', self.on_search_result_activated)
 
     def on_back_button_clicked(self, button):
+        if not HAS_WEBKIT: return
         self.view.search_button.set_active(False)
         self.view.content.go_back()
 
     def on_next_button_clicked(self, button):
+        if not HAS_WEBKIT: return
         self.view.search_button.set_active(False)
         self.view.content.go_forward()
 
     def on_up_button_clicked(self, button):
+        if not HAS_WEBKIT: return
         self.view.search_button.set_active(False)
         if self.view.content.get_uri() != self.help_panel.current_uri.split('#')[0] + '#':
             self.view.content.load_uri(self.help_panel.current_uri.split('#')[0] + '#')
@@ -67,6 +91,7 @@ class HelpPanelController(object):
             self.view.content.load_uri(self.help_panel.current_uri.split('#')[0] + '#top')
 
     def on_home_button_clicked(self, button):
+        if not HAS_WEBKIT: return
         self.view.search_button.set_active(False)
         self.view.content.load_uri(self.help_panel.home_uri)
 
@@ -76,8 +101,19 @@ class HelpPanelController(object):
             self.view.search_entry.set_text('')
             self.view.search_entry.grab_focus()
             self.help_panel.set_search_query(self.view.search_entry.get_text())
+            # 预加载搜索索引：set_search_query('') 走空查询分支不会触发
+            # _ensure_search_index，导致用户输入第一个字符后的首次搜索要
+            # 同步承担 pickle.load + trigram 构建（~25ms / 2080 项）。此处
+            # 面板刚展开、用户尚未敲键，把这次一次性开销移到无感知时刻，
+            # 之后首次真实查询即即时响应（trigram 搜索本身 ~5ms）。
+            self.help_panel._ensure_search_index()
         else:
-            self.view.stack.set_visible_child_name('content')
+            if HAS_WEBKIT:
+                self.view.stack.set_visible_child_name('content')
+            else:
+                # 无 WebKit 时 'content' 页只是占位 Label，退出搜索后留在搜索页
+                # 不如保持搜索结果可见（用户可能还想看结果）。
+                pass
             self.help_panel.workspace.presenter.focus_active_document()
 
     def on_search_entry_changed(self, entry):
@@ -100,13 +136,23 @@ class HelpPanelController(object):
         self.view.search_button.set_active(False)
 
     def on_search_result_activated(self, box, row):
-        self.help_panel.set_uri_by_search_item(row.uri_ending, row.text_label.get_text(), row.location_label.get_text())
+        if HAS_WEBKIT:
+            self.help_panel.set_uri_by_search_item(row.uri_ending, row.text_label.get_text(), row.location_label.get_text())
+        else:
+            # 无 WebKit：用系统浏览器打开本地 HTML 文件。
+            # help_panel.path 是 'file:///.../resources/help'，uri_ending 是相对路径。
+            html_path = os.path.join(self.help_panel.path.replace('file://', ''), row.uri_ending)
+            if os.path.isfile(html_path):
+                threading.Thread(target=webbrowser.open_new_tab,
+                                 args=('file://' + html_path,), daemon=True).start()
 
     def on_back_forward_list_changed(self, back_forward_list, item_added=None, items_removed=None):
+        if not HAS_WEBKIT: return
         self.view.back_button.set_sensitive(self.view.content.can_go_back())
         self.view.next_button.set_sensitive(self.view.content.can_go_forward())
 
     def on_policy_decision(self, view, decision, decision_type, user_data=None):
+        if not HAS_WEBKIT: return False
         na = WebKit.PolicyDecisionType.NAVIGATION_ACTION
         nwa = WebKit.PolicyDecisionType.NEW_WINDOW_ACTION
         ra = WebKit.PolicyDecisionType.RESPONSE
@@ -116,7 +162,7 @@ class HelpPanelController(object):
                 self.help_panel.set_uri(uri)
                 return True
             else:
-                thread.start_new_thread(webbrowser.open_new_tab, (uri,))
+                threading.Thread(target=webbrowser.open_new_tab, args=(uri,), daemon=True).start()
                 decision.ignore()
                 return True
         elif decision_type == ra:

@@ -91,7 +91,7 @@ class PageAutocompleteView(Adw.PreferencesPage):
         group_latex_commands.add(self.option_autocomplete)
 
         group_others = Adw.PreferencesGroup()
-        group_others.set_title(_('Others'))
+        group_others.set_title(_('Brackets and Blocks'))
         self.add(group_others)
 
         self.option_bracket_completion = Adw.SwitchRow()

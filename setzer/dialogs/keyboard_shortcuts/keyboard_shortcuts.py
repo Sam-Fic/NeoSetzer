@@ -106,10 +106,11 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Move current word right'), 'shortcut': '<Alt>Right'})
         section['items'].append({'title': _('Increment number at cursor'), 'shortcut': '<ctrl><shift>A'})
         section['items'].append({'title': _('Decrement number at cursor'), 'shortcut': '<ctrl><shift>X'})
+        section['items'].append({'title': _('Delete current line'), 'shortcut': shortcuts.get('delete_line', '<ctrl><shift>K')})
         data.append(section)
 
         section = {'title': _('LaTeX Shortcuts'), 'items': list()}
-        section['items'].append({'title': _('Comment / Uncomment current line(s)'), 'shortcut': shortcuts.get('toggle_comment', '<ctrl>K')})
+        section['items'].append({'title': _('Comment / Uncomment current line(s)'), 'shortcut': shortcuts.get('toggle_comment', '<ctrl>k')})
         section['items'].append({'title': _('New Line') + ' (\\\\)', 'shortcut': shortcuts.get('new_line', '<ctrl>Return')})
         section['items'].append({'title': _('Bold Text'), 'shortcut': shortcuts.get('bold', '<ctrl>B')})
         section['items'].append({'title': _('Italic Text'), 'shortcut': shortcuts.get('italic', '<ctrl>I')})

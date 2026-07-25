@@ -83,8 +83,15 @@ class HeaderBar(object):
         self.new_document_button.add_css_class('headerbar-icon')
         # PopoverManager 在 create_widgets() 前已 init，此处直接绑定 menu_model。
         # 原 setup_popovers() 方法从未被调用，导致箭头点不动——这是 bug 根因。
+        # 若 popover 为 None（初始化顺序错误），打印警告而非静默失败——
+        # 静默失败时箭头点不动且无任何错误提示，开发时难以定位。
         popover = PopoverManager.get_popover('new_document')
-        if popover is not None:
+        if popover is None:
+            print('Setzer warning: PopoverManager.get_popover("new_document") '
+                  'returned None; new_document button menu unavailable. '
+                  'Ensure PopoverManager.init() is called before HeaderBar creation.',
+                  flush=True)
+        else:
             self.new_document_button.set_menu_model(popover.view.model)
             menu_popover = self.new_document_button.get_popover()
             if menu_popover is not None:
@@ -159,6 +166,11 @@ class HeaderBar(object):
         self.center_widget.set_valign(Gtk.Align.FILL)
         self.center_widget.add_named(self.center_button, 'button')
         self.center_widget.add_named(self.center_title_welcome, 'welcome')
+        # welcome↔document 模式切换时加 CROSSFADE 过渡（200ms 与 libadwaita
+        # 默认动画时长一致）。与 preview_help_stack / Sidebar 的过渡行为对称，
+        # 避免标题中心区域在打开/关闭文档时硬切。
+        self.center_widget.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.center_widget.set_transition_duration(200)
 
         self.widget.set_title_widget(self.center_widget)
 

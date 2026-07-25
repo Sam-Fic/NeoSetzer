@@ -6,19 +6,19 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
-from gi.repository import GObject, GLib
+from gi.repository import GObject, GLib, Adw
 
-import _thread as thread, queue
+import threading, queue
 import time, re, difflib
 
 from setzer.app.service_locator import ServiceLocator
@@ -49,6 +49,13 @@ class BuildSystem(Observable):
 
         # possible values: build, forward_sync, build_and_forward_sync
         self.build_mode = 'build_and_forward_sync'
+
+        # 标记本次构建是否由自动构建（AutoBuild）触发。auto_build.on_timer
+        # 在调用 build_and_forward_sync 前置 True；actions.build / save_and_build
+        # 等手动入口置 False。build_log.update_items 据此结合
+        # auto_build_autoshow_errors 设置决定是否自动弹出日志弹窗——
+        # 自动构建时用户可能正在打字，频繁弹窗打扰写作。
+        self.is_auto_build = False
 
         self.document_has_been_built = False
         self.build_time = None
@@ -195,6 +202,10 @@ class BuildSystem(Observable):
         # 三种情形下旧 query 的结果都不应再处理，与原 results_loop 的
         # `if self.active_query != None` 守卫语义一致。
         if self.active_query is not query:
+            # 用户手动中止构建后，worker 线程结束时将 building_to_stop → idle。
+            # add_query 场景不触发（state 已被设为 building_in_progress）。
+            if self.build_state == 'building_to_stop':
+                self.change_build_state('idle')
             return False
 
         build_result = query.get_build_result()
@@ -219,6 +230,13 @@ class BuildSystem(Observable):
                 if pdf_filename != None:
                     self.document.preview.set_pdf_filename(pdf_filename)
                     self.document.add_change_code('pdf_updated')
+                else:
+                    # 构建未产出 PDF（编译失败）。若预览仍显示上一次成功的 PDF，
+                    # 标记为 stale——预览面板据此显示「构建失败，显示的是上一次
+                    # 成功的 PDF」横幅，避免用户看到旧 PDF 误以为构建成功。
+                    # （set_pdf_filename 在下次构建成功时会自动清除 stale 标记。）
+                    if self.document.preview.poppler_document != None:
+                        self.document.preview.set_pdf_is_stale(True)
 
             if result_blob['forward_sync'] != None:
                 self.document.preview.set_synctex_rectangles(result_blob['forward_sync'])
@@ -283,9 +301,17 @@ class BuildSystem(Observable):
         LaTeXDB.schedule_parse_included_files()
 
     def add_query(self, query):
+        if self.active_query != None:
+            # 旧构建被中止：显示 toast 通知用户（手动 F5 触发新构建时可能
+            # 上一次构建仍在进行，旧构建被静默丢弃）。
+            main_window = ServiceLocator.get_main_window()
+            if hasattr(main_window, 'toast_overlay'):
+                toast = Adw.Toast.new(_('Previous build cancelled'))
+                toast.set_timeout(2)
+                main_window.toast_overlay.add_toast(toast)
         self.stop_building(notify=False)
         self.active_query = query
-        thread.start_new_thread(self.execute_query, (query,))
+        threading.Thread(target=self.execute_query, args=(query,), daemon=True).start()
 
         self.change_build_state('building_in_progress')
 
@@ -373,7 +399,10 @@ class BuildSystem(Observable):
             builder.stop_running()
         if notify:
             self.show_build_state('')
-            self.change_build_state('idle')
+            # 使用 building_to_stop 过渡状态：按钮变为不可点击，直到 worker
+            # 线程真正退出后 _on_query_done 将状态切回 idle。避免用户在
+            # 进程尚未退出时再次点击构建按钮导致冲突。
+            self.change_build_state('building_to_stop')
 
     def set_synctex_position(self, document, position):
         position_found, start = document.source_buffer.get_iter_at_line(position['line'])
@@ -452,5 +481,3 @@ class BuildSystem(Observable):
             return matches
         else:
             return None
-
-

@@ -27,7 +27,7 @@ from setzer.dialogs.document_wizard.pages.page import Page, PageView
 from setzer.app.service_locator import ServiceLocator
 
 import os
-import _thread as thread
+import threading
 
 
 class BeamerSettingsPage(Page):
@@ -36,8 +36,8 @@ class BeamerSettingsPage(Page):
         self.current_values = current_values
         self.view = BeamerSettingsPageView()
 
-        self.image_loading_lock = thread.allocate_lock()
-        thread.start_new_thread(self.load_beamer_images, ())
+        self.image_loading_lock = threading.Lock()
+        threading.Thread(target=self.load_beamer_images, daemon=True).start()
 
     def observe_view(self):
         self.image_loading_lock.acquire()

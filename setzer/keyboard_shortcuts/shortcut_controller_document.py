@@ -48,7 +48,14 @@ class ShortcutControllerDocument(ShortcutController):
         self.create_and_add_shortcut(shortcuts.get('undo', '<Control>z'), self.actions.undo)
         self.create_and_add_shortcut(shortcuts.get('redo', '<Control><Shift>z'), self.actions.redo)
         self.create_and_add_shortcut('<Control>y', self.actions.redo)
-        self.create_and_add_shortcut('<Control>d', self.actions.delete_line)
+        # 删除行：原硬编码 <Control>d 与 VS Code/Sublime/IntelliJ 的「选中下一个
+        # 相同词（多光标）」肌肉记忆冲突。改为 VS Code 标准的 Ctrl+Shift+K，
+        # 并走 shortcuts.get() 让用户可在设置里改。Ctrl+D 暂不绑定，留作未来
+        # 多光标选词功能的快捷键。
+        self.create_and_add_shortcut(shortcuts.get('delete_line', '<Control><Shift>k'), self.actions.delete_line)
+        self.create_and_add_shortcut(shortcuts.get('duplicate_line', '<Alt><Shift>d'), self.actions.duplicate_line)
+        self.create_and_add_shortcut(shortcuts.get('move_line_up', '<Alt>Up'), self.actions.move_line_up)
+        self.create_and_add_shortcut(shortcuts.get('move_line_down', '<Alt>Down'), self.actions.move_line_down)
         self.create_and_add_shortcut(shortcuts.get('context_menu', '<Shift>F10'), self.actions.show_context_menu)
 
 

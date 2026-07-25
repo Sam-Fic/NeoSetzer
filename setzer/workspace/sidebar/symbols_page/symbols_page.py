@@ -22,15 +22,16 @@ from gi.repository import Gtk, Gdk, Gio, GLib, GObject
 import setzer.workspace.sidebar.symbols_page.symbols_page_viewgtk as symbols_page_view
 from setzer.app.service_locator import ServiceLocator
 import setzer.helpers.timer as timer
+from setzer.helpers.symbol_categories import is_valid_category
+from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview
 
 import math
-import time
 import xml.etree.ElementTree as ET
 import os
 
 
-class SymbolsPage(object):
+class SymbolsPage(ScrollAnimatorMixin):
 
     def __init__(self, workspace):
         self.view = symbols_page_view.SymbolsPageView()
@@ -89,12 +90,7 @@ class SymbolsPage(object):
         self.view.scrolled_window.connect('destroy', self._on_destroy)
 
     def _on_destroy(self, widget=None):
-        if self._scroll_timeout_id is not None:
-            try:
-                GObject.source_remove(self._scroll_timeout_id)
-            except (ValueError, RuntimeError):
-                pass
-            self._scroll_timeout_id = None
+        self._cancel_scroll_animation()
 
     def update_recent_widget(self):
         for item in [item for item in self.recent]:
@@ -105,7 +101,16 @@ class SymbolsPage(object):
 
         原实现每次插入符号都 ET.parse 整个分类 XML 并 findall 遍历。
         分类 XML 运行时不可变，首次访问建 command→attrib 字典，后续 O(1)。
+
+        category 来自用户配置（recent_symbols / favorite_symbols），
+        理论可被注入路径遍历（如 ``../etc/passwd``）。先用白名单校验
+        拒绝非法值，再做文件 I/O。详见 setzer.helpers.symbol_categories。
         '''
+        # 白名单守卫：非法 category 直接返回 None，不进缓存（避免缓存
+        # 被污染后所有后续调用都命中空字典）。仍把空字典写入缓存以表示
+        # 「此分类已尝试」，但区分 None（未校验通过）与 {}（已查无文件）。
+        if not is_valid_category(category):
+            return None
         cache = self._symbol_attrib_cache.get(category)
         if cache is None:
             try:
@@ -113,6 +118,9 @@ class SymbolsPage(object):
             except (FileNotFoundError, ET.ParseError):
                 cache = {}
             else:
+                # iter('symbol') 替代原 findall('./symbol[@command=...']')
+                # 字符串拼接：避免 command 含单引号（如 \\text{'}）破坏
+                # XPath 语法或注入任意表达式。建字典后按 key O(1) 取值。
                 cache = {sym.attrib['command']: sym.attrib for sym in xml_tree.getroot().findall('./symbol')}
             self._symbol_attrib_cache[category] = cache
         return cache.get(command)
@@ -131,6 +139,7 @@ class SymbolsPage(object):
             if item[1] == symbol[1]:
                 self.view.symbols_view_recent.remove(symbol[5])
                 self.recent_details.remove(symbol)
+        self.save_recent()
 
     def add_recent_symbol(self, new_item):
         for item in [item for item in self.recent]:
@@ -141,42 +150,63 @@ class SymbolsPage(object):
 
         self.recent.append(new_item)
         self.add_recent_symbol_to_flowbox(new_item)
+        self.save_recent()
 
     def add_recent_symbol_to_flowbox(self, item):
+        # 共用 _append_symbol_to_flowbox 构建/插入逻辑；仅在 attrib 缺失时
+        # 走 Recent 专属的清理路径（从 recent 列表移除过期条目）。
+        if self._append_symbol_to_flowbox(
+                item, self.view.symbols_view_recent, self.recent_details) is None:
+            self.remove_recent_symbol(item)
+
+    def _append_symbol_to_flowbox(self, item, target_flowbox, details_list):
+        '''构建符号按钮并插入指定 flowbox。Recent 与 Favorites 共用。
+
+        原实现 add_recent_symbol_to_flowbox / add_favorite_symbol_to_flowbox
+        有约 50 行完全重复的代码（XML 属性取值、图标创建、tooltip 拼接、
+        hover 预览挂载、FlowBoxChild 包装），仅 flowbox 目标与 details
+        列表不同。提取为本方法后，两处调用各剩 2-3 行。
+
+        返回插入的 symbol 条目（6 元素 list）以与原 symbol 结构兼容；
+        若 attrib 缺失（category/command 在 XML 中找不到），返回 None，
+        由调用方决定如何清理过期条目（Recent 调 remove_recent_symbol，
+        Favorites 调 remove_favorite_symbol）。
+        '''
         (category, command) = item
         attrib = self._get_symbol_attrib(category, command)
         if attrib is None:
-            self.remove_recent_symbol(item)
-        else:
-            symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
-            size = max(symbol[3], symbol[4])
+            return None
+        symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
+        size = max(symbol[3], symbol[4])
 
-            image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
-            image.set_pixel_size(int(size * 1.5))
-            image.set_size_request(25 + 11, -1)
-            tooltip_text = symbol[1]
-            if symbol[2] != None: 
-                tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
-            image.set_tooltip_text(tooltip_text)
+        image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
+        image.set_pixel_size(int(size * 1.5))
+        image.set_size_request(25 + 11, -1)
+        tooltip_text = symbol[1]
+        if symbol[2] != None:
+            tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
+        image.set_tooltip_text(tooltip_text)
 
-            button = Gtk.Button(child=image)
-            button.add_css_class('flat')
-            button.set_tooltip_text(tooltip_text)
-            button.set_accessible_name(_('Insert') + ' ' + symbol[1])
-            # 悬停时弹出放大预览（放大版符号 + LaTeX 命令 + 收藏切换按钮）。
-            attach_symbol_hover_preview(
-                button, symbol, folder=category,
-                favorite_state_func=self.is_favorite_symbol,
-                favorite_toggle_func=self.toggle_favorite_symbol)
-            child = Gtk.FlowBoxChild()
-            child.set_child(button)
-            # recent 点击只需 (category_folder, command) 即可重新插入并更新 recency
-            child.symbol_data = (category, command)
-            symbol.append(child)
-            self.recent_details.append(symbol)
+        button = Gtk.Button(child=image)
+        button.add_css_class('flat')
+        button.set_tooltip_text(tooltip_text)
+        button.set_accessible_name(_('Insert') + ' ' + symbol[1])
+        # 悬停时弹出放大预览（放大版符号 + LaTeX 命令 + 收藏切换按钮）。
+        # Recent 与 Favorites 共用同一预览组件，仅 folder 与 favorite 回调不同。
+        attach_symbol_hover_preview(
+            button, symbol, folder=category,
+            favorite_state_func=self.is_favorite_symbol,
+            favorite_toggle_func=self.toggle_favorite_symbol)
+        child = Gtk.FlowBoxChild()
+        child.set_child(button)
+        # 点击只需 (category_folder, command) 即可重新插入并更新 recency / 收藏。
+        child.symbol_data = (category, command)
+        symbol.append(child)
+        details_list.append(symbol)
 
-            self.view.symbols_view_recent.insert(child, 0)
-            self.view.queue_draw()
+        target_flowbox.insert(child, 0)
+        self.view.queue_draw()
+        return symbol
 
     # --- Favorites ---
     # 与 Recent 平行：存储 (category_folder, command)，渲染逻辑与 Recent 一致，
@@ -221,40 +251,14 @@ class SymbolsPage(object):
     def save_favorites(self):
         ServiceLocator.get_settings().set_value('app_favorite_symbols', 'symbols', list(self.favorites))
 
+    def save_recent(self):
+        ServiceLocator.get_settings().set_value('app_recent_symbols', 'symbols', list(self.recent))
+
     def add_favorite_symbol_to_flowbox(self, item):
-        (category, command) = item
-        attrib = self._get_symbol_attrib(category, command)
-        if attrib is None:
+        # 共用 _append_symbol_to_flowbox；attrib 缺失时走 Favorites 专属清理。
+        if self._append_symbol_to_flowbox(
+                item, self.view.symbols_view_favorites, self.favorites_details) is None:
             self.remove_favorite_symbol(item)
-            return
-        symbol = [attrib['file'].rsplit('.')[0], attrib['command'], attrib.get('package', None), int(attrib.get('original_width', 10)), int(attrib.get('original_height', 10))]
-        size = max(symbol[3], symbol[4])
-
-        image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
-        image.set_pixel_size(int(size * 1.5))
-        image.set_size_request(25 + 11, -1)
-        tooltip_text = symbol[1]
-        if symbol[2] != None:
-            tooltip_text += ' (' + _('Package') + ': ' + symbol[2] + ')'
-        image.set_tooltip_text(tooltip_text)
-
-        button = Gtk.Button(child=image)
-        button.add_css_class('flat')
-        button.set_tooltip_text(tooltip_text)
-        button.set_accessible_name(_('Insert') + ' ' + symbol[1])
-        # 收藏列表内符号的 hover 预览同样提供收藏切换（此时显示「移除」）。
-        attach_symbol_hover_preview(
-            button, symbol, folder=category,
-            favorite_state_func=self.is_favorite_symbol,
-            favorite_toggle_func=self.toggle_favorite_symbol)
-        child = Gtk.FlowBoxChild()
-        child.set_child(button)
-        child.symbol_data = (category, command)
-        symbol.append(child)
-        self.favorites_details.append(symbol)
-
-        self.view.symbols_view_favorites.insert(child, 0)
-        self.view.queue_draw()
 
     def on_flowbox_activated(self, flowbox, child, symbols_view):
         if self.workspace.active_document is None:
@@ -374,18 +378,18 @@ class SymbolsPage(object):
         self.view.search_button.set_active(False)
 
     def on_search_changed(self, entry):
-        # 去抖：取消上一次待执行的过滤，150ms 停顿后合并为一次 update_symbols。
+        # 去抖：取消上一次待执行的过滤，150ms 停顿后合并为一次 filter_sections。
         if self._search_idle_id is not None:
             GLib.source_remove(self._search_idle_id)
-        self._search_idle_id = GLib.timeout_add(150, self._do_update_symbols)
+        self._search_idle_id = GLib.timeout_add(150, self._do_filter_sections)
         return True
 
-    def _do_update_symbols(self):
+    def _do_filter_sections(self):
         self._search_idle_id = None
-        self.update_symbols()
+        self.filter_sections()
         return False
 
-    def update_symbols(self):
+    def filter_sections(self):
         any_symbols_found = False
         search_active = self.view.search_entry.get_text().strip() != ''
 
@@ -438,36 +442,5 @@ class SymbolsPage(object):
         if self.recent_view_size != (allocation.width, allocation.height):
             self.recent_view_size = (allocation.width, allocation.height)
 
-    def scroll_view(self, position, duration=0.2):
-        # 取消进行中的动画：连续点击下一/上一段时，旧 timeout 仍在写
-        # adjustment，与新动画叠加产生抖动。
-        if self._scroll_timeout_id is not None:
-            GObject.source_remove(self._scroll_timeout_id)
-            self._scroll_timeout_id = None
-        adjustment = self.view.scrolled_window.get_vadjustment()
-        self.scroll_to = {'position_start': adjustment.get_value(), 'position_end': position, 'time_start': time.time(), 'duration': duration}
-        self.view.scrolled_window.set_kinetic_scrolling(False)
-        self._scroll_timeout_id = GObject.timeout_add(15, self.do_scroll)
-
-    def do_scroll(self):
-        if self.scroll_to != None:
-            adjustment = self.view.scrolled_window.get_vadjustment()
-            time_elapsed = time.time() - self.scroll_to['time_start']
-            if self.scroll_to['duration'] == 0:
-                time_elapsed_percent = 1
-            else:
-                time_elapsed_percent = time_elapsed / self.scroll_to['duration']
-            if time_elapsed_percent >= 1:
-                adjustment.set_value(self.scroll_to['position_end'])
-                self.scroll_to = None
-                self.view.scrolled_window.set_kinetic_scrolling(True)
-                self._scroll_timeout_id = None
-                return False
-            else:
-                adjustment.set_value(self.scroll_to['position_start'] * (1 - self.ease(time_elapsed_percent)) + self.scroll_to['position_end'] * self.ease(time_elapsed_percent))
-                return True
-        # scroll_to 已被取消（新动画或销毁），停止本 timeout。
-        self._scroll_timeout_id = None
-        return False
-
-    def ease(self, time): return (time - 1)**3 + 1
+    def _get_scrolled_window(self):
+        return self.view.scrolled_window

@@ -91,24 +91,27 @@ class CodeFolding(Observable):
         # state to the new regions, by identifying them with previous
         # ones.
 
-        last_line = -1
         self.folding_regions = dict()
         self.folding_regions_by_line = dict()
         for block in parser.symbols['blocks']:
             if block[1] != None:
-                if block[2] != last_line:
-                    if block[0] in folding_regions:
-                        region = folding_regions[block[0]]
-                        del(folding_regions[block[0]])
-                    else:
-                        region = {'is_folded': False}
-                    region['offset_start'] = block[0]
-                    region['offset_end'] = block[1]
-                    region['starting_line'] = block[2]
-                    region['ending_line'] = block[3]
-                    self.folding_regions[block[0]] = region
-                    self.folding_regions_by_line[block[2]] = region
-                last_line = block[2]
+                # 不再按 starting_line 去重：同一行可能有多个嵌套 block（如
+                # \section{...} \subsection{...} 写在同一行），它们有不同
+                # offset_start 因此是独立的折叠区域。旧实现用 last_line 跳过
+                # 同行第二个 block，导致该行嵌套折叠区域丢失。
+                # folding_regions 按 offset_start 索引无冲突；folding_regions_by_line
+                # 同行多个 block 时后者覆盖前者，gutter 点击该行时折叠最内层区域。
+                if block[0] in folding_regions:
+                    region = folding_regions[block[0]]
+                    del(folding_regions[block[0]])
+                else:
+                    region = {'is_folded': False}
+                region['offset_start'] = block[0]
+                region['offset_end'] = block[1]
+                region['starting_line'] = block[2]
+                region['ending_line'] = block[3]
+                self.folding_regions[block[0]] = region
+                self.folding_regions_by_line[block[2]] = region
 
         # in a last step, the regions that are no longer
         # included, but were previously, are unfolded.

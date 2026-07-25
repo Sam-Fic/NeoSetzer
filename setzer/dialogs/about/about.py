@@ -44,7 +44,20 @@ class AboutDialog(object):
         self.view.set_comments(_('Setzer is a LaTeX editor.'))
         self.view.set_license_type(Gtk.License.GPL_3_0)
         self.view.set_website('https://www.cvfosammmm.org/setzer/')
+        self.view.set_support_url('https://github.com/cvfosammmm/Setzer/discussions')
         self.view.set_issue_url('https://github.com/cvfosammmm/Setzer/issues')
+        self.view.set_release_notes(_('''
+• Performance improvements and bug fixes
+• Improved keyboard shortcuts
+• Added print functionality
+• Enhanced preview keyboard navigation
+• Better error handling for file operations'''))
+        import platform
+        debug_info = 'Setzer version: {}\nOS: {} {}\nPython: {}'.format(
+            ServiceLocator.get_setzer_version(),
+            platform.system(), platform.release(),
+            platform.python_version())
+        self.view.set_debug_info(debug_info)
         self.view.set_developers(('Robert Griesel',))
         # TRANSLATORS: 'Name <email@domain.com>' or 'Name https://website.example'
         self.view.set_translator_credits(_('translator-credits'))

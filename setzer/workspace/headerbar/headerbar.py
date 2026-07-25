@@ -105,11 +105,15 @@ class Headerbar(object):
         document = self.workspace.get_root_or_active_latex_document()
 
         if document != None:
-            if self.view.build_wrapper.get_first_child() is not None:
-                self.view.build_wrapper.remove(self.view.build_wrapper.get_first_child())
-            self.view.build_wrapper.append(document.build_widget.view)
+            current = self.view.build_wrapper.get_first_child()
+            # 如果当前已显示的就是目标文档的 build_widget，跳过 remove+append。
+            # 避免不必要的 widget 重建（每次根文档变化时都会调用此方法）。
+            if current is not document.build_widget.view:
+                if current is not None:
+                    self.view.build_wrapper.remove(current)
+                self.view.build_wrapper.append(document.build_widget.view)
             if document.build_widget.view.has_result():
-                document.build_widget.view.hide_result(1600)
+                document.build_widget.view.hide_result(5000)
         else:
             if self.view.build_wrapper.get_first_child() is not None:
                 self.view.build_wrapper.remove(self.view.build_wrapper.get_first_child())

@@ -33,7 +33,7 @@ class BuildSaveDialog(object):
     def setup(self, document):
         self.view = Adw.AlertDialog(
             heading=_('Document »{document}« has no filename.').format(document=document.get_displayname()),
-            body=_('Please save your document to a file, so the build system knows where to put the .pdf (it will be in the same folder as your document).'))
+            body=_('Please save your document to a file, so the build system knows where to put the .pdf (it will be in the same folder as your document). A file chooser will appear for you to select a location and filename.'))
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('save', _('Save document now'))
         self.view.set_response_appearance('save', Adw.ResponseAppearance.SUGGESTED)

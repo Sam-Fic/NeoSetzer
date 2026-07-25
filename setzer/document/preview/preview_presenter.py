@@ -166,6 +166,9 @@ class PreviewPresenter(object):
         scrolling_offset_x = self.view.content.scrolling_offset_x
         scrolling_offset_y = self.view.content.scrolling_offset_y
         first_page = int(scrolling_offset_y // (page_height + page_gap))
+        # +1 像素确保底部部分可见的最后一页也被渲染：visible_height 若恰好是
+        # page_step 的整数倍，整除会漏掉刚好露出一行的下一页；+1 让商越过
+        # 整数边界把该页纳入 range。min 限制不超过文档实际页数。
         last_page = min(int((scrolling_offset_y + visible_height + 1) // (page_height + page_gap)), self.preview.poppler_document.get_n_pages() - 1)
         # The ScrolledWindow already translates the context by
         # ``(-scrolling_offset_x, -scrolling_offset_y)``, so pages are drawn at

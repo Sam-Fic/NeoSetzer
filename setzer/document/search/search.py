@@ -69,7 +69,7 @@ class Search(Observable):
         self.view.case_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.regex_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.word_toggle.connect('toggled', self.on_match_option_toggled)
-        self.view.selection_toggle.connect('toggled', self.on_selection_toggle_toggled)
+        self._selection_toggle_handler = self.view.selection_toggle.connect('toggled', self.on_selection_toggle_toggled)
         self.document.connect('cursor_position_changed', self.on_selection_might_have_changed)
 
         self._search_in_selection = False
@@ -140,19 +140,23 @@ class Search(Observable):
         replacement = self.view.replace_entry.get_text()
 
         if self._search_in_selection:
-            buffer = self.search_context.get_buffer()
-            start = buffer.get_iter_at_offset(self._selection_start)
-            end = buffer.get_iter_at_offset(self._selection_end)
-            count = 0
-            search_iter = start.copy()
-            while True:
-                result = self.search_context.forward(search_iter)
-                if not result[0] or result[1].get_offset() > self._selection_end:
-                    break
-                self.search_context.replace(result[1], result[2], replacement, -1)
-                count += 1
-                search_iter = buffer.get_iter_at_offset(result[1].get_offset() + len(replacement))
-            self.on_search_entry_changed(self.view.entry)
+            # 选区模式：GtkSource.SearchContext 无选区范围的 replace_all，只能
+            # 逐个 forward+replace。先 dry-run 计数（_count_matches_in_selection），
+            # 匹配数超过阈值时走确认对话框（与非选区模式一致），少量直接执行。
+            # 替换循环包在 begin/end_user_action 内，作为单个 undo 步骤（原实现
+            # 每次 replace 是独立 undo 步骤，选区替换需 N 次 undo 才能撤销）。
+            count = self._count_matches_in_selection()
+            if count == 0:
+                return
+            if count > 100:
+                def do_replace():
+                    self._replace_all_in_selection(replacement)
+                    self.on_search_entry_changed(self.view.entry)
+                dialog = DialogLocator.get_dialog('replace_confirmation')
+                dialog.run(original, replacement, count, self.search_context, on_confirm=do_replace)
+            else:
+                self._replace_all_in_selection(replacement)
+                self.on_search_entry_changed(self.view.entry)
             return
 
         number_of_occurrences = self.search_context.get_occurrences_count()
@@ -162,14 +166,60 @@ class Search(Observable):
         if number_of_occurrences == 0:
             return
 
-        # 仅当匹配数较多（>50）或数量未知（-1）时才弹出二次确认对话框，
-        # 少量替换（1–50）直接执行，降低高频确认摩擦。
-        if number_of_occurrences > 50 or number_of_occurrences < 0:
+        # 仅当匹配数较多（>100）或数量未知（-1）时才弹出二次确认对话框，
+        # 少量替换（1–100）直接执行，降低高频确认摩擦。阈值原为 50，调至 100
+        # 以减少经常做大量替换的用户的弹窗频次（仍保留对真正大批量替换的防护）。
+        if number_of_occurrences > 100 or number_of_occurrences < 0:
             dialog = DialogLocator.get_dialog('replace_confirmation')
             dialog.run(original, replacement, number_of_occurrences, self.search_context)
         else:
             self.search_context.replace_all(replacement, -1)
             self.on_search_entry_changed(self.view.entry)
+
+    def _count_matches_in_selection(self):
+        '''Dry-run：在选区范围内 forward 计数，不执行替换。
+
+        用于选区模式 replace-all 前判断匹配数，决定是否弹确认对话框。forward
+        不带 replace 比 replace 便宜（无 buffer 修改 + 重新扫描），典型选区
+        （< 数百匹配）< 50ms。零长度匹配（如正则 ^）时前进 1 字符避免死循环。
+        '''
+        buffer = self.search_context.get_buffer()
+        search_iter = buffer.get_iter_at_offset(self._selection_start)
+        count = 0
+        while True:
+            result = self.search_context.forward(search_iter)
+            if not result[0] or result[1].get_offset() > self._selection_end:
+                break
+            count += 1
+            # 移到当前匹配末尾继续找下一个；零长度匹配前进 1 字符避免死循环。
+            next_iter = result[2].copy()
+            if next_iter.get_offset() <= result[1].get_offset():
+                next_iter.forward_char()
+            search_iter = next_iter
+        return count
+
+    def _replace_all_in_selection(self, replacement):
+        '''在选区范围内逐个替换所有匹配。
+
+        GtkSource.SearchContext 没有 selection-scoped replace_all，只能 Python
+        循环 forward+replace。整个操作包在 begin/end_user_action 内，作为单个
+        undo 步骤（与 replace_all 一致）。try/finally 保证 end_user_action 总被
+        调用，避免异常时后续编辑被合并进未关闭的 user-action。
+        '''
+        buffer = self.search_context.get_buffer()
+        search_iter = buffer.get_iter_at_offset(self._selection_start)
+        buffer.begin_user_action()
+        try:
+            while True:
+                result = self.search_context.forward(search_iter)
+                if not result[0] or result[1].get_offset() > self._selection_end:
+                    break
+                self.search_context.replace(result[1], result[2], replacement, -1)
+                # replace 后 result[1] 仍指向匹配起始（GtkTextIter 随编辑更新），
+                # + len(replacement) 跳过刚插入的替换文本，找下一个匹配。
+                search_iter = buffer.get_iter_at_offset(result[1].get_offset() + len(replacement))
+        finally:
+            buffer.end_user_action()
 
     def on_search_entry_activate(self, entry=None):
         self.on_search_next_match(entry, True)
@@ -344,13 +394,22 @@ class Search(Observable):
     '''
 
     def hide_search_bar(self):
-        self.on_search_next_match(None, True)
+        # 不再调用 on_search_next_match(None, True)：那是 Esc 关闭搜索时的意外
+        # 副作用，会把光标跳到下一个匹配。用户只想关闭搜索栏，应保持光标不动。
+        # 高亮由下方 entry.set_text('') → on_search_entry_changed →
+        # set_search_text('') 清除，GtkSource 会在 search_text 为空时停止高亮。
         self.document_view.source_view.grab_focus()
         self.view.set_search_mode(False)
         self.view.replace_revealer.set_reveal_child(False)
         self.view.entry.set_text('')
-        self.view.selection_toggle.set_active(False)
-        self.view.selection_toggle.set_visible(False)
+        # handler_block 避免 set_active(False) 触发 on_selection_toggle_toggled
+        # 回调链（该回调会在搜索栏已隐藏后再次调用 on_search_entry_changed，
+        # 产生不必要的状态变更）。手动设置 _search_in_selection 等字段即可。
+        toggle = self.view.selection_toggle
+        toggle.handler_block(self._selection_toggle_handler)
+        toggle.set_active(False)
+        toggle.set_visible(False)
+        toggle.handler_unblock(self._selection_toggle_handler)
         self._search_in_selection = False
         self._selection_start = None
         self._selection_end = None
@@ -393,12 +452,14 @@ class Search(Observable):
             search_bar.next_button.set_sensitive(False)
             search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
         elif total == -1:
-            if match_no > 0:
-                search_bar.match_counter.set_text(str(match_no) + ' of \u2026')
-            else:
-                search_bar.match_counter.set_text('')
-            search_bar.prev_button.set_sensitive(False)
-            search_bar.next_button.set_sensitive(False)
+            # GtkSource 异步扫描尚未完成（大文档首次搜索可能持续数秒）。
+            # 显示「Searching…」明确状态（原「X of …」让人困惑按钮为何灰着）；
+            # 若已有当前匹配（match_no > 0）则保持上/下按钮可用，允许跳转——
+            # GtkSource.SearchContext 在扫描进行中也能正确处理 next/prev。
+            search_bar.match_counter.set_text(_('Searching…'))
+            has_current = match_no > 0
+            search_bar.prev_button.set_sensitive(has_current)
+            search_bar.next_button.set_sensitive(has_current)
             search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
         else:
             search_bar.match_counter.set_text(str(match_no) + ' of ' + str(total))

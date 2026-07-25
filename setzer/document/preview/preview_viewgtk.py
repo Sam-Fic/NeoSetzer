@@ -47,6 +47,14 @@ class PreviewView(Gtk.Box):
         self.overlay.set_vexpand(True)
         self.overlay.set_child(self.stack)
 
+        # 预览卡片：圆角矩形包裹 PDF 内容
+        self.card_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.card_box.set_hexpand(True)
+        self.card_box.set_vexpand(True)
+        self.card_box.add_css_class('preview-card')
+        self.card_box.set_overflow(Gtk.Overflow.HIDDEN)
+        self.card_box.append(self.overlay)
+
         # 构建失败回退到旧 PDF 时，预览角落显示错误图标（右上角）。
         self.error_badge = Gtk.Image(icon_name='dialog-warning-symbolic')
         self.error_badge.set_halign(Gtk.Align.END)
@@ -59,19 +67,39 @@ class PreviewView(Gtk.Box):
         self.error_badge.set_visible(False)
         self.overlay.add_overlay(self.error_badge)
 
-        self.target_label = Gtk.Label()
-        self.target_label.set_halign(Gtk.Align.START)
-        self.target_label.set_valign(Gtk.Align.END)
-        self.target_label.set_can_target(False)
-        self.overlay.add_overlay(self.target_label)
-        self._current_link_target = None
-        self.set_link_target_string('')
-
         # ToastOverlay 包裹内容区，用于构建失败回退时弹出提示。
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_vexpand(True)
-        self.toast_overlay.set_child(self.overlay)
+
+        # 内容容器：卡片 + 提示语上下排列。
+        self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.content_box.set_vexpand(True)
+        self.content_box.append(self.card_box)
+
+        # 链接目标提示：位于卡片下方（与编辑器状态栏同款设计）。
+        # 注意：revealer 不加入 self 的 widget tree，而是由 PreviewPanelPresenter
+        # 在文档切换时挂到 PreviewPanelView 层级（stack 之外），避免被 stack 的
+        # overflow:HIDDEN 裁剪到圆角内。
+        self.target_label_revealer = Gtk.Revealer()
+        self.target_label_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
+        self.target_label_revealer.set_transition_duration(150)
+        self.target_label_revealer.add_css_class('preview-target-bar')
+
+        self.target_label = Gtk.Label()
+        self.target_label.add_css_class('caption')
+        self.target_label.add_css_class('dim-label')
+        self.target_label.set_halign(Gtk.Align.START)
+        self.target_label.set_can_target(False)
+        self.target_label.add_css_class('preview-target-label')
+        self.target_label_revealer.set_child(self.target_label)
+        self.target_label_revealer.set_reveal_child(False)
+
+        self.toast_overlay.set_child(self.content_box)
         self.append(self.toast_overlay)
+
+        self._current_link_target = None
+        self._link_target_at_top = False
+        self.set_link_target_string('')
 
     def show_pdf_load_failed(self):
         self.error_badge.set_visible(True)
@@ -88,8 +116,17 @@ class PreviewView(Gtk.Box):
     def set_link_target_string(self, target_string):
         if target_string != self._current_link_target:
             self._current_link_target = target_string
+            has_target = target_string != ''
             self.target_label.set_text(target_string)
-            self.target_label.set_visible(target_string != '')
+            self.target_label_revealer.set_reveal_child(has_target)
+            if has_target:
+                self.card_box.add_css_class('target-visible')
+            else:
+                self.card_box.remove_css_class('target-visible')
+
+    def set_link_target_at_top(self, at_top):
+        '''链接目标提示已在卡片下方，不再需要上下翻转。保留接口兼容。'''
+        pass
 
 
 class BlankSlateView(Gtk.Box):
@@ -98,6 +135,7 @@ class BlankSlateView(Gtk.Box):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.set_vexpand(True)
         self.set_hexpand(True)
+        self.set_valign(Gtk.Align.CENTER)
 
         self.building_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.building_box.set_halign(Gtk.Align.CENTER)
@@ -114,6 +152,8 @@ class BlankSlateView(Gtk.Box):
         self.status_page.set_icon_name('document-properties-symbolic')
 
         self.stack = Gtk.Stack()
+        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.stack.set_transition_duration(150)
         self.stack.add_named(self.building_box, 'building')
         self.stack.add_named(self.status_page, 'status')
         self.append(self.stack)

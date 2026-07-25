@@ -27,11 +27,12 @@ class GoToLineDialog(object):
         self.main_window = main_window
         self.target_line = None
 
-    def run(self, line_count, callback):
+    def run(self, line_count, callback, current_line=None):
         self.line_count = line_count
         self.callback = callback
+        self.current_line = current_line
         self.setup()
-        self.view.choose(self.main_window, None, self.dialog_process_response)
+        self.view.choose(self.main_window, None, self._dialog_process_response)
 
     def setup(self):
         self.view = Adw.AlertDialog(
@@ -40,17 +41,19 @@ class GoToLineDialog(object):
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('go', _('Go'))
         self.view.set_response_appearance('go', Adw.ResponseAppearance.SUGGESTED)
-        self.view.set_default_response('cancel')
+        self.view.set_default_response('go')
         self.view.set_close_response('cancel')
 
         entry = Gtk.Entry()
         entry.set_input_purpose(Gtk.InputPurpose.DIGITS)
         entry.set_placeholder_text(_('Line number'))
-        # 仅允许数字输入。
-        entry.connect('insert-text', self.on_insert_text)
+        if self.current_line is not None:
+            entry.set_text(str(self.current_line))
+            # 选中全部文本，用户可直接输入新数字或按 Enter 跳到当前行。
+            entry.connect('realize', lambda e: e.select_region(0, -1))
+        entry.connect('insert-text', self._on_insert_text)
         entry.connect('activate', lambda e: self.view.response('go'))
         self.entry = entry
-
         self.view.set_extra_child(entry)
 
     def on_insert_text(self, entry, text, length, position):

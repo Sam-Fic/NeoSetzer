@@ -23,3 +23,6 @@ if desktop_file_validate.found()
     args: [desktop_file]
   )
 endif
+
+# Python 单元测试（gi-free 模块，无 GTK 依赖）
+subdir('python')

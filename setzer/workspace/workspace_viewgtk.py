@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GLib, GObject
+from gi.repository import Adw, Gtk, GLib, GObject, Gio, Gdk
 
 import os
 
@@ -43,16 +43,21 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_size_request(360, 550)
 
         self.popoverlay = Gtk.Overlay()
-        self.set_content(self.popoverlay)
+        # ToastOverlay 包裹整个窗口内容，供全局 toast 通知使用
+        # （保存失败、工作区状态丢失等非阻塞提示）。
+        self.toast_overlay = Adw.ToastOverlay()
+        self.toast_overlay.set_child(self.popoverlay)
+        self.set_content(self.toast_overlay)
 
     def create_widgets(self):
-        self.shortcutsbar = shortcutsbar_view.Shortcutsbar()
+        self.shortcutsbar = shortcutsbar_view.ShortcutsBar()
 
         self.document_stack = Gtk.Stack()
-        # 用 NONE 而非 CROSSFADE：CROSSFADE 有约 200ms 淡入淡出动画，期间
-        # 旧页面与新页面同时绘制，切换文档（尤其是「新建 latex」）时左侧编辑器
-        # 会延迟出现，给人「更新不及时/卡顿」的感觉。NONE 立即切换，无视觉延迟。
-        self.document_stack.set_transition_type(Gtk.StackTransitionType.NONE)
+        # 短 CROSSFADE（100ms）：原用 NONE（无过渡），文档切换显得突兀。
+        # 标准 200ms 在「新建 latex」时会让编辑器延迟出现，100ms 足够提供
+        # 视觉反馈又不影响响应感。
+        self.document_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.document_stack.set_transition_duration(100)
         # 不设 set_size_request(550)——shortcutsbar 的 overflow reflow 会让
         # 按钮在窄宽时自动收起，不再需要硬性最小宽度。这样窗口可以拖到更小。
         self.document_stack.set_vexpand(True)
@@ -90,6 +95,13 @@ class MainWindow(Adw.ApplicationWindow):
         # 侧栏整体（含工具栏）与左侧栏行为一致：占自己的空间，不被标题栏覆盖。
         self.preview_help_stack.add_named(self.preview_panel, 'preview')
         self.preview_help_stack.add_named(self.help_panel, 'help')
+        # 预览↔帮助互斥切换时给页面本身加 CROSSFADE 过渡（200ms 与 libadwaita
+        # 默认动画时长一致）。整体侧栏的滑入/滑出已由 Adw.OverlaySplitView
+        # 的 set_show_sidebar() 提供，这里只补页面间切换的过渡，避免硬切。
+        # 不用 Gtk.Revealer 包裹：那样需重构 widget 树且会与 OverlaySplitView
+        # 的滑入动画叠加产生视觉冲突；Stack 内建 CROSSFADE 更轻量、更合适。
+        self.preview_help_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.preview_help_stack.set_transition_duration(200)
 
         # preview_split: 横向 Adw.OverlaySplitView（预览/帮助在右 = sidebar）。
         # 与 sidebar_split 同款控件，set_show_sidebar() 自带滑入/滑出动画，
@@ -182,12 +194,26 @@ class MainWindow(Adw.ApplicationWindow):
         # 注意：shortcutsbar overflow 现在由 Shortcutsbar.do_size_allocate
         # 连续测量后动态计算（每像素自适应），不再用 Adw.Breakpoint 阶梯。
 
+        # 欢迎页快速操作按钮窄窗纵向堆叠：3 个按钮（New LaTeX / New BibTeX /
+        # Use a Template）默认水平均分，<500px 时 "New LaTeX Document" 会
+        # ellipsize。切到 VERTICAL 后按钮各自占满 clamp 宽度，标签完整可读。
+        # 500px 阈值与 Adw.Clamp 的 tightening_threshold(400) + maximum_size(520)
+        # 区间协调：clamp 在 400-520 之间已经开始收紧，500 是按钮标签开始挤的
+        # 实测临界点。breakpoint 只在 welcome_screen 模式下生效（documents 模式
+        # 下 actions_box 不可见，setter 无副作用）。
+        welcome_buttons_breakpoint = Adw.Breakpoint.new(
+            Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 500, Adw.LengthUnit.PX))
+        welcome_buttons_breakpoint.add_setter(
+            self.welcome_screen.actions_box, 'orientation', Gtk.Orientation.VERTICAL)
+        self.add_breakpoint(welcome_buttons_breakpoint)
+
         self.css_provider_font_size = Gtk.CssProvider()
         Gtk.StyleContext.add_provider_for_display(self.get_display(), self.css_provider_font_size, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
         # 加载项目自定义 CSS（仅 shortcutsbar 的 FlowBoxChild padding 归零等少量微调，
-        # 见 data/resources/style_gtk.css）。FONT 优先级在 USER 之上，确保我们的
-        # 微调规则不被 libadwaita 默认 flowbox 样式覆盖。
+        # 见 data/resources/style_gtk.css）。与上面的 css_provider_font_size 同用
+        # STYLE_PROVIDER_PRIORITY_USER 优先级（800），高于 libadwaita 默认样式
+        # （APPLICATION 级 600），确保微调规则不被默认 flowbox 样式覆盖。
         css_file = os.path.join(ServiceLocator.get_resources_path(), 'style_gtk.css')
         if os.path.exists(css_file):
             self.css_provider_app = Gtk.CssProvider()
@@ -207,6 +233,29 @@ class MainWindow(Adw.ApplicationWindow):
                 self.shortcutsbar._last_allocated_width = width
             return True
         GLib.timeout_add(250, _poll_sb_width)
+
+        # 文件拖放:挂到窗口级（EventController 需挂 GtkWidget，窗口本身即覆盖
+        # 整个区域）。content_type=Gio.File 接收来自文件管理器的 URI；多文件拖入
+        # 时 GTK4 对每个文件分别触发 'drop' 信号，无需手动遍历。扩展名过滤与
+        # do_open（setzer_dev.py）保持一致：仅接受 .tex/.bib/.cls/.sty。
+        drop_target = Gtk.DropTarget.new(Gio.File, Gdk.DragAction.COPY)
+        drop_target.connect('drop', self.on_drop)
+        self.add_controller(drop_target)
+
+    def on_drop(self, target, value, x, y):
+        workspace = ServiceLocator.get_workspace()
+        if workspace is None:
+            return False
+        try:
+            path = value.get_path()
+        except AttributeError:
+            return False
+        if path is None:
+            return False
+        if not path.endswith(('.tex', '.bib', '.cls', '.sty')):
+            return False
+        workspace.open_document_by_filename(path)
+        return True
 
 
     def do_size_allocate(self, width, height, baseline):

@@ -18,9 +18,12 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gio
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Gio, GLib, Adw
 
 import os.path
+
+from setzer.app.service_locator import ServiceLocator
 
 
 class SaveDocumentDialog(object):
@@ -60,21 +63,38 @@ class SaveDocumentDialog(object):
     def dialog_process_response(self, dialog, result):
         try:
             file = dialog.save_finish(result)
-        except Exception: pass
+        except GLib.Error:
+            # 用户取消了对话框（GTK 抛 GLib.Error with "Dismissed by user"）。
+            pass
         else:
             if file != None:
                 filename = file.get_path()
-                # 包裹保存操作:若磁盘错误(权限/空间)抛异常,不能让其
-                # 阻断后续 callback——调用方(如关闭确认流程)依赖 callback
-                # 推进状态,否则会卡死。
                 try:
                     self.document.set_filename(filename)
                     self.document.save_to_disk()
                     self.workspace.update_recently_opened_document(filename)
-                except Exception:
-                    pass
+                except OSError as e:
+                    # 保存失败（权限不足/磁盘满/路径不存在）：用 toast 通知用户。
+                    # 不阻断 callback——调用方（如关闭确认流程）依赖 callback
+                    # 推进状态，否则会卡死。文档仍为 modified 状态，用户可 Ctrl+S 重试。
+                    self._show_save_error(e)
 
         if self.callback != None:
             self.callback(self.arguments)
+
+    def _show_save_error(self, error):
+        '''保存失败时弹出带「重试」按钮的 toast，用户可一键重试或按 Ctrl+S。'''
+        main_window = ServiceLocator.get_main_window()
+        toast = Adw.Toast.new(_('Could not save document: {error}').format(error=str(error)))
+        toast.set_timeout(0)
+        toast.set_button_label(_('Retry'))
+        toast.connect('button-clicked', self._on_retry_clicked)
+        main_window.toast_overlay.add_toast(toast)
+
+    def _on_retry_clicked(self, toast):
+        try:
+            self.document.save_to_disk()
+        except OSError as e:
+            self._show_save_error(e)
 
 

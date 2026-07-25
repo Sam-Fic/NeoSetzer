@@ -28,8 +28,9 @@ class ColorManager():
     # 颜色缓存：name -> Gdk.RGBA（lookup_color 的原始结果）。
     # get_ui_color 在每帧 draw 中被多次调用（gutter/preview），lookup_color 是
     # C 级 CSS 级联查找。颜色仅在主题切换时变化，缓存命中时省去级联查找。
-    # 注意：缓存命中时返回副本——部分调用者会修改 .alpha（document.py、
-    # preview_presenter.py），不能让缓存对象被污染。
+    # 注意：get_ui_color 返回的是缓存对象的**引用**（非副本），调用者不可
+    # 修改返回值。已审计全部 20 处调用者均只读；如未来需修改，调用者应自行
+    # Gdk.RGBA() 复制。主题切换时 on_theme_changed 清空整个缓存。
     _color_cache = {}
     # 颜色字符串缓存：name -> '#rrggbb' / '#rrggbbaa'。get_ui_color_string 在
     # help_panel.update_colors 等处调用，原实现每次 get_ui_color + 3×_to_byte +
@@ -76,12 +77,26 @@ class ColorManager():
         ColorManager._color_string_alpha_cache = {}
 
     def get_ui_color(name):
+        '''返回 UI 主题色（Gdk.RGBA）。
+
+        返回缓存对象的**引用**，调用者不可修改返回值——修改会污染缓存影响
+        所有后续调用（主题切换前一直生效）。如需修改（如调整 alpha），请
+        自行 `rgba = Gdk.RGBA()` 复制后再改。已审计全部 20 处调用者，均
+        只读不修改，原实现每次返回副本是纯分配浪费——get_ui_color 在每帧
+        draw 中被多次调用（gutter/preview/highlight），省去 Gdk.RGBA 分配
+        + 4 次属性赋值可显著降低高频绘制路径的 GC 压力。
+        '''
         cached = ColorManager._color_cache.get(name)
         if cached is not None:
-            # 返回副本：部分调用者会修改 .alpha，不能让缓存对象被污染
-            rgba = Gdk.RGBA()
-            rgba.red, rgba.green, rgba.blue, rgba.alpha = cached.red, cached.green, cached.blue, cached.alpha
-            return rgba
+            return cached
+
+        # main_window 尚未 init（应用启动早期，ColorManager.init 调用前）或
+        # 已被销毁（关闭过程中）时，直接返回不透明黑色兜底，避免
+        # AttributeError: 'NoneType' object has no attribute 'get_style_context'。
+        # 不缓存此兜底值——一旦 main_window 就绪，下次调用应走真正的
+        # lookup_color 并缓存正确结果；若缓存黑色会在主题切换前一直错位。
+        if ColorManager.main_window is None:
+            return Gdk.RGBA(0, 0, 0, 1)
 
         style_context = ColorManager.main_window.get_style_context()
         found, rgba = style_context.lookup_color(name)
@@ -94,10 +109,7 @@ class ColorManager():
             rgba = Gdk.RGBA(0, 0, 0, 1)
 
         ColorManager._color_cache[name] = rgba
-        # 首次返回也用副本，保持一致语义
-        result = Gdk.RGBA()
-        result.red, result.green, result.blue, result.alpha = rgba.red, rgba.green, rgba.blue, rgba.alpha
-        return result
+        return rgba
 
     def _to_byte(value):
         # Theme colors coming out of color computations (mix/shade/alpha) can

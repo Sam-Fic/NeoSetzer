@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
+from gi.repository import GLib
 
 
 class PreviewPanelPresenter(object):
@@ -26,6 +27,7 @@ class PreviewPanelPresenter(object):
         self.view = self.main_window.preview_panel
         self.stack = self.main_window.preview_panel.stack
         self.document = None
+        self._label_update_timeout_id = None
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -61,12 +63,18 @@ class PreviewPanelPresenter(object):
     def set_preview_document(self):
         if self.document != None:
             self.document.preview.disconnect('pdf_changed', self.on_pdf_changed)
+            self.document.preview.disconnect('position_changed', self.on_position_changed)
+            self.document.preview.disconnect('layout_changed', self.on_layout_changed)
+            self.document.preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
+            self.document.preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
 
         self.document = self.workspace.get_root_or_active_latex_document()
         if self.document == None:
             self.stack.set_visible_child(self.view.empty_placeholder)
             self.update_label()
             self.update_buttons()
+            self.view.set_stale_banner_visible(False)
+            self._detach_target_bar()
         else:
             self.stack.set_visible_child(self.document.preview.view)
             self.update_label()
@@ -75,22 +83,43 @@ class PreviewPanelPresenter(object):
             self.document.preview.connect('pdf_changed', self.on_pdf_changed)
             self.document.preview.connect('position_changed', self.on_position_changed)
             self.document.preview.connect('layout_changed', self.on_layout_changed)
+            self.document.preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
             self.document.preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
+            self.view.set_stale_banner_visible(self.document.preview.pdf_is_stale)
+            self._attach_target_bar(self.document.preview.view)
 
     def on_pdf_changed(self, preview):
         self.update_label()
         self.update_buttons()
 
     def on_position_changed(self, preview):
-        self.update_label()
+        self.update_label_debounced()
 
     def on_layout_changed(self, preview):
         self.update_label()
+
+    def on_pdf_stale_changed(self, preview):
+        # 构建失败未产出 PDF 时显示横幅；下次构建成功（set_pdf_filename 清除
+        # stale）时隐藏。由 preview.set_pdf_is_stale 触发。
+        self.view.set_stale_banner_visible(preview.pdf_is_stale)
 
     def on_zoom_level_changed(self, preview):
         self.update_label()
         self.update_buttons()
         self.update_zoom_level()
+
+    def update_label_debounced(self):
+        '''滚动时 position_changed 高频触发（每帧）。页码标签只需秒级精度，
+        用 150ms debounce 合并连续滚动事件，避免对 500 页 PDF 频繁调用
+        get_n_pages / get_page_by_offset。'''
+        if self._label_update_timeout_id is not None:
+            GLib.source_remove(self._label_update_timeout_id)
+        self._label_update_timeout_id = GLib.timeout_add(150, self._do_update_label)
+
+    def _do_update_label(self):
+        self._label_update_timeout_id = None
+        self.update_label()
+        return False
 
     def update_label(self):
         if self.document == None:
@@ -99,16 +128,17 @@ class PreviewPanelPresenter(object):
             self.view.paging_label.set_visible(True)
             preview = self.document.preview
             if preview.poppler_document != None:
+                self.view.paging_label.set_visible(True)
                 total = str(preview.poppler_document.get_n_pages())
                 if preview.layout != None:
                     offset = preview.view.content.scrolling_offset_y
                     current = str(preview.layout.get_page_by_offset(offset))
                 else:
                     current = "0"
+                self.view.paging_label.set_text(_('Page ') + current + _(' of ') + total)
             else:
-                total = "0"
-                current = "0"
-            self.view.paging_label.set_text(_('Page ') + current + _(' of ') + total)
+                self.view.paging_label.set_visible(True)
+                self.view.paging_label.set_text(_('No preview'))
 
     def update_buttons(self):
         self.document = self.workspace.get_root_or_active_latex_document()
@@ -135,3 +165,16 @@ class PreviewPanelPresenter(object):
 
         if zoom_level != None:
             self.view.zoom_level_label.set_text('{0:.1f}%'.format(zoom_level * 100))
+
+    def _attach_target_bar(self, preview_view):
+        revealer = preview_view.target_label_revealer
+        parent = revealer.get_parent()
+        if parent is not None:
+            parent.remove(revealer)
+        self.view.target_bar_placeholder.append(revealer)
+
+    def _detach_target_bar(self):
+        placeholder = self.view.target_bar_placeholder
+        child = placeholder.get_first_child()
+        if child is not None:
+            placeholder.remove(child)

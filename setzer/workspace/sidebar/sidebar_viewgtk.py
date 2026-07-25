@@ -24,5 +24,11 @@ class Sidebar(Gtk.Stack):
 
     def __init__(self):
         Gtk.Stack.__init__(self)
+        # symbols↔document_structure 互斥切换时加 CROSSFADE 过渡（200ms 与
+        # libadwaita 默认动画时长一致）。整体侧栏的滑入/滑出已由外层
+        # Adw.OverlaySplitView 的 set_show_sidebar() 提供，这里只补页面间
+        # 切换的过渡，避免硬切。与 preview_help_stack 行为对称。
+        self.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.set_transition_duration(200)
 
 

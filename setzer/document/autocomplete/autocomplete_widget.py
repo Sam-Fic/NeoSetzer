@@ -87,7 +87,12 @@ class AutocompleteWidget(object):
         self.shortcutsbar_height = self.main_window.shortcutsbar.get_allocated_height()
 
         if self.model.items != None:
-            self.height = min(len(self.model.items), 5) * self.line_height
+            # db_error 时列表底部追加 1 行不可选中的"标签数据库不可用"提示行，
+            # 高度需计入否则 widget 高度为 0（items 空时）或偏矮（items 非空时），
+            # 导致提示行被裁切或 update_margins 翻转定位计算错误。
+            item_count = min(len(self.model.items), 5)
+            row_count = item_count + (1 if self.model.db_error else 0)
+            self.height = row_count * self.line_height
             self.width = (5 + min(max(self.get_max_chars(), 25), 45)) * self.char_width
             self.view.set_size_request(self.width, self.height)
 

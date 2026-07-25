@@ -22,15 +22,20 @@ from gi.repository import Gtk, Gdk
 import re
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.document.update_matching_blocks.begin_end_match import (
+    find_cursor_in_begin_end,
+)
 
 
 # on_keypress 是打字热路径，每次按键都跑。原实现每帧调
 # ServiceLocator.get_regex_object('[a-zA-Z]\\Z') 做一次 dict 查表，
 # 模块级预编译后直接 .match，省去哈希查找。
 _LETTER_REGEX = re.compile(r'[a-zA-Z]\Z')
-# handle_keypress_inside_begin_or_end 中匹配 \begin{...}\end{...} 的正则，
-# 同样从每次按键的 ServiceLocator 查表改为直接持有。
-_BEGIN_END_REGEX = re.compile(r'.*\\(begin|end)\{((?:[^\{\[\(])*)%•%((?:[^\{\[\(])*)\}')
+
+# 原 _BEGIN_END_REGEX 用 %•% 标记注入 line 文本标记光标位置，存在
+# 标记注入风险：用户文本若含 %•%（LaTeX 注释中可能出现），会错误匹配。
+# 改为调用 find_cursor_in_begin_end 结构化定位（按 offset 切分 line），
+# 不再修改字符串内容。详见 begin_end_match.py。
 
 # Gdk.keyval_from_name 是 C 函数 + 字符串查表，每次按键调用 3-6 次。
 # 模块级预计算为整数常量后，热路径只做整数比较。
@@ -78,63 +83,72 @@ class UpdateMatchingBlocks(object):
         buffer = self.source_buffer
         insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
         line = self.document.get_line(insert_iter.get_line())
-        offset = insert_iter.get_line_offset()
+        line_offset = insert_iter.get_line_offset()
         cursor_offset = insert_iter.get_offset()
-        line = line[:offset] + '%•%' + line[offset:]
-        match_begin_end = _BEGIN_END_REGEX.match(line)
-        if match_begin_end == None: return False
-        if keyval == _KEYVAL_BACKSPACE and len(match_begin_end.group(2)) == 0: return False
-        if keyval == _KEYVAL_DELETE and len(match_begin_end.group(3)) == 0: return False
+
+        # 结构化定位替代 %•% 标记注入：不修改 line 文本，按 offset 切分
+        # 并查找包含光标的 \begin{...}/\end{...} 区域。避免用户文本含 %•%
+        # 时误匹配（虽然概率低，但标记注入模式本身脆弱）。
+        #
+        # find_cursor_in_begin_end 返回 (begin_or_end, before_cursor,
+        # after_cursor, backslash_offset_in_line)。before/after_cursor
+        # 对应原正则的 group(2)/group(3)；backslash_offset_in_line 是
+        # \begin/\end 在行内的起点（等价于原 start(1) - 1）。
+        match = find_cursor_in_begin_end(line, line_offset)
+        if match is None:
+            return False
+        begin_or_end, before_cursor, after_cursor, backslash_offset_in_line = match
+
+        if keyval == _KEYVAL_BACKSPACE and len(before_cursor) == 0: return False
+        if keyval == _KEYVAL_DELETE and len(after_cursor) == 0: return False
 
         # 计算 \begin/\end 在 buffer 中的绝对偏移。
         # cursor_offset - line_offset = 当前行的起始偏移。
-        # match_begin_end.start(1) 是 group(1)（"begin"/"end"）在修改后行中的
-        # 起始位置；-1 退到前面的反斜杠，即 \begin/\end 的真正起点。
+        # backslash_offset_in_line 是 \begin/\end 在行内的起点（\ 的位置）。
+        # 两者相加即 \begin/\end 在 buffer 中的绝对偏移。
         #
         # 原代码用 match.begin_end.start()，但 re.match() 的整体匹配始终从
         # 位置 0 开始（正则开头的 .* 会吞掉 \begin 前的所有内容），所以
         # start() 恒为 0，orig_offset 恒等于行首偏移。当 \begin/\end 前有
         # 缩进空格或其他文本时，block[0]/block[1]（记录的是 \begin/\end 的
         # 实际偏移）不等于行首偏移，下面的 for 循环找不到匹配 block，功能
-        # 静默失效。改用 start(1) - 1 后，无论前面是否有空白都能正确定位。
-        #
-        # %•% 标记插在光标处（即 {…} 内部），位于 \begin/\end 之后，不会
-        # 改变 \begin/\end 在行中的位置，故修改后行的 start(1) 与原始行一致。
-        orig_offset = cursor_offset - insert_iter.get_line_offset() + match_begin_end.start(1) - 1
-        offset = None
+        # 静默失效。改用 backslash_offset_in_line 后，无论前面是否有空白
+        # 都能正确定位。
+        orig_offset = cursor_offset - line_offset + backslash_offset_in_line
+        target_offset = None
         for block in self.document.parser.symbols['blocks']:
             if block[0] == orig_offset:
                 if block[1] == None:
                     return False
                 else:
-                    offset = block[1] + 5 + len(match_begin_end.group(2))
+                    target_offset = block[1] + 5 + len(before_cursor)
                     break
             elif block[1] == orig_offset:
                 if block[0] == None:
                     return False
                 else:
-                    offset = block[0] + 7 + len(match_begin_end.group(2))
+                    target_offset = block[0] + 7 + len(before_cursor)
                     break
-        if offset == None: return False
+        if target_offset == None: return False
 
         buffer.begin_user_action()
         if keyval == _KEYVAL_ASTERISK:
-            if cursor_offset < offset: offset += 1
+            if cursor_offset < target_offset: target_offset += 1
             buffer.insert_at_cursor('*')
-            buffer.insert(buffer.get_iter_at_offset(offset), '*')
+            buffer.insert(buffer.get_iter_at_offset(target_offset), '*')
         elif keyval == _KEYVAL_BACKSPACE:
-            if cursor_offset < offset: offset -= 1
+            if cursor_offset < target_offset: target_offset -= 1
             buffer.delete(buffer.get_iter_at_offset(cursor_offset - 1), buffer.get_iter_at_offset(cursor_offset))
-            buffer.delete(buffer.get_iter_at_offset(offset - 1), buffer.get_iter_at_offset(offset))
+            buffer.delete(buffer.get_iter_at_offset(target_offset - 1), buffer.get_iter_at_offset(target_offset))
         elif keyval == _KEYVAL_DELETE:
-            if cursor_offset < offset: offset -= 1
+            if cursor_offset < target_offset: target_offset -= 1
             buffer.delete(buffer.get_iter_at_offset(cursor_offset), buffer.get_iter_at_offset(cursor_offset + 1))
-            buffer.delete(buffer.get_iter_at_offset(offset), buffer.get_iter_at_offset(offset + 1))
+            buffer.delete(buffer.get_iter_at_offset(target_offset), buffer.get_iter_at_offset(target_offset + 1))
         else:
-            if cursor_offset < offset: offset += 1
+            if cursor_offset < target_offset: target_offset += 1
             char = Gdk.keyval_name(keyval)
             buffer.insert_at_cursor(char)
-            buffer.insert(buffer.get_iter_at_offset(offset), char)
+            buffer.insert(buffer.get_iter_at_offset(target_offset), char)
         buffer.end_user_action()
 
         return True

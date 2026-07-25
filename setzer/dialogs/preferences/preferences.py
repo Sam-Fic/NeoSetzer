@@ -56,6 +56,32 @@ class PreferencesDialog(object):
         self.page_autocomplete = page_autocomplete.PageAutocomplete(self, self.settings)
         self.page_shortcuts = page_shortcuts.PageShortcuts(self, self.settings)
 
+        # Editor 页已合并进 Appearance 页：把 page_editor.view 的各组 reparent
+        # 进 page_appearance.view。跳过标记 _is_editor_reset 的死重置按钮组
+        # （Editor 的重置由 Appearance 的重置按钮统一接管，调用
+        # page_editor.on_reset_clicked）。reparent 后把 appearance 自身的
+        # _is_appearance_reset 组移到末尾，保持"重置"在所有设置项之后。
+        appearance_view = self.page_appearance.view
+        editor_groups = []
+        child = self.page_editor.view.get_first_child()
+        while child is not None:
+            next_sibling = child.get_next_sibling()
+            if isinstance(child, Adw.PreferencesGroup) and not getattr(child, '_is_editor_reset', False):
+                editor_groups.append(child)
+            child = next_sibling
+        for group in editor_groups:
+            self.page_editor.view.remove(group)
+            appearance_view.add(group)
+        # appearance 的 reset 组移到末尾
+        child = appearance_view.get_first_child()
+        while child is not None:
+            next_sibling = child.get_next_sibling()
+            if getattr(child, '_is_appearance_reset', False):
+                appearance_view.remove(child)
+                appearance_view.add(child)
+                break
+            child = next_sibling
+
         self.view.add(self.page_appearance.view)
         self.view.add(self.page_build_system.view)
         self.view.add(self.page_autocomplete.view)
