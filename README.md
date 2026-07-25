@@ -15,7 +15,7 @@ Setzer is a LaTeX editor written in Python with GTK. I'm happy if you give it a 
 This fork is **not** published on Flathub. There are two ways to get it:
 
 1. **Build from source** (see below) — works on any GNU/Linux distribution with the dependencies available.
-2. **Debian package** — I plan to publish `.deb` packages in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork in the future. Check there for prebuilt packages.
+2. **Debian package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Check there for the latest build.
 
 ## Running Setzer with Gnome Builder
 
