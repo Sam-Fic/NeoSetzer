@@ -67,6 +67,18 @@
     </requires>
 
     <releases>
+        <release version="68" date="2026-7-25">
+            <description translatable="no">
+                <p>Fork maintenance release (development continued from v67):</p>
+                <ul>
+                    <li>UI polish: welcome screen, header bar, document wizard, preview panel</li>
+                    <li>Refactor gutter rendering and preview panel widgets</li>
+                    <li>Add per-PDF theme color matching preference</li>
+                    <li>Default highlight-current-line to on</li>
+                    <li>Packaging: add standard Debian (.deb) build flow</li>
+                </ul>
+            </description>
+        </release>
         <release version="67" date="2026-7-22">
             <description translatable="no">
                 <p>Modernize GUI to latest GTK4 and libadwaita standards:</p>
