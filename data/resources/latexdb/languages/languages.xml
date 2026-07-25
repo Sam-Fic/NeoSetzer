@@ -1,58 +1,58 @@
 <languages>
     <language code="english" name="English"/>
-    <language code="spanish" name="Spanish"/>
-    <language code="french" name="French"/>
-    <language code="russian" name="Russian"/>
-    <language code="brazilian" name="Portuguese"/>
-    <language code="portuguese" name="Portuguese"/>
-    <language code="ngerman" name="German"/>
-    <language code="italian" name="Italian"/>
+    <language code="spanish" name="Español"/>
+    <language code="french" name="Français"/>
+    <language code="russian" name="Русский"/>
+    <language code="brazilian" name="Português"/>
+    <language code="portuguese" name="Português"/>
+    <language code="ngerman" name="Deutsch"/>
+    <language code="italian" name="Italiano"/>
     <language code="afrikaans" name="Afrikaans"/>
-    <language code="azerbaijani" name="Azerbaijani"/>
-    <language code="basque" name="Basque"/>
-    <language code="breton" name="Breton"/>
-    <language code="bulgarian" name="Bulgarian"/>
-    <language code="catalan" name="Catalan"/>
-    <language code="chinese" name="Chinese"/>
-    <language code="croatian" name="Croatian"/>
-    <language code="czech" name="Czech"/>
-    <language code="danish" name="Danish"/>
-    <language code="dutch" name="Dutch"/>
+    <language code="azerbaijani" name="Azərbaycanca"/>
+    <language code="basque" name="Euskara"/>
+    <language code="breton" name="Brezhoneg"/>
+    <language code="bulgarian" name="Български"/>
+    <language code="catalan" name="Català"/>
+    <language code="chinese" name="中文"/>
+    <language code="croatian" name="Hrvatski"/>
+    <language code="czech" name="Čeština"/>
+    <language code="danish" name="Dansk"/>
+    <language code="dutch" name="Nederlands"/>
     <language code="american" name="English"/>
     <language code="british" name="English"/>
     <language code="canadian" name="English"/>
     <language code="australian" name="English"/>
     <language code="newzealand" name="English"/>
     <language code="esperanto" name="Esperanto"/>
-    <language code="estonian" name="Estonian"/>
-    <language code="finnish" name="Finnish"/>
-    <language code="acadian" name="French"/>
-    <language code="galician" name="Galician"/>
-    <language code="naustrian" name="German"/>
-    <language code="german" name="German"/>
-    <language code="austrian" name="German"/>
-    <language code="greek" name="Greek"/>
-    <language code="polutonikogreek" name="Greek"/>
-    <language code="hebrew" name="Hebrew"/>
-    <language code="icelandic" name="Icelandic"/>
-    <language code="indonesian" name="Indonesian"/>
+    <language code="estonian" name="Eesti"/>
+    <language code="finnish" name="Suomi"/>
+    <language code="acadian" name="Français"/>
+    <language code="galician" name="Galego"/>
+    <language code="naustrian" name="Deutsch"/>
+    <language code="german" name="Deutsch"/>
+    <language code="austrian" name="Deutsch"/>
+    <language code="greek" name="Ελληνικά"/>
+    <language code="polutonikogreek" name="Ελληνικά"/>
+    <language code="hebrew" name="עברית"/>
+    <language code="icelandic" name="Íslenska"/>
+    <language code="indonesian" name="Bahasa Indonesia"/>
     <language code="interlingua" name="Interlingua"/>
-    <language code="irish" name="Irish Gaelic"/>
-    <language code="latin" name="Latin"/>
-    <language code="lowersorbian" name="Lower Sorbian"/>
-    <language code="malay" name="Malay"/>
-    <language code="northernsami" name="Northern Sami"/>
-    <language code="norsk" name="Norwegian"/>
-    <language code="nynorsk" name="Norwegian"/>
-    <language code="polish" name="Polish"/>
-    <language code="romanian" name="Romanian"/>
-    <language code="scottishgaelic" name="Scottish Gaelic"/>
-    <language code="slovak" name="Slovakian"/>
-    <language code="slovene" name="Slovenian"/>
-    <language code="swedish" name="Swedish"/>
-    <language code="serbian" name="Serbian"/>
-    <language code="turkish" name="Turkish"/>
-    <language code="ukrainian" name="Ukrainian"/>
-    <language code="uppersorbian" name="Upper Sorbian"/>
-    <language code="welsh" name="Welsh"/>
+    <language code="irish" name="Gaeilge"/>
+    <language code="latin" name="Latina"/>
+    <language code="lowersorbian" name="Dolnoserbšćina"/>
+    <language code="malay" name="Bahasa Melayu"/>
+    <language code="northernsami" name="Davvisámegiella"/>
+    <language code="norsk" name="Norsk"/>
+    <language code="nynorsk" name="Norsk"/>
+    <language code="polish" name="Polski"/>
+    <language code="romanian" name="Română"/>
+    <language code="scottishgaelic" name="Gàidhlig"/>
+    <language code="slovak" name="Slovenčina"/>
+    <language code="slovene" name="Slovenščina"/>
+    <language code="swedish" name="Svenska"/>
+    <language code="serbian" name="Српски"/>
+    <language code="turkish" name="Türkçe"/>
+    <language code="ukrainian" name="Українська"/>
+    <language code="uppersorbian" name="Hornjoserbšćina"/>
+    <language code="welsh" name="Cymraeg"/>
 </languages>

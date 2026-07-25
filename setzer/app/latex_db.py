@@ -289,7 +289,9 @@ class LaTeXDB():
             root = tree.getroot()
             for child in root:
                 attrib = child.attrib
-                LaTeXDB.languages_dict[attrib['code']] = _(attrib['name'])
+                # 语言名使用各语言原生自名（endonym），不再经 gettext 翻译到
+                # 某一种界面语言。name 仅用于显示，babel 实际参数由 code 决定。
+                LaTeXDB.languages_dict[attrib['code']] = attrib['name']
 
         return LaTeXDB.languages_dict
 
