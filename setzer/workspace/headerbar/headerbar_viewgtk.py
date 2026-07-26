@@ -34,25 +34,15 @@ class HeaderBar(object):
     def __init__(self):
         self.widget = Adw.HeaderBar()
 
-        # sidebar toggles
-        self.document_structure_toggle = Gtk.ToggleButton()
-        self.document_structure_toggle.set_child(Gtk.Image(icon_name='view-list-symbolic'))
-        self.document_structure_toggle.set_can_focus(False)
-        self.document_structure_toggle.set_tooltip_text(_('Toggle document structure') + ' (F2)')
-        self.document_structure_toggle.add_css_class('headerbar-plain')
-        self.document_structure_toggle.add_css_class('headerbar-icon')
+        # sidebar toggles — 合并为单一按钮控制侧栏显隐
+        self.sidebar_toggle = Gtk.ToggleButton()
+        self.sidebar_toggle.set_child(Gtk.Image(icon_name='sidebar-show-symbolic'))
+        self.sidebar_toggle.set_can_focus(False)
+        self.sidebar_toggle.set_tooltip_text(_('Toggle sidebar (Document Structure / Symbols)') + ' (F2)')
+        self.sidebar_toggle.add_css_class('headerbar-plain')
+        self.sidebar_toggle.add_css_class('headerbar-icon')
 
-        self.symbols_toggle = Gtk.ToggleButton()
-        self.symbols_toggle.set_child(Gtk.Image(icon_name='emoji-symbols-symbolic'))
-        self.symbols_toggle.set_can_focus(False)
-        self.symbols_toggle.set_tooltip_text(_('Toggle symbols') + ' (F3)')
-        self.symbols_toggle.add_css_class('headerbar-plain')
-        self.symbols_toggle.add_css_class('headerbar-icon')
-
-        # 直接 pack 进 HeaderBar，由 Adw 自动提供相邻控件的标准间距，
-        # 不手动用零 spacing 的 Box 包裹（避免两个按钮连在一起）。
-        self.widget.pack_start(self.document_structure_toggle)
-        self.widget.pack_start(self.symbols_toggle)
+        self.widget.pack_start(self.sidebar_toggle)
 
         # open document buttons (icon-only). 两个按钮互斥：
         # - open_document_blank_button: 无最近文档时显示，触发文件选择对话框
@@ -67,7 +57,7 @@ class HeaderBar(object):
 
         self.open_document_button = Gtk.Button(icon_name='document-open-symbolic')
         self.open_document_button.set_can_focus(False)
-        self.open_document_button.set_tooltip_text(_('Open a document') + ' (' + _('Shift') + '+' + _('Ctrl') + '+O)')
+        self.open_document_button.set_tooltip_text(_('Open recent documents') + ' (' + _('Shift') + '+' + _('Ctrl') + '+O)')
         self.open_document_button.connect('clicked', lambda b: PopoverManager.get_popover('open_document').show())
         self.open_document_button.add_css_class('headerbar-plain')
         self.open_document_button.add_css_class('headerbar-icon')
@@ -116,19 +106,13 @@ class HeaderBar(object):
         self.save_document_button.add_css_class('headerbar-plain')
         self.save_document_button.add_css_class('headerbar-icon')
 
-        # help and preview toggles
-        self.preview_toggle = Gtk.ToggleButton()
-        self.preview_toggle.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
-        self.preview_toggle.set_can_focus(False)
-        self.preview_toggle.set_tooltip_text(_('Toggle preview') + ' (F9)')
-        self.preview_toggle.add_css_class('headerbar-plain')
-        self.preview_toggle.add_css_class('headerbar-icon')
-        self.help_toggle = Gtk.ToggleButton()
-        self.help_toggle.set_child(Gtk.Image(icon_name='help-browser-symbolic'))
-        self.help_toggle.set_can_focus(False)
-        self.help_toggle.set_tooltip_text(_('Toggle help') + ' (F1)')
-        self.help_toggle.add_css_class('headerbar-plain')
-        self.help_toggle.add_css_class('headerbar-icon')
+        # preview/help toggle — 合并为单一按钮控制右侧栏显隐
+        self.preview_help_toggle = Gtk.ToggleButton()
+        self.preview_help_toggle.set_child(Gtk.Image(icon_name='sidebar-show-right-symbolic'))
+        self.preview_help_toggle.set_can_focus(False)
+        self.preview_help_toggle.set_tooltip_text(_('Toggle preview panel (PDF Preview / Help)') + ' (F9)')
+        self.preview_help_toggle.add_css_class('headerbar-plain')
+        self.preview_help_toggle.add_css_class('headerbar-icon')
 
         # build button wrapper (contains Save and Build / stop / clean / timer)
         self.build_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -138,8 +122,7 @@ class HeaderBar(object):
         # menu → build → toggles → save（从右到左）。
         self.widget.pack_end(self.menu_button)
         self.widget.pack_end(self.build_wrapper)
-        self.widget.pack_end(self.preview_toggle)
-        self.widget.pack_end(self.help_toggle)
+        self.widget.pack_end(self.preview_help_toggle)
         self.widget.pack_end(self.save_document_button)
 
         # title / open documents popover

@@ -30,19 +30,11 @@ class WorkspaceController(object):
         self.workspace = workspace
         self.main_window = ServiceLocator.get_main_window()
 
-        # Toggle 互斥同步守卫：on_preview_toggle_toggled 等会在设置 workspace
-        # 状态后交叉调用对方的 set_active(False)（如 preview 激活则 help_toggle
-        # 置 False）。这会触发对方的 toggled 信号，当前虽因 set_show_preview_or_help
-        # 的幂等性（状态未变则 if 挡掉）恰好收敛，但依赖幂等性脆弱——未来逻辑
-        # 变化可能引入冗余调用甚至循环。guard 在程序化 set_active 期间置 True，
-        # 让对方回调直接 return，把互斥语义从「靠幂等性收敛」改为「显式跳过」。
         self._syncing_toggles = False
+        self._last_preview_help = ('preview', False)
 
-        self.main_window.headerbar.preview_toggle.connect('toggled', self.on_preview_toggle_toggled)
-        self.main_window.headerbar.help_toggle.connect('toggled', self.on_help_toggle_toggled)
-
-        self.main_window.headerbar.document_structure_toggle.connect('toggled', self.on_document_structure_toggle_toggled)
-        self.main_window.headerbar.symbols_toggle.connect('toggled', self.on_symbols_toggle_toggled)
+        self.main_window.headerbar.sidebar_toggle.connect('toggled', self.on_sidebar_toggle_toggled)
+        self.main_window.headerbar.preview_help_toggle.connect('toggled', self.on_preview_help_toggle_toggled)
 
         # populate workspace
         self.workspace.populate_from_disk()
@@ -95,64 +87,22 @@ class WorkspaceController(object):
                 document._restore_scroll_offset = None
         return False
 
-    def on_preview_toggle_toggled(self, toggle_button, parameter=None):
-        if self._syncing_toggles:
-            return
-        show_preview = toggle_button.get_active()
-        if show_preview:
-            show_help = False
+    def on_sidebar_toggle_toggled(self, toggle_button, parameter=None):
+        show = toggle_button.get_active()
+        self.workspace.set_show_sidebar(show)
+
+    def on_preview_help_toggle_toggled(self, toggle_button, parameter=None):
+        show = toggle_button.get_active()
+        if show:
+            if not self.workspace.show_preview and not self.workspace.show_help:
+                self.workspace.set_show_preview_or_help(*self._last_preview_help)
+            else:
+                self.workspace.set_show_preview_or_help(self.workspace.show_preview, self.workspace.show_help)
         else:
-            show_help = self.workspace.show_help
-        self.workspace.set_show_preview_or_help(show_preview, show_help)
-
-        if show_preview:
-            self._syncing_toggles = True
-            self.main_window.headerbar.help_toggle.set_active(False)
-            self._syncing_toggles = False
-
-    def on_help_toggle_toggled(self, toggle_button, parameter=None):
-        if self._syncing_toggles:
-            return
-        show_help = toggle_button.get_active()
-        if show_help:
-            show_preview = False
-        else:
-            show_preview = self.workspace.show_preview
-        self.workspace.set_show_preview_or_help(show_preview, show_help)
-
-        if show_help:
-            self._syncing_toggles = True
-            self.main_window.headerbar.preview_toggle.set_active(False)
-            self._syncing_toggles = False
-
-    def on_document_structure_toggle_toggled(self, toggle_button, parameter=None):
-        if self._syncing_toggles:
-            return
-        show_document_structure = toggle_button.get_active()
-        if show_document_structure:
-            show_symbols = False
-        else:
-            show_symbols = self.workspace.show_symbols
-        self.workspace.set_show_symbols_or_document_structure(show_symbols, show_document_structure)
-
-        if show_document_structure:
-            self._syncing_toggles = True
-            self.main_window.headerbar.symbols_toggle.set_active(False)
-            self._syncing_toggles = False
-
-    def on_symbols_toggle_toggled(self, toggle_button, parameter=None):
-        if self._syncing_toggles:
-            return
-        show_symbols = toggle_button.get_active()
-        if show_symbols:
-            show_document_structure = False
-        else:
-            show_document_structure = self.workspace.show_document_structure
-        self.workspace.set_show_symbols_or_document_structure(show_symbols, show_document_structure)
-
-        if show_symbols:
-            self._syncing_toggles = True
-            self.main_window.headerbar.document_structure_toggle.set_active(False)
-            self._syncing_toggles = False
+            if self.workspace.show_help:
+                self._last_preview_help = (False, True)
+            elif self.workspace.show_preview:
+                self._last_preview_help = (True, False)
+            self.workspace.set_show_preview_or_help(False, False)
 
 

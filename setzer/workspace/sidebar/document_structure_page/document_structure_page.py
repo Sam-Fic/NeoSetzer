@@ -132,7 +132,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         # 顶部内嵌工具栏：左侧为随滚动更新的“当前分区”标题，右侧为
         # linked 的上一段 / 下一段导航按钮。两页（Document Structure /
         # Symbols）共享此结构，外观由 .sidebar-toolbar 统一。
-        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
 
         self.section_label = Gtk.Label(label='')
@@ -145,7 +145,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.section_label.set_margin_start(2)
         self.toolbar.append(self.section_label)
 
-        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
         self.prev_button = Gtk.Button()
         self.prev_button.set_icon_name('go-up-symbolic')
@@ -167,9 +167,15 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.search_button.set_icon_name('edit-find-symbolic')
         self.search_button.set_can_focus(False)
         self.search_button.add_css_class('flat')
-        self.search_button.set_tooltip_text(_('Find'))
-        self.search_button.set_margin_start(6)
+        self.search_button.set_tooltip_text(_('Search document structure'))
         self.toolbar.append(self.search_button)
+
+        self.switch_button = Gtk.Button()
+        self.switch_button.set_child(Gtk.Image(icon_name='emoji-symbols-symbolic'))
+        self.switch_button.set_can_focus(False)
+        self.switch_button.set_tooltip_text(_('Switch to Symbols'))
+        self.switch_button.add_css_class('flat')
+        self.toolbar.append(self.switch_button)
 
         self.search_revealer = Gtk.Revealer()
         self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)

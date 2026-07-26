@@ -55,7 +55,7 @@ class HelpPanelView(Gtk.Box):
         self.add_css_class('help')
 
         # ---- 顶部内嵌工具栏（与左侧栏 .sidebar-toolbar 统一外观）----
-        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
@@ -67,7 +67,7 @@ class HelpPanelView(Gtk.Box):
         self.toolbar.append(self.home_button)
 
         self.up_button = Gtk.Button(icon_name='go-up-symbolic')
-        self.up_button.set_tooltip_text(_('Top'))
+        self.up_button.set_tooltip_text(_('Scroll to top'))
         self.up_button.add_css_class('flat')
         self.up_button.set_can_focus(False)
         self.toolbar.append(self.up_button)
@@ -91,10 +91,17 @@ class HelpPanelView(Gtk.Box):
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
-        self.search_button.set_tooltip_text(_('Find'))
+        self.search_button.set_tooltip_text(_('Search help documentation'))
         self.search_button.add_css_class('flat')
         self.search_button.set_can_focus(False)
         self.toolbar.append(self.search_button)
+
+        self.switch_button = Gtk.Button()
+        self.switch_button.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
+        self.switch_button.set_can_focus(False)
+        self.switch_button.set_tooltip_text(_('Switch to PDF Preview'))
+        self.switch_button.add_css_class('flat')
+        self.toolbar.append(self.switch_button)
 
         self.append(self.toolbar)
 

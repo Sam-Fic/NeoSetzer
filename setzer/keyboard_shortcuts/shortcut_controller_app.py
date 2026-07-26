@@ -134,27 +134,48 @@ class ShortcutControllerApp(ShortcutController):
         self.workspace.set_show_build_log(show_build_log)
 
     def shortcut_preview(self):
-        toggle = self.main_window.headerbar.preview_toggle
+        toggle = self.main_window.headerbar.preview_help_toggle
         if toggle.get_sensitive():
             toggle.set_active(not toggle.get_active())
         return True
 
     def shortcut_help(self, accel_group=None, window=None, key=None, mask=None):
-        toggle = self.main_window.headerbar.help_toggle
+        toggle = self.main_window.headerbar.preview_help_toggle
         if toggle.get_sensitive():
-            toggle.set_active(not toggle.get_active())
+            if not toggle.get_active():
+                toggle.set_active(True)
+                self.workspace.set_show_preview_or_help(False, True)
+            else:
+                if self.workspace.show_help:
+                    toggle.set_active(False)
+                else:
+                    self.workspace.set_show_preview_or_help(False, True)
         return True
 
     def shortcut_document_structure_toggle(self, accel_group=None, window=None, key=None, mask=None):
-        toggle = self.main_window.headerbar.document_structure_toggle
+        toggle = self.main_window.headerbar.sidebar_toggle
         if toggle.get_sensitive():
-            toggle.set_active(not toggle.get_active())
+            if not toggle.get_active():
+                toggle.set_active(True)
+                self.workspace.set_show_symbols_or_document_structure(False, True)
+            else:
+                if self.workspace.show_document_structure:
+                    toggle.set_active(False)
+                else:
+                    self.workspace.set_show_symbols_or_document_structure(False, True)
         return True
 
     def shortcut_symbols_toggle(self, accel_group=None, window=None, key=None, mask=None):
-        toggle = self.main_window.headerbar.symbols_toggle
+        toggle = self.main_window.headerbar.sidebar_toggle
         if toggle.get_sensitive():
-            toggle.set_active(not toggle.get_active())
+            if not toggle.get_active():
+                toggle.set_active(True)
+                self.workspace.set_show_symbols_or_document_structure(True, False)
+            else:
+                if self.workspace.show_symbols:
+                    toggle.set_active(False)
+                else:
+                    self.workspace.set_show_symbols_or_document_structure(True, False)
         return True
 
     def shortcut_show_hamburger(self, accel_group=None, window=None, key=None, mask=None):

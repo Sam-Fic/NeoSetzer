@@ -20,15 +20,57 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
 
-class Sidebar(Gtk.Stack):
+class Sidebar(Gtk.Box):
 
     def __init__(self):
-        Gtk.Stack.__init__(self)
-        # symbols↔document_structure 互斥切换时加 CROSSFADE 过渡（200ms 与
-        # libadwaita 默认动画时长一致）。整体侧栏的滑入/滑出已由外层
-        # Adw.OverlaySplitView 的 set_show_sidebar() 提供，这里只补页面间
-        # 切换的过渡，避免硬切。与 preview_help_stack 行为对称。
-        self.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.set_transition_duration(200)
+        Gtk.Box.__init__(self)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+
+        self.stack = Gtk.Stack()
+        self.stack.set_vexpand(True)
+        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.stack.set_transition_duration(200)
+        self.append(self.stack)
+
+        self._is_symbols = False
+        self._doc_structure_page = None
+        self._symbols_page = None
+
+    def set_pages(self, doc_structure_page, symbols_page):
+        self._doc_structure_page = doc_structure_page
+        self._symbols_page = symbols_page
+
+    def add_named(self, child, name):
+        self.stack.add_named(child, name)
+
+    def set_visible_child_name(self, name):
+        self.stack.set_visible_child_name(name)
+        if name == 'symbols':
+            self._is_symbols = True
+            self._update_icons()
+        else:
+            self._is_symbols = False
+            self._update_icons()
+
+    def get_visible_child(self):
+        return self.stack.get_visible_child()
+
+    def switch_page(self):
+        if self._is_symbols:
+            self.set_visible_child_name('document_structure')
+        else:
+            self.set_visible_child_name('symbols')
+
+    def _update_icons(self):
+        if self._is_symbols:
+            if self._doc_structure_page:
+                self._doc_structure_page.switch_button.get_child().set_from_icon_name('view-list-symbolic')
+            if self._symbols_page:
+                self._symbols_page.switch_button.get_child().set_from_icon_name('view-list-symbolic')
+        else:
+            if self._doc_structure_page:
+                self._doc_structure_page.switch_button.get_child().set_from_icon_name('emoji-symbols-symbolic')
+            if self._symbols_page:
+                self._symbols_page.switch_button.get_child().set_from_icon_name('emoji-symbols-symbolic')
 
 

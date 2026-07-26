@@ -48,7 +48,14 @@ class PreviewPanelView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
 
-        # 左侧：页码指示器（可输入跳转）— SpinButton + "of N" 标签
+        # 预览/帮助切换按钮（单按钮，点击切换图标）
+        self.switch_button = Gtk.Button()
+        self.switch_button.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
+        self.switch_button.set_can_focus(False)
+        self.switch_button.set_tooltip_text(_('Switch to Help'))
+        self.switch_button.add_css_class('flat')
+
+        # 页码指示器（可输入跳转）— SpinButton + "of N" 标签
         self.page_spin = Gtk.SpinButton()
         self.page_spin.set_range(1, 1)
         self.page_spin.set_increments(1, 1)
@@ -106,10 +113,12 @@ class PreviewPanelView(Gtk.Box):
         self.toolbar.append(self.recolor_pdf_toggle)
 
         self.external_viewer_button = Gtk.Button(icon_name='web-browser-symbolic')
-        self.external_viewer_button.set_tooltip_text(_('External Viewer'))
+        self.external_viewer_button.set_tooltip_text(_('Open in external PDF viewer'))
         self.external_viewer_button.add_css_class('flat')
         self.external_viewer_button.set_can_focus(False)
         self.toolbar.append(self.external_viewer_button)
+
+        self.toolbar.append(self.switch_button)
 
         self.append(self.toolbar)
 

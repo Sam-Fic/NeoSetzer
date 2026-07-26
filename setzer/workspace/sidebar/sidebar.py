@@ -40,13 +40,18 @@ class Sidebar(object):
         self.view.add_named(self.document_structure_page, 'document_structure')
         self.view.add_named(self.symbols_page.view, 'symbols')
 
+        self.view.set_pages(self.document_structure_page, self.symbols_page.view)
+
+        self.document_structure_page.switch_button.connect('clicked', lambda b: self.view.switch_page())
+        self.symbols_page.view.switch_button.connect('clicked', lambda b: self.view.switch_page())
+
         self.data_provider.connect('document_changed', self.on_document_changed)
 
         # Document Stats 定时器随可见性启停：切到 Symbols 页时暂停 stats 的
         # 1s/2s 定时器（stat + texcount spawn），回到 Structure 页时恢复。
-        self.view.connect('notify::visible-child', self.on_visible_child_changed)
+        self.view.stack.connect('notify::visible-child', self.on_visible_child_changed)
 
-        self.view.queue_draw()
+        self.view.stack.queue_draw()
 
     def on_visible_child_changed(self, stack, pspec):
         active = (stack.get_visible_child() is self.document_structure_page)

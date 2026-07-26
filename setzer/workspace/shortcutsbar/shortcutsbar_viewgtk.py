@@ -87,7 +87,10 @@ class ShortcutsBar(Gtk.Box):
         # 关键：用自定义 layout manager 让横向自然宽度 = 0，断开 reflow 反馈环
         # （详见 _NoNaturalWidthLayout 文档）。必须在添加子部件之前设置。
         self.set_layout_manager(_NoNaturalWidthLayout())
-        # 容器留白，强化"悬浮一排按钮"的视觉归属（无底板横条）
+        # 容器留白，强化"悬浮一排按钮"的视觉归属（无底板横条）。
+        # 透明工具条：底色由标题栏/窗口透出，与标题栏保持同一来源、自动随
+        # 窗口激活/失焦状态变化（不写死颜色），详见 style_gtk.css 中
+        # headerbar 透明处理。
         self.set_margin_top(6)
         self.set_margin_bottom(6)
         self._margin_horizontal = 6
@@ -118,7 +121,7 @@ class ShortcutsBar(Gtk.Box):
         # 三点按钮应出现在左侧按钮群的末尾，而非整条工具栏的最右。
         self.overflow_button = Gtk.MenuButton()
         self.overflow_button.set_icon_name('view-more-symbolic')
-        self.overflow_button.set_tooltip_text(_('More'))
+        self.overflow_button.set_tooltip_text(_('More options'))
         self.overflow_button.set_visible(False)  # 宽时隐藏
         self.overflow_button.set_margin_start(6)
 

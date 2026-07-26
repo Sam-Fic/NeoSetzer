@@ -72,7 +72,13 @@ window {
     margin: var(--setzer-spacing-xl);
 }
 
-headerbar.welcome {
+/*
+ * 标题栏透明：与欢迎页一致，让标题栏透出与下方内容区（window 底层）相同的
+ * 底色，顶部整条（标题栏 + shortcutsbar）连续无缝。透明也意味着标题栏颜色
+ * 不写死，自动跟随窗口激活/失焦等状态变化。
+ * 底部分隔线由下方 paned/headerbar 核弹规则统一清除（见文件末）。
+ */
+headerbar {
     background-color: transparent;
 }
 
@@ -300,8 +306,6 @@ toolbarview > * > * > * {
 .preview .errorBadge {
     opacity: 0.9;
     -gtk-icon-size: 18px;
-}
-.preview .errorBadge {
     background: rgba(255, 255, 255, 0.85);
     border-radius: 999px;
     padding: 3px;
@@ -315,13 +319,12 @@ toolbarview > * > * > * {
  */
 /* search-toggle: default button sizing, no manual overrides */
 
-/* 预览面板页码输入框：紧凑圆角深色背景，居中数字 */
+/* 预览面板页码输入框：紧凑圆角深色背景，居中数字。
+ * 注意：不要添加 padding 或 min-height，否则会撑大工具栏高度。 */
 .preview-page-entry {
     background: rgba(128, 128, 128, 0.2);
     border-radius: 8px;
     border: none;
-    padding: 4px 8px;
-    min-height: 24px;
     text-align: center;
 }
 .preview-page-entry:focus {

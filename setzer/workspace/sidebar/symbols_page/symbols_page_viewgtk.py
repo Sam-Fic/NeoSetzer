@@ -36,7 +36,7 @@ class SymbolsPageView(Gtk.Box):
         # 顶部内嵌工具栏：左侧随滚动更新的“当前分区”标题，右侧 linked 的
         # 上一段 / 下一段导航按钮，再接一个独立的查找切换按钮。外观由
         # .sidebar-toolbar 与 Document Structure 页统一。
-        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
@@ -50,7 +50,7 @@ class SymbolsPageView(Gtk.Box):
         self.section_label.set_ellipsize(Pango.EllipsizeMode.END)
         self.toolbar.append(self.section_label)
 
-        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
         self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
         self.prev_button.set_can_focus(False)
@@ -70,11 +70,15 @@ class SymbolsPageView(Gtk.Box):
         self.search_button.set_icon_name('edit-find-symbolic')
         self.search_button.set_can_focus(False)
         self.search_button.add_css_class('flat')
-        self.search_button.set_tooltip_text(_('Find'))
-        # 与左侧 nav_box 的间距由 .toolbar-button-spaced CSS class 提供
-        # （引用 --setzer-spacing-sm 变量），替代原 set_margin_start(6) 硬编码。
-        self.search_button.add_css_class('toolbar-button-spaced')
+        self.search_button.set_tooltip_text(_('Search symbols'))
         self.toolbar.append(self.search_button)
+
+        self.switch_button = Gtk.Button()
+        self.switch_button.set_child(Gtk.Image(icon_name='view-list-symbolic'))
+        self.switch_button.set_can_focus(False)
+        self.switch_button.set_tooltip_text(_('Switch to Document Structure'))
+        self.switch_button.add_css_class('flat')
+        self.toolbar.append(self.switch_button)
 
         self.search_revealer = Gtk.Revealer()
         self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)

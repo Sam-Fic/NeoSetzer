@@ -240,10 +240,10 @@ class WorkspacePresenter(object):
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
         self.main_window.preview_split.set_show_sidebar(preview_help_visible)
-        if show_preview and not preview_help_visible:
-            self.main_window.headerbar.preview_toggle.set_active(False)
-        elif show_preview and preview_help_visible:
-            self.main_window.headerbar.preview_toggle.set_active(True)
+        if preview_help_visible:
+            self.main_window.headerbar.preview_help_toggle.set_active(True)
+        elif not show_preview and not show_help:
+            self.main_window.headerbar.preview_help_toggle.set_active(False)
 
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()
@@ -310,10 +310,8 @@ class WorkspacePresenter(object):
         self.main_window.sidebar_split.connect('notify::sidebar-width-fraction', self.on_sidebar_width_changed)
         self.main_window.preview_split.connect('notify::sidebar-width-fraction', self.on_preview_width_changed)
 
-        self.main_window.headerbar.symbols_toggle.set_active(self.workspace.show_symbols)
-        self.main_window.headerbar.document_structure_toggle.set_active(self.workspace.show_document_structure)
-        self.main_window.headerbar.preview_toggle.set_active(self.workspace.show_preview)
-        self.main_window.headerbar.help_toggle.set_active(self.workspace.show_help)
+        self.main_window.headerbar.sidebar_toggle.set_active(self.workspace.show_symbols or self.workspace.show_document_structure)
+        self.main_window.headerbar.preview_help_toggle.set_active(self.workspace.show_preview or self.workspace.show_help)
 
     def on_sidebar_width_changed(self, split, pspec):
         # 去抖：拖动期间仅缓存最新值，idle 时一次性 set_value。

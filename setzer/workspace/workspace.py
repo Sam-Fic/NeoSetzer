@@ -621,6 +621,17 @@ class Workspace(Observable):
             self.settings.set_value('window_state', 'show_document_structure', show_document_structure)
             self.add_change_code('set_show_symbols_or_document_structure')
 
+    def set_show_sidebar(self, show):
+        show_symbols = show and self.show_symbols
+        show_doc_structure = show and self.show_document_structure
+        if not show:
+            self.set_show_symbols_or_document_structure(False, False)
+        else:
+            if not self.show_symbols and not self.show_document_structure:
+                self.set_show_symbols_or_document_structure(True, False)
+            else:
+                self.set_show_symbols_or_document_structure(self.show_symbols, self.show_document_structure)
+
     def set_show_build_log(self, show_build_log):
         if show_build_log != self.show_build_log:
             self.show_build_log = show_build_log

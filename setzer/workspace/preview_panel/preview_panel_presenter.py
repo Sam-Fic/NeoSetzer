@@ -36,6 +36,10 @@ class PreviewPanelPresenter(object):
 
         self.view.page_spin.connect('activate', self._on_page_spin_activate)
 
+        self._is_preview = True
+        self.view.switch_button.connect('clicked', self._on_switch_clicked)
+        self.main_window.help_panel.switch_button.connect('clicked', self._on_switch_clicked)
+
         self.update_label()
         self.update_buttons()
 
@@ -191,6 +195,20 @@ class PreviewPanelPresenter(object):
         step = preview.layout.page_height + preview.layout.page_gap
         y = (page_number - 1) * step
         preview.scroll_to_position(content.scrolling_offset_x, y)
+
+    def _on_switch_clicked(self, button):
+        if self._is_preview:
+            self._is_preview = False
+            self.view.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
+            self.main_window.help_panel.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
+            self.main_window.preview_help_stack.set_visible_child_name('help')
+            self.workspace.set_show_preview_or_help(False, True)
+        else:
+            self._is_preview = True
+            self.view.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
+            self.main_window.help_panel.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
+            self.main_window.preview_help_stack.set_visible_child_name('preview')
+            self.workspace.set_show_preview_or_help(True, False)
 
     def _attach_target_bar(self, preview_view):
         revealer = preview_view.target_label_revealer

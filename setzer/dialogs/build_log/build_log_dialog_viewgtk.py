@@ -63,21 +63,21 @@ class BuildLogDialogView(DialogView):
 
         # Copy All 按钮
         self.copy_all_button = Gtk.Button(icon_name='edit-copy-symbolic')
-        self.copy_all_button.set_tooltip_text(_('Copy All'))
+        self.copy_all_button.set_tooltip_text(_('Copy all log entries'))
         self.copy_all_button.add_css_class('flat')
         self.copy_all_button.set_can_focus(False)
         self.headerbar.pack_end(self.copy_all_button)
 
         # Save Log As 按钮
         self.save_log_button = Gtk.Button(icon_name='document-save-symbolic')
-        self.save_log_button.set_tooltip_text(_('Save Log As...'))
+        self.save_log_button.set_tooltip_text(_('Save log to file'))
         self.save_log_button.add_css_class('flat')
         self.save_log_button.set_can_focus(False)
         self.headerbar.pack_end(self.save_log_button)
 
         # Filter 按钮 + 弹出菜单
         self.filter_button = Gtk.MenuButton(icon_name='edit-select-all-symbolic')
-        self.filter_button.set_tooltip_text(_('Filters'))
+        self.filter_button.set_tooltip_text(_('Filter log entries'))
         self.filter_button.add_css_class('flat')
         self.filter_button.set_can_focus(False)
         self.headerbar.pack_end(self.filter_button)
@@ -267,7 +267,7 @@ class BuildLogList(Gtk.ListBox):
 
         # 行尾复制按钮：点击复制当前单行。
         copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
-        copy_button.set_tooltip_text(_('Copy'))
+        copy_button.set_tooltip_text(_('Copy to clipboard'))
         copy_button.add_css_class('flat')
         copy_button.set_valign(Gtk.Align.CENTER)
         copy_button.set_can_focus(False)
