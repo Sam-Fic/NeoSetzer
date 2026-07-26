@@ -636,6 +636,22 @@ class Document(Observable):
         return self.get_selected_text() == '•'
 
     def highlight_section(self, start_iter, end_iter):
+        # 立即清除已有高亮：快速连续点击 PDF 不同位置时，旧高亮不应等自己的
+        # 倒计时结束才消失，而应在新高亮出现的瞬间熄灭。
+        if self.highlight_tags:
+            buf_start = self.source_buffer.get_start_iter()
+            buf_end = self.source_buffer.get_end_iter()
+            for item in self.highlight_tags.values():
+                self.source_buffer.remove_tag(item['tag'], buf_start, buf_end)
+                self.source_buffer.get_tag_table().remove(item['tag'])
+            self.highlight_tags.clear()
+        if self._highlight_timeout_id is not None:
+            try:
+                GLib.Source.remove(self._highlight_timeout_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._highlight_timeout_id = None
+
         self.highlight_tag_count += 1
         color = ColorManager.get_ui_color('highlight_tag_textview')
         self.source_buffer.create_tag('highlight-' + str(self.highlight_tag_count), background_rgba=color, background_full_height=True)
