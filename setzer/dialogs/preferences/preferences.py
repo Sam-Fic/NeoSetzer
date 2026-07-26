@@ -68,6 +68,14 @@ class PreferencesDialog(object):
         self.page_autocomplete.init()
         self.page_shortcuts.init()
 
+        # 应用主题（Appearance 页）切换后，Editor 页的方案网格需按新深浅过滤
+        # 候选并刷新预览配色。Editor 页已自连 Adw.StyleManager.notify::dark，
+        # 此处补连 theme_combo 的显式切换（含「Light/Dark」非 System 选择）。
+        self.page_appearance.view.theme_combo.connect(
+            'notify::selected',
+            lambda *a: (self.page_editor.populate_scheme_flowbox(),
+                        self.page_editor.apply_preview_scheme()))
+
     def on_check_button_toggle(self, button, preference_name):
         self.settings.set_value('preferences', preference_name, button.get_active())
         

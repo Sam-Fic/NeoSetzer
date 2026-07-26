@@ -18,7 +18,6 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Adw
 from gi.repository import Pango
 import os
@@ -70,30 +69,6 @@ class PageAppearanceColors(object):
         self.view.theme_combo.set_selected(theme_index)
         self.view.theme_combo.connect('notify::selected', self.on_theme_changed)
 
-        # editor color scheme (GtkSourceView)
-        # _editor_scheme_ids[selected_index] 给出对应的 scheme ID（'' 表示跟随系统）。
-        # 方案列表在运行时从 StyleSchemeManager 读取，因此用 index→id 映射而非
-        # 直接依赖 StringList 顺序（方案文件增删后顺序可能变化）。
-        # GtkSource 5 的 StyleSchemeManager 用 get_scheme_ids() 取 ID 列表，
-        # 再 get_scheme(id) 取方案对象（无 get_schemes() 方法）。
-        scheme_manager = ServiceLocator.get_source_style_scheme_manager()
-        self._editor_scheme_ids = ['']
-        editor_scheme_model = Gtk.StringList()
-        editor_scheme_model.append(_('Follow system theme'))
-        current_scheme = self.settings.get_value('preferences', 'editor_style_scheme')
-        selected_index = 0
-        for scheme_id in scheme_manager.get_scheme_ids():
-            scheme = scheme_manager.get_scheme(scheme_id)
-            if scheme is None:
-                continue
-            self._editor_scheme_ids.append(scheme_id)
-            editor_scheme_model.append(scheme.get_name())
-            if scheme_id == current_scheme:
-                selected_index = len(self._editor_scheme_ids) - 1
-        self.view.editor_scheme_combo.set_model(editor_scheme_model)
-        self.view.editor_scheme_combo.set_selected(selected_index)
-        self.view.editor_scheme_combo.connect('notify::selected', self.on_editor_scheme_changed)
-
         # language
         current_lang = self.settings.get_value('preferences', 'language')
         lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
@@ -132,17 +107,8 @@ class PageAppearanceColors(object):
         value = THEME_MODES[combo.get_selected()][1]
         self.settings.set_value('preferences', 'app_theme_mode', value)
         self.apply_theme(value)
-
-    def on_editor_scheme_changed(self, combo, pspec=None):
-        # Adw.ComboRow 在 set_selected 时触发 notify::selected，包括程序化
-        # 重置（on_reset_confirmed）。INVALID_LIST_POSITION 守卫防御模型未就绪。
-        selected = combo.get_selected()
-        if selected == Gtk.INVALID_LIST_POSITION:
-            return
-        scheme_id = self._editor_scheme_ids[selected]
-        # set_style_scheme_name 先清空 ServiceLocator 缓存再 set_value，
-        # settings_changed 驱动已打开文档 on_settings_changed 重新应用配色。
-        ServiceLocator.set_style_scheme_name(scheme_id)
+        # 注：编辑器配色方案网格已移至 Editor 页（Appearance 分组），其网格
+        # 重建与预览刷新由 preferences.py 在 theme_combo 变化时统一驱动。
 
     def on_language_changed(self, combo, pspec=None):
         value = LANGUAGES[combo.get_selected()][1]
@@ -241,10 +207,9 @@ class PageAppearanceColors(object):
             current_theme = defaults['app_theme_mode']
             theme_index = next((i for i, m in enumerate(THEME_MODES) if m[1] == current_theme), 0)
             self.view.theme_combo.set_selected(theme_index)
-            # editor_style_scheme 默认 '' = 跟随系统主题 = 索引 0。
-            # set_selected 触发 on_editor_scheme_changed → set_style_scheme_name('')
-            # 完成设置回写与文档重应用。
-            self.view.editor_scheme_combo.set_selected(0)
+            # editor_style_scheme 默认 '' = 跟随系统主题。写回设置即可，
+            # Editor 页监听 settings_changed 会重建方案网格并刷新预览配色。
+            ServiceLocator.set_style_scheme_name('')
             current_lang = defaults['language']
             lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
             self.view.language_combo.set_selected(lang_index)
@@ -276,18 +241,6 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
             theme_model.append(_(name))
         self.theme_combo.set_model(theme_model)
         group_theme.add(self.theme_combo)
-
-        # 编辑器（GtkSourceView）配色方案。第一项「Follow system theme」
-        # 对应空字符串 ID，由 ServiceLocator.get_style_scheme 根据 Adw 深浅色
-        # 选择 default / default-dark；其余项来自 GtkSource.StyleSchemeManager
-        # 已加载的方案（resources/themes + 用户配置目录 themes/）。
-        # 与上面 app 主题不同：app 主题控制整个 Adw 应用的深浅色，编辑器配色
-        # 仅影响代码编辑区，可独立选择（例如 dark app + 自定义编辑器主题）。
-        self.editor_scheme_combo = Adw.ComboRow()
-        self.editor_scheme_combo.set_title(_('Editor Color Scheme'))
-        self.editor_scheme_combo.set_subtitle(
-            _('Color scheme for the LaTeX editor. "Follow system theme" matches the application light/dark mode.'))
-        group_theme.add(self.editor_scheme_combo)
 
         # language
         group_language = Adw.PreferencesGroup()

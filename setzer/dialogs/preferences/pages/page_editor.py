@@ -19,7 +19,65 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
+gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Adw
+from gi.repository import GtkSource
+
+from setzer.app.service_locator import ServiceLocator
+
+
+# 编辑器配色方案预览样例：用 LaTeX 代码（而非 Markdown），因为 Setzer 是
+# LaTeX 编辑器。样例刻意覆盖 latex.lang 的多种高亮样式——注释、文档/宏包
+# 命令、章节、文本格式命令、verbatim、环境、行内/独立公式、数学命令、
+# 上下标、特殊字符——以便配色方案预览能充分展示各语法元素的配色。
+LATEX_PREVIEW_TEXT = (
+    '% Sample LaTeX document\n'
+    '\\documentclass{article}\n'
+    '\\usepackage{amsmath}\n'
+    '\\section{Introduction}\n'
+    'Text \\textbf{bold}, \\emph{italic} and\n'
+    '\\verb|code| inline.\n'
+    '\\begin{equation}\n'
+    '  E = mc^2 + \\alpha_i\n'
+    '\\end{equation}\n'
+)
+
+# 预览样例表（按语言 ID 索引）；当前仅 LaTeX 一项，预留扩展。
+LANG_PREVIEWS = {
+    'latex': LATEX_PREVIEW_TEXT,
+}
+
+
+def source_style_scheme_is_dark(scheme):
+    '''移植自 gnome-text-editor 的 _editor_source_style_scheme_is_dark()。
+
+    判断一个 GtkSource.StyleScheme 是否为深色，用于按当前 Adw 深浅主题
+    过滤 FlowBox 中展示的方案（浅色主题下只列 light 方案，反之亦然）。
+    判定优先级：方案元数据 variant 字段 → ID 以 "-dark" 结尾 →
+    text 背景色 HSP 亮度估算（<=127.5 为深色）。任一环节失败安全回退浅色。
+    '''
+    try:
+        meta = scheme.get_metadata('variant')
+        if meta == 'light':
+            return False
+        if meta == 'dark':
+            return True
+        scheme_id = scheme.get_id()
+        if scheme_id.endswith('-dark'):
+            return True
+        text_style = scheme.get_style('text')
+        if text_style is None:
+            return False
+        bg = text_style.get_background()
+        if bg is None or not bg.red_ok:
+            return False
+        r = bg.red * 255.0
+        g = bg.green * 255.0
+        b = bg.blue * 255.0
+        hsp = (0.299 * r * r + 0.587 * g * g + 0.114 * b * b) ** 0.5
+        return hsp <= 127.5
+    except Exception:
+        return False
 
 
 class PageEditor(object):
@@ -28,9 +86,25 @@ class PageEditor(object):
         self.view = PageEditorView()
         self.preferences = preferences
         self.settings = settings
+        self._flowbox_previews = []  # (GtkSource.StyleSchemePreview, scheme_id_or_'')
 
     def init(self):
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
+
+        # 编辑器配色方案（复刻 gnome-text-editor Appearance 分组）：
+        # 顶部 Markdown 预览 + 方案平铺网格。仅列与当前 Adw 主题同深浅的方案。
+        self.view.scheme_flowbox.connect('child-activated', self.on_scheme_activated)
+        self.populate_scheme_flowbox()
+        self.setup_preview_buffer()
+        # 系统主题（或「System」模式下 OS 深浅）变化时重建网格候选与预览配色。
+        try:
+            Adw.StyleManager.get_default().connect('notify::dark',
+                lambda *a: (self.populate_scheme_flowbox(), self.apply_preview_scheme()))
+        except Exception:
+            pass
+        # 外部写回 editor_style_scheme（如 Appearance 页「Reset to Defaults」）
+        # 时重建网格并刷新预览配色，保持 Editor 页网格与实际设置同步。
+        self.settings.connect('settings_changed', self.on_settings_changed)
 
         self.view.option_spaces_instead_of_tabs.set_active(self.settings.get_value('preferences', 'spaces_instead_of_tabs'))
         self.view.option_spaces_instead_of_tabs.connect('notify::active', self.on_switch_toggled, 'spaces_instead_of_tabs')
@@ -64,16 +138,116 @@ class PageEditor(object):
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
 
-        # 重置按钮由 Appearance 页统一接管（合并后 Editor 不再是独立页），
-        # 故此处不再连接 editor 自身的 reset_button；on_reset_clicked 供
-        # Appearance 的 reset 调用以重置编辑相关项。
-
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
 
+    # ---- editor color scheme grid (复刻 gnome-text-editor) ----
+    def _current_dark(self):
+        '''当前 Adw 是否为深色主题，用于过滤方案网格。'''
+        try:
+            return Adw.StyleManager.get_default().get_dark()
+        except AttributeError:
+            return False
+
+    def populate_scheme_flowbox(self):
+        '''依据当前 Adw 深浅主题重建方案网格。
+
+        首项为「Follow system theme」合成 tile（scheme_id=''），其余为与当前
+        主题同深浅的 GtkSource.StyleSchemePreview。重建前清空旧 children。
+        '''
+        while True:
+            child = self.view.scheme_flowbox.get_first_child()
+            if child is None:
+                break
+            self.view.scheme_flowbox.remove(child)
+        self._flowbox_previews = []
+
+        current_scheme = self.settings.get_value('preferences', 'editor_style_scheme')
+        dark = self._current_dark()
+
+        # 1) Follow system theme —— 用当前系统默认方案渲染预览 tile。
+        system_scheme_id = 'default-dark' if dark else 'default'
+        system_scheme = ServiceLocator.get_source_style_scheme_manager().get_scheme(system_scheme_id)
+        if system_scheme is not None:
+            preview = GtkSource.StyleSchemePreview.new(system_scheme)
+            self._add_flowbox_child(preview, '')
+
+        # 2) 与当前主题同深浅的真实方案。
+        scheme_manager = ServiceLocator.get_source_style_scheme_manager()
+        for scheme_id in scheme_manager.get_scheme_ids():
+            if scheme_id in ('default', 'default-dark'):
+                continue
+            scheme = scheme_manager.get_scheme(scheme_id)
+            if scheme is None:
+                continue
+            if source_style_scheme_is_dark(scheme) != dark:
+                continue
+            preview = GtkSource.StyleSchemePreview.new(scheme)
+            self._add_flowbox_child(preview, scheme_id)
+
+        self.update_scheme_selection(current_scheme)
+
+    def _add_flowbox_child(self, preview, scheme_id):
+        preview.set_selected(False)
+        self.view.scheme_flowbox.insert(preview, -1)
+        self._flowbox_previews.append((preview, scheme_id))
+
+    def update_scheme_selection(self, current_scheme):
+        '''高亮与 current_scheme 匹配的 tile（'' 匹配 Follow system 项）。'''
+        for preview, scheme_id in self._flowbox_previews:
+            preview.set_selected(scheme_id == current_scheme)
+
+    def on_scheme_activated(self, flowbox, child):
+        # child 是 Gtk.FlowBoxChild，其单子为 StyleSchemePreview。
+        preview = child.get_child()
+        scheme_id = ''
+        for p, sid in self._flowbox_previews:
+            if p is preview:
+                scheme_id = sid
+                break
+        # set_style_scheme_name 先清空缓存再 set_value，settings_changed 驱动
+        # 已打开文档重应用配色；同时更新网格选中态与预览配色。
+        ServiceLocator.set_style_scheme_name(scheme_id)
+        self.update_scheme_selection(scheme_id)
+        self.apply_preview_scheme()
+
+    def setup_preview_buffer(self):
+        '''初始化 LaTeX 预览缓冲区：语法高亮 + 文本 + 选中第 3 行（同参考）。'''
+        buffer_ = GtkSource.Buffer()
+        lang_manager = GtkSource.LanguageManager()
+        lang = lang_manager.get_language('latex')
+        buffer_.set_language(lang)
+        buffer_.set_highlight_syntax(True)
+        text = LANG_PREVIEWS.get('latex', LATEX_PREVIEW_TEXT)
+        buffer_.set_text(text)
+        self.view.preview_source_view.set_buffer(buffer_)
+        # get_iter_at_line 的 PyGObject 绑定返回 (found, iter) 元组，取 [1]。
+        if buffer_.get_line_count() >= 3:
+            start = buffer_.get_iter_at_line(2)[1]
+            end = buffer_.get_iter_at_line(3)[1]
+            buffer_.select_range(start, end)
+        self.apply_preview_scheme()
+
+    def apply_preview_scheme(self):
+        '''把当前生效的编辑器配色应用到预览缓冲区。'''
+        scheme = ServiceLocator.get_style_scheme()
+        if scheme is not None:
+            self.view.preview_source_view.get_buffer().set_style_scheme(scheme)
+
+    def on_settings_changed(self, settings, section, item):
+        # 仅当编辑器配色方案被外部写回时重建网格（如 Appearance 页重置）。
+        # 忽略其它设置变更，避免无谓重建。
+        if section == 'preferences' and item == 'editor_style_scheme':
+            self.populate_scheme_flowbox()
+            self.apply_preview_scheme()
+
     def on_reset_clicked(self, button):
         defaults = self.settings.defaults['preferences']
+        # editor_style_scheme 默认 '' = 跟随系统主题；写回后重建网格并刷新预览。
+        ServiceLocator.set_style_scheme_name('')
+        self.populate_scheme_flowbox()
+        self.apply_preview_scheme()
         self.view.option_spaces_instead_of_tabs.set_active(defaults['spaces_instead_of_tabs'])
         self.view.tab_width_spinbutton.set_property('value', defaults['tab_width'])
         self.view.option_show_line_numbers.set_active(defaults['show_line_numbers'])
@@ -93,6 +267,41 @@ class PageEditorView(Adw.PreferencesPage):
         Adw.PreferencesPage.__init__(self)
         self.set_title(_('Editor'))
         self.set_icon_name('accessories-text-editor-symbolic')
+
+        # Appearance 分组（复刻 gnome-text-editor）：顶部 Markdown 预览 +
+        # 下方 Gtk.FlowBox 的编辑器配色方案平铺网格。置于 Editor 页最前，
+        # 与参考项目一致——配色选择属于编辑器外观设置。
+        group_appearance = Adw.PreferencesGroup()
+        group_appearance.set_title(_('Appearance'))
+        self.add(group_appearance)
+
+        # Markdown 预览：只读、等宽、显示行号、card 类（参考项目 preview+card），
+        # 并显式设置与参考一致的边距（上下 8、左右 12，底部额外 24 与网格分隔）。
+        self.preview_source_view = GtkSource.View()
+        self.preview_source_view.set_editable(False)
+        self.preview_source_view.set_cursor_visible(False)
+        self.preview_source_view.set_monospace(True)
+        self.preview_source_view.set_show_line_numbers(True)
+        self.preview_source_view.set_top_margin(8)
+        self.preview_source_view.set_bottom_margin(8)
+        self.preview_source_view.set_left_margin(12)
+        self.preview_source_view.set_right_margin(12)
+        self.preview_source_view.set_margin_bottom(24)
+        self.preview_source_view.add_css_class('card')
+        self.preview_source_view.add_css_class('scheme-preview')
+        self.preview_source_view.add_css_class('preview')
+        self.preview_source_view.set_size_request(-1, 140)
+        group_appearance.add(self.preview_source_view)
+
+        # 方案平铺网格：每行最多 4 个，不可框选（点击直接应用）。
+        self.scheme_flowbox = Gtk.FlowBox()
+        self.scheme_flowbox.add_css_class('scheme-flowbox')
+        self.scheme_flowbox.set_hexpand(True)
+        self.scheme_flowbox.set_column_spacing(12)
+        self.scheme_flowbox.set_row_spacing(12)
+        self.scheme_flowbox.set_max_children_per_line(4)
+        self.scheme_flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        group_appearance.add(self.scheme_flowbox)
 
         group_tab_stops = Adw.PreferencesGroup()
         group_tab_stops.set_title(_('Tab Stops'))

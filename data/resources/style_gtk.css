@@ -330,3 +330,63 @@ toolbarview > * > * > * {
     box-shadow: none;
     outline: 1px solid alpha(@theme_color, 0.5);
 }
+
+/*
+ * 编辑器配色方案网格（复刻 gnome-text-editor 的 Appearance 面板）。
+ * 参考项目的 dialog.preferences preferencesgroup flowboxchild 选择器在
+ * Setzer 中对应 .preferences .scheme-flowbox flowboxchild（对话框加了
+ * .preferences 类）。仅作用域精确控制，不误伤其它 FlowBox（如符号面板）。
+ *
+ * - flowboxchild 去内边距、圆角 12px，使内部 GtkSourceStyleSchemePreview 平铺；
+ * - 未选中 tile 加一层淡阴影，模拟卡片浮起；
+ * - 选中 tile（.selected）显式用强调色画「圆角矩形描边」+ 对钩外的「强调色
+ *   圆形包裹」，1:1 复刻参考项目原生 GtkSourceStyleSchemePreview 的选中外观
+ *   （不同 gtksourceview 版本原生渲染不一致，此处用 CSS 锁定外观以保证复刻）。
+ */
+.preferences .scheme-flowbox flowboxchild {
+    outline-offset: 2px;
+    border-radius: 12px;
+    padding: 0;
+}
+.preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview {
+    margin: 0;
+    border-radius: 12px;
+}
+.preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview:not(.selected) {
+    box-shadow: 0 0 0 1px alpha(black, 0.03),
+                0 1px 3px 1px alpha(black, 0.07),
+                0 2px 6px 2px alpha(black, 0.03);
+}
+/* 选中态：直接对齐 gtksourceview 库自带 CSS（从 libgtksourceview-5 gresource
+ * 提取的真实原文），1:1 复刻参考项目外观：
+ *   - 整卡 2px 强调色圆角描边（@theme_selected_bg_color，即系统 accent）；
+ *   - 右上角对钩（GtkImage）外包裹强调色圆形，margin:6px 把圆推到右上角。
+ * 注意 selected 是 style class，用 `.selected` 而非伪类 `:selected`。 */
+.preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview.selected {
+    box-shadow: 0 0 0 2px @theme_selected_bg_color;
+}
+.preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview.selected image {
+    border-radius: 9999px;
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+    padding: 2px;
+    margin: 6px;
+}
+@media (prefers-contrast: more) {
+    .preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview:not(.selected) {
+        box-shadow: 0 0 0 1px @borders,
+                    0 1px 3px 1px alpha(black, 0.07),
+                    0 2px 6px 2px alpha(black, 0.03);
+    }
+}
+
+/*
+ * Markdown 预览卡片（复刻 gnome-text-editor 的 source_view，类 preview+card）。
+ * 圆角与内边距由 .card 默认提供（12px 圆角），此处不覆盖，仅去掉只读预览的
+ * 聚焦轮廓（参考项目预览为不可编辑，无聚焦指示）。左右/上下内边距由控件
+ * left/right/top/bottom-margin + .card 内边距共同决定，与参考一致。
+ */
+.preferences .scheme-preview:focus,
+.preferences .scheme-preview:focus-within {
+    outline: none;
+}
