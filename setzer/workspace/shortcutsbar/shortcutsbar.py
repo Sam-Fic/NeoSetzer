@@ -32,7 +32,6 @@ class Shortcutsbar(object):
         self.view.button_build_log.connect('clicked', self.on_build_log_button_clicked)
 
         self.view.button_search.connect('clicked', self.on_find_button_clicked)
-        self.view.button_replace.connect('clicked', self.on_find_replace_button_clicked)
 
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
@@ -82,8 +81,8 @@ class Shortcutsbar(object):
     def update_buttons(self, workspace=None, parameter=None):
         if self.document == None: return
 
-        self.view.button_search.set_active(self.document.search.search_bar_mode == 'search')
-        self.view.button_replace.set_active(self.document.search.search_bar_mode == 'replace')
+        # 搜索入口合并为一个按钮：无论是 search 还是 replace 模式，都显示按下。
+        self.view.button_search.set_active(self.document.search.search_bar_mode in ('search', 'replace'))
 
         is_latex = self.document.is_latex_document()
         # _base_visible 让 reflow 区分"update_buttons 隐藏"和
@@ -110,12 +109,6 @@ class Shortcutsbar(object):
     def on_find_button_clicked(self, button=None):
         if button.get_active():
             self.workspace.actions.start_search()
-        else:
-            self.workspace.actions.stop_search()
-
-    def on_find_replace_button_clicked(self, button=None):
-        if button.get_active():
-            self.workspace.actions.start_search_and_replace()
         else:
             self.workspace.actions.stop_search()
 

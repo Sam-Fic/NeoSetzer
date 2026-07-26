@@ -69,6 +69,8 @@ class Search(Observable):
         self.view.case_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.regex_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.word_toggle.connect('toggled', self.on_match_option_toggled)
+        self.view.preserve_case_toggle.connect('toggled', self.on_match_option_toggled)
+        self._replace_mode_handler = self.view.replace_mode_button.connect('toggled', self.on_replace_mode_toggled)
         self._selection_toggle_handler = self.view.selection_toggle.connect('toggled', self.on_selection_toggle_toggled)
         self.document.connect('cursor_position_changed', self.on_selection_might_have_changed)
 
@@ -108,6 +110,14 @@ class Search(Observable):
             self._selection_end = None
         self.on_search_entry_changed(self.view.entry)
 
+    def on_replace_mode_toggled(self, toggle_button=None):
+        '''第一行左侧「搜索/替换」切换按钮：active 时展开 replace 行，inactive 时
+        回到纯搜索模式。'''
+        if toggle_button.get_active():
+            self.set_mode_replace()
+        else:
+            self.set_mode_search()
+
     def update_selection_toggle_visibility(self):
         buffer = self.document.source_buffer
         if buffer.get_has_selection():
@@ -132,7 +142,8 @@ class Search(Observable):
         replacement = self.view.replace_entry.get_text()
         bounds = self.search_context.get_buffer().get_selection_bounds()
         if len(bounds) == 2:
-            self.search_context.replace(*bounds, replacement, -1)
+            matched_text = bounds[0].get_text(bounds[1])
+            self.search_context.replace(*bounds, self._apply_preserve_case(matched_text, replacement), -1)
             self.on_search_next_match()
 
     def on_replace_all_button_click(self, button_object=None):
@@ -173,7 +184,12 @@ class Search(Observable):
             dialog = DialogLocator.get_dialog('replace_confirmation')
             dialog.run(original, replacement, number_of_occurrences, self.search_context)
         else:
-            self.search_context.replace_all(replacement, -1)
+            if self.view.preserve_case_toggle.get_active():
+                # preserve-case 必须逐匹配映射替换文本的大小写，GtkSource 原生
+                # replace_all 不支持，故走循环路径（整篇范围）。
+                self._replace_all_in_range(replacement, 0, None)
+            else:
+                self.search_context.replace_all(replacement, -1)
             self.on_search_entry_changed(self.view.entry)
 
     def _count_matches_in_selection(self):
@@ -206,20 +222,53 @@ class Search(Observable):
         undo 步骤（与 replace_all 一致）。try/finally 保证 end_user_action 总被
         调用，避免异常时后续编辑被合并进未关闭的 user-action。
         '''
+        self._replace_all_in_range(replacement, self._selection_start, self._selection_end)
+
+    def _replace_all_in_range(self, replacement, start_offset, end_offset):
+        '''在 [start_offset, end_offset] 范围内逐个替换所有匹配。
+
+        通用循环替换：选区模式传选区边界，非选区（整篇）模式传 (0, None)。
+        preserve-case 在每个匹配上把 replacement 的大小写形态映射到匹配文本
+        （GtkSource 原生 replace_all 不支持逐匹配变换）。整个循环包在
+        begin/end_user_action 内作为单个 undo 步骤；try/finally 保证 end_user_action
+        总被调用。
+        '''
         buffer = self.search_context.get_buffer()
-        search_iter = buffer.get_iter_at_offset(self._selection_start)
+        search_iter = buffer.get_iter_at_offset(start_offset)
         buffer.begin_user_action()
         try:
             while True:
                 result = self.search_context.forward(search_iter)
-                if not result[0] or result[1].get_offset() > self._selection_end:
+                if not result[0]:
                     break
-                self.search_context.replace(result[1], result[2], replacement, -1)
+                if end_offset is not None and result[1].get_offset() > end_offset:
+                    break
+                matched_text = result[1].get_text(result[2])
+                self.search_context.replace(result[1], result[2],
+                                            self._apply_preserve_case(matched_text, replacement), -1)
                 # replace 后 result[1] 仍指向匹配起始（GtkTextIter 随编辑更新），
                 # + len(replacement) 跳过刚插入的替换文本，找下一个匹配。
-                search_iter = buffer.get_iter_at_offset(result[1].get_offset() + len(replacement))
+                new_replacement = self._apply_preserve_case(matched_text, replacement)
+                search_iter = buffer.get_iter_at_offset(result[1].get_offset() + len(new_replacement))
         finally:
             buffer.end_user_action()
+
+    def _apply_preserve_case(self, matched_text, replacement):
+        '''Preserve-case：根据匹配文本的大小写形态调整替换文本（类似 gedit）。
+
+        规则：匹配文本全大写 → 替换文本全大写；全小写 → 全小写；首字母大写且
+        其余小写（Title Case）→ 替换文本首字母大写其余小写；其它情况保持替换
+        文本原样。仅当 preserve-case toggle 激活时生效，否则原样返回。
+        '''
+        if not self.view.preserve_case_toggle.get_active():
+            return replacement
+        if matched_text.isupper() and matched_text.lower() != matched_text:
+            return replacement.upper()
+        if matched_text.islower():
+            return replacement.lower()
+        if matched_text[:1].isupper() and matched_text[1:].islower():
+            return replacement[:1].upper() + replacement[1:].lower()
+        return replacement
 
     def on_search_entry_activate(self, entry=None):
         self.on_search_next_match(entry, True)
@@ -353,7 +402,9 @@ class Search(Observable):
             result = self.search_context.forward(buffer.get_start_iter())
             if result[0] == False:
                 self._pending_match_no = None
-                self.set_match_counter(-1, -1)
+                # 明确无匹配：立即显示「No matches」，不要等异步。occurrences-count
+                # 回调最终也会给出 0，但此刻已可确定，避免误显示「Searching…」。
+                self.set_match_counter(-1, 0)
                 search_view.entry.add_css_class('error')
                 search_view.replace_all_button.set_sensitive(False)
             else:
@@ -365,7 +416,8 @@ class Search(Observable):
                 search_view.replace_all_button.set_sensitive(True)
         else:
             self._pending_match_no = None
-            self.set_match_counter(-1, -1)
+            # 空搜索框：不清空搜索状态，但计数器应隐藏（不显示「Searching…」）。
+            self._clear_match_counter()
             search_view.entry.remove_css_class('error')
             search_view.replace_all_button.set_sensitive(False)
 
@@ -413,6 +465,9 @@ class Search(Observable):
         self._search_in_selection = False
         self._selection_start = None
         self._selection_end = None
+        self.view.replace_mode_button.handler_block(self._replace_mode_handler)
+        self.view.replace_mode_button.set_active(False)
+        self.view.replace_mode_button.handler_unblock(self._replace_mode_handler)
         self.search_bar_mode = None
         self.add_change_code('mode_changed')
 
@@ -421,6 +476,9 @@ class Search(Observable):
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'search'
         self.view.replace_revealer.set_reveal_child(False)
+        self.view.replace_mode_button.handler_block(self._replace_mode_handler)
+        self.view.replace_mode_button.set_active(False)
+        self.view.replace_mode_button.handler_unblock(self._replace_mode_handler)
         self.add_change_code('mode_changed')
 
     def set_mode_replace(self):
@@ -428,6 +486,9 @@ class Search(Observable):
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'replace'
         self.view.replace_revealer.set_reveal_child(True)
+        self.view.replace_mode_button.handler_block(self._replace_mode_handler)
+        self.view.replace_mode_button.set_active(True)
+        self.view.replace_mode_button.handler_unblock(self._replace_mode_handler)
         self.add_change_code('mode_changed')
 
     def search_entry_grab_focus(self, args=None):
@@ -462,7 +523,14 @@ class Search(Observable):
             search_bar.next_button.set_sensitive(has_current)
             search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
         else:
-            search_bar.match_counter.set_text(str(match_no) + ' of ' + str(total))
+            if match_no is None or match_no < 1:
+                # total 已就绪但当前没有有效序号（如异步扫描完成时上一次导航
+                # 发生在扫描结束前，序号尚未确定）。此时不显示「-1 of N」，
+                # 而是显示总数，避免误导。
+                search_bar.match_counter.set_text(
+                    ngettext('{total} match', '{total} matches', total).format(total=total))
+            else:
+                search_bar.match_counter.set_text(str(match_no) + ' of ' + str(total))
             search_bar.prev_button.set_sensitive(True)
             search_bar.next_button.set_sensitive(True)
             # 仅在替换模式下预览「将替换 N 处匹配」，避免普通搜索时误导。
@@ -472,5 +540,17 @@ class Search(Observable):
                               'Replace all {amount} matches', total).format(amount=total))
             else:
                 search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
+
+    def _clear_match_counter(self):
+        '''空搜索框时隐藏计数器并重置导航/替换按钮灵敏度。
+
+        与 set_match_counter(-1, -1) 不同：后者表示「异步扫描中」会显示
+        「Searching…」，而空内容不应显示任何计数提示，故直接清空文本。
+        '''
+        search_bar = self.view
+        search_bar.match_counter.set_text('')
+        search_bar.prev_button.set_sensitive(False)
+        search_bar.next_button.set_sensitive(False)
+        search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
 
 

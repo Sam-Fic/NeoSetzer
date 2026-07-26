@@ -155,9 +155,8 @@ class ShortcutsBar(Gtk.Box):
         self.insert_bold_button()          # 8
         self.insert_italic_button()        # 9 (最右)
 
-        # 创建所有 right button（4 个）
+        # 创建所有 right button（3 个）
         self.insert_search_button()
-        self.insert_replace_button()
         self.insert_more_button()  # F12 context menu
         self.insert_build_log_button()
 
@@ -229,7 +228,7 @@ class ShortcutsBar(Gtk.Box):
         cache = {}
         for btn in self.left_buttons:
             cache[id(btn)] = self._measure_width(btn)
-        for btn in [self.button_search, self.button_replace, self.button_more, self.button_build_log]:
+        for btn in [self.button_search, self.button_more, self.button_build_log]:
             cache[id(btn)] = self._measure_width(btn)
         cache[id(self.overflow_button)] = self._measure_width(self.overflow_button)
         self._button_widths = cache
@@ -257,7 +256,7 @@ class ShortcutsBar(Gtk.Box):
             left_widths.append(cache.get(id(btn), 36))
         # 右侧按钮用 get_visible（right 按钮不会被 reflow 隐藏）
         right_widths = []
-        for btn in [self.button_search, self.button_replace, self.button_more, self.button_build_log]:
+        for btn in [self.button_search, self.button_more, self.button_build_log]:
             if not btn.get_visible():
                 continue
             right_widths.append(cache.get(id(btn), 36))
@@ -481,15 +480,10 @@ class ShortcutsBar(Gtk.Box):
 
     def insert_search_button(self):
         self.button_search = Gtk.ToggleButton()
-        self.button_search.set_icon_name('edit-find-symbolic')
-        self.button_search.set_tooltip_text(_('Find') + ' (' + _('Ctrl') + '+F)')
+        # 合并 Find / Find and Replace 为一个入口：图标和 tooltip 都表达"两者皆有"。
+        self.button_search.set_icon_name('edit-find-replace-symbolic')
+        self.button_search.set_tooltip_text(_('Find and Replace'))
         self._add_right_button(self.button_search)
-
-    def insert_replace_button(self):
-        self.button_replace = Gtk.ToggleButton()
-        self.button_replace.set_icon_name('edit-find-replace-symbolic')
-        self.button_replace.set_tooltip_text(_('Find and Replace') + ' (' + _('Ctrl') + '+H)')
-        self._add_right_button(self.button_replace)
 
     def insert_more_button(self):
         self.button_more = Gtk.MenuButton()
