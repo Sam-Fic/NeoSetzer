@@ -116,8 +116,6 @@ class Headerbar(object):
                 if current is not None:
                     self.view.build_wrapper.remove(current)
                 self.view.build_wrapper.append(document.build_widget.view)
-            if document.build_widget.view.has_result():
-                document.build_widget.view.hide_result(5000)
         else:
             if self.view.build_wrapper.get_first_child() is not None:
                 self.view.build_wrapper.remove(self.view.build_wrapper.get_first_child())

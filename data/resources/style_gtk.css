@@ -314,3 +314,18 @@ toolbarview > * > * > * {
  * 此处强制相同，文字居中即可。
  */
 /* search-toggle: default button sizing, no manual overrides */
+
+/* 预览面板页码输入框：紧凑圆角深色背景，居中数字 */
+.preview-page-entry {
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 8px;
+    border: none;
+    padding: 4px 8px;
+    min-height: 24px;
+    text-align: center;
+}
+.preview-page-entry:focus {
+    background: rgba(128, 128, 128, 0.3);
+    box-shadow: none;
+    outline: 1px solid alpha(@theme_color, 0.5);
+}

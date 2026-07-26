@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GObject, GLib
+from gi.repository import Gtk, GLib
 
 
 class BuildWidgetView(Gtk.Box):
@@ -31,16 +31,7 @@ class BuildWidgetView(Gtk.Box):
 
         self.timer = 0
         self.timer_active = False
-        # 存储 timeout id 以便文档关闭时直接移除,避免计时器在 widget 已销毁后
-        # 仍每 500ms 触发 increment_timer(原实现仅靠 timer_active=False 让回调
-        # 自行退出,但若文档关闭时构建仍在进行,stop_timer 不会被调用,计时器
-        # 会永久泄漏)。
         self._timer_timeout_id = None
-        self.state_change_count = 0
-        # 跟踪 hide_result 的延迟回调 id。原实现不跟踪，widget 销毁时若仍有
-        # 挂起的隐藏回调（duration 可达数秒），_hide_result 会访问已销毁的
-        # result_popover 触发 GTK 警告。destroy 时一并取消。
-        self._hide_result_timeout_id = None
 
         self.build_button = Gtk.Button()
 
@@ -56,45 +47,20 @@ class BuildWidgetView(Gtk.Box):
         self.active_box.append(self.timer_label)
 
         self.build_button.set_tooltip_text(_('Save and build .pdf-file from document') + ' (F5)')
-        # 保留 suggested-action 以显示绿色强调色。idle_box 嵌套已移除，且 build_button
-        # 的 child 现在直接是 Image（与标题栏其它图标按钮构造一致），宽度由 GTK 自然决定。
         self.build_button.add_css_class('suggested-action')
 
-        # clean_button 嵌套在 BuildWidgetView(Gtk.Box) 里，不是 HeaderBar 直接子控件，
-        # 不会被 HeaderBar 自动 flat，需显式加 .flat 与标题栏图标按钮保持一致外观。
         self.clean_button = Gtk.Button()
         self.clean_button.set_child(Gtk.Image(icon_name='edit-clear-all-symbolic'))
         self.clean_button.set_tooltip_text(_('Cleanup build files'))
         self.clean_button.add_css_class('flat')
 
-        self.result_label = Gtk.Label(label='')
-
-        self.result_popover = Gtk.Popover()
-        self.result_popover.set_child(self.result_label)
-        self.result_popover.set_parent(self.build_button)
-        self.result_popover.set_autohide(False)
-        self.result_popover.set_has_arrow(True)
-        self.result_popover.set_position(Gtk.PositionType.BOTTOM)
-
-        # 鼠标悬停时取消自动隐藏，移开后短延迟隐藏。
-        # 构建结果含错误计数等信息，1.6 秒不够用户阅读。
-        hover = Gtk.EventControllerMotion()
-        hover.connect('enter', self._on_result_hover_enter)
-        hover.connect('leave', self._on_result_hover_leave)
-        self.result_label.add_controller(hover)
-
         self.append(self.clean_button)
         self.prepend(self.build_button)
 
-        # widget 销毁时取消所有挂起的 timeout（构建计时器 + 结果隐藏回调），
-        # 避免回调访问已释放的 result_popover / timer_label。
         self.connect('destroy', self._on_destroy)
 
     def _on_destroy(self, widget=None):
         self.stop_timer()
-        if self._hide_result_timeout_id is not None:
-            GLib.source_remove(self._hide_result_timeout_id)
-            self._hide_result_timeout_id = None
 
     def switch_to_building(self):
         self.build_button.set_child(self.active_box)
@@ -134,46 +100,3 @@ class BuildWidgetView(Gtk.Box):
     def reset_timer(self):
         self.timer = 0
         self.timer_label.set_text('0:00')
-
-    def show_result(self, text=''):
-        self.state_change_count += 1
-        self.result_label.set_markup(text)
-        if self.get_parent() is None or text == '':
-            self.result_popover.popdown()
-            return
-        self.result_popover.popup()
-
-    def has_result(self):
-        return self.result_popover.get_visible()
-
-    def hide_result(self, duration):
-        self.state_change_count += 1
-        # 取消前一个挂起的隐藏回调，避免多个 timeout 叠加（连续构建时
-        # 旧回调仍会 popdown 刚弹出的新结果）。
-        if self._hide_result_timeout_id is not None:
-            GLib.source_remove(self._hide_result_timeout_id)
-        self._hide_result_timeout_id = GLib.timeout_add(duration, self._hide_result, self.state_change_count)
-
-    def hide_result_now(self):
-        self.state_change_count += 1
-        if self._hide_result_timeout_id is not None:
-            GLib.source_remove(self._hide_result_timeout_id)
-            self._hide_result_timeout_id = None
-        self._hide_result(self.state_change_count)
-
-    def _hide_result(self, state_change_count):
-        self._hide_result_timeout_id = None
-        if self.state_change_count == state_change_count:
-            self.result_popover.popdown()
-        return False
-
-    def _on_result_hover_enter(self, controller):
-        '''鼠标进入 popover 区域：取消自动隐藏，让用户充分阅读结果。'''
-        if self._hide_result_timeout_id is not None:
-            GLib.source_remove(self._hide_result_timeout_id)
-            self._hide_result_timeout_id = None
-
-    def _on_result_hover_leave(self, controller):
-        '''鼠标离开 popover 区域：2 秒后隐藏（比首次 5 秒短，因为用户已看过）。'''
-        if self._hide_result_timeout_id is None and self.result_popover.get_visible():
-            self.hide_result(2000)

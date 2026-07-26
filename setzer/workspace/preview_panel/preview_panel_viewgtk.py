@@ -27,7 +27,7 @@ class PreviewPanelView(Gtk.Box):
 
     Pass-12 重构：与左侧栏（Symbols / Document Structure）保持一致的
     "内嵌工具栏 + 内容区" 结构：
-      - 顶部 .sidebar-toolbar 工具栏：左侧 paging_label（page xx of xx），
+      - 顶部 .sidebar-toolbar 工具栏：左侧 page spinner + of N 标签，
         右侧 zoom_out / zoom_level / zoom_in / recolor / external 按钮。
       - 下方 .preview-card 内容区：PDF stack，带边距与圆角，呈"卡片"外观。
     工具栏样式与左侧栏统一（.sidebar-toolbar CSS class），不再使用 Gtk.ActionBar
@@ -48,13 +48,31 @@ class PreviewPanelView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
 
-        # 左侧：page xx of xx（类似左侧栏的 section_label，dim-label 灰化）
-        self.paging_label = Gtk.Label()
-        self.paging_label.set_xalign(0)
-        self.paging_label.add_css_class('dim-label')
-        self.paging_label.set_halign(Gtk.Align.START)
-        self.paging_label.set_hexpand(True)
-        self.toolbar.append(self.paging_label)
+        # 左侧：页码指示器（可输入跳转）— SpinButton + "of N" 标签
+        self.page_spin = Gtk.SpinButton()
+        self.page_spin.set_range(1, 1)
+        self.page_spin.set_increments(1, 1)
+        self.page_spin.set_digits(0)
+        self.page_spin.set_halign(Gtk.Align.START)
+        self.page_spin.set_hexpand(False)
+        self.page_spin.set_editable(True)
+        self.page_spin.set_can_focus(True)
+        for child in self.page_spin:
+            if isinstance(child, Gtk.Button):
+                child.set_visible(False)
+        self.page_spin.add_css_class('preview-page-entry')
+        self.toolbar.append(self.page_spin)
+
+        self.paging_of_label = Gtk.Label()
+        self.paging_of_label.set_xalign(0)
+        self.paging_of_label.set_hexpand(False)
+        self.paging_of_label.add_css_class('dim-label')
+        self.toolbar.append(self.paging_of_label)
+
+        # 占位 spacer，把右侧按钮推到右边
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        self.toolbar.append(spacer)
 
         # 右侧：zoom_out / zoom_level / zoom_in / recolor / external
         self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')

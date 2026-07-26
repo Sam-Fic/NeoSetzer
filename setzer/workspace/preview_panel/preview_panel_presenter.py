@@ -34,6 +34,8 @@ class PreviewPanelPresenter(object):
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('root_state_change', self.on_root_state_change)
 
+        self.view.page_spin.connect('activate', self._on_page_spin_activate)
+
         self.update_label()
         self.update_buttons()
 
@@ -123,29 +125,32 @@ class PreviewPanelPresenter(object):
 
     def update_label(self):
         if self.document == None:
-            self.view.paging_label.set_visible(False)
+            self.view.page_spin.set_visible(False)
+            self.view.paging_of_label.set_visible(False)
         else:
-            self.view.paging_label.set_visible(True)
+            self.view.page_spin.set_visible(True)
+            self.view.paging_of_label.set_visible(True)
             preview = self.document.preview
             if preview.poppler_document != None:
-                self.view.paging_label.set_visible(True)
-                total = str(preview.poppler_document.get_n_pages())
+                total = preview.poppler_document.get_n_pages()
                 if preview.layout != None:
                     offset = preview.view.content.scrolling_offset_y
-                    current = str(preview.layout.get_page_by_offset(offset))
+                    current = preview.layout.get_page_by_offset(offset)
                 else:
-                    current = "0"
-                self.view.paging_label.set_text(_('Page ') + current + _(' of ') + total)
+                    current = 1
+                self.view.page_spin.set_range(1, max(total, 1))
+                self.view.page_spin.set_value(current)
+                self.view.paging_of_label.set_text(_('of ') + str(total))
             else:
-                self.view.paging_label.set_visible(True)
-                self.view.paging_label.set_text(_('No preview'))
+                self.view.paging_of_label.set_text(_('No preview'))
 
     def update_buttons(self):
         self.document = self.workspace.get_root_or_active_latex_document()
         has_pdf = self.document != None and self.document.preview.poppler_document != None
 
         self.view.toolbar.set_visible(True)
-        self.view.paging_label.set_visible(True)
+        self.view.page_spin.set_visible(True)
+        self.view.paging_of_label.set_visible(True)
         self.view.external_viewer_button.set_visible(True)
         self.view.recolor_pdf_toggle.set_visible(True)
         self.view.zoom_out_button.set_visible(True)
@@ -157,6 +162,7 @@ class PreviewPanelPresenter(object):
         self.view.zoom_out_button.set_sensitive(has_pdf)
         self.view.zoom_level_button.set_sensitive(has_pdf)
         self.view.zoom_in_button.set_sensitive(has_pdf)
+        self.view.page_spin.set_sensitive(has_pdf)
 
         if has_pdf:
             self.update_label()
@@ -164,13 +170,27 @@ class PreviewPanelPresenter(object):
             self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
             self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
         else:
-            self.view.paging_label.set_text(_('No preview'))
+            self.view.paging_of_label.set_text(_('No preview'))
 
     def update_zoom_level(self):
         zoom_level = self.document.preview.zoom_manager.get_zoom_level()
 
         if zoom_level != None:
             self.view.zoom_level_label.set_text('{0:.1f}%'.format(zoom_level * 100))
+
+    def _on_page_spin_activate(self, spin_button):
+        page_number = int(spin_button.get_value())
+        if self.document == None:
+            return
+        preview = self.document.preview
+        if preview.layout == None or preview.poppler_document == None:
+            return
+        total = preview.poppler_document.get_n_pages()
+        page_number = max(1, min(page_number, total))
+        content = preview.view.content
+        step = preview.layout.page_height + preview.layout.page_gap
+        y = (page_number - 1) * step
+        preview.scroll_to_position(content.scrolling_offset_x, y)
 
     def _attach_target_bar(self, preview_view):
         revealer = preview_view.target_label_revealer

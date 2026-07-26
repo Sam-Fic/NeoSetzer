@@ -104,7 +104,6 @@ class BuildWidget(Observable):
             self.view.switch_to_idle()
             self.view.build_button.set_sensitive(True)
             self.build_button_state = ('idle', int(time.time()*1000))
-            self.view.hide_result_now()
         self.set_clean_button_state()
 
     def on_build_state(self, build_system, message):
@@ -144,9 +143,6 @@ class BuildWidget(Observable):
     def show_message(self, message=''):
         self.view.stop_timer()
         self.view.switch_to_idle()
-        self.view.show_result(message)
-        if self.view.get_parent() != None:
-            self.view.hide_result(5000)
 
     def on_build_button_click(self, button_object=None):
         if self.build_button_state[0] == 'building':
