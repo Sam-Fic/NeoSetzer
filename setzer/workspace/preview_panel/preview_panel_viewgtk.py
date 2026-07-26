@@ -50,7 +50,9 @@ class PreviewPanelView(Gtk.Box):
 
         # 预览/帮助切换按钮（单按钮，点击切换图标）
         self.switch_button = Gtk.Button()
-        self.switch_button.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
+        # 初始图标展示目标面板（Help），实际图标在 presenter 初始化时按当前
+        # 显示的面板统一同步（_sync_switch_icons），不依赖本地预设。
+        self.switch_button.set_child(Gtk.Image(icon_name='help-browser-symbolic'))
         self.switch_button.set_can_focus(False)
         self.switch_button.set_tooltip_text(_('Switch to Help'))
         self.switch_button.add_css_class('flat')

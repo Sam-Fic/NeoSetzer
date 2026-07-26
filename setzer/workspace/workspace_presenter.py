@@ -178,6 +178,10 @@ class WorkspacePresenter(object):
                 self.focus_active_document()
         else:
             self.focus_active_document()
+        # 所有切换路径（按钮 / 快捷键 / 状态恢复）都收口于此，
+        # 顺手同步两个 switch 按钮的图标，确保始终展示"目标面板"图标，
+        # 不依赖任何私有状态布尔。
+        self.main_window.preview_panel.presenter._sync_switch_icons()
         # 用户手动切换预览/帮助：即使文档从未编译也展开（显示 "No preview
         # available" 占位，提示用户点编译按钮）。suppress_unbuilt=False 跳过
         # 「从未编译则抑制」的自动展开逻辑。

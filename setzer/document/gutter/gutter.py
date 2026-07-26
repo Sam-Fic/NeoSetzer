@@ -306,12 +306,14 @@ class Gutter(object):
             # 图标渲染节点是按尺寸缓存的，字体变化导致尺寸变化需失效重算。
             self._folding_icon_nodes.clear()
 
-    def update_size(self):
+    def update_size(self, line_count=None):
         self._refresh_font_metrics_if_changed()
         total_width = 0
         line_numbers_width = 0
         if self.line_numbers_visible:
-            total_width += int(math.log10(self.source_buffer.get_line_count()) + 3) * self.char_width
+            if line_count is None:
+                line_count = self.source_buffer.get_line_count()
+            total_width += int(math.log10(line_count) + 3) * self.char_width
             line_numbers_width = total_width
         if self.code_folding_visible:
             total_width += 3 * self.char_width
@@ -326,6 +328,18 @@ class Gutter(object):
             self.layout_current.set_width((line_numbers_width - self.char_width) * Pango.SCALE)
             self.drawing_area.set_size_request(total_width, -1)
             self.document_view.margin.set_size_request(total_width, -1)
+
+    def presize_for_line_count(self, line_count):
+        '''在文本真正填入缓冲区之前，用预估的最终行数预先设定 gutter 宽度。
+
+        大文档加载时 set_text() 会同步阻塞并一次性把行数从 0 推到几千，
+        update_size 随后在信号驱动下把宽度从初始窄值跳变到最终值（如 1 位
+        → 4 位），视觉上表现为“先窄后突然变宽”。读文件时 text 已可读到，
+        line_count = text.count('\\n') + 1 是 O(1) 计数，故可在 set_text 之前
+        把宽度预先算好并 set_size_request，使文本填入时宽度已是最终值，
+        彻底消除跳变。仅改尺寸、不 queue_draw，避免空白内容被过早绘制。
+        '''
+        self.update_size(line_count=max(line_count, 1))
 
     #@timer
     def draw(self, drawing_area, ctx, width, height, data=None):

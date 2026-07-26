@@ -61,9 +61,9 @@ a.external:after {text-decoration: underline; text-decoration-color: $view_bg_co
 _COLOR_KEYS = {
     'view_bg_color': 'view_bg_color',
     'view_fg_color': 'view_fg_color',
-    'link_color_visited': 'link_color_visited',
-    'link_color_active': 'link_color_active',
-    'link_color': 'link_color',
+    'link_color_visited': 'accent_color',
+    'link_color_active': 'accent_color',
+    'link_color': 'accent_color',
 }
 
 

@@ -305,6 +305,13 @@ class Document(Observable):
         with open(self.filename) as f:
             text = f.read()
 
+        # 预置行号宽度：在 set_text 之前用文件真实行数把 gutter 宽度算好，
+        # 避免大文档加载后行数从 0 跳到几千时行号区域“突然变宽”的跳变。
+        # text.count('\n') + 1 是 O(1) 计数；空文件记 1 行，保持最小宽度。
+        line_count = text.count('\n') + 1
+        if getattr(self, 'gutter', None) is not None:
+            self.gutter.presize_for_line_count(line_count)
+
         self.source_buffer.begin_irreversible_action()
         self.source_buffer.set_text(text)
         self.source_buffer.end_irreversible_action()

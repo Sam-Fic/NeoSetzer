@@ -36,10 +36,15 @@ class PreviewPanelPresenter(object):
 
         self.view.page_spin.connect('activate', self._on_page_spin_activate)
 
-        self._is_preview = True
         self.view.switch_button.connect('clicked', self._on_switch_clicked)
         self.main_window.help_panel.switch_button.connect('clicked', self._on_switch_clicked)
 
+        # 反向挂到 view，便于其它地方（如 workspace_presenter 切换同步）
+        # 通过 main_window.preview_panel.presenter 访问。
+        self.view.presenter = self
+
+        # 按实际显示的面板同步一次按钮图标（图标始终展示"目标面板"）。
+        self._sync_switch_icons()
         self.update_label()
         self.update_buttons()
 
@@ -196,18 +201,29 @@ class PreviewPanelPresenter(object):
         y = (page_number - 1) * step
         preview.scroll_to_position(content.scrolling_offset_x, y)
 
+    def _sync_switch_icons(self):
+        '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。
+        预览模式 → 显示 Help 图标（点击去 Help）；Help 模式 → 显示 PDF 图标。'''
+        if self.main_window.preview_help_stack.get_visible_child_name() == 'preview':
+            icon = 'help-browser-symbolic'
+        else:
+            icon = 'view-paged-symbolic'
+        self.view.switch_button.get_child().set_from_icon_name(icon)
+        self.main_window.help_panel.switch_button.get_child().set_from_icon_name(icon)
+
     def _on_switch_clicked(self, button):
-        if self._is_preview:
-            self._is_preview = False
+        # 以 preview_help_stack 当前可见面板为唯一真相来源，决定切换到哪个、
+        # 以及按钮图标应展示的目标面板。不依赖独立的 _is_preview 布尔，
+        # 避免快捷键 / 状态恢复等其它切换路径导致布尔与实际显示失同步。
+        if self.main_window.preview_help_stack.get_visible_child_name() == 'preview':
+            # 当前预览 → 切到 Help，按钮图标展示目标（Help）
             self.view.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
             self.main_window.help_panel.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
-            self.main_window.preview_help_stack.set_visible_child_name('help')
             self.workspace.set_show_preview_or_help(False, True)
         else:
-            self._is_preview = True
+            # 当前 Help → 切到预览，按钮图标展示目标（PDF）
             self.view.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
             self.main_window.help_panel.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
-            self.main_window.preview_help_stack.set_visible_child_name('preview')
             self.workspace.set_show_preview_or_help(True, False)
 
     def _attach_target_bar(self, preview_view):

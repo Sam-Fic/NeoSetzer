@@ -96,12 +96,12 @@ class HelpPanelView(Gtk.Box):
         self.search_button.set_can_focus(False)
         self.toolbar.append(self.search_button)
 
+        # 切换到 PDF Preview 按钮：始终放在工具栏最右端（最后 append）。
         self.switch_button = Gtk.Button()
         self.switch_button.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
         self.switch_button.set_can_focus(False)
         self.switch_button.set_tooltip_text(_('Switch to PDF Preview'))
         self.switch_button.add_css_class('flat')
-        self.toolbar.append(self.switch_button)
 
         self.append(self.toolbar)
 
@@ -245,6 +245,10 @@ class HelpPanelView(Gtk.Box):
         self.stack.add_named(self.search_clamp, 'search')
 
         self.append(self.stack)
+
+        # switch_button 始终最后 append 到 toolbar，确保在工具栏最右端
+        # （在 search_button 和 js_info_button 之后）。
+        self.toolbar.append(self.switch_button)
 
         self.search_result_items = list()
 

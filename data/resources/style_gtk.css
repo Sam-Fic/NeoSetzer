@@ -233,14 +233,12 @@ textview gutter {
 }
 
 /*
- * 预览链接目标提示栏：与编辑器状态栏同款定位。
- * 提示文字水平位置对齐编辑器状态栏文字（同 margin + padding）。
+ * 预览链接目标提示栏：与编辑器状态栏（.editor-statusbar）完全同款定位，
+ * 文字左起始位置对齐。margin + padding 与 .editor-statusbar 逐字相同。
  */
 .preview-target-bar {
-    margin: 0 6px 0 6px;
-}
-.preview-target-label {
     padding: 2px 12px;
+    margin: 0 6px 0 6px;
 }
 
 /*
