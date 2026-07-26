@@ -67,7 +67,7 @@ class HeaderBar(object):
         self.new_document_button = Adw.SplitButton()
         self.new_document_button.set_child(Gtk.Image(icon_name='document-new-symbolic'))
         self.new_document_button.set_can_focus(False)
-        self.new_document_button.set_tooltip_text(_('Create a new document'))
+        self.new_document_button.set_tooltip_text(_('Create a new LaTeX document'))
         self.new_document_button.set_action_name('win.new-latex-document')
         self.new_document_button.add_css_class('headerbar-plain')
         self.new_document_button.add_css_class('headerbar-icon')

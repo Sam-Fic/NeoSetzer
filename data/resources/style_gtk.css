@@ -406,3 +406,15 @@ toolbarview > * > * > * {
     box-shadow: none;
     color: inherit;
 }
+
+/*
+ * 文档内搜索栏（Gtk.SearchBar）：GTK 会自行为 searchbar 包裹
+ * `searchbar > revealer > box`，该内部 box 默认带 1px 底边框（浅色主题下
+ * 接近黑色），在搜索栏与下方编辑器之间形成一条黑线。这里精准去掉该边框。
+ */
+.document-searchbar,
+.document-searchbar > revealer > box {
+    border: none;
+    border-bottom: none;
+    box-shadow: none;
+}

@@ -34,6 +34,7 @@ class SearchBar(Gtk.SearchBar):
 
     def __init__(self):
         Gtk.SearchBar.__init__(self)
+        self.add_css_class('document-searchbar')
         self.set_show_close_button(False)
         self.set_search_mode(False)
 
