@@ -432,13 +432,6 @@ class DocumentStats(object):
             self.view.label_current_file.set_visible(False)
 
     def _update_chars_lines(self):
-        '''更新字符/行数行：显示当前文件的字符数（含/不含空白）和行数。
-
-        texcount 缺失时这一行仍可见，作为 word count 的 fallback——
-        对 CJK 用户尤其重要，word count 对中文意义有限，字符数才是「字数」。
-        无 document 时隐藏。仅显示当前文件，不聚合 included 文件
-        （避免与「当前文件」语义混淆；整篇文档的词数已在 word count 行覆盖）。
-        '''
         document = self.workspace.get_active_document()
         if document is None:
             self._hide_chars_lines()
@@ -453,25 +446,30 @@ class DocumentStats(object):
             python_counts = self.values.get(filename, {}).get('python_counts')
 
         if python_counts is None:
-            # 还没算过（首次打开），显示 '?' 占位
             chars, chars_no_spaces, lines = '?', '?', '?'
         else:
             chars, chars_no_spaces, lines = python_counts
 
-        markup = format_chars_lines_markup_current(
-            os.path.basename(document.get_displayname()),
-            chars, chars_no_spaces, lines)
-        if not self._last_chars_lines_visible or markup != self._last_chars_lines_markup:
-            self._last_chars_lines_markup = markup
+        chars_str = str(chars)
+        lines_str = str(lines)
+        no_spaces_str = str(chars_no_spaces)
+
+        key = (chars_str, no_spaces_str, lines_str)
+        if not self._last_chars_lines_visible or key != self._last_chars_lines_markup:
+            self._last_chars_lines_markup = key
             self._last_chars_lines_visible = True
-            self.view.label_chars_lines.set_markup(markup)
-            self.view.label_chars_lines.set_visible(True)
+            self.view.label_chars_value.set_text(chars_str)
+            self.view.label_chars_desc.set_text(
+                _('Characters') + (f'  ({_("no spaces")}: {no_spaces_str})' if chars != '?' else ''))
+            self.view.label_lines_value.set_text(lines_str)
+            self.view.label_lines_desc.set_text(_('Lines'))
+            self.view.stats_box.set_visible(True)
 
     def _hide_chars_lines(self):
         if self._last_chars_lines_visible:
             self._last_chars_lines_visible = False
             self._last_chars_lines_markup = None
-            self.view.label_chars_lines.set_visible(False)
+            self.view.stats_box.set_visible(False)
 
     def set_group(self, group):
         self.group = group

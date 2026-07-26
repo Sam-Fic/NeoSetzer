@@ -375,7 +375,6 @@ class Gutter(object):
 
             prev_line = line
             offset += line_height
-            # 前进到下一行的 y 位置，下一轮循环据此判断是否还在视口内。
             line_iter, _ = source_view.get_line_at_y(offset)
 
         self.draw_hovered_folding_region(ctx)

@@ -33,33 +33,59 @@ class DocumentStatsView(Gtk.Box):
         description.add_css_class('caption')
         self.append(description)
 
-        # Word counts (texcount) — 整篇文档 + 当前文件。texcount 缺失时由
-        # controller 隐藏这两行，并显示 label_texcount_missing 提示。
         self.label_whole_document = Gtk.Label()
         self.label_whole_document.set_wrap(True)
         self.label_whole_document.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.label_whole_document.set_xalign(0)
-        self.label_whole_document.set_margin_top(12)
         self.append(self.label_whole_document)
 
         self.label_current_file = Gtk.Label()
         self.label_current_file.set_wrap(True)
         self.label_current_file.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.label_current_file.set_xalign(0)
-        self.label_current_file.set_margin_top(12)
         self.append(self.label_current_file)
 
-        # 字符数/行数（纯 Python，不依赖 texcount）— 对 CJK 用户尤其有用。
-        # texcount 缺失时仍可显示，作为 word count 的 fallback。
+        self.stats_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        self.stats_box.set_visible(False)
+        self.append(self.stats_box)
+
+        self.col_chars = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.col_chars.set_hexpand(True)
+        self.stats_box.append(self.col_chars)
+
+        self.label_chars_value = Gtk.Label()
+        self.label_chars_value.set_xalign(0)
+        self.label_chars_value.add_css_class('title-1')
+        self.col_chars.append(self.label_chars_value)
+
+        self.label_chars_desc = Gtk.Label()
+        self.label_chars_desc.set_xalign(0)
+        self.label_chars_desc.add_css_class('dim-label')
+        self.label_chars_desc.add_css_class('caption')
+        self.col_chars.append(self.label_chars_desc)
+
+        self.col_lines = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.col_lines.set_hexpand(True)
+        self.stats_box.append(self.col_lines)
+
+        self.label_lines_value = Gtk.Label()
+        self.label_lines_value.set_xalign(0)
+        self.label_lines_value.add_css_class('title-1')
+        self.col_lines.append(self.label_lines_value)
+
+        self.label_lines_desc = Gtk.Label()
+        self.label_lines_desc.set_xalign(0)
+        self.label_lines_desc.add_css_class('dim-label')
+        self.label_lines_desc.add_css_class('caption')
+        self.col_lines.append(self.label_lines_desc)
+
         self.label_chars_lines = Gtk.Label()
         self.label_chars_lines.set_wrap(True)
         self.label_chars_lines.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.label_chars_lines.set_xalign(0)
-        self.label_chars_lines.set_margin_top(12)
         self.label_chars_lines.set_visible(False)
         self.append(self.label_chars_lines)
 
-        # 选区统计（纯 Python，实时）— 仅在有非空选区时显示。
         self.label_selection = Gtk.Label()
         self.label_selection.set_wrap(True)
         self.label_selection.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
@@ -68,8 +94,6 @@ class DocumentStatsView(Gtk.Box):
         self.label_selection.set_visible(False)
         self.append(self.label_selection)
 
-        # texcount 未安装提示 — 替代原「静默隐藏整个面板」的行为。
-        # 使用 set_markup 以渲染 <a href> 链接和 <tt> 等内联标记。
         self.label_texcount_missing = Gtk.Label()
         self.label_texcount_missing.set_wrap(True)
         self.label_texcount_missing.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
