@@ -100,12 +100,15 @@ class MainApplicationController(Adw.Application):
         languages = [lang] if lang else None
         # gettext.install() 不支持 languages 参数，故用 translation() 显式指定
         # 界面语言（优先于系统环境变量 LANG/LANGUAGE），再注入全局 _ / ngettext。
-        # 开发模式 localedir 为 /tmp/usr/share/locale；若用户选了非英语且该处
-        # 无对应 mo，则回退到系统 locale 路径，使开发版也能加载已装语言包。
+        # 开发模式 localedir 为 /tmp/usr/share/locale；若该处无对应 mo（无论用户
+        # 显式选了语言还是仅靠 LANGUAGE 环境变量），回退到系统 locale 路径，使
+        # 开发版也能加载已安装的语言包。两种路径都失败再 fallback 到英文原文。
         localedir = '@localedir_path@'
-        if lang and lang != 'en' and not os.path.isdir(os.path.join(localedir, lang, 'LC_MESSAGES')):
+        try:
+            trans = gettext.translation('setzer', localedir, languages=languages)
+        except (FileNotFoundError, OSError, IOError):
             localedir = '/usr/share/locale'
-        trans = gettext.translation('setzer', localedir, languages=languages, fallback=True)
+            trans = gettext.translation('setzer', localedir, languages=languages, fallback=True)
         import builtins
         builtins._ = trans.gettext
         builtins.ngettext = trans.ngettext

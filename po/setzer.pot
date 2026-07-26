@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-14 15:33+0200\n"
+"POT-Creation-Date: 2026-07-26 04:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,631 +18,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:8
-msgid "Simple yet full-featured LaTeX editor"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:12
-msgid ""
-"Setzer lets you Write LaTeX documents with an easy to use yet full-featured "
-"editor."
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:13
-msgid "Features include:"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:30
-msgid "Buttons and shortcuts for many LaTeX elements and special characters"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:16
-msgid "Comfortable document creation wizard"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:17
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:38
-msgid "Dark mode"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:42
-msgid "Helpful error messages in the build log"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
-msgid "Looks great on the Gnome desktop"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
-msgid "Good screen to content ratio"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
-msgid "Arguably the best .pdf viewer of any LaTeX editor"
-msgstr ""
-
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:34
-msgid "Document creation wizard"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:48
-#, python-brace-format
-msgid "Reference to '{label}'"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:48
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:63
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:331
-msgid "Reference"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:49
-#, python-brace-format
-msgid "Reference to page of '{label}'"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:49
-msgid "Page reference"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:50
-#, python-brace-format
-msgid "Reference to '{label}', with parantheses"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:50
-msgid "Reference with parantheses"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:52
-#, python-brace-format
-msgid "Cite '{label}'"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:52
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:188
-msgid "Citation"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:53
-#, python-brace-format
-msgid "Cite '{label}' (abbreviated)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:53
-msgid "Citation (abbreviated)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:54
-#, python-brace-format
-msgid "Cite '{label}' (abbreviated with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:54
-msgid "Citation (abbreviated with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:55
-#, python-brace-format
-msgid "Cite '{label}' (detailed)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:55
-msgid "Citation (detailed)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:56
-#, python-brace-format
-msgid "Cite '{label}' (detailed with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:56
-msgid "Citation (detailed with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:57
-#, python-brace-format
-msgid "Cite '{label}' (alternative style 1)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:57
-msgid "Citation (alternative style 1)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:58
-#, python-brace-format
-msgid "Cite '{label}' (alternative style 2)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:58
-msgid "Citation (alternative style 2)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:59
-#, python-brace-format
-msgid "Cite '{label}' (author)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:59
-msgid "Citation (author)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:60
-#, python-brace-format
-msgid "Cite '{label}' (author detailed)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:60
-msgid "Citation (author detailed)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:61
-#, python-brace-format
-msgid "Cite '{label}' (year)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:61
-msgid "Citation (year)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:62
-#, python-brace-format
-msgid "Cite '{label}' (year with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:62
-msgid "Citation (year with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:63
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:65
-#, python-brace-format
-msgid "Cite '{label}' (BibLaTeX)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:63
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:65
-msgid "BibLaTeX citation"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:64
-#, python-brace-format
-msgid "Cite '{label}' (BibLaTeX, with brackets)"
-msgstr ""
-
-#: setzer/app/autocomplete_provider/autocomplete_provider.py:64
-msgid "BibLaTeX citation (with brackets)"
-msgstr ""
-
 #: setzer/dialogs/about/about.py:44
 msgid "Setzer is a LaTeX editor."
 msgstr ""
 
-#: setzer/dialogs/about/about.py:51
+#: setzer/dialogs/about/about.py:49
+msgid "Fork Repository"
+msgstr ""
+
+#: setzer/dialogs/about/about.py:53
+msgid ""
+"\n"
+"<ul>\n"
+"<li>Performance improvements and bug fixes</li>\n"
+"<li>Improved keyboard shortcuts</li>\n"
+"<li>Added print functionality</li>\n"
+"<li>Enhanced preview keyboard navigation</li>\n"
+"<li>Better error handling for file operations</li>\n"
+"</ul>"
+msgstr ""
+
+#: setzer/dialogs/about/about.py:70
+msgid "Fork maintainer"
+msgstr ""
+
+#. TRANSLATORS: 'Name <email@domain.com>' or 'Name https://website.example'
+#: setzer/dialogs/about/about.py:72
 msgid "translator-credits"
 msgstr ""
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:51
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:109
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:33
+#: setzer/popovers/shortcutsbar/document_menu.py:31
 msgid "Add / Remove Packages"
 msgstr ""
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:77
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:48
+msgid "Available Packages"
+msgstr ""
+
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:49
+msgid "Packages you can add to this document."
+msgstr ""
+
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:64
 msgid "Add Package"
 msgstr ""
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:115
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:71
+msgid "Installed Packages"
+msgstr ""
+
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:72
+msgid "Packages currently used by this document."
+msgstr ""
+
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:87
 msgid "Remove Package"
 msgstr ""
 
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:42
-msgid "Article in Journal"
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:67
+msgid "Crash recovery"
 msgstr ""
 
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:42
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:68
+#, python-brace-format
 msgid ""
-"An article in a journal, magazine, newspaper, or other periodical which "
-"forms a self-contained unit with its own title. The title of the periodical "
-"is given in the <tt>journaltitle</tt> field. If the issue has its own title "
-"in addition to the main title of the periodical, it goes in the "
-"<tt>issuetitle</tt> field. Note that <tt>editor</tt> and related fields "
-"refer to the journal while <tt>translator</tt> and related fields refer to "
-"the article."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:43
-msgid "Book"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:43
-msgid ""
-"A single-volume book with one or more authors where the authors share credit "
-"for the work as a whole. This entry type also covers the function of the "
-"@inbook type of traditional BibTeX."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:44
-msgid "Multi-volume Book"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:44
-msgid ""
-"A multi-volume @book. For backwards compatibility, multi-volume books are "
-"also supported by the entry type @book. However, it is advisable to make use "
-"of the dedicated entry type @mvbook."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:45
-msgid "Part of a Book With Its Own Title"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:45
-msgid ""
-"A part of a book which forms a self-contained unit with its own title. Note "
-"that the profile of this entry type is different from standard BibTeX."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:46
-msgid "Book in Book"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:46
-msgid ""
-"This type is similar to @inbook but intended for works originally published "
-"as a stand-alone book. A typical example are books reprinted in the "
-"collected works of an author."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:47
-msgid "Supplemental Material in a Book"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:47
-msgid ""
-"Supplemental material in a @book. This type is closely related to the "
-"@inbook entry type. While @inbook is primarily intended for a part of a book "
-"with its own title (e. g., a single essay in a collection of essays by the "
-"same author), this type is provided for elements such as prefaces, "
-"introductions, forewords, afterwords, etc. which often have a generic title "
-"only. Style guides may require such items to be formatted differently from "
-"other @inbook items. The standard styles will treat this entry type as an "
-"alias for @inbook."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:48
-msgid "Booklet"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:48
-msgid ""
-"A book-like work without a formal publisher or sponsoring institution. Use "
-"the field <tt>howpublished</tt> to supply publishing information in free "
-"format, if applicable. The field <tt>type</tt> may be useful as well."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:49
-msgid "Single-volume Collection"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:49
-msgid ""
-"A single-volume collection with multiple, self-contained contributions by "
-"distinct authors which have their own title. The work as a whole has no "
-"overall author but it will usually have an editor."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:50
-msgid "Multi-volume Collection"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:50
-msgid ""
-"A multi-volume @collection. For backwards compatibility, multi-volume "
-"collections are also supported by the entry type @collection. However, it is "
-"advisable to make use of the dedicated entry type @mvcollection."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:51
-msgid "Article in a Collection"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:51
-msgid ""
-"A contribution to a collection which forms a self-contained unit with a "
-"distinct author and title. The <tt>author</tt> refers to the <tt>title</tt>, "
-"the <tt>editor</tt> to the <tt>booktitle</tt>, i. e., the title of the "
-"collection."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:52
-msgid "Supplemental Material in a Collection"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:52
-msgid ""
-"Supplemental material in a @collection. This type is similar to @suppbook "
-"but related to the @collection entry type. The standard styles will treat "
-"this entry type as an alias for @incollection."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:53
-msgid "Data Set"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:53
-msgid "A data set or a similar collection of (mostly) raw data."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:54
-msgid "Technical Manual"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:54
-msgid ""
-"Technical or other documentation, not necessarily in printed form. The "
-"<tt>author</tt> or <tt>editor</tt> is omissible under certain terms."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:55
-msgid "Miscellaneous"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:55
-msgid ""
-"A fallback type for entries which do not fit into any other category. Use "
-"the field <tt>howpublished</tt> to supply publishing information in free "
-"format, if applicable. The field type may be useful as well. <tt>author</"
-"tt>, <tt>editor</tt>, and <tt>year</tt> are omissible under certain terms."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:56
-msgid "Online Resource"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:56
-msgid ""
-"An online resource. <tt>author</tt>, <tt>editor</tt>, and <tt>year</tt> are "
-"omissible under certain terms. This entry type is intended for sources such "
-"as web sites which are intrinsically online resources. Note that all entry "
-"types support the <tt>url</tt> field. For example, when adding an article "
-"from an online journal, it may be preferable to use the @article type and "
-"its <tt>url</tt> field."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:57
-msgid "Patent"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:57
-msgid ""
-"A patent or patent request. The number or record token is given in the "
-"<tt>number</tt> field. Use the <tt>type</tt> field to specify the type and "
-"the <tt>location</tt> field to indicate the scope of the patent, if "
-"different from the scope implied by the <tt>type</tt>. Note that the "
-"<tt>location</tt> field is treated as a key list with this entry type."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:58
-msgid "Complete Issue of a Periodical"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:58
-msgid ""
-"An complete issue of a periodical, such as a special issue of a journal. The "
-"title of the periodical is given in the <tt>title</tt> field. If the issue "
-"has its own title in addition to the main title of the periodical, it goes "
-"in the <tt>issuetitle</tt> field. The <tt>editor</tt> is omissible under "
-"certain terms."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:59
-msgid "Supplemental Material in a Periodical"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:59
-msgid ""
-"Supplemental material in a @periodical. This type is similar to @suppbook "
-"but related to the @periodical entry type. The role of this entry type may "
-"be more obvious if you bear in mind that the @article type could also be "
-"called @inperiodical. This type may be useful when referring to items such "
-"as regular columns, obituaries, letters to the editor, etc. which only have "
-"a generic title. Style guides may require such items to be formatted "
-"differently from articles in the strict sense of the word. The standard "
-"styles will treat this entry type as an alias for @article."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:60
-msgid "Conference Proceedings"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:60
-msgid ""
-"A single-volume conference proceedings. This type is very similar to "
-"@collection. It supports an optional <tt>organization</tt> field which holds "
-"the sponsoring institution. The <tt>editor</tt> is omissible under certain "
-"terms."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:61
-msgid "Multi-volume Proceedings Entry"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:61
-msgid ""
-"A multi-volume @proceedings entry. For backwards compatibility, multi-volume "
-"proceedings are also supported by the entry type @proceedings. However, it "
-"is advisable to make use of the dedicated entry type @mvproceedings."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:62
-msgid "Article in Conference Proceedings"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:62
-msgid ""
-"An article in a conference proceedings. This type is similar to "
-"@incollection. It supports an optional <tt>organization</tt> field."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:63
-msgid ""
-"A single-volume work of reference such as an encyclopedia or a dictionary. "
-"This is a more specific variant of the generic @collection entry type. The "
-"standard styles will treat this entry type as an alias for @collection."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:64
-msgid "Multi-volume Reference Entry"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:64
-msgid ""
-"A multi-volume @reference entry. The standard styles will treat this entry "
-"type as an alias for @mvcollection. For backwards compatibility, multi-"
-"volume references are also supported by the entry type @reference. However, "
-"it is advisable to make use of the dedicated entry type @mvreference."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:65
-msgid "Article in a Reference"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:65
-msgid ""
-"An article in a work of reference. This is a more specific variant of the "
-"generic @incollection entry type. The standard styles will treat this entry "
-"type as an alias for @incollection."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:66
-msgid "Report"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:66
-msgid ""
-"A technical report, research report, or white paper published by a "
-"university or some other institution. Use the <tt>type</tt> field to specify "
-"the type of report. The sponsoring institution goes in the <tt>institution</"
-"tt> field."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:67
-msgid "Software"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:67
-msgid ""
-"Computer software. The standard styles will treat this entry type as an "
-"alias for @misc."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:68
-msgid "Thesis"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:68
-msgid ""
-"A thesis written for an educational institution to satisfy the requirements "
-"for a degree. Use the <tt>type</tt> field to specify the type of thesis."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:69
-msgid "Unpublished"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:69
-msgid ""
-"A work with an author and a title which has not been formally published, "
-"such as a manuscript or the script of a talk. Use the fields "
-"<tt>howpublished</tt> and <tt>note</tt> to supply additional information in "
-"free format, if applicable."
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:154
-msgid "Create a new BibTeX Entry"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard.py:154
-msgid "Add BibTeX Entry"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard_viewgtk.py:59
-#: setzer/dialogs/building_failed/building_failed.py:49
-#: setzer/dialogs/build_save/build_save.py:50
-#: setzer/dialogs/close_confirmation/close_confirmation.py:119
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:60
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:110
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:96
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:63
-#: setzer/dialogs/open_document/open_document.py:46
-#: setzer/dialogs/open_session/open_session.py:46
-#: setzer/dialogs/preferences/pages/page_font_color.py:369
-#: setzer/dialogs/preferences/pages/page_font_color.py:414
-#: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
-#: setzer/dialogs/save_document/save_document.py:63
-#: setzer/dialogs/save_session/save_session.py:63
-#: setzer/widgets/filechooser_button/filechooser_button.py:75
-msgid "_Cancel"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard_viewgtk.py:61
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:62
-msgid "_Back"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard_viewgtk.py:64
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:65
-msgid "_Next"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/bibtex_wizard_viewgtk.py:67
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:68
-msgid "_Create"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_create_new_entry.py:62
-#: setzer/dialogs/bibtex_wizard/pages/page_create_new_entry.py:63
-msgid "Choose a document type"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_create_new_entry.py:63
-#: setzer/dialogs/bibtex_wizard/pages/page_fields_entry.py:102
-#: setzer/dialogs/document_wizard/pages/page_article_settings.py:104
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:122
-#: setzer/dialogs/document_wizard/pages/page_book_settings.py:104
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:61
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:90
-#: setzer/dialogs/document_wizard/pages/page.py:50
-#: setzer/dialogs/document_wizard/pages/page_report_settings.py:104
-msgid "Step"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_create_new_entry.py:90
-#: setzer/dialogs/bibtex_wizard/pages/page_fields_entry.py:108
-msgid "Required fields"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_create_new_entry.py:97
-#: setzer/dialogs/bibtex_wizard/pages/page_fields_entry.py:121
-msgid "Optional fields"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_fields_entry.py:102
-msgid "Entry fields"
-msgstr ""
-
-#: setzer/dialogs/bibtex_wizard/pages/page_fields_entry.py:123
-msgid "Insert empty optional fields"
-msgstr ""
-
-#: setzer/dialogs/building_failed/building_failed.py:44
+"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"recovered:"
+msgstr ""
+
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:80
+#: setzer/dialogs/close_confirmation/close_confirmation.py:76
+msgid "Discard All"
+msgstr ""
+
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:81
+#: setzer/dialogs/building_failed/building_failed.py:53
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:96
+#: setzer/dialogs/build_save/build_save.py:37
+#: setzer/dialogs/close_confirmation/close_confirmation.py:58
+#: setzer/dialogs/close_confirmation/close_confirmation.py:75
+#: setzer/dialogs/go_to_line/go_to_line.py:41
+#: setzer/dialogs/go_to_page/go_to_page.py:42
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:44
+#: setzer/dialogs/preferences/pages/page_appearance.py:157
+#: setzer/dialogs/preferences/pages/page_appearance.py:230
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:60
+#: setzer/dialogs/preferences/pages/page_build_system.py:122
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:288
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:391
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:55
+#: setzer/workspace/welcome_screen/welcome_screen.py:202
+msgid "Cancel"
+msgstr ""
+
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:82
+msgid "Restore All"
+msgstr ""
+
+#: setzer/dialogs/building_failed/building_failed.py:43
 msgid "Something went wrong."
 msgstr ""
 
-#: setzer/dialogs/building_failed/building_failed.py:45
+#: setzer/dialogs/building_failed/building_failed.py:44
 #, python-brace-format
 msgid ""
 "The build process ended unexpectedly returning \"{error_message}\".\n"
@@ -650,138 +128,307 @@ msgid ""
 "To configure your build system go to Preferences."
 msgstr ""
 
-#: setzer/dialogs/building_failed/building_failed.py:49
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:63
-msgid "_Go to Preferences"
+#: setzer/dialogs/building_failed/building_failed.py:51
+msgid "Copy Error"
 msgstr ""
 
-#: setzer/dialogs/build_save/build_save.py:47
+#: setzer/dialogs/building_failed/building_failed.py:52
+msgid "Search Online"
+msgstr ""
+
+#: setzer/dialogs/building_failed/building_failed.py:54
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:45
+msgid "Go to Preferences"
+msgstr ""
+
+#: setzer/dialogs/building_failed/building_failed.py:64
+msgid "Error message copied to clipboard"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:66
+msgid "Could not open file"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:87
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:289
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:295
+msgid "Copied to clipboard"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:92
+msgid "Save Build Log As"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:95
+#: setzer/dialogs/close_confirmation/close_confirmation.py:60
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:87
+msgid "Save"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:101
+msgid "Text files"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:106
+msgid "All files"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:124
+msgid "Build log saved"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:126
+msgid "Failed to save build log"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:156
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:160
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:110
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:114
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:170
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:174
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:187
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:97
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:106
+msgid "All"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:172
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:174
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:181
+msgid "Undefined reference"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:174
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:174
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:183
+msgid "Missing package"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:176
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:174
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:185
+msgid "Syntax error"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:178
+msgid "All types"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:199
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:204
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:238
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:54
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:60
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:181
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:109
+msgid "Build Log"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:218
+msgid "Building successful"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:220
+#, python-brace-format
+msgid "Building failed with {amount} error"
+msgid_plural "Building failed with {amount} errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:225
+msgid "no warnings or badboxes"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:227
+#, python-brace-format
+msgid "{amount} warning or badbox"
+msgid_plural "{amount} warnings or badboxes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:66
+msgid "Copy All"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:73
+msgid "Save Log As..."
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:80
+msgid "Filters"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:95
+msgid "File:"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:104
+msgid "Type:"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:113
+msgid "Lines:"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:116
+msgid "–"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:126
+msgid "Search build log"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:162
+msgid "Errors"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:163
+msgid "Warnings"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:164
+msgid "Badboxes"
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:182
+msgid "No build log items to show."
+msgstr ""
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:270
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:114
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:67
+msgid "Copy"
+msgstr ""
+
+#: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
 msgid "Document »{document}« has no filename."
 msgstr ""
 
-#: setzer/dialogs/build_save/build_save.py:48
+#: setzer/dialogs/build_save/build_save.py:36
 msgid ""
 "Please save your document to a file, so the build system knows where to put "
-"the .pdf (it will be in the same folder as your document)."
+"the .pdf (it will be in the same folder as your document). A file chooser "
+"will appear for you to select a location and filename."
 msgstr ""
 
-#: setzer/dialogs/build_save/build_save.py:50
-msgid "_Save document now"
+#: setzer/dialogs/build_save/build_save.py:38
+msgid "Save document now"
 msgstr ""
 
-#: setzer/dialogs/close_confirmation/close_confirmation.py:86
+#: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
 msgid "Document »{document}« has unsaved changes."
 msgstr ""
 
-#: setzer/dialogs/close_confirmation/close_confirmation.py:87
+#: setzer/dialogs/close_confirmation/close_confirmation.py:53
 msgid "If you close without saving, these changes will be lost."
 msgstr ""
 
-#: setzer/dialogs/close_confirmation/close_confirmation.py:90
+#: setzer/dialogs/close_confirmation/close_confirmation.py:59
+msgid "Close without Saving"
+msgstr ""
+
+#: setzer/dialogs/close_confirmation/close_confirmation.py:71
+#, python-brace-format
+msgid "You have unsaved changes in {n} documents."
+msgstr ""
+
+#: setzer/dialogs/close_confirmation/close_confirmation.py:72
 #, python-brace-format
 msgid ""
-"There are {amount} documents with unsaved changes.\n"
-"Save changes before closing?"
+"The following documents have unsaved changes:\n"
+"\n"
+"{names}\n"
+"\n"
+"If you close without saving, these changes will be lost."
 msgstr ""
 
-#: setzer/dialogs/close_confirmation/close_confirmation.py:91
-msgid "Select the documents you want to save:"
+#: setzer/dialogs/close_confirmation/close_confirmation.py:77
+msgid "Save All"
 msgstr ""
 
-#: setzer/dialogs/close_confirmation/close_confirmation.py:113
-msgid "If you close without saving, all changes will be lost."
-msgstr ""
-
-#: setzer/dialogs/close_confirmation/close_confirmation.py:119
-msgid "Close _without Saving"
-msgstr ""
-
-#: setzer/dialogs/close_confirmation/close_confirmation.py:119
-#: setzer/dialogs/save_document/save_document.py:63
-#: setzer/dialogs/save_document/save_document.py:71
-#: setzer/dialogs/save_session/save_session.py:63
-#: setzer/dialogs/save_session/save_session.py:71
-msgid "_Save"
-msgstr ""
-
-#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:49
+#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
 msgid "Document »{document}« has changed on disk."
 msgstr ""
 
-#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:50
+#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
 msgid "Should Setzer reload it now?"
 msgstr ""
 
-#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:52
-msgid "_Keep the current Version"
+#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
+msgid "Keep the current Version"
 msgstr ""
 
-#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:52
-msgid "_Reload from Disk"
+#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:45
+msgid "Reload from Disk"
 msgstr ""
 
-#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43
+#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
 msgid "Document »{document}« was deleted from disk or moved."
 msgstr ""
 
-#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:44
+#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
 "If you close it or close Setzer without saving, this document will be lost."
 msgstr ""
 
-#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:46
-msgid "Ok"
+#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
+msgid "Save As…"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:310
+#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:47
+msgid "Keep Open"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/document_wizard.py:333
 msgid "Your name"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:310
+#: setzer/dialogs/document_wizard/document_wizard.py:333
 msgid "Your address"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:310
+#: setzer/dialogs/document_wizard/document_wizard.py:333
 msgid "Your phone number"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:316
+#: setzer/dialogs/document_wizard/document_wizard.py:337
 msgid "Destination"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:316
+#: setzer/dialogs/document_wizard/document_wizard.py:337
 msgid "Address of the destination"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:316
+#: setzer/dialogs/document_wizard/document_wizard.py:338
 msgid "Phone number of the destination"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:318
+#: setzer/dialogs/document_wizard/document_wizard.py:339
 msgid "Dear addressee,"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:322
+#: setzer/dialogs/document_wizard/document_wizard.py:342
 msgid "Yours sincerely,"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:324
+#: setzer/dialogs/document_wizard/document_wizard.py:343
 msgid "Other destination"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:325
+#: setzer/dialogs/document_wizard/document_wizard.py:344
 msgid "PS: PostScriptum"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:326
+#: setzer/dialogs/document_wizard/document_wizard.py:345
 msgid "Enclosures"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard.py:399
+#: setzer/dialogs/document_wizard/document_wizard.py:412
 msgid ""
 "% NOTE: The content of your document has been commented out\n"
 "% by the wizard. Just do a CTRL+Z (undo) to put it back in\n"
@@ -790,62 +437,109 @@ msgid ""
 "% \n"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:57
-#: setzer/document/shortcutsbar/shortcutsbar_viewgtk.py:80
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:34
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:48
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:379
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:385
 msgid "Create a template document"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_article_settings.py:103
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:61
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:42
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:41
+msgid "_Cancel"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:64
+msgid "_Back"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:67
+msgid "_Next"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:71
+msgid "_Create"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_article_settings.py:104
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:119
+#: setzer/dialogs/document_wizard/pages/page_book_settings.py:104
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:62
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:132
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:94
+#: setzer/dialogs/document_wizard/pages/page.py:89
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:102
+msgid "Step"
+msgstr ""
+
 #: setzer/dialogs/document_wizard/pages/page_article_settings.py:104
 msgid "Article settings"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_article_settings.py:106
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:150
-#: setzer/dialogs/document_wizard/pages/page_book_settings.py:106
-#: setzer/dialogs/document_wizard/pages/page_report_settings.py:106
-#: setzer/dialogs/preferences/pages/page_build_system.py:173
-msgid "Options"
+#: setzer/dialogs/document_wizard/pages/page_article_settings.py:107
+#: setzer/dialogs/document_wizard/pages/page_book_settings.py:107
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:97
+#: setzer/dialogs/document_wizard/pages/page.py:93
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:105
+msgid "Page format"
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_article_settings.py:111
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:142
 #: setzer/dialogs/document_wizard/pages/page_book_settings.py:111
-#: setzer/dialogs/document_wizard/pages/page_report_settings.py:111
-msgid "Two-column layout"
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:109
+#: setzer/dialogs/preferences/pages/page_build_system.py:271
+msgid "Options"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:121
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:122
+#: setzer/dialogs/document_wizard/pages/page_article_settings.py:116
+#: setzer/dialogs/document_wizard/pages/page_book_settings.py:116
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:101
+#: setzer/dialogs/document_wizard/pages/page.py:109
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:114
+msgid "Font size"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_article_settings.py:120
+#: setzer/dialogs/document_wizard/pages/page_book_settings.py:120
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:105
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:118
+msgid "Page margins"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_article_settings.py:121
+#: setzer/dialogs/document_wizard/pages/page_book_settings.py:121
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:106
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:119
+msgid "All values are in cm (1 inch ≅ 2.54 cm)."
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:119
 msgid "Beamer settings"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:128
-msgid "Themes"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:155
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:144
 msgid "Show navigation buttons"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:156
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:146
 msgid "Align content to the top of pages"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:158
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:147
 msgid "(\"t\" option, it's centered by default)"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_book_settings.py:103
 #: setzer/dialogs/document_wizard/pages/page_book_settings.py:104
 msgid "Book settings"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:60
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:61
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:62
 msgid "Choose a document class"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:82
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:81
 msgid ""
 "<b>Article:</b>  For articles in scientific journals, term papers, handouts, "
 "short reports, …\n"
@@ -854,790 +548,1495 @@ msgid ""
 "point for more custom layouts."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:83
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:82
 msgid "<b>Book:</b>  For actual books containing many chapters and sections."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:84
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:83
 msgid ""
 "<b>Report:</b>  For longer reports and articles containing more than one "
 "chapter, small books, thesis."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:85
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:84
 msgid "<b>Letter:</b>  For writing letters."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:86
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:85
 msgid ""
 "<b>Beamer:</b>  A class for making presentation slides with LaTeX.\n"
 "\n"
 "There are many predefined presentation styles."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:116
-msgid "Others…"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:136
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:132
 msgid "General document settings"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:141
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:125
-msgid "Title"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:146
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:124
-msgid "Author"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:155
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:126
-msgid "Date"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:164
-msgid "Language"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:178
-msgid ""
-"The main language for this document. This is used to apply rules for "
-"hyphenation and other purposes."
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
-msgid "Packages"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:198
-msgid "AMS math packages"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:225
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
 msgid ""
 "<b>AMS packages:</b> provide mathematical symbols, math-related "
 "environments, …"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:225
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:226
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:227
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:228
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:229
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:230
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:82
-#: setzer/dialogs/preferences/pages/page_build_system.py:216
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:138
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:139
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:140
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:141
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:142
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
+#: setzer/dialogs/preferences/pages/page_build_system.py:342
 msgid "recommended"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:226
-#: data/resources/latexdb/packages/general.xml:22
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:138
 msgid "contains symbols to be used in textmode."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:227
-#: data/resources/latexdb/packages/general.xml:15
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:139
 msgid "include graphics in your document."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:228
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:140
 msgid "foreground and background color."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:229
-#: data/resources/latexdb/packages/general.xml:27
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:141
 msgid "enables colored text."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:230
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:142
 msgid "type urls with the \\url{..} command without escaping them."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:231
-#: data/resources/latexdb/packages/general.xml:16
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:143
 msgid "create hyperlinks within your document."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:232
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:144
 msgid ""
 "define theorem environments (like \"definition\", \"lemma\", …) with custom "
 "styling."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:233
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:145
 msgid "provides the \\listing environment for embedding programming code."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:234
-#: data/resources/latexdb/packages/general.xml:14
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:146
 msgid "create a glossary for your document."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:235
-#: data/resources/latexdb/packages/general.xml:20
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:147
 msgid "paragraphs without indentation."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:89
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:90
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:152
+msgid "Document properties"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:155
+#: setzer/popovers/shortcutsbar/document_menu.py:43
+msgid "Title"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:157
+#: setzer/popovers/shortcutsbar/document_menu.py:42
+msgid "Author"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:159
+#: setzer/popovers/shortcutsbar/document_menu.py:44
+msgid "Date"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:166
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:169
+#: setzer/dialogs/preferences/pages/page_appearance.py:295
+msgid "Language"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:167
+msgid ""
+"The main language for this document. This is used to apply rules for "
+"hyphenation and other purposes."
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:183
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
+msgid "Font package"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:184
+msgid ""
+"Select the font package to include in the preamble. lmodern is recommended "
+"for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX."
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
+msgid "Latin Modern (lmodern)"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
+msgid "Fontspec (for XeLaTeX/LuaLaTeX)"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+msgid "None"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:201
+msgid "AMS math packages"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
+msgid "Packages"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:94
 msgid "Letter settings"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page.py:56
-msgid "Page format"
+#: setzer/dialogs/document_wizard/pages/page.py:101
+msgid "Landscape format"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page.py:69
-msgid "Portrait"
+#: setzer/dialogs/document_wizard/pages/page.py:104
+msgid "Two-column layout"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page.py:70
-msgid "Landscape"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page.py:75
-msgid "Page margins"
-msgstr ""
-
-#: setzer/dialogs/document_wizard/pages/page.py:79
+#: setzer/dialogs/document_wizard/pages/page.py:115
 msgid "Use default margins"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page.py:107
-msgid "All values are in cm (1 inch ≅ 2.54 cm)."
+#: setzer/dialogs/document_wizard/pages/page.py:117
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:139
+msgid "Left"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page.py:112
-msgid "Font size"
+#: setzer/dialogs/document_wizard/pages/page.py:118
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:140
+msgid "Right"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_report_settings.py:103
-#: setzer/dialogs/document_wizard/pages/page_report_settings.py:104
+#: setzer/dialogs/document_wizard/pages/page.py:119
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:70
+msgid "Top"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page.py:120
+msgid "Bottom"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_report_settings.py:102
 msgid "Report settings"
 msgstr ""
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:95
+#: setzer/dialogs/go_to_line/go_to_line.py:39
+msgid "Go to Line"
+msgstr ""
+
+#: setzer/dialogs/go_to_line/go_to_line.py:40
+#, python-brace-format
+msgid "Enter a line number (1–{lines})."
+msgstr ""
+
+#: setzer/dialogs/go_to_line/go_to_line.py:42
+#: setzer/dialogs/go_to_page/go_to_page.py:43
+msgid "Go"
+msgstr ""
+
+#: setzer/dialogs/go_to_line/go_to_line.py:49
+msgid "Line number"
+msgstr ""
+
+#: setzer/dialogs/go_to_page/go_to_page.py:40
+msgid "Go to Page"
+msgstr ""
+
+#: setzer/dialogs/go_to_page/go_to_page.py:41
+#, python-brace-format
+msgid "Enter a page number (1–{pages})."
+msgstr ""
+
+#: setzer/dialogs/go_to_page/go_to_page.py:50
+msgid "Page number"
+msgstr ""
+
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:105
 msgid "BibTeX Files"
 msgstr ""
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:50
-msgid "BibTeX file to include"
-msgstr ""
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:56
-msgid "Select a BibTeX File"
-msgstr ""
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:59
-msgid "Bibliography style"
-msgstr ""
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:75
-msgid "Show bibliography styles for the 'natbib' package"
-msgstr ""
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:39
 msgid "Include BibTeX file"
 msgstr ""
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:113
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:99
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:46
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:45
 msgid "_Include"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file.py:33
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:54
+msgid "BibTeX file to include"
+msgstr ""
+
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:60
+msgid "Select a BibTeX File"
+msgstr ""
+
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:63
+msgid "Bibliography style"
+msgstr ""
+
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:79
+msgid "Show bibliography styles for the 'natbib' package"
+msgstr ""
+
+#: setzer/dialogs/include_latex_file/include_latex_file.py:37
 msgid "Relative Path"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file.py:33
+#: setzer/dialogs/include_latex_file/include_latex_file.py:37
 msgid "Absolute Path"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file.py:68
+#: setzer/dialogs/include_latex_file/include_latex_file.py:86
 msgid "LaTeX Files"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:50
-msgid "LaTeX file to include"
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:38
+msgid "Include LaTeX file"
 msgstr ""
 
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:56
+msgid "LaTeX file to include"
+msgstr ""
+
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:62
 msgid "Select a LaTeX File"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:59
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:65
 msgid "Type of path to included file"
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:82
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
 msgid ""
 "<b>Relative Path:</b> Set the path relative to the main document. This is "
 "useful when the included file is in the same folder as the main document and "
 "you want to move around both of them together."
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:82
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
 msgid ""
 "<b>Absolute Path:</b> Specify the absolute location of the included file in "
 "your filesystem."
 msgstr ""
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
-msgid "Include LaTeX file"
-msgstr ""
-
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:47
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:35
 msgid "LateX Interpreter is missing."
 msgstr ""
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:49
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
 "Setzer is configured to use »{interpreter}« which seems to be missing on "
 "this system.\n"
 "\n"
-"To choose a different interpreter go to Preferences.\n"
+"You can install it with:\n"
+"• Ubuntu/Debian: sudo apt install texlive-latex-base\n"
+"• Fedora: sudo dnf install texlive-scheme-medium\n"
+"• Arch Linux: sudo pacman -S texlive-core\n"
 "\n"
-"To install interpreters in Flatpak, open a terminal and run the following "
-"command:\n"
-"\n"
-"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+"Or choose a different interpreter in Preferences."
 msgstr ""
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:57
-#, python-brace-format
-msgid ""
-"Setzer is configured to use »{interpreter}« which seems to be missing on "
-"this system.\n"
-"\n"
-"To choose a different interpreter go to Preferences.\n"
-"\n"
-"For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/"
-"wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</"
-"a>"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:35
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:44
 msgid "Documents"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:36
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:45
 msgid "Create new document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:37
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:62
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:63
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:70
 msgid "Open a document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:38
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
 msgid "Show recent documents"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:39
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:54
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:154
 msgid "Show open documents"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:40
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:49
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:156
 msgid "Switch to the next open document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:41
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:105
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:50
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:149
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:114
 msgid "Save the current document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:42
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:51
 msgid "Save the document with a new filename"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:43
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:52
 msgid "Close the current document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:172
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:200
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:55
 msgid "Tools"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
-#: setzer/document/build_widget/build_widget_viewgtk.py:37
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:56
+#: setzer/document/build_widget/build_widget_viewgtk.py:58
+#: setzer/document/build_widget/build_widget_viewgtk.py:108
 msgid "Save and build .pdf-file from document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:57
 msgid "Build .pdf-file from document"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:49
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58
 msgid "Show current position in preview"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:53
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
+msgid "Windows and Panels"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62
 msgid "Show help panel"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:54
-msgid "Show document structure panel"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:55
-msgid "Show symbols panel"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:56
-msgid "Spellchecking dialog"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:57
-msgid "Show build log"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58
-msgid "Show preview panel"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:59
-msgid "Show global menu"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:60
-msgid "Show keyboard shortcuts"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
-msgid "Close Application"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:63
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:166
+msgid "Toggle document structure panel"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:64
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:68
-msgid "Find and Replace"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:167
+msgid "Toggle symbols panel"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:65
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:58
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:67
-msgid "Find"
+msgid "Toggle build log"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:66
-msgid "Find the next match"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:172
+msgid "Toggle preview panel"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:67
-msgid "Find the previous match"
+msgid "Show global menu"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:71
-#: setzer/document/context_menu/context_menu_viewgtk.py:71
-msgid "Zoom"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:68
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:174
+msgid "Show context menu"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:72
-#: setzer/document/preview/zoom_widget/zoom_widget_viewgtk.py:37
-msgid "Zoom in"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:69
+msgid "Show keyboard shortcuts"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:70
+msgid "Close Application"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:73
-#: setzer/document/preview/zoom_widget/zoom_widget_viewgtk.py:33
-msgid "Zoom out"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:77
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:100
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:488
+msgid "Find and Replace"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:74
-msgid "Reset zoom"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:99
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:94
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:482
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:170
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:73
+msgid "Find"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:78
-msgid "Copy selected text to clipboard"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:75
+msgid "Find the next match"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:79
-msgid "Cut selected text to clipboard"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:76
+msgid "Find the previous match"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:80
-msgid "Paste text from clipboard"
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:96
+#: setzer/workspace/context_menu/context_menu.py:70
+msgid "Zoom"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:81
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:78
+msgid "Zoom in"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:82
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:61
+msgid "Zoom out"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83
-msgid "Undo and Redo"
+msgid "Reset zoom"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:84
-msgid "Undo previous text edit"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:86
+msgid "Copy and Paste"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:85
-msgid "Redo previous text edit"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:87
+msgid "Copy selected text to clipboard"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:88
-msgid "Selection"
+msgid "Cut selected text to clipboard"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:89
-msgid "Select all text"
+msgid "Paste text from clipboard"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92
-msgid "Editing"
+msgid "Undo and Redo"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:93
-msgid "Toggle insert / overwrite"
+msgid "Undo previous text edit"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:94
-msgid "Move current line up"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:95
-msgid "Move current line down"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:96
-msgid "Move current word left"
+msgid "Redo previous text edit"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:97
-msgid "Move current word right"
+msgid "Selection"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
-msgid "Increment number at cursor"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:180
+msgid "Select all text"
 msgstr ""
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:99
-msgid "Decrement number at cursor"
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:101
+msgid "Editing"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102
-msgid "LaTeX Shortcuts"
+msgid "Toggle insert / overwrite"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103
-msgid "Comment / Uncomment current line(s)"
+msgid "Move current line up"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:104
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:281
-msgid "New Line"
+msgid "Move current line down"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:105
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:71
-msgid "Bold Text"
+msgid "Move current word left"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:106
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:62
-msgid "Italic Text"
+msgid "Move current word right"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:107
-msgid "Underlined Text"
+msgid "Increment number at cursor"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:108
-msgid "Typewriter Text"
+msgid "Decrement number at cursor"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:109
-msgid "Emphasized Text"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:110
-msgid "Quotation Marks"
-msgstr ""
-
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:111
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:313
-msgid "List Item"
+msgid "Delete current line"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:112
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:236
-msgid "Environment"
+msgid "LaTeX Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:113
+msgid "Comment / Uncomment current line(s)"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:114
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:124
+#: setzer/popovers/shortcutsbar/text_menu.py:85
+msgid "New Line"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:115
-msgid "Math Shortcuts"
+msgid "Bold Text"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:116
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:387
-msgid "Inline Math Section"
+msgid "Italic Text"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:117
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:388
-msgid "Display Math Section"
+msgid "Underlined Text"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:118
-msgid "Equation"
+msgid "Typewriter Text"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:119
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:391
-msgid "Subscript"
+msgid "Emphasized Text"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:120
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:392
-msgid "Superscript"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:130
+msgid "Quotation Marks"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:121
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:393
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:131
+#: setzer/popovers/shortcutsbar/text_menu.py:124
+msgid "List Item"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:122
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:132
+#: setzer/popovers/shortcutsbar/text_menu.py:38
+msgid "Environment"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:125
+msgid "Math Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:126
+#: setzer/popovers/shortcutsbar/math_menu.py:32
+msgid "Inline Math Section"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:127
+#: setzer/popovers/shortcutsbar/math_menu.py:33
+msgid "Display Math Section"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:128
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:135
+msgid "Equation"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:129
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:136
+#: setzer/popovers/shortcutsbar/math_menu.py:36
+msgid "Subscript"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:130
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:137
+#: setzer/popovers/shortcutsbar/math_menu.py:37
+msgid "Superscript"
+msgstr ""
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:131
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:138
+#: setzer/popovers/shortcutsbar/math_menu.py:38
 msgid "Fraction"
 msgstr ""
 
-#: setzer/dialogs/open_document/open_document.py:46
-#: setzer/dialogs/open_document/open_document.py:52
-#: setzer/dialogs/open_session/open_session.py:46
-#: setzer/dialogs/open_session/open_session.py:52
-msgid "_Open"
-msgstr ""
-
-#: setzer/dialogs/open_document/open_document.py:47
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:58
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:69
+#: setzer/dialogs/open_document/open_document.py:38
 msgid "Open"
 msgstr ""
 
-#: setzer/dialogs/open_document/open_document.py:62
+#: setzer/dialogs/open_document/open_document.py:45
 msgid "LaTeX and BibTeX Files"
 msgstr ""
 
-#: setzer/dialogs/open_session/open_session.py:47
+#: setzer/dialogs/open_document/open_document.py:76
+#, python-brace-format
+msgid "Could not open: {filename}"
+msgstr ""
+
+#: setzer/dialogs/open_document/open_document.py:79
+#, python-brace-format
+msgid "Could not open {count} files"
+msgstr ""
+
+#: setzer/dialogs/open_session/open_session.py:41
 msgid "Load Session"
 msgstr ""
 
-#: setzer/dialogs/open_session/open_session.py:59
+#: setzer/dialogs/open_session/open_session.py:45
+#: setzer/dialogs/save_session/save_session.py:48
 msgid "Setzer Session"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:126
+#: setzer/dialogs/preferences/pages/page_appearance.py:82
+msgid "Follow system theme"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:155
+msgid "Restart Required"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:156
+msgid "The new language will take effect after the application is restarted."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:158
+msgid "Restart"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:200
+msgid "Font size is too small; clamped to 6pt minimum."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:202
+msgid "Font size is too large; clamped to 24pt maximum."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:228
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:58
+#: setzer/dialogs/preferences/pages/page_build_system.py:120
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:389
+msgid "Reset to Defaults?"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:229
+msgid "All appearance settings will be restored to their default values."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:231
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:61
+#: setzer/dialogs/preferences/pages/page_build_system.py:123
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:392
+msgid "Reset"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:265
+msgid "Appearance"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:270
+msgid "Theme"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:274
+msgid "Color Scheme"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:288
+msgid "Editor Color Scheme"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:290
+msgid ""
+"Color scheme for the LaTeX editor. \"Follow system theme\" matches the "
+"application light/dark mode."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:299
+msgid "Interface Language"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:300
+msgid "Changes take effect after the application is restarted."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:309
+msgid "Font"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:314
+msgid "Use the system fixed width font"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:321
+msgid "Set Editor Font"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:328
+msgid "Line Spacing"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:330
+msgid "Extra vertical space between lines in pixels."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:335
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:110
+msgid "Preview"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:346
+msgid "Preview Sidebar Width"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:347
+msgid "Percentage of the window width allocated to the PDF preview."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:355
+msgid "Match PDF colors to theme"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:357
+msgid "Recolor the PDF preview to match the light/dark theme."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:366
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:116
+#: setzer/dialogs/preferences/pages/page_build_system.py:352
+#: setzer/dialogs/preferences/pages/page_editor.py:162
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:524
+msgid "Reset to Defaults"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:59
+msgid "All autocomplete settings will be restored to their default values."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:82
+msgid "Autocomplete"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:86
+msgid "LaTeX Commands"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:90
+msgid "Suggest matching LaTeX Commands"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:94
+msgid "Brackets and Blocks"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:98
+msgid "Automatically add closing brackets"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:102
+msgid "Add brackets to selected text, instead of replacing it with them"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:106
+msgid "Jump over closing brackets with Tab"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_autocomplete.py:110
+msgid "Update matching begin / end blocks"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:121
+msgid "All build system settings will be restored to their default values."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:234
+msgid "Build System"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:238
 msgid "LaTeX Interpreter"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:134
+#: setzer/dialogs/preferences/pages/page_build_system.py:252
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a "
 "terminal and run the following command:\n"
-"\n"
-"    flatpak install org.freedesktop.Sdk.Extension.texlive"
+"flatpak install org.freedesktop.Sdk.Extension.texlive"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:138
+#: setzer/dialogs/preferences/pages/page_build_system.py:255
 msgid ""
 "No LaTeX interpreter found. For instructions on installing LaTeX see <a "
-"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en."
-"wikibooks.org/wiki/LaTeX/Installation</a>"
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://"
+"en.wikibooks.org/wiki/LaTeX/Installation</a>"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:164
+#: setzer/dialogs/preferences/pages/page_build_system.py:260
+msgid "Interpreter"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:265
 msgid ""
 "Please note: the Tectonic backend uses only the V1 command-line interface. "
 "Tectonic.toml configuration files are ignored."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:178
+#: setzer/dialogs/preferences/pages/page_build_system.py:275
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:183
+#: setzer/dialogs/preferences/pages/page_build_system.py:279
 msgid "Use Latexmk"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:188
-msgid "Automatically show build log .."
+#: setzer/dialogs/preferences/pages/page_build_system.py:283
+msgid "Auto Build"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:193
+#: setzer/dialogs/preferences/pages/page_build_system.py:287
+msgid "Automatically build and save after changes"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:288
+msgid ""
+"When you stop typing, the document is saved and rebuilt after a short delay."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:292
+msgid "Delay (seconds)"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:303
+msgid "Pop up build log on auto-build errors"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:305
+msgid ""
+"When auto-build is on, automatically show the build log when errors occur. "
+"Disable to avoid interruptions while typing."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:310
+msgid "Automatically show build log"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:314
+msgid "Show build log"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:316
 msgid ".. only when errors occurred."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:194
+#: setzer/dialogs/preferences/pages/page_build_system.py:317
 msgid ".. on errors and warnings."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:195
+#: setzer/dialogs/preferences/pages/page_build_system.py:318
 msgid ".. on errors, warnings and badboxes."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:204
+#: setzer/dialogs/preferences/pages/page_build_system.py:324
 msgid "Embedded system commands"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:211
+#: setzer/dialogs/preferences/pages/page_build_system.py:329
 msgid ""
 "Warning: enable this only if you have to. It can cause security problems "
 "when building files from untrusted sources."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:216
+#: setzer/dialogs/preferences/pages/page_build_system.py:340
+msgid "System commands"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:342
 msgid "Disable"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:217
+#: setzer/dialogs/preferences/pages/page_build_system.py:343
 msgid "Enable restricted \\write18{SHELL COMMAND}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:218
+#: setzer/dialogs/preferences/pages/page_build_system.py:344
 msgid "Fully enable \\write18{SHELL COMMAND}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:65
+#: setzer/dialogs/preferences/pages/page_editor.py:89
 msgid "Tab Stops"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:70
+#: setzer/dialogs/preferences/pages/page_editor.py:93
 msgid "Insert spaces instead of tabs"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:74
-msgid "Set Tab Width:"
+#: setzer/dialogs/preferences/pages/page_editor.py:97
+msgid "Tab Width"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:85
+#: setzer/dialogs/preferences/pages/page_editor.py:104
 msgid "Line Numbers"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:90
+#: setzer/dialogs/preferences/pages/page_editor.py:108
 msgid "Show line numbers"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:94
+#: setzer/dialogs/preferences/pages/page_editor.py:112
 msgid "Line Wrapping"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:99
+#: setzer/dialogs/preferences/pages/page_editor.py:116
 msgid "Enable line wrapping"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:103
+#: setzer/dialogs/preferences/pages/page_editor.py:120
 msgid "Code Folding"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:108
+#: setzer/dialogs/preferences/pages/page_editor.py:124
 msgid "Enable code folding"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:112
+#: setzer/dialogs/preferences/pages/page_editor.py:128
 msgid "Highlighting"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:117
+#: setzer/dialogs/preferences/pages/page_editor.py:132
 msgid "Highlight current line"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:119
+#: setzer/dialogs/preferences/pages/page_editor.py:136
 msgid "Highlight matching brackets"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:240
-msgid "Font"
+#: setzer/dialogs/preferences/pages/page_editor.py:142
+msgid "Auto Save"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:247
-msgid "Use the system fixed width font ("
+#: setzer/dialogs/preferences/pages/page_editor.py:146
+msgid "Enable auto save (crash recovery)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:254
-msgid "Set Editor Font:"
+#: setzer/dialogs/preferences/pages/page_editor.py:147
+msgid "Periodically save buffer to a temp file for crash recovery"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:268
-msgid "UI Colors"
+#: setzer/dialogs/preferences/pages/page_editor.py:151
+msgid "Auto save interval (seconds)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:274
-msgid "Default"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:85
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:384
+msgid "New Document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:276
-msgid "Light Theme"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:86
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:28
+msgid "Open Document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:278
-msgid "Dark Theme"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:88
+msgid "Save As"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:284
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:190
-msgid "Invert Colors in .pdf-Preview"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:89
+msgid "Print"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:289
-msgid "Editor Colors"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:90
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:101
+msgid "Close Document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:309
-msgid "Remove active scheme"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:91
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:111
+msgid "Quit"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:312
-msgid "Add from file…"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:92
+msgid "Show Keyboard Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:317
-msgid "Preview"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:93
+msgid "Show Open Documents"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:369
-#: setzer/dialogs/preferences/pages/page_font_color.py:375
-msgid "_Add Scheme"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:94
+msgid "Switch Document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:370
-msgid "Add Scheme"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:95
+msgid "Show Document Chooser"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:382
-msgid "Color Scheme Files"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:96
+#: setzer/document/preview/context_menu/context_menu.py:73
+msgid "Zoom In"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:410
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:97
+#: setzer/document/preview/context_menu/context_menu.py:74
+msgid "Zoom Out"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:98
+msgid "Reset Zoom"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:101
+msgid "Find Next"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:102
+msgid "Find Previous"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:103
+msgid "Help"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:104
+#: setzer/workspace/sidebar/sidebar.py:68
+msgid "Document Structure"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:105
+msgid "Symbols"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:106
+msgid "Save and Build"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:107
+msgid "Build"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:108
+msgid "Forward Sync"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:111
+msgid "Hamburger Menu"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:112
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:495
+msgid "Context Menu"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:113
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:66
+msgid "Cut"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:115
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:68
+msgid "Paste"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:116
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:61
+msgid "Undo"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:117
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:62
+msgid "Redo"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:118
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:73
+msgid "Select All"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:119
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:125
+msgid "Toggle Comment"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:120
+msgid "Delete Line"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:121
+msgid "Duplicate Line"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:122
+msgid "Move Line Up"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:123
+msgid "Move Line Down"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:125
+#: setzer/popovers/shortcutsbar/math_menu.py:71
+#: setzer/popovers/shortcutsbar/text_menu.py:48
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:447
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:450
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:451
+msgid "Bold"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:126
+#: setzer/popovers/shortcutsbar/math_menu.py:72
+#: setzer/popovers/shortcutsbar/text_menu.py:49
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:463
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:466
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:467
+msgid "Italic"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:127
+#: setzer/popovers/shortcutsbar/text_menu.py:50
+msgid "Underline"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:128
+#: setzer/popovers/shortcutsbar/math_menu.py:75
+#: setzer/popovers/shortcutsbar/text_menu.py:52
+msgid "Typewriter"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:129
+msgid "Emphasized"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:133
+msgid "Inline Math"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:134
+msgid "Display Math"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:147
+msgid "Create a new LaTeX document"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:148
+msgid "Open an existing document"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:150
+msgid "Save the active document with a new filename"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:151
+msgid "Print the active document"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:152
+msgid "Close the active document"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:153
+msgid "Quit the application"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:154
+msgid "Show keyboard shortcuts dialog"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:155
+msgid "Show list of open documents"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:157
+msgid "Show document chooser popover"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:158
+msgid "Increase font size"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:159
+msgid "Decrease font size"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:160
+msgid "Reset font size to default"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:161
+msgid "Find text in document"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:162
+msgid "Find and replace text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:163
+msgid "Find next match"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:164
+msgid "Find previous match"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:165
+msgid "Toggle help panel"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:168
+msgid "Save and build PDF"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:169
+msgid "Build PDF without saving"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:170
+msgid "Sync PDF position to editor"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:171
+msgid "Toggle build log panel"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:173
+msgid "Show hamburger menu"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:175
+msgid "Cut selected text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:176
+msgid "Copy selected text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:177
+msgid "Paste from clipboard"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:178
+msgid "Undo last action"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:179
+msgid "Redo last action"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:181
+msgid "Comment/uncomment lines"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:182
+msgid "Delete the current line"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:183
+msgid "Duplicate the current line"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:184
+msgid "Move the current line up"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:185
+msgid "Move the current line down"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:186
+msgid "Insert new line"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:187
+msgid "Insert bold text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:188
+msgid "Insert italic text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:189
+msgid "Insert underlined text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:190
+msgid "Insert typewriter text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:191
+msgid "Insert emphasized text"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:192
+msgid "Insert quotation marks"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:193
+msgid "Insert list item"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:194
+msgid "Insert environment"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:195
+msgid "Insert inline math"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:196
+msgid "Insert display math"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:197
+msgid "Insert equation"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:198
+msgid "Insert subscript"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:199
+msgid "Insert superscript"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:200
+msgid "Insert fraction"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:201
+msgid "Insert \\left"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:202
+msgid "Insert \\right"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:208
+msgid "Not set"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:234
+msgid "Press shortcut..."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:238
+msgid "Press desired key combination, or Escape to cancel"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:285
+msgid "Shortcut Already in Use"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:286
 #, python-brace-format
-msgid "Removing syntax scheme »{name}«."
+msgid ""
+"This shortcut is currently assigned to \"{other}\". Reassigning it will "
+"remove the shortcut from that action."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:412
-#: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
-msgid "Do you really want to do this?"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:289
+msgid "Reassign"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_font_color.py:414
-msgid "_Yes, remove it"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:390
+msgid "All keyboard shortcuts will be restored to their default values."
 msgstr ""
 
-#: setzer/dialogs/preferences/preferences.py:51
-msgid "Build System"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:410
+msgid "Import Keyboard Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/preferences.py:52
-msgid "Editor"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:413
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:457
+msgid "JSON files"
 msgstr ""
 
-#: setzer/dialogs/preferences/preferences.py:53
-msgid "Font & Colors"
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:445
+#, python-brace-format
+msgid "Imported {n} shortcuts, skipped {m} unknown actions"
 msgstr ""
 
-#: setzer/dialogs/preferences/preferences_viewgtk.py:40
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:174
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:448
+#, python-brace-format
+msgid "Imported {n} shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:450
+#, python-brace-format
+msgid "Failed to import shortcuts: {error}"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:454
+msgid "Export Keyboard Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:476
+#, python-brace-format
+msgid "Exported {n} shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:478
+#, python-brace-format
+msgid "Failed to export shortcuts: {error}"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:493
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:497
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:93
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:498
+msgid "Click a shortcut button to change it. Press Escape to cancel."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:502
+msgid "Actions"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:506
+msgid "Import Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:507
+msgid "Load keyboard shortcuts from a JSON file"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:508
+msgid "Import"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:514
+msgid "Export Shortcuts"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:515
+msgid "Save keyboard shortcuts to a JSON file"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:516
+msgid "Export"
+msgstr ""
+
+#: setzer/dialogs/preferences/preferences_viewgtk.py:28
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:89
 msgid "Preferences"
 msgstr ""
 
-#: setzer/dialogs/replace_confirmation/replace_confirmation.py:45
+#: setzer/dialogs/print/print.py:104
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
+#, python-brace-format
+msgid "Replace all matches of »{original}« with »{replacement}«?"
+msgstr ""
+
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
+msgid "Counting matches… The number of occurrences is still being calculated."
+msgstr ""
+
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
 #, python-brace-format
 msgid "Replacing {amount} occurence of »{original}« with »{replacement}«."
 msgid_plural ""
@@ -1645,1212 +2044,1196 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
-msgid "_Yes, replace all occurrences"
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:51
+msgid "Do you really want to do this?"
 msgstr ""
 
-#: setzer/dialogs/save_document/save_document.py:64
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
+msgid "Yes, replace all occurrences"
+msgstr ""
+
+#: setzer/dialogs/save_document/save_document.py:48
 msgid "Save document"
 msgstr ""
 
-#: setzer/dialogs/save_session/save_session.py:64
+#: setzer/dialogs/save_document/save_document.py:88
+#, python-brace-format
+msgid "Could not save document: {error}"
+msgstr ""
+
+#: setzer/dialogs/save_document/save_document.py:90
+msgid "Retry"
+msgstr ""
+
+#: setzer/dialogs/save_session/save_session.py:42
 msgid "Save Session"
 msgstr ""
 
-#: setzer/dialogs/spellchecking_language/spellchecking_language.py:55
-msgid "Spellchecking Language"
+#: setzer/dialogs/save_session/save_session.py:84
+msgid "Failed to save session"
 msgstr ""
 
-#: setzer/document/build_system/build_system.py:221
-#, python-brace-format
-msgid "<span color=\"{color}\">Failed</span> ({amount} error)!"
-msgid_plural "<span color=\"{color}\">Failed</span> ({amount} errors)!"
-msgstr[0] ""
-msgstr[1] ""
+#: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:162
+msgid "Label database unavailable (parse error)"
+msgstr ""
 
-#: setzer/document/build_system/build_system.py:225
+#: setzer/document/build_system/build_system.py:309
+msgid "Previous build cancelled"
+msgstr ""
+
+#: setzer/document/build_widget/build_widget.py:114
 msgid "Success!"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:42
-msgid "Stop building"
+#: setzer/document/build_widget/build_widget.py:115
+msgid "Build succeeded"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:46
+#: setzer/document/build_widget/build_widget.py:125
+#, python-brace-format
+msgid "{count} error"
+msgid_plural "{count} errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setzer/document/build_widget/build_widget.py:126
+msgid "Failed"
+msgstr ""
+
+#: setzer/document/build_widget/build_widget.py:130
+#: setzer/document/preview/preview_viewgtk.py:187
+msgid "Build failed"
+msgstr ""
+
+#: setzer/document/build_widget/build_widget_viewgtk.py:67
 msgid "Cleanup build files"
 msgstr ""
 
-#: setzer/document/context_menu/context_menu_viewgtk.py:33
-msgid "Undo"
+#: setzer/document/build_widget/build_widget_viewgtk.py:101
+msgid "Stop building"
 msgstr ""
 
-#: setzer/document/context_menu/context_menu_viewgtk.py:33
-#: setzer/document/context_menu/context_menu_viewgtk.py:34
-#: setzer/document/context_menu/context_menu_viewgtk.py:35
-#: setzer/document/context_menu/context_menu_viewgtk.py:36
-#: setzer/document/context_menu/context_menu_viewgtk.py:37
-#: setzer/document/context_menu/context_menu_viewgtk.py:39
-#: setzer/document/context_menu/context_menu_viewgtk.py:60
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:54
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:62
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:70
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:78
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:105
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:166
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:176
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:180
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:181
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:66
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:75
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:236
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:281
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:313
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:345
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:387
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:391
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:392
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:394
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:395
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:396
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:411
-msgid "Ctrl"
+#: setzer/document/document_controller.py:144
+msgid "No PDF available for forward sync. Build the document first."
 msgstr ""
 
-#: setzer/document/context_menu/context_menu_viewgtk.py:34
-msgid "Redo"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:34
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:62
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:166
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:313
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:387
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:388
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:391
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:392
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:393
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:394
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:395
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:396
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:411
-msgid "Shift"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:35
-#: setzer/document/context_menu/context_menu_viewgtk.py:113
-msgid "Cut"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:36
-#: setzer/document/context_menu/context_menu_viewgtk.py:114
-msgid "Copy"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:37
-#: setzer/document/context_menu/context_menu_viewgtk.py:115
-msgid "Paste"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:38
-#: setzer/document/context_menu/context_menu_viewgtk.py:116
-msgid "Delete"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:39
-#: setzer/document/context_menu/context_menu_viewgtk.py:117
-msgid "Select All"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:60
-#: setzer/document/context_menu/context_menu_viewgtk.py:118
-msgid "Toggle Comment"
-msgstr ""
-
-#: setzer/document/context_menu/context_menu_viewgtk.py:61
-#: setzer/document/context_menu/context_menu_viewgtk.py:119
-msgid "Show in Preview"
-msgstr ""
-
-#: setzer/document/preview/paging_widget/paging_widget.py:67
-msgid "Page "
-msgstr ""
-
-#: setzer/document/preview/paging_widget/paging_widget.py:70
-msgid " of "
-msgstr ""
-
-#: setzer/document/preview/preview_controller.py:122
-msgid "Go to page "
-msgstr ""
-
-#: setzer/document/preview/preview_viewgtk.py:36
-msgid "External Viewer"
-msgstr ""
-
-#: setzer/document/preview/preview_viewgtk.py:52
+#: setzer/document/preview/context_menu/context_menu.py:71
 msgid "Show Source"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:53
-msgid "Zoom In"
-msgstr ""
-
-#: setzer/document/preview/preview_viewgtk.py:54
-msgid "Zoom Out"
-msgstr ""
-
-#: setzer/document/preview/preview_viewgtk.py:55
-#: setzer/document/preview/zoom_widget/zoom_widget.py:41
+#: setzer/document/preview/context_menu/context_menu.py:75
+#: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:45
 msgid "Fit to Width"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:56
-#: setzer/document/preview/zoom_widget/zoom_widget.py:46
+#: setzer/document/preview/context_menu/context_menu.py:76
+#: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:46
 msgid "Fit to Text Width"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:57
-#: setzer/document/preview/zoom_widget/zoom_widget.py:51
+#: setzer/document/preview/context_menu/context_menu.py:77
+#: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:47
 msgid "Fit to Height"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:108
+#: setzer/document/preview/preview_controller.py:150
+msgid "Go to page "
+msgstr ""
+
+#: setzer/document/preview/preview_controller.py:208
+msgid "Could not open link"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:65
+#: setzer/document/preview/preview_viewgtk.py:106
+msgid "PDF build failed, showing previous version"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:145
+msgid "Building…"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:183
 msgid "No preview available"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:111
+#: setzer/document/preview/preview_viewgtk.py:184
 msgid ""
 "To show a .pdf preview of your document, click the build button in the "
 "headerbar."
 msgstr ""
 
-#: setzer/document/preview/zoom_widget/zoom_widget_viewgtk.py:57
-msgid "Set zoom level"
+#: setzer/document/preview/preview_viewgtk.py:188
+msgid "Check the build log for errors."
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:53
-msgid "Previous result"
+#: setzer/document/search/search.py:450
+msgid "No matches"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:56
-msgid "Next result"
-msgstr ""
-
-#: setzer/document/search/search_viewgtk.py:57
-msgid "Replace"
-msgstr ""
-
-#: setzer/document/search/search_viewgtk.py:59
-msgid "Replace selected result"
-msgstr ""
-
-#: setzer/document/search/search_viewgtk.py:61
-msgid "All"
-msgstr ""
-
-#: setzer/document/search/search_viewgtk.py:63
+#: setzer/document/search/search.py:453 setzer/document/search/search.py:463
+#: setzer/document/search/search.py:474
+#: setzer/document/search/search_viewgtk.py:160
 msgid "Replace all results"
 msgstr ""
 
-#: setzer/document/shortcutsbar/shortcutsbar_viewgtk.py:38
-msgid "More Actions"
+#: setzer/document/search/search.py:459
+msgid "Searching…"
 msgstr ""
 
-#: setzer/document/shortcutsbar/shortcutsbar_viewgtk.py:47
-msgid "Find and Replace (Ctrl+H)"
-msgstr ""
-
-#: setzer/document/shortcutsbar/shortcutsbar_viewgtk.py:53
-msgid "Find (Ctrl+F)"
-msgstr ""
-
-#: setzer/document/shortcutsbar/shortcutsbar_viewgtk.py:69
-msgid "New Document Wizard"
-msgstr ""
-
-#: setzer/widgets/filechooser_button/filechooser_button.py:34
-#: setzer/widgets/filechooser_button/filechooser_button.py:59
-msgid "(None)"
-msgstr ""
-
-#: setzer/widgets/filechooser_button/filechooser_button.py:50
-msgid "Choose File"
-msgstr ""
-
-#: setzer/widgets/filechooser_button/filechooser_button.py:75
-#: setzer/widgets/filechooser_button/filechooser_button.py:82
-msgid "_Select"
-msgstr ""
-
-#: setzer/workspace/build_log/build_log_presenter.py:131
+#: setzer/document/search/search.py:471
 #, python-brace-format
-msgid "Line {number}"
-msgstr ""
-
-#: setzer/workspace/build_log/build_log_presenter.py:153
-#, python-brace-format
-msgid "Building failed with {amount} error"
-msgid_plural "Building failed with {amount} errors"
+msgid "Replace all {amount} match"
+msgid_plural "Replace all {amount} matches"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/workspace/build_log/build_log_presenter.py:154
+#: setzer/document/search/search_viewgtk.py:82
+msgid "Match case"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:91
+msgid "Use regular expressions"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:100
+msgid "Match entire word"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:108
+msgid "Search in selection"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:116
+msgid "Previous result"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:121
+msgid "Next result"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:127
+msgid "Close search"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:149
+msgid "Type replacement text…"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:152
+msgid "Replace"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:154
+msgid "Replace selected result"
+msgstr ""
+
+#: setzer/document/search/search_viewgtk.py:158
+msgid "Replace All"
+msgstr ""
+
+#: setzer/document/statusbar/statusbar.py:85
 #, python-brace-format
-msgid "{amount} warning or badbox"
-msgid_plural "{amount} warnings or badboxes"
+msgid "Ln {line}, Col {col}"
+msgstr ""
+
+#: setzer/document/statusbar/statusbar.py:95
+#, python-brace-format
+msgid "{n} line selected"
+msgid_plural "{n} lines selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/workspace/build_log/build_log_presenter.py:157
-msgid "Building successful"
+#: setzer/document/statusbar/statusbar.py:105
+#, python-brace-format
+msgid "Spaces: {n}"
 msgstr ""
 
-#: setzer/workspace/build_log/build_log_presenter.py:162
-msgid "no warnings or badboxes"
+#: setzer/document/statusbar/statusbar.py:107
+#, python-brace-format
+msgid "Tabs: {n}"
 msgstr ""
 
-#: setzer/workspace/document_chooser/document_chooser_viewgtk.py:55
-msgid "No results"
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:69
+msgid "Delete"
 msgstr ""
 
-#: setzer/workspace/document_chooser/document_chooser_viewgtk.py:60
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:126
+msgid "Show in Preview"
+msgstr ""
+
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:39
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:83
+msgid "Recent Documents"
+msgstr ""
+
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:48
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:59
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:99
+msgid "No Results"
+msgstr ""
+
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:49
+msgid "No documents match your search"
+msgstr ""
+
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:57
 msgid "Other Documents"
 msgstr ""
 
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:59
-msgid "Welcome to Setzer"
+#: setzer/popovers/document_switcher/document_switcher.py:151
+msgid "Copy Path"
 msgstr ""
 
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:107
+#: setzer/popovers/document_switcher/document_switcher.py:156
+msgid "Copy Relative Path"
+msgstr ""
+
+#: setzer/popovers/document_switcher/document_switcher.py:161
+msgid "Open Containing Folder"
+msgstr ""
+
+#: setzer/popovers/document_switcher/document_switcher.py:168
+msgid "Close Others"
+msgstr ""
+
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:33
+msgid "Open Documents"
+msgstr ""
+
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:41
+msgid ""
+"Click on a document in the list below to set it as root. The root document "
+"will get built, no matter which document you are currently editing, and it "
+"will always display in the .pdf preview. The build log will also refer to "
+"the root document. This is often useful for working on large projects where "
+"typically a top level document (the root) will contain multiple lower level "
+"files via include statements."
+msgstr ""
+
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:64
 msgid "Set one Document as Root"
 msgstr ""
 
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:113
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:70
 msgid "Unset Root Document"
 msgstr ""
 
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:119
-msgid "Click on a document in the list below to set it as root."
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:111
+msgid "Root document"
 msgstr ""
 
-#: setzer/workspace/document_switcher/document_switcher_viewgtk.py:123
-msgid ""
-"The root document will get built, no matter which document\n"
-"you are currently editing, and it will always display in the .pdf\n"
-"preview. The build log will also refer to the root document.\n"
-"This is often useful for working on large projects where typically\n"
-"a top level document (the root) will contain multiple lower\n"
-"level files via include statements."
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:117
+msgid "Close document"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:45
-msgid "Toggle document structure"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:72
+msgid "Save Document"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:50
-msgid "Toggle symbols"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:75
+msgid "Save Document As…"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:78
-msgid "New LaTeX Document"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:79
-msgid "New BibTeX Document"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:92
-msgid "Create a new document"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:103
-msgid "Save"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:114
-msgid "Toggle preview"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:119
-msgid "Toggle help"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:145
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:169
-msgid "Session"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:146
-msgid ""
-"Save the list of open documents in a session file\n"
-"and restore it later, a convenient way to work\n"
-"on multiple projects."
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:152
-msgid "Restore Previous Session"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:153
-msgid "Save Current Session"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:166
-msgid "Save Document As"
-msgstr ""
-
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:167
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:76
 msgid "Save All Documents"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:171
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:188
-msgid "View"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:77
+msgid "Print…"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:176
-msgid "Keyboard Shortcuts"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:86
+msgid "Session"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:177
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:96
 msgid "About"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:179
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:100
 msgid "Close All Documents"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:180
-msgid "Close Document"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
+msgid "Reopen Closed Document"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:181
-msgid "Quit"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:118
+msgid "Restore Previous Session…"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:189
-msgid "Dark Mode"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:119
+msgid "Save Current Session…"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:201
-msgid "Check Spelling"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:122
+msgid "Recent Sessions"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:202
-msgid "Automatic Spellchecking"
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:171
+msgid "Main Menu"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:203
-msgid "Set Spellchecking Language"
+#: setzer/popovers/helpers/gio_menu_builder.py:134
+#: setzer/popovers/shortcutsbar/math_menu.py:32
+#: setzer/popovers/shortcutsbar/math_menu.py:36
+#: setzer/popovers/shortcutsbar/math_menu.py:37
+#: setzer/popovers/shortcutsbar/math_menu.py:40
+#: setzer/popovers/shortcutsbar/math_menu.py:41
+#: setzer/popovers/shortcutsbar/math_menu.py:51
+#: setzer/popovers/shortcutsbar/text_menu.py:38
+#: setzer/popovers/shortcutsbar/text_menu.py:48
+#: setzer/popovers/shortcutsbar/text_menu.py:49
+#: setzer/popovers/shortcutsbar/text_menu.py:50
+#: setzer/popovers/shortcutsbar/text_menu.py:52
+#: setzer/popovers/shortcutsbar/text_menu.py:55
+#: setzer/popovers/shortcutsbar/text_menu.py:85
+#: setzer/popovers/shortcutsbar/text_menu.py:124
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:63
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:70
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:114
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:154
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:424
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:447
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:451
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:463
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:467
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:482
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:488
+msgid "Ctrl"
 msgstr ""
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:33
-msgid "Home"
+#: setzer/popovers/helpers/gio_menu_builder.py:136
+#: setzer/popovers/shortcutsbar/math_menu.py:33
+#: setzer/popovers/shortcutsbar/math_menu.py:36
+#: setzer/popovers/shortcutsbar/math_menu.py:37
+#: setzer/popovers/shortcutsbar/math_menu.py:38
+#: setzer/popovers/shortcutsbar/math_menu.py:40
+#: setzer/popovers/shortcutsbar/math_menu.py:41
+#: setzer/popovers/shortcutsbar/math_menu.py:51
+#: setzer/popovers/shortcutsbar/text_menu.py:52
+#: setzer/popovers/shortcutsbar/text_menu.py:55
+#: setzer/popovers/shortcutsbar/text_menu.py:124
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:70
+msgid "Shift"
 msgstr ""
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:39
-msgid "Top"
+#: setzer/popovers/helpers/gio_menu_builder.py:138
+msgid "Alt"
 msgstr ""
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:45
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:83
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:55
-msgid "Back"
+#: setzer/popovers/new_document/new_document_viewgtk.py:34
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:98
+msgid "New LaTeX Document"
 msgstr ""
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:51
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:89
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:61
-msgid "Forward"
+#: setzer/popovers/new_document/new_document_viewgtk.py:35
+msgid "New BibTeX Document"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:49
-msgid "Create New Entry"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:60
-msgid "Create a New BibTeX Entry"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:69
-msgid "Previously Used Entries"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:80
-msgid "Add a Previously Used BibTeX Entry"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:89
-msgid "Search For Entries Online"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/bibtex_shortcutsbar/bibtex_shortcutsbar_viewgtk.py:100
-msgid "Add a BibTeX Entry from an Online Database"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:55
-msgid "Build log"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:66
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
-msgid "Italic"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:75
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
-msgid "Bold"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:93
-msgid "Document"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:110
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:123
-msgid "Document Info"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:112
-msgid "Document Environment"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:113
-msgid "Show Title"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:114
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:156
-msgid "Table of Contents"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:116
-msgid "Include LaTeX File"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:127
-msgid "Date Today"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:137
-msgid "Beamer"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:153
+#: setzer/popovers/shortcutsbar/beamer_menu.py:31
 msgid "Hide Navigation"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:155
+#: setzer/popovers/shortcutsbar/beamer_menu.py:33
 msgid "Title Page"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:158
+#: setzer/popovers/shortcutsbar/beamer_menu.py:34
+#: setzer/popovers/shortcutsbar/document_menu.py:36
+msgid "Table of Contents"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/beamer_menu.py:36
 msgid "Frame"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:159
+#: setzer/popovers/shortcutsbar/beamer_menu.py:37
 msgid "Frame with Title"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:160
+#: setzer/popovers/shortcutsbar/beamer_menu.py:38
 msgid "\\frametitle"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:170
-msgid "Bibliography"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:185
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:30
 msgid "Include BibTeX File"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:186
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:31
 msgid "Include 'natbib' Package"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:188
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:33
+msgid "Citation"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:34
 msgid "Citation with Page Number"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:190
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:198
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:35
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:39
 msgid "Natbib Citations"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:191
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:36
 msgid "Include non-cited BibTeX Entries with '\\nocite'"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:40
 msgid "Abbreviated"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:41
 msgid "Abbreviated with Brackets"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:42
 msgid "Detailed"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:43
 msgid "Detailed with Brackets"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:44
 msgid "Alternative 1"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:199
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:45
 msgid "Alternative 2"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:202
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:47
 msgid "Cite Author"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:202
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:48
 msgid "Cite Author Detailed"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:202
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:49
 msgid "Cite Year"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:202
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:50
 msgid "Cite Year with Brackets"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:213
-msgid "Text"
+#: setzer/popovers/shortcutsbar/document_menu.py:32
+#: setzer/popovers/shortcutsbar/document_menu.py:41
+msgid "Document Info"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:228
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:249
-msgid "Font Styles"
+#: setzer/popovers/shortcutsbar/document_menu.py:34
+msgid "Document Environment"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:229
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:259
-msgid "Font Sizes"
+#: setzer/popovers/shortcutsbar/document_menu.py:35
+msgid "Show Title"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:230
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:268
-msgid "Alignment"
+#: setzer/popovers/shortcutsbar/document_menu.py:38
+msgid "Include LaTeX File"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:231
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:277
-msgid "Vertical Spacing"
+#: setzer/popovers/shortcutsbar/document_menu.py:45
+msgid "Date Today"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:232
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:288
-msgid "International Accents"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:234
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:297
-msgid "Sectioning"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:237
-msgid "Verbatim Environment"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:238
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:309
-msgid "List Environments"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:239
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:320
-msgid "Quotations"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:241
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:330
-msgid "Cross References"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:242
-msgid "Footnote"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-msgid "Underline"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
-msgid "Sans Serif"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
-msgid "Typewriter"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-msgid "Small Caps"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-msgid "Slanted"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:250
-msgid "Emphasis"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:269
-msgid "Centered"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:269
-msgid "Left-aligned"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:269
-msgid "Right-aligned"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Part"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Chapter"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Section"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Subsection"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Subsubsection"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Paragraph"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:298
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:301
-msgid "Subparagraph"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:310
-msgid "Bulleted List"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:310
-msgid "Numbered List"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:310
-msgid "List with Bold Labels"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:321
-msgid "Short Quotation"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:322
-msgid "Longer Quotation"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:323
-msgid "Poetry Quotation"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:331
-msgid "Label"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:331
-msgid "Equation Reference"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:331
-msgid "Page Reference"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:345
-msgid "Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "Primary Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "Secondary Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "German Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "German Single Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "French Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "French Single Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "German Alt Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:358
-msgid "German Alt Single Quotes"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:369
-msgid "Math"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:385
+#: setzer/popovers/shortcutsbar/math_menu.py:30
 msgid "Include AMS Packages"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:389
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:409
+#: setzer/popovers/shortcutsbar/math_menu.py:34
+#: setzer/popovers/shortcutsbar/math_menu.py:50
 msgid "Math Environments"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:394
+#: setzer/popovers/shortcutsbar/math_menu.py:39
 msgid "Square Root"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:398
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:418
+#: setzer/popovers/shortcutsbar/math_menu.py:43
+#: setzer/popovers/shortcutsbar/math_menu.py:65
 msgid "Math Functions"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:399
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:435
+#: setzer/popovers/shortcutsbar/math_menu.py:44
+#: setzer/popovers/shortcutsbar/math_menu.py:70
 msgid "Math Font Styles"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:400
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:444
+#: setzer/popovers/shortcutsbar/math_menu.py:45
+#: setzer/popovers/shortcutsbar/math_menu.py:81
 msgid "Math Stacking Symbols"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:401
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:458
+#: setzer/popovers/shortcutsbar/math_menu.py:46
+#: setzer/popovers/shortcutsbar/math_menu.py:96
 msgid "Math Accents"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:402
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:467
+#: setzer/popovers/shortcutsbar/math_menu.py:47
+#: setzer/popovers/shortcutsbar/math_menu.py:109
 msgid "Math Spaces"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
+#: setzer/popovers/shortcutsbar/math_menu.py:73
 msgid "Roman"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
+#: setzer/popovers/shortcutsbar/math_menu.py:74
+#: setzer/popovers/shortcutsbar/text_menu.py:51
+msgid "Sans Serif"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/math_menu.py:76
 msgid "Calligraphic"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
+#: setzer/popovers/shortcutsbar/math_menu.py:77
 msgid "Blackboard Bold"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:436
+#: setzer/popovers/shortcutsbar/math_menu.py:78
 msgid "Fraktur"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:482
-msgid "Objects"
-msgstr ""
-
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:496
+#: setzer/popovers/shortcutsbar/object_menu.py:30
 msgid "Figure (image inside freestanding block)"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:497
+#: setzer/popovers/shortcutsbar/object_menu.py:31
 msgid "Inline Image"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:498
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:508
+#: setzer/popovers/shortcutsbar/object_menu.py:32
+#: setzer/popovers/shortcutsbar/object_menu.py:38
 msgid "Code Listing"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:500
+#: setzer/popovers/shortcutsbar/object_menu.py:34
 msgid "Url (\\url)"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:501
+#: setzer/popovers/shortcutsbar/object_menu.py:35
 msgid "Hyperlink (\\href)"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:509
+#: setzer/popovers/shortcutsbar/object_menu.py:39
 msgid "Include 'listings' Package"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:514
+#: setzer/popovers/shortcutsbar/object_menu.py:50
 msgid "Other Language"
 msgstr ""
 
-#: setzer/workspace/shortcutsbar/latex_shortcutsbar/latex_shortcutsbar_viewgtk.py:515
+#: setzer/popovers/shortcutsbar/object_menu.py:51
 msgid "Plain Text"
 msgstr ""
 
-#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:30
+#: setzer/popovers/shortcutsbar/quotes_menu.py:30
+msgid "Primary Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:31
+msgid "Secondary Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:32
+msgid "German Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:33
+msgid "German Single Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:34
+msgid "French Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:35
+msgid "French Single Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:36
+msgid "German Alt Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/quotes_menu.py:37
+msgid "German Alt Single Quotes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:30
+#: setzer/popovers/shortcutsbar/text_menu.py:47
+msgid "Font Styles"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:31
+#: setzer/popovers/shortcutsbar/text_menu.py:58
+msgid "Font Sizes"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:32
+#: setzer/popovers/shortcutsbar/text_menu.py:71
+msgid "Alignment"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:33
+#: setzer/popovers/shortcutsbar/text_menu.py:77
+msgid "Vertical Spacing"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:34
+#: setzer/popovers/shortcutsbar/text_menu.py:88
+msgid "International Accents"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:36
+#: setzer/popovers/shortcutsbar/text_menu.py:101
+msgid "Sectioning"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:39
+msgid "Verbatim Environment"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:40
+#: setzer/popovers/shortcutsbar/text_menu.py:119
+msgid "List Environments"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:41
+#: setzer/popovers/shortcutsbar/text_menu.py:127
+msgid "Quotations"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:43
+#: setzer/popovers/shortcutsbar/text_menu.py:133
+msgid "Cross References"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:44
+msgid "Footnote"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:53
+msgid "Small Caps"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:54
+msgid "Slanted"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:55
+msgid "Emphasis"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:72
+msgid "Centered"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:73
+msgid "Left-aligned"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:74
+msgid "Right-aligned"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:102
+#: setzer/popovers/shortcutsbar/text_menu.py:110
+msgid "Part"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:103
+#: setzer/popovers/shortcutsbar/text_menu.py:111
+msgid "Chapter"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:104
+#: setzer/popovers/shortcutsbar/text_menu.py:112
+msgid "Section"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:105
+#: setzer/popovers/shortcutsbar/text_menu.py:113
+msgid "Subsection"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:106
+#: setzer/popovers/shortcutsbar/text_menu.py:114
+msgid "Subsubsection"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:107
+#: setzer/popovers/shortcutsbar/text_menu.py:115
+msgid "Paragraph"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:108
+#: setzer/popovers/shortcutsbar/text_menu.py:116
+msgid "Subparagraph"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:120
+msgid "Bulleted List"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:121
+msgid "Numbered List"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:122
+msgid "List with Bold Labels"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:128
+msgid "Short Quotation"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:129
+msgid "Longer Quotation"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:130
+msgid "Poetry Quotation"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:134
+msgid "Label"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:135
+msgid "Reference"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:136
+msgid "Equation Reference"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/text_menu.py:137
+msgid "Page Reference"
+msgstr ""
+
+#: setzer/widgets/filechooser_button/filechooser_button.py:36
+#: setzer/widgets/filechooser_button/filechooser_button.py:61
+msgid "(None)"
+msgstr ""
+
+#: setzer/widgets/filechooser_button/filechooser_button.py:52
+msgid "Choose File"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:41
+msgid "Toggle document structure"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:48
+msgid "Toggle symbols"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:80
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:87
+msgid "Create a new document"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:123
+msgid "Toggle preview"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:129
+msgid "Toggle help"
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:163
+msgid "Welcome to Setzer"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_presenter.py:44
+#, python-brace-format
+msgid "{n} result"
+msgid_plural "{n} results"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:64
+msgid "Home"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:76
+msgid "Back"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:82
+msgid "Forward"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:110
+msgid "Search help"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:137
+msgid "No results found"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:146
+msgid "Search Help"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:147
+msgid "Type a keyword to search the documentation."
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:184
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:196
+msgid "JavaScript is disabled"
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:202
+msgid ""
+"Help pages render with JavaScript disabled for security. Static "
+"documentation displays normally; interactive examples that depend on "
+"JavaScript will not run."
+msgstr ""
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:222
+msgid ""
+"Help page rendering requires WebKit6. Search is still available — click a "
+"result to open it in your web browser."
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:138
+msgid "Page "
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:138
+msgid " of "
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:141
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:167
+msgid "No preview"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:72
+msgid "Set zoom level"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:85
+msgid "Match theme colors"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:91
+msgid "External Viewer"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:125
+msgid "Build failed — showing the previous PDF"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:121
+msgid "More"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:396
+msgid "Document"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
+msgid "Beamer"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:410
+msgid "Bibliography"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:417
+msgid "Text"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:424
+msgid "Quotes"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:431
+msgid "Math"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:438
+msgid "Objects"
+msgstr ""
+
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:501
+msgid "Build log"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:29
 msgid "These counts are updated after the document is saved."
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:53
-msgid "Document Structure"
+#: setzer/workspace/sidebar/document_stats/stats_text.py:51
+#, python-brace-format
+msgid ""
+"The whole document has <b>{text_words}</b> words in text, <b>{header_words}</"
+"b> words in headers and <b>{outside_words}</b> words outside text "
+"(captions, ...)."
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:57
-msgid "Labels"
+#: setzer/workspace/sidebar/document_stats/stats_text.py:62
+#, python-brace-format
+msgid ""
+"{file} has <b>{text_words}</b> words in text, <b>{header_words}</b> words in "
+"headers and <b>{outside_words}</b> words outside text (captions, ...)."
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:61
-msgid "To-Dos"
+#: setzer/workspace/sidebar/document_stats/stats_text.py:79
+#, python-brace-format
+msgid ""
+"The whole document has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> "
+"excluding whitespace) and <b>{lines}</b> lines."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_stats/stats_text.py:90
+#, python-brace-format
+msgid ""
+"{file} has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding "
+"whitespace) and <b>{lines}</b> lines."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_stats/stats_text.py:106
+#, python-brace-format
+msgid ""
+"Selection: <b>{words}</b> words, <b>{chars}</b> characters "
+"(<b>{chars_no_spaces}</b> excluding whitespace)."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_stats/stats_text.py:120
+msgid ""
+"Word counts require <tt>texcount</tt> (part of TeX Live), which was not "
+"found. Character and line counts remain available above. See <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation "
+"guide</a>."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:60
+msgid "No sections match your search"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:73
+msgid "No Document"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:74
+msgid "Open a document to see its structure."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:58
+msgid "Previous section"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:159
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:64
+msgid "Next section"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:29
+msgid "No files"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:30
+msgid ""
+"The main document is always shown. Add \\input{...} or \\include{...} to "
+"include other files."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:27
+msgid "No labels"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:28
+msgid "Add \\label{...} to create references to figures, sections, and more."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:29
+msgid "No document structure"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:30
+msgid ""
+"Add \\section{}, \\chapter{}, or other sectioning commands to outline your "
+"document."
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:27
+msgid "No to-dos"
+msgstr ""
+
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:28
+msgid "Add \\todo{...} to keep track of tasks."
 msgstr ""
 
 #: setzer/workspace/sidebar/sidebar.py:65
+msgid "Files"
+msgstr ""
+
+#: setzer/workspace/sidebar/sidebar.py:71
+msgid "Labels"
+msgstr ""
+
+#: setzer/workspace/sidebar/sidebar.py:74
+msgid "To-Dos"
+msgstr ""
+
+#: setzer/workspace/sidebar/sidebar.py:78
 msgid "Document Stats"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:118
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:186
+#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:68
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:186
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:201
 msgid "Package"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:95
+#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:79
+msgid "★ Remove from Favorites"
+msgstr ""
+
+#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:81
+msgid "☆ Add to Favorites"
+msgstr ""
+
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:192
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:212
+msgid "Insert"
+msgstr ""
+
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:100
+msgid "No symbols match your search"
+msgstr ""
+
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:124
 msgid "Recent"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:112
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:133
+msgid "Favorites"
+msgstr ""
+
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:141
 msgid "Greek Letters"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:114
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:142
 msgid "Arrows"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:116
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:143
 msgid "Relations"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:118
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:144
 msgid "Operators"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:120
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:145
 msgid "Misc. Math"
 msgstr ""
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:122
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:146
 msgid "Misc. Symbols"
 msgstr ""
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:31
+#: setzer/workspace/welcome_screen/welcome_screen.py:187
+msgid "Remove from recent list"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen.py:199
+msgid "Clear Recent List?"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen.py:200
+msgid ""
+"All documents will be removed from the recent list. This does not delete the "
+"files themselves."
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen.py:203
+msgid "Clear"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:60
 msgid "Write beautiful LaTeX documents with ease!"
 msgstr ""
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:34
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:61
 msgid ""
-"Click the open or create buttons in the headerbar above to start editing."
+"Start a new document below, pick a template, or jump back into one of your "
+"recent files."
 msgstr ""
 
-#: setzer/workspace/workspace.py:120
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:81
+msgid "Open a Document…"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:103
+msgid "New BibTeX File"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:108
+msgid "Use a Template…"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:120
+msgid "Recent documents"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:126
+msgid "Clear All"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:129
+msgid "Remove all documents from the recent list"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:142
+msgid "No recent documents"
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:143
+msgid "Documents you open will appear here for quick access."
+msgstr ""
+
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:152
+msgid "Recently closed"
+msgstr ""
+
+#: setzer/workspace/workspace.py:115
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr ""
 
-#: data/resources/latexdb/packages/general.xml:2
-msgid "additional math fonts from AMS."
+#: setzer/workspace/workspace.py:500
+#, python-brace-format
+msgid "Could not save workspace state: {error}"
 msgstr ""
 
-#: data/resources/latexdb/packages/general.xml:3
-msgid "mathematics package from AMS."
+#: setzer/dialogs/preferences/pages/page_editor.py:94
+msgid "Editor"
 msgstr ""
 
-#: data/resources/latexdb/packages/general.xml:4
-msgid "mathematical symbols from AMS."
+#: setzer/dialogs/preferences/pages/page_editor.py:158
+msgid "External Changes"
 msgstr ""
 
-#: data/resources/latexdb/packages/general.xml:5
-msgid "math theorems setting package from AMS."
+#: setzer/dialogs/preferences/pages/page_editor.py:162
+msgid "Automatically reload changed files"
 msgstr ""
 
-#: data/resources/latexdb/packages/general.xml:6
-msgid "multilingual documents."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:7
-msgid "dirac braket and set notations."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:8
-msgid "bibliographies in LaTeX."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:9
-msgid "simple arithmetic in LaTeX commands."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:10
-msgid "foreground and background colors."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:11
-msgid "colored tables."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:12
-msgid "enumerate with redefinable labels."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:13
-msgid "interface to document dimensions."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:17
-msgid "conditional commands."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:18
-msgid "provides a listing environment for embedding programming code."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:19
-msgid "provides additional bibliography and citation styles."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:21
-msgid "create plots in two and three dimensions."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:23
-msgid ""
-"define theorem environments (like &quot;definition&quot;, &quot;lemma&quot;, "
-"…) with custom styling."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:24
-msgid "graphics and plotting."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:25
-msgid "set transparency for sections in your document."
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:26
-msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:2
-#: data/resources/document_wizard/languages.xml:20
-#: data/resources/document_wizard/languages.xml:21
-#: data/resources/document_wizard/languages.xml:22
-#: data/resources/document_wizard/languages.xml:23
-#: data/resources/document_wizard/languages.xml:24
-msgid "English"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:3
-msgid "Spanish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:4
-#: data/resources/document_wizard/languages.xml:28
-msgid "French"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:5
-msgid "Russian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:6
-#: data/resources/document_wizard/languages.xml:7
-msgid "Portuguese"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:8
-#: data/resources/document_wizard/languages.xml:30
-#: data/resources/document_wizard/languages.xml:31
-#: data/resources/document_wizard/languages.xml:32
-msgid "German"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:9
-msgid "Italian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:10
-msgid "Afrikaans"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:11
-msgid "Azerbaijani"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:12
-msgid "Basque"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:13
-msgid "Breton"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:14
-msgid "Bulgarian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:15
-msgid "Catalan"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:16
-msgid "Croatian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:17
-msgid "Czech"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:18
-msgid "Danish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:19
-msgid "Dutch"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:25
-msgid "Esperanto"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:26
-msgid "Estonian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:27
-msgid "Finnish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:29
-msgid "Galician"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:33
-#: data/resources/document_wizard/languages.xml:34
-msgid "Greek"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:35
-msgid "Hebrew"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:36
-msgid "Icelandic"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:37
-msgid "Indonesian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:38
-msgid "Interlingua"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:39
-msgid "Irish Gaelic"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:40
-msgid "Latin"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:41
-msgid "Lower Sorbian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:42
-msgid "Malay"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:43
-msgid "Northern Sami"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:44
-#: data/resources/document_wizard/languages.xml:45
-msgid "Norwegian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:46
-msgid "Polish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:47
-msgid "Romanian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:48
-msgid "Scottish Gaelic"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:49
-msgid "Slovakian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:50
-msgid "Slovenian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:51
-msgid "Swedish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:52
-msgid "Serbian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:53
-msgid "Turkish"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:54
-msgid "Ukrainian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:55
-msgid "Upper Sorbian"
-msgstr ""
-
-#: data/resources/document_wizard/languages.xml:56
-msgid "Welsh"
+#: setzer/dialogs/preferences/pages/page_editor.py:164
+msgid "Reload files modified by external applications without prompting"
 msgstr ""

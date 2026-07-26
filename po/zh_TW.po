@@ -1222,6 +1222,7 @@ msgstr "是，移除它(_Y)"
 msgid "Build System"
 msgstr "建置系統"
 
+#: setzer/dialogs/preferences/pages/page_editor.py:94
 msgid "Editor"
 msgstr "編輯器"
 
@@ -1944,3 +1945,15 @@ msgstr "為文件中的章節設定透明度。"
 
 msgid "type urls with the \\\\url{..} command without escaping them."
 msgstr "使用 \\\\url{..} 命令輸入網址，無需轉義。"
+
+#: setzer/dialogs/preferences/pages/page_editor.py:158
+msgid "External Changes"
+msgstr "外部變更"
+
+#: setzer/dialogs/preferences/pages/page_editor.py:162
+msgid "Automatically reload changed files"
+msgstr "自動重新載入變更的檔案"
+
+#: setzer/dialogs/preferences/pages/page_editor.py:164
+msgid "Reload files modified by external applications without prompting"
+msgstr "自動重新載入外部應用程式修改的檔案，不再詢問"
