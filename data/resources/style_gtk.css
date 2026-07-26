@@ -227,6 +227,13 @@ textview gutter {
     margin: 0 6px 6px 6px;
     border-radius: 8px;
     background: @card_bg_color;
+    /*
+     * 与 target_label_revealer 的 SLIDE_UP 动画（150ms）对齐：当
+     * .target-visible 切换 margin-bottom 在 6px ↔ 0 之间变化时，让该
+     * 变化随 Revealer 同步过渡，避免卡片底缘在展开/收起瞬间发生 6px 跳变。
+     * Gtk.Revealer 的 SLIDE 进度按线性插值，故这里也用 linear 以保持一致。
+     */
+    transition: margin 150ms linear;
 }
 .preview-card.target-visible {
     margin-bottom: 0;
