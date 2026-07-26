@@ -390,3 +390,19 @@ toolbarview > * > * > * {
 .preferences .scheme-preview:focus-within {
     outline: none;
 }
+
+/*
+ * 预览区行号 gutter：不要独立背景/文字色，与代码区融为一体。
+ * GtkSourceView 内置 gutter 外侧是 GtkTextViewChild（css class "left"），
+ * 其内部才是 Gutter 节点；两层都可能被主题画上深色背景，所以一起透明。
+ * 同时保留小写 gutter 选择器以兼容不同 GTK/GtkSourceView 版本。
+ */
+.preferences .scheme-preview .left,
+.preferences .scheme-preview Gutter,
+.preferences .scheme-preview gutter {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+    box-shadow: none;
+    color: inherit;
+}

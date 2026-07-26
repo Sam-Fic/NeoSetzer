@@ -48,38 +48,6 @@ LANG_PREVIEWS = {
 }
 
 
-def source_style_scheme_is_dark(scheme):
-    '''移植自 gnome-text-editor 的 _editor_source_style_scheme_is_dark()。
-
-    判断一个 GtkSource.StyleScheme 是否为深色，用于按当前 Adw 深浅主题
-    过滤 FlowBox 中展示的方案（浅色主题下只列 light 方案，反之亦然）。
-    判定优先级：方案元数据 variant 字段 → ID 以 "-dark" 结尾 →
-    text 背景色 HSP 亮度估算（<=127.5 为深色）。任一环节失败安全回退浅色。
-    '''
-    try:
-        meta = scheme.get_metadata('variant')
-        if meta == 'light':
-            return False
-        if meta == 'dark':
-            return True
-        scheme_id = scheme.get_id()
-        if scheme_id.endswith('-dark'):
-            return True
-        text_style = scheme.get_style('text')
-        if text_style is None:
-            return False
-        bg = text_style.get_background()
-        if bg is None or not bg.red_ok:
-            return False
-        r = bg.red * 255.0
-        g = bg.green * 255.0
-        b = bg.blue * 255.0
-        hsp = (0.299 * r * r + 0.587 * g * g + 0.114 * b * b) ** 0.5
-        return hsp <= 127.5
-    except Exception:
-        return False
-
-
 class PageEditor(object):
 
     def __init__(self, preferences, settings):
@@ -87,6 +55,9 @@ class PageEditor(object):
         self.preferences = preferences
         self.settings = settings
         self._flowbox_previews = []  # (GtkSource.StyleSchemePreview, scheme_id_or_'')
+        # 用户点击网格 tile 时（on_scheme_activated）会写回设置并同步触发
+        # settings_changed；为避免该回调重建整个网格造成闪烁，临时屏蔽重建。
+        self._suppress_scheme_rebuild = False
 
     def init(self):
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
@@ -151,10 +122,15 @@ class PageEditor(object):
             return False
 
     def populate_scheme_flowbox(self):
-        '''依据当前 Adw 深浅主题重建方案网格。
+        '''重建编辑器配色方案网格（列出全部方案，不过滤深浅）。
 
-        首项为「Follow system theme」合成 tile（scheme_id=''），其余为与当前
-        主题同深浅的 GtkSource.StyleSchemePreview。重建前清空旧 children。
+        首项为「Follow system theme」合成 tile（scheme_id=''），其余为
+        StyleSchemeManager 中的所有真实方案——**不**按当前 Adw 深浅主题过滤，
+        以便用户可在深色应用下选用浅色编辑器配色（或反之），恢复旧版 Setzer
+        「任意组合 app 主题与编辑器配色」的能力。
+
+        说明：gnome-text-editor 参考项目会按当前主题只列同深浅方案；但 Setzer
+        用户习惯能独立选择，故这里列出全部。重建前清空旧 children。
         '''
         while True:
             child = self.view.scheme_flowbox.get_first_child()
@@ -173,15 +149,13 @@ class PageEditor(object):
             preview = GtkSource.StyleSchemePreview.new(system_scheme)
             self._add_flowbox_child(preview, '')
 
-        # 2) 与当前主题同深浅的真实方案。
+        # 2) 全部真实方案（不过滤深浅，允许用户任意组合 app 与编辑器配色）。
         scheme_manager = ServiceLocator.get_source_style_scheme_manager()
         for scheme_id in scheme_manager.get_scheme_ids():
             if scheme_id in ('default', 'default-dark'):
                 continue
             scheme = scheme_manager.get_scheme(scheme_id)
             if scheme is None:
-                continue
-            if source_style_scheme_is_dark(scheme) != dark:
                 continue
             preview = GtkSource.StyleSchemePreview.new(scheme)
             self._add_flowbox_child(preview, scheme_id)
@@ -194,9 +168,12 @@ class PageEditor(object):
         self._flowbox_previews.append((preview, scheme_id))
 
     def update_scheme_selection(self, current_scheme):
-        '''高亮与 current_scheme 匹配的 tile（'' 匹配 Follow system 项）。'''
+        '''高亮与 current_scheme 匹配的 tile（'' 匹配 Follow system 项）。
+        仅对状态实际变化的 tile 调用 set_selected，避免不必要的重绘闪烁。'''
         for preview, scheme_id in self._flowbox_previews:
-            preview.set_selected(scheme_id == current_scheme)
+            selected = (scheme_id == current_scheme)
+            if preview.get_selected() != selected:
+                preview.set_selected(selected)
 
     def on_scheme_activated(self, flowbox, child):
         # child 是 Gtk.FlowBoxChild，其单子为 StyleSchemePreview。
@@ -206,9 +183,15 @@ class PageEditor(object):
             if p is preview:
                 scheme_id = sid
                 break
-        # set_style_scheme_name 先清空缓存再 set_value，settings_changed 驱动
-        # 已打开文档重应用配色；同时更新网格选中态与预览配色。
-        ServiceLocator.set_style_scheme_name(scheme_id)
+        # set_style_scheme_name 会同步触发 settings_changed -> on_settings_changed，
+        # 该回调默认会重建整个网格（remove+insert 所有 tile），造成切换闪烁。
+        # 激活场景下无需重建，仅更新选中态与预览配色即可，故临时屏蔽重建。
+        self._suppress_scheme_rebuild = True
+        try:
+            # 写回设置（清空缓存 + set_value），驱动已打开文档重应用配色。
+            ServiceLocator.set_style_scheme_name(scheme_id)
+        finally:
+            self._suppress_scheme_rebuild = False
         self.update_scheme_selection(scheme_id)
         self.apply_preview_scheme()
 
@@ -235,9 +218,15 @@ class PageEditor(object):
         if scheme is not None:
             self.view.preview_source_view.get_buffer().set_style_scheme(scheme)
 
-    def on_settings_changed(self, settings, section, item):
+    def on_settings_changed(self, settings, parameter):
+        # settings_changed 参数为 (section, item, value) 元组。
         # 仅当编辑器配色方案被外部写回时重建网格（如 Appearance 页重置）。
         # 忽略其它设置变更，避免无谓重建。
+        # 用户点击网格 tile 时已在 on_scheme_activated 中临时屏蔽重建，
+        # 此处仅在外部写回（如 Appearance 页「Reset to Defaults」）时重建。
+        if self._suppress_scheme_rebuild:
+            return
+        section, item, value = parameter
         if section == 'preferences' and item == 'editor_style_scheme':
             self.populate_scheme_flowbox()
             self.apply_preview_scheme()
