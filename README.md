@@ -56,6 +56,8 @@ For the original upstream project, see [https://github.com/cvfosammmm/setzer](ht
 
 Setzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. I took some icons from Gnome Builder. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
 
+Parts of the user interface are modeled after [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor).
+
 ## License
 
 Setzer is licensed under GPL version 3 or later. See the COPYING file for details.
