@@ -123,7 +123,8 @@ class SearchBar(Gtk.SearchBar):
         self.preserve_case_toggle.set_tooltip_text(_('Preserve case'))
         options_box.append(self.preserve_case_toggle)
 
-        self.selection_toggle = Gtk.ToggleButton.new_with_label('S')
+        self.selection_toggle = Gtk.ToggleButton()
+        self.selection_toggle.set_child(Gtk.Image(icon_name='edit-select-all-symbolic'))
         self.selection_toggle.set_can_focus(False)
         self.selection_toggle.set_hexpand(False)
         self.selection_toggle.add_css_class('flat')

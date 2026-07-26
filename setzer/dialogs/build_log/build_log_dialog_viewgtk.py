@@ -76,14 +76,21 @@ class BuildLogDialogView(DialogView):
         self.headerbar.pack_end(self.save_log_button)
 
         # Filter 按钮 + 弹出菜单
-        self.filter_button = Gtk.MenuButton(icon_name='edit-select-all-symbolic')
+        # 使用 Gtk.ToggleButton + 手动 Popover 控制，替代 Gtk.MenuButton。
+        # GTK4 中 Gtk.MenuButton 与 Adw.Dialog 内的 Popover 偶现无法通过再次
+        # 点击按钮或点击空白处关闭的问题（只能 Esc），手动 popup/popdown 可规避。
+        self.filter_button = Gtk.ToggleButton()
+        self.filter_button.set_child(Gtk.Image(icon_name='edit-select-all-symbolic'))
         self.filter_button.set_tooltip_text(_('Filter log entries'))
         self.filter_button.add_css_class('flat')
         self.filter_button.set_can_focus(False)
         self.headerbar.pack_end(self.filter_button)
 
         self.filter_popover = Gtk.Popover()
-        self.filter_button.set_popover(self.filter_popover)
+        self.filter_popover.set_autohide(True)
+        self.filter_popover.set_parent(self.filter_button)
+        self.filter_button.connect('notify::active', self._on_filter_button_active)
+        self.filter_popover.connect('closed', self._on_filter_popover_closed)
         filter_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         filter_box.set_margin_top(8)
         filter_box.set_margin_bottom(8)
@@ -183,6 +190,17 @@ class BuildLogDialogView(DialogView):
         self.empty_state.set_vexpand(True)
         self.empty_state.set_visible(False)
         self.topbox.append(self.empty_state)
+
+    def _on_filter_button_active(self, button, gparam):
+        '''手动控制 filter popover 的显示/隐藏：按钮按下时弹出，抬起时收起。'''
+        if button.get_active():
+            self.filter_popover.popup()
+        else:
+            self.filter_popover.popdown()
+
+    def _on_filter_popover_closed(self, popover):
+        '''点击空白处或按 Esc 关闭 popover 后，同步取消按钮的按下状态。'''
+        self.filter_button.set_active(False)
 
     def clear_all(self):
         '''清空所有 group 的行（用于 presenter 重建前）。'''

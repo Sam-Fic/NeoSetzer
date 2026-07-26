@@ -65,6 +65,8 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
                 result['line'] = max(int(match.group(2)) - 1, 0)
                 result['word'] = query.backward_sync_data['word']
                 result['context'] = query.backward_sync_data['context']
+                result['pdf_line_offset'] = query.backward_sync_data.get('pdf_line_offset')
+                result['pdf_line_text'] = query.backward_sync_data.get('pdf_line_text')
 
         query.backward_sync_result = result
 

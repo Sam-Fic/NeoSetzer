@@ -19,7 +19,7 @@ import gi
 from gi.repository import GObject, GLib, Adw
 
 import threading, queue
-import time, re, difflib
+import time, re, difflib, unicodedata
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -127,10 +127,10 @@ class BuildSystem(Observable):
         self.set_build_mode('forward_sync')
         self.start_building()
 
-    def backward_sync(self, page, x, y, word, context):
+    def backward_sync(self, page, x, y, word, context, pdf_line_offset=None, pdf_line_text=None):
         if not self.can_sync: return
 
-        self.backward_sync_data = {'page': page, 'x': x, 'y': y, 'word': word, 'context': context}
+        self.backward_sync_data = {'page': page, 'x': x, 'y': y, 'word': word, 'context': context, 'pdf_line_offset': pdf_line_offset, 'pdf_line_text': pdf_line_text}
         self.set_build_mode('backward_sync')
         self.start_building()
 
@@ -377,6 +377,8 @@ class BuildSystem(Observable):
             query_obj.backward_sync_data['y'] = self.backward_sync_data['y']
             query_obj.backward_sync_data['word'] = self.backward_sync_data['word']
             query_obj.backward_sync_data['context'] = self.backward_sync_data['context']
+            query_obj.backward_sync_data['pdf_line_offset'] = self.backward_sync_data.get('pdf_line_offset')
+            query_obj.backward_sync_data['pdf_line_text'] = self.backward_sync_data.get('pdf_line_text')
         else:
             query_obj.jobs = ['build_latex', 'forward_sync']
             query_obj.build_data['text'] = text
@@ -411,6 +413,31 @@ class BuildSystem(Observable):
             end.forward_to_line_end()
         text = document.source_buffer.get_text(start, end, False)
 
+        # Primary: map the clicked PDF character offset to the source line.
+        # SequenceMatcher aligns the PDF line text with the source line text
+        # (which may differ due to LaTeX commands, ligatures, etc.), giving
+        # character-level cursor alignment instead of just line/paragraph.
+        pdf_line_offset = position.get('pdf_line_offset')
+        pdf_line_text = position.get('pdf_line_text')
+        if pdf_line_offset is not None and pdf_line_text:
+            src_offset = self._map_pdf_offset_to_source(pdf_line_text, text, pdf_line_offset)
+            if src_offset is not None:
+                cursor = start.copy()
+                cursor.forward_chars(min(src_offset, len(text)))
+                # Highlight the word at the cursor for visual feedback.
+                hl_start = cursor.copy()
+                hl_end = cursor.copy()
+                if not hl_start.starts_line():
+                    hl_start.backward_word_start()
+                if not hl_end.ends_line():
+                    hl_end.forward_word_end()
+                if hl_start.equal(cursor) and hl_end.equal(cursor) and not hl_end.ends_line():
+                    hl_end.forward_char()
+                document.source_buffer.place_cursor(cursor)
+                document.highlight_section(hl_start, hl_end)
+                return
+
+        # Fallback 1: match the clicked word within the source line.
         matches = self.get_synctex_word_bounds(text, position['word'], position['context'])
         if matches != None:
             for word_bounds in matches:
@@ -425,6 +452,45 @@ class BuildSystem(Observable):
             start.forward_chars(ws_number)
             document.source_buffer.place_cursor(start)
             document.highlight_section(start, end)
+
+    def _map_pdf_offset_to_source(self, pdf_text, source_text, pdf_offset):
+        '''Map a 0-based character offset in pdf_text to the corresponding
+        offset in source_text via fuzzy alignment.
+
+        SequenceMatcher finds matching blocks between the two texts; the PDF
+        offset is translated through the block that contains it. When the
+        offset falls in a non-matching gap (e.g. inside a LaTeX command that
+        has no PDF counterpart), the end of the last preceding match is used.
+        Returns the source offset, or None when no mapping is possible.
+        '''
+        if pdf_offset is None or pdf_offset < 0 or not pdf_text or not source_text:
+            return None
+        pdf_offset = min(pdf_offset, len(pdf_text))
+
+        # Normalize source to NFC: pdf_text is already NFC (normalized in
+        # preview._get_pdf_line_offset), but the Gtk source buffer may store
+        # characters in either form. Aligning on a common form lets accented
+        # characters match even when Poppler decomposes them.
+        source_text = unicodedata.normalize('NFC', source_text)
+
+        matcher = difflib.SequenceMatcher(None, pdf_text, source_text, autojunk=False)
+        for block in matcher.get_matching_blocks():
+            if block.size == 0:
+                continue
+            if block.a <= pdf_offset < block.a + block.size:
+                return block.b + (pdf_offset - block.a)
+
+        # Offset is in a gap between matching blocks: snap to the end of the
+        # last block before it (or 0 if before all blocks).
+        src_offset = 0
+        for block in matcher.get_matching_blocks():
+            if block.size == 0:
+                continue
+            if block.a + block.size <= pdf_offset:
+                src_offset = block.b + block.size
+            else:
+                break
+        return src_offset
 
     def get_synctex_word_bounds(self, text, word, context):
         if not word: return None

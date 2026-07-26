@@ -25,6 +25,7 @@ from gi.repository import Gio
 import os.path
 import time
 import math
+import unicodedata
 
 import setzer.document.preview.preview_viewgtk as preview_view
 import setzer.document.preview.preview_layouter as preview_layouter
@@ -281,7 +282,93 @@ class Preview(Observable):
         rect.y2 = max(min(y, self.page_height), 0)
         word = poppler_page.get_selected_text(Poppler.SelectionStyle.WORD, rect)
         context = poppler_page.get_selected_text(Poppler.SelectionStyle.LINE, rect)
-        self.document.build_system.backward_sync(page, x, y, word, context)
+
+        # Character-level refinement: locate the exact character under the
+        # click point via Poppler's text layout. The 0-based offset within
+        # the PDF line is later mapped to the source line (in build_system)
+        # to align the cursor to the precise character, not just the line.
+        pdf_line_offset, pdf_line_text = self._get_pdf_line_offset(poppler_page, x, y)
+
+        self.document.build_system.backward_sync(page, x, y, word, context, pdf_line_offset, pdf_line_text)
+
+    def _get_pdf_line_offset(self, poppler_page, click_x, click_y):
+        '''Return (char_offset, line_text) for the character closest to
+        (click_x, click_y) within its PDF text line, or (None, None) when
+        the text layout is unavailable.
+
+        Poppler's get_text_layout() yields one Rectangle per character in
+        get_text(), so the index of the clicked rectangle is also its index
+        in the page text. Counting back to the previous newline gives the
+        0-based offset within the line.
+        '''
+        try:
+            layout = poppler_page.get_text_layout()
+            if not layout or not layout[0]:
+                return None, None
+            rects = layout[1]
+        except (TypeError, IndexError, AttributeError):
+            return None, None
+        if not rects:
+            return None, None
+
+        try:
+            page_text = poppler_page.get_text()
+        except Exception:
+            return None, None
+        # Layout must have one rect per character for index arithmetic to hold
+        if len(rects) != len(page_text):
+            return None, None
+
+        # Find the visible character closest to the click point.
+        # Compare by (x_distance, y_distance) so that when two lines both
+        # contain the click x (rare, but possible near line boundaries), the
+        # character on the actually-clicked line wins.
+        best_idx = -1
+        best_x_dist = float('inf')
+        best_y_dist = float('inf')
+        for i, r in enumerate(rects):
+            # Skip zero-area rects (newlines, control chars with no glyph)
+            if r.x2 <= r.x1 and r.y2 <= r.y1:
+                continue
+            # Vertical filter: only consider characters near the click line.
+            # Use a tight tolerance (2pt) so adjacent text lines (typically
+            # 3-4pt apart) don't bleed into each other.
+            if click_y < r.y1 - 2 or click_y > r.y2 + 2:
+                continue
+            # Horizontal distance to this character
+            if r.x1 <= click_x <= r.x2:
+                x_dist = 0.0
+            else:
+                x_dist = min(abs(r.x1 - click_x), abs(r.x2 - click_x))
+            y_dist = abs((r.y1 + r.y2) / 2 - click_y)
+            if x_dist < best_x_dist or (x_dist == best_x_dist and y_dist < best_y_dist):
+                best_x_dist = x_dist
+                best_y_dist = y_dist
+                best_idx = i
+
+        if best_idx < 0:
+            return None, None
+
+        # Walk back to the line start in page_text
+        line_start = best_idx
+        while line_start > 0 and page_text[line_start - 1] != '\n':
+            line_start -= 1
+        line_end = best_idx
+        while line_end < len(page_text) - 1 and page_text[line_end + 1] != '\n':
+            line_end += 1
+
+        raw_line = page_text[line_start:line_end + 1]
+        raw_offset = best_idx - line_start
+
+        # Poppler may return accented characters in decomposed (NFD) form
+        # (e.g. 'é' as 'e' + U+0301), while the Gtk source buffer stores them
+        # precomposed (NFC). Normalize to NFC so SequenceMatcher can align the
+        # two texts character-by-character. The offset is mapped through by
+        # normalizing the prefix up to the clicked position.
+        line_text = unicodedata.normalize('NFC', raw_line)
+        offset = len(unicodedata.normalize('NFC', raw_line[:raw_offset]))
+
+        return offset, line_text
 
     def shutdown(self):
         '''文档关闭时由 Document.shutdown 调用。取消滚动减速动画的 timeout、
