@@ -3237,3 +3237,15 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_editor.py:164
 msgid "Reload files modified by external applications without prompting"
 msgstr ""
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build deferred — a build is already in progress."
+msgstr ""
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build skipped — the document was busy building."
+msgstr ""
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgstr ""

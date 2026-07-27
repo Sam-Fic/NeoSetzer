@@ -3112,3 +3112,15 @@ msgstr "Recarregar arquivos alterados automaticamente"
 #: setzer/dialogs/preferences/pages/page_editor.py:164
 msgid "Reload files modified by external applications without prompting"
 msgstr "Recarregar arquivos modificados por aplicativos externos sem perguntar"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build deferred — a build is already in progress."
+msgstr "Compilação automática adiada — uma compilação já está em andamento."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build skipped — the document was busy building."
+msgstr "Compilação automática ignorada — o documento estava ocupado compilando."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgstr "A compilação automática não está disponível para documentos não salvos. Salve o documento para habilitá-la."

@@ -2740,3 +2740,15 @@ msgstr "自動重新載入變更的檔案"
 #: setzer/dialogs/preferences/pages/page_editor.py:164
 msgid "Reload files modified by external applications without prompting"
 msgstr "自動重新載入外部應用程式修改的檔案，不再詢問"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build deferred — a build is already in progress."
+msgstr "已延後自動建構——目前已有建構正在進行。"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build skipped — the document was busy building."
+msgstr "已略過自動建構——文件正忙於建構。"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgstr "自動建構不適用於未儲存的文件。請儲存文件以啟用該功能。"

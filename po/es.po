@@ -4214,3 +4214,15 @@ msgstr "Recargar archivos modificados por aplicaciones externas sin preguntar"
 
 #~ msgid "Welsh"
 #~ msgstr "Galés"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build deferred — a build is already in progress."
+msgstr "Compilación automática pospuesta — ya se está compilando."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build skipped — the document was busy building."
+msgstr "Compilación automática omitida — el documento estaba ocupado compilando."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgstr "La compilación automática no está disponible para documentos sin guardar. Guarde el documento para activarla."

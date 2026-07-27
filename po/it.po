@@ -4345,3 +4345,15 @@ msgstr "Ricarica i file modificati da applicazioni esterne senza chiedere confer
 #~ msgid_plural "occurrences"
 #~ msgstr[0] "occorrenza"
 #~ msgstr[1] "occorrenze"
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build deferred — a build is already in progress."
+msgstr "Compilazione automatica rinviata — una compilazione è già in corso."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build skipped — the document was busy building."
+msgstr "Compilazione automatica saltata — il documento era occupato a compilare."
+
+#: setzer/workspace/auto_build/auto_build.py
+msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgstr "La compilazione automatica non è disponibile per documenti non salvati. Salva il documento per abilitarla."
