@@ -24,7 +24,7 @@ msgstr "Setzer 是一個 LaTeX 編輯器。"
 
 #: setzer/dialogs/about/about.py:49
 msgid "Fork Repository"
-msgstr "複製儲存庫"
+msgstr "派生儲存庫"
 msgid ""
 "\n"
 "<ul>\n"
@@ -36,7 +36,7 @@ msgid ""
 "</ul>"
 msgstr "\n<ul>\n<li>效能改進與錯誤修正</li>\n<li>改進鍵盤快捷鍵</li>\n<li>新增列印功能</li>\n<li>加強預覽鍵盤導覽</li>\n<li>改善檔案操作的錯誤處理</li>\n</ul>"
 msgid "Fork maintainer"
-msgstr "複製儲存庫維護者"
+msgstr "派生維護者"
 msgid "translator-credits"
 msgstr "繁體中文翻譯：Setzer 貢獻者"
 
