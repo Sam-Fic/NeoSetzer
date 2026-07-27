@@ -156,9 +156,10 @@ class ShortcutsBar(Gtk.Box):
         self.insert_italic_button()        # 9 (最右)
 
         # 创建所有 right button（3 个）
+        # 顺序：search | build_log | more（汉堡菜单放在最右端）
         self.insert_search_button()
-        self.insert_more_button()  # F12 context menu
         self.insert_build_log_button()
+        self.insert_more_button()  # F12 context menu（汉堡菜单，最右）
 
         # Overflow state: 0 = 全部 visible
         self._overflow_count = 0
