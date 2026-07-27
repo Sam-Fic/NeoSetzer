@@ -44,13 +44,13 @@ THEME_MODES = [
 # 同 THEME_MODES：英文名是翻译 msgid，修改需同步 .po 文件。
 LANGUAGES = [
     ('English', 'en'),
-    ('Chinese (Simplified)', 'zh_CN'),
-    ('Chinese (Traditional)', 'zh_TW'),
-    ('German', 'de'),
-    ('Spanish', 'es'),
-    ('French', 'fr'),
-    ('Italian', 'it'),
-    ('Portuguese (Brazil)', 'pt_BR'),
+    ('简体中文', 'zh_CN'),
+    ('繁體中文', 'zh_TW'),
+    ('Deutsch', 'de'),
+    ('Español', 'es'),
+    ('Français', 'fr'),
+    ('Italiano', 'it'),
+    ('Português (Brasil)', 'pt_BR'),
 ]
 
 

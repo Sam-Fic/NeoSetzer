@@ -83,12 +83,18 @@ class PreviewPanelView(Gtk.Box):
         spacer.set_hexpand(True)
         self.toolbar.append(spacer)
 
-        # 右侧：zoom_out / zoom_level / zoom_in / recolor / external
+        # 右侧：zoom_out / fit_width / zoom_level / zoom_in / recolor / external
         self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
         self.zoom_out_button.set_tooltip_text(_('Zoom out'))
         self.zoom_out_button.add_css_class('flat')
         self.zoom_out_button.set_can_focus(False)
         self.toolbar.append(self.zoom_out_button)
+
+        self.fit_width_button = Gtk.Button(icon_name='xsi-view-fit-width-symbolic')
+        self.fit_width_button.set_tooltip_text(_('Fit to Width'))
+        self.fit_width_button.add_css_class('flat')
+        self.fit_width_button.set_can_focus(False)
+        self.toolbar.append(self.fit_width_button)
 
         self.zoom_level_label = Gtk.Label()
         self.zoom_level_label.set_xalign(0.5)

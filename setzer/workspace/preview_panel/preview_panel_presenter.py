@@ -35,6 +35,7 @@ class PreviewPanelPresenter(object):
         self.workspace.connect('root_state_change', self.on_root_state_change)
 
         self.view.page_spin.connect('activate', self._on_page_spin_activate)
+        self.view.fit_width_button.connect('clicked', self._on_fit_width_clicked)
 
         self.view.switch_button.connect('clicked', self._on_switch_clicked)
         self.main_window.help_panel.switch_button.connect('clicked', self._on_switch_clicked)
@@ -163,12 +164,14 @@ class PreviewPanelPresenter(object):
         self.view.external_viewer_button.set_visible(True)
         self.view.recolor_pdf_toggle.set_visible(True)
         self.view.zoom_out_button.set_visible(True)
+        self.view.fit_width_button.set_visible(True)
         self.view.zoom_level_button.set_visible(True)
         self.view.zoom_in_button.set_visible(True)
 
         self.view.external_viewer_button.set_sensitive(has_pdf)
         self.view.recolor_pdf_toggle.set_sensitive(has_pdf)
         self.view.zoom_out_button.set_sensitive(has_pdf)
+        self.view.fit_width_button.set_sensitive(has_pdf)
         self.view.zoom_level_button.set_sensitive(has_pdf)
         self.view.zoom_in_button.set_sensitive(has_pdf)
         self.view.page_spin.set_sensitive(has_pdf)
@@ -200,6 +203,11 @@ class PreviewPanelPresenter(object):
         step = preview.layout.page_height + preview.layout.page_gap
         y = (page_number - 1) * step
         preview.scroll_to_position(content.scrolling_offset_x, y)
+
+    def _on_fit_width_clicked(self, button):
+        if self.document == None:
+            return
+        self.document.preview.zoom_manager.set_zoom_fit_to_width_auto_offset()
 
     def _sync_switch_icons(self):
         '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。
