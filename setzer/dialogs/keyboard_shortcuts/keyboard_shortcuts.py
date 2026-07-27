@@ -54,7 +54,7 @@ class KeyboardShortcutsDialog(object):
 
         section = {'title': _('Tools'), 'items': list()}
         section['items'].append({'title': _('Save and build .pdf-file from document'), 'shortcut': shortcuts.get('save_and_build', 'F5')})
-        section['items'].append({'title': _('Build .pdf-file from document'), 'shortcut': shortcuts.get('build', 'F6')})
+        section['items'].append({'title': _('Build PDF without saving'), 'shortcut': shortcuts.get('build', 'F6')})
         section['items'].append({'title': _('Show current position in preview'), 'shortcut': shortcuts.get('forward_sync', 'F7')})
         data.append(section)
 

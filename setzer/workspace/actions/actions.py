@@ -96,7 +96,14 @@ class Actions(object):
         self.add_action('preview-fit-to-width', self.preview_fit_to_width)
         self.add_action('preview-fit-to-text-width', self.preview_fit_to_text_width)
         self.add_action('preview-fit-to-height', self.preview_fit_to_height)
-        self.add_action('preview-set-zoom-level', self.preview_set_zoom_level, GLib.VariantType('d'))
+        # 有状态 action：state 为当前缩放级别（double）。菜单项以 target 设置各级
+        # 别，GTK 自动在 target 与 state 匹配的项前绘制对钩（radio/check 指示符），
+        # 与 set-build-interpreter 的实现一致——这是标准做法。
+        preview_set_zoom_level_action = Gio.SimpleAction.new_stateful(
+            'preview-set-zoom-level', GLib.VariantType('d'), GLib.Variant('d', 1.0))
+        preview_set_zoom_level_action.connect('activate', self.preview_set_zoom_level)
+        self.main_window.add_action(preview_set_zoom_level_action)
+        self.actions['preview-set-zoom-level'] = preview_set_zoom_level_action
 
         self.add_action('show-preferences-dialog', self.show_preferences_dialog)
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
@@ -253,7 +260,7 @@ class Actions(object):
         document = self.workspace.get_active_document()
         if document is None or not document.is_latex_document():
             return
-        document.build_system.latex_interpreter = None if value == 'default' else value
+        document.build_system.set_latex_interpreter(None if value == 'default' else value)
         # 持久化到该文档状态文件，崩溃/重启后保留。
         DocumentSettings.save_document_state(document)
         action.set_state(parameter)
@@ -904,7 +911,12 @@ class Actions(object):
         level = parameter.unpack()
         document = self.workspace.get_root_or_active_latex_document()
         if document is not None:
+            # popover 选具体百分比是手动缩放，脱离任何 fit 模式。
+            document.preview.zoom_manager.zoom_mode = 'manual'
             document.preview.zoom_manager.set_zoom_level_auto_offset(level)
+            # 同步 state，使菜单里对应级别前自动显示对钩。
+            if action is not None:
+                action.set_state(parameter)
 
     def show_preferences_dialog(self, action=None, parameter=''):
         DialogLocator.get_dialog('preferences').run()

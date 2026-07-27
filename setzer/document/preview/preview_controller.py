@@ -77,6 +77,8 @@ class PreviewController(object):
         x = factor * self.view.content.scrolling_offset_x + (factor - 1) * self.view.content.cursor_x
         prev_pages = self.view.content.scrolling_offset_y // (layout.page_height + layout.page_gap)
         y = (1 - factor) * prev_pages * layout.page_gap + factor * self.view.content.scrolling_offset_y + (factor - 1) * self.view.content.cursor_y
+        # Ctrl+滚轮是手动缩放：脱离任何 fit 模式，保留用户设定的绝对级别。
+        manager.zoom_mode = 'manual'
         manager.set_zoom_level(zoom_level)
         self.preview.scroll_to_position(x, y)
 
@@ -184,10 +186,22 @@ class PreviewController(object):
                         return True
                     elif link[2] == 'uri':
                         url = link[1]
-                        # 在后台线程打开浏览器，避免阻塞 GTK 主线程。失败时
-                        # （无默认浏览器、URL 格式错误、浏览器进程启动失败）
-                        # 在主线程显示 toast 提示用户——原实现异常在后台线程
-                        # 中静默吞掉，用户不知道链接打开失败。
+                        # 安全：拦截可能执行脚本的 scheme（javascript: / vbscript:
+                        # / data:），并要求用户确认后再打开本地文件（file://），
+                        # 防止恶意 PDF 在用户不知情下运行脚本或访问本机文件。
+                        scheme = ''
+                        try:
+                            scheme = (GLib.uri_parse_scheme(url) or '').lower()
+                        except Exception:
+                            scheme = ''
+                        if scheme in ('javascript', 'vbscript', 'data'):
+                            self._show_blocked_link_toast()
+                            return True
+                        if scheme == 'file':
+                            self._confirm_open_file(url)
+                            return True
+                        # 其它（http(s) / mailto / ftp 等）在后台线程打开，避免
+                        # 阻塞 GTK 主线程；失败时在主线程弹 toast。
                         def _open_url():
                             try:
                                 webbrowser.open_new_tab(url)
@@ -209,6 +223,44 @@ class PreviewController(object):
             toast.set_timeout(5)
             main_window.toast_overlay.add_toast(toast)
         return False
+
+    def _show_blocked_link_toast(self):
+        '''在主线程显示「链接被拦截」toast（危险 scheme）。'''
+        main_window = ServiceLocator.get_main_window()
+        if main_window and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('Link blocked: this link type is unsafe'))
+            toast.set_timeout(5)
+            main_window.toast_overlay.add_toast(toast)
+        return False
+
+    def _confirm_open_file(self, uri):
+        '''打开本地文件（file://）前先征得用户同意。'''
+        dialog = Adw.AlertDialog(
+            heading=_('Open local file from this PDF?'),
+            body=_('This link points to a file on your computer:\n\n{uri}').format(uri=uri))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('open', _('Open'))
+        dialog.set_response_appearance('open', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        # 把 uri 作为 user_data 传给回调。
+        dialog.choose(main_window, None, self._on_open_file_response, uri)
+
+    def _on_open_file_response(self, dialog, result, uri):
+        try:
+            dialog.choose_finish(result)
+        except Exception:
+            return
+        if dialog.get_response() == 'open':
+            def _open_url():
+                try:
+                    webbrowser.open_new_tab(uri)
+                except Exception:
+                    GLib.idle_add(self._show_url_error_toast)
+            threading.Thread(target=_open_url, daemon=True).start()
 
     # ── 键盘导航 ──────────────────────────────────────────────
 

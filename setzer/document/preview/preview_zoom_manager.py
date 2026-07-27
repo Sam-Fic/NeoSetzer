@@ -30,12 +30,10 @@ class PreviewZoomManager(Observable):
         self.zoom_level_fit_to_height = None
         self.zoom_level = None
         self.zoom_set = False
-        # “fit to text width 后水平居中文字”的目标滚动位置与逐帧重试 tick id。
-        # 见 set_zoom_fit_to_text_width 注释：居中需在 ScrolledWindow 完成尺寸
-        # 分配（hadjustment 上界更新到新画布尺寸）之后进行，故用 tick 每帧检查，
-        # 直到 adjustment 允许该位置再真正居中（避免 idle 一次性回调被 clamp）。
+        # “fit to text width 后水平居中文字”的目标滚动位置(详见
+        # _apply_center_text_horizontally：缩放后先把 hadjustment 上界设为已知的新
+        # 画布宽度，再同步设好滚动位置，首帧即居中，无闪烁也无需手动滚动)。
         self._center_text_target_x = None
-        self._center_text_tick_id = None
         # 递归保护：update_dynamic_zoom_levels 内部可能调用
         # set_zoom_fit_to_width_auto_offset → set_zoom_level → update_dynamic_zoom_levels，
         # 此标志防止递归调用导致多余的布局重建。
@@ -44,6 +42,15 @@ class PreviewZoomManager(Observable):
         # + `in` 线性扫描。fit_to_* 级别仅在 update_dynamic_zoom_levels 后变化，
         # 故在那里缓存为 tuple，on_zoom_request 直接读取，tuple 的 `in` 也快于 list。
         self._stopping_points = ()
+        # 当前缩放模式：'fit_to_width' / 'fit_to_text_width' / 'fit_to_height' /
+        # 'manual'。重启/重编译/缩放窗口后据此重新推导级别，并在 fit_to_text_width
+        # 时重新水平居中，使“文字居中”这一偏好可持久化且始终正确。
+        self.zoom_mode = 'fit_to_width'
+        # 文档状态恢复时暂存的滚动位置 (x, y, mode)，待首帧布局就绪后在
+        # on_layout_changed 中一次性应用：fit_to_text_width 仅恢复 y（x 由居中决定），
+        # 其余模式同时恢复 x/y。
+        self._restore_pending = None
+        self.preview.connect('layout_changed', self.on_layout_changed)
 
     def update_dynamic_zoom_levels(self):
         if self.preview.layout == None: return
@@ -57,15 +64,25 @@ class PreviewZoomManager(Observable):
             self.update_fit_to_text_width()
             self.update_fit_to_height()
 
-            if self.zoom_level == old_level and self.zoom_level_fit_to_width != old_level:
+            # 依据当前缩放模式重新推导级别并（必要时）居中。fit 模式因此能在
+            # 布局就绪后（首次绘制、重编译、缩放窗口）始终保持正确，重启也能恢复；
+            # 手动模式（'manual'）的级别保持用户设定的绝对值，不被覆盖。
+            if self.zoom_mode == 'fit_to_text_width':
+                self.set_zoom_fit_to_text_width()
+            elif self.zoom_mode == 'fit_to_height':
+                self.set_zoom_fit_to_height()
+            elif self.zoom_mode == 'fit_to_width':
                 self.set_zoom_fit_to_width_auto_offset()
+            else:
+                # 手动模式：级别已由 set_zoom_level 设好，绝不能在此覆盖
+                # （否则首次 set_zoom_level 时 zoom_set 仍为 False，会误调用
+                # set_zoom_fit_to_width 把 'manual' 模式冲回 'fit_to_width'）。
+                pass
 
             if not self.zoom_set:
                 self.zoom_set = True
-                self.set_zoom_fit_to_width()
 
-            # fit_to_* 级别此刻已最终确定（含可能的 set_zoom_fit_to_width 回调后的
-            # 值），缓存停靠点供 on_zoom_request 读取。
+            # fit_to_* 级别此刻已最终确定，缓存停靠点供 on_zoom_request 读取。
             self._stopping_points = tuple(
                 lvl for lvl in (self.zoom_level_fit_to_width, self.zoom_level_fit_to_text_width, self.zoom_level_fit_to_height)
                 if lvl is not None
@@ -83,18 +100,42 @@ class PreviewZoomManager(Observable):
         self.zoom_level_fit_to_height = (self.view.stack.get_allocated_height() + self.preview.layout.border_width) / (self.preview.page_height * self.preview.layout.hidpi_factor)
 
     def set_zoom_fit_to_height(self):
+        self.zoom_mode = 'fit_to_height'
         self.set_zoom_level_auto_offset(self.zoom_level_fit_to_height)
 
     def set_zoom_fit_to_text_width(self):
+        self.zoom_mode = 'fit_to_text_width'
         if self.zoom_level_fit_to_text_width != None:
             self.set_zoom_level_auto_offset(self.zoom_level_fit_to_text_width)
         else:
             self.set_zoom_level_auto_offset(1.0)
             self.zoom_set = False
-        # 缩放已切换，但水平滚动条的上界（画布宽度）通常要等下一帧布局完成后
-        # 才会更新到新值。若此刻直接滚动居中，会被 clamp 到旧上界而失败（表现
-        # 为只缩放、文字仍靠左）。故先算好目标，再用 tick 逐帧重试直到可居中。
+        # 居中需在 ScrolledWindow 完成尺寸分配（hadjustment 上界更新到新画布宽度）
+        # 之后进行，故 center_text_horizontally 内部先把上界设为已知的新画布宽度再
+        # 同步滚动，首帧即居中，无闪烁也无需手动滚动。
         self.center_text_horizontally()
+
+    def on_layout_changed(self, *args):
+        '''布局（重）建立后，按缩放模式恢复正确的显示。
+
+        - fit_to_text_width：把文字区域水平居中（依赖视口宽度，故每次 relayout
+          都需重算，否则重启/重编译/缩放窗口后会偏左）。
+        - 其余模式：不额外处理（fit_to_width/fit_to_height 的页面本身已居中）。
+        最后，若文档状态恢复时暂存了滚动位置（_restore_pending），一次性应用之：
+        fit_to_text_width 仅恢复垂直位置（水平由居中决定），其余模式同时恢复
+        水平/垂直位置。'''
+        if self.preview.layout is None:
+            return
+        if self.zoom_mode == 'fit_to_text_width':
+            self.center_text_horizontally()
+        if self._restore_pending is not None:
+            x, y, mode = self._restore_pending
+            self._restore_pending = None
+            if mode == 'fit_to_text_width':
+                # 水平已居中，仅恢复垂直滚动位置。
+                self.preview.scroll_to_position(self.view.content.scrolling_offset_x, y)
+            else:
+                self.preview.scroll_to_position(x, y)
 
     def center_text_horizontally(self):
         '''把 PDF 预览的水平滚动偏移居中到文字内容（页面）中心。
@@ -125,27 +166,21 @@ class PreviewZoomManager(Observable):
         if self._center_text_target_x is None:
             return
         adj = self.view.content.adjustment_x
-        max_scroll = adj.get_upper() - adj.get_page_size()
-        # adjustment 尚未更新到新画布宽度（上界仍偏小）时，留到下一帧再居中。
-        if max_scroll < self._center_text_target_x - 0.5:
-            if self._center_text_tick_id is None:
-                self._center_text_tick_id = self.view.content.view.add_tick_callback(self._center_text_tick)
-            return
-        target = min(self._center_text_target_x, max(max_scroll, 0))
-        self.preview.scroll_to_position(target, self.view.content.scrolling_offset_y)
+        # 缩放已改变画布宽度，但 ScrolledWindow 的 hadjustment 上界要等布局阶段
+        # 重新分配后才更新。若此刻直接设滚动值，会被旧上界钳制（表现为"只缩放不
+        # 居中"，或需手动滚动一下 'changed' 才补上）。此处先把上界设为已知的新
+        # 画布宽度（与即将到来的布局结果一致），滚动值便不再被钳制；随后布局时
+        # ScrolledWindow 也会把它设成同一个值，无冲突。整个过程同步完成，首帧即
+        # 居中，既不闪烁也无需再滚动。
+        new_upper = max(self.preview.layout.canvas_width, adj.get_upper())
+        adj.set_upper(new_upper)
+        max_scroll = max(new_upper - adj.get_page_size(), 0)
+        target = min(self._center_text_target_x, max_scroll)
         self._center_text_target_x = None
-        if self._center_text_tick_id is not None:
-            self.view.content.view.remove_tick_callback(self._center_text_tick_id)
-            self._center_text_tick_id = None
-
-    def _center_text_tick(self, widget, clock):
-        self._apply_center_text_horizontally()
-        if self._center_text_target_x is None:
-            self._center_text_tick_id = None
-            return False
-        return True
+        self.preview.scroll_to_position(target, self.view.content.scrolling_offset_y)
 
     def set_zoom_fit_to_width(self):
+        self.zoom_mode = 'fit_to_width'
         if self.zoom_level_fit_to_width != None:
             self.set_zoom_level(self.zoom_level_fit_to_width)
         else:
@@ -153,6 +188,7 @@ class PreviewZoomManager(Observable):
             self.zoom_set = False
 
     def set_zoom_fit_to_width_auto_offset(self):
+        self.zoom_mode = 'fit_to_width'
         if self.zoom_level_fit_to_width != None:
             zoom_level = self.zoom_level_fit_to_width
         else:
@@ -161,24 +197,31 @@ class PreviewZoomManager(Observable):
         self.set_zoom_level_auto_offset(zoom_level)
 
     def zoom_in(self):
-        try:
-            zoom_level = min([level for level in self.get_list_of_zoom_levels() if level > self.zoom_level])
-        except ValueError:
-            zoom_level = max(self.get_list_of_zoom_levels())
-        self.set_zoom_level_auto_offset(zoom_level)
+        # 缩放档位是手动缩放，脱离任何 fit 模式。
+        self.zoom_mode = 'manual'
+        current = self.zoom_level
+        if current is None:
+            self.set_zoom_level_auto_offset(min(self.get_list_of_zoom_levels()))
+            return
+        larger = [level for level in self.get_list_of_zoom_levels() if level > current]
+        if not larger:
+            # 已在最大档：不再静默无效缩放，给上层一个机会提示用户。
+            self.add_change_code('zoom_clamped', 'in')
+            return
+        self.set_zoom_level_auto_offset(min(larger))
 
     def zoom_out(self):
-        try:
-            zoom_level = max([level for level in self.get_list_of_zoom_levels() if level < self.zoom_level])
-        except ValueError:
-            # 已达最小缩放级别（无更小的级别可选）。回退到 min(levels)——
-            # 通常等于当前 zoom_level，set_zoom_level_auto_offset → set_zoom_level
-            # 内 `if level == self.zoom_level: return` 会直接返回，即 no-op。
-            # 这是有意行为：缩到最小后再按缩小不应循环到最大或报错。
-            # 原代码此处误写 self.zoom_levels（未定义属性）会抛 AttributeError，
-            # 已修正为 self.get_list_of_zoom_levels()，与 zoom_in 对应分支一致。
-            zoom_level = min(self.get_list_of_zoom_levels())
-        self.set_zoom_level_auto_offset(zoom_level)
+        # 缩放档位是手动缩放，脱离任何 fit 模式。
+        self.zoom_mode = 'manual'
+        current = self.zoom_level
+        if current is None:
+            return
+        smaller = [level for level in self.get_list_of_zoom_levels() if level < current]
+        if not smaller:
+            # 已在最小档：不再静默无效缩放，给上层一个机会提示用户。
+            self.add_change_code('zoom_clamped', 'out')
+            return
+        self.set_zoom_level_auto_offset(max(smaller))
 
     def get_list_of_zoom_levels(self):
         zoom_levels = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0]
@@ -191,6 +234,10 @@ class PreviewZoomManager(Observable):
         return zoom_levels
 
     def set_zoom_level_auto_offset(self, zoom_level):
+        # 注意：本方法不再自行设置 zoom_mode。它既被 fit 设置器
+        # （set_zoom_fit_to_*）复用以保持“fit 模式”不变，也被真正的手动缩放
+        # 入口（zoom_in / zoom_out / popover 选百分比）调用。手动语义由那些
+        # 调用方负责设置 zoom_mode = 'manual'，否则 fit 模式会被错误地冲掉。
         layout = self.preview.layout
         if layout == None or self.zoom_level == None:
             # 首次设置缩放（zoom_level 仍为 None）或布局尚未建立时，

@@ -47,6 +47,10 @@ class PreviewZoomLevelView(Gtk.PopoverMenu):
         fit_section.append(_('Fit to Height'), 'win.preview-fit-to-height')
         model.append_section(None, fit_section)
 
+        # 普通 action+target 项。对钩由有状态的 win.preview-set-zoom-level
+        # action 的 state 自动绘制（与 set-build-interpreter 菜单一致）：GTK 在
+        # target 等于 action 当前 state 的项前显示对钩。无需在菜单模型里拼
+        # 字面字符或手动设 role/:checked。
         zoom_section = Gio.Menu()
         for level in self.LEVELS:
             label = '{0:.0f}%'.format(level * 100)

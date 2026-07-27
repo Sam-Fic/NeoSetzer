@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GObject, GLib
+gi.require_version('Adw', '1')
+from gi.repository import GObject, GLib, Adw
 
 from setzer.app.service_locator import ServiceLocator
 
@@ -43,6 +44,8 @@ class AutoBuild(object):
         self.timers = dict()
         # maps document -> consecutive retry count (reset on new edit or successful build)
         self._retry_counts = dict()
+        # 已对“未保存文档无法自动构建”提示过的文档集合，避免每次按键重复弹 toast。
+        self._untitled_warned = set()
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -61,13 +64,16 @@ class AutoBuild(object):
     def on_new_document(self, workspace, document):
         if document.is_latex_document():
             document.connect('changed', self.on_document_changed)
+            document.connect('filename_change', self.on_document_saved)
 
     def on_document_removed(self, workspace, document):
         if document.is_latex_document():
             self.cancel_timer(document)
             self._retry_counts.pop(document, None)
+            self._untitled_warned.discard(document)
             try:
                 document.disconnect('changed', self.on_document_changed)
+                document.disconnect('filename_change', self.on_document_saved)
             except Exception:
                 pass
 
@@ -75,11 +81,30 @@ class AutoBuild(object):
         if not self.settings.get_value('preferences', 'auto_build'):
             return
         if document.get_filename() == None:
+            self._warn_untitled(document)
             return
         self._retry_counts.pop(document, None)
         delay = self.settings.get_value('preferences', 'auto_build_delay')
         delay_ms = max(int(delay), 1) * 1000
         self.schedule_build(document, delay_ms)
+
+    def on_document_saved(self, document, filename=None):
+        # 文档已保存后解除一次性提示屏蔽；若再次变为未命名（如“另存为”到
+        # 内存），下次编辑会重新提示。
+        self._untitled_warned.discard(document)
+
+    def _warn_untitled(self, document):
+        if document in self._untitled_warned:
+            return
+        self._untitled_warned.add(document)
+        self._show_toast(_('Auto-build is not available for unsaved documents. Save the document to enable it.'), timeout=3)
+
+    def _show_toast(self, text, timeout=3):
+        main_window = ServiceLocator.get_main_window()
+        if hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(text)
+            toast.set_timeout(timeout)
+            main_window.toast_overlay.add_toast(toast)
 
     def schedule_build(self, document, delay_ms):
         self.cancel_timer(document)
@@ -108,8 +133,13 @@ class AutoBuild(object):
         # edits get built once it finishes instead of being dropped.
         if target.build_system.get_build_state() in ('building_in_progress', 'building_to_stop'):
             count = self._retry_counts.get(document, 0) + 1
+            # 首次因文档占用而排队时给出一次性提示，让用户知道编辑不会被丢弃
+            # （见项 3：并发构建重试需有 UI 反馈，而非静默重试）。
+            if count == 1:
+                self._show_toast(_('Auto-build deferred — a build is already in progress.'), timeout=2)
             if count > self.MAX_RETRIES:
                 self._retry_counts.pop(document, None)
+                self._show_toast(_('Auto-build skipped — the document was busy building.'), timeout=3)
                 return False
             self._retry_counts[document] = count
             self.schedule_build(document, self.RETRY_INTERVAL_MS)

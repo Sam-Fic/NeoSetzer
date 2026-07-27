@@ -40,6 +40,14 @@ _CLEANUP_FILE_ENDINGS = [
     '.bcf', '.run.xml', '.out.ps',
 ]
 
+# 解释器键 -> 用户可见的引擎名（与文档菜单 Build Interpreter 子菜单一致）。
+_INTERPRETER_DISPLAY = {
+    'pdflatex': 'PDFLaTeX',
+    'xelatex': 'XeLaTeX',
+    'lualatex': 'LuaLaTeX',
+    'tectonic': 'Tectonic',
+}
+
 
 class BuildWidget(Observable):
 
@@ -57,10 +65,13 @@ class BuildWidget(Observable):
         self.build_button_state = ('idle', int(time.time()*1000))
         self.set_clean_button_state()
         self.update_build_button()
+        self.update_build_button_tooltip()
 
         self.document.connect('filename_change', self.on_filename_change)
         self.document.build_system.connect('build_state_change', self.on_build_state_change)
         self.document.build_system.connect('build_state', self.on_build_state)
+        # 每文档/全局解释器变化时刷新“保存并构建”按钮的 tooltip（含引擎名，见项 15）。
+        self.document.build_system.connect('latex_interpreter_changed', self.update_build_button_tooltip)
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
         self._settings_callback = self.on_settings_changed
         self.settings.connect('settings_changed', self._settings_callback)
@@ -91,6 +102,7 @@ class BuildWidget(Observable):
                 if build_button_state[0] == 'idle':
                     self.view.switch_to_idle()
                     self.view.build_button.set_sensitive(True)
+                    self.update_build_button_tooltip()
                 elif build_button_state[0] == 'stopping':
                     # 构建正在停止：按钮保持停止图标但不可点击，
                     # 防止用户在进程退出前重复点击。
@@ -103,6 +115,7 @@ class BuildWidget(Observable):
         else:
             self.view.switch_to_idle()
             self.view.build_button.set_sensitive(True)
+            self.update_build_button_tooltip()
             self.build_button_state = ('idle', int(time.time()*1000))
         self.set_clean_button_state()
 
@@ -139,10 +152,14 @@ class BuildWidget(Observable):
         section, item, value = parameter
         if (section, item) == ('preferences', 'cleanup_build_files'):
             self.set_clean_button_state()
+        elif item == 'latex_interpreter':
+            # 全局默认引擎变化：刷新 tooltip 中的引擎名。
+            self.update_build_button_tooltip()
 
     def show_message(self, message=''):
         self.view.stop_timer()
         self.view.switch_to_idle()
+        self.update_build_button_tooltip()
 
     def on_build_button_click(self, button_object=None):
         if self.build_button_state[0] == 'building':
@@ -186,6 +203,25 @@ class BuildWidget(Observable):
             self.view.switch_to_building()
         else:
             self.view.switch_to_idle()
+            self.update_build_button_tooltip()
         self.view.build_button.set_sensitive(True)
+
+    def _active_interpreter_display(self):
+        '''当前文档实际使用的引擎显示名：每文档覆盖优先于全局默认。'''
+        interp = self.document.build_system.latex_interpreter
+        if interp in (None, 'default'):
+            interp = self.settings.get_value('preferences', 'latex_interpreter')
+        return _INTERPRETER_DISPLAY.get(interp, interp)
+
+    def update_build_button_tooltip(self, *args):
+        # 构建中按钮是“停止”语义，tooltip 由 view.switch_to_building 设为
+        # “Stop building”，此处不应覆盖；仅在空闲/消息态展示引擎名。
+        if self.build_button_state[0] == 'building':
+            return
+        engine = self._active_interpreter_display()
+        text = _('Save and build .pdf-file from document') + ' (F5)'
+        if engine:
+            text = text + '  ·  ' + engine
+        self.view.build_button.set_tooltip_text(text)
 
 

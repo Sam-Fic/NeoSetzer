@@ -409,6 +409,12 @@ class BuildSystem(Observable):
             # 进程尚未退出时再次点击构建按钮导致冲突。
             self.change_build_state('building_to_stop')
 
+    def set_latex_interpreter(self, value):
+        '''设置每文档 LaTeX 解释器覆盖并广播变更，使标题栏“保存并构建”
+        按钮的 tooltip 能实时反映当前引擎名（见 build_widget.BuildWidget）。'''
+        self.latex_interpreter = value
+        self.add_change_code('latex_interpreter_changed')
+
     def set_synctex_position(self, document, position):
         position_found, start = document.source_buffer.get_iter_at_line(position['line'])
         end = start.copy()

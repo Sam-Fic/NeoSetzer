@@ -92,21 +92,39 @@ class DocumentSettings():
         except FileNotFoundError:
             return
 
-        # pdf_filename 与 zoom_level 不依赖 PDF 内容，始终恢复：路径是 .tex
-        # 推导出的固定值；zoom 是用户偏好，与具体 PDF 无关。
+        # pdf_filename 不依赖 PDF 内容，始终恢复。缩放恢复改为按“模式”进行：
+        # 新版本保存了 zoom_mode（fit_to_width / fit_to_text_width / fit_to_height /
+        # manual），fit 模式的具体级别依赖布局与视口，留待首帧布局建立后由
+        # update_dynamic_zoom_levels 按模式推导并（fit_to_text_width 时）居中；
+        # 旧版本无 zoom_mode，则沿用旧行为直接恢复保存的精确级别（记为 manual）。
+        # 横向居中（fit_to_text_width）因此可在重启后复现，且重编译/缩放窗口后
+        # 也始终正确。
         document.preview.set_pdf_filename(pdf_filename)
-        document.preview.zoom_manager.set_zoom_level(zoom_level)
+
+        manager = document.preview.zoom_manager
+        zoom_mode = document_data.get('zoom_mode')
+        valid_modes = ('fit_to_width', 'fit_to_text_width', 'fit_to_height', 'manual')
+        if zoom_mode in valid_modes:
+            manager.zoom_mode = zoom_mode
+            if zoom_mode == 'manual':
+                manager.set_zoom_level(zoom_level)
+        else:
+            manager.zoom_mode = 'manual'
+            manager.set_zoom_level(zoom_level)
 
         # 仅当磁盘上的 PDF 与状态保存时是同一个文件（mtime 在 1 秒容差内匹配）
         # 才恢复滚动位置。PDF 重建后页数/尺寸可能变化，旧 (xoffset, yoffset)
-        # 会指到错位的地方。
-        #
-        # 原代码用 10 秒窗口（pdf_date <= mtime - 10），既过宽（<10s 的快速
-        # 重建会假恢复过期位置）又过严（连 zoom 也一起丢弃）。这里把两件事
-        # 拆开：zoom 始终恢复，scroll 条件恢复。1 秒容差覆盖 FAT/ext4 等
-        # 文件系统的时间戳取整误差。
+        # 会指到错位的地方。滚动位置暂存到 _restore_pending，待首帧布局就绪后
+        # 在 on_layout_changed 中应用（fit_to_text_width 仅恢复垂直位置，水平由居中
+        # 决定），避免恢复一个依赖旧视口宽度的绝对水平偏移。
         if pdf_date is not None and abs(pdf_st.st_mtime - pdf_date) <= 1:
-            document.preview.scroll_to_position(xoffset, yoffset)
+            manager._restore_pending = (xoffset, yoffset, manager.zoom_mode)
+            # 若布局此刻已就绪（如内存中已有该文档），先用 update_dynamic_zoom_levels
+            # 按恢复的 zoom_mode 重新推导级别并（fit_to_text_width 时）居中，再
+            # on_layout_changed 应用暂存的滚动位置；否则交给首帧 layout_changed。
+            if document.preview.layout is not None:
+                manager.update_dynamic_zoom_levels()
+                manager.on_layout_changed()
 
     def save_document_state(document):
         if document.filename == None: return
@@ -126,6 +144,7 @@ class DocumentSettings():
         document_data['xoffset'] = document.preview.view.content.scrolling_offset_x
         document_data['yoffset'] = document.preview.view.content.scrolling_offset_y
         document_data['zoom_level'] = document.preview.zoom_manager.zoom_level
+        document_data['zoom_mode'] = document.preview.zoom_manager.zoom_mode
 
         # 文件名走 state_paths（hash+basename 可读方案）。save_document_state
         # 入口已守卫 document.filename != None，此处不会收到 None。

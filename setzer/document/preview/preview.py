@@ -167,11 +167,23 @@ class Preview(Observable):
         self.add_change_code('layout_changed')
 
     def setup_layout_and_zoom_levels(self):
-        self.zoom_manager.update_dynamic_zoom_levels()
-        if self.zoom_manager.get_zoom_level() == None:
-            self.zoom_manager.set_zoom_fit_to_width()
-
         self.layout = self.layouter.create_layout()
+        # 必须在布局建立之后才更新动态缩放级别：fit_to_text_width 等模式依赖
+        # 布局（页面尺寸、vertical_margin）与视口宽度来推导级别并居中。若在
+        # create_layout 之前调用，会因 layout 为 None 而提前返回，导致恢复的
+        # 缩放模式（及文字水平居中）无法生效。
+        self.zoom_manager.update_dynamic_zoom_levels()
+        # 兜底：仅当 update_dynamic 之后级别仍为空（极端情况，如视口宽度 < 300
+        # 导致其提前返回）才退回 fit_to_width。必须放在 update_dynamic 之后，
+        # 否则会先用默认值把 update_document 从磁盘恢复的 fit_to_text_width
+        # 等模式覆盖掉（恢复时只设了 zoom_mode、未设 zoom_level，会被误判成
+        # “尚未设置过缩放”而强制 reset 成 fit_to_width）。
+        if self.zoom_manager.get_zoom_level() == None:
+            # 仅当 update_dynamic 因极端情况（如首帧视口宽度 < 300 提前返回）
+            # 仍未确定级别时，设一个安全默认级别；注意保留 zoom_mode，不要调用
+            # set_zoom_fit_to_width()（它会把已恢复的 fit_to_text_width 等模式
+            # 覆盖成 fit_to_width）。视口宽度就绪后 on_size_change 会按 zoom_mode 重算。
+            self.zoom_manager.set_zoom_level(1.0)
         self.add_change_code('layout_changed')
 
     def update_vertical_margin(self):

@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
-from gi.repository import GLib
+from gi.repository import GLib, Adw
 
 
 class PreviewPanelPresenter(object):
@@ -79,6 +79,7 @@ class PreviewPanelPresenter(object):
             self.document.preview.disconnect('layout_changed', self.on_layout_changed)
             self.document.preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
             self.document.preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
+            self.document.preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
 
         self.document = self.workspace.get_root_or_active_latex_document()
         if self.document == None:
@@ -92,17 +93,22 @@ class PreviewPanelPresenter(object):
             self.update_label()
             self.update_buttons()
             self.update_zoom_level()
+            self._sync_zoom_action_state()
             self.document.preview.connect('pdf_changed', self.on_pdf_changed)
             self.document.preview.connect('position_changed', self.on_position_changed)
             self.document.preview.connect('layout_changed', self.on_layout_changed)
             self.document.preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
             self.document.preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
+            self.document.preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
             self.view.set_stale_banner_visible(self.document.preview.pdf_is_stale)
             self._attach_target_bar(self.document.preview.view)
 
     def on_pdf_changed(self, preview):
+        if preview.poppler_document is not None:
+            self._show_backward_sync_hint()
         self.update_label()
         self.update_buttons()
+        self._sync_zoom_action_state()
 
     def on_position_changed(self, preview):
         self.update_label_debounced()
@@ -119,6 +125,40 @@ class PreviewPanelPresenter(object):
         self.update_label()
         self.update_buttons()
         self.update_zoom_level()
+        self._sync_zoom_action_state()
+
+    def _sync_zoom_action_state(self):
+        '''把有状态 zoom-level action 的 state 同步为当前文档的缩放级别，
+        这样弹窗里对应的缩放百分比前会自动绘制对钩（GTK 标准做法）。'''
+        action = self.workspace.actions.actions.get('preview-set-zoom-level')
+        if action is None or self.document is None:
+            return
+        zoom_level = self.document.preview.zoom_manager.get_zoom_level()
+        if zoom_level is not None:
+            action.set_state(GLib.Variant('d', zoom_level))
+
+    def on_zoom_clamped(self, zoom_manager, direction):
+        if direction == 'in':
+            message = _('Maximum zoom level reached')
+        else:
+            message = _('Minimum zoom level reached')
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(message)
+            toast.set_timeout(2)
+            main_window.toast_overlay.add_toast(toast)
+
+    def _show_backward_sync_hint(self):
+        if self.workspace.settings.get_value('preferences', 'backward_sync_hint_shown'):
+            return
+        self.workspace.settings.set_value('preferences', 'backward_sync_hint_shown', True)
+        # 持久化，确保跨会话只提示一次。
+        self.workspace.settings.pickle()
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('Tip: hold Ctrl and click the preview to jump to the matching source'))
+            toast.set_timeout(6)
+            main_window.toast_overlay.add_toast(toast)
 
     def update_label_debounced(self):
         '''滚动时 position_changed 高频触发（每帧）。页码标签只需秒级精度，

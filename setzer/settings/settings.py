@@ -170,6 +170,10 @@ class Settings(Observable):
         # 当检测到外部程序修改磁盘文件时，是否自动静默重载。
         # 仅对本地 buffer 无未保存修改的文档生效；有未保存修改时回退到对话框。
         self.defaults['preferences']['auto_reload_on_external_change'] = True
+        # 首次在预览上成功渲染 PDF 时，弹出一次「Ctrl+点击预览跳转到源码」的
+        # 提示，提升反向 SyncTeX 的可发现性。置 True 后不再弹（持久化到
+        # settings.json，跨会话只提示一次）。
+        self.defaults['preferences']['backward_sync_hint_shown'] = False
 
         self.defaults['preferences']['use_system_font'] = True
         textview = Gtk.TextView()
