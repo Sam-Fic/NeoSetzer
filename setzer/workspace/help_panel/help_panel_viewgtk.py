@@ -128,8 +128,10 @@ class HelpPanelView(Gtk.Box):
         self.search_content_box.append(self.result_count_label)
 
         self.search_results = Gtk.ListBox()
-        self.search_results.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.search_results.set_can_focus(False)
+        # SINGLE 选择模式 + 可聚焦：方向键即可在帮助搜索结果间导航（可访问性）。
+        # 单击激活（跳转帮助页）仍由 controller 的 row-activated 处理，不受影响。
+        self.search_results.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self.search_results.set_activate_on_single_click(True)
         self.search_results.set_margin_top(12)
         self.search_scroll = Gtk.ScrolledWindow()
         self.search_scroll.set_vexpand(True)

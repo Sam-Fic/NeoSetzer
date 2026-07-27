@@ -20,28 +20,6 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, GLib
 
 
-# 自动补全 popover 样式：Adwaita 风格圆角/阴影/选中高亮。
-# 用 widget 级别 CssProvider（add_provider 到 StyleContext），优先级
-# STYLE_PROVIDER_PRIORITY_USER + 1，高于 display 级别的 libadwaita 默认样式，
-# 确保覆盖。原先放 data/resources/style_gtk.css（display 级别），但被
-# libadwaita 的 list 样式覆盖不生效。
-_AC_CSS = '''
-listbox.autocomplete-popup {
-    background-color: red;
-    border-radius: 12px;
-    padding: 4px;
-}
-listbox.autocomplete-popup row {
-    border-radius: 6px;
-    padding: 2px 8px;
-}
-listbox.autocomplete-popup row:selected {
-    background-color: blue;
-    color: white;
-}
-'''
-
-
 class AutocompleteWidgetView(Gtk.ListBox):
     '''Autocomplete popup listing up to 5 matching commands.
 
@@ -50,11 +28,15 @@ class AutocompleteWidgetView(Gtk.ListBox):
     driven by the model via the source view's key controller), so this
     widget is display-only: can_focus/can_target are disabled and the
     selected item is highlighted programmatically via select_row().
+
+    When there are more than 5 matches a non-selectable, dimmed "<selected>
+    / <total>" counter row is appended at the bottom of the card (mirroring
+    the existing db_error info row), so the user knows there are more results
+    and where the current selection sits.
     '''
 
     def __init__(self, model):
         Gtk.ListBox.__init__(self)
-
         self.model = model
 
         self.set_selection_mode(Gtk.SelectionMode.SINGLE)
@@ -74,6 +56,8 @@ class AutocompleteWidgetView(Gtk.ListBox):
         # 以及滚动/焦点变化时都被调用，但此时 items 切片未变，仅选中项或位置
         # 不同。签名命中时跳过 clear + 重建 5 个 ListBoxRow，只更新 select_row。
         self._last_items_signature = None
+        # 计数器行的 label 引用，选中项变化时就地刷新文本，无需重建整卡。
+        self._counter_label = None
 
     def populate(self):
         r'''Rebuild the visible rows from the model's current state.
@@ -83,27 +67,33 @@ class AutocompleteWidgetView(Gtk.ListBox):
         '•' placeholder at reduced alpha. When LaTeXDB has a parse error
         (model.db_error), appends a non-selectable "database unavailable"
         row at the bottom so the user knows why \ref/\cite completions are
-        empty/stale (UX report #8).
+        empty/stale (UX report #8). When there are more than 5 matches, a
+        non-selectable "<selected> / <total>" counter row follows.
         '''
         model = self.model.model
         si = model.selected_item_index
         fi = model.first_item_index
         db_error = model.db_error
+        total = len(model.items)
+        show_counter = total > 5
 
-        # 签名 = (current_word, first_item_index, db_error, 可见 items 的 command+dotlabels)
+        # 签名 = (current_word, first_item_index, db_error, show_counter,
+        #         可见 items 的 command+dotlabels)
         # current_word 决定加粗前缀长度，fi 决定切片起点，items 决定内容，
-        # db_error 决定是否追加错误提示行。四者都不变时 row 内容完全相同，
-        # 跳过重建只更新选中项。db_error 纳入签名确保 parse 错误状态变化时重建。
-        if model.current_word is not None and fi is not None and (len(model.items) > 0 or db_error):
-            visible = model.items[fi:fi + 5] if len(model.items) > 0 else []
-            signature = (model.current_word, fi, db_error, tuple(
+        # db_error 决定是否追加错误提示行，show_counter 决定是否追加计数行。
+        # 五者都不变时 row 内容完全相同，跳过重建只更新选中项/计数行。
+        # db_error / show_counter 纳入签名确保状态变化时重建。
+        if model.current_word is not None and fi is not None and (total > 0 or db_error):
+            visible = model.items[fi:fi + 5] if total > 0 else []
+            signature = (model.current_word, fi, db_error, show_counter, tuple(
                 (item['command'], item['dotlabels']) for item in visible))
         else:
             signature = None
 
         if signature == self._last_items_signature:
-            # items 未变，只更新选中行
+            # items 未变，只更新选中行与计数行文本
             self._update_selection(si, fi)
+            self._update_footer(si, total)
             return
 
         self._last_items_signature = signature
@@ -114,8 +104,9 @@ class AutocompleteWidgetView(Gtk.ListBox):
             sibling = child.get_next_sibling()
             self.remove(child)
             child = sibling
+        self._counter_label = None
 
-        if model.current_word is None or si is None or fi is None or (len(model.items) == 0 and not db_error):
+        if model.current_word is None or si is None or fi is None or (total == 0 and not db_error):
             return
 
         offset = len(model.current_word)
@@ -156,6 +147,11 @@ class AutocompleteWidgetView(Gtk.ListBox):
         if db_error:
             self.append(self._build_db_error_row())
 
+        # 匹配项 > 5 时追加"<选中项+1> / 总数"计数行（如 "12 / 50"），提示还有
+        # 更多结果/当前位置。与 db_error 行同为卡片内非可选 dim 行，样式一致。
+        if show_counter:
+            self.append(self._build_counter_row(si, total))
+
     def _build_db_error_row(self):
         '''构建不可选中的"标签数据库不可用"提示行。'''
         label = Gtk.Label()
@@ -175,6 +171,26 @@ class AutocompleteWidgetView(Gtk.ListBox):
         row.set_selectable(False)
         return row
 
+    def _build_counter_row(self, si, total):
+        '''构建卡片底部非可选的"<选中项+1> / 总数"计数行。'''
+        label = Gtk.Label()
+        label.set_text(str(si + 1) + ' / ' + str(total))
+        label.set_halign(Gtk.Align.END)
+        label.set_xalign(1.0)
+        label.set_margin_start(6)
+        label.set_margin_end(6)
+        label.set_margin_top(2)
+        label.set_margin_bottom(2)
+        label.add_css_class('dim-label')
+        label.add_css_class('caption')
+        self._counter_label = label
+
+        row = Gtk.ListBoxRow()
+        row.set_child(label)
+        row.set_activatable(False)
+        row.set_selectable(False)
+        return row
+
     def _update_selection(self, si, fi):
         '''items 未变时仅更新选中行，避免重建全部 row。'''
         if si is None or fi is None:
@@ -184,12 +200,10 @@ class AutocompleteWidgetView(Gtk.ListBox):
         if target_index < 0:
             self.select_row(None)
             return
-        child = self.get_first_child()
-        i = 0
-        while child is not None:
-            if i == target_index:
-                self.select_row(child)
-                return
-            child = child.get_next_sibling()
-            i += 1
-        self.select_row(None)
+        # items 行始终排在 db_error / 计数行之前，故按索引直接取即可。
+        self.select_row(self.get_row_at_index(target_index))
+
+    def _update_footer(self, si, total):
+        '''选中项变化时就地刷新计数行文本（不重建卡片）。'''
+        if self._counter_label is not None and total > 5 and si is not None:
+            self._counter_label.set_text(str(si + 1) + ' / ' + str(total))

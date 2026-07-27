@@ -255,9 +255,10 @@ class BuildLogList(Gtk.ListBox):
 
     def __init__(self):
         Gtk.ListBox.__init__(self)
-        self.set_selection_mode(Gtk.SelectionMode.NONE)
+        # SINGLE 选择模式 + 可聚焦：方向键即可在构建日志条目间导航（可访问性）。
+        # 单击激活（跳转报错行）仍由 controller 的 row-activated 处理，不受影响。
+        self.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.set_activate_on_single_click(True)
-        self.set_can_focus(False)
         self.add_css_class('boxed-list')
         self.add_css_class('compact-rows')
 
@@ -269,7 +270,8 @@ class BuildLogList(Gtk.ListBox):
         行尾放置复制按钮，点击可复制该单条内容（含行号）。
         '''
         row = Adw.ActionRow()
-        row.set_selectable(False)
+        # selectable=True 配合列表的 SINGLE 选择模式，使方向键能选中并高亮当前行。
+        row.set_selectable(True)
         row.set_activatable(True)
         row.add_prefix(Gtk.Image(icon_name=ICON_MAP.get(item_type, 'dialog-warning-symbolic')))
         row.set_title(description if description else '')
