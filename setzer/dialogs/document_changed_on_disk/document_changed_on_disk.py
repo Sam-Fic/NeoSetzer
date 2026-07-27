@@ -43,8 +43,8 @@ class DocumentChangedOnDiskDialog(object):
             body=_('Should Setzer reload it now?'))
         self.view.add_response('keep', _('Keep the current Version'))
         self.view.add_response('reload', _('Reload from Disk'))
-        self.view.set_response_appearance('reload', Adw.ResponseAppearance.SUGGESTED)
-        self.view.set_default_response('reload')
+        self.view.set_response_appearance('reload', Adw.ResponseAppearance.DESTRUCTIVE)
+        self.view.set_default_response('keep')
         self.view.set_close_response('keep')
 
     def dialog_process_response(self, dialog, result):
