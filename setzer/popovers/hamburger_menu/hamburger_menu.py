@@ -152,6 +152,7 @@ class HamburgerMenu(object):
 
     def on_update_recently_opened_session_files(self, workspace, recently_opened_session_files):
         items = list(recently_opened_session_files.values())
+        # 菜单里用 basename（避免一长串路径）；展示全部（最多 15 个，受容量上限约束）。
         sorted_items = sorted(items, key=lambda val: val['date'], reverse=True)
         signature = tuple((item['filename'], item['date']) for item in sorted_items)
         if signature == self._recent_sessions_signature:
@@ -161,7 +162,8 @@ class HamburgerMenu(object):
         self.recent_section.remove_all()
         for item in sorted_items:
             filename = item['filename']
-            menu_item = Gio.MenuItem.new(filename, 'win.open-session-file')
+            displayname = os.path.basename(filename)
+            menu_item = Gio.MenuItem.new(displayname, 'win.open-session-file')
             menu_item.set_action_and_target_value('win.open-session-file', GLib.Variant('s', filename))
             self.recent_section.append_item(menu_item)
 
@@ -194,10 +196,16 @@ class HamburgerMenu(object):
             # 传 'documents' 字段：≥2 个未保存文档时弹批量对话框（多文档路径用批量）。
             dialog.run({'unsaved_document': unsaved_documents[0], 'documents': unsaved_documents, 'session_filename': filename}, self.close_confirmation_cb)
         else:
-            documents = self.workspace.get_all_documents()
-            for document in documents:
-                self.workspace.remove_document(document)
-            self.workspace.load_documents_from_session_file(filename)
+            # 先尝试加载；仅当加载成功才关闭旧文档，避免坏 session 文件导致
+            # 旧文档被关、用户两手空空。加载失败（load 已弹 toast）则回滚加载
+            # 过程中可能已部分添加的文档，保持旧文档不变。
+            old_documents = set(self.workspace.get_all_documents())
+            if self.workspace.load_documents_from_session_file(filename):
+                for document in old_documents:
+                    self.workspace.remove_document(document)
+            else:
+                for document in set(self.workspace.get_all_documents()) - old_documents:
+                    self.workspace.remove_document(document)
 
     def close_confirmation_cb(self, parameters):
         from setzer.dialogs.dialog_locator import DialogLocator

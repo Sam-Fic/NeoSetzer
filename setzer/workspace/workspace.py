@@ -395,36 +395,54 @@ class Workspace(Observable):
         # RestrictedUnpickler（仅允许 builtins 容器类型，阻断 RCE）。
         data, was_pickle = try_migrate_session_file_pickle(filename)
         if data is None:
-            return
+            # 文件既非合法 JSON 也非受限 pickle：原实现静默 return，用户无感知。
+            # 改为弹 toast 告知是哪个文件加载失败（与 save_session 的失败反馈对称）。
+            self._notify_session_load_error(filename)
+            return False
         try:
-            root_document_filename = data['root_document_filename']
-        except KeyError:
-            root_document_filename = None
-        active_filename = data.get('active_document_filename')
-        for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
-            document = self.create_document_from_filename(item['filename'])
-            if document is None:
-                continue
-            self._restore_document_state(document, item, root_document_filename)
-        if len(self.open_documents) > 0:
-            if active_filename:
-                target = next((d for d in self.open_documents if d.get_filename() == active_filename), None)
-                if target is not None:
-                    self.set_active_document(target)
+            try:
+                root_document_filename = data['root_document_filename']
+            except KeyError:
+                root_document_filename = None
+            active_filename = data.get('active_document_filename')
+            for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
+                document = self.create_document_from_filename(item['filename'])
+                if document is None:
+                    continue
+                self._restore_document_state(document, item, root_document_filename)
+            if len(self.open_documents) > 0:
+                if active_filename:
+                    target = next((d for d in self.open_documents if d.get_filename() == active_filename), None)
+                    if target is not None:
+                        self.set_active_document(target)
+                    else:
+                        self.set_active_document(self.open_documents[-1])
                 else:
                     self.set_active_document(self.open_documents[-1])
-            else:
-                self.set_active_document(self.open_documents[-1])
-        # 恢复窗口状态
-        window_state = data.get('window_state')
-        if window_state:
-            self.show_symbols = window_state.get('show_symbols', self.show_symbols)
-            self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
-            self.show_preview = window_state.get('show_preview', self.show_preview)
-            self.show_help = window_state.get('show_help', self.show_help)
-            self.show_build_log = window_state.get('show_build_log', self.show_build_log)
-        self.session_file_opened = filename
-        self.update_recently_opened_session_file(filename, notify=True)
+            # 恢复窗口状态
+            window_state = data.get('window_state')
+            if window_state:
+                self.show_symbols = window_state.get('show_symbols', self.show_symbols)
+                self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
+                self.show_preview = window_state.get('show_preview', self.show_preview)
+                self.show_help = window_state.get('show_help', self.show_help)
+                self.show_build_log = window_state.get('show_build_log', self.show_build_log)
+            self.session_file_opened = filename
+            self.update_recently_opened_session_file(filename, notify=True)
+            return True
+        except (KeyError, TypeError, ValueError, AttributeError):
+            # 结构残缺（缺 open_documents / data 非 dict 等）视为加载失败，提示用户。
+            # 原实现会抛未捕获异常直接崩溃。
+            self._notify_session_load_error(filename)
+            return False
+
+    def _notify_session_load_error(self, filename):
+        '''session 文件解析/结构失败时弹 toast 告知用户（加载侧不再静默失败）。'''
+        main_window = ServiceLocator.get_main_window()
+        if main_window and hasattr(main_window, 'toast_overlay'):
+            # 用 basename，避免提示里出现一长串绝对路径。
+            message = _('Could not open session: {name}').format(name=os.path.basename(filename))
+            GLib.idle_add(self._do_show_toast, main_window, message)
 
     def _restore_document_state(self, document, item, root_document_filename):
         '''从会话数据项恢复单个文档的状态：last_activated / cursor_offset /
