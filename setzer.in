@@ -27,7 +27,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk
 from gi.repository import Gio
-from gi.repository import Adw
+from gi.repository import Adw, GLib
 
 import sys, gettext, argparse, os.path
 
@@ -178,6 +178,9 @@ class MainApplicationController(Adw.Application):
         ServiceLocator.set_shortcuts(self.shortcuts)
         self.workspace.actions.actions['quit'].connect('activate', self.on_quit_action)
 
+        # ① 周期快照：每 30 秒保存工作区布局与每文档状态，避免崩溃/断电丢失布局。
+        GLib.timeout_add_seconds(30, self.periodic_snapshot)
+
     def save_window_state(self):
         main_window = self.main_window
         self.settings.set_value('window_state', 'width', main_window.get_property('default-width'))
@@ -250,6 +253,16 @@ class MainApplicationController(Adw.Application):
         self.save_window_state()
         self.workspace.save_to_disk()
         self.quit()
+
+    def periodic_snapshot(self):
+        '''周期快照：保存工作区布局 + 每文档状态，避免崩溃/断电丢失布局。'''
+        try:
+            self.workspace.save_to_disk()
+            for document in self.workspace.open_documents:
+                DocumentSettings.save_document_state(document)
+        except Exception:
+            pass
+        return True
 
 
 argparser = argparse.ArgumentParser(usage='%(prog)s [OPTION...] [FILE...]')

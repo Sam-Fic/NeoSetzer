@@ -165,11 +165,19 @@ class GeneralSettingsPageView(PageView):
         self.group_language = Adw.PreferencesGroup()
         self.group_language.set_title(_('Language'))
         self.group_language.set_description(_('The main language for this document. This is used to apply rules for hyphenation and other purposes.'))
-        self.language_combo = Adw.ComboRow()
-        self.language_combo.set_title(_('Language'))
+        # Gtk.DropDown（enable_search）提供弹窗内搜索/过滤，比 Adw.ComboRow
+        # 更适合 babel 这一长列表；接口（set_model/get_selected/notify::selected）
+        # 与 ComboRow 一致，presenter 无需改动。包在 ActionRow 里保留标题样式。
+        self.language_combo = Gtk.DropDown()
+        self.language_combo.set_enable_search(True)
         self.language_combo.set_model(Gtk.StringList())
+        self.language_combo.set_hexpand(True)
+        self.language_row = Adw.ActionRow()
+        self.language_row.set_title(_('Language'))
+        self.language_row.set_activatable_widget(self.language_combo)
+        self.language_row.add_suffix(self.language_combo)
         self.language_codes = list()
-        self.group_language.add(self.language_combo)
+        self.group_language.add(self.language_row)
 
         # Font package (Problem 5) -------------------------------------------
         # 让用户选择字体包, 而非总是插入 \usepackage{lmodern}。

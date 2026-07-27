@@ -74,6 +74,7 @@ class DocumentSettings():
         document.build_system.build_log_data = document_data['build_log_data']
         document.build_system.document_has_been_built = document_data['has_been_built']
         document.build_system.build_time = document_data['build_time']
+        document.build_system.latex_interpreter = document_data.get('latex_interpreter')
         document.build_system.has_synctex_file = document_data['has_synctex_file']
         document.build_system.update_can_sync()
 
@@ -117,6 +118,7 @@ class DocumentSettings():
         document_data['build_log_data'] = document.build_system.build_log_data
         document_data['has_been_built'] = document.build_system.document_has_been_built
         document_data['build_time'] = document.build_system.build_time
+        document_data['latex_interpreter'] = document.build_system.latex_interpreter
         document_data['has_synctex_file'] = document.build_system.has_synctex_file
 
         document_data['pdf_filename'] = document.preview.pdf_filename

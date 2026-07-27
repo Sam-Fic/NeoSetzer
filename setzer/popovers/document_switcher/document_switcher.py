@@ -34,6 +34,7 @@ class DocumentSwitcher(Observable):
         self.workspace = workspace
         self.main_window = ServiceLocator.get_main_window()
         self.view = DocumentSwitcherView()
+        self.view.search_entry.connect('search-changed', self.on_search_changed)
 
         self.root_selection_mode = False
 
@@ -207,11 +208,18 @@ class DocumentSwitcher(Observable):
 
     def show(self):
         self._is_visible = True
+        # 打开时清空上次残留的搜索词，避免带着旧过滤条件弹出。
+        self.view.query = ''
+        self.view.search_entry.set_text('')
         # 若关闭期间有文档属性变化（_dirty），先重建行再展示，保证打开即最新。
         if self._dirty:
             self._dirty = False
             self._rebuild_rows()
         self.view.dialog.present(self.main_window)
+
+    def on_search_changed(self, entry):
+        self.view.query = entry.get_text().strip().lower()
+        self.update_items()
 
     def _rebuild_rows(self):
         '''全量重建行 + 重连信号。仅在对话框可见或即将展示时调用。'''

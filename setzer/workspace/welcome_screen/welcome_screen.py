@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import os
+import datetime
 
 from gi.repository import Adw, Gtk, GLib
 
@@ -120,8 +121,9 @@ class WelcomeScreen(object):
         listbox = self.view.recent_listbox
 
         documents = self.workspace.recently_opened_documents.values()
-        # most-recently-used first
-        documents = sorted(documents, key=lambda val: val['date'], reverse=True)
+        # 置顶项排在最前，其余按最近使用时间降序。
+        pinned = self.workspace.pinned_recent_documents
+        documents = sorted(documents, key=lambda val: (0 if val['filename'] in pinned else 1, -val['date']))
 
         if len(documents) == 0:
             self.view.empty_state.set_visible(True)
@@ -137,10 +139,11 @@ class WelcomeScreen(object):
         self.view.recent_clear_button.set_visible(True)
 
         # 先从 listbox 移除所有 row（不销毁——缓存的 row 仍被 _row_cache 引用）。
-        # 然后按 date 降序重新 append。这样：
-        # - 已存在的 filename：直接 reparent，不创建新 widget（省 3 widget/条）
+        # 然后按排序重新 append。这样：
+        # - 已存在的 filename：直接 reparent，不创建新 widget（省 widget/条）
         # - 新 filename：创建 row 并加入 cache
         # - 已移除的 filename：从 cache 删除，row 失去引用被 GC
+        # 每条 row 都经 _update_recent_row 刷新动态信息（大小/时间/修改/置顶）。
         while (child := listbox.get_first_child()) is not None:
             listbox.remove(child)
 
@@ -153,6 +156,7 @@ class WelcomeScreen(object):
             if row is None:
                 row = self._create_recent_row(filename)
                 row_cache[filename] = row
+            self._update_recent_row(row)
             listbox.append(row)
 
         # 移除已不在最近文档列表中的 row（文件被删除或用户清除历史）
@@ -160,14 +164,15 @@ class WelcomeScreen(object):
         for filename in obsolete:
             del row_cache[filename]
 
+    def on_pin_recent_clicked(self, button, filename):
+        self.workspace.toggle_pinned_recent_document(filename)
+
     def _create_recent_row(self, filename):
-        '''创建单个最近文档 row。basename/dirname/icon 仅在此处计算一次，
-        后续 refresh 复用 row 时不再重复计算（原实现每次 refresh 都对每个
-        filename 调 os.path.basename + os.path.dirname）。'''
+        '''创建单个最近文档 row 的骨架（Widget 仅在此创建一次，后续 refresh 复用）。
+        动态信息（文件大小 / 时间戳 / 修改状态 / 置顶状态）由 _update_recent_row
+        填充，以便复用 row 时也能反映最新状态（文件被外部改动、置顶切换等）。'''
         row = Adw.ActionRow()
         row.filename = filename
-        row.set_title(os.path.basename(filename))
-        row.set_subtitle(os.path.dirname(filename))
         row.set_activatable(True)
 
         if filename.endswith('.bib'):
@@ -179,15 +184,96 @@ class WelcomeScreen(object):
         icon = Gtk.Image.new_from_icon_name(icon_name)
         row.add_prefix(icon)
 
+        # 右侧信息区：文件大小 · 时间戳 + 修改指示 + 置顶按钮 + 移除按钮
+        info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        info_box.set_valign(Gtk.Align.CENTER)
+
+        info_label = Gtk.Label()
+        info_label.add_css_class('dim-label')
+        info_label.add_css_class('caption')
+        info_box.append(info_label)
+        row._info_label = info_label
+
+        modified_image = Gtk.Image(icon_name='document-modified-symbolic')
+        modified_image.set_tooltip_text(_('Changed on disk since last opened'))
+        modified_image.set_visible(False)
+        info_box.append(modified_image)
+        row._modified_image = modified_image
+
+        pin_button = Gtk.Button(icon_name='view-pin-symbolic')
+        pin_button.set_has_frame(False)
+        pin_button.set_valign(Gtk.Align.CENTER)
+        pin_button.add_css_class('flat')
+        pin_button.connect('clicked', self.on_pin_recent_clicked, filename)
+        info_box.append(pin_button)
+        row._pin_button = pin_button
+
         # 单条移除按钮：点击时仅从最近列表移除（不删除文件）。
         # Gtk.Button 在 ListBox row 内会消费点击事件，不会触发 row-activated。
         remove_button = Gtk.Button(icon_name='window-close-symbolic')
+        remove_button.set_has_frame(False)
         remove_button.set_valign(Gtk.Align.CENTER)
         remove_button.add_css_class('flat')
         remove_button.set_tooltip_text(_('Remove from recent list'))
         remove_button.connect('clicked', self.on_remove_recent_clicked, filename)
-        row.add_suffix(remove_button)
+        info_box.append(remove_button)
+
+        row.add_suffix(info_box)
+
+        # 8.3：重名文件时 tooltip 显示完整路径，便于区分。
+        row.set_tooltip_text(filename)
         return row
+
+    def _update_recent_row(self, row):
+        '''填充/刷新 row 的动态信息（创建后或 refresh 复用时都会调用）。'''
+        filename = row.filename
+        doc = self.workspace.recently_opened_documents.get(filename)
+        if doc is None:
+            return
+
+        if not row.get_title():
+            row.set_title(os.path.basename(filename))
+            row.set_subtitle(os.path.dirname(filename))
+
+        parts = []
+        try:
+            parts.append(self._format_size(os.path.getsize(filename)))
+        except OSError:
+            pass
+        parts.append(self._format_timestamp(doc['date']))
+        row._info_label.set_text(' · '.join(parts))
+
+        modified = False
+        try:
+            modified = os.path.getmtime(filename) > doc['date']
+        except OSError:
+            pass
+        row._modified_image.set_visible(modified)
+
+        pinned = self.workspace.is_pinned_recent_document(filename)
+        row._pin_button.set_tooltip_text(_('Unpin') if pinned else _('Pin'))
+        if pinned:
+            row._pin_button.remove_css_class('dim-label')
+            if not row._pin_button.has_css_class('accent'):
+                row._pin_button.add_css_class('accent')
+        else:
+            row._pin_button.remove_css_class('accent')
+            if not row._pin_button.has_css_class('dim-label'):
+                row._pin_button.add_css_class('dim-label')
+
+    @staticmethod
+    def _format_size(n):
+        size = float(n)
+        for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+            if size < 1024 or unit == 'TB':
+                if unit == 'B':
+                    return '{:.0f} {}'.format(size, unit)
+                return '{:.1f} {}'.format(size, unit)
+            size /= 1024
+
+    @staticmethod
+    def _format_timestamp(t):
+        return datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d %H:%M')
 
     def on_remove_recent_clicked(self, button, filename):
         self.workspace.remove_recently_opened_document(filename, notify=True)

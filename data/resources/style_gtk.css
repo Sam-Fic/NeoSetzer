@@ -326,11 +326,11 @@ toolbarview > * > * > * {
 
 /* 预览面板页码输入框：紧凑圆角深色背景，居中数字。
  * 注意：不要添加 padding 或 min-height，否则会撑大工具栏高度。 */
+/* 居中对齐由代码里 set_alignment(0.5) 实现（GTK CSS 不支持 text-align）。 */
 .preview-page-entry {
     background: rgba(128, 128, 128, 0.2);
     border-radius: 8px;
     border: none;
-    text-align: center;
 }
 .preview-page-entry:focus {
     background: rgba(128, 128, 128, 0.3);

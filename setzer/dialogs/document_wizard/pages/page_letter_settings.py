@@ -44,8 +44,13 @@ class LetterSettingsPage(Page):
         def margin_changed(row, pspec, side):
             self.current_values['letter']['margin_' + side] = row.get_value()
 
+        def option_toggled(row, pspec, key):
+            self.current_values['letter'][key] = row.get_active()
+
         self.view.page_format_combo.connect('notify::selected', format_changed)
         self.view.font_size_entry.connect('notify::value', font_size_changed)
+        self.view.option_twocolumn.connect('notify::active', option_toggled, 'option_twocolumn')
+        self.view.option_landscape.connect('notify::active', option_toggled, 'is_landscape')
         self.view.option_default_margins.connect('notify::active', self.option_default_margins_toggled, 'default_margins')
         self.view.margins_button_left.connect('notify::value', margin_changed, 'left')
         self.view.margins_button_right.connect('notify::value', margin_changed, 'right')
@@ -63,6 +68,8 @@ class LetterSettingsPage(Page):
     def load_presets(self, presets):
         for setter_function, value_name in [
             (self.view.font_size_entry.set_value, 'font_size'),
+            (self.view.option_twocolumn.set_active, 'option_twocolumn'),
+            (self.view.option_landscape.set_active, 'is_landscape'),
             (self.view.margins_button_left.set_value, 'margin_left'),
             (self.view.margins_button_right.set_value, 'margin_right'),
             (self.view.margins_button_top.set_value, 'margin_top'),
@@ -71,7 +78,7 @@ class LetterSettingsPage(Page):
         ]:
             try:
                 value = presets['letter'][value_name]
-            except TypeError:
+            except (TypeError, KeyError):
                 value = self.current_values['letter'][value_name]
             setter_function(value)
 
@@ -97,6 +104,11 @@ class LetterSettingsPageView(PageView):
         self.group_page_format.set_title(_('Page format'))
         self.group_page_format.add(self.page_format_combo)
 
+        self.group_options = Adw.PreferencesGroup()
+        self.group_options.set_title(_('Options'))
+        self.group_options.add(self.option_landscape)
+        self.group_options.add(self.option_twocolumn)
+
         self.group_font_size = Adw.PreferencesGroup()
         self.group_font_size.set_title(_('Font size'))
         self.group_font_size.add(self.font_size_entry)
@@ -112,6 +124,7 @@ class LetterSettingsPageView(PageView):
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
         self.content.append(self.group_page_format)
+        self.content.append(self.group_options)
         self.content.append(self.group_font_size)
         self.content.append(self.group_margins)
 

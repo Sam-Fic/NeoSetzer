@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gio, Gdk
+from gi.repository import Gtk, Gio, Gdk, Adw
 
 import setzer.dialogs.document_wizard.document_wizard_viewgtk as view
 from setzer.dialogs.document_wizard.pages.page_document_class import DocumentClassPage
@@ -41,6 +41,9 @@ import os
 
 # on_keypress 每次按键都跑，模块级预计算避免每次 C 查表。
 _KEYVAL_RETURN = Gdk.keyval_from_name('Return')
+_KEYVAL_ESCAPE = Gdk.keyval_from_name('Escape')
+_KEYVAL_LEFT = Gdk.keyval_from_name('Left')
+_KEYVAL_RIGHT = Gdk.keyval_from_name('Right')
 
 
 class DocumentWizard(object):
@@ -69,6 +72,11 @@ class DocumentWizard(object):
         self.view.close()
 
     def on_create_button_clicked(self, button):
+        # 创建前校验（如通用设置页的空标题），不合法则提示并中止。
+        ok, message = self._validate_current_page()
+        if not ok:
+            self._show_validation_error(message)
+            return
         self.save_presets()
         self.completed = True
 
@@ -86,6 +94,10 @@ class DocumentWizard(object):
         self.view.close()
 
     def init_current_values(self):
+        # 默认纸张按 locale 选：美加墨用 US Letter，其余（绝大多数地区）
+        # 用 A4。报告 #13 要求"按系统语言选默认纸张"。
+        default_format = self._default_page_format()
+
         self.current_values['document_class'] = 'article'
         self.current_values['title'] = ''
         self.current_values['author'] = ''
@@ -107,8 +119,8 @@ class DocumentWizard(object):
         self.current_values['packages']['glossaries'] = False
         self.current_values['packages']['parskip'] = True
         self.current_values['article'] = dict()
-        self.current_values['article']['page_format'] = 'US Letter'
-        self.current_values['article']['font_size'] = 11
+        self.current_values['article']['page_format'] = default_format
+        self.current_values['article']['font_size'] = 10
         self.current_values['article']['option_twocolumn'] = False
         self.current_values['article']['option_default_margins'] = True
         self.current_values['article']['margin_left'] = 3.5
@@ -117,8 +129,8 @@ class DocumentWizard(object):
         self.current_values['article']['margin_bottom'] = 3.5
         self.current_values['article']['is_landscape'] = False
         self.current_values['report'] = dict()
-        self.current_values['report']['page_format'] = 'US Letter'
-        self.current_values['report']['font_size'] = 11
+        self.current_values['report']['page_format'] = default_format
+        self.current_values['report']['font_size'] = 10
         self.current_values['report']['option_twocolumn'] = False
         self.current_values['report']['option_default_margins'] = True
         self.current_values['report']['margin_left'] = 3.5
@@ -127,8 +139,8 @@ class DocumentWizard(object):
         self.current_values['report']['margin_bottom'] = 3.5
         self.current_values['report']['is_landscape'] = False
         self.current_values['book'] = dict()
-        self.current_values['book']['page_format'] = 'US Letter'
-        self.current_values['book']['font_size'] = 11
+        self.current_values['book']['page_format'] = default_format
+        self.current_values['book']['font_size'] = 10
         self.current_values['book']['option_twocolumn'] = False
         self.current_values['book']['option_default_margins'] = True
         self.current_values['book']['margin_left'] = 3.5
@@ -137,8 +149,10 @@ class DocumentWizard(object):
         self.current_values['book']['margin_bottom'] = 3.5
         self.current_values['book']['is_landscape'] = False
         self.current_values['letter'] = dict()
-        self.current_values['letter']['page_format'] = 'US Letter'
-        self.current_values['letter']['font_size'] = 11
+        self.current_values['letter']['page_format'] = default_format
+        self.current_values['letter']['font_size'] = 10
+        self.current_values['letter']['option_twocolumn'] = False
+        self.current_values['letter']['is_landscape'] = False
         self.current_values['letter']['option_default_margins'] = True
         self.current_values['letter']['margin_left'] = 3.5
         self.current_values['letter']['margin_right'] = 3.5
@@ -148,7 +162,17 @@ class DocumentWizard(object):
         self.current_values['beamer']['theme'] = 'default'
         self.current_values['beamer']['option_show_navigation'] = True
         self.current_values['beamer']['option_top_align'] = True
-    
+
+    def _default_page_format(self):
+        '''按 locale 选默认纸张：美加墨用 US Letter，其余用 A4（报告 #13）。'''
+        import locale
+        try:
+            loc = locale.getlocale(locale.LC_CTYPE)
+            territory = (loc[0] or '').split('_')[-1].upper() if loc and loc[0] else ''
+        except Exception:
+            territory = ''
+        return 'US Letter' if territory in ('US', 'CA', 'MX') else 'A4'
+
     def setup(self):
         self.view = view.DocumentWizardView(self.main_window)
 
@@ -203,6 +227,11 @@ class DocumentWizard(object):
         # 页面流转集中在 page_map.next_page：避免本方法散落 0/1-5/6 魔法数字，
         # 新增/删除页面只改 page_map.py 一处。返回 None 表示无下一页
         # （如 document_class 非法时留在原页），与原 if/elif 链行为一致。
+        # 前进前先校验当前页，避免基于非法输入（如空标题）继续。
+        ok, message = self._validate_current_page()
+        if not ok:
+            self._show_validation_error(message)
+            return
         next_idx = page_map.next_page(self.current_page, self.current_values['document_class'])
         if next_idx is not None:
             self.goto_page(next_idx)
@@ -211,6 +240,30 @@ class DocumentWizard(object):
         prev_idx = page_map.prev_page(self.current_page, self.current_values['document_class'])
         if prev_idx is not None:
             self.goto_page(prev_idx)
+
+    def _validate_current_page(self):
+        '''进入下一步 / 创建前校验当前页。
+
+        返回 (ok, message)：ok 为 False 时调用方应阻止前进并提示用户。
+        边距等数值范围已由对应 SpinRow 的下限/上限约束（如 0–5cm），
+        因此这里只校验语义上仍可能非法的输入（当前为通用设置页的空标题）。
+        新增页面级校验只需在此按 page_index 扩展。
+        '''
+        if self.current_page == page_map.GENERAL_PAGE_INDEX:
+            title = self.current_values.get('title', '').strip()
+            if not title:
+                return (False, _('Please enter a document title before creating the '
+                                  'document. Otherwise the generated \\title{} will be empty.'))
+        return (True, '')
+
+    def _show_validation_error(self, message):
+        dialog = Adw.AlertDialog(
+            heading=_('Cannot continue'),
+            body=message)
+        dialog.add_response('ok', _('OK'))
+        dialog.set_default_response('ok')
+        dialog.set_close_response('ok')
+        dialog.choose(self.main_window, None, None)
 
     def goto_page(self, page_number):
         if self.current_page != page_number:
@@ -231,6 +284,11 @@ class DocumentWizard(object):
     def on_keypress(self, controller, keyval, keycode, state, data=None):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
+        # Esc 取消对话框（与标题栏 Cancel 按钮等价）。
+        if keyval == _KEYVAL_ESCAPE:
+            self.on_cancel_button_clicked(self.view.cancel_button)
+            return True
+
         if keyval == _KEYVAL_RETURN:
             if state & modifiers == 0:
                 # 回车在 GeneralSettings 之前 → 前进；在/之后 → 创建。
@@ -241,6 +299,16 @@ class DocumentWizard(object):
                 elif page_map.is_at_or_after_general(self.current_page):
                     self.on_create_button_clicked(self.view.create_button)
                     return True
+            return False
+
+        # Alt+Left / Alt+Right 在步骤间前后跳转（受 page_map 守卫约束）。
+        if state & modifiers == Gdk.ModifierType.ALT_MASK:
+            if keyval == _KEYVAL_LEFT:
+                self.goto_page_prev()
+                return True
+            elif keyval == _KEYVAL_RIGHT:
+                self.goto_page_next()
+                return True
         return False
 
     '''
@@ -320,7 +388,11 @@ class DocumentWizard(object):
 
     def get_insert_text_letter(self):
         s = self.current_values['letter']
-        options = self.page_formats[s['page_format']] + ',' + str(s['font_size']) + 'pt'
+        options = (
+            self.page_formats[s['page_format']] + ',' + str(s['font_size']) + 'pt'
+            + (',twocolumn' if s['option_twocolumn'] else '')
+            + (',landscape' if s['is_landscape'] else '')
+        )
         preamble = (
             '\\documentclass[' + options + ']{letter}\n'
             + self._get_geometry_line('letter')

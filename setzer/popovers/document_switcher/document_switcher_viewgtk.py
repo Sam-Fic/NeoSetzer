@@ -36,6 +36,17 @@ class DocumentSwitcherView(object):
 
         self.page = Adw.PreferencesPage()
 
+        # 顶部 fuzzy 搜索框：按文件名/路径子序列过滤已打开文档。
+        # Adw.PreferencesPage.add() 只接受 PreferencesGroup，故需包一层。
+        self.search_group = Adw.PreferencesGroup()
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.set_placeholder_text(_('Search open documents…'))
+        self.search_entry.set_hexpand(True)
+        self.search_entry.set_margin_bottom(6)
+        self.query = ''
+        self.search_group.add(self.search_entry)
+        self.page.add(self.search_group)
+
         # 根文档说明：在 selection 模式下显示的描述 group。
         self.explanation_group = Adw.PreferencesGroup()
         self.explanation_label = Gtk.Label(label=_('Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements.'))
@@ -72,6 +83,15 @@ class DocumentSwitcherView(object):
         self.root_group.add(self.unset_root_document_row)
         self.page.add(self.root_group)
 
+        # 搜索过滤为空时的占位提示（同样需包在 PreferencesGroup 中）。
+        self.empty_group = Adw.PreferencesGroup()
+        self.empty_label = Gtk.Label(label=_('No matching documents'))
+        self.empty_label.add_css_class('dim-label')
+        self.empty_label.set_margin_top(12)
+        self.empty_group.add(self.empty_label)
+        self.empty_group.set_visible(False)
+        self.page.add(self.empty_group)
+
         self.dialog.add(self.page)
 
         self.items = []
@@ -81,15 +101,43 @@ class DocumentSwitcherView(object):
         visible_documents = [d for d in documents if (not root_selection_mode or d.is_latex_document())]
         visible_documents.sort(key=lambda val: -val.get_last_activated())
 
+        # fuzzy 过滤（仅当搜索框有内容时）：匹配文件名或完整路径的子序列。
+        query = self.query
+        if query:
+            visible_documents = [d for d in visible_documents if self._fuzzy_match(query, d)]
+
         for row in self.rows:
             self.group.remove(row)
         self.rows = []
         for document in visible_documents:
-            row = self.create_row(document, root_selection_mode, document is active_document)
+            row = self.create_row(document, root_selection_mode, document is active_document, bool(query))
             self.group.add(row)
             self.rows.append(row)
 
-    def create_row(self, document, root_selection_mode, is_active=False):
+        self.empty_group.set_visible(bool(query) and len(self.rows) == 0)
+
+    def _fuzzy_match(self, query, document):
+        '''大小写不敏感的子序列匹配：query 的每个字符按序出现在
+        displayname 或完整路径中即视为命中。适合按文件名快速定位。'''
+        q = query.lower()
+        if self._subseq(q, document.get_displayname().lower()):
+            return True
+        fn = document.get_filename()
+        if fn and self._subseq(q, fn.lower()):
+            return True
+        return False
+
+    @staticmethod
+    def _subseq(query, text):
+        i = 0
+        for ch in query:
+            i = text.find(ch, i)
+            if i == -1:
+                return False
+            i += 1
+        return True
+
+    def create_row(self, document, root_selection_mode, is_active=False, show_path=False):
         row = Adw.ActionRow()
         row.set_activatable(True)
         row.document = document
@@ -102,6 +150,14 @@ class DocumentSwitcherView(object):
 
         modified_suffix = '*' if document.source_buffer.get_modified() else ''
         row.set_title(os.path.split(document.get_displayname())[1] + modified_suffix)
+
+        # 8.3：重名文件时 tooltip 显示完整路径，便于区分。
+        row.set_tooltip_text(document.get_filename() or document.get_displayname())
+        # 搜索过滤时显示所在目录，便于在仅显示 basename 时定位。
+        if show_path:
+            filename = document.get_filename()
+            if filename:
+                row.set_subtitle(os.path.dirname(filename))
 
         if is_active:
             row.add_css_class('accent')

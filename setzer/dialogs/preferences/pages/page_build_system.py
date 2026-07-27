@@ -31,6 +31,7 @@ class PageBuildSystem(object):
 
     autoshow_values = ['errors', 'errors_warnings', 'all']
     shell_values = ['disable', 'restricted', 'enable']
+    startup_values = ['last_session', 'empty']
 
     def __init__(self, preferences, settings):
         self.view = PageBuildSystemView()
@@ -51,6 +52,11 @@ class PageBuildSystem(object):
         self.view.option_autoshow_build_log.set_selected(
             self.autoshow_values.index(self.settings.get_value('preferences', 'autoshow_build_log')))
         self.view.option_autoshow_build_log.connect('notify::selected', self.on_autoshow_selected)
+
+        # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
+        self.view.option_on_startup.set_selected(
+            self.startup_values.index(self.settings.get_value('preferences', 'on_startup')))
+        self.view.option_on_startup.connect('notify::selected', self.on_startup_selected)
 
         # Embedded system commands combo
         self.view.option_system_commands.set_selected(
@@ -108,6 +114,12 @@ class PageBuildSystem(object):
         if selected == Gtk.INVALID_LIST_POSITION:
             return
         self.settings.set_value('preferences', 'autoshow_build_log', self.autoshow_values[selected])
+
+    def on_startup_selected(self, combo, pspec):
+        selected = combo.get_selected()
+        if selected == Gtk.INVALID_LIST_POSITION:
+            return
+        self.settings.set_value('preferences', 'on_startup', self.startup_values[selected])
 
     def on_shell_selected(self, combo, pspec):
         selected = combo.get_selected()
@@ -345,6 +357,19 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
             shell_model.append(label)
         self.option_system_commands.set_model(shell_model)
         group_shell_escape.add(self.option_system_commands)
+
+        group_startup = Adw.PreferencesGroup()
+        group_startup.set_title(_('On Startup'))
+        self.add(group_startup)
+        self.option_on_startup = Adw.ComboRow()
+        self.option_on_startup.set_title(_('Open'))
+        self.option_on_startup.set_subtitle(_('Whether to restore the previous session or start with an empty workspace.'))
+        startup_model = Gtk.StringList()
+        for label in [_('Last session'),
+                      _('Empty workspace')]:
+            startup_model.append(label)
+        self.option_on_startup.set_model(startup_model)
+        group_startup.add(self.option_on_startup)
 
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)

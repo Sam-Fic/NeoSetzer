@@ -24,6 +24,7 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
+from setzer.settings.document_settings import DocumentSettings
 
 
 class Actions(object):
@@ -101,6 +102,14 @@ class Actions(object):
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
+
+        # 每文档 LaTeX 解释器覆盖（优先于全局 preferences['latex_interpreter']）。
+        # 用 stateful action（字符串状态）使菜单项自动以勾选态反映当前选中值。
+        build_interpreter_action = Gio.SimpleAction.new_stateful(
+            'set-build-interpreter', GLib.VariantType.new('s'), GLib.Variant('s', 'default'))
+        build_interpreter_action.connect('activate', self.on_set_build_interpreter)
+        self.main_window.add_action(build_interpreter_action)
+        self.actions['set-build-interpreter'] = build_interpreter_action
 
         self.actions['quit'] = Gio.SimpleAction.new('quit', None)
         self.main_window.add_action(self.actions['quit'])
@@ -230,6 +239,24 @@ class Actions(object):
         self.actions['reset-zoom'].set_enabled(can_reset_zoom)
         self.actions['zoom-in'].set_enabled(can_zoom_in)
         self.actions['zoom-out'].set_enabled(can_zoom_out)
+
+        # 每文档 LaTeX 解释器覆盖：活动文档为 LaTeX 时启用并反映当前选择。
+        if document_active_is_latex:
+            current = document.build_system.latex_interpreter or 'default'
+            self.actions['set-build-interpreter'].set_state(GLib.Variant('s', current))
+            self.actions['set-build-interpreter'].set_enabled(True)
+        else:
+            self.actions['set-build-interpreter'].set_enabled(False)
+
+    def on_set_build_interpreter(self, action, parameter):
+        value = parameter.get_string()
+        document = self.workspace.get_active_document()
+        if document is None or not document.is_latex_document():
+            return
+        document.build_system.latex_interpreter = None if value == 'default' else value
+        # 持久化到该文档状态文件，崩溃/重启后保留。
+        DocumentSettings.save_document_state(document)
+        action.set_state(parameter)
 
     def new_latex_document(self, action=None, parameter=None):
         document = self.workspace.create_latex_document()

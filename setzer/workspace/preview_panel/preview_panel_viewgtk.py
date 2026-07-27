@@ -66,6 +66,8 @@ class PreviewPanelView(Gtk.Box):
         self.page_spin.set_hexpand(False)
         self.page_spin.set_editable(True)
         self.page_spin.set_can_focus(True)
+        # 数字居中（GTK CSS 不支持 text-align，需用 Editable 接口设置）。
+        self.page_spin.set_alignment(0.5)
         for child in self.page_spin:
             if isinstance(child, Gtk.Button):
                 child.set_visible(False)

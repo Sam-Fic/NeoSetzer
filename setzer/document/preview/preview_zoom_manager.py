@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import GLib
-
 from setzer.helpers.observable import Observable
 
 
@@ -32,10 +30,12 @@ class PreviewZoomManager(Observable):
         self.zoom_level_fit_to_height = None
         self.zoom_level = None
         self.zoom_set = False
-        # 待执行的“fit to text width 后水平居中文字”idle 回调 ID。
-        # 见 set_zoom_fit_to_text_width 注释：居中需在 ScrolledWindow 完成
-        # 尺寸分配（hadjustment 上界更新到新画布尺寸）之后进行，故延迟到 idle。
-        self._center_text_idle_id = None
+        # “fit to text width 后水平居中文字”的目标滚动位置与逐帧重试 tick id。
+        # 见 set_zoom_fit_to_text_width 注释：居中需在 ScrolledWindow 完成尺寸
+        # 分配（hadjustment 上界更新到新画布尺寸）之后进行，故用 tick 每帧检查，
+        # 直到 adjustment 允许该位置再真正居中（避免 idle 一次性回调被 clamp）。
+        self._center_text_target_x = None
+        self._center_text_tick_id = None
         # 递归保护：update_dynamic_zoom_levels 内部可能调用
         # set_zoom_fit_to_width_auto_offset → set_zoom_level → update_dynamic_zoom_levels，
         # 此标志防止递归调用导致多余的布局重建。
@@ -91,23 +91,13 @@ class PreviewZoomManager(Observable):
         else:
             self.set_zoom_level_auto_offset(1.0)
             self.zoom_set = False
-        # 缩放已正确，但页面可能靠左显示（文字未横向居中，需手动拖滚动条）。
-        # 此处把水平滚动偏移居中到文字内容中心。居中必须在 ScrolledWindow
-        # 完成尺寸分配之后才能正确生效——set_zoom_level 内部通过
-        # on_layout_changed → set_content_width 改变画布尺寸，但 hadjustment
-        # 上界要等下一帧分配才更新，立即设置 offset 会被旧上界错误钳制。
-        # 故用 idle 延后到布局稳定后执行（若有连续多次点击，先取消上次的）。
-        if self._center_text_idle_id is not None:
-            GLib.source_remove(self._center_text_idle_id)
-        self._center_text_idle_id = GLib.idle_add(self._center_text_horizontally_idle)
-
-    def _center_text_horizontally_idle(self):
-        self._center_text_idle_id = None
+        # 缩放已切换，但水平滚动条的上界（画布宽度）通常要等下一帧布局完成后
+        # 才会更新到新值。若此刻直接滚动居中，会被 clamp 到旧上界而失败（表现
+        # 为只缩放、文字仍靠左）。故先算好目标，再用 tick 逐帧重试直到可居中。
         self.center_text_horizontally()
-        return False
 
     def center_text_horizontally(self):
-        '''把 PDF 预览的水平滚动偏移设为文字内容（页面）中心。
+        '''把 PDF 预览的水平滚动偏移居中到文字内容（页面）中心。
 
         绘制时页面左边缘位于画布 canvas_x = horizontal_margin，文字内容左右各
         内缩 vertical_margin（PDF 点数），左右页边距对称，故文字中心 == 页面中心。
@@ -116,19 +106,44 @@ class PreviewZoomManager(Observable):
         if layout is None or self.zoom_level is None:
             return
 
-        window_width = self.view.get_allocated_width()
-        scale_factor = layout.scale_factor
-        h_margin = max((window_width - layout.page_width) / 2, 0)
-        text_left_canvas = h_margin + self.preview.vertical_margin * scale_factor
-        text_width_canvas = (self.preview.page_width - 2 * self.preview.vertical_margin) * scale_factor
-
+        # 用实际可视视口宽度（而非外层盒子宽度，后者含 .preview-card 约 6px 的
+        # 左右外边距）计算。绘制时 page 左边界正是按该视口宽度求出的 margin，
+        # 两者一致才能保证文字区域真正水平居中，而非偏左/偏右若干像素。
         viewport_width = self.view.content.adjustment_x.get_page_size()
         if viewport_width <= 0:
-            viewport_width = window_width
+            viewport_width = self.view.get_allocated_width()
+        margin = layout.get_horizontal_margin(viewport_width)
+        # 文字在 page 内左右对称（vertical_margin 同时作用于两侧），故 page 中心
+        # 即文字中心。把该中心对齐到视口中心即完成居中。
+        page_center = margin + layout.page_width / 2
+        target_x = max(page_center - viewport_width / 2, 0)
 
-        x = text_left_canvas + text_width_canvas / 2 - viewport_width / 2
-        x = max(x, 0)
-        self.preview.scroll_to_position(x, self.view.content.scrolling_offset_y)
+        self._center_text_target_x = target_x
+        self._apply_center_text_horizontally()
+
+    def _apply_center_text_horizontally(self):
+        if self._center_text_target_x is None:
+            return
+        adj = self.view.content.adjustment_x
+        max_scroll = adj.get_upper() - adj.get_page_size()
+        # adjustment 尚未更新到新画布宽度（上界仍偏小）时，留到下一帧再居中。
+        if max_scroll < self._center_text_target_x - 0.5:
+            if self._center_text_tick_id is None:
+                self._center_text_tick_id = self.view.content.view.add_tick_callback(self._center_text_tick)
+            return
+        target = min(self._center_text_target_x, max(max_scroll, 0))
+        self.preview.scroll_to_position(target, self.view.content.scrolling_offset_y)
+        self._center_text_target_x = None
+        if self._center_text_tick_id is not None:
+            self.view.content.view.remove_tick_callback(self._center_text_tick_id)
+            self._center_text_tick_id = None
+
+    def _center_text_tick(self, widget, clock):
+        self._apply_center_text_horizontally()
+        if self._center_text_target_x is None:
+            self._center_text_tick_id = None
+            return False
+        return True
 
     def set_zoom_fit_to_width(self):
         if self.zoom_level_fit_to_width != None:

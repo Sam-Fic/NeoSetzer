@@ -37,6 +37,18 @@ class DocumentMenu(GioMenuBuilder):
         self.add_separator()
         self.add_action_button('main', _('Include LaTeX File') + ' (\\input)...', 'win.include-latex-file')
 
+        # 每文档 LaTeX 解释器覆盖子菜单（对应 actions.on_set_build_interpreter）。
+        self.add_page('interpreter-submenu', _('Build Interpreter'))
+        interpreters = [(_('Use Global Default'), 'default'),
+                        ('PDFLaTeX', 'pdflatex'),
+                        ('XeLaTeX', 'xelatex'),
+                        ('LuaLaTeX', 'lualatex'),
+                        ('Tectonic', 'tectonic')]
+        for label, value in interpreters:
+            self.add_action_button('interpreter-submenu', label,
+                                   'win.set-build-interpreter', GLib.Variant('s', value))
+        self.add_menu_button(_('Build Interpreter'), 'interpreter-submenu')
+
         # document info submenu
         self.add_page('document_info', _('Document Info'))
         self.add_insert_symbol_item('document_info', _('Author'), ['\\author{•}'])

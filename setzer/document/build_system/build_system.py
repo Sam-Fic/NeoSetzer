@@ -41,6 +41,9 @@ class BuildSystem(Observable):
         Observable.__init__(self)
         self.document = document
         self.settings = ServiceLocator.get_settings()
+        # 每文档 LaTeX 解释器覆盖：None 表示跟随全局 preferences['latex_interpreter']。
+        # 由 DocumentSettings 从文档状态文件加载/保存（见 document_settings.py）。
+        self.latex_interpreter = None
         self.active_query = None
 
         # possible states: idle, ready_for_building
@@ -337,7 +340,7 @@ class BuildSystem(Observable):
             synctex_arguments = self.forward_sync_arguments
 
         if mode in ['build', 'build_and_forward_sync']:
-            interpreter = self.settings.get_value('preferences', 'latex_interpreter')
+            interpreter = self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
             use_latexmk = self.settings.get_value('preferences', 'use_latexmk')
             build_option_system_commands = self.settings.get_value('preferences', 'build_option_system_commands')
             additional_arguments = ''

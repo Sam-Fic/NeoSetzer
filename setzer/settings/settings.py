@@ -124,6 +124,8 @@ class Settings(Observable):
         self.defaults['preferences']['cleanup_build_files'] = True
         self.defaults['preferences']['autoshow_build_log'] = 'errors_warnings'
         self.defaults['preferences']['latex_interpreter'] = 'xelatex'
+        # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
+        self.defaults['preferences']['on_startup'] = 'last_session'
         self.defaults['preferences']['use_latexmk'] = False
         self.defaults['preferences']['auto_build'] = False
         self.defaults['preferences']['auto_build_delay'] = 2

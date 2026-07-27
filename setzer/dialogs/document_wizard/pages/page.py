@@ -34,6 +34,17 @@ class PageView(Gtk.Box):
 
     page_format_names = ['US Letter', 'US Legal', 'A4', 'A5', 'B5']
 
+    # 纸张说明：group 用于按美标/ISO 顺序分组，dims 显示实际尺寸。
+    # ComboRow 无法渲染真正的分组分隔符，故按 US -> ISO 顺序平铺，
+    # 并在每行显示尺寸，缓解报告 #13 的"混排且无说明"问题。
+    page_format_info = {
+        'US Letter': ('US', '8.5 x 11 in (215.9 x 279.4 mm)'),
+        'US Legal': ('US', '8.5 x 14 in (215.9 x 355.6 mm)'),
+        'A4': ('ISO', '210 x 297 mm'),
+        'A5': ('ISO', '148 x 210 mm'),
+        'B5': ('ISO', '176 x 250 mm'),
+    }
+
     def __init__(self):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
@@ -93,7 +104,10 @@ class PageView(Gtk.Box):
         self.page_format_combo.set_title(_('Page format'))
         page_format_model = Gtk.StringList()
         for name in self.page_format_names:
-            page_format_model.append(name)
+            group, dims = self.page_format_info[name]
+            # 显示 "US - US Letter (215.9 x 279.4 mm)" 形式：group 提供
+            # 美标/ISO 的分组感，dims 提供具体尺寸（报告 #13）。
+            page_format_model.append('{} - {} ({})'.format(group, name, dims))
         self.page_format_combo.set_model(page_format_model)
 
         # Options -----------------------------------------------------------
@@ -105,10 +119,13 @@ class PageView(Gtk.Box):
 
         # Font size ---------------------------------------------------------
         # A standard Adw.SpinRow, consistent with the margin rows below.
+        # 默认 10pt 即 LaTeX 标准默认字号（报告 #14）；book/letter 常用 12pt，
+        # 通过 tooltip 给新手提示，避免意外。
         self.font_size_entry = Adw.SpinRow()
         self.font_size_entry.set_title(_('Font size'))
-        self.font_size_entry.set_adjustment(Gtk.Adjustment(value=11, lower=6, upper=18, step_increment=1))
+        self.font_size_entry.set_adjustment(Gtk.Adjustment(value=10, lower=6, upper=18, step_increment=1))
         self.font_size_entry.set_digits(0)
+        self.font_size_entry.set_tooltip_text(_('LaTeX standard default is 10pt; 12pt is common for book and letter.'))
 
         # Page margins ------------------------------------------------------
         self.option_default_margins = Adw.SwitchRow()

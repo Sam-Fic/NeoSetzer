@@ -60,6 +60,7 @@ class Workspace(Observable):
         self.open_latex_documents = list()
         self.root_document = None
         self.recently_opened_documents = dict()
+        self.pinned_recent_documents = set()
 
         self.active_document = None
 
@@ -321,13 +322,28 @@ class Workspace(Observable):
             del(self.recently_opened_documents[filename])
         except KeyError:
             pass
+        self.pinned_recent_documents.discard(filename)
         if notify:
             self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
 
     def clear_recently_opened_documents(self):
         '''Remove all entries from the recently-opened list and notify listeners.'''
         self.recently_opened_documents = dict()
+        self.pinned_recent_documents = set()
         self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+
+    def toggle_pinned_recent_document(self, filename):
+        '''置顶/取消置顶某个最近文档。变更通过 update_recently_opened_documents
+        信号广播，使 welcome screen 重新排序并刷新行状态；持久化交由周期性
+        save_to_disk（与 recently_opened_documents 同机制）。'''
+        if filename in self.pinned_recent_documents:
+            self.pinned_recent_documents.discard(filename)
+        else:
+            self.pinned_recent_documents.add(filename)
+        self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+
+    def is_pinned_recent_document(self, filename):
+        return filename in self.pinned_recent_documents
 
     def update_recently_opened_session_file(self, filename, date=None, notify=True):
         self._update_recently_opened(
@@ -370,6 +386,10 @@ class Workspace(Observable):
                 self._restore_document_state(document, item, root_document_filename)
         for item in data['recently_opened_documents'].values():
             self.update_recently_opened_document(item['filename'], item['date'], notify=False)
+        try:
+            self.pinned_recent_documents = set(data['pinned_recent_documents'])
+        except KeyError:
+            self.pinned_recent_documents = set()
         # update_recently_opened_document 已对不存在的文件调
         # remove_recently_opened_document（不添加到 dict），故无需再做一轮
         # stale 清理。原实现额外遍历 recently_opened_documents 逐个 os.path.isfile
@@ -405,10 +425,12 @@ class Workspace(Observable):
             except KeyError:
                 root_document_filename = None
             active_filename = data.get('active_document_filename')
+            opened_count = 0
             for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
                 document = self.create_document_from_filename(item['filename'])
                 if document is None:
                     continue
+                opened_count += 1
                 self._restore_document_state(document, item, root_document_filename)
             if len(self.open_documents) > 0:
                 if active_filename:
@@ -429,6 +451,13 @@ class Workspace(Observable):
                 self.show_build_log = window_state.get('show_build_log', self.show_build_log)
             self.session_file_opened = filename
             self.update_recently_opened_session_file(filename, notify=True)
+            # 结构合法但没有任何文档成功打开（引用的 .tex/.bib 可能已被移动或删除）：
+            # 仍视为加载成功（不回滚），但提示用户，避免"静默清空工作区"。
+            if opened_count == 0 and len(data['open_documents']) > 0:
+                self._notify_session_load_error(
+                    filename,
+                    _('Session loaded, but no documents could be opened (files may have been moved or deleted): {name}').format(name=os.path.basename(filename))
+                )
             return True
         except (KeyError, TypeError, ValueError, AttributeError):
             # 结构残缺（缺 open_documents / data 非 dict 等）视为加载失败，提示用户。
@@ -436,12 +465,12 @@ class Workspace(Observable):
             self._notify_session_load_error(filename)
             return False
 
-    def _notify_session_load_error(self, filename):
-        '''session 文件解析/结构失败时弹 toast 告知用户（加载侧不再静默失败）。'''
+    def _notify_session_load_error(self, filename, message=None):
+        '''session 文件解析/结构失败，或加载后无任何文档打开时弹 toast 告知用户。'''
         main_window = ServiceLocator.get_main_window()
         if main_window and hasattr(main_window, 'toast_overlay'):
-            # 用 basename，避免提示里出现一长串绝对路径。
-            message = _('Could not open session: {name}').format(name=os.path.basename(filename))
+            if message is None:
+                message = _('Could not open session: {name}').format(name=os.path.basename(filename))
             GLib.idle_add(self._do_show_toast, main_window, message)
 
     def _restore_document_state(self, document, item, root_document_filename):
@@ -512,6 +541,7 @@ class Workspace(Observable):
             'open_documents': open_documents,
             'recently_opened_documents': self.recently_opened_documents,
             'recently_opened_session_files': self.recently_opened_session_files,
+            'pinned_recent_documents': list(self.pinned_recent_documents),
             'recent_help_searches': getattr(self, 'help_panel', None) and self.help_panel.search_results_blank
         }
         if self.active_document is not None:

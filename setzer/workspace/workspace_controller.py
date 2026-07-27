@@ -37,7 +37,12 @@ class WorkspaceController(object):
         self.main_window.headerbar.preview_help_toggle.connect('toggled', self.on_preview_help_toggle_toggled)
 
         # populate workspace
-        self.workspace.populate_from_disk()
+        # ③ 启动偏好：on_startup='empty' 时不恢复上次会话，直接显示欢迎屏。
+        on_startup = self.workspace.settings.get_value('preferences', 'on_startup')
+        if on_startup == 'empty':
+            self.workspace.populated = True
+        else:
+            self.workspace.populate_from_disk()
         open_documents = self.workspace.open_documents
         if len(open_documents) > 0:
             active_filename = getattr(self.workspace, '_restore_active_filename', None)

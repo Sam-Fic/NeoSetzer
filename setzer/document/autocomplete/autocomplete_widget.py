@@ -138,8 +138,13 @@ class AutocompleteWidget(object):
         # 不在 overlay 内，overlay 顶部已在 shortcutsbar 下方，source_view 顶部
         # 还在 overlay 下方 46px（document_stack_wrapper margin_top），导致
         # popover 偏上 12px，跑到当前行中间遮挡文字。
-        success, overlay_y = self.source_view.translate_coordinates(self.main_window.preview_paned_overlay, 0, 0)
-        y_adjust = overlay_y if success else (self.shortcutsbar_height or 0)
+        # GTK4 PyGObject：成功返回 (x, y) 二元组，失败（widget 未 realize、
+        # 不在同一 widget 树，如失焦/文档切换过程中）返回 None。
+        coords = self.source_view.translate_coordinates(self.main_window.preview_paned_overlay, 0, 0)
+        if coords is not None:
+            y_adjust = coords[1]
+        else:
+            y_adjust = self.shortcutsbar_height or 0
 
         # 下方空间充足：popover 显示在光标下方。
         if self.y_position <= vertical_cutoff:

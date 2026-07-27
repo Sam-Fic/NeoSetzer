@@ -59,17 +59,13 @@ class DocumentWizardView(DialogView):
         self.title_widget.set_center_widget(self.title_box)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_can_focus(False)
 
         self.back_button = Gtk.Button.new_with_mnemonic(_('_Back'))
-        self.back_button.set_can_focus(False)
         
         self.next_button = Gtk.Button.new_with_mnemonic(_('_Next'))
-        self.next_button.set_can_focus(False)
         self.next_button.add_css_class('suggested-action')
 
         self.create_button = Gtk.Button.new_with_mnemonic(_('_Create'))
-        self.create_button.set_can_focus(False)
         self.create_button.add_css_class('suggested-action')
 
         self.headerbar.set_title_widget(self.title_widget)
