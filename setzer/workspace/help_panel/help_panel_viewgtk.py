@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Gtk, Adw
 
 # WebKit 是可选依赖：某些 Linux 发行版（如极简 Flatpak 运行时）可能未安装
 # webkit2gtk-6.0。缺失时帮助面板降级为"纯搜索 + 系统浏览器打开 HTML"模式：
@@ -112,9 +112,17 @@ class HelpPanelView(Gtk.Box):
         self.search_content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.search_content_box.set_margin_top(12)
         self.search_content_box.set_margin_bottom(12)
+        # 左右内边距：让搜索框 / 计数 / 结果卡片都不贴侧栏边缘，留出呼吸空间，
+        # 整体更紧凑、与设置列表页一致（设置页内容也有左右留白）。
+        self.search_content_box.set_margin_start(12)
+        self.search_content_box.set_margin_end(12)
 
         self.search_entry = SearchEntry()
         self.search_entry.set_placeholder_text(_('Search help'))
+        # 搜索框左右边距与结果卡片（search_results）一致（各 12px），使两者
+        # 等宽对齐，整体与最初截图一致、且不贴侧栏边缘。
+        self.search_entry.set_margin_start(12)
+        self.search_entry.set_margin_end(12)
         self.search_content_box.append(self.search_entry)
 
         # 搜索结果计数：显示 "{n} results" 或空查询时隐藏。
@@ -127,12 +135,19 @@ class HelpPanelView(Gtk.Box):
         self.result_count_label.set_visible(False)
         self.search_content_box.append(self.result_count_label)
 
-        self.search_results = Gtk.ListBox()
-        # SINGLE 选择模式 + 可聚焦：方向键即可在帮助搜索结果间导航（可访问性）。
-        # 单击激活（跳转帮助页）仍由 controller 的 row-activated 处理，不受影响。
-        self.search_results.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        self.search_results.set_activate_on_single_click(True)
+        # 搜索结果用 Adw.PreferencesGroup 作为容器，与"设置"列表外观一致：
+        # PreferencesGroup 内部自带带 boxed-list 类的 ListBox，提供圆角卡片 +
+        # 分隔线，直接 add(Adw.ActionRow) 即为标准设置列表样式。行激活改用
+        # Adw.ActionRow 的 'activated' 信号（由 controller 逐行连接），不再依赖
+        # ListBox 的 row-activated。整体放入 ScrolledWindow 以支持结果过多滚动。
+        self.search_results = Adw.PreferencesGroup()
         self.search_results.set_margin_top(12)
+        # 左右留白放在卡片自身（而非外层容器）：PreferencesGroup 卡片若直接
+        # 填满 ScrolledWindow，圆角会落在 viewport 的直角边缘被 clip 裁平
+        # （表现为左右被切）。这里给卡片左右 margin，使圆角落在 viewport
+        # 内侧、不被裁，与设置列表在 preferencespage 里的留白行为一致。
+        self.search_results.set_margin_start(12)
+        self.search_results.set_margin_end(12)
         self.search_scroll = Gtk.ScrolledWindow()
         self.search_scroll.set_vexpand(True)
         self.search_scroll.kinetic_scrolling = True
@@ -159,12 +174,11 @@ class HelpPanelView(Gtk.Box):
         self.initial_slate.set_valign(Gtk.Align.CENTER)
         self.search_content_box.append(self.initial_slate)
 
-        self.search_clamp = Adw.Clamp()
-        self.search_clamp.set_maximum_size(600)
-        self.search_clamp.set_tightening_threshold(400)
-        self.search_clamp.set_margin_start(12)
-        self.search_clamp.set_margin_end(12)
-        self.search_clamp.set_child(self.search_content_box)
+        # 不再用 Adw.Clamp 包裹：固定宽侧栏（396px）里 Clamp 的动态限宽会把
+        # 内容区域算窄于卡片，导致卡片左右被 Clamp 的可视区裁切。改为由
+        # search_content_box 的左右 margin 直接控制留白，卡片宽度=侧栏宽-24，
+        # 与设置列表在固定侧栏里的表现一致。search_content_box 在下方 stack
+        # 创建后通过 add_named(..., 'search') 加入。
 
         # WebKit 可用时创建 WebView 渲染帮助页面；不可用时降级为 Gtk.Label
         # 占位（显示提示文案）。搜索功能不依赖 WebKit，仍正常工作。
@@ -172,6 +186,10 @@ class HelpPanelView(Gtk.Box):
             self.content = WebKit.WebView()
             self.content.set_hexpand(True)
             self.content.set_vexpand(True)
+            # preview-card 圆角 + 裁切加在 WebView 自身（而非共享 stack），
+            # 使 WebView 内容被圆角裁出；搜索页的 boxed-list 不再被 stack 裁切。
+            self.content.add_css_class('preview-card')
+            self.content.set_overflow(Gtk.Overflow.HIDDEN)
             self.user_content_manager = self.content.get_user_content_manager()
 
             self.settings = self.content.get_settings()
@@ -227,6 +245,8 @@ class HelpPanelView(Gtk.Box):
             self.content.set_hexpand(True)
             self.content.set_vexpand(True)
             self.content.set_wrap(True)
+            self.content.add_css_class('preview-card')
+            self.content.set_overflow(Gtk.Overflow.HIDDEN)
             self.content.set_text(
                 _('Help page rendering requires WebKit6. '
                   'Search is still available — click a result to open it '
@@ -239,14 +259,15 @@ class HelpPanelView(Gtk.Box):
             self.user_content_manager = None
             self.settings = None
 
-        self.stack = Gtk.Stack()
-        self.stack.set_vexpand(True)
-        self.stack.add_css_class('preview-card')
-        self.stack.set_overflow(Gtk.Overflow.HIDDEN)
-        self.stack.add_named(self.content, 'content')
-        self.stack.add_named(self.search_clamp, 'search')
-
-        self.append(self.stack)
+        # 不用 Gtk.Stack 叠放 content/search 两页：Stack 会把两页重叠，
+        # content 页（WebView + preview-card/overflow:hidden）绘制时覆盖并
+        # 裁切 search 页边缘（表现为列表两侧被切）。改为互斥可见的两个容器
+        # 直接挂在面板 VBox 上，search 页（红卡片）不再被 content 页遮挡。
+        self.content.set_vexpand(True)
+        self.search_content_box.set_vexpand(True)
+        self.append(self.content)
+        self.append(self.search_content_box)
+        self.search_content_box.set_visible(False)
 
         # switch_button 始终最后 append 到 toolbar，确保在工具栏最右端
         # （在 search_button 和 js_info_button 之后）。
@@ -255,39 +276,35 @@ class HelpPanelView(Gtk.Box):
         self.search_result_items = list()
 
 
-class SearchResultView(Gtk.ListBoxRow):
+class SearchResultView(Adw.ActionRow):
+    '''搜索结果行：用原生 Adw.ActionRow 替代手写 Gtk.ListBoxRow + 2 Label。
+
+    title = 标题（如 "first-latex-doc document"），subtitle = 位置（如
+    "About this document"）。两者均开启 use-markup，复用 help_panel 的
+    _highlight() 生成的 <b> 标记实现搜索词粗体高亮，无需自定义 Label。
+    title-lines/subtitle-lines 设为 0 不限制行数，并开启自动换行，
+    避免长标题被截断。
+
+    Adw.ActionRow 本身是 Gtk.ListBoxRow 子类，可直接 append 到 Gtk.ListBox，
+    row-activated 信号与之前行为一致。
+    '''
 
     def __init__(self, data):
-        Gtk.ListBoxRow.__init__(self)
+        Adw.ActionRow.__init__(self)
         self.set_can_focus(False)
-        self.set_margin_top(6)
-        self.set_margin_bottom(6)
-        self.set_margin_start(15)
-        self.set_margin_end(15)
+        self.set_use_markup(True)
+        # title-lines/subtitle-lines = 0 表示不限制行数，Adwaita 会长文本自动换行；
+        # 不放回 set_wrap（ActionRow 无此属性）。
+        self.set_title_lines(0)
+        self.set_subtitle_lines(0)
         self.uri_ending = data[0]
-        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.box.set_spacing(2)
-        self.text_label = Gtk.Label()
-        self.text_label.set_markup(data[1])
-        self.text_label.set_xalign(0)
-        self.text_label.set_wrap(True)
-        self.text_label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.text_label.set_selectable(False)
-        self.location_label = Gtk.Label()
-        self.location_label.set_markup(data[2])
-        self.location_label.set_xalign(0)
-        self.location_label.set_wrap(True)
-        self.location_label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.location_label.add_css_class('dim-label')
-        self.location_label.set_selectable(False)
-        self.box.append(self.text_label)
-        self.box.append(self.location_label)
-        self.set_child(self.box)
+        self.set_title(data[1])
+        self.set_subtitle(data[2])
 
     def update_content(self, data):
-        '''复用已有 row 仅更新内容，避免每次搜索都销毁/重建 4 个 widget
-        （ListBoxRow + Box + 2 Label）。搜索结果上限 8 条，原实现每次
-        按键（去抖后）仍要 8×4 = 32 次 widget 销毁 + 32 次创建。'''
+        '''复用已有 row 仅更新内容，避免每次搜索都销毁/重建 widget。
+        搜索结果上限 8 条，原实现每次按键（去抖后）仍要多次 widget 销毁
+        + 创建；改为 set_title/set_subtitle 仅更新文本即可。'''
         self.uri_ending = data[0]
-        self.text_label.set_markup(data[1])
-        self.location_label.set_markup(data[2])
+        self.set_title(data[1])
+        self.set_subtitle(data[2])

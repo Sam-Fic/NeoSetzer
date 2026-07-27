@@ -238,24 +238,26 @@ class GeneralSettingsPageView(PageView):
         self.option_packages['glossaries'] = self._create_package_row('glossaries', 'glossaries')
         self.option_packages['parskip'] = self._create_package_row('parskip', 'parskip')
 
-        self.group_packages = Adw.PreferencesGroup()
-        self.group_packages.set_title(_('Packages'))
+        # Packages 区：原生结构 = 竖排 Box 承载标题 + 独立搜索栏 + 列表组。
+        # 不用「把搜索框塞进 PreferencesGroup」的 hack——Adw.PreferencesGroup
+        # 只对 PreferencesRow 子类按 add 顺序布局，裸 Gtk.SearchEntry 会被
+        # 排到组末尾。改为：搜索栏作为列表上方的独立控件（GNOME 标准
+        # 做法，如 gnome-control-center / Files 的搜索栏），下方列表组
+        # 不再带标题，由外层标题统一。
+        self.group_packages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.group_packages_title = Gtk.Label(label=_('Packages'))
+        self.group_packages_title.add_css_class('title-4')
+        self.group_packages_title.set_halign(Gtk.Align.START)
+        self.group_packages.append(self.group_packages_title)
 
-        # 搜索框（报告 #2）：放在包列表最上方，按包名（键）过滤下方开关行。
-        # 必须包进 Adw.ActionRow（PreferencesRow 子类）再 add——Adw.PreferencesGroup
-        # 只对 PreferencesRow 子项保证按 add 顺序布局；直接 add 裸 Gtk.SearchEntry
-        # 会被 GTK 排到组末尾（实测如此），导致“搜索框跑到最下面”。
         self.packages_search_entry = Gtk.SearchEntry()
         self.packages_search_entry.set_placeholder_text(_('Search packages'))
         self.packages_search_entry.connect('search-changed', self.on_packages_search)
-        self.packages_search_row = Adw.ActionRow()
-        self.packages_search_row.set_title(_('Filter'))
-        self.packages_search_row.add_suffix(self.packages_search_entry)
-        self.packages_search_row.set_activatable_widget(self.packages_search_entry)
-        self.group_packages.add(self.packages_search_row)
+        self.group_packages.append(self.packages_search_entry)
 
+        self.packages_list = Adw.PreferencesGroup()
         for name in ['ams', 'textcomp', 'graphicx', 'color', 'xcolor', 'url', 'hyperref', 'theorem', 'listings', 'glossaries', 'parskip']:
-            self.group_packages.add(self.option_packages[name])
+            self.packages_list.add(self.option_packages[name])
 
         # 自定义包输入（报告 #2）：逗号分隔的包名，额外插入 preamble。
         # 放在包列表末尾，避免打断搜索框与包开关之间的视觉关联。
@@ -263,7 +265,9 @@ class GeneralSettingsPageView(PageView):
         self.custom_packages_entry.set_title(_('Other packages'))
         # Adw.EntryRow 无 subtitle 属性，说明文字用 tooltip 展示。
         self.custom_packages_entry.set_tooltip_text(_('Comma-separated package names to include additionally.'))
-        self.group_packages.add(self.custom_packages_entry)
+        self.packages_list.add(self.custom_packages_entry)
+
+        self.group_packages.append(self.packages_list)
 
         # Preview -------------------------------------------------------------
         # 实时预览将生成的 \\documentclass 行（报告 #3），由 controller 在

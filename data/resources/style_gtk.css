@@ -338,6 +338,12 @@ toolbarview > * > * > * {
     outline: 1px solid alpha(@theme_color, 0.5);
 }
 
+/* 构建失败时显示在页码区的红色提示，突出严重性。 */
+.preview-stale-label {
+    color: @error_color;
+    font-weight: bold;
+}
+
 /*
  * 编辑器配色方案网格（复刻 gnome-text-editor 的 Appearance 面板）。
  * 参考项目的 dialog.preferences preferencesgroup flowboxchild 选择器在

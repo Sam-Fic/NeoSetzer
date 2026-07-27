@@ -86,7 +86,6 @@ class PreviewPanelPresenter(object):
             self.stack.set_visible_child(self.view.empty_placeholder)
             self.update_label()
             self.update_buttons()
-            self.view.set_stale_banner_visible(False)
             self._detach_target_bar()
         else:
             self.stack.set_visible_child(self.document.preview.view)
@@ -100,7 +99,6 @@ class PreviewPanelPresenter(object):
             self.document.preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
             self.document.preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
             self.document.preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
-            self.view.set_stale_banner_visible(self.document.preview.pdf_is_stale)
             self._attach_target_bar(self.document.preview.view)
 
     def on_pdf_changed(self, preview):
@@ -117,9 +115,10 @@ class PreviewPanelPresenter(object):
         self.update_label()
 
     def on_pdf_stale_changed(self, preview):
-        # 构建失败未产出 PDF 时显示横幅；下次构建成功（set_pdf_filename 清除
-        # stale）时隐藏。由 preview.set_pdf_is_stale 触发。
-        self.view.set_stale_banner_visible(preview.pdf_is_stale)
+        # 构建失败未产出 PDF 时在页码区显示红色提示；下次构建成功（set_pdf_filename
+        # 清除 stale）时隐藏。由 preview.set_pdf_is_stale 触发。
+        self.update_label()
+        self.update_buttons()
 
     def on_zoom_level_changed(self, preview):
         self.update_label()
@@ -206,10 +205,15 @@ class PreviewPanelPresenter(object):
         if self.document == None:
             self.view.page_spin.set_visible(False)
             self.view.paging_of_label.set_visible(False)
+            self.view.stale_label.set_text('')
         else:
+            preview = self.document.preview
+            if preview.pdf_is_stale:
+                self.view.stale_label.set_text(_('Build failed — showing the previous PDF'))
+            else:
+                self.view.stale_label.set_text('')
             self.view.page_spin.set_visible(True)
             self.view.paging_of_label.set_visible(True)
-            preview = self.document.preview
             if preview.poppler_document != None:
                 total = preview.poppler_document.get_n_pages()
                 if preview.layout != None:
@@ -228,8 +232,6 @@ class PreviewPanelPresenter(object):
         has_pdf = self.document != None and self.document.preview.poppler_document != None
 
         self.view.toolbar.set_visible(True)
-        self.view.page_spin.set_visible(True)
-        self.view.paging_of_label.set_visible(True)
         self.view.external_viewer_button.set_visible(True)
         self.view.recolor_pdf_toggle.set_visible(True)
         self.view.zoom_out_button.set_visible(True)
@@ -246,12 +248,9 @@ class PreviewPanelPresenter(object):
         self.view.page_spin.set_sensitive(has_pdf)
 
         if has_pdf:
-            self.update_label()
             zoom_level = self.document.preview.zoom_manager.get_zoom_level()
             self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
             self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
-        else:
-            self.view.paging_of_label.set_text(_('No preview'))
 
     def update_zoom_level(self):
         zoom_level = self.document.preview.zoom_manager.get_zoom_level()

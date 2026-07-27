@@ -26,6 +26,7 @@ import setzer.dialogs.preferences.pages.page_editor as page_editor
 import setzer.dialogs.preferences.pages.page_autocomplete as page_autocomplete
 import setzer.dialogs.preferences.pages.page_appearance as page_appearance
 import setzer.dialogs.preferences.pages.page_shortcuts as page_shortcuts
+import setzer.dialogs.preferences.pages.page_ai_fix as page_ai_fix
 from setzer.app.service_locator import ServiceLocator
 
 
@@ -55,18 +56,21 @@ class PreferencesDialog(object):
         self.page_build_system = page_build_system.PageBuildSystem(self, self.settings)
         self.page_autocomplete = page_autocomplete.PageAutocomplete(self, self.settings)
         self.page_shortcuts = page_shortcuts.PageShortcuts(self, self.settings)
+        self.page_ai_fix = page_ai_fix.PageAI(self, self.settings)
 
         self.view.add(self.page_appearance.view)
         self.view.add(self.page_editor.view)
         self.view.add(self.page_build_system.view)
         self.view.add(self.page_autocomplete.view)
         self.view.add(self.page_shortcuts.view)
+        self.view.add(self.page_ai_fix.view)
 
         self.page_appearance.init()
         self.page_editor.init()
         self.page_build_system.init()
         self.page_autocomplete.init()
         self.page_shortcuts.init()
+        self.page_ai_fix.init()
 
         # 应用主题（Appearance 页）切换后，Editor 页的方案网格需按新深浅过滤
         # 候选并刷新预览配色。Editor 页已自连 Adw.StyleManager.notify::dark，

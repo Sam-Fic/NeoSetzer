@@ -77,6 +77,52 @@ class BuildLogDialogPresenter(object):
         self._update_filter_dropdowns()
         self.populate()
 
+    def _get_visible_types(self):
+        '''根据 autoshow_build_log 设置返回当前可见的类型集合。'''
+        autoshow = self.build_log.settings.get_value('preferences', 'autoshow_build_log')
+        return self.TYPE_FILTER.get(autoshow, self.TYPE_FILTER['all'])
+
+    def _matches_search(self, it):
+        '''检查日志项是否匹配当前搜索文本。'''
+        if not self.search_text:
+            return True
+        description = (it[4] or '').lower()
+        filename = (it[2] or '').lower()
+        line_number = str(it[3]) if it[3] >= 0 else ''
+        return (self.search_text in description
+                or self.search_text in filename
+                or self.search_text in line_number)
+
+    def _matches_filters(self, it):
+        '''检查日志项是否匹配当前文件/类型/行号筛选器。'''
+        # 文件过滤
+        if self.file_filter and self.file_filter != _('All'):
+            if it[2] is None or os.path.basename(it[2]) != self.file_filter:
+                return False
+        # 错误类型过滤
+        if self.type_filter and self.type_filter != _('All'):
+            desc = (it[4] or '').lower()
+            item_type = it[0]
+            if not self._matches_error_type(self.type_filter, desc, item_type):
+                return False
+        # 行号范围过滤
+        if it[3] >= 0 and (it[3] < self.line_min or it[3] > self.line_max):
+            return False
+        return True
+
+    def get_visible_items(self):
+        '''返回当前在 Build Log 弹窗中可见的所有日志项（原始 item 元组）。
+
+        可见性 = autoshow_build_log 类型筛选 + 搜索文本 + 文件/类型/行号筛选器。
+        即用户在弹窗里「看到什么」就返回什么。供 AI Fix All 按钮使用，
+        保证发送给 Agent 的内容与用户视线一致。
+        '''
+        visible_types = self._get_visible_types()
+        return [it for it in self.build_log.items
+                if it[0] in visible_types
+                and self._matches_search(it)
+                and self._matches_filters(it)]
+
     def populate(self):
         '''重建弹窗内容：清空所有 group，按设置项过滤后重新追加 items。
 
@@ -86,8 +132,7 @@ class BuildLogDialogPresenter(object):
             self._dirty = True
             return
 
-        autoshow = self.build_log.settings.get_value('preferences', 'autoshow_build_log')
-        visible_types = self.TYPE_FILTER.get(autoshow, self.TYPE_FILTER['all'])
+        visible_types = self._get_visible_types()
 
         document = self.build_log.document
         build_system = document.build_system if (document is not None and document.build_system is not None) else None
@@ -95,34 +140,13 @@ class BuildLogDialogPresenter(object):
         build_time = getattr(build_system, 'build_time', None) if build_system is not None else None
 
         # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、搜索文本、过滤器、可见 items 元组。
-        def _matches_search(it):
-            if not self.search_text:
-                return True
-            description = (it[4] or '').lower()
-            filename = (it[2] or '').lower()
-            line_number = str(it[3]) if it[3] >= 0 else ''
-            return (self.search_text in description
-                    or self.search_text in filename
-                    or self.search_text in line_number)
-
-        def _matches_filters(it):
-            # 文件过滤
-            if self.file_filter and self.file_filter != _('All'):
-                if it[2] is None or os.path.basename(it[2]) != self.file_filter:
-                    return False
-            # 错误类型过滤
-            if self.type_filter and self.type_filter != _('All'):
-                desc = (it[4] or '').lower()
-                item_type = it[0]
-                if not self._matches_error_type(self.type_filter, desc, item_type):
-                    return False
-            # 行号范围过滤
-            if it[3] >= 0 and (it[3] < self.line_min or it[3] > self.line_max):
-                return False
-            return True
-
-        visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items if it[0] in visible_types and _matches_search(it) and _matches_filters(it))
-        signature = (id(document), has_been_built, build_time, self.search_text, self.file_filter, self.type_filter, self.line_min, self.line_max, visible_items)
+        visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items
+                              if it[0] in visible_types
+                              and self._matches_search(it)
+                              and self._matches_filters(it))
+        signature = (id(document), has_been_built, build_time, self.search_text,
+                     self.file_filter, self.type_filter, self.line_min, self.line_max,
+                     visible_items)
         if signature == self._last_signature:
             self._dirty = False
             return
@@ -137,7 +161,7 @@ class BuildLogDialogPresenter(object):
             if item_type not in visible_types:
                 continue
             # 应用过滤器
-            if not _matches_search(item) or not _matches_filters(item):
+            if not self._matches_search(item) or not self._matches_filters(item):
                 continue
             # item 元组：item[0]=type, item[2]=filename, item[3]=line_number, item[4]=description
             self.view.add_item(item_type, item[2], item[3], item[4])

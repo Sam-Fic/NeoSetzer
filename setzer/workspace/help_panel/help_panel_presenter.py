@@ -59,7 +59,10 @@ class HelpPanelPresenter(object):
                         row.set_visible(True)
                 else:
                     row = help_panel_view.SearchResultView(item)
-                    self.view.search_results.append(row)
+                    # Adw.PreferencesGroup 无 row-activated 信号，改用每个
+                    # ActionRow 的 'activated' 信号（行为与原 ListBox 一致）。
+                    row.connect('activated', self.help_panel.controller.on_search_result_activated)
+                    self.view.search_results.add(row)
                     existing.append(row)
             # 隐藏多余 row（结果数比上次少时）
             for i in range(len(results_list), len(existing)):

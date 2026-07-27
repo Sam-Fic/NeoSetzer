@@ -70,7 +70,8 @@ class HelpPanelController(object):
         self.view.search_entry.connect('changed', self.on_search_entry_changed)
         self.view.search_entry.connect('stop-search', self.on_search_stopped)
 
-        self.view.search_results.connect('row-activated', self.on_search_result_activated)
+        # 搜索结果行激活：Adw.PreferencesGroup 无 row-activated 信号，改由
+        # presenter 在创建每行时连 Adw.ActionRow 的 'activated' 信号到本方法。
 
     def on_back_button_clicked(self, button):
         if not HAS_WEBKIT: return
@@ -97,7 +98,10 @@ class HelpPanelController(object):
 
     def on_search_button_toggled(self, button):
         if button.get_active():
-            self.view.stack.set_visible_child_name('search')
+            # content/search 两页互斥可见（不再用 Gtk.Stack 叠放，避免 content
+            # 页覆盖并裁切 search 页边缘）。
+            self.view.content.set_visible(False)
+            self.view.search_content_box.set_visible(True)
             self.view.search_entry.set_text('')
             self.view.search_entry.grab_focus()
             self.help_panel.set_search_query(self.view.search_entry.get_text())
@@ -109,7 +113,8 @@ class HelpPanelController(object):
             self.help_panel._ensure_search_index()
         else:
             if HAS_WEBKIT:
-                self.view.stack.set_visible_child_name('content')
+                self.view.search_content_box.set_visible(False)
+                self.view.content.set_visible(True)
             else:
                 # 无 WebKit 时 'content' 页只是占位 Label，退出搜索后留在搜索页
                 # 不如保持搜索结果可见（用户可能还想看结果）。
@@ -135,9 +140,12 @@ class HelpPanelController(object):
             self._search_idle_id = None
         self.view.search_button.set_active(False)
 
-    def on_search_result_activated(self, box, row):
+    def on_search_result_activated(self, row):
         if HAS_WEBKIT:
-            self.help_panel.set_uri_by_search_item(row.uri_ending, row.text_label.get_text(), row.location_label.get_text())
+            # Adw.ActionRow：标题/副标题文本存于 title/subtitle（含高亮标记，
+            # 但 set_uri_by_search_item 只取纯文本 URI，get_title 返回的也是
+            # 含 <b> 的 markup 字符串 — 用于历史记录显示，无副作用）。
+            self.help_panel.set_uri_by_search_item(row.uri_ending, row.get_title(), row.get_subtitle())
         else:
             # 无 WebKit：用系统浏览器打开本地 HTML 文件。
             # help_panel.path 是 'file:///.../resources/help'，uri_ending 是相对路径。

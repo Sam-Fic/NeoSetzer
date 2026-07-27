@@ -18,9 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
-
-from setzer.keyboard_shortcuts.shortcut_controller import ShortcutController
+from gi.repository import Gtk, Adw, Gdk
 
 
 class DialogView(Adw.Dialog):
@@ -36,6 +34,14 @@ class DialogView(Adw.Dialog):
         self.toolbar_view.set_content(self.topbox)
         self.set_child(self.toolbar_view)
 
-        self.shortcuts_controller = ShortcutController()
-        self.shortcuts_controller.create_and_add_shortcut('Escape', self.close)
-        self.add_controller(self.shortcuts_controller)
+        # Esc 关闭弹窗：用 EventControllerKey 显式监听，比 ShortcutController 可靠。
+        # 与 Gtk.SearchBar 的 Esc 不冲突（SearchBar 仅在搜索模式开启时消费 Esc）。
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect('key-pressed', self._on_key_pressed)
+        self.add_controller(key_controller)
+
+    def _on_key_pressed(self, controller, keyval, keycode, state):
+        if keyval == Gdk.KEY_Escape:
+            self.close()
+            return True
+        return False

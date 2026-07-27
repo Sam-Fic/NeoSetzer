@@ -177,6 +177,23 @@ class Settings(Observable):
         # settings.json，跨会话只提示一次）。
         self.defaults['preferences']['backward_sync_hint_shown'] = False
 
+        # —— AI 修复集成（build log → 外部 Agent CLI）——
+        # 设计见 .trae/documents/ai-fix-agent-integration.md。
+        # 信任目录列表里的 cwd 直接跳过预览弹窗，发送即确认；
+        # 依赖上方 auto_reload_on_external_change 在 Agent 修复后自动重载文件。
+        self.defaults['preferences']['ai_fix_enabled'] = True
+        # 当前激活的工具 name（指向 ai_fix_tools 列表中的 name 字段）。
+        self.defaults['preferences']['ai_fix_active_tool'] = 'opencode'
+        # 终端命令：留空走自动检测链；用户可填 'xterm' / 'gnome-terminal' 等。
+        self.defaults['preferences']['ai_fix_terminal_cmd'] = ''
+        # 已信任目录列表：勾「此项目不再提示」后追加；按项目=按文档目录。
+        # Preferences 页可手动移除以撤销信任。
+        self.defaults['preferences']['ai_fix_trusted_dirs'] = []
+        # Agent 工具列表（内置 5 个 + 用户自定义）。每个元素结构见
+        # setzer/ai_fix/presets.py。default_tools() 返回深拷贝避免污染常量。
+        from setzer.ai_fix.presets import default_tools
+        self.defaults['preferences']['ai_fix_tools'] = default_tools()
+
         self.defaults['preferences']['use_system_font'] = True
         textview = Gtk.TextView()
         textview.set_monospace(True)

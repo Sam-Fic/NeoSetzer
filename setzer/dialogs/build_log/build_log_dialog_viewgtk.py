@@ -75,6 +75,16 @@ class BuildLogDialogView(DialogView):
         self.save_log_button.set_can_focus(False)
         self.headerbar.pack_end(self.save_log_button)
 
+        # AI Fix All 按钮：批量把当前可见错误发给 Agent CLI 修复。
+        # 放在 HeaderBar 最左端（pack_end 后入先出，会排在 copy_all/save_log 左侧）。
+        # icon 用 applications-science-symbolic（魔法/科学隐喻），与行内按钮一致。
+        # 仅 Errors 类型才显示（presenter.populate 后由 controller 控制 sensitive）。
+        self.ai_fix_all_button = Gtk.Button(icon_name='applications-science-symbolic')
+        self.ai_fix_all_button.set_tooltip_text(_('Fix all errors with AI'))
+        self.ai_fix_all_button.add_css_class('flat')
+        self.ai_fix_all_button.set_can_focus(False)
+        self.headerbar.pack_end(self.ai_fix_all_button)
+
         # Filter 按钮 + 弹出菜单
         # 使用 Gtk.ToggleButton + 手动 Popover 控制，替代 Gtk.MenuButton。
         # GTK4 中 Gtk.MenuButton 与 Adw.Dialog 内的 Popover 偶现无法通过再次
@@ -128,16 +138,21 @@ class BuildLogDialogView(DialogView):
 
         self.filter_popover.set_child(filter_box)
 
-        # 搜索按钮 + 搜索栏（点击按钮展开/收起）
+        # 搜索按钮（toggle 控制 SearchBar 显隐）
         self.search_button = Gtk.ToggleButton(icon_name='edit-find-symbolic')
         self.search_button.set_tooltip_text(_('Search build log'))
         self.search_button.add_css_class('flat')
         self.search_button.set_can_focus(False)
         self.headerbar.pack_start(self.search_button)
 
-        self.search_revealer = Gtk.Revealer()
-        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
-        self.search_revealer.set_transition_duration(150)
+        # 标准 Gtk.SearchBar：放在 ToolbarView 顶栏（与 headerbar 之下），
+        # 展开时自动带动画、宽度跟随内容区、带标准外观。
+        self.search_bar = Gtk.SearchBar()
+        self.search_bar.set_search_mode(False)
+
+        search_clamp = Adw.Clamp()
+        search_clamp.set_maximum_size(600)
+        search_clamp.set_tightening_threshold(500)
 
         search_bar_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         search_bar_box.set_margin_top(4)
@@ -147,19 +162,29 @@ class BuildLogDialogView(DialogView):
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_hexpand(True)
         search_bar_box.append(self.search_entry)
-        self.search_revealer.set_child(search_bar_box)
+        search_clamp.set_child(search_bar_box)
+        self.search_bar.set_child(search_clamp)
+        # SearchBar 作为 ToolbarView 的第二个顶栏
+        self.toolbar_view.add_top_bar(self.search_bar)
 
-        self.search_button.bind_property('active', self.search_revealer, 'reveal-child',
-                                         GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE)
+        self.search_bar.connect_entry(self.search_entry)
+        self.search_button.bind_property('active', self.search_bar, 'search-mode-enabled',
+                                          GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE)
 
         # content
+        # toast_overlay 需要覆盖弹窗的整个 content 区域，这样 toast 才会贴在窗口底部。
+        # 用 content_box 包裹 page 和 empty_state，再作为 overlay 的 child。
+        self.topbox.set_vexpand(True)
+
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_vexpand(True)
 
+        self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.content_box.set_vexpand(True)
+
         self.page = Adw.PreferencesPage()
         self.page.set_vexpand(True)
-        self.toast_overlay.set_child(self.page)
-        self.topbox.append(self.search_revealer)
+        self.content_box.append(self.page)
         self.topbox.append(self.toast_overlay)
 
         # 3 个 group（按 TYPE_ORDER 顺序）。group 内嵌 BuildLogList。
@@ -189,7 +214,9 @@ class BuildLogDialogView(DialogView):
         self.empty_state.set_description(_('No build log items to show.'))
         self.empty_state.set_vexpand(True)
         self.empty_state.set_visible(False)
-        self.topbox.append(self.empty_state)
+        self.content_box.append(self.empty_state)
+
+        self.toast_overlay.set_child(self.content_box)
 
     def _on_filter_button_active(self, button, gparam):
         '''手动控制 filter popover 的显示/隐藏：按钮按下时弹出，抬起时收起。'''
@@ -261,6 +288,11 @@ class BuildLogList(Gtk.ListBox):
         self.set_activate_on_single_click(True)
         self.add_css_class('boxed-list')
         self.add_css_class('compact-rows')
+        # AI 修复行内按钮的回调注入点。controller 在 init 时设置：
+        #   lst.ai_fix_row_callback = self.on_ai_fix_row_clicked
+        # BuildLogList 不直接依赖 ai_fix 服务，仅把 row 转发给 controller，
+        # 避免把 service 耦合进纯视图层（与 copy 按钮范式一致）。
+        self.ai_fix_row_callback = None
 
     def make_row(self, item_type, filename, line_number, description):
         '''构造一条 Adw.ActionRow。
@@ -294,6 +326,18 @@ class BuildLogList(Gtk.ListBox):
         copy_button.connect('clicked', self.on_copy_row_clicked, row)
         row.add_suffix(copy_button)
 
+        # 行尾 AI 修复按钮：点击把此错误（+ 上下文）发给 Agent CLI。
+        # 复用与 copy 按钮一致的 flat/center 样式；点击通过
+        # ai_fix_row_callback 转发给 controller（不直接依赖 service）。
+        # icon 用 applications-science-symbolic，与顶栏 Fix All 一致。
+        ai_fix_button = Gtk.Button(icon_name='applications-science-symbolic')
+        ai_fix_button.set_tooltip_text(_('Fix this error with AI'))
+        ai_fix_button.add_css_class('flat')
+        ai_fix_button.set_valign(Gtk.Align.CENTER)
+        ai_fix_button.set_can_focus(False)
+        ai_fix_button.connect('clicked', self.on_ai_fix_row_clicked, row)
+        row.add_suffix(ai_fix_button)
+
         # 右键 Copy 单行：GestureClick 监听 SECONDARY button。
         # pressed 回调直接 copy 单行文本，不弹 popover（少一步点击）。
         gesture = Gtk.GestureClick()
@@ -307,6 +351,16 @@ class BuildLogList(Gtk.ListBox):
         text = self._format_row_text(row)
         Gdk.Display.get_default().get_clipboard().set(text)
         self.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
+
+    def on_ai_fix_row_clicked(self, button, row):
+        '''行尾 AI 修复按钮点击：把 row 转发给 controller 注入的回调。
+
+        row.filename / line_number / description / item_type 由 make_row 设置。
+        BuildLogList 不直接调用 ai_fix 服务，避免把 service 耦合进纯视图层
+        （与 copy 按钮通过 self.toast_overlay 的范式一致）。
+        '''
+        if self.ai_fix_row_callback is not None:
+            self.ai_fix_row_callback(row)
 
     def on_right_click(self, gesture, n_press, x, y, row):
         '''右键直接 copy 单行，格式与 Copy All 一致：file:line: description。'''

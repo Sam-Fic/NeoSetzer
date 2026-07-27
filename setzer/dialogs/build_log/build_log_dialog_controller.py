@@ -23,18 +23,26 @@ import setzer.dialogs.build_log.build_log_dialog_presenter as presenter_module
 
 
 class BuildLogDialogController(object):
-    '''处理弹窗内的用户交互：单击行跳转报错行 + Copy All 按钮。'''
+    '''处理弹窗内的用户交互：单击行跳转报错行 + Copy All 按钮 + AI 修复按钮。'''
 
     def __init__(self, build_log, dialog_view):
         self.build_log = build_log
         self.view = dialog_view
         self.presenter = None
 
+        # AI 修复 PreviewDialog 懒加载：避免在 controller 构造时即创建 GTK 控件
+        # （controller 在 BuildLog.__init__ 时实例化，那时 main_window 可能尚未就绪）。
+        # 首次点修复按钮时才创建；后续复用同一实例。
+        self._preview_dialog = None
+
         # Copy All 按钮
         self.view.copy_all_button.connect('clicked', self.on_copy_all_clicked)
 
         # Save Log As 按钮
         self.view.save_log_button.connect('clicked', self.on_save_log_clicked)
+
+        # AI Fix All 按钮（顶栏批量）：把当前可见的 Error 项批量发给 Agent CLI
+        self.view.ai_fix_all_button.connect('clicked', self.on_ai_fix_all_clicked)
 
         # 搜索框：输入文本实时过滤日志项。
         self.view.search_entry.connect('changed', self.on_search_changed)
@@ -47,8 +55,10 @@ class BuildLogDialogController(object):
 
         # 每个 list 的 row-activated：单击跳转报错行（与原 BuildLogController 一致）。
         # 弹窗内有 3 个 list（Errors / Warnings / Badboxes），全部连同一个回调。
+        # 同时注入 ai_fix_row_callback，使行尾 AI 修复按钮点击转回 controller。
         for lst in self.view.lists.values():
             lst.connect('row-activated', self.on_row_activated)
+            lst.ai_fix_row_callback = self.on_ai_fix_row_clicked
 
     def on_row_activated(self, listbox, row):
         '''单击行：打开对应源文件并定位到报错行。
@@ -82,12 +92,18 @@ class BuildLogDialogController(object):
 
     def on_copy_all_clicked(self, button):
         '''Copy 所有当前显示的 items（按设置项过滤后），格式 file:line: description per line。'''
+        if not self.build_log.has_items():
+            self.view.toast_overlay.add_toast(Adw.Toast.new(_('The log is empty, nothing to copy')))
+            return
         lines = self._get_filtered_lines()
         Gdk.Display.get_default().get_clipboard().set('\n'.join(lines))
         self.view.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
 
     def on_save_log_clicked(self, button):
         '''Save Log As：将过滤后的日志保存到文件。'''
+        if not self.build_log.has_items():
+            self.view.toast_overlay.add_toast(Adw.Toast.new(_('The log is empty, nothing to save')))
+            return
         dialog = Gtk.FileChooserNative(
             title=_('Save Build Log As'),
             transient_for=self.view.get_root(),
@@ -211,3 +227,178 @@ class BuildLogDialogController(object):
         if description:
             text = (text + ': ' + description) if text else description
         return text
+
+    # ==================== AI 修复集成 ====================
+    # 设计见 .trae/documents/ai-fix-agent-integration.md §3.2。
+    # 流程：
+    #   点按钮 → 组装 prompt → [若 cwd 已信任] 直接执行
+    #                            └─→ [否则] 弹预览/确认单弹窗
+    #                                  ├─ 用户点「发送」→ 执行 + 可选加信任
+    #                                  └─ 用户点「取消」→ 什么都不做
+    #   执行：先保存文档（保证磁盘=缓冲区，避免无头改文件触发冲突对话框）
+    #        → 无头: 后台线程跑 + idle 回调 toast + 可选自动重构
+    #        → 有头: 同步启动外部终端（flatpak 下用 flatpak-spawn --host）
+    #   单弹窗即确认：用户点「发送」就是同意启动 Agent，不再叠第二个确认弹窗。
+
+    def on_ai_fix_row_clicked(self, row):
+        '''行内 AI 修复按钮点击：取该 row 的数据，调 _initiate_ai_fix(single=True)。'''
+        # row 由 make_row 设置 .filename/.line_number/.description/.item_type
+        item = (
+            getattr(row, 'item_type', 'Error'),
+            None,
+            getattr(row, 'filename', None),
+            getattr(row, 'line_number', -1),
+            getattr(row, 'description', ''),
+        )
+        self._initiate_ai_fix(single=True, item=item)
+
+    def on_ai_fix_all_clicked(self, button):
+        '''顶栏 AI Fix All 按钮：批量修复当前在弹窗中可见的所有日志项。
+
+        跟随筛选：发送的内容 = 用户在 Build Log 弹窗里「看到什么」就发什么。
+        包括 autoshow_build_log 类型筛选（errors/errors_warnings/all）+
+        搜索框文本 + 文件/类型/行号筛选器。Warning / Badbox 也会被纳入，
+        因为有时用户也想修这些（如 Underfull \\hbox 等 badbox）。
+        '''
+        if self.presenter is None:
+            return
+        visible_items = self.presenter.get_visible_items()
+        if not visible_items:
+            self._toast(_('No visible log items to send'))
+            return
+        self._initiate_ai_fix(single=False, items=visible_items)
+
+    def _initiate_ai_fix(self, single, item=None, items=None):
+        '''统一的入口：检查 enabled / 取文档 / 组装 prompt / 信任跳过 / 弹预览。
+
+        Args:
+            single: True=单条；False=批量。
+            item: 单条时传入的 build_log.items 元组。
+            items: 批量时传入的元组列表。
+        '''
+        settings = self.build_log.settings
+
+        # 1. 全局开关
+        if not settings.get_value('preferences', 'ai_fix_enabled'):
+            self._toast(_('AI Fix is disabled. Enable it in Preferences → AI Fix.'))
+            return
+
+        # 2. 取活动文档
+        document = self.build_log.workspace.get_active_document()
+        if document is None:
+            self._toast(_('No active document'))
+            return
+        cwd = document.get_dirname()
+        if not cwd:
+            # 未保存的新文档：无 cwd 无法定位工作目录，也无法写文件
+            self._toast(_('Please save the document first'))
+            return
+
+        # 3. 取激活工具配置
+        active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
+        tools = settings.get_value('preferences', 'ai_fix_tools')
+        tool_config = next((t for t in tools if t.get('name') == active_tool_name), None)
+        if tool_config is None:
+            # 配置异常：回退第一个工具
+            tool_config = tools[0] if tools else None
+            if tool_config is None:
+                self._toast(_('No agent tool configured. Add one in Preferences → AI Fix.'))
+                return
+
+        # 4. 组装 prompt
+        from setzer.ai_fix import prompt_builder
+        if single:
+            prompt = prompt_builder.build_prompt_for_item(document, item)
+        else:
+            prompt = prompt_builder.build_prompt_for_items(document, items)
+
+        # 5. 信任跳过：cwd 已在 ai_fix_trusted_dirs → 直接执行
+        # 用 realpath 规范化两边：文档目录可能是符号链接（如 /tmp → /private/tmp），
+        # 不规范化会导致「明明加过信任还弹窗」的诡异现象。
+        trusted_dirs = settings.get_value('preferences', 'ai_fix_trusted_dirs') or []
+        cwd_real = os.path.realpath(cwd)
+        trusted_real = {os.path.realpath(d) for d in trusted_dirs}
+        if cwd_real in trusted_real:
+            self._execute(prompt, tool_config, cwd, document)
+            return
+
+        # 6. 未信任：弹预览/确认单弹窗
+        parent = self._get_main_window()
+        dialog = self._get_preview_dialog()
+        dialog.present_for(
+            parent=parent,
+            prompt=prompt,
+            tool_name=tool_config.get('name', 'agent'),
+            cwd=cwd,
+            on_send_cb=lambda edited_prompt, dont_ask: self._on_send_confirmed(
+                edited_prompt, dont_ask, tool_config, cwd, document),
+        )
+
+    def _on_send_confirmed(self, prompt, dont_ask, tool_config, cwd, document):
+        '''预览弹窗「发送」回调：可选加信任 + 执行。
+
+        存信任列表时用 realpath 规范化：与 _initiate_ai_fix 的比较逻辑一致，
+        避免符号链接路径导致「加了信任但不生效」。
+        '''
+        if dont_ask:
+            trusted = self.build_log.settings.get_value('preferences', 'ai_fix_trusted_dirs') or []
+            cwd_real = os.path.realpath(cwd)
+            trusted_real = {os.path.realpath(d) for d in trusted}
+            if cwd_real not in trusted_real:
+                trusted = list(trusted) + [cwd_real]
+                self.build_log.settings.set_value('preferences', 'ai_fix_trusted_dirs', trusted)
+                # 落盘：set_value 只改内存 dict，pickle() 写回 settings.json。
+                # 与 page_appearance.py:116 的范式一致——每次 set_value 后 pickle。
+                # 不调则重启后信任目录丢失（用户会以为「加了不生效」）。
+                self.build_log.settings.pickle()
+                self._toast(_('Added to trusted directories'))
+        self._execute(prompt, tool_config, cwd, document)
+
+    def _execute(self, prompt, tool_config, cwd, document):
+        '''执行：先保存文档，再启动有头终端 Agent。
+
+        保存让缓冲区=磁盘：Agent 在终端修改文件后，Setzer 的 2 秒轮询
+        （auto_reload_on_external_change）检测到 mtime 变化自动重载。
+        若缓冲区有未保存改动，轮询会弹「磁盘已更改」对话框让用户选择。
+        '''
+        # 保存文档：无 filename 视为未保存，已检查过，此处兜底再判一次
+        if document.get_filename() is None:
+            self._toast(_('Please save the document first'))
+            return
+        try:
+            document.save_to_disk()
+        except Exception:
+            # 保存失败不阻塞执行：用户在终端可手动保存
+            pass
+
+        from setzer.ai_fix import agent_runner
+        filename = document.get_filename()
+        terminal_cmd = self.build_log.settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
+        success, msg = agent_runner.run_headed(
+            tool_config, prompt, cwd, filename, terminal_cmd=terminal_cmd)
+        self._toast(msg)
+
+    def _get_preview_dialog(self):
+        '''懒加载 PreviewDialog 单例。'''
+        if self._preview_dialog is None:
+            from setzer.ai_fix.preview_dialog import PreviewDialog
+            main_window = self._get_main_window()
+            self._preview_dialog = PreviewDialog(main_window)
+        return self._preview_dialog
+
+    def _get_main_window(self):
+        from setzer.app.service_locator import ServiceLocator
+        return ServiceLocator.get_main_window()
+
+    def _toast(self, message):
+        '''显示 toast：若弹窗已打开用弹窗的 toast_overlay，否则用主窗口的。'''
+        try:
+            toast = Adw.Toast.new(message)
+            if self.build_log.is_open:
+                self.view.toast_overlay.add_toast(toast)
+            else:
+                main_window = self._get_main_window()
+                if main_window is not None and hasattr(main_window, 'toast_overlay'):
+                    main_window.toast_overlay.add_toast(toast)
+        except Exception:
+            pass  # toast 失败不影响主流程

@@ -80,10 +80,14 @@ class PreviewPanelView(Gtk.Box):
         self.paging_of_label.add_css_class('dim-label')
         self.toolbar.append(self.paging_of_label)
 
-        # 占位 spacer，把右侧按钮推到右边
-        spacer = Gtk.Box()
-        spacer.set_hexpand(True)
-        self.toolbar.append(spacer)
+        # 构建失败提示：居中显示在页码区与右侧按钮之间的空白区，红色突出严重性。
+        # 该标签始终占位（hexpand）以把右侧按钮推到最右；无提示时文本为空。
+        self.stale_label = Gtk.Label()
+        self.stale_label.set_xalign(0.5)
+        self.stale_label.set_halign(Gtk.Align.CENTER)
+        self.stale_label.set_hexpand(True)
+        self.stale_label.add_css_class('preview-stale-label')
+        self.toolbar.append(self.stale_label)
 
         # 右侧：zoom_out / fit_width / zoom_level / zoom_in / recolor / external
         self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
@@ -141,31 +145,7 @@ class PreviewPanelView(Gtk.Box):
         self.empty_placeholder = Gtk.Box()
         self.stack.add_named(self.empty_placeholder, 'empty')
 
-        # Stale-PDF 横幅：构建失败但保留旧 PDF 时，在预览顶部叠加横幅提示用户
-        # 「显示的是上一次成功的 PDF」。Gtk.Overlay 让横幅浮在 PDF 内容之上，
-        # Gtk.Revealer 做 slide-down 出入动画，避免突兀闪现/消失。横幅内缩 6px
-        # 对齐 preview-card 的 margin，不触碰圆角边缘。
-        self.overlay = Gtk.Overlay()
-        self.overlay.set_child(self.stack)
-
-        self.stale_banner_revealer = Gtk.Revealer()
-        self.stale_banner_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
-        self.stale_banner_revealer.set_reveal_child(False)
-        self.stale_banner_revealer.set_valign(Gtk.Align.START)
-
-        banner_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        banner_box.set_spacing(8)
-        banner_box.add_css_class('stale-pdf-banner')
-        banner_box.set_margin_start(6)
-        banner_box.set_margin_end(6)
-        banner_box.set_margin_top(6)
-        banner_label = Gtk.Label(label=_('Build failed — showing the previous PDF'))
-        banner_label.set_wrap(True)
-        banner_box.append(banner_label)
-        self.stale_banner_revealer.set_child(banner_box)
-        self.overlay.add_overlay(self.stale_banner_revealer)
-
-        self.append(self.overlay)
+        self.append(self.stack)
 
         # 链接目标提示栏：由 PreviewPanelPresenter 在文档切换时将当前
         # PreviewView 的 target_label_revealer 挂到此处（stack 之外），
@@ -174,6 +154,3 @@ class PreviewPanelView(Gtk.Box):
         self.target_bar_placeholder.set_hexpand(True)
         self.append(self.target_bar_placeholder)
 
-    def set_stale_banner_visible(self, visible):
-        '''显示/隐藏「构建失败，显示的是上一次成功的 PDF」横幅。'''
-        self.stale_banner_revealer.set_reveal_child(visible)

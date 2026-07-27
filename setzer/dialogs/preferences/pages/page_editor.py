@@ -376,4 +376,5 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)
