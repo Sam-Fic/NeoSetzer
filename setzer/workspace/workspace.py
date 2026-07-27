@@ -74,6 +74,12 @@ class Workspace(Observable):
         self.show_symbols = self.settings.get_value('window_state', 'show_symbols')
         self.show_document_structure = self.settings.get_value('window_state', 'show_document_structure')
 
+        # 记忆上次侧栏面板（隐藏后再次显示时恢复）。与 show_*/show_document_structure
+        # 解耦：后者在隐藏时被清成 False（仅用于驱动可见性），本属性持久化"上次选了哪个"。
+        self.sidebar_page = self.settings.get_value('window_state', 'sidebar_page')
+        if self.sidebar_page not in ('symbols', 'document_structure'):
+            self.sidebar_page = 'symbols'
+
     def init_workspace_controller(self):
         self.welcome_screen = welcome_screen.WelcomeScreen(self)
         self.sidebar = sidebar.Sidebar(self)
@@ -617,18 +623,33 @@ class Workspace(Observable):
         if show_symbols != self.show_symbols or show_document_structure != self.show_document_structure:
             self.show_symbols = show_symbols
             self.show_document_structure = show_document_structure
+            # 同步"上次选中面板"，供隐藏后恢复
+            if show_symbols:
+                self.set_sidebar_page('symbols')
+            elif show_document_structure:
+                self.set_sidebar_page('document_structure')
             self.settings.set_value('window_state', 'show_symbols', show_symbols)
             self.settings.set_value('window_state', 'show_document_structure', show_document_structure)
             self.add_change_code('set_show_symbols_or_document_structure')
 
+    def set_sidebar_page(self, page):
+        '''记忆侧栏当前选中的面板，隐藏后再次显示时恢复。'''
+        if page not in ('symbols', 'document_structure'):
+            return
+        if page != self.sidebar_page:
+            self.sidebar_page = page
+            self.settings.set_value('window_state', 'sidebar_page', page)
+
     def set_show_sidebar(self, show):
-        show_symbols = show and self.show_symbols
-        show_doc_structure = show and self.show_document_structure
         if not show:
             self.set_show_symbols_or_document_structure(False, False)
         else:
             if not self.show_symbols and not self.show_document_structure:
-                self.set_show_symbols_or_document_structure(True, False)
+                # 之前未选中任何面板（隐藏过）：恢复上次记忆的面板，而非硬编码 Symbols
+                if self.sidebar_page == 'document_structure':
+                    self.set_show_symbols_or_document_structure(False, True)
+                else:
+                    self.set_show_symbols_or_document_structure(True, False)
             else:
                 self.set_show_symbols_or_document_structure(self.show_symbols, self.show_document_structure)
 

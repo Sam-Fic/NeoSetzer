@@ -42,8 +42,16 @@ class Sidebar(object):
 
         self.view.set_pages(self.document_structure_page, self.symbols_page.view)
 
-        self.document_structure_page.switch_button.connect('clicked', lambda b: self.view.switch_page())
-        self.symbols_page.view.switch_button.connect('clicked', lambda b: self.view.switch_page())
+        self.document_structure_page.switch_button.connect('clicked', lambda b: self.on_switch_button_clicked())
+        self.symbols_page.view.switch_button.connect('clicked', lambda b: self.on_switch_button_clicked())
+
+    def on_switch_button_clicked(self):
+        self.view.switch_page()
+        # 同步当前面板到 workspace，使隐藏侧栏后能恢复上一次所处的面板
+        if self.view._is_symbols:
+            self.workspace.set_sidebar_page('symbols')
+        else:
+            self.workspace.set_sidebar_page('document_structure')
 
         self.data_provider.connect('document_changed', self.on_document_changed)
 

@@ -90,6 +90,10 @@ class Settings(Observable):
         self.defaults['window_state']['y'] = -1
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
+        # 侧栏当前选中的面板（symbols / document_structure），隐藏后再次显示时恢复，
+        # 避免每次都回退到 Symbols 面板。与 show_symbols/show_document_structure 解耦：
+        # 后者在隐藏时被清成 False 用于驱动可见性，本键专门记忆"上次选了哪个面板"。
+        self.defaults['window_state']['sidebar_page'] = 'symbols'
         self.defaults['window_state']['sidebar_paned_position'] = -1
         self.defaults['window_state']['sidebar_width_fraction'] = 0.20
         self.defaults['window_state']['show_help'] = False
