@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Setzer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-26 04:13+0800\n"
-"PO-Revision-Date: 2026-07-23\n"
+"PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: Setzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
@@ -37,6 +37,14 @@ msgid ""
 "<li>Better error handling for file operations</li>\n"
 "</ul>"
 msgstr ""
+"\n"
+"<ul>\n"
+"<li>性能改进与错误修复</li>\n"
+"<li>改进了键盘快捷键</li>\n"
+"<li>新增打印功能</li>\n"
+"<li>增强了预览键盘导航</li>\n"
+"<li>改进了文件操作的错误处理</li>\n"
+"</ul>"
 
 #: setzer/dialogs/about/about.py:70
 msgid "Fork maintainer"
@@ -50,7 +58,7 @@ msgstr "lumingzh <lumingzh@qq.com>"
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:33
 #: setzer/popovers/shortcutsbar/document_menu.py:31
 msgid "Add / Remove Packages"
-msgstr "添加/移除包体"
+msgstr "添加/移除宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:48
 msgid "Available Packages"
@@ -62,7 +70,7 @@ msgstr "可添加到本文档的宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:64
 msgid "Add Package"
-msgstr "添加包体"
+msgstr "添加宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:71
 msgid "Installed Packages"
@@ -74,7 +82,7 @@ msgstr "本文档当前使用的宏包"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:87
 msgid "Remove Package"
-msgstr "移除包体"
+msgstr "移除宏包"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:67
 msgid "Crash recovery"
@@ -591,7 +599,7 @@ msgstr "常规文档设置"
 msgid ""
 "<b>AMS packages:</b> provide mathematical symbols, math-related "
 "environments, …"
-msgstr "<b>AMS 包体：</b>提供了数学符号，数学相关的环境等……"
+msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等……"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:138
@@ -703,11 +711,11 @@ msgstr "无"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:201
 msgid "AMS math packages"
-msgstr "AMS 数学包"
+msgstr "AMS 数学宏包"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
 msgid "Packages"
-msgstr "包体"
+msgstr "宏包"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:94
 msgid "Letter settings"
@@ -806,7 +814,7 @@ msgstr "参考文献样式"
 
 #: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:79
 msgid "Show bibliography styles for the 'natbib' package"
-msgstr "显示“natbib”包体的参考文献样式"
+msgstr "显示“natbib”宏包的参考文献样式"
 
 #: setzer/dialogs/include_latex_file/include_latex_file.py:37
 msgid "Relative Path"
