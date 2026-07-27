@@ -133,13 +133,21 @@ class HeaderBar(object):
         self.document_title.set_title('')
         self.document_title.set_subtitle('')
 
+        # 文件名右侧的下箭头，暗示该按钮可点击（展开已打开文档列表）
+        self.center_down_arrow = Gtk.Image(icon_name='pan-down-symbolic')
+        self.center_down_arrow.add_css_class('dim-label')
+        self.center_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.center_box.append(self.document_title)
+        self.center_box.append(self.center_down_arrow)
+
         self.center_button = Gtk.Button()
         self.center_button.set_tooltip_text(_('Show open documents') + ' (' + _('Ctrl') + '+T)')
         self.center_button.set_can_focus(False)
         self.center_button.set_halign(Gtk.Align.CENTER)
-        self.center_button.set_child(self.document_title)
+        self.center_button.set_child(self.center_box)
         self.center_button.add_css_class('headerbar-plain')
         self.center_button.add_css_class('headerbar-icon')
+        self.center_button.add_css_class('flat')
         self.center_button.connect('clicked', self._on_center_button_clicked)
 
         self.center_title_welcome = Adw.WindowTitle()

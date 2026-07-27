@@ -121,6 +121,7 @@ class ShortcutsBar(Gtk.Box):
         # 三点按钮应出现在左侧按钮群的末尾，而非整条工具栏的最右。
         self.overflow_button = Gtk.MenuButton()
         self.overflow_button.set_icon_name('view-more-symbolic')
+        self.overflow_button.add_css_class('flat')
         self.overflow_button.set_tooltip_text(_('More options'))
         self.overflow_button.set_visible(False)  # 宽时隐藏
         self.overflow_button.set_margin_start(6)
@@ -381,6 +382,7 @@ class ShortcutsBar(Gtk.Box):
         self.wizard_button.set_icon_name('document-new-symbolic')
         self.wizard_button.set_tooltip_text(_('Create a template document'))
         self.wizard_button.set_can_focus(False)
+        self.wizard_button.add_css_class('flat')
         self.wizard_button.set_action_name('win.show-document-wizard')
         self._button_meta[id(self.wizard_button)] = {
             'icon_name': 'document-new-symbolic',
@@ -445,6 +447,7 @@ class ShortcutsBar(Gtk.Box):
     def insert_bold_button(self):
         self.bold_button = Gtk.Button()
         self.bold_button.set_icon_name('format-text-bold-symbolic')
+        self.bold_button.add_css_class('flat')
         self.bold_button.set_action_name('win.insert-before-after')
         self.bold_button.set_action_target_value(GLib.Variant('as', ['\\textbf{', '}']))
         self.bold_button.set_tooltip_text(_('Bold') + ' (' + _('Ctrl') + '+B)')
@@ -461,6 +464,7 @@ class ShortcutsBar(Gtk.Box):
     def insert_italic_button(self):
         self.italic_button = Gtk.Button()
         self.italic_button.set_icon_name('format-text-italic-symbolic')
+        self.italic_button.add_css_class('flat')
         self.italic_button.set_action_name('win.insert-before-after')
         self.italic_button.set_action_target_value(GLib.Variant('as', ['\\textit{', '}']))
         self.italic_button.set_tooltip_text(_('Italic') + ' (' + _('Ctrl') + '+I)')
@@ -483,12 +487,14 @@ class ShortcutsBar(Gtk.Box):
         self.button_search = Gtk.ToggleButton()
         # 合并 Find / Find and Replace 为一个入口：图标和 tooltip 都表达"两者皆有"。
         self.button_search.set_icon_name('edit-find-replace-symbolic')
+        self.button_search.add_css_class('flat')
         self.button_search.set_tooltip_text(_('Find and Replace'))
         self._add_right_button(self.button_search)
 
     def insert_more_button(self):
         self.button_more = Gtk.MenuButton()
         self.button_more.set_icon_name('open-menu-symbolic')
+        self.button_more.add_css_class('flat')
         self.button_more.set_popover(PopoverManager.create_popover('context_menu').view)
         self.button_more.set_tooltip_text(_('Context Menu') + ' (F12)')
         self._add_right_button(self.button_more)
@@ -496,6 +502,7 @@ class ShortcutsBar(Gtk.Box):
     def insert_build_log_button(self):
         self.button_build_log = Gtk.ToggleButton()
         self.button_build_log.set_icon_name('build-log-symbolic')
+        self.button_build_log.add_css_class('flat')
         self.button_build_log.set_tooltip_text(_('Build log') + ' (Ctrl+Shift+L)')
         self._add_right_button(self.button_build_log)
 
@@ -503,6 +510,7 @@ class ShortcutsBar(Gtk.Box):
         '''Wire a Gio.Menu model to a Gtk.MenuButton and add the standard
         .menu CSS class to the auto-created Gtk.PopoverMenu — identical to
         how the hamburger menu is set up.'''
+        button.add_css_class('flat')
         menu_builder.finalize()
         button.set_menu_model(menu_builder.model)
         popover = button.get_popover()
