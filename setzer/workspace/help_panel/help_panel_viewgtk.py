@@ -285,13 +285,16 @@ class SearchResultView(Adw.ActionRow):
     title-lines/subtitle-lines 设为 0 不限制行数，并开启自动换行，
     避免长标题被截断。
 
-    Adw.ActionRow 本身是 Gtk.ListBoxRow 子类，可直接 append 到 Gtk.ListBox，
-    row-activated 信号与之前行为一致。
+    Adw.ActionRow 本身是 Gtk.ListBoxRow 子类，点击通过 'activated' 信号
+    （由 presenter 逐行连接）触发跳转，与原 ListBox 的 row-activated 行为一致。
     '''
 
     def __init__(self, data):
         Adw.ActionRow.__init__(self)
         self.set_can_focus(False)
+        # Adw.ActionRow 默认 activatable=False（继承 PreferencesRow），点击不会
+        # 发射 'activated' 信号，导致结果项无法跳转。显式开启可点击激活。
+        self.set_activatable(True)
         self.set_use_markup(True)
         # title-lines/subtitle-lines = 0 表示不限制行数，Adwaita 会长文本自动换行；
         # 不放回 set_wrap（ActionRow 无此属性）。
