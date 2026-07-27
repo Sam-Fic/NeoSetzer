@@ -249,14 +249,14 @@ msgstr[1] "构建失败，有 {amount} 个错误"
 
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:225
 msgid "no warnings or badboxes"
-msgstr "无警告或 badbox"
+msgstr "无警告或 排版溢出（Badbox）"
 
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:227
 #, python-brace-format
 msgid "{amount} warning or badbox"
 msgid_plural "{amount} warnings or badboxes"
-msgstr[0] "{amount} 个警告或 badbox"
-msgstr[1] "{amount} 个警告或 badbox"
+msgstr[0] "{amount} 个警告或 排版溢出（Badbox）"
+msgstr[1] "{amount} 个警告或 排版溢出（Badbox）"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:66
 msgid "Copy All"
@@ -300,7 +300,7 @@ msgstr "警告"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:164
 msgid "Badboxes"
-msgstr "Badbox"
+msgstr "排版溢出（Badbox）"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:182
 msgid "No build log items to show."
@@ -1465,7 +1465,7 @@ msgstr "发生错误和警告时"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:318
 msgid ".. on errors, warnings and badboxes."
-msgstr "发生错误、警告和坏盒时"
+msgstr "发生错误、警告和排版溢出（Badbox）时"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:324
 msgid "Embedded system commands"
