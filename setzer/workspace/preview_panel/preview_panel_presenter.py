@@ -128,14 +128,43 @@ class PreviewPanelPresenter(object):
         self._sync_zoom_action_state()
 
     def _sync_zoom_action_state(self):
-        '''把有状态 zoom-level action 的 state 同步为当前文档的缩放级别，
-        这样弹窗里对应的缩放百分比前会自动绘制对钩（GTK 标准做法）。'''
-        action = self.workspace.actions.actions.get('preview-set-zoom-level')
-        if action is None or self.document is None:
+        '''同步两个有状态 action 的 state，使弹窗里「当前缩放档位」或「当前 fit
+        模式」前自动显示对钩（GTK 标准做法），二者互斥：
+        - fit 模式激活时，fit 项高亮、数值项不亮；
+        - 手动缩放（数值档位）时，对应数值项高亮、fit 项不亮。'''
+        zoom_action = self.workspace.actions.actions.get('preview-set-zoom-level')
+        fit_action = self.workspace.actions.actions.get('preview-fit-mode')
+        if self.document is None:
             return
-        zoom_level = self.document.preview.zoom_manager.get_zoom_level()
-        if zoom_level is not None:
-            action.set_state(GLib.Variant('d', zoom_level))
+        zoom_manager = self.document.preview.zoom_manager
+        zoom_level = zoom_manager.get_zoom_level()
+        mode = zoom_manager.zoom_mode
+
+        # 与弹窗菜单一致的离散缩放档位。
+        levels = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0]
+        mode_map = {
+            'fit_to_width': 'width',
+            'fit_to_text_width': 'text-width',
+            'fit_to_height': 'height',
+        }
+
+        if mode in mode_map:
+            if fit_action is not None:
+                fit_action.set_state(GLib.Variant('s', mode_map[mode]))
+            # fit 模式下不亮任何数值项：把数值 state 设为不在档位中的哨兵值。
+            if zoom_action is not None and zoom_level is not None:
+                zoom_action.set_state(GLib.Variant('d', -1.0))
+        else:
+            if fit_action is not None:
+                fit_action.set_state(GLib.Variant('s', 'none'))
+            current = -1.0
+            if zoom_level is not None:
+                for level in levels:
+                    if abs(zoom_level - level) < 1e-6:
+                        current = level
+                        break
+            if zoom_action is not None:
+                zoom_action.set_state(GLib.Variant('d', current))
 
     def on_zoom_clamped(self, zoom_manager, direction):
         if direction == 'in':

@@ -27,8 +27,9 @@ class PreviewZoomLevelView(Gtk.PopoverMenu):
     Built from a ``Gio.Menu`` model on a native ``Gtk.PopoverMenu`` — the same
     form as the hamburger menu and the context menu. Section breaks are
     rendered automatically by ``append_section``; actions are real GActions
-    on the main window (``preview-fit-to-width``, ``preview-fit-to-text-width``,
-    ``preview-fit-to-height``, ``preview-set-zoom-level``).
+    on the main window (``preview-fit-mode`` for the fit items,
+    ``preview-set-zoom-level`` for the numeric zoom levels) — both stateful
+    actions whose state drives the checkmark via GTK.
     '''
 
     LEVELS = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0]
@@ -42,9 +43,17 @@ class PreviewZoomLevelView(Gtk.PopoverMenu):
         model = Gio.Menu()
 
         fit_section = Gio.Menu()
-        fit_section.append(_('Fit to Width'), 'win.preview-fit-to-width')
-        fit_section.append(_('Fit to Text Width'), 'win.preview-fit-to-text-width')
-        fit_section.append(_('Fit to Height'), 'win.preview-fit-to-height')
+        for label, target in (
+            (_('Fit to Width'), 'width'),
+            (_('Fit to Text Width'), 'text-width'),
+            (_('Fit to Height'), 'height'),
+        ):
+            item = Gio.MenuItem.new(label, 'win.preview-fit-mode')
+            item.set_action_and_target_value(
+                'win.preview-fit-mode',
+                GLib.Variant('s', target)
+            )
+            fit_section.append_item(item)
         model.append_section(None, fit_section)
 
         # 普通 action+target 项。对钩由有状态的 win.preview-set-zoom-level

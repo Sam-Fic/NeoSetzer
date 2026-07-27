@@ -93,9 +93,14 @@ class Actions(object):
         self.add_action('zoom-out', self.zoom_out)
         self.add_action('reset-zoom', self.reset_zoom)
 
-        self.add_action('preview-fit-to-width', self.preview_fit_to_width)
-        self.add_action('preview-fit-to-text-width', self.preview_fit_to_text_width)
-        self.add_action('preview-fit-to-height', self.preview_fit_to_height)
+        # 有状态 action：state 为当前 fit 模式（none / width / text-width /
+        # height）。菜单里三个 fit 项以 target 设各模式，GTK 自动在激活项前绘制
+        # 对钩，与数值缩放的 preview-set-zoom-level 并列、互斥。
+        preview_fit_mode_action = Gio.SimpleAction.new_stateful(
+            'preview-fit-mode', GLib.VariantType('s'), GLib.Variant('s', 'none'))
+        preview_fit_mode_action.connect('activate', self.preview_set_fit_mode)
+        self.main_window.add_action(preview_fit_mode_action)
+        self.actions['preview-fit-mode'] = preview_fit_mode_action
         # 有状态 action：state 为当前缩放级别（double）。菜单项以 target 设置各级
         # 别，GTK 自动在 target 与 state 匹配的项前绘制对钩（radio/check 指示符），
         # 与 set-build-interpreter 的实现一致——这是标准做法。
@@ -891,21 +896,6 @@ class Actions(object):
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 
-    def preview_fit_to_width(self, action=None, parameter=None):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is not None:
-            document.preview.zoom_manager.set_zoom_fit_to_width_auto_offset()
-
-    def preview_fit_to_text_width(self, action=None, parameter=None):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is not None:
-            document.preview.zoom_manager.set_zoom_fit_to_text_width()
-
-    def preview_fit_to_height(self, action=None, parameter=None):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is not None:
-            document.preview.zoom_manager.set_zoom_fit_to_height()
-
     def preview_set_zoom_level(self, action=None, parameter=None):
         if parameter is None: return
         level = parameter.unpack()
@@ -917,6 +907,21 @@ class Actions(object):
             # 同步 state，使菜单里对应级别前自动显示对钩。
             if action is not None:
                 action.set_state(parameter)
+
+    def preview_set_fit_mode(self, action=None, parameter=None):
+        if parameter is None: return
+        mode = parameter.unpack()
+        document = self.workspace.get_root_or_active_latex_document()
+        if document is None: return
+        zoom_manager = document.preview.zoom_manager
+        # 仅切换缩放模式；state 由 presenter 的 _sync_zoom_action_state 依据
+        # zoom_manager.zoom_mode 统一同步，保证与数值缩放的 state 互斥。
+        if mode == 'width':
+            zoom_manager.set_zoom_fit_to_width_auto_offset()
+        elif mode == 'text-width':
+            zoom_manager.set_zoom_fit_to_text_width()
+        elif mode == 'height':
+            zoom_manager.set_zoom_fit_to_height()
 
     def show_preferences_dialog(self, action=None, parameter=''):
         DialogLocator.get_dialog('preferences').run()
