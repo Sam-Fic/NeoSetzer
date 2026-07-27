@@ -45,6 +45,10 @@ CLASS_TO_SETTINGS_PAGE = {
     'book': 3,
     'letter': 4,
     'beamer': 5,
+    # KOMA-Script 类复用对应标准类的设置页（报告 #4）。
+    'scrartcl': 1,
+    'scrreprt': 2,
+    'scrbook': 3,
 }
 
 

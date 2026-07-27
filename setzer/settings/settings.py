@@ -110,6 +110,8 @@ class Settings(Observable):
 
         self.defaults['app_document_wizard'] = dict()
         self.defaults['app_document_wizard']['presets'] = None
+        # 命名模板库（报告 #5）：name → current_values blob。
+        self.defaults['app_document_wizard']['templates'] = dict()
 
         self.defaults['app_bibtex_wizard'] = dict()
         self.defaults['app_bibtex_wizard']['presets'] = None

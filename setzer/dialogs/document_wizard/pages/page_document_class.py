@@ -41,17 +41,30 @@ class DocumentClassPage(Page):
             self.current_values['document_class'] = child_name
             self.view.preview_container.set_visible_child_name(child_name)
 
+        def template_selected(combo, pspec):
+            # 索引 0 为"不加载"；其余对应已保存模板。
+            selected = combo.get_selected()
+            if selected == 0 or selected == Gtk.INVALID_LIST_POSITION:
+                return
+            name = self.view.template_names[selected - 1]
+            if self.controller.apply_template(name):
+                # apply_template 已刷新各页控件；跳到通用设置页并刷新预览。
+                self.controller.goto_page(page_map.GENERAL_PAGE_INDEX)
+
         self.view.list.connect('row-selected', row_selected)
+        self.view.templates_combo.connect('notify::selected', template_selected)
 
     def load_presets(self, presets):
         try:
             row = self.view.list_rows[presets['document_class']]
-        except TypeError:
+        except (TypeError, KeyError):
             row = self.view.list_rows[self.current_values['document_class']]
         self.view.list.select_row(row)
 
     def on_activation(self):
-        pass
+        # 进入文档类页时刷新模板下拉（报告 #5）。
+        if getattr(self, 'controller', None) is not None:
+            self.view.set_templates(list(self.controller.get_templates().keys()))
 
 
 class DocumentClassPageView(PageView):
@@ -67,7 +80,8 @@ class DocumentClassPageView(PageView):
         self.list.set_can_focus(False)
         self.list.add_css_class('boxed-list')
         self.list_rows = dict()
-        for document_class in ['beamer', 'letter', 'book', 'report', 'article']:
+        for document_class in ['beamer', 'letter', 'book', 'report', 'article',
+                               'scrbook', 'scrreprt', 'scrartcl']:
             row = Adw.ActionRow()
             row.set_title(document_class.title())
             self.list_rows[row.get_title().lower()] = row
@@ -83,6 +97,10 @@ class DocumentClassPageView(PageView):
         self.preview_data.append({'name': 'report', 'image': 'report1.svg', 'text': _('<b>Report:</b>  For longer reports and articles containing more than one chapter, small books, thesis.')})
         self.preview_data.append({'name': 'letter', 'image': 'letter1.svg', 'text': _('<b>Letter:</b>  For writing letters.')})
         self.preview_data.append({'name': 'beamer', 'image': 'beamer1.svg', 'text': _('<b>Beamer:</b>  A class for making presentation slides with LaTeX.\n\nThere are many predefined presentation styles.')})
+        # KOMA-Script 类复用对应标准类缩略图，仅文案不同（报告 #4）。
+        self.preview_data.append({'name': 'scrartcl', 'image': 'article1.svg', 'text': _('<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many customizations and sensible defaults.')})
+        self.preview_data.append({'name': 'scrreprt', 'image': 'report1.svg', 'text': _('<b>Scrreprt:</b>  KOMA-Script replacement for the report class.')})
+        self.preview_data.append({'name': 'scrbook', 'image': 'book1.svg', 'text': _('<b>Scrbook:</b>  KOMA-Script replacement for the book class.')})
         for item in self.preview_data:
             image = async_svg.AsyncSvg(os.path.join(ServiceLocator.get_resources_path(), 'document_wizard', item['image']), 374, 262)
             image.set_margin_bottom(6)
@@ -100,8 +118,30 @@ class DocumentClassPageView(PageView):
 
             self.preview_container.add_named(box, item['name'])
 
-        self.content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
-        self.content.append(self.list)
-        self.content.append(self.preview_container)
+        # 模板库（报告 #5）：下拉加载已保存的命名模板。
+        self.group_templates = Adw.PreferencesGroup()
+        self.group_templates.set_title(_('Templates'))
+        self.templates_combo = Adw.ComboRow()
+        self.templates_combo.set_title(_('Load template'))
+        self.templates_combo.set_model(Gtk.StringList())  # 占位，on_activation 填充
+        self.template_names = list()
+        self.group_templates.add(self.templates_combo)
+
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        inner.append(self.list)
+        inner.append(self.preview_container)
+        self.content.append(inner)
+        self.content.append(self.group_templates)
 
         self.append(self.content)
+
+    def set_templates(self, names):
+        '''用已保存模板名填充下拉；索引 0 为"不加载"。'''
+        self.template_names = list(names)
+        model = Gtk.StringList()
+        model.append(_('— None —'))
+        for name in self.template_names:
+            model.append(name)
+        self.templates_combo.set_model(model)
+        self.templates_combo.set_selected(0)

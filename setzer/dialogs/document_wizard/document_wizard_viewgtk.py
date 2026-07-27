@@ -60,6 +60,9 @@ class DocumentWizardView(DialogView):
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
 
+        # 报告 #5：将当前设置另存为命名模板。
+        self.save_template_button = Gtk.Button.new_with_mnemonic(_('Save as _Template'))
+
         self.back_button = Gtk.Button.new_with_mnemonic(_('_Back'))
         
         self.next_button = Gtk.Button.new_with_mnemonic(_('_Next'))
@@ -70,6 +73,7 @@ class DocumentWizardView(DialogView):
 
         self.headerbar.set_title_widget(self.title_widget)
         self.headerbar.pack_start(self.cancel_button)
+        self.headerbar.pack_start(self.save_template_button)
         self.headerbar.pack_start(self.back_button)
         self.headerbar.pack_end(self.create_button)
         self.headerbar.pack_end(self.next_button)

@@ -20,6 +20,8 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, Gdk, Adw
 
+import copy
+
 import setzer.dialogs.document_wizard.document_wizard_viewgtk as view
 from setzer.dialogs.document_wizard.pages.page_document_class import DocumentClassPage
 from setzer.dialogs.document_wizard.pages.page_article_settings import ArticleSettingsPage
@@ -31,6 +33,15 @@ from setzer.dialogs.document_wizard.pages.page_general_settings import GeneralSe
 from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.latex_db import LaTeXDB
+
+# KOMA-Script 文档类复用对应标准类的设置页与 current_values 键
+# （scrartcl/article、scrreprt/report、scrbook/book）。键用于查设置，
+# 实际类名（用于生成 \documentclass{...}）仍是 KOMA 名。
+KOMA_CLASS_TO_STANDARD = {
+    'scrartcl': 'article',
+    'scrreprt': 'report',
+    'scrbook': 'book',
+}
 
 # pickle 仅用于 load_presets 中兼容旧 settings 数据（迁移期：旧版用
 # pickle.dumps(current_values) 存为 bytes）。settings.json 迁移完成后
@@ -102,6 +113,7 @@ class DocumentWizard(object):
         self.current_values['title'] = ''
         self.current_values['author'] = ''
         self.current_values['date'] = '\\today'
+        self.current_values['custom_packages'] = ''
         self.current_values['languages'] = LaTeXDB.get_languages_dict()
         # Problem 5: 字体包选择。lmodern（默认，pdfLaTeX 推荐）、
         # fontspec（XeLaTeX/LuaLaTeX）、none（用户自行处理）。
@@ -188,11 +200,14 @@ class DocumentWizard(object):
 
         self.view.cancel_button.connect('clicked', self.on_cancel_button_clicked)
         self.view.create_button.connect('clicked', self.on_create_button_clicked)
+        self.view.save_template_button.connect('clicked', self.open_save_template_dialog)
 
         key_controller = Gtk.EventControllerKey()
         key_controller.connect('key-pressed', self.on_keypress)
         self.view.add_controller(key_controller)
-        for page in self.pages: page.observe_view()
+        for page in self.pages:
+            page.controller = self
+            page.observe_view()
         self.view.next_button.connect('clicked', self.goto_page_next)
         self.view.back_button.connect('clicked', self.goto_page_prev)
 
@@ -222,6 +237,50 @@ class DocumentWizard(object):
         # 直接存 dict（JSON 兼容），不再 pickle.dumps。
         # settings.set_value → settings.json 持久化时自动 JSON 序列化。
         self.settings.set_value('app_document_wizard', 'presets', self.current_values)
+
+    # ---- 命名模板 / 模板库（报告 #5） ---------------------------------
+    def get_templates(self):
+        templates = self.settings.get_value('app_document_wizard', 'templates')
+        return templates if isinstance(templates, dict) else dict()
+
+    def save_template(self, name):
+        name = (name or '').strip()
+        if not name:
+            return False
+        templates = self.get_templates()
+        templates[name] = copy.deepcopy(self.current_values)
+        self.settings.set_value('app_document_wizard', 'templates', templates)
+        return True
+
+    def apply_template(self, name):
+        blob = self.get_templates().get(name)
+        if not isinstance(blob, dict):
+            return False
+        # 深拷贝避免后续编辑污染存储的模板。
+        self.current_values = copy.deepcopy(blob)
+        # 刷新所有页面控件以反映模板值。
+        for page in self.pages:
+            page.load_presets(self.current_values)
+        return True
+
+    def open_save_template_dialog(self):
+        '''弹出对话框，将当前设置另存为命名模板（报告 #5）。'''
+        dialog = Adw.AlertDialog(
+            heading=_('Save as template'),
+            body=_('Enter a name for the new template.'))
+        entry = Gtk.Entry()
+        entry.set_hexpand(True)
+        dialog.set_extra_child(entry)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('save', _('Save'))
+        dialog.set_default_response('save')
+        dialog.set_response_appearance('save', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_close_response('cancel')
+
+        def on_response(dialog, response):
+            if response == 'save':
+                self.save_template(entry.get_text())
+        dialog.choose(self.main_window, None, on_response)
 
     def goto_page_next(self, button=None, data=None):
         # 页面流转集中在 page_map.next_page：避免本方法散落 0/1-5/6 魔法数字，
@@ -272,6 +331,11 @@ class DocumentWizard(object):
             self.view.subtitle_label.set_text(self.pages[page_number].view.headerbar_subtitle)
 
             self.pages[page_number].on_activation()
+
+            # 进入通用设置页时刷新 \\documentclass 选项预览（报告 #3）。
+            if page_number == page_map.GENERAL_PAGE_INDEX:
+                self.pages[page_number].view.preview_label.set_text(
+                    self.get_documentclass_preview())
 
             # 按钮可见性也走 page_map 谓词，避免 0 / 6 硬编码：
             #   back  : 非首页（!= DOCUMENT_CLASS_PAGE_INDEX）
@@ -347,19 +411,36 @@ class DocumentWizard(object):
         return ('\\usepackage[top={}cm, bottom={}cm, left={}cm, right={}cm]{{geometry}}'
                 .format(s['margin_top'], s['margin_bottom'], s['margin_left'], s['margin_right']))
 
-    def _get_standard_document(self, doc_class, section_cmd, include_abstract):
-        '''article / report / book 共享模板。
-        三者仅文档类名、章节命令（\\section vs \\chapter）、是否含 abstract 不同。'''
-        s = self.current_values[doc_class]
-        options = (
-            self.page_formats[s['page_format']] + ','
-            + str(s['font_size']) + 'pt'
+    def _build_class_options(self, settings_key):
+        '''构造 \\documentclass[...] 的 options 字符串（不含花括号与类名）。
+        settings_key 是 current_values 中的键（KOMA 类复用对应标准类键）。'''
+        s = self.current_values[settings_key]
+        size = s['font_size']
+        # 非标准字号（非 10/11/12）需 extsizes 包；documentclass 用 10pt 作基。
+        base = size if size in (10, 11, 12) else 10
+        return (
+            self.page_formats[s['page_format']] + ',' + str(base) + 'pt'
             + (',twocolumn' if s['option_twocolumn'] else '')
             + (',landscape' if s['is_landscape'] else '')
         )
+
+    def _get_extsizes_line(self, settings_key):
+        '''非标准字号时插入 extsizes 包（报告 #1 要求），否则返回空字符串。'''
+        size = self.current_values[settings_key]['font_size']
+        if size not in (10, 11, 12):
+            return '\\usepackage[' + str(size) + 'pt]{extsizes}\n'
+        return ''
+
+    def _get_standard_document(self, settings_key, section_cmd, include_abstract, class_name=None):
+        '''article / report / book 及对应 KOMA 类共享模板。
+        settings_key 用于查 current_values；class_name 为实际输出类名
+        （KOMA 类如 scrartcl 与标准类 article 共享设置但类名不同）。'''
+        class_name = class_name or settings_key
+        options = self._build_class_options(settings_key)
         preamble = (
-            '\\documentclass[' + options + ']{' + doc_class + '}\n'
-            + self._get_geometry_line(doc_class)
+            '\\documentclass[' + options + ']{' + class_name + '}\n'
+            + self._get_extsizes_line(settings_key)
+            + self._get_geometry_line(settings_key)
             + self._get_preamble_packages()
         )
         body = (
@@ -386,15 +467,21 @@ class DocumentWizard(object):
     def get_insert_text_book(self):
         return self._get_standard_document('book', 'chapter', include_abstract=False)
 
+    # KOMA-Script 类：复用 article/report/book 的设置，但输出类名不同（#4）。
+    def get_insert_text_scrartcl(self):
+        return self._get_standard_document('article', 'section', True, class_name='scrartcl')
+
+    def get_insert_text_scrreprt(self):
+        return self._get_standard_document('report', 'chapter', True, class_name='scrreprt')
+
+    def get_insert_text_scrbook(self):
+        return self._get_standard_document('book', 'chapter', False, class_name='scrbook')
+
     def get_insert_text_letter(self):
-        s = self.current_values['letter']
-        options = (
-            self.page_formats[s['page_format']] + ',' + str(s['font_size']) + 'pt'
-            + (',twocolumn' if s['option_twocolumn'] else '')
-            + (',landscape' if s['is_landscape'] else '')
-        )
+        options = self._build_class_options('letter')
         preamble = (
             '\\documentclass[' + options + ']{letter}\n'
+            + self._get_extsizes_line('letter')
             + self._get_geometry_line('letter')
             + self._get_preamble_packages()
         )
@@ -452,7 +539,25 @@ class DocumentWizard(object):
         for package_name, do_insert in self.current_values['packages'].items():
             if package_name != 'ams' and do_insert:
                 text += '\\usepackage{' + package_name + '}\n'
+        # 用户自定义包（报告 #2）：逗号分隔，逐个插入。
+        for name in self.current_values.get('custom_packages', '').split(','):
+            name = name.strip()
+            if name:
+                text += '\\usepackage{' + name + '}\n'
         return text
+
+    def _settings_key(self, doc_class):
+        '''document_class 字符串 → current_values 中的设置键。
+        KOMA 类（scrartcl 等）复用对应标准类的键。'''
+        return KOMA_CLASS_TO_STANDARD.get(doc_class, doc_class)
+
+    def get_documentclass_preview(self):
+        '''实时预览将生成的 \\documentclass 行（报告 #3）。'''
+        doc_class = self.current_values['document_class']
+        if doc_class == 'beamer':
+            return '\\documentclass{beamer}'
+        options = self._build_class_options(self._settings_key(doc_class))
+        return '\\documentclass[' + options + ']{' + doc_class + '}'
 
     def insert_template(self, template_start, template_end):
         buffer = self.document.source_buffer

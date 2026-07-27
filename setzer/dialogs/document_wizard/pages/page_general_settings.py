@@ -51,7 +51,13 @@ class GeneralSettingsPage(Page):
             # 的 _get_font_package_line() 生成对应 \usepackage 行。
             selected = combo.get_selected()
             if selected != Gtk.INVALID_LIST_POSITION:
-                self.current_values['font_package'] = self.view.font_package_codes[selected]
+                font_package = self.view.font_package_codes[selected]
+                self.current_values['font_package'] = font_package
+                # 报告 #6：选 fontspec 时显示编译引擎提示。
+                self.view.fontspec_note.set_visible(font_package == 'fontspec')
+
+        def custom_packages_changed(entry, pspec):
+            self.current_values['custom_packages'] = entry.get_text()
 
         def option_toggled(row, pspec, package_name):
             self.current_values['packages'][package_name] = row.get_active()
@@ -62,6 +68,7 @@ class GeneralSettingsPage(Page):
 
         self.view.language_combo.connect('notify::selected', language_changed)
         self.view.font_package_combo.connect('notify::selected', font_package_changed)
+        self.view.custom_packages_entry.connect('notify::text', custom_packages_changed)
 
         for name, row in self.view.option_packages.items():
             row.connect('notify::active', option_toggled, name)
@@ -101,6 +108,14 @@ class GeneralSettingsPage(Page):
             except (TypeError, KeyError):
                 is_active = self.current_values['packages'][name]
             option.set_active(is_active)
+
+        # 报告 #2：恢复自定义包输入。
+        try:
+            custom = presets['custom_packages']
+        except (TypeError, KeyError):
+            custom = self.current_values.get('custom_packages', '')
+        self.current_values['custom_packages'] = custom
+        self.view.custom_packages_entry.set_text(custom)
 
     def on_activation(self):
         self.view.title_entry.grab_focus()
@@ -165,19 +180,15 @@ class GeneralSettingsPageView(PageView):
         self.group_language = Adw.PreferencesGroup()
         self.group_language.set_title(_('Language'))
         self.group_language.set_description(_('The main language for this document. This is used to apply rules for hyphenation and other purposes.'))
-        # Gtk.DropDown（enable_search）提供弹窗内搜索/过滤，比 Adw.ComboRow
-        # 更适合 babel 这一长列表；接口（set_model/get_selected/notify::selected）
-        # 与 ComboRow 一致，presenter 无需改动。包在 ActionRow 里保留标题样式。
-        self.language_combo = Gtk.DropDown()
-        self.language_combo.set_enable_search(True)
+        # 使用原生 Adw.ComboRow，与 Font package 保持一致；babel 语言列表较
+        # 长，在支持的 libadwaita 版本上启用弹窗内搜索。
+        self.language_combo = Adw.ComboRow()
+        self.language_combo.set_title(_('Language'))
         self.language_combo.set_model(Gtk.StringList())
-        self.language_combo.set_hexpand(True)
-        self.language_row = Adw.ActionRow()
-        self.language_row.set_title(_('Language'))
-        self.language_row.set_activatable_widget(self.language_combo)
-        self.language_row.add_suffix(self.language_combo)
+        if hasattr(self.language_combo, 'set_enable_search'):
+            self.language_combo.set_enable_search(True)
         self.language_codes = list()
-        self.group_language.add(self.language_row)
+        self.group_language.add(self.language_combo)
 
         # Font package (Problem 5) -------------------------------------------
         # 让用户选择字体包, 而非总是插入 \usepackage{lmodern}。
@@ -204,6 +215,15 @@ class GeneralSettingsPageView(PageView):
         self.font_package_combo.set_model(font_package_model)
         self.group_font.add(self.font_package_combo)
 
+        # fontspec 提示（报告 #6）：选 fontspec 时显示，提醒需 XeLaTeX/LuaLaTeX。
+        self.fontspec_note = Gtk.Label()
+        self.fontspec_note.set_wrap(True)
+        self.fontspec_note.set_xalign(0)
+        self.fontspec_note.set_text(_('fontspec requires XeLaTeX or LuaLaTeX to compile; pdfLaTeX will fail.'))
+        self.fontspec_note.add_css_class('dim-label')
+        self.fontspec_note.set_visible(False)
+        self.group_font.add(self.fontspec_note)
+
         # Packages -----------------------------------------------------------
         self.option_packages = dict()
         self.option_packages['ams'] = self._create_package_row(_('AMS math packages'), 'ams')
@@ -220,15 +240,50 @@ class GeneralSettingsPageView(PageView):
 
         self.group_packages = Adw.PreferencesGroup()
         self.group_packages.set_title(_('Packages'))
+
+        # 搜索框（报告 #2）：放在包列表最上方，按包名（键）过滤下方开关行。
+        # 必须包进 Adw.ActionRow（PreferencesRow 子类）再 add——Adw.PreferencesGroup
+        # 只对 PreferencesRow 子项保证按 add 顺序布局；直接 add 裸 Gtk.SearchEntry
+        # 会被 GTK 排到组末尾（实测如此），导致“搜索框跑到最下面”。
+        self.packages_search_entry = Gtk.SearchEntry()
+        self.packages_search_entry.set_placeholder_text(_('Search packages'))
+        self.packages_search_entry.connect('search-changed', self.on_packages_search)
+        self.packages_search_row = Adw.ActionRow()
+        self.packages_search_row.set_title(_('Filter'))
+        self.packages_search_row.add_suffix(self.packages_search_entry)
+        self.packages_search_row.set_activatable_widget(self.packages_search_entry)
+        self.group_packages.add(self.packages_search_row)
+
         for name in ['ams', 'textcomp', 'graphicx', 'color', 'xcolor', 'url', 'hyperref', 'theorem', 'listings', 'glossaries', 'parskip']:
             self.group_packages.add(self.option_packages[name])
 
+        # 自定义包输入（报告 #2）：逗号分隔的包名，额外插入 preamble。
+        # 放在包列表末尾，避免打断搜索框与包开关之间的视觉关联。
+        self.custom_packages_entry = Adw.EntryRow()
+        self.custom_packages_entry.set_title(_('Other packages'))
+        # Adw.EntryRow 无 subtitle 属性，说明文字用 tooltip 展示。
+        self.custom_packages_entry.set_tooltip_text(_('Comma-separated package names to include additionally.'))
+        self.group_packages.add(self.custom_packages_entry)
+
+        # Preview -------------------------------------------------------------
+        # 实时预览将生成的 \\documentclass 行（报告 #3），由 controller 在
+        # 进入本页时填入 preview_label。
+        self.group_preview = Adw.PreferencesGroup()
+        self.group_preview.set_title(_('Preview'))
+        self.preview_label = Gtk.Label()
+        self.preview_label.set_selectable(True)
+        self.preview_label.set_xalign(0)
+        self.preview_label.set_wrap(True)
+        self.preview_label.set_markup('<tt>\\documentclass{article}</tt>')
+        self.group_preview.add(self.preview_label)
+
         # Layout -------------------------------------------------------------
-        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.content.append(self.group_document_properties)
         self.content.append(self.group_language)
         self.content.append(self.group_font)
         self.content.append(self.group_packages)
+        self.content.append(self.group_preview)
 
         self.append(self.wrap_content(self.content))
 
@@ -237,3 +292,9 @@ class GeneralSettingsPageView(PageView):
         row.set_title(label)
         row.set_tooltip_markup(self.package_descriptions[name])
         return row
+
+    def on_packages_search(self, entry):
+        '''按包名（键）过滤下方开关行（报告 #2）。'''
+        query = entry.get_text().lower().strip()
+        for name, row in self.option_packages.items():
+            row.set_visible(query == '' or query in name.lower())

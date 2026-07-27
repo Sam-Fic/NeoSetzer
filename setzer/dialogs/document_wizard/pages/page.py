@@ -130,6 +130,7 @@ class PageView(Gtk.Box):
         # Page margins ------------------------------------------------------
         self.option_default_margins = Adw.SwitchRow()
         self.option_default_margins.set_title(_('Use default margins'))
+        self.option_default_margins.set_subtitle(_('On: use LaTeX default margins. Off: set custom margins below.'))
 
         self.margins_button_left = self._create_margin_row(_('Left'))
         self.margins_button_right = self._create_margin_row(_('Right'))
