@@ -151,9 +151,10 @@ class Settings(Observable):
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         self.defaults['preferences']['show_line_numbers'] = True
-        # 行距（像素）：每行文本下方额外添加的垂直间距。通过 GtkSourceView
-        # 的 pixels_below_lines 实现，get_line_yrange().height 会自动包含
-        # 这部分，gutter 行号间距随之同步，无需 gutter 侧额外处理。
+        # 行距（像素）：每行之间的额外垂直间距。均分到 pixels_above_lines /
+        # pixels_below_lines 使文本在行 slot 中竖直居中；pixels_inside_wrap
+        # 设为完整值使自动换行续行间距与段落间一致。get_line_yrange().height
+        # 自动包含这些间距，gutter 行号间距随之同步。
         self.defaults['preferences']['line_spacing'] = 0
         self.defaults['preferences']['enable_code_folding'] = True
         self.defaults['preferences']['enable_line_wrapping'] = True

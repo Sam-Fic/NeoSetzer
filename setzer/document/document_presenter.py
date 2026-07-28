@@ -53,8 +53,12 @@ class DocumentPresenter(object):
         # 顶部）与 get_line_yrange().y（slot 顶部）不再相同，gutter 的
         # 当前行高亮必须用 get_line_yrange().y 作顶——见 gutter.draw_line_number。
         line_spacing = self.settings.get_value('preferences', 'line_spacing')
+        # 行距均分到行上方/下方使文本在 slot 中竖直居中；pixels_inside_wrap
+        # 设为完整 line_spacing，使自动换行的续行间距 = 段落间间距（below+above
+        # = line_spacing），视觉上行高一致。不设则续行紧贴（默认 0）。
         self.view.source_view.set_pixels_above_lines(line_spacing // 2)
         self.view.source_view.set_pixels_below_lines(line_spacing - line_spacing // 2)
+        self.view.source_view.set_pixels_inside_wrap(line_spacing)
 
         self.settings.connect('settings_changed', self.on_settings_changed)
 
@@ -76,5 +80,6 @@ class DocumentPresenter(object):
         if (section, item) == ('preferences', 'line_spacing'):
             self.view.source_view.set_pixels_above_lines(value // 2)
             self.view.source_view.set_pixels_below_lines(value - value // 2)
+            self.view.source_view.set_pixels_inside_wrap(value)
 
 

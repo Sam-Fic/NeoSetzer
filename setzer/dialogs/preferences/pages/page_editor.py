@@ -124,8 +124,11 @@ class PageEditor(object):
             self.settings.get_value('preferences', 'line_spacing'))
         self.view.line_spacing_spin.connect('notify::value', self.on_line_spacing_changed)
         # 行距需手动作用于预览 SourceView；字体本身随全局 CSS 实时生效。
-        self.view.preview_source_view.set_pixels_below_lines(
-            self.settings.get_value('preferences', 'line_spacing'))
+        # 与 document_presenter 保持一致：均分到上下 + pixels_inside_wrap。
+        ls = self.settings.get_value('preferences', 'line_spacing')
+        self.view.preview_source_view.set_pixels_above_lines(ls // 2)
+        self.view.preview_source_view.set_pixels_below_lines(ls - ls // 2)
+        self.view.preview_source_view.set_pixels_inside_wrap(ls)
 
 
     def on_switch_toggled(self, switch, pspec, preference_name):
@@ -160,7 +163,9 @@ class PageEditor(object):
         value = int(spin.get_value())
         self.settings.set_value('preferences', 'line_spacing', value)
         # 实时刷新预览 SourceView 行距（字体随全局 CSS 自动生效，行距需手动应用）。
-        self.view.preview_source_view.set_pixels_below_lines(value)
+        self.view.preview_source_view.set_pixels_above_lines(value // 2)
+        self.view.preview_source_view.set_pixels_below_lines(value - value // 2)
+        self.view.preview_source_view.set_pixels_inside_wrap(value)
 
     def _show_toast(self, message):
         main_window = self.main_window or ServiceLocator.get_main_window()
@@ -310,7 +315,10 @@ class PageEditor(object):
             Pango.FontDescription.from_string(defaults['font_string']))
         self.view.font_chooser_row.set_sensitive(not defaults['use_system_font'])
         self.view.line_spacing_spin.set_value(defaults['line_spacing'])
-        self.view.preview_source_view.set_pixels_below_lines(defaults['line_spacing'])
+        ls = defaults['line_spacing']
+        self.view.preview_source_view.set_pixels_above_lines(ls // 2)
+        self.view.preview_source_view.set_pixels_below_lines(ls - ls // 2)
+        self.view.preview_source_view.set_pixels_inside_wrap(ls)
 
 
 class PageEditorView(Adw.PreferencesPage):
