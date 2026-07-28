@@ -275,6 +275,9 @@ class Preview(Observable):
 
             content.scroll_to_position([x, y])
             self.presenter.start_fade_loop()
+        # 通知独立窗口（若预览已 detach）present 自身，让用户看到正向跳转结果。
+        # 仅发 change_code，不直接 import 窗口类——保持 model 与 UI 解耦。
+        self.add_change_code('synctex_forward')
 
     def init_backward_sync(self, x_offset, y_offset):
         if self.layout == None: return False
@@ -304,6 +307,9 @@ class Preview(Observable):
         pdf_line_offset, pdf_line_text = self._get_pdf_line_offset(poppler_page, x, y)
 
         self.document.build_system.backward_sync(page, x, y, word, context, pdf_line_offset, pdf_line_text)
+        # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到反向跳转的源码位置。
+        # 点击发生在独立窗口，抬起主窗口让源码跳转可见。
+        self.add_change_code('synctex_backward')
 
     def _get_pdf_line_offset(self, poppler_page, click_x, click_y):
         '''Return (char_offset, line_text) for the character closest to

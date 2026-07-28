@@ -132,6 +132,15 @@ class PreviewPanelView(Gtk.Box):
         self.external_viewer_button.set_can_focus(False)
         self.toolbar.append(self.external_viewer_button)
 
+        # 弹出为独立窗口：多显示器场景下把预览拖到另一块屏。图标 window-new-symbolic
+        # 是 GNOME「新建/弹出窗口」惯用图标。popped_out 状态下此按钮由 presenter 隐藏
+        # （独立窗口已 detached，收回走窗口关闭按钮）。
+        self.detach_button = Gtk.Button(icon_name='window-new-symbolic')
+        self.detach_button.set_tooltip_text(_('Detach preview to separate window'))
+        self.detach_button.add_css_class('flat')
+        self.detach_button.set_can_focus(False)
+        self.toolbar.append(self.detach_button)
+
         self.toolbar.append(self.switch_button)
 
         self.append(self.toolbar)

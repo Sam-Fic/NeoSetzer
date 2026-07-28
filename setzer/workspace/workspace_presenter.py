@@ -166,12 +166,20 @@ class WorkspacePresenter(object):
         self.update_sidebar_visibility()
 
     def on_set_show_preview_or_help(self, workspace):
-        if self.workspace.show_preview:
+        show_preview = self.workspace.show_preview
+        # 预览已弹出独立窗口时，侧栏只显示帮助（无 status page）。
+        # show_preview 被忽略——预览在独立窗口，侧栏仅保留 help。
+        if self.workspace.is_preview_popped_out():
+            show_preview = False
+
+        if show_preview:
             self.main_window.preview_help_stack.set_visible_child_name('preview')
             self.focus_active_document()
         elif self.workspace.show_help:
             self.main_window.preview_help_stack.set_visible_child_name('help')
-            if self.main_window.help_panel.stack.get_visible_child_name() == 'search':
+            # HelpPanelView 用 content / search_content_box 两个互斥容器（非 Stack），
+            # 搜索页可见时清空搜索框并聚焦。
+            if self.main_window.help_panel.search_content_box.get_visible():
                 self.main_window.help_panel.search_entry.set_text('')
                 self.main_window.help_panel.search_entry.grab_focus()
             else:
@@ -239,17 +247,23 @@ class WorkspacePresenter(object):
         show_preview = self.workspace.show_preview
         show_help = self.workspace.show_help
         target_doc = self.workspace.get_root_or_active_latex_document()
-        preview_help_visible = (show_preview or show_help) and target_doc is not None
-        # 新建/从未编译过的文档没有 PDF，预览侧栏只会显示空白占位（"No preview
-        # available"）。自动展开（文档激活时）默认抑制，避免无意义地占据屏幕空间。
-        # 一旦文档首次编译成功（document_has_been_built=True）或重新打开时磁盘上
-        # 已有 PDF（poppler_document 非 None），恢复正常显隐
-        # （on_build_state 在编译成功后回调本方法重新评估）。
-        # 用户手动点预览按钮时传 suppress_unbuilt=False，始终展开（显示占位提示
-        # 用户去编译）。help 侧栏与编译无关，始终尊重用户设置，不受此抑制影响。
-        if suppress_unbuilt and preview_help_visible and show_preview and not show_help:
-            if not target_doc.build_system.document_has_been_built and target_doc.preview.poppler_document is None:
-                preview_help_visible = False
+        if self.workspace.is_preview_popped_out():
+            # 预览已 detach 到独立窗口：侧栏只显示帮助（无 status page、无 switch button）。
+            # show_preview 不再算展开理由——预览在独立窗口，侧栏仅保留 help。
+            # pop_out 时已将 show_preview 置 False（自动收起一次），用户可开关 help 来展开侧栏。
+            preview_help_visible = show_help and target_doc is not None
+        else:
+            preview_help_visible = (show_preview or show_help) and target_doc is not None
+            # 新建/从未编译过的文档没有 PDF，预览侧栏只会显示空白占位（"No preview
+            # available"）。自动展开（文档激活时）默认抑制，避免无意义地占据屏幕空间。
+            # 一旦文档首次编译成功（document_has_been_built=True）或重新打开时磁盘上
+            # 已有 PDF（poppler_document 非 None），恢复正常显隐
+            # （on_build_state 在编译成功后回调本方法重新评估）。
+            # 用户手动点预览按钮时传 suppress_unbuilt=False，始终展开（显示占位提示
+            # 用户去编译）。help 侧栏与编译无关，始终尊重用户设置，不受此抑制影响。
+            if suppress_unbuilt and preview_help_visible and show_preview and not show_help:
+                if not target_doc.build_system.document_has_been_built and target_doc.preview.poppler_document is None:
+                    preview_help_visible = False
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
         self.main_window.preview_split.set_show_sidebar(preview_help_visible)

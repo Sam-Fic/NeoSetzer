@@ -95,6 +95,9 @@ class MainWindow(Adw.ApplicationWindow):
         # 侧栏整体（含工具栏）与左侧栏行为一致：占自己的空间，不被标题栏覆盖。
         self.preview_help_stack.add_named(self.preview_panel, 'preview')
         self.preview_help_stack.add_named(self.help_panel, 'help')
+        # PDF 预览弹出为独立窗口后，preview_panel 从 stack 移除，侧栏只保留
+        # help 页面（无 status page、无 switch button）。pop_out 时 stack 切到
+        # 'help'；pop_in 时 re-add preview_panel 回 'preview'。
         # 预览↔帮助互斥切换时给页面本身加 CROSSFADE 过渡（200ms 与 libadwaita
         # 默认动画时长一致）。整体侧栏的滑入/滑出已由 Adw.OverlaySplitView
         # 的 set_show_sidebar() 提供，这里只补页面间切换的过渡，避免硬切。

@@ -34,6 +34,8 @@ class PreviewPanelPresenter(object):
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # 弹出/收回时刷新 detach 按钮可见性（popped_out 时隐藏——独立窗口已 detached）。
+        self.workspace.connect('preview_pop_state_changed', self.on_preview_pop_state_changed)
 
         self.view.page_spin.connect('activate', self._on_page_spin_activate)
         self.view.fit_width_button.connect('clicked', self._on_fit_width_clicked)
@@ -72,6 +74,15 @@ class PreviewPanelPresenter(object):
 
     def on_root_state_change(self, workspace, root_state):
         self.set_preview_document()
+
+    def on_preview_pop_state_changed(self, workspace, popped_out):
+        # 弹出后 preview_panel 搬进独立窗口，detach 按钮在那里无意义（收回走窗口 X）；
+        # 收回后恢复可见。update_buttons 也会顺带刷新按钮敏感状态。
+        self.view.detach_button.set_visible(not popped_out)
+        # 弹出时隐藏帮助面板的 switch 按钮：popped_out 下侧栏只有 help，
+        # 点 switch 会尝试切到已搬走的 preview，无意义且带来问题。收回后恢复。
+        self.main_window.help_panel.switch_button.set_visible(not popped_out)
+        self.update_buttons()
 
     def set_preview_document(self):
         if self.document != None:
@@ -227,6 +238,10 @@ class PreviewPanelPresenter(object):
         self.view.fit_width_button.set_visible(True)
         self.view.zoom_level_button.set_visible(True)
         self.view.zoom_in_button.set_visible(True)
+        # 弹出状态下隐藏 detach 按钮（preview_panel 已在独立窗口内，收回走窗口 X）。
+        self.view.detach_button.set_visible(not self.workspace.is_preview_popped_out())
+        # 同步隐藏帮助面板的 switch 按钮：popped_out 时无法切到 preview。
+        self.main_window.help_panel.switch_button.set_visible(not self.workspace.is_preview_popped_out())
 
         self.view.external_viewer_button.set_sensitive(has_pdf)
         self.view.recolor_pdf_toggle.set_sensitive(has_pdf)
@@ -269,7 +284,8 @@ class PreviewPanelPresenter(object):
     def _sync_switch_icons(self):
         '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。
         预览模式 → 显示 Help 图标（点击去 Help）；Help 模式 → 显示 PDF 图标。'''
-        if self.main_window.preview_help_stack.get_visible_child_name() == 'preview':
+        visible_name = self.main_window.preview_help_stack.get_visible_child_name()
+        if visible_name == 'preview':
             icon = 'help-browser-symbolic'
         else:
             icon = 'view-paged-symbolic'
@@ -280,7 +296,8 @@ class PreviewPanelPresenter(object):
         # 以 preview_help_stack 当前可见面板为唯一真相来源，决定切换到哪个、
         # 以及按钮图标应展示的目标面板。不依赖独立的 _is_preview 布尔，
         # 避免快捷键 / 状态恢复等其它切换路径导致布尔与实际显示失同步。
-        if self.main_window.preview_help_stack.get_visible_child_name() == 'preview':
+        visible_name = self.main_window.preview_help_stack.get_visible_child_name()
+        if visible_name == 'preview':
             # 当前预览 → 切到 Help，按钮图标展示目标（Help）
             self.view.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
             self.main_window.help_panel.switch_button.get_child().set_from_icon_name('help-browser-symbolic')

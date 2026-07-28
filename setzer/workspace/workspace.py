@@ -36,6 +36,7 @@ import setzer.workspace.workspace_presenter as workspace_presenter
 import setzer.workspace.workspace_controller as workspace_controller
 import setzer.workspace.preview_panel.preview_panel as preview_panel
 import setzer.workspace.help_panel.help_panel as help_panel
+import setzer.workspace.pdf_preview_window.pdf_preview_window as pdf_preview_window
 import setzer.workspace.welcome_screen.welcome_screen as welcome_screen
 import setzer.workspace.headerbar.headerbar as headerbar
 import setzer.workspace.sidebar.sidebar as sidebar
@@ -82,7 +83,20 @@ class Workspace(Observable):
         if self.sidebar_page not in ('symbols', 'document_structure'):
             self.sidebar_page = 'symbols'
 
+        # PDF 预览弹出独立窗口状态。不跨会话持久化（v1）：每次启动默认内嵌侧边栏，
+        # 用户按需弹出。pdf_preview_window 懒创建（首次 pop_out 时构造），收回时
+        # 仅隐藏不销毁，保留几何状态（位置/大小）便于再次弹出。
+        # 注意：pop_out 不改 show_preview（避免污染持久化状态）——侧边栏收起由
+        # update_preview_help_visibility 的 popped_out 分支处理（preview 不再算作
+        # 需要展开侧栏的理由，因预览已在独立窗口）。这样退出时 show_preview 仍为
+        # 原值，下次启动恢复正确。
+        self.preview_popped_out = False
+        self.pdf_preview_window = None
+
     def init_workspace_controller(self):
+        # 缓存 main_window 引用：PdfPreviewWindow 等子组件通过 workspace.main_window
+        # 访问（避免每处都 ServiceLocator.get_main_window()，且便于测试 mock）。
+        self.main_window = ServiceLocator.get_main_window()
         self.welcome_screen = welcome_screen.WelcomeScreen(self)
         self.sidebar = sidebar.Sidebar(self)
         self.actions = actions.Actions(self)
@@ -180,6 +194,10 @@ class Workspace(Observable):
         # 文档列表已变，刷新 LaTeXDB（事件驱动，替代原 3 秒轮询）。
         # 去抖：连续关闭多个文档时合并为一次刷新。
         LaTeXDB.schedule_parse_included_files()
+        # 弹出状态下若已无 LaTeX 文档（全关 / 只剩 bibtex），自动收回独立窗口：
+        # status page 无内容可显示，独立留着空窗口无意义。
+        if self.preview_popped_out and self.get_root_or_active_latex_document() is None:
+            self.pop_in_preview()
 
     def create_latex_document(self):
         document = Document('latex')
@@ -804,6 +822,119 @@ class Workspace(Observable):
                 document.preview.page_renderer.activate()
             else:
                 document.preview.page_renderer.deactivate()
+
+    def is_preview_popped_out(self):
+        return self.preview_popped_out
+
+    def pop_out_preview(self):
+        '''把 PDF 预览从侧边栏弹出为独立窗口。
+
+        整体 reparent main_window.preview_panel 到 PdfPreviewWindow：
+        - 工具栏（缩放/页码/recolor/external viewer）随 panel 一起进入独立窗口
+        - stack 内含所有文档的 preview.view，切文档时独立窗口自动跟随
+        - 模型↔view 引用不变，SyncTeX 双向跳转继续工作
+
+        侧边栏只保留帮助页面（无 status page、无 switch button）：preview_panel
+        搬走后 stack 切到 'help'。右侧栏收起一次——pop_out 时将 show_preview 置
+        False（保存原值），update_preview_help_visibility 的 popped_out 分支不再
+        把 show_preview 当作展开理由，仅 help 可展开侧栏。用户可开关 help 来
+        展开/收起侧栏。pop_in 时恢复原 show_preview 值。
+        '''
+        if self.preview_popped_out:
+            return
+        # 必须有 LaTeX 文档才有预览可弹。
+        if self.get_root_or_active_latex_document() is None:
+            return
+        if self.main_window is None:
+            return
+
+        # 懒创建独立窗口。
+        if self.pdf_preview_window is None:
+            self.pdf_preview_window = pdf_preview_window.PdfPreviewWindow(self)
+
+        # reparent preview_panel：从 preview_help_stack 取出，放进独立窗口。
+        panel = self.main_window.preview_panel
+        stack = self.main_window.preview_help_stack
+        current_visible = stack.get_visible_child_name()
+        try:
+            stack.remove(panel)
+        except Exception:
+            pass
+        # 侧边栏切到 help：预览已弹出，侧栏只保留帮助（无 status page）。
+        # 仅当用户当前在看 preview 时才切（若已在看 help 则不动）。
+        if current_visible == 'preview':
+            stack.set_visible_child_name('help')
+        # panel 进入独立窗口（连接 sync 信号 + 更新标题）。
+        self.pdf_preview_window.set_panel(panel)
+
+        self.preview_popped_out = True
+        # 隐藏 panel 内的 switch_button（预览/帮助互切）：help 留在侧边栏，
+        # 独立窗口里这个按钮无意义。pop_in 时恢复。
+        try:
+            panel.switch_button.set_visible(False)
+        except AttributeError:
+            pass
+
+        # 主动收起侧栏一次（pop_out 的视觉反馈）：无论 show_preview / show_help
+        # 当前状态如何，都收起侧栏。保存原值，pop_in 时恢复。
+        # 用户可手动重新展开侧栏（toggle 会设 show_help=True 显示帮助页面）。
+        self._show_preview_before_popout = self.show_preview
+        self._show_help_before_popout = self.show_help
+        if self.show_preview or self.show_help:
+            self.set_show_preview_or_help(False, False)
+        else:
+            self.presenter.update_preview_help_visibility(False)
+
+        self.pdf_preview_window.present()
+        self.add_change_code('preview_pop_state_changed', True)
+
+    def pop_in_preview(self):
+        '''把 PDF 预览从独立窗口收回侧边栏。'''
+        if not self.preview_popped_out:
+            return
+        if self.main_window is None or self.pdf_preview_window is None:
+            self.preview_popped_out = False
+            return
+
+        # 从独立窗口取回 panel。
+        panel = self.pdf_preview_window.take_panel()
+        if panel is None:
+            panel = self.main_window.preview_panel
+
+        # reparent 回 preview_help_stack 的 'preview' 槽位。
+        stack = self.main_window.preview_help_stack
+        try:
+            stack.add_named(panel, 'preview')
+        except Exception:
+            pass
+        stack.set_visible_child_name('preview')
+
+        # 恢复 switch_button 可见。
+        try:
+            panel.switch_button.set_visible(True)
+        except (AttributeError, RuntimeError):
+            pass
+
+        self.preview_popped_out = False
+
+        # 隐藏独立窗口（保留对象以便下次弹出复用几何状态）。
+        self.pdf_preview_window.set_visible(False)
+
+        # 恢复 pop_out 时保存的 show_preview / show_help 值：pop_out 将两者
+        # 都置 False 以主动收起侧栏，现在预览回到侧栏，需恢复原值。
+        self.main_window.preview_panel.presenter._sync_switch_icons()
+        saved_preview = getattr(self, '_show_preview_before_popout', None)
+        saved_help = getattr(self, '_show_help_before_popout', None)
+        self._show_preview_before_popout = None
+        self._show_help_before_popout = None
+        target_preview = saved_preview if saved_preview is not None else self.show_preview
+        target_help = saved_help if saved_help is not None else self.show_help
+        if target_preview != self.show_preview or target_help != self.show_help:
+            self.set_show_preview_or_help(target_preview, target_help)
+        else:
+            self.presenter.update_preview_help_visibility(False)
+
+        self.add_change_code('preview_pop_state_changed', False)
 
     def set_show_preview_or_help(self, show_preview, show_help):
         if show_preview != self.show_preview or show_help != self.show_help:

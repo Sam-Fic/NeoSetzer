@@ -103,6 +103,11 @@ class WorkspaceController(object):
 
     def on_preview_help_toggle_toggled(self, toggle_button, parameter=None):
         show = toggle_button.get_active()
+        if self.workspace.is_preview_popped_out():
+            # 预览已弹出独立窗口：toggle 控制 help 开关（侧栏只显示帮助）。
+            # show_preview 在 popped_out 时被忽略，故 toggle 直接操作 show_help。
+            self.workspace.set_show_preview_or_help(False, show)
+            return
         if show:
             if not self.workspace.show_preview and not self.workspace.show_help:
                 self.workspace.set_show_preview_or_help(*self._last_preview_help)

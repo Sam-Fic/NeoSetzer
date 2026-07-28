@@ -229,7 +229,7 @@ textview gutter {
 }
 
 .preview-card {
-    margin: 0 6px 3px 6px;
+    margin: 0 6px 6px 6px;
     border-radius: 8px;
     background: @card_bg_color;
     transition: margin-bottom 150ms linear;
@@ -243,12 +243,11 @@ textview gutter {
  * 文字左起始位置对齐。margin + padding 与 .editor-statusbar 逐字相同。
  */
 .preview-target-bar {
-    padding: 2px 12px;
     margin: 0 6px 0 6px;
 }
 
 .preview-target-label {
-    margin-left: -3px;
+    padding: 2px 12px;
 }
 
 /*
