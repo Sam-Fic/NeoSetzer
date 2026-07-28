@@ -12,11 +12,21 @@ flatpak/
 *.egg-info/
 *.egg
 dist/
+.venv/
+venv/
+env/
 .pytest_cache/
 .coverage
 .coverage.*
 htmlcov/
 coverage.xml
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
 
 # Editor / OS
 *~
