@@ -205,6 +205,9 @@ class WorkspacePresenter(object):
         show_build_log = self.workspace.get_root_or_active_latex_document() and self.workspace.show_build_log
         build_log = self.workspace.build_log
         if show_build_log:
+            # 仅当 is_open=False（权威状态）时 present。不使用 get_visible()：
+            # Adw.Dialog.close() 异步，unmapped 中间态下 get_visible() 仍返回
+            # True，用它判断会错误阻止正常的第二次 present。
             if not build_log.is_open:
                 # present 前刷新内容：确保打开的是当前文档的最新 build_log。
                 # populate 会处理 document 为 None 的情况（显示 empty_label）。
@@ -213,8 +216,14 @@ class WorkspacePresenter(object):
                 build_log.view.present()
                 build_log.on_present()
         else:
-            # close 幂等：未打开时 close 无副作用。
-            build_log.view.close()
+            # 仅当 is_open=True 时 close。这是消除「第二次 Esc 失效」的关键：
+            # Esc 关闭走原生 closed 信号 → on_dialog_closed 先把 is_open 设 False，
+            # 再 set_show_build_log(False) 触发本函数 → 此时 is_open 已是 False，
+            # 不会重复调用 close()。否则会对一个已 unmapped（不在屏上）的 dialog
+            # 再调一次 close()，触发 Adwaita "not presented" critical 并损坏 dialog
+            # 内建 Escape shortcut 状态，导致下次 present 后 Esc 彻底失效。
+            if build_log.is_open:
+                build_log.view.close()
 
     def refresh_build_log_if_open(self):
         '''切换文档时：弹窗若打开，刷新内容；不自动开关。

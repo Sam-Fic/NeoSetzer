@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk
+from gi.repository import Gtk, Adw
 
 
 class DialogView(Adw.Dialog):
@@ -34,14 +34,9 @@ class DialogView(Adw.Dialog):
         self.toolbar_view.set_content(self.topbox)
         self.set_child(self.toolbar_view)
 
-        # Esc 关闭弹窗：用 EventControllerKey 显式监听，比 ShortcutController 可靠。
-        # 与 Gtk.SearchBar 的 Esc 不冲突（SearchBar 仅在搜索模式开启时消费 Esc）。
-        key_controller = Gtk.EventControllerKey()
-        key_controller.connect('key-pressed', self._on_key_pressed)
-        self.add_controller(key_controller)
+        # Adw.Dialog 原生处理 Escape 关闭（libadwaita 内建 Escape shortcut，
+        # 在 CAPTURE 阶段作用整个 dialog 子树），无需手动监听。曾尝试在 CAPTURE
+        # 阶段加 EventControllerKey 拦截 Escape，会干扰 Adw.Dialog 内部关闭状态，
+        # 导致弹窗第二次 present 后内建 Escape shortcut 失效——故不拦截，依赖原生。
 
-    def _on_key_pressed(self, controller, keyval, keycode, state):
-        if keyval == Gdk.KEY_Escape:
-            self.close()
-            return True
-        return False
+

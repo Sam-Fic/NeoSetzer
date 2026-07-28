@@ -138,17 +138,20 @@ class BuildLogDialogView(DialogView):
 
         self.filter_popover.set_child(filter_box)
 
-        # 搜索按钮（toggle 控制 SearchBar 显隐）
+        # 搜索按钮（toggle 控制搜索栏显隐）
         self.search_button = Gtk.ToggleButton(icon_name='edit-find-symbolic')
         self.search_button.set_tooltip_text(_('Search build log'))
         self.search_button.add_css_class('flat')
         self.search_button.set_can_focus(False)
         self.headerbar.pack_start(self.search_button)
 
-        # 标准 Gtk.SearchBar：放在 ToolbarView 顶栏（与 headerbar 之下），
-        # 展开时自动带动画、宽度跟随内容区、带标准外观。
-        self.search_bar = Gtk.SearchBar()
-        self.search_bar.set_search_mode(False)
+        # 搜索栏：用 Gtk.Revealer 包裹 Gtk.SearchEntry（不放 Gtk.SearchBar）。
+        # 原因：Gtk.SearchBar 会在顶层挂 key controller 处理 Escape 以退出搜索
+        # 模式，可能干扰 Adw.Dialog 自身的 Esc 关闭。Revealer + SearchEntry
+        # 不挂任何顶层 key controller，Esc 始终交给 Adw.Dialog 原生处理。
+        self.search_revealer = Gtk.Revealer()
+        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self.search_revealer.set_transition_duration(150)
 
         search_clamp = Adw.Clamp()
         search_clamp.set_maximum_size(600)
@@ -163,12 +166,10 @@ class BuildLogDialogView(DialogView):
         self.search_entry.set_hexpand(True)
         search_bar_box.append(self.search_entry)
         search_clamp.set_child(search_bar_box)
-        self.search_bar.set_child(search_clamp)
-        # SearchBar 作为 ToolbarView 的第二个顶栏
-        self.toolbar_view.add_top_bar(self.search_bar)
+        self.search_revealer.set_child(search_clamp)
+        self.topbox.append(self.search_revealer)
 
-        self.search_bar.connect_entry(self.search_entry)
-        self.search_button.bind_property('active', self.search_bar, 'search-mode-enabled',
+        self.search_button.bind_property('active', self.search_revealer, 'reveal-child',
                                           GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE)
 
         # content
