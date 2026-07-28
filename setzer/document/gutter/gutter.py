@@ -388,6 +388,17 @@ class Gutter(object):
             line = line_iter.get_line()
             if line > total_lines:
                 break
+
+            # 跳过被代码折叠隐藏的逻辑行。折叠区域通过 invisible_region tag
+            # 标记（从起始行行末到结束行之后），这些行在文本视图中不占空间，
+            # 但其行号仍会被 gutter 循环访问到，导致所有被折叠行的行号堆叠在
+            # 折叠边界处、糊成一片。
+            if line_iter.has_tag(self.document.code_folding.tag):
+                if line >= total_lines:
+                    break
+                line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
+                continue
+
             is_current = (current_line == line)
             cur = line_iter.copy()
             first = True
