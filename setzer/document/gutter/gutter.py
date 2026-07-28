@@ -584,7 +584,8 @@ class Gutter(object):
         # 数字通过 RIGHT 对齐绘制在 (line_numbers_width - char_width) 宽度的
         # layout 上，故其右边缘实际落在 line_numbers_width - char_width 处。
         # 符号右边缘需减去同样的 char_width，才能与数字右边缘真正对齐。
-        x = round(self.line_numbers_width - self.char_width - size)
+        # 再额外留出半个字符间距，让符号与数字不那么贴边。
+        x = round(self.line_numbers_width - self.char_width - size - self.char_width)
         y = round(offset + (line_height - size) / 2)
         ctx.save()
         ctx.translate(x, y)
