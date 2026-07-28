@@ -18,9 +18,9 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, Gdk, GObject, GLib, Pango, PangoCairo, GtkSource, Gsk
+from gi.repository import Gtk, Gdk, GObject, GLib, Pango, PangoCairo, GtkSource
 
-import math, time
+import math, time, os
 
 from setzer.helpers.timer import timer
 from setzer.app.service_locator import ServiceLocator
@@ -57,6 +57,7 @@ class Gutter(object):
         self.cursor_x, self.cursor_y = None, None
         self.hovered_folding_region = None
         self._folding_icon_nodes = dict()
+        self._newline_icon_nodes = dict()
 
         # 字体度量缓存：char_width / line_height 仅在字体实际变化时重算。
         # 原实现每次 update_size 都重建 Pango.Layout 并遍历显示行，而
@@ -305,6 +306,7 @@ class Gutter(object):
             self.line_height = FontManager.get_line_height(self.source_view)
             # 图标渲染节点是按尺寸缓存的，字体变化导致尺寸变化需失效重算。
             self._folding_icon_nodes.clear()
+            self._newline_icon_nodes.clear()
 
     def update_size(self, line_count=None):
         self._refresh_font_metrics_if_changed()
@@ -373,23 +375,48 @@ class Gutter(object):
         # 提前计算循环上界，避免每次循环都调用 adjustment getter（C 调用）。
         scroll_top = self.adjustment.get_value()
         scroll_bottom = scroll_top + height
-        # 起始可见行：从滚动顶部对应的行开始绘制。原实现先取一次 line_at_y
-        # 作为 offset 初值，进入循环立刻又取一次，第一次取值仅用于初值条件
-        # 判断，被立即覆盖——属无谓 C 调用。改为循环内统一获取。
-        line_iter, offset = source_view.get_line_at_y(scroll_top)
-        prev_line = None
-        line = -1
+        # 起始可见行：从滚动顶部对应的逻辑行开始绘制。
+        line_iter, _ = source_view.get_line_at_y(scroll_top)
         total_lines = self.source_buffer.get_end_iter().get_line()
-        while offset <= scroll_bottom and line < total_lines:
+        # 逐逻辑行遍历；每个逻辑行内再按“显示行”（display line，即自动换行
+        # 产生的视觉续行）细分。Gtk.TextView.get_line_yrange 返回的是整个逻辑
+        # 行的高度（含所有续行），不能用于单显示行定位，因此这里用
+        # forward_display_line 遍历每个显示行，并用 get_iter_location 取得该
+        # 显示行真实的 y 与高度——这正是 Gtk 自身绘制文字所用的位置，图标
+        # 与行号据此居中能与文字精确对齐，也不会出现均匀划分的累积偏差。
+        while True:
             line = line_iter.get_line()
-            line_height = source_view.get_line_yrange(line_iter).height
-            if line != prev_line:
-                drawing_offset = offset - scroll_top
-                self.draw_line(ctx, line, current_line == line, drawing_offset, line_height)
+            if line > total_lines:
+                break
+            is_current = (current_line == line)
+            cur = line_iter.copy()
+            first = True
+            while True:
+                loc = source_view.get_iter_location(cur)
+                drawing_offset = loc.y - scroll_top
+                row_height = loc.height
+                if drawing_offset > scroll_bottom:
+                    # 该逻辑行已完全位于视口下方，停止本逻辑行后续显示行。
+                    break
+                if drawing_offset + row_height >= 0:
+                    if first:
+                        self.draw_line(ctx, line, is_current, drawing_offset, row_height)
+                    elif self.line_numbers_visible:
+                        # 自动换行产生的视觉续行：在续行首位置画换行符号，
+                        # 而非重复行号。
+                        self.draw_newline_symbol(ctx, drawing_offset, row_height)
+                first = False
+                if not source_view.forward_display_line(cur):
+                    break
+                # forward_display_line 会跨到下一逻辑行；必须限制在本逻辑行内，
+                # 否则会把后续行的显示行误判为续行而画上图标（如“每行都有图标”）。
+                if cur.get_line() != line:
+                    break
 
-            prev_line = line
-            offset += line_height
-            line_iter, _ = source_view.get_line_at_y(offset)
+            # 跳到下一个逻辑行。
+            if line >= total_lines:
+                break
+            line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
 
         self.draw_hovered_folding_region(ctx)
 
@@ -517,6 +544,52 @@ class Gutter(object):
         node = snapshot.to_node()
         self._folding_icon_nodes[key] = node
         return node
+
+    def _get_newline_icon_node(self, size):
+        # 自动换行产生的视觉续行：在续行首位置绘制换行符号
+        # (newline-symbolic.svg)，而非行号。IconTheme 在 setzer.in 入口已
+        # 把 resources/icons 加入搜索路径，且 SVG 使用 currentColor，故
+        # lookup_icon 会按 symbolic 规范自动用主题前景色着色，与折叠图标
+        # 行为一致。按 (尺寸, 设备缩放) 缓存成 Gsk.RenderNode。
+        # 注：Gsk.RenderNode.draw 在真实 draw 上下文里遵守 cairo 的
+        # translate/scale（已用真实渲染截图验证定位正确），无需手工烘焙变换。
+        # lookup_icon 的 scale 必须用控件真实设备缩放倍数，否则在 HiDPI/
+        # 分数缩放下纹理只按 1x 渲染、被 cairo 放大绘制而发虚。
+        scale_factor = self.source_view.get_scale_factor()
+        key = (size, scale_factor)
+        node = self._newline_icon_nodes.get(key)
+        if node is not None:
+            return node
+        theme = Gtk.IconTheme.get_for_display(self.source_view.get_display())
+        paintable = theme.lookup_icon('newline-symbolic', None, size, scale_factor,
+                                      Gtk.TextDirection.NONE, Gtk.IconLookupFlags(0))
+        if paintable is None:
+            return None
+        # 以设备像素分辨率渲染纹理（size * scale_factor），绘制时 cairo
+        # 上下文已含 scale，1:1 绘制即对齐设备像素，保持清晰。
+        pixel_size = size * scale_factor
+        snapshot = Gtk.Snapshot()
+        paintable.snapshot(snapshot, pixel_size, pixel_size)
+        node = snapshot.to_node()
+        self._newline_icon_nodes[key] = node
+        return node
+
+    def draw_newline_symbol(self, ctx, offset, line_height):
+        # 图标大小参考单行行高（line_height），取其中一部分，确保落在
+        # 该行内、竖直居中；横向与数字行号右边缘对齐。
+        size = max(6, round(line_height * 0.3))
+        node = self._get_newline_icon_node(size)
+        if node is None:
+            return
+        # 数字通过 RIGHT 对齐绘制在 (line_numbers_width - char_width) 宽度的
+        # layout 上，故其右边缘实际落在 line_numbers_width - char_width 处。
+        # 符号右边缘需减去同样的 char_width，才能与数字右边缘真正对齐。
+        x = round(self.line_numbers_width - self.char_width - size)
+        y = round(offset + (line_height - size) / 2)
+        ctx.save()
+        ctx.translate(x, y)
+        node.draw(ctx)
+        ctx.restore()
 
     def draw_folding_region(self, ctx, line, is_current, offset, line_height):
         folding_region = self.document.code_folding.get_region_by_line(line)
