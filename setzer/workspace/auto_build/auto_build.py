@@ -80,6 +80,11 @@ class AutoBuild(object):
     def on_document_changed(self, document):
         if not self.settings.get_value('preferences', 'auto_build'):
             return
+        # 程序化读盘（会话恢复 / 懒加载 / 文件打开）触发的 buffer 'changed' 不算
+        # 用户编辑——磁盘上的 PDF 通常已是最新，启动即重编毫无意义且拖慢启动。
+        # 仅在用户真实按键编辑后才排队构建。详见 Document._loading_from_disk。
+        if getattr(document, '_loading_from_disk', False):
+            return
         if document.get_filename() == None:
             self._warn_untitled(document)
             return

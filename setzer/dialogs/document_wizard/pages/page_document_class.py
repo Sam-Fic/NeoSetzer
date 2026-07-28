@@ -23,6 +23,7 @@ from gi.repository import Gtk
 from gi.repository import Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
 import setzer.widgets.async_svg.async_svg as async_svg
 

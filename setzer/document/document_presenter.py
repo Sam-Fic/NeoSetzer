@@ -45,9 +45,16 @@ class DocumentPresenter(object):
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         else:
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.NONE)
-        # 行距：每行下方额外像素间距。get_line_yrange().height 会自动包含
-        # 此值，gutter 行号间距随之同步，无需 gutter 侧额外处理。
-        self.view.source_view.set_pixels_below_lines(self.settings.get_value('preferences', 'line_spacing'))
+        # 行距均分到行上方和下方，使文本在行 slot 中竖直居中。
+        # 原先全部放在 below（pixels_below_lines），文本贴着 slot 顶部、
+        # 下方留大片空白，视觉上行号和文本都"偏上"未居中。均分后
+        # 文本居中，gutter 行号（对齐文本顶部）也随之居中。
+        # 副作用：pixels_above_lines > 0 后，get_iter_location().y（文本区
+        # 顶部）与 get_line_yrange().y（slot 顶部）不再相同，gutter 的
+        # 当前行高亮必须用 get_line_yrange().y 作顶——见 gutter.draw_line_number。
+        line_spacing = self.settings.get_value('preferences', 'line_spacing')
+        self.view.source_view.set_pixels_above_lines(line_spacing // 2)
+        self.view.source_view.set_pixels_below_lines(line_spacing - line_spacing // 2)
 
         self.settings.connect('settings_changed', self.on_settings_changed)
 
@@ -67,6 +74,7 @@ class DocumentPresenter(object):
             else:
                 self.view.source_view.set_wrap_mode(Gtk.WrapMode.NONE)
         if (section, item) == ('preferences', 'line_spacing'):
-            self.view.source_view.set_pixels_below_lines(value)
+            self.view.source_view.set_pixels_above_lines(value // 2)
+            self.view.source_view.set_pixels_below_lines(value - value // 2)
 
 

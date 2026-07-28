@@ -511,9 +511,22 @@ class Gutter(object):
         if is_current and self.highlight_current_line and not self.source_buffer.get_has_selection():
             cl_bg = self._get_current_line_bg()
             Gdk.cairo_set_source_rgba(ctx, cl_bg)
-            ctx.rectangle(0, offset, self.total_width, line_height)
+            # 高亮必须覆盖整行 slot（含 pixels_above/below_lines 行距），
+            # 与 GtkSourceView 自身的 current-line 高亮一致。
+            # 关键：slot 顶部要用 get_line_yrange().y，而非传入的 offset。
+            # offset 来自 get_iter_location().y（文本区顶部）；当
+            # pixels_above_lines > 0（行距均分到上下使文本居中）时，文本区
+            # 顶部比 slot 顶部低 pixels_above_lines 像素。若用 offset 作高亮
+            # 顶部，高亮条会比 GtkSourceView 的高亮低 pixels_above_lines 像素，
+            # 顶部对不齐、还会溢出到下一行。get_line_yrange().y 是 slot 真正
+            # 顶部，用它作顶、.height 作高才能精确覆盖整个 slot。换行（wrapped）
+            # 行的 yrange 跨所有视觉续行，高亮随之覆盖整条逻辑行。
+            line_start_iter = self.source_buffer.get_iter_at_line(line)[1]
+            yrange = self.source_view.get_line_yrange(line_start_iter)
+            slot_top = yrange.y - self.adjustment.get_value()
+            ctx.rectangle(0, slot_top, self.total_width, yrange.height)
             ctx.fill()
-            ctx.rectangle(self.total_width + 1, offset, self.char_width, line_height)
+            ctx.rectangle(self.total_width + 1, slot_top, self.char_width, yrange.height)
             ctx.fill()
             Gdk.cairo_set_source_rgba(ctx, fg)
 

@@ -70,11 +70,14 @@ class DocumentWizard(object):
         self.completed = False
 
         self.init_current_values()
+        # 先读预设（load_presets 现只读 settings → self.presets，不再遍历页面），
+        # 再 setup：setup → _ensure_page_built(0) 会用 self.presets 初始化首页控件。
+        # 顺序倒置后，第 0 页在 setup 内即应用预设，无需 run 末尾再补一遍。
+        self.presets = None
+        self.load_presets()
         self.setup()
 
-        self.presets = None
         self.current_page = -1
-        self.load_presets()
         self.goto_page(page_map.DOCUMENT_CLASS_PAGE_INDEX)
 
         self.view.present(self.main_window)
@@ -188,15 +191,21 @@ class DocumentWizard(object):
     def setup(self):
         self.view = view.DocumentWizardView(self.main_window)
 
-        self.pages = list()
-        self.pages.append(DocumentClassPage(self.current_values))
-        self.pages.append(ArticleSettingsPage(self.current_values))
-        self.pages.append(ReportSettingsPage(self.current_values))
-        self.pages.append(BookSettingsPage(self.current_values))
-        self.pages.append(LetterSettingsPage(self.current_values))
-        self.pages.append(BeamerSettingsPage(self.current_values))
-        self.pages.append(GeneralSettingsPage(self.current_values))
-        for page in self.pages: self.view.page_stack.add_child(page.view)
+        # 懒构造：首屏只建第 0 页（文档类选择页）。5 个文档类设置页（article/
+        # report/book/letter/beamer）每次会话只访问其中 1 个（由 document_class
+        # 决定），其余必然白建；General 页也只在最后才访问。启动时只付 1 页的
+        # 代价，其余页在 goto_page 首次进入时由 _ensure_page_built 按需构造。
+        self._page_factories = [
+            lambda: DocumentClassPage(self.current_values),
+            lambda: ArticleSettingsPage(self.current_values),
+            lambda: ReportSettingsPage(self.current_values),
+            lambda: BookSettingsPage(self.current_values),
+            lambda: LetterSettingsPage(self.current_values),
+            lambda: BeamerSettingsPage(self.current_values),
+            lambda: GeneralSettingsPage(self.current_values),
+        ]
+        self.pages = [None] * len(self._page_factories)
+        self._ensure_page_built(page_map.DOCUMENT_CLASS_PAGE_INDEX)
 
         self.view.cancel_button.connect('clicked', self.on_cancel_button_clicked)
         self.view.create_button.connect('clicked', self.on_create_button_clicked)
@@ -205,11 +214,34 @@ class DocumentWizard(object):
         key_controller = Gtk.EventControllerKey()
         key_controller.connect('key-pressed', self.on_keypress)
         self.view.add_controller(key_controller)
-        for page in self.pages:
-            page.controller = self
-            page.observe_view()
         self.view.next_button.connect('clicked', self.goto_page_next)
         self.view.back_button.connect('clicked', self.goto_page_prev)
+
+    def _ensure_page_built(self, page_number, apply_presets=True):
+        '''首次访问某页时按需构造，并加入 page_stack。
+
+        顺序仿原 setup()：先 add_child，再 observe_view（连信号），再 load_presets
+        （set_* 会触发信号回写 current_values）。懒构造下该调用发生在首次
+        goto_page 进入该页时，而非启动时。
+
+        apply_presets=False 仅用于 apply_template 的强制建页路径：跳过用
+        self.presets 初始化，避免保存的预设经信号回写污染 current_values
+        （随后由 apply_template 统一用模板值刷新）。其余路径保持 True，确保
+        控件与默认值/预设同步——即使 self.presets 为 None 也要调 load_presets：
+        各页 load_presets 对 None 走 TypeError 回退到 current_values 默认值，
+        负责把控件初始化到默认状态（如 page_format_combo 默认 index 0='US Letter'，
+        而 current_values 按 locale 可能是 'A4'；General 页语言下拉、包开关、
+        Beamer 主题选择都依赖此调用初始化）。
+        '''
+        if self.pages[page_number] is not None:
+            return
+        page = self._page_factories[page_number]()
+        self.view.page_stack.add_child(page.view)
+        page.controller = self
+        page.observe_view()
+        if apply_presets:
+            page.load_presets(self.presets)
+        self.pages[page_number] = page
 
     def load_presets(self):
         if self.presets == None:
@@ -230,8 +262,11 @@ class DocumentWizard(object):
                 presets = None
             self.presets = presets
 
-        for page in self.pages:
-            page.load_presets(self.presets)
+        # 不再在此遍历 self.pages 调用 page.load_presets：懒构造下每页在
+        # _ensure_page_built 首次进入时各自应用 self.presets。此处若遍历，
+        # 一则在 run() 中 setup() 之前访问尚未存在的 self.pages（首跑
+        # AttributeError），二则二次开向导时会访问上一轮已销毁的旧页面。
+        # apply_template 刷新页面走 page.load_presets(self.current_values)。
 
     def save_presets(self):
         # 直接存 dict（JSON 兼容），不再 pickle.dumps。
@@ -258,7 +293,13 @@ class DocumentWizard(object):
             return False
         # 深拷贝避免后续编辑污染存储的模板。
         self.current_values = copy.deepcopy(blob)
-        # 刷新所有页面控件以反映模板值。
+        # 强制建完所有页，但 apply_presets=False：避免 _ensure_page_built 内的
+        # load_presets(self.presets) 用「保存的预设」经 set_* 信号回写污染
+        # current_values（模板值会被预设值覆盖）。随后统一用 current_values
+        # （=模板）刷新所有页控件。apply_template 由 DocumentClassPage 的模板
+        # 下拉触发，会随后 goto_page(GENERAL)，故 General 页也会在此一并建好。
+        for i in range(len(self._page_factories)):
+            self._ensure_page_built(i, apply_presets=False)
         for page in self.pages:
             page.load_presets(self.current_values)
         return True
@@ -325,6 +366,8 @@ class DocumentWizard(object):
         dialog.choose(self.main_window, None, None)
 
     def goto_page(self, page_number):
+        # 懒构造：进入页面前确保该页已建（首屏只建了第 0 页）。已建则 no-op。
+        self._ensure_page_built(page_number)
         if self.current_page != page_number:
             self.current_page = page_number
             self.view.page_stack.set_visible_child(self.pages[page_number].view)

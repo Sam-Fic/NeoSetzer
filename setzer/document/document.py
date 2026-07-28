@@ -97,6 +97,11 @@ class Document(Observable):
         # 以便激活/关闭时取消。详见 populate_from_disk / _load_content_if_pending。
         self._content_pending = False
         self._lazy_load_idle_id = None
+        # 程序化读盘期间（_load_file_content 的 set_text）置 True。set_text 会
+        # 触发 buffer 'changed' 信号，但这是会话恢复/懒加载/文件打开，并非用户
+        # 编辑——auto_build 据此跳过启动即重编。仅 auto_build 读取此标志，
+        # parser 等其它 'changed' 观察者仍照常收到通知以初始化文档结构。
+        self._loading_from_disk = False
         if self.is_latex_document():
             self._latex_features_idle_id = GLib.idle_add(self._init_latex_features)
 
@@ -316,10 +321,18 @@ class Document(Observable):
         if getattr(self, 'gutter', None) is not None:
             self.gutter.presize_for_line_count(line_count)
 
-        self.source_buffer.begin_irreversible_action()
-        self.source_buffer.set_text(text)
-        self.source_buffer.end_irreversible_action()
-        self.source_buffer.set_modified(False)
+        # 标记程序化读盘：set_text 会同步触发 buffer 'changed' → auto_build
+        # 的 on_document_changed。此处的 changed 并非用户编辑（会话恢复/懒加载
+        # /文件打开），auto_build 据此标志跳过，避免每次启动都白白重编一次。
+        # 用 try/finally 保证异常路径也能复位，否则该文档后续真实编辑会被永久忽略。
+        self._loading_from_disk = True
+        try:
+            self.source_buffer.begin_irreversible_action()
+            self.source_buffer.set_text(text)
+            self.source_buffer.end_irreversible_action()
+            self.source_buffer.set_modified(False)
+        finally:
+            self._loading_from_disk = False
         self.place_cursor(0, 0)
         self.update_save_date()
 
