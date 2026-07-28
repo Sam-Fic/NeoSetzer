@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -158,9 +158,9 @@ class MainApplicationController(Adw.Application):
         # init view
         if self.settings.get_value('window_state', 'is_maximized'):
             self.main_window.maximize()
-        else: 
+        else:
             self.main_window.unmaximize()
-        self.main_window.set_default_size(self.settings.get_value('window_state', 'width'), 
+        self.main_window.set_default_size(self.settings.get_value('window_state', 'width'),
                                           self.settings.get_value('window_state', 'height'))
         # 恢复上次关闭时的窗口位置（X11 下有效；Wayland 由合成器决定）。
         # x/y 默认 -1 表示从未持久化，此时用窗口管理器默认位置。
@@ -229,10 +229,20 @@ class MainApplicationController(Adw.Application):
         document = parameters['unsaved_document']
         unsaved_documents = parameters['documents']
 
-        if parameters['response'] == 0:
+        if parameters['response'] == 0:  # discard (单个放弃)
+            # 从 workspace 移除该文档，使其不会被写入 workspace.json
+            self.workspace.remove_document(document)
             unsaved_documents.remove(document)
             self.save_quit(unsaved_documents)
-        elif parameters['response'] == 2:
+        elif parameters['response'] == 4:  # discard_all (全部放弃)
+            for d in list(unsaved_documents):
+                self.workspace.remove_document(d)
+                try:
+                    unsaved_documents.remove(d)
+                except ValueError:
+                    pass
+            self.save_quit(unsaved_documents)
+        elif parameters['response'] == 2:  # save (单个保存)
             document = parameters['unsaved_document']
             if document.get_filename() == None:
                 DialogLocator.get_dialog('save_document').run(document, self.save_callback, parameters)
@@ -240,6 +250,40 @@ class MainApplicationController(Adw.Application):
                 document.save_to_disk()
                 unsaved_documents.remove(document)
                 self.save_quit(unsaved_documents)
+        elif parameters['response'] == 3:  # save_all (批量保存)
+            unsaved_documents = parameters['documents']
+            # 先保存所有有 filename 的文档
+            for d in list(unsaved_documents):
+                if d.get_filename() is not None:
+                    d.save_to_disk()
+                    unsaved_documents.remove(d)
+            # 无 filename 的逐个弹 save_document
+            parameters['save_all_processed'] = set()
+            untitled = [d for d in unsaved_documents if d.get_filename() is None]
+            if untitled:
+                first = untitled[0]
+                parameters['save_all_processed'].add(id(first))
+                self.workspace.set_active_document(first)
+                parameters['unsaved_document'] = first
+                DialogLocator.get_dialog('save_document').run(first, self.save_quit_save_all_cb, parameters)
+            else:
+                self.save_quit(unsaved_documents)
+
+    def save_quit_save_all_cb(self, parameters):
+        '''save_all 模式下逐个 untitled 文档的 save_document 回调。'''
+        unsaved_documents = parameters['documents']
+        processed = parameters.get('save_all_processed', set())
+        untitled = [d for d in unsaved_documents
+                    if d.get_filename() is None and id(d) not in processed]
+        if untitled:
+            next_doc = untitled[0]
+            processed.add(id(next_doc))
+            self.workspace.set_active_document(next_doc)
+            parameters['unsaved_document'] = next_doc
+            DialogLocator.get_dialog('save_document').run(next_doc, self.save_quit_save_all_cb, parameters)
+        else:
+            # 所有 untitled 已提示过（保存或取消）。重新评估未保存文档。
+            self.save_quit(unsaved_documents)
 
     def save_callback(self, parameters):
         document = parameters['unsaved_document']

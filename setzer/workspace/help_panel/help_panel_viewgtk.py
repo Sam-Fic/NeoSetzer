@@ -51,7 +51,7 @@ class HelpPanelView(Gtk.Box):
     def __init__(self):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
-        self.set_size_request(396, -1)
+        self.set_size_request(300, -1)
         self.add_css_class('help')
 
         # ---- 顶部内嵌工具栏（与左侧栏 .sidebar-toolbar 统一外观）----
@@ -61,7 +61,7 @@ class HelpPanelView(Gtk.Box):
         self.toolbar.set_halign(Gtk.Align.FILL)
 
         self.home_button = Gtk.Button(icon_name='go-home-symbolic')
-        self.home_button.set_tooltip_text(_('Home'))
+        self.home_button.set_tooltip_text(_('Help home'))
         self.home_button.add_css_class('flat')
         self.home_button.set_can_focus(False)
         self.toolbar.append(self.home_button)
@@ -157,7 +157,7 @@ class HelpPanelView(Gtk.Box):
 
         self.no_results_slate = Adw.StatusPage()
         self.no_results_slate.add_css_class('compact')
-        self.no_results_slate.set_icon_name('system-search-symbolic')
+        self.no_results_slate.set_icon_name('action-unavailable-symbolic')
         self.no_results_slate.set_title(_('No results found'))
         self.no_results_slate.set_visible(False)
         self.no_results_slate.set_vexpand(True)
@@ -280,8 +280,8 @@ class SearchResultView(Adw.ActionRow):
     '''搜索结果行：用原生 Adw.ActionRow 替代手写 Gtk.ListBoxRow + 2 Label。
 
     title = 标题（如 "first-latex-doc document"），subtitle = 位置（如
-    "About this document"）。两者均开启 use-markup，复用 help_panel 的
-    _highlight() 生成的 <b> 标记实现搜索词粗体高亮，无需自定义 Label。
+    "About this document"）。    两者均开启 use-markup，复用 setzer.widgets.search_highlight 的
+    highlight_words() 生成的 <b> 标记实现搜索词粗体高亮，无需自定义 Label。
     title-lines/subtitle-lines 设为 0 不限制行数，并开启自动换行，
     避免长标题被截断。
 

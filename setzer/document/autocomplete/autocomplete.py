@@ -31,6 +31,24 @@ from setzer.app.service_locator import ServiceLocator
 # re.search 每次查 re._cache 的字典开销。
 _ACTIVATE_REGEX = re.compile(r'\\[a-zA-Z]+\Z')
 
+# \begin{...} 上下文：光标在 \begin{ 的花括号内时补全环境名而非 LaTeX 命令。
+_BEGIN_REGEX = re.compile(r'\\begin\{([a-zA-Z]*)\Z')
+
+# 仅 preamble 可用、文档体（\begin{document} 之后）应隐藏的命令基础名。
+# 用于 update_suggestions 的上下文过滤（报告 #7）。
+_PREAMBLE_ONLY = {
+    '\\documentclass', '\\usepackage', '\\requirepackage', '\\newcommand',
+    '\\renewcommand', '\\providecommand', '\\newenvironment', '\\renewenvironment',
+    '\\newtheorem', '\\newlength', '\\newcounter', '\\setlength', '\\newsavebox',
+    '\\passoptionstopackage', '\\declaremathoperator',
+}
+
+
+def _cmd_base(command):
+    '''提取命令基础名（首个 \\word 片段），用于 preamble 过滤的白名单匹配。'''
+    m = re.match(r'(\\[A-Za-z]+)', command)
+    return m.group(1).lower() if m is not None else command.lower()
+
 
 class Autocomplete(object):
 
@@ -43,6 +61,7 @@ class Autocomplete(object):
         self.is_active = False
         self.current_word_offset = None
         self.current_word = None
+        self.context = None
         self.items = []
         self.last_tabbed_item = None
         self.first_item_index = None
@@ -64,6 +83,9 @@ class Autocomplete(object):
         self._update_suggestions_idle_id = None
 
         self.controller = autocomplete_controller.AutocompleteController(self, document)
+        # 解析并下发「手动触发补全」的可配置快捷键（默认 Ctrl+Space，报告 #6/B）。
+        keyval, mods = self._parse_trigger_accel()
+        self.controller.set_trigger(keyval, mods)
         self.widget = autocomplete_widget.AutocompleteWidget(self)
 
         self.document.connect('changed', self.on_document_change)
@@ -92,6 +114,25 @@ class Autocomplete(object):
         if item == 'enable_autocomplete':
             self.is_enabled = value
             if not self.is_enabled: self.deactivate()
+        elif item == 'autocomplete_manual_trigger':
+            # 用户改了手动触发键：重新解析并下发给 controller（报告 #6/B）。
+            keyval, mods = self._parse_trigger_accel()
+            self.controller.set_trigger(keyval, mods)
+        elif item in ('autocomplete_previous', 'autocomplete_next',
+                      'autocomplete_previous_page', 'autocomplete_next_page',
+                      'autocomplete_accept', 'autocomplete_cancel'):
+            # 用户改了补全弹窗导航键：刷新 controller 的键位缓存（报告 #6 遗留项）。
+            self.controller.refresh_nav_keys()
+
+    def _parse_trigger_accel(self):
+        '''把偏好中的 GTK 加速器字符串解析为 (keyval, mods)，无效则为 (0, 0)。'''
+        accel = self.document.settings.get_value('preferences', 'autocomplete_manual_trigger')
+        if not isinstance(accel, str):
+            return 0, 0
+        # GTK4 的 accelerator_parse 返回 (success, keyval, mods) 三元组，
+        # 这里只取 (keyval, mods) 透传给调用方。
+        _success, keyval, mods = Gtk.accelerator_parse(accel)
+        return keyval, mods
 
     def on_document_change(self, document):
         if self.is_active:
@@ -148,6 +189,18 @@ class Autocomplete(object):
 
         insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
         line_before_cursor = self.document.get_line(insert_iter.get_line())[:insert_iter.get_line_offset()]
+
+        # \begin{...} 上下文优先：光标在 \begin{ 花括号内时补全环境名（报告 #7）。
+        begin_match = _BEGIN_REGEX.search(line_before_cursor)
+        if begin_match:
+            self.context = 'begin'
+            self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + begin_match.start()
+            self.is_active = True
+            self.update_suggestions()
+            self.widget.queue_draw()
+            return
+
+        self.context = None
         matching_result = _ACTIVATE_REGEX.search(line_before_cursor)
         if matching_result:
             self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + matching_result.start()
@@ -170,6 +223,8 @@ class Autocomplete(object):
 
         self.current_word_offset = None
         self.current_word = None
+        self.context = None
+        self.context = None
         self.items = []
         self.last_tabbed_item = None
         self.first_item_index = None
@@ -203,15 +258,22 @@ class Autocomplete(object):
         self.db_error = (LaTeXDB.last_parse_error is not None and
                          LaTeXDB.is_dynamic_query(self.current_word))
 
-        # 缓存命中：current_word 与 last_tabbed_item 都未变时（例如 queue_draw
-        # 链路重复触发、或 idle 与直接调用同帧到达），LaTeXDB.get_items 结果
-        # 必然相同，跳过遍历。current_word 是从 cursor 位置派生的，光标在词内
-        # 任何移动都会改变它，所以命中场景主要是「同帧重复调用」——这正是
-        # idle 去抖之外仍可能出现的情况（如 tab() 后再 update_suggestions）。
-        cache_key = (self.current_word, self.last_tabbed_item)
+        # 缓存命中：current_word、last_tabbed_item、context 都未变时，
+        # LaTeXDB 查询结果必然相同，跳过遍历。context 纳入键——\begin{} 与
+        # 普通命令的补全数据源不同，必须区分。
+        cache_key = (self.current_word, self.last_tabbed_item, self.context)
         if cache_key != self._last_suggestions_key:
             self._last_suggestions_key = cache_key
-            self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item)
+            if self.context == 'begin':
+                self.items = LaTeXDB.get_environment_items(self.current_word)
+            else:
+                self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item)
+            # 文档体（\begin{document} 之后）隐藏仅 preamble 命令（报告 #7）。
+            if self.context != 'begin':
+                preamble_end = self._get_preamble_end()
+                if preamble_end is not None and insert_iter.get_offset() > preamble_end:
+                    self.items = [it for it in self.items
+                                  if _cmd_base(it['command']) not in _PREAMBLE_ONLY]
             # items 集合可能已变，重置选中项到首项（与原行为一致）。
             if len(self.items) > 0:
                 self.first_item_index = 0
@@ -227,6 +289,22 @@ class Autocomplete(object):
                 self.deactivate()
                 return
         self.widget.queue_draw()
+
+    def _get_preamble_end(self):
+        '''返回 preamble 区块结束偏移（\begin{document} 之前）；无则返回 None。'''
+        parser = getattr(self.document, 'parser', None)
+        if parser is None:
+            return None
+        symbols = getattr(parser, 'symbols', None)
+        if not symbols:
+            return None
+        blocks = symbols.get('blocks')
+        if not blocks:
+            return None
+        for block in blocks:
+            if len(block) >= 2 and block[-1] == 'preamble':
+                return block[1]
+        return None
 
     def select_next(self):
         if len(self.items) == 0: return

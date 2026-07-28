@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.dialogs.about.about import AboutDialog
+from setzer.dialogs.first_run_tutorial.first_run_tutorial import FirstRunTutorialDialog
 from setzer.dialogs.add_remove_packages.add_remove_packages import AddRemovePackagesDialog
 from setzer.dialogs.autosave_recovery.autosave_recovery import AutosaveRecoveryDialog
 from setzer.dialogs.build_save.build_save import BuildSaveDialog
@@ -44,6 +45,7 @@ class DialogLocator():
     def init_dialogs(main_window, workspace):
         dialogs = dict()
         dialogs['about'] = AboutDialog(main_window)
+        dialogs['first_run_tutorial'] = FirstRunTutorialDialog(main_window)
         dialogs['add_remove_packages'] = AddRemovePackagesDialog(main_window)
         dialogs['autosave_recovery'] = AutosaveRecoveryDialog(main_window, workspace)
         dialogs['build_save'] = BuildSaveDialog(main_window, workspace)

@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gdk, Gio, GObject
+from setzer.widgets.search_highlight import highlight
 import os.path
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
@@ -294,6 +295,8 @@ class BuildLogList(Gtk.ListBox):
         # BuildLogList 不直接依赖 ai_fix 服务，仅把 row 转发给 controller，
         # 避免把 service 耦合进纯视图层（与 copy 按钮范式一致）。
         self.ai_fix_row_callback = None
+        # 当前搜索文本，供 make_row 对标题/副标题做命中加粗（空串即不高亮）。
+        self.search_text = ''
 
     def make_row(self, item_type, filename, line_number, description):
         '''构造一条 Adw.ActionRow。
@@ -306,13 +309,16 @@ class BuildLogList(Gtk.ListBox):
         # selectable=True 配合列表的 SINGLE 选择模式，使方向键能选中并高亮当前行。
         row.set_selectable(True)
         row.set_activatable(True)
+        # use-markup 让标题/副标题渲染 Pango markup，供搜索命中加粗使用。
+        row.set_use_markup(True)
         row.add_prefix(Gtk.Image(icon_name=ICON_MAP.get(item_type, 'dialog-warning-symbolic')))
-        row.set_title(description if description else '')
+        # 搜索命中高亮：标题(描述)/副标题(文件:行号)中匹配子串加粗。
+        row.set_title(highlight(description, self.search_text) if description else '')
         if filename:
             subtitle = os.path.basename(filename)
             if line_number >= 0:
                 subtitle += ':' + str(line_number)
-            row.set_subtitle(subtitle)
+            row.set_subtitle(highlight(subtitle, self.search_text) if subtitle else '')
         row.filename = filename
         row.line_number = line_number
         row.description = description

@@ -18,6 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Adw
+from setzer.widgets.search_highlight import escape_markup, highlight
 
 
 class StructureWidget(Gtk.Box):
@@ -139,11 +140,79 @@ class StructureWidget(Gtk.Box):
                 if getattr(child, '_filter_visible', None) != match:
                     child.set_visible(match)
                     child._filter_visible = match
+                # 搜索命中高亮：匹配子串加粗（Pango markup）。query 为空时
+                # 还原纯文本，清除此前的高亮。
+                self._highlight_row(child, query, title_lower, subtitle_lower)
                 if match:
                     any_visible = True
             child = child.get_next_sibling()
         self._last_filter_any_visible = any_visible
         return any_visible
+
+    def _highlight_row(self, row, query, title_lower, subtitle_lower):
+        '''Bold the matched substring of a row's title/subtitle via Pango markup.
+
+        Adw.ActionRow.set_title() only accepts plain text, so the highlight is
+        applied to the captured title/subtitle Gtk.Label widgets.'''
+        title_text = getattr(row, '_title_text', None)
+        if title_text is None:
+            title_text = row.get_title() or ''
+        title_label = getattr(row, '_title_label', None)
+        subtitle_label = getattr(row, '_subtitle_label', None)
+        subtitle_text = row.get_subtitle() or ''
+
+        if not query:
+            if title_label is not None:
+                title_label.set_text(title_text)
+            if subtitle_label is not None and subtitle_text:
+                subtitle_label.set_text(subtitle_text)
+            return
+
+        if query in title_lower and title_label is not None:
+            title_label.set_markup(highlight(title_text, query))
+            if subtitle_label is not None and subtitle_text:
+                subtitle_label.set_markup(escape_markup(subtitle_text))
+        elif subtitle_lower and query in subtitle_lower and subtitle_label is not None:
+            subtitle_label.set_markup(highlight(subtitle_text, query))
+            if title_label is not None:
+                title_label.set_markup(escape_markup(title_text))
+        else:
+            if title_label is not None:
+                title_label.set_markup(escape_markup(title_text))
+            if subtitle_label is not None and subtitle_text:
+                subtitle_label.set_markup(escape_markup(subtitle_text))
+
+    def _capture_row_labels(self, row, text):
+        '''Capture the title and subtitle Gtk.Label widgets of an Adw.ActionRow.
+
+        Adw.ActionRow has no public API to fetch these labels, and set_title()
+        only accepts plain text, so we locate them by walking the widget tree.
+        The subtitle label is the title label's sibling inside the same
+        (header) container, which avoids mistaking tree-line prefix labels.'''
+        labels = []
+        def collect(w):
+            if isinstance(w, Gtk.Label):
+                labels.append(w)
+            c = w.get_first_child()
+            while c is not None:
+                collect(c)
+                c = c.get_next_sibling()
+        collect(row)
+        row._title_label = None
+        row._subtitle_label = None
+        for label in labels:
+            if label.get_text() == text:
+                row._title_label = label
+                break
+        if row._title_label is not None:
+            parent = row._title_label.get_parent()
+            if parent is not None:
+                sib = parent.get_first_child()
+                while sib is not None:
+                    if sib is not row._title_label and isinstance(sib, Gtk.Label):
+                        row._subtitle_label = sib
+                        break
+                    sib = sib.get_next_sibling()
 
     def make_row(self, icon_name, text, indent):
         row = Adw.ActionRow()
@@ -164,6 +233,8 @@ class StructureWidget(Gtk.Box):
         prefix_box.append(Gtk.Image(icon_name=icon_name))
         row.add_prefix(prefix_box)
         row.set_title(text)
+        row._title_text = text
+        self._capture_row_labels(row, text)
         # 标题可能被容器宽度截断（ellipsize），hover 时给出完整文本。
         row.set_tooltip_text(text)
         # 无障碍：outline 行本质是文档结构的树形项，设为 tree-item 角色

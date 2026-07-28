@@ -25,6 +25,7 @@ import setzer.helpers.timer as timer
 from setzer.helpers.symbol_categories import is_valid_category
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview
+from setzer.settings.document_settings import DocumentSettings
 
 import math
 import xml.etree.ElementTree as ET
@@ -55,10 +56,14 @@ class SymbolsPage(ScrollAnimatorMixin):
         # 时（duration 0.2s 内）timeout 仍访问已释放的 scrolled_window。
         self._scroll_timeout_id = None
 
-        self.recent = ServiceLocator.get_settings().get_value('app_recent_symbols', 'symbols')
+        # 最近符号按文档区分：数据来源于当前活动文档的 recent_symbols（每文档独立），
+        # 切换文档时由 on_new_active_document 重新指向并刷新 UI。无活动文档时退化为空列表。
+        active_document = self.workspace.get_active_document()
+        self.recent = active_document.recent_symbols if active_document is not None else list()
         self.recent_details = list()
         self.recent_view_size = None
         self.update_recent_widget()
+        self.workspace.connect('new_active_document', self.on_new_active_document)
 
         self.favorites = ServiceLocator.get_settings().get_value('app_favorite_symbols', 'symbols')
         self.favorites_details = list()
@@ -93,8 +98,17 @@ class SymbolsPage(ScrollAnimatorMixin):
         self._cancel_scroll_animation()
 
     def update_recent_widget(self):
+        # 切文档或初始化时先清空，避免与上一文档的最近符号列表重叠。
+        while self.view.symbols_view_recent.get_first_child() is not None:
+            self.view.symbols_view_recent.remove(self.view.symbols_view_recent.get_first_child())
+        self.recent_details = list()
         for item in [item for item in self.recent]:
             self.add_recent_symbol_to_flowbox(item)
+
+    def on_new_active_document(self, workspace=None, document=None):
+        # 切换文档：把 recent 指向新文档的独立列表并刷新 UI，实现「按文档区分最近符号」。
+        self.recent = document.recent_symbols if document is not None else list()
+        self.update_recent_widget()
 
     def _get_symbol_attrib(self, category, command):
         '''从分类 XML 取某 command 的属性字典，带缓存。
@@ -251,7 +265,13 @@ class SymbolsPage(ScrollAnimatorMixin):
         ServiceLocator.get_settings().set_value('app_favorite_symbols', 'symbols', list(self.favorites))
 
     def save_recent(self):
-        ServiceLocator.get_settings().set_value('app_recent_symbols', 'symbols', list(self.recent))
+        # 最近符号按文档区分：直接改写当前活动文档的 recent_symbols。文档对象
+        # 持有该列表的引用（self.recent 即 document.recent_symbols），这里负责
+        # 持久化——仅 filename 非空（有状态文件）才落盘，未保存文档只存内存。
+        # 注：不再写入全局 app_recent_symbols（见 symbols_page.py 顶部说明）。
+        document = self.workspace.get_active_document()
+        if document is not None:
+            DocumentSettings.save_document_state(document)
 
     def add_favorite_symbol_to_flowbox(self, item):
         # 共用 _append_symbol_to_flowbox；attrib 缺失时走 Favorites 专属清理。

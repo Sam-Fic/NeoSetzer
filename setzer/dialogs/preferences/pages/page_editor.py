@@ -22,8 +22,10 @@ gi.require_version('Adw', '1')
 gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Adw
 from gi.repository import GtkSource
+from gi.repository import Pango
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.app.font_manager import FontManager
 
 
 # 编辑器配色方案预览样例：用 LaTeX 代码（而非 Markdown），因为 Setzer 是
@@ -50,10 +52,11 @@ LANG_PREVIEWS = {
 
 class PageEditor(object):
 
-    def __init__(self, preferences, settings):
+    def __init__(self, preferences, settings, main_window=None):
         self.view = PageEditorView()
         self.preferences = preferences
         self.settings = settings
+        self.main_window = main_window
         self._flowbox_previews = []  # (GtkSource.StyleSchemePreview, scheme_id_or_'')
         # 用户点击网格 tile 时（on_scheme_activated）会写回设置并同步触发
         # settings_changed；为避免该回调重建整个网格造成闪烁，临时屏蔽重建。
@@ -109,9 +112,62 @@ class PageEditor(object):
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
 
+        # ---- 字体（从 Appearance 页移入，配合上方预览 SourceView 实时预览）----
+        self.view.option_use_system_font.set_active(
+            self.settings.get_value('preferences', 'use_system_font'))
+        self.view.font_chooser_button.set_font_desc(
+            Pango.FontDescription.from_string(self.settings.get_value('preferences', 'font_string')))
+        self.view.font_chooser_row.set_sensitive(not self.view.option_use_system_font.get_active())
+        self.view.option_use_system_font.connect('notify::active', self.on_use_system_font_toggled)
+        self.view.font_chooser_button.connect('notify::font-desc', self.on_font_set)
+        self.view.line_spacing_spin.set_value(
+            self.settings.get_value('preferences', 'line_spacing'))
+        self.view.line_spacing_spin.connect('notify::value', self.on_line_spacing_changed)
+        # 行距需手动作用于预览 SourceView；字体本身随全局 CSS 实时生效。
+        self.view.preview_source_view.set_pixels_below_lines(
+            self.settings.get_value('preferences', 'line_spacing'))
+
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
+
+    # ---- 字体（实时预览于 Appearance 组的预览 SourceView）----
+    def on_use_system_font_toggled(self, switch, pspec):
+        self.view.font_chooser_row.set_sensitive(not switch.get_active())
+        self.settings.set_value('preferences', 'use_system_font', switch.get_active())
+
+    def on_font_set(self, button, pspec=None):
+        font_desc = button.get_font_desc()
+        size = font_desc.get_size()
+        clamped = False
+        if size < 6 * Pango.SCALE:
+            font_desc.set_size(6 * Pango.SCALE)
+            button.set_font_desc(font_desc)
+            clamped = 'min'
+        elif size > 24 * Pango.SCALE:
+            font_desc.set_size(24 * Pango.SCALE)
+            button.set_font_desc(font_desc)
+            clamped = 'max'
+        self.settings.set_value('preferences', 'font_string', font_desc.to_string())
+        if clamped:
+            if clamped == 'min':
+                msg = _('Font size is too small; clamped to 6pt minimum.')
+            else:
+                msg = _('Font size is too large; clamped to 24pt maximum.')
+            self._show_toast(msg)
+
+    def on_line_spacing_changed(self, spin, pspec=None):
+        value = int(spin.get_value())
+        self.settings.set_value('preferences', 'line_spacing', value)
+        # 实时刷新预览 SourceView 行距（字体随全局 CSS 自动生效，行距需手动应用）。
+        self.view.preview_source_view.set_pixels_below_lines(value)
+
+    def _show_toast(self, message):
+        main_window = self.main_window or ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(message)
+            toast.set_timeout(4)
+            main_window.toast_overlay.add_toast(toast)
 
     # ---- editor color scheme grid (复刻 gnome-text-editor) ----
     def _current_dark(self):
@@ -248,6 +304,13 @@ class PageEditor(object):
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
         self.view.option_auto_reload_on_external_change.set_active(
             defaults['auto_reload_on_external_change'])
+        # 字体（从 Appearance 页移入，随此处一并重置）。
+        self.view.option_use_system_font.set_active(defaults['use_system_font'])
+        self.view.font_chooser_button.set_font_desc(
+            Pango.FontDescription.from_string(defaults['font_string']))
+        self.view.font_chooser_row.set_sensitive(not defaults['use_system_font'])
+        self.view.line_spacing_spin.set_value(defaults['line_spacing'])
+        self.view.preview_source_view.set_pixels_below_lines(defaults['line_spacing'])
 
 
 class PageEditorView(Adw.PreferencesPage):
@@ -292,12 +355,39 @@ class PageEditorView(Adw.PreferencesPage):
         self.scheme_flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
         group_appearance.add(self.scheme_flowbox)
 
+        # 字体：从 Appearance 页移入 Editor 页，配合上方预览 SourceView 提供
+        # 实时预览（字体随全局 CSS 生效，行距在 on_line_spacing_changed 手动作用）。
+        group_font = Adw.PreferencesGroup()
+        group_font.set_title(_('Font'))
+        self.add(group_font)
+
+        font_string = FontManager.get_system_font() or 'Monospace'
+        self.option_use_system_font = Adw.SwitchRow()
+        self.option_use_system_font.set_title(_('Use the system fixed width font'))
+        self.option_use_system_font.set_subtitle(font_string)
+        group_font.add(self.option_use_system_font)
+
+        self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
+        self.font_chooser_button.set_valign(Gtk.Align.CENTER)
+        self.font_chooser_row = Adw.ActionRow()
+        self.font_chooser_row.set_title(_('Set Editor Font'))
+        self.font_chooser_row.add_suffix(self.font_chooser_button)
+        group_font.add(self.font_chooser_row)
+
+        self.line_spacing_spin = Adw.SpinRow()
+        self.line_spacing_spin.set_title(_('Line Spacing'))
+        self.line_spacing_spin.set_subtitle(_('Extra vertical space between lines in pixels.'))
+        adjustment_line_spacing = Gtk.Adjustment(value=0, lower=0, upper=12, step_increment=1)
+        self.line_spacing_spin.set_adjustment(adjustment_line_spacing)
+        group_font.add(self.line_spacing_spin)
+
         group_tab_stops = Adw.PreferencesGroup()
         group_tab_stops.set_title(_('Tab Stops'))
         self.add(group_tab_stops)
 
         self.option_spaces_instead_of_tabs = Adw.SwitchRow()
         self.option_spaces_instead_of_tabs.set_title(_('Insert spaces instead of tabs'))
+        self.option_spaces_instead_of_tabs.set_subtitle(_('Use spaces when pressing Tab, instead of a tab character.'))
         group_tab_stops.add(self.option_spaces_instead_of_tabs)
 
         self.tab_width_row = Adw.SpinRow()
@@ -313,6 +403,7 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_line_numbers = Adw.SwitchRow()
         self.option_show_line_numbers.set_title(_('Show line numbers'))
+        self.option_show_line_numbers.set_subtitle(_('Display line numbers in the editor gutter.'))
         group_line_numbers.add(self.option_show_line_numbers)
 
         group_line_wrapping = Adw.PreferencesGroup()
@@ -321,6 +412,7 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_line_wrapping = Adw.SwitchRow()
         self.option_line_wrapping.set_title(_('Enable line wrapping'))
+        self.option_line_wrapping.set_subtitle(_('Wrap long lines instead of scrolling horizontally.'))
         group_line_wrapping.add(self.option_line_wrapping)
 
         group_code_folding = Adw.PreferencesGroup()
@@ -329,6 +421,7 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_code_folding = Adw.SwitchRow()
         self.option_code_folding.set_title(_('Enable code folding'))
+        self.option_code_folding.set_subtitle(_('Allow collapsing blocks of code such as environments.'))
         group_code_folding.add(self.option_code_folding)
 
         group_highlighting = Adw.PreferencesGroup()
@@ -337,10 +430,12 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_highlight_current_line = Adw.SwitchRow()
         self.option_highlight_current_line.set_title(_('Highlight current line'))
+        self.option_highlight_current_line.set_subtitle(_('Visually emphasize the line containing the cursor.'))
         group_highlighting.add(self.option_highlight_current_line)
 
         self.option_highlight_matching_brackets = Adw.SwitchRow()
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
+        self.option_highlight_matching_brackets.set_subtitle(_('Highlight the bracket matching the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_brackets)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，

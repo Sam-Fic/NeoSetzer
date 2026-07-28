@@ -153,6 +153,10 @@ class BuildLogDialogPresenter(object):
 
         self.view.clear_all()
 
+        # 把当前搜索文本下发给各列表，供 make_row 对标题/副标题做命中加粗。
+        for lst in self.view.lists.values():
+            lst.search_text = self.search_text
+
         any_visible = False
         for item in self.build_log.items:
             item_type = item[0]

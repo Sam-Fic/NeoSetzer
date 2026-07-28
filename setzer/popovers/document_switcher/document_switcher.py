@@ -57,6 +57,7 @@ class DocumentSwitcher(Observable):
         self.view.dialog.connect('closed', self.on_dialog_closed)
         self.view.set_root_document_row.connect('activated', self.set_selection_mode)
         self.view.unset_root_document_row.connect('activated', self.unset_root_document)
+        self.view.cancel_button.connect('clicked', self.activate_normal_mode)
 
         self.update_items()
         self.update_unset_root_button()
@@ -285,43 +286,55 @@ class DocumentSwitcher(Observable):
         # 仅对已保存到磁盘的文档入栈，未保存文档会被忽略。
         self.workspace.actions.push_closed_document(document.get_filename())
         if document.source_buffer.get_modified():
-            active_document = self.workspace.get_active_document()
-            if document != active_document:
-                previously_active_document = active_document
-                self.workspace.set_active_document(document)
-            else:
-                previously_active_document = None
+            # 记录被关闭文档是否为当前活动文档，用于决定是否需要重显切换器。
+            # 不在此处预先 set_active_document：该调用会在确认对话框弹出前
+            # 同步切换视图，造成用户可见的跳变。确认对话框已显示文档名，
+            # 用户无需看到文档内容即可决定是否保存。
+            is_active = (document == self.workspace.get_active_document())
 
             self.view.dialog.close()
             dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': document, 'previously_active_document': previously_active_document}, self.on_close_document_callback)
+            dialog.run({'unsaved_document': document, 'is_active': is_active}, self.on_close_document_callback)
         else:
             if document == self.workspace.get_active_document():
                 self.view.dialog.close()
             self.workspace.remove_document(document)
 
     def on_close_document_callback(self, parameters):
+        is_active = parameters['is_active']
+
         if parameters['response'] == 0:
             self.workspace.remove_document(parameters['unsaved_document'])
         elif parameters['response'] == 2:
             document = parameters['unsaved_document']
             if document.get_filename() == None:
+                # 新文档无路径：设置为活动态以承载文件选择器视图，
+                # 保存对话框关闭后通过回调重新展示切换器（用户可再次尝试关闭）。
                 self.workspace.set_active_document(document)
-                DialogLocator.get_dialog('save_document').run(document)
+                DialogLocator.get_dialog('save_document').run(
+                    document, self._on_save_new_document_callback, parameters)
                 return
             else:
                 document.save_to_disk()
                 self.workspace.remove_document(parameters['unsaved_document'])
 
-        if parameters['previously_active_document'] != None:
-            self.workspace.set_active_document(parameters['previously_active_document'])
-            # close() 已触发 on_dialog_closed 把 _is_visible 置 False；重新展示前
-            # 恢复标志并按 dirty 重建（关闭期间 remove_document 等已标记 dirty）。
-            self._is_visible = True
-            if self._dirty:
-                self._dirty = False
-                self._rebuild_rows()
-            self.view.dialog.present(self.main_window)
+        # 非活动文档被关闭 / 取消时重显切换器；
+        # 活动文档被关闭时，remove_document 已自动切换到其他文档，不重显。
+        if not is_active or parameters['response'] == 1:
+            self._show_switcher()
+
+    def _on_save_new_document_callback(self, parameters):
+        # 用户在保存对话框完成（含取消）后，重新展示切换器让用户再次尝试关闭。
+        self._show_switcher()
+
+    def _show_switcher(self):
+        # close() 已触发 on_dialog_closed 把 _is_visible 置 False；重新展示前
+        # 恢复标志并按 dirty 重建（关闭期间 remove_document 等已标记 dirty）。
+        self._is_visible = True
+        if self._dirty:
+            self._dirty = False
+            self._rebuild_rows()
+        self.view.dialog.present(self.main_window)
 
     def on_dialog_closed(self, dialog=None):
         self._is_visible = False
@@ -353,6 +366,7 @@ class DocumentSwitcher(Observable):
 
     def activate_normal_mode(self):
         self.root_selection_mode = False
+        self.view.dialog.set_title(_('Open Documents'))
         self.activate_set_root_document_button()
         self.update_unset_root_button()
         self.view.explanation_group.set_visible(False)
@@ -360,6 +374,7 @@ class DocumentSwitcher(Observable):
 
     def activate_selection_mode(self):
         self.root_selection_mode = True
+        self.view.dialog.set_title(_('Select Root Document'))
         self.view.set_root_document_row.set_sensitive(False)
         self.view.unset_root_document_row.set_sensitive(True)
         self.view.explanation_group.set_visible(True)

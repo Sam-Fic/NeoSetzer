@@ -93,17 +93,10 @@ class Headerbar(object):
     def on_update_recently_opened_documents(self, workspace, recently_opened_documents):
         if self.workspace.active_document is None:
             self.view.open_document_button.set_visible(False)
-            self.view.open_document_blank_button.set_visible(False)
             return
-        data = recently_opened_documents.values()
-        if len(data) > 0:
-            self.view.open_document_button.set_sensitive(True)
-            self.view.open_document_button.set_visible(True)
-            self.view.open_document_blank_button.set_visible(False)
-        else:
-            self.view.open_document_button.set_sensitive(False)
-            self.view.open_document_button.set_visible(False)
-            self.view.open_document_blank_button.set_visible(True)
+        # 合并后的单一 SplitButton 总是可见；主操作（Ctrl+O）始终打开文件选择
+        # 对话框，不受最近文档有无影响。下拉箭头中的"最近文档"项仍可展示空列表。
+        self.view.open_document_button.set_visible(True)
 
     def set_build_button_state(self):
         document = self.workspace.get_root_or_active_latex_document()
@@ -125,7 +118,6 @@ class Headerbar(object):
         self.hide_preview_help_toggles()
         self.view.save_document_button.set_visible(False)
         self.view.open_document_button.set_visible(False)
-        self.view.open_document_blank_button.set_visible(False)
         self.view.new_document_button.set_visible(False)
         self.view.center_button.set_sensitive(False)
         self.view.center_widget.set_visible_child_name('welcome')

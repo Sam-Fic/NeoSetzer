@@ -134,17 +134,25 @@ class MainWindow(Adw.ApplicationWindow):
         self.welcome_screen = welcome_screen_view.WelcomeScreenView()
 
         # welcome_overlay：把欢迎页包进 Gtk.Overlay，以便 headerbar 在欢迎页
-        # 模式下作为浮层叠在欢迎页顶部（无文档时 mode_stack 显示 welcome_screen，
-        # 此时 headerbar 必须可见，否则用户无法点 open/create 按钮开始编辑——
-        # 而欢迎页文字也写着「Click the open or create buttons in the headerbar
-        # above」）。headerbar 是单一控件，通过 reparent_headerbar() 在
-        # welcome_overlay 与 document_stack_overlay 之间迁移，详见该方法注释。
+        # 模式下作为浮层叠在欢迎页顶部（无文档时 mode_stack 显示 welcome_screen）。
+        # 注意：欢迎模式下 open/create 按钮已移到欢迎页正文（activate_welcome_screen_mode
+        # 会隐藏 headerbar 的 open/new/save 按钮），headerbar 仅保留居中标题与菜单按钮；
+        # 迁到 welcome_overlay 是为了让这个菜单/标题在欢迎页依然可见可用。headerbar 是
+        # 单一控件，通过 reparent_headerbar() 在 welcome_overlay 与 document_stack_overlay
+        # 之间迁移，详见该方法注释。
         self.welcome_overlay = Gtk.Overlay()
         self.welcome_overlay.set_child(self.welcome_screen)
 
         self.mode_stack = Gtk.Stack()
         self.mode_stack.add_named(self.welcome_overlay, 'welcome_screen')
         self.mode_stack.add_named(self.sidebar_split, 'documents')
+        # welcome↔documents 模式切换时加 CROSSFADE 过渡（200ms 与 libadwaita
+        # 默认动画时长一致）。这是一次性切换，原用 NONE（无过渡）显得硬切，
+        # 与 document_stack / preview_help_stack / headerbar center_widget 的
+        # 过渡风格统一。200ms 与 headerbar 的 welcome↔document 切换等长，
+        # 避免两者动画节奏不一致。
+        self.mode_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.mode_stack.set_transition_duration(200)
 
         self.headerbar = headerbar_view.HeaderBar()
 
@@ -276,13 +284,24 @@ class MainWindow(Adw.ApplicationWindow):
     def reparent_headerbar(self, to_welcome):
         '''在 welcome_overlay 与 document_stack_overlay 之间迁移 headerbar。
 
-        headerbar 是单一控件实例（按钮/信号唯一绑定），不能同时在两处。无文档时
-        mode_stack 显示 welcome_screen，此时 headerbar 必须叠在 welcome_overlay
-        上，否则 open/create 按钮不可见、用户无法开始编辑；有文档时 headerbar
-        回到 document_stack_overlay（只覆盖编辑器列），保留预览/帮助侧栏的完整
-        高度（侧栏顶部有自己的 .sidebar-toolbar 工具栏）。模式切换时由
-        presenter 调用本方法迁移，迁移在 mode_stack 切页前后完成，避免可见
-        瞬间的空标题栏。'''
+        根因（为什么必须搬运，而不是更简单的方式）：
+        - headerbar 是单一控件实例（按钮/信号/菜单气泡唯一绑定），同一时刻只能有
+          一个父容器，无法同时出现在两个 overlay 上。
+        - 设计上 headerbar 在文档模式下只浮在「编辑器列」上方（document_stack_overlay），
+          以便左右预览/帮助侧栏保留各自顶部那一条 .sidebar-toolbar，不被标题栏遮挡。
+        - 但欢迎模式没有「编辑器列/侧栏」这套结构，headerbar 必须改挂到 welcome_overlay
+          才能盖住整个欢迎页。于是切模式时只能把它从一处物理搬到另一处。
+
+        为什么不干脆做成窗口级标题栏（set_titlebar）来彻底避免搬运？
+        ——那样标题栏会横跨整窗宽度，左右侧栏顶部工具栏会被压到标题栏下方，破坏
+        「侧栏工具栏与标题栏顶对齐」的观感。当前设计优先保留该观感，因此接受搬运的
+        脆弱性（可能丢焦点/关闭已打开的菜单气泡/触发断点重算），属刻意为之。
+
+        无文档时 mode_stack 显示 welcome_screen，headerbar 叠在 welcome_overlay 上，
+        使欢迎页仍能显示菜单按钮与「Welcome to Setzer」标题（open/create 按钮已在
+        欢迎页正文，由 activate_welcome_screen_mode 隐藏）；有文档时回到
+        document_stack_overlay，只覆盖编辑器列。迁移由 presenter 在 mode_stack 切页
+        前后调用，避免可见瞬间的空标题栏。'''
         if to_welcome == self._headerbar_in_welcome:
             return
         hb = self.headerbar.widget

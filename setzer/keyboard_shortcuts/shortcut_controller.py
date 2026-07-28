@@ -36,7 +36,11 @@ class ShortcutController(Gtk.ShortcutController):
         self.add_shortcut(shortcut)
 
     def action(self, a, b, callback):
-        callback()
+        result = callback()
+        # 返回 False 表示本快捷键未处理，事件继续向下传播（如源码视图中的
+        # Alt+Up/Down 由 document 控制器接管，用于移动行）。
+        if result is False:
+            return False
         return True
 
 

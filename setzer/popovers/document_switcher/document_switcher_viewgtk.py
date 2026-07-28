@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
+from setzer.widgets.search_highlight import highlight_fuzzy
 
 import os.path
 
@@ -61,6 +62,19 @@ class DocumentSwitcherView(object):
         self.explanation_label.set_margin_top(10)
         self.explanation_label.set_margin_bottom(6)
         self.explanation_group.add(self.explanation_label)
+
+        # 选择模式下的显式退出路径：独立的「取消」按钮，避免只能靠 Esc 关闭。
+        # 它随 explanation_group 一起显隐，常驻底部、居中对齐、加宽便于点击。
+        self.cancel_button = Gtk.Button(label=_('Cancel'))
+        self.cancel_button.set_halign(Gtk.Align.CENTER)
+        self.cancel_button.set_margin_top(10)
+        self.cancel_button.set_margin_bottom(6)
+        self.cancel_button.set_hexpand(True)
+        self.cancel_button.set_margin_start(12)
+        self.cancel_button.set_margin_end(12)
+        self.cancel_button.set_css_classes(['suggested-action', 'pill'])
+        self.explanation_group.add(self.cancel_button)
+
         self.explanation_group.set_visible(False)
         self.page.add(self.explanation_group)
 
@@ -79,7 +93,7 @@ class DocumentSwitcherView(object):
         self.unset_root_document_row = Adw.ActionRow()
         self.unset_root_document_row.set_activatable(True)
         self.unset_root_document_row.set_title(_('Unset Root Document'))
-        self.unset_root_document_row.set_icon_name('document-edit-symbolic')
+        self.unset_root_document_row.set_icon_name('edit-clear-symbolic')
         self.root_group.add(self.unset_root_document_row)
         self.page.add(self.root_group)
 
@@ -110,7 +124,7 @@ class DocumentSwitcherView(object):
             self.group.remove(row)
         self.rows = []
         for document in visible_documents:
-            row = self.create_row(document, root_selection_mode, document is active_document, bool(query))
+            row = self.create_row(document, root_selection_mode, document is active_document, query)
             self.group.add(row)
             self.rows.append(row)
 
@@ -137,7 +151,7 @@ class DocumentSwitcherView(object):
             i += 1
         return True
 
-    def create_row(self, document, root_selection_mode, is_active=False, show_path=False):
+    def create_row(self, document, root_selection_mode, is_active=False, query=''):
         row = Adw.ActionRow()
         row.set_activatable(True)
         row.document = document
@@ -149,15 +163,19 @@ class DocumentSwitcherView(object):
         row.add_prefix(icon)
 
         modified_suffix = '*' if document.source_buffer.get_modified() else ''
-        row.set_title(os.path.split(document.get_displayname())[1] + modified_suffix)
+        basename = os.path.split(document.get_displayname())[1]
+        # use-markup 让标题/副标题渲染 Pango markup，供模糊命中加粗使用。
+        row.set_use_markup(True)
+        # 搜索命中高亮：模糊匹配命中的字符加粗（标题=文件名，子标题=目录）。
+        row.set_title(highlight_fuzzy(basename + modified_suffix, query))
 
         # 8.3：重名文件时 tooltip 显示完整路径，便于区分。
         row.set_tooltip_text(document.get_filename() or document.get_displayname())
-        # 搜索过滤时显示所在目录，便于在仅显示 basename 时定位。
-        if show_path:
+        # 搜索过滤时显示所在目录，便于在仅显示 basename 时定位，并对命中字符加粗。
+        if query:
             filename = document.get_filename()
             if filename:
-                row.set_subtitle(os.path.dirname(filename))
+                row.set_subtitle(highlight_fuzzy(os.path.dirname(filename), query))
 
         if is_active:
             row.add_css_class('accent')

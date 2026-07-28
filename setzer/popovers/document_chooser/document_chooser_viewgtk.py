@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
+from setzer.widgets.search_highlight import highlight
 
 
 class DocumentChooserView(object):
@@ -82,19 +83,26 @@ class DocumentChooserView(object):
     def create_row(self, folder, filename):
         row = Adw.ActionRow()
         row.set_activatable(True)
-        row.set_title(filename)
-        row.set_subtitle(folder)
+        # use-markup 让标题/副标题渲染 Pango markup，供搜索命中加粗使用。
+        row.set_use_markup(True)
+        row.set_title(highlight(filename, ''))
+        row.set_subtitle(highlight(folder, ''))
         row.folder = folder
         row.filename = filename
         return row
 
     def search_filter(self):
-        query = self.search_entry.get_text().lower()
+        query_raw = self.search_entry.get_text()
+        query = query_raw.lower()
         count = 0
         for row in self.rows:
             match = (query == '' or
                      query in row.filename.lower() or
                      query in row.folder.lower())
+            if match:
+                # 搜索命中高亮：标题(文件名)/副标题(目录)中匹配子串加粗。
+                row.set_title(highlight(row.filename, query_raw))
+                row.set_subtitle(highlight(row.folder, query_raw))
             row.set_visible(match)
             if match:
                 count += 1

@@ -98,19 +98,7 @@ class HelpPanelController(object):
 
     def on_search_button_toggled(self, button):
         if button.get_active():
-            # content/search 两页互斥可见（不再用 Gtk.Stack 叠放，避免 content
-            # 页覆盖并裁切 search 页边缘）。
-            self.view.content.set_visible(False)
-            self.view.search_content_box.set_visible(True)
-            self.view.search_entry.set_text('')
-            self.view.search_entry.grab_focus()
-            self.help_panel.set_search_query(self.view.search_entry.get_text())
-            # 预加载搜索索引：set_search_query('') 走空查询分支不会触发
-            # _ensure_search_index，导致用户输入第一个字符后的首次搜索要
-            # 同步承担 pickle.load + trigram 构建（~25ms / 2080 项）。此处
-            # 面板刚展开、用户尚未敲键，把这次一次性开销移到无感知时刻，
-            # 之后首次真实查询即即时响应（trigram 搜索本身 ~5ms）。
-            self.help_panel._ensure_search_index()
+            self._open_search()
         else:
             if HAS_WEBKIT:
                 self.view.search_content_box.set_visible(False)
@@ -121,17 +109,48 @@ class HelpPanelController(object):
                 pass
             self.help_panel.workspace.presenter.focus_active_document()
 
+    def open_search(self):
+        '''打开帮助搜索页并聚焦搜索输入框。
+
+        供搜索切换按钮以及全局 Ctrl+F 快捷键（帮助面板获得键盘焦点时）
+        调用。即使搜索页已经打开也可安全重复调用：仅重新聚焦输入框，
+        不会破坏其它状态。'''
+        if not self.view.search_button.get_active():
+            # 触发 'toggled' 信号 → _open_search()
+            self.view.search_button.set_active(True)
+        else:
+            self._open_search()
+
+    def _open_search(self):
+        # content/search 两页互斥可见（不再用 Gtk.Stack 叠放，避免 content
+        # 页覆盖并裁切 search 页边缘）。
+        self.view.content.set_visible(False)
+        self.view.search_content_box.set_visible(True)
+        self.view.search_entry.set_text('')
+        self.view.search_entry.grab_focus()
+        self.help_panel.set_search_query(self.view.search_entry.get_text())
+        # 预加载搜索索引：set_search_query('') 走空查询分支不会触发
+        # _ensure_search_index，导致用户输入第一个字符后的首次搜索要
+        # 同步承担 pickle.load + trigram 构建（~25ms / 2080 项）。此处
+        # 面板刚展开、用户尚未敲键，把这次一次性开销移到无感知时刻，
+        # 之后首次真实查询即即时响应（trigram 搜索本身 ~5ms）。
+        self.help_panel._ensure_search_index()
+
     def on_search_entry_changed(self, entry):
         # 去抖：取消上一次待执行的搜索，重新计时。连续按键只会在停顿后触发一次
         # 全量索引扫描 + 结果重建。
         if self._search_idle_id is not None:
             GLib.source_remove(self._search_idle_id)
-        text = entry.get_text()
-        self._search_idle_id = GLib.timeout_add(150, self._do_search, text)
+        # 注意：这里【不要】此刻读取并缓存 entry 文本。'changed' 可能在文本
+        # 真正更新前/后于清空动作触发，若在此捕获文本再延迟执行，可能出现
+        # “搜索框已空、却用旧文本（如残留的 'k'）执行了一次搜索”的竞态，
+        # 表现为空搜索却像搜了一个字母。改为在 _do_search 触发时再读当前文本。
+        self._search_idle_id = GLib.timeout_add(150, self._do_search)
 
-    def _do_search(self, text):
+    def _do_search(self):
         self._search_idle_id = None
-        self.help_panel.set_search_query(text)
+        # 触发时才读取搜索框当前文本，避免捕获到清空前的残留字符。
+        self.help_panel.set_search_query(self.view.search_entry.get_text())
         return False
 
     def on_search_stopped(self, entry):

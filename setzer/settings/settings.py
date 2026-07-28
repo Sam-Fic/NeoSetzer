@@ -119,7 +119,9 @@ class Settings(Observable):
         self.defaults['app_include_bibtex_file_dialog'] = dict()
         self.defaults['app_include_bibtex_file_dialog']['presets'] = None
 
-        self.defaults['app_recent_symbols'] = {'symbols': []}
+        # 注：app_recent_symbols 已移除——最近符号改为按文档区分（见
+        # setzer/document/document.py 的 document.recent_symbols 与
+        # setzer/settings/document_settings.py 的 per-document 持久化）。
         self.defaults['app_favorite_symbols'] = {'symbols': []}
 
         self.defaults['preferences'] = dict()
@@ -162,6 +164,18 @@ class Settings(Observable):
         self.defaults['preferences']['enable_bracket_completion'] = True
         self.defaults['preferences']['bracket_selection'] = True
         self.defaults['preferences']['tab_jump_brackets'] = True
+        # 手动触发补全的快捷键（GTK 加速器字符串）。默认 Ctrl+Space；
+        # 在 CJK 输入法环境下可能与输入法开关冲突，可在「偏好 → 自动补全」中改绑。
+        self.defaults['preferences']['autocomplete_manual_trigger'] = '<Control>space'
+        # 补全弹窗内的导航键（GTK 加速器字符串），全部可在「偏好 → 自动补全」中改绑
+        # （报告 #6 的遗留项：把上/下一条、上一页/下一页、接受、取消登记为可配置项，
+        # 让补全弹窗的键盘交互可被用户发现与重映射）。
+        self.defaults['preferences']['autocomplete_previous'] = 'Up'
+        self.defaults['preferences']['autocomplete_next'] = 'Down'
+        self.defaults['preferences']['autocomplete_previous_page'] = 'Page_Up'
+        self.defaults['preferences']['autocomplete_next_page'] = 'Page_Down'
+        self.defaults['preferences']['autocomplete_accept'] = 'Return'
+        self.defaults['preferences']['autocomplete_cancel'] = 'Escape'
         self.defaults['preferences']['update_matching_blocks'] = True
         # 自动保存（崩溃恢复模式）：定时把缓冲区内容写入
         # ~/.config/setzer/autosave/<hash>.tex，应用崩溃后下次启动弹恢复对话框。
@@ -172,10 +186,10 @@ class Settings(Observable):
         # 当检测到外部程序修改磁盘文件时，是否自动静默重载。
         # 仅对本地 buffer 无未保存修改的文档生效；有未保存修改时回退到对话框。
         self.defaults['preferences']['auto_reload_on_external_change'] = True
-        # 首次在预览上成功渲染 PDF 时，弹出一次「Ctrl+点击预览跳转到源码」的
-        # 提示，提升反向 SyncTeX 的可发现性。置 True 后不再弹（持久化到
-        # settings.json，跨会话只提示一次）。
-        self.defaults['preferences']['backward_sync_hint_shown'] = False
+        # 首次运行引导（welcome dialog）：在用户首次构建或首次预览时弹一次，
+        # 列出 Setzer 的核心功能要点。first_run_tutorial_shown 置 True 后不再
+        # 自动弹；偏好页的“再次显示首次引导”按钮可随时手动重看。
+        self.defaults['preferences']['first_run_tutorial_shown'] = False
 
         # —— AI 修复集成（build log → 外部 Agent CLI）——
         # 设计见 .trae/documents/ai-fix-agent-integration.md。

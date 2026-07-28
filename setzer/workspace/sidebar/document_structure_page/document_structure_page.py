@@ -55,7 +55,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.page.set_vexpand(True)
 
         self.no_results_status = Adw.StatusPage()
-        self.no_results_status.set_icon_name('edit-find-symbolic')
+        self.no_results_status.set_icon_name('action-unavailable-symbolic')
         self.no_results_status.set_title(_('No Results'))
         self.no_results_status.set_description(_('No sections match your search'))
         self.no_results_status.set_vexpand(True)
@@ -149,14 +149,14 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
         self.prev_button = Gtk.Button()
         self.prev_button.set_icon_name('go-up-symbolic')
-        self.prev_button.set_tooltip_text(_('Previous section'))
+        self.prev_button.set_tooltip_text(_('Previous section') + '  (Alt+Up)')
         self.prev_button.add_css_class('flat')
         self.prev_button.set_can_focus(False)
         self.nav_box.append(self.prev_button)
 
         self.next_button = Gtk.Button()
         self.next_button.set_icon_name('go-down-symbolic')
-        self.next_button.set_tooltip_text(_('Next section'))
+        self.next_button.set_tooltip_text(_('Next section') + '  (Alt+Down)')
         self.next_button.add_css_class('flat')
         self.next_button.set_can_focus(False)
         self.nav_box.append(self.next_button)

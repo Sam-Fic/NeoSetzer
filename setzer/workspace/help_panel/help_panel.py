@@ -32,12 +32,11 @@ except (ValueError, ImportError):
 
 import os.path
 import pickle
-import html
-import re
 import json
 from string import Template
 from gi.repository import Pango
 from setzer.app.font_manager import FontManager
+from setzer.widgets.search_highlight import highlight_words
 
 from setzer.helpers.observable import Observable
 from setzer.helpers.persistence import load_json, load_pickle_restricted
@@ -151,21 +150,6 @@ class HelpPanel(Observable):
 
         self.add_change_code('uri_changed', self.current_uri)
 
-    def _highlight(self, text, words_lower):
-        # 单次扫描替代原实现的多遍 str.replace：
-        #   1. html.unescape 解码 HTML 实体（原 4 次 replace，且顺序脆弱）
-        #   2. 大小写不敏感正则一次性插入 \x00/\x01 高亮标记（原每词 3 次 replace）
-        #   3. html.escape 重新转义（原 6 次 replace）
-        #   4. 标记转 <b></b>
-        # \x00/\x01 是不可能出现在帮助文本中的控制字符，避免与原文冲突。
-        text = html.unescape(text)
-        if words_lower:
-            pattern = re.compile('|'.join(re.escape(w) for w in words_lower), re.IGNORECASE)
-            text = pattern.sub(lambda m: '\x00' + m.group(0) + '\x01', text)
-        text = html.escape(text)
-        text = text.replace('\x00', '<b>').replace('\x01', '</b>')
-        return text
-
     def set_search_query(self, query):
         self.query = query
         if query == '':
@@ -182,9 +166,9 @@ class HelpPanel(Observable):
             for idx in ranked_idxs:
                 item = index[idx]
                 # 高亮用查询词子串：模糊匹配项可能不含完整查询词，
-                # 此时 _highlight 不会插入 <b> 标记，结果仅显示原文（可接受）。
-                headline = self._highlight(item[2], words_lower)
-                location = self._highlight(item[3], words_lower)
+                # 此时 highlight_words 不会插入 <b> 标记，结果仅显示原文（可接受）。
+                headline = highlight_words(item[2], words_lower, unescape_html=True)
+                location = highlight_words(item[3], words_lower, unescape_html=True)
                 self.search_results.append([item[1], headline, location])
         self.add_change_code('search_query_changed')
 

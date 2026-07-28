@@ -70,6 +70,8 @@ class HelpPanelPresenter(object):
         elif self.help_panel.query != '':
             self.view.search_entry.add_css_class('error')
             self.view.search_scroll.set_visible(False)
+            self.view.no_results_slate.set_title(
+                _("No results for '{query}'").format(query=self.help_panel.query))
             self.view.no_results_slate.set_visible(True)
             self.view.initial_slate.set_visible(False)
             self.view.result_count_label.set_visible(False)

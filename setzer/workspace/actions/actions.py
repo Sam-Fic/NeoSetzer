@@ -22,6 +22,7 @@ from gi.repository import GLib, Gio, Gtk, Gdk, Pango
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
+from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.settings.document_settings import DocumentSettings
@@ -45,6 +46,7 @@ class Actions(object):
         self.add_action('new-latex-document', self.new_latex_document)
         self.add_action('new-bibtex-document', self.new_bibtex_document)
         self.add_action('open-document-dialog', self.open_document_dialog)
+        self.add_action('open-recent-documents', self.open_recent_documents)
         self.add_action('build', self.build)
         self.add_action('save-and-build', self.save_and_build)
         self.add_action('show-build-log', self.show_build_log)
@@ -283,8 +285,12 @@ class Actions(object):
     def open_document_dialog(self, action=None, parameter=None):
         DialogLocator.get_dialog('open_document').run()
 
+    def open_recent_documents(self, action=None, parameter=None):
+        PopoverManager.get_popover('open_document').show()
+
     def save_and_build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
+        maybe_show_first_run_tutorial()
 
         document = self.workspace.get_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
@@ -301,6 +307,7 @@ class Actions(object):
 
     def build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
+        maybe_show_first_run_tutorial()
 
         document = self.workspace.get_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
@@ -799,6 +806,14 @@ class Actions(object):
         document.source_buffer.end_user_action()
 
     def start_search(self, action=None, parameter=None):
+        # 当帮助面板获得键盘焦点时，Ctrl+F 应打开帮助搜索并聚焦输入框，
+        # 而不是启动编辑器查找栏（编辑器查找栏的 Ctrl+F 仅在文档中生效）。
+        help_view = self.main_window.help_panel
+        focused_widget = self.main_window.get_focus()
+        if help_view is not None and focused_widget is not None and help_view.is_ancestor(focused_widget):
+            self.workspace.help_panel.controller.open_search()
+            return
+
         if self.workspace.get_active_document() == None: return
 
         self.workspace.get_active_document().search.set_mode_search()

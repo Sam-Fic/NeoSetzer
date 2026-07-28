@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -21,6 +21,7 @@ from gi.repository import GLib, Adw
 import os
 import os.path
 import time
+import uuid
 
 from setzer.document.document import Document
 import setzer.document.build_system.build_system as build_system
@@ -113,7 +114,7 @@ class Workspace(Observable):
         document = self.get_earliest_active_document()
         if document != None:
             self.set_active_document(document)
-    
+
     def add_document(self, document):
         if document in self.open_documents: return False
 
@@ -173,6 +174,8 @@ class Workspace(Observable):
                 self.set_active_document(None)
             else:
                 self.set_active_document(candidate)
+        # 清理未命名文档的临时内容文件
+        self._cleanup_untitled_content(document)
         self.add_change_code('document_removed', document)
         # 文档列表已变，刷新 LaTeXDB（事件驱动，替代原 3 秒轮询）。
         # 去抖：连续关闭多个文档时合并为一次刷新。
@@ -384,6 +387,12 @@ class Workspace(Observable):
             document = self.create_document_from_filename(item['filename'], lazy=not is_active)
             if document != None:
                 self._restore_document_state(document, item, root_document_filename)
+        # 恢复未命名文档（临时内容文件）
+        for item in sorted(data.get('untitled_documents', {}).values(), key=lambda val: val['last_activated']):
+            is_active = (item.get('untitled_id') == active_filename)
+            document = self._restore_untitled_document(item)
+            if document is not None and is_active:
+                self._restore_active_filename = item.get('untitled_id')
         for item in data['recently_opened_documents'].values():
             self.update_recently_opened_document(item['filename'], item['date'], notify=False)
         try:
@@ -409,6 +418,97 @@ class Workspace(Observable):
         self._restore_active_filename = active_filename
         self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
         self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
+
+    def _restore_untitled_document(self, item):
+        '''从 workspace.json 的 untitled_documents 条目恢复一个未命名文档。
+
+        读取之前保存的临时内容文件，创建对应类型的文档并填充内容。
+        如果临时文件不存在或读取失败，则静默跳过（不阻塞启动）。
+        '''
+        untitled_id = item.get('untitled_id')
+        if not untitled_id:
+            return None
+
+        content = self._load_untitled_content(untitled_id)
+        if content is None:
+            return None
+
+        doc_type = item.get('type', 'latex')
+        if doc_type == 'latex':
+            document = self.create_latex_document()
+        elif doc_type == 'bibtex':
+            document = self.create_bibtex_document()
+        else:
+            document = self.create_other_document()
+
+        # 设置内容并重置修改标记，避免恢复后显示为"已修改"
+        document.source_buffer.begin_irreversible_action()
+        document.source_buffer.set_text(content)
+        document.source_buffer.end_irreversible_action()
+        document.source_buffer.set_modified(False)
+        # 标记为未命名文档，记录 untitled_id 以便后续清理
+        document._untitled_id = untitled_id
+        document._untitled_content_saved = True
+
+        # 先 add_document（会为未命名文档自动分配显示名），
+        # 再恢复保存的显示名覆盖之
+        self.add_document(document)
+        displayname = item.get('displayname', document.get_displayname())
+        document.set_displayname(displayname)
+        self._restore_document_state(document, item, None)
+        return document
+
+    def _untitled_dir(self):
+        '''返回存放未命名文档临时内容文件的目录路径。'''
+        path = os.path.join(self.pathname, 'untitled')
+        try:
+            os.makedirs(path, exist_ok=True)
+        except OSError:
+            pass
+        return path
+
+    def _untitled_content_path(self, untitled_id):
+        '''返回指定 untitled_id 对应的临时内容文件路径。'''
+        return os.path.join(self._untitled_dir(), f'{untitled_id}.content')
+
+    def _save_untitled_content(self, document, untitled_id):
+        '''将未命名文档的内容保存到临时文件。'''
+        try:
+            content = document.source_buffer.get_text(
+                document.source_buffer.get_start_iter(),
+                document.source_buffer.get_end_iter(),
+                False
+            )
+            path = self._untitled_content_path(untitled_id)
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return True
+        except Exception as e:
+            print(f'Warning: could not save untitled content: {e}')
+            return False
+
+    def _load_untitled_content(self, untitled_id):
+        '''从临时文件读取未命名文档的内容。'''
+        try:
+            path = self._untitled_content_path(untitled_id)
+            if not os.path.isfile(path):
+                return None
+            with open(path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            print(f'Warning: could not load untitled content: {e}')
+            return None
+
+    def _cleanup_untitled_content(self, document):
+        '''删除未命名文档的临时内容文件。'''
+        untitled_id = getattr(document, '_untitled_id', None)
+        if untitled_id:
+            try:
+                path = self._untitled_content_path(untitled_id)
+                if os.path.isfile(path):
+                    os.remove(path)
+            except Exception as e:
+                print(f'Warning: could not remove untitled content: {e}')
 
     def load_documents_from_session_file(self, filename):
         # .stzs 是用户交换文件，可能不可信：先试 JSON（新格式），失败回退到
@@ -495,7 +595,9 @@ class Workspace(Observable):
             document._restore_scroll_offset = item['scroll_offset']
         if 'folded_regions' in item:
             document.code_folding.set_initial_folded_regions(item['folded_regions'])
-        if item['filename'] == root_document_filename:
+        # 未命名文档的 item 中无 'filename' 键（只有 'untitled_id'），
+        # 且未命名文档不可能被设为 root，故跳过 root 匹配检查。
+        if 'filename' in item and item['filename'] == root_document_filename:
             self.set_one_document_root(document)
 
     def _collect_open_documents_data(self):
@@ -505,8 +607,12 @@ class Workspace(Observable):
 
         每个字段单独 try/except：某文档的 source_buffer 已销毁或 code_folding
         不可用时不应影响其他字段的收集——缺字段读取时按默认值恢复。
+
+        未命名文档（filename == None）也会被收集到 untitled_documents 中，
+        其内容保存到临时文件，以便下次启动时恢复。
         '''
         open_documents = dict()
+        untitled_documents = dict()
         for document in self.open_documents:
             filename = document.get_filename()
             if filename != None:
@@ -531,14 +637,48 @@ class Workspace(Observable):
                 except Exception:
                     pass
                 open_documents[filename] = doc_data
-        return open_documents
+            else:
+                # 未命名文档：生成唯一 ID，保存内容到临时文件
+                untitled_id = getattr(document, '_untitled_id', None)
+                if untitled_id is None:
+                    untitled_id = str(uuid.uuid4())
+                    document._untitled_id = untitled_id
+                # 保存内容到临时文件
+                self._save_untitled_content(document, untitled_id)
+                document._untitled_content_saved = True
+
+                doc_data = {
+                    'untitled_id': untitled_id,
+                    'last_activated': document.get_last_activated(),
+                    'displayname': document.get_displayname(),
+                    'type': document.language,
+                }
+                try:
+                    cursor_offset = document.source_buffer.get_property('cursor-position')
+                    doc_data['cursor_offset'] = cursor_offset
+                except Exception:
+                    pass
+                try:
+                    scroll_offset = document.view.scrolled_window.get_vadjustment().get_value()
+                    doc_data['scroll_offset'] = scroll_offset
+                except Exception:
+                    pass
+                try:
+                    folded_regions = document.code_folding.get_folded_regions()
+                    if folded_regions:
+                        doc_data['folded_regions'] = folded_regions
+                except Exception:
+                    pass
+                untitled_documents[untitled_id] = doc_data
+        return open_documents, untitled_documents
 
     def save_to_disk(self):
         # 写入 workspace.json（原子替换）。旧 workspace.pickle 保留作备份。
         json_path = os.path.join(self.pathname, 'workspace.json')
-        open_documents = self._collect_open_documents_data()
+        open_documents, untitled_documents = self._collect_open_documents_data()
         data = {
             'open_documents': open_documents,
+            'untitled_documents': untitled_documents,
             'recently_opened_documents': self.recently_opened_documents,
             'recently_opened_session_files': self.recently_opened_session_files,
             'pinned_recent_documents': list(self.pinned_recent_documents),
@@ -546,6 +686,11 @@ class Workspace(Observable):
         }
         if self.active_document is not None:
             data['active_document_filename'] = self.active_document.get_filename()
+            # 如果活动文档是未命名文档，用 untitled_id 作为 active_document_filename
+            if self.active_document.get_filename() is None:
+                untitled_id = getattr(self.active_document, '_untitled_id', None)
+                if untitled_id:
+                    data['active_document_filename'] = untitled_id
         if self.root_document != None:
             data['root_document_filename'] = self.root_document.get_filename()
         try:
@@ -572,11 +717,12 @@ class Workspace(Observable):
         toast.set_timeout(5)
         main_window.toast_overlay.add_toast(toast)
         return False
-            
+
     def save_session(self, session_filename):
         # 写入 .stzs（JSON 格式）。读取时支持 JSON 与受限 pickle 双路径
         # （load_documents_from_session_file），旧版 Setzer 创建的 .stzs 仍可打开。
-        open_documents = self._collect_open_documents_data()
+        # 注意：save_session 不保存未命名文档（它们没有文件名，无法在另一台机器上恢复）。
+        open_documents, _ = self._collect_open_documents_data()
         data = {'open_documents': open_documents}
         if self.active_document is not None:
             data['active_document_filename'] = self.active_document.get_filename()
@@ -712,5 +858,3 @@ class Workspace(Observable):
             return self.show_build_log
         else:
             return False
-
-

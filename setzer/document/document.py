@@ -52,6 +52,10 @@ class Document(Observable):
         self.filename = None
         self.save_date = None
         self.last_activated = 0
+        # 每文档「最近使用」符号列表，结构同 favorites：[(category, command), ...]。
+        # 由 DocumentSettings 随文档状态文件持久化（仅 filename 非空时落盘），
+        # 区别于全局 app_recent_symbols——最近符号按文档区分，切文档即切换列表。
+        self.recent_symbols = list()
         self.is_root = False
         self.root_is_set = False
         self.highlight_tag_count = 0

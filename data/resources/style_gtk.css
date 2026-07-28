@@ -139,6 +139,11 @@ textview gutter {
     opacity: 0.45;
     margin-right: 2px;
 }
+/* 文档结构树形展开器（折叠/展开的三角形按钮）。作为 ActionRow 内的普通
+   widget，无原生按钮视觉；仅作可点击指示，不显示悬停/按下背景。 */
+.compact-rows .structure-expander {
+    margin: 0 1px;
+}
 
 /*
  * 侧边栏分区组标题：降低视觉重量，更现代、紧凑。
@@ -224,16 +229,10 @@ textview gutter {
 }
 
 .preview-card {
-    margin: 0 6px 6px 6px;
+    margin: 0 6px 3px 6px;
     border-radius: 8px;
     background: @card_bg_color;
-    /*
-     * 与 target_label_revealer 的 SLIDE_UP 动画（150ms）对齐：当
-     * .target-visible 切换 margin-bottom 在 6px ↔ 0 之间变化时，让该
-     * 变化随 Revealer 同步过渡，避免卡片底缘在展开/收起瞬间发生 6px 跳变。
-     * Gtk.Revealer 的 SLIDE 进度按线性插值，故这里也用 linear 以保持一致。
-     */
-    transition: margin 150ms linear;
+    transition: margin-bottom 150ms linear;
 }
 .preview-card.target-visible {
     margin-bottom: 0;
@@ -246,6 +245,10 @@ textview gutter {
 .preview-target-bar {
     padding: 2px 12px;
     margin: 0 6px 0 6px;
+}
+
+.preview-target-label {
+    margin-left: -3px;
 }
 
 /*

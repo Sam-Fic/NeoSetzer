@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -24,7 +24,7 @@ from gi.repository import GLib
 
 class WorkspaceController(object):
     ''' Mediator between workspace and view. '''
-    
+
     def __init__(self, workspace):
 
         self.workspace = workspace
@@ -47,7 +47,12 @@ class WorkspaceController(object):
         if len(open_documents) > 0:
             active_filename = getattr(self.workspace, '_restore_active_filename', None)
             if active_filename:
-                target = next((d for d in open_documents if d.get_filename() == active_filename), None)
+                target = next(
+                    (d for d in open_documents
+                     if d.get_filename() == active_filename
+                     or getattr(d, '_untitled_id', None) == active_filename),
+                    None
+                )
                 if target is not None:
                     self.workspace.set_active_document(target)
                 else:
@@ -109,5 +114,3 @@ class WorkspaceController(object):
             elif self.workspace.show_preview:
                 self._last_preview_help = (True, False)
             self.workspace.set_show_preview_or_help(False, False)
-
-

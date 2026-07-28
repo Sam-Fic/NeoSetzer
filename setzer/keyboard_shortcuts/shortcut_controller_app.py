@@ -44,6 +44,10 @@ class ShortcutControllerApp(ShortcutController):
         self._configurable_shortcuts = {}
 
         self.load_shortcuts()
+        # 章节导航：Alt+Up / Alt+Down 跳到上/下一段。仅在非编辑（光标不在源码
+        # 视图）时生效；在源码视图中 Alt+Up/Down 仍用于移动行（见 document 控制器）。
+        self.create_and_add_shortcut('<Alt>Up', self.shortcut_prev_section)
+        self.create_and_add_shortcut('<Alt>Down', self.shortcut_next_section)
 
     def load_shortcuts(self):
         shortcuts = self.settings.get_value('keyboard_shortcuts', None)
@@ -119,7 +123,7 @@ class ShortcutControllerApp(ShortcutController):
         return True
 
     def shortcut_show_document_chooser(self):
-        if self.main_window.headerbar.open_document_button.get_sensitive():
+        if self.main_window.headerbar.open_document_button.get_visible():
             PopoverManager.get_popover('open_document').show()
 
     def shortcut_show_open_docs(self):
@@ -181,5 +185,37 @@ class ShortcutControllerApp(ShortcutController):
     def shortcut_show_hamburger(self, accel_group=None, window=None, key=None, mask=None):
         self.main_window.headerbar.menu_button.popup()
         return True
+
+    def shortcut_prev_section(self):
+        # 在源码视图中 Alt+Up/Down 用于移动行，故编辑时不拦截，交回 document 控制器。
+        if self._is_editing():
+            return False
+        self._navigate_section(-1)
+        return True
+
+    def shortcut_next_section(self):
+        if self._is_editing():
+            return False
+        self._navigate_section(1)
+        return True
+
+    def _is_editing(self):
+        document = self.workspace.get_active_document()
+        if document is None:
+            return False
+        return document.source_view.has_focus()
+
+    def _navigate_section(self, direction):
+        sidebar = getattr(self.workspace, 'sidebar', None)
+        if sidebar is None:
+            return
+        if getattr(self.workspace, 'show_symbols', False):
+            page = sidebar.symbols_page
+        else:
+            page = sidebar.document_structure_page
+        if direction < 0:
+            page.on_prev_button_clicked(None)
+        else:
+            page.on_next_button_clicked(None)
 
 

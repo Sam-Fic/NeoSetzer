@@ -51,8 +51,8 @@ class WorkspacePresenter(object):
         self.settings.connect('settings_changed', self.on_settings_changed)
 
         self.main_window.mode_stack.set_visible_child_name('welcome_screen')
-        # 初始默认欢迎页模式：headerbar 迁到 welcome_overlay，否则无文档时
-        # open/create 按钮不可见、用户无法开始编辑（详见 reparent_headerbar 注释）。
+        # 初始默认欢迎页模式：headerbar 迁到 welcome_overlay，使欢迎页也能显示菜单与
+        # 标题（open/create 按钮已在欢迎页正文，详见 reparent_headerbar 注释）。
         self.main_window.reparent_headerbar(to_welcome=True)
         self.update_font()
         self.update_colors()
@@ -86,7 +86,7 @@ class WorkspacePresenter(object):
 
         if self.workspace.active_document == None:
             self.main_window.mode_stack.set_visible_child_name('welcome_screen')
-            # 回到欢迎页：headerbar 迁到 welcome_overlay，保证 open/create 可见。
+            # 回到欢迎页：headerbar 迁到 welcome_overlay，保持菜单/标题可见。
             self.main_window.reparent_headerbar(to_welcome=True)
 
     def on_new_active_document(self, workspace, document):

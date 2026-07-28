@@ -56,6 +56,23 @@ class LaTeXDB():
     # "补全静默不工作"的问题（UX 报告 #8）。
     last_parse_error = None
 
+    # 常用 LaTeX 环境名，用于 \begin{...} 上下文补全（报告 #7）。自包含、
+    # 无需解析文档；命令补全弹窗里输入 \begin{ 后即列出这些环境，选中自动
+    # 补出 \begin{...}\n\t•\n\end{...}（复用 tab()/submit() 既有展开逻辑）。
+    environments = [
+        'abstract', 'align', 'align*', 'alignat', 'alignat*', 'aligned',
+        'array', 'Bmatrix', 'bmatrix', 'cases', 'center', 'column', 'columns',
+        'comment', 'description', 'displaymath', 'document', 'enumerate',
+        'equation', 'equation*', 'figure', 'figure*', 'flushleft', 'flushright',
+        'frame', 'gather', 'gather*', 'itemize', 'lemma', 'letter', 'longtable',
+        'matrix', 'minipage', 'multline', 'multline*', 'pmatrix', 'proof',
+        'quotation', 'quote', 'slide', 'slides', 'subequations', 'subfigure',
+        'subfloat', 'table', 'table*', 'tabular', 'tabular*', 'tabularx',
+        'tabulary', 'thebibliography', 'theindex', 'theorem', 'titlepage',
+        'tikzpicture', 'Vmatrix', 'vmatrix', 'verse', 'verbatim', 'verbatim*',
+        'wrapfigure',
+    ]
+
     def init(resources_path):
         LaTeXDB.resources_path = resources_path
         # 预编译 ref/cite 前缀正则（dynamic_commands 在此刻已就绪）。
@@ -146,6 +163,25 @@ class LaTeXDB():
             else:
                 result.append(item)
         return result
+
+    def get_environment_items(word):
+        r'''返回 \begin{...} 上下文的环境名补全（报告 #7）。
+
+        word 形如 '\begin{fig'（含前缀）；提取花括号内的环境名前缀后返回所有
+        以其开头的常用环境项。每项 command 形如 '\begin{figure}'，使 tab()/
+        submit() 既有的 \begin{} 展开逻辑复用——自动补出
+        \begin{...}\n\t•\n\end{...}。'''
+        m = re.match(r'\\begin\{([a-zA-Z]*)\Z', word)
+        if m is None:
+            return list()
+        prefix = m.group(1).lower()
+        items = list()
+        for env in LaTeXDB.environments:
+            if env.lower().startswith(prefix):
+                items.append({'command': '\\begin{' + env + '}',
+                              'description': '', 'lowpriority': False, 'dotlabels': ''})
+        items.sort(key=lambda item: item['command'].lower())
+        return items
 
     def generate_static_proposals():
         commands = LaTeXDB.get_commands()

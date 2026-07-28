@@ -19,12 +19,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
-from gi.repository import Pango
 import os
 import sys
+import json
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.app.font_manager import FontManager
+from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
 
 
 # theme mode: display name -> stored value -> Adw.ColorScheme
@@ -53,11 +53,19 @@ LANGUAGES = [
     ('Português (Brasil)', 'pt_BR'),
 ]
 
+# startup: display name -> stored value; 同 THEME_MODES/LANGUAGES 维护契约：
+# 英文名为翻译 msgid，修改需同步 .po 文件。
+STARTUP_MODES = [
+    ('Last session', 'last_session'),
+    ('Empty workspace', 'empty'),
+]
 
-class PageAppearanceColors(object):
+
+class PageGeneral(object):
+    '''通用设置页：合并原 Appearance / First Run / Settings Data 三页。'''
 
     def __init__(self, preferences, settings, main_window=None):
-        self.view = PageAppearanceColorsView()
+        self.view = PageGeneralView()
         self.preferences = preferences
         self.settings = settings
         self.main_window = main_window
@@ -75,19 +83,11 @@ class PageAppearanceColors(object):
         self.view.language_combo.set_selected(lang_index)
         self.view.language_combo.connect('notify::selected', self.on_language_changed)
 
-        # font
-        self.view.font_chooser_button.set_font_desc(
-            Pango.FontDescription.from_string(self.settings.get_value('preferences', 'font_string')))
-        self.view.font_chooser_button.connect('notify::font-desc', self.on_font_set)
-        self.view.option_use_system_font.set_active(
-            self.settings.get_value('preferences', 'use_system_font'))
-        self.view.font_chooser_row.set_sensitive(not self.view.option_use_system_font.get_active())
-        self.view.option_use_system_font.connect('notify::active', self.on_use_system_font_toggled)
-
-        # line spacing
-        self.view.line_spacing_spin.set_value(
-            self.settings.get_value('preferences', 'line_spacing'))
-        self.view.line_spacing_spin.connect('notify::value', self.on_line_spacing_changed)
+        # on startup（应用级/界面设置，归属此通用页）
+        current_startup = self.settings.get_value('preferences', 'on_startup')
+        startup_index = next((i for i, m in enumerate(STARTUP_MODES) if m[1] == current_startup), 0)
+        self.view.startup_combo.set_selected(startup_index)
+        self.view.startup_combo.connect('notify::selected', self.on_startup_selected)
 
         # preview width fraction
         fraction = self.settings.get_value('window_state', 'preview_width_fraction')
@@ -99,6 +99,17 @@ class PageAppearanceColors(object):
             self.settings.get_value('preferences', 'recolor_pdf'))
         self.view.option_recolor_pdf.connect(
             'notify::active', self.on_recolor_pdf_toggled)
+
+        # Tutorial（来自 First Run 页）
+        self.view.show_again_button.connect('clicked', self.on_show_again_clicked)
+
+        # Backup and Restore（来自 Settings Data 页）
+        self.main_window = ServiceLocator.get_main_window()
+        self.shortcuts = ServiceLocator.get_shortcuts()
+        self.view.toast_overlay = getattr(self.main_window, 'toast_overlay', None)
+        self.view.option_export.connect('clicked', self.on_export_clicked)
+        self.view.option_import.connect('clicked', self.on_import_clicked)
+        self.view.option_reset_all.connect('clicked', self.on_reset_all_clicked)
 
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
@@ -115,6 +126,10 @@ class PageAppearanceColors(object):
         self.settings.set_value('preferences', 'language', value)
         self.settings.pickle()
         self.show_restart_dialog()
+
+    def on_startup_selected(self, combo, pspec=None):
+        value = STARTUP_MODES[combo.get_selected()][1]
+        self.settings.set_value('preferences', 'on_startup', value)
 
     def show_restart_dialog(self):
         dialog = Adw.AlertDialog(
@@ -141,44 +156,6 @@ class PageAppearanceColors(object):
         scheme = next((m[2] for m in THEME_MODES if m[1] == value), Adw.ColorScheme.DEFAULT)
         Adw.StyleManager.get_default().set_color_scheme(scheme)
 
-    # ---- font ----
-    def on_use_system_font_toggled(self, switch, pspec):
-        self.view.font_chooser_row.set_sensitive(not switch.get_active())
-        self.settings.set_value('preferences', 'use_system_font', switch.get_active())
-
-    def on_font_set(self, button, pspec=None):
-        font_desc = button.get_font_desc()
-        size = font_desc.get_size()
-        clamped = False
-        if size < 6 * Pango.SCALE:
-            font_desc.set_size(6 * Pango.SCALE)
-            button.set_font_desc(font_desc)
-            clamped = 'min'
-        elif size > 24 * Pango.SCALE:
-            font_desc.set_size(24 * Pango.SCALE)
-            button.set_font_desc(font_desc)
-            clamped = 'max'
-        self.settings.set_value('preferences', 'font_string', font_desc.to_string())
-        if clamped:
-            # 钳制时通知用户：FontDialogButton 不会自行提示，用户可能困惑
-            # 为何选了 4pt 却显示 6pt。
-            if clamped == 'min':
-                msg = _('Font size is too small; clamped to 6pt minimum.')
-            else:
-                msg = _('Font size is too large; clamped to 24pt maximum.')
-            self._show_toast(msg)
-
-    def _show_toast(self, message):
-        '''显示 toast 通知（字体钳制等操作反馈）。'''
-        main_window = self.main_window or ServiceLocator.get_main_window()
-        if main_window and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(message)
-            toast.set_timeout(4)
-            main_window.toast_overlay.add_toast(toast)
-
-    def on_line_spacing_changed(self, spin, pspec=None):
-        self.settings.set_value('preferences', 'line_spacing', int(spin.get_value()))
-
     # ---- preview width ----
     def on_preview_width_changed(self, scale):
         fraction = scale.get_value() / 100.0
@@ -189,6 +166,122 @@ class PageAppearanceColors(object):
     def on_recolor_pdf_toggled(self, switch, pspec=None):
         self.settings.set_value('preferences', 'recolor_pdf', switch.get_active())
 
+    # ---- tutorial（来自 First Run 页） ----
+    def on_show_again_clicked(self, button):
+        # 延迟导入避免与 dialog_locator 循环依赖。
+        from setzer.dialogs.dialog_locator import DialogLocator
+        DialogLocator.get_dialog('first_run_tutorial').show_again()
+
+    # ---- backup and restore（来自 Settings Data 页） ----
+    def rebuild_shortcut_controllers(self):
+        '''导入的快捷键需同步到当前应用：替换 app 级快捷键控制器（与
+        PageShortcuts 导入时一致）。'''
+        old = self.shortcuts.shortcut_controller_app
+        new = ShortcutControllerApp()
+        self.main_window.remove_controller(old)
+        self.shortcuts.shortcut_controller_app = new
+        self.main_window.add_controller(new)
+
+    def on_export_clicked(self, button):
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_('Export Settings'))
+        dialog.set_initial_name('setzer-settings.json')
+        filter_json = Gtk.FileFilter()
+        filter_json.set_name('JSON')
+        filter_json.add_mime_type('application/json')
+        filter_json.add_pattern('*.json')
+        dialog.set_default_filter(filter_json)
+        dialog.save(self.main_window, None, self.on_export_response)
+
+    def on_export_response(self, dialog, result):
+        try:
+            file = dialog.save_finish(result)
+        except Exception:
+            return
+        if file is None:
+            return
+        data = {
+            'format': 'setzer-settings',
+            'version': 1,
+            'preferences': self.settings.get_value('preferences', None),
+            'keyboard_shortcuts': self.settings.get_value('keyboard_shortcuts', None),
+        }
+        try:
+            with open(file.get_path(), 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            self._show_toast(_('Could not export settings: {}').format(e))
+            return
+        self._show_toast(_('Settings exported.'))
+
+    def on_import_clicked(self, button):
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_('Import Settings'))
+        filter_json = Gtk.FileFilter()
+        filter_json.set_name('JSON')
+        filter_json.add_mime_type('application/json')
+        filter_json.add_pattern('*.json')
+        dialog.set_default_filter(filter_json)
+        dialog.open(self.main_window, None, self.on_import_response)
+
+    def on_import_response(self, dialog, result):
+        try:
+            file = dialog.open_finish(result)
+        except Exception:
+            return
+        if file is None:
+            return
+        try:
+            with open(file.get_path(), 'r', encoding='utf-8') as f:
+                incoming = json.load(f)
+        except Exception as e:
+            self._show_toast(_('Could not read settings file: {}').format(e))
+            return
+        if not isinstance(incoming, dict):
+            self._show_toast(_('Invalid settings file.'))
+            return
+
+        imported = {'preferences': 0, 'keyboard_shortcuts': 0}
+        for section in ('preferences', 'keyboard_shortcuts'):
+            section_data = incoming.get(section)
+            if not isinstance(section_data, dict):
+                continue
+            defaults_section = self.settings.defaults.get(section, {})
+            for key, value in section_data.items():
+                if key in defaults_section:
+                    self.settings.set_value(section, key, value)
+                    imported[section] += 1
+
+        self.settings.pickle()
+        if imported['keyboard_shortcuts'] > 0:
+            self.rebuild_shortcut_controllers()
+        self._show_toast(_('Settings imported. Reopen Preferences to see all changes.'))
+
+    def on_reset_all_clicked(self, button):
+        confirm = Adw.AlertDialog()
+        confirm.set_heading(_('Reset all preferences?'))
+        confirm.set_body(_('This resets all preferences to their default values. '
+                           'Keyboard shortcuts and window layout are kept.'))
+        confirm.add_response('cancel', _('Cancel'))
+        confirm.add_response('reset', _('Reset'))
+        confirm.set_default_response('cancel')
+        confirm.set_close_response('cancel')
+        confirm.choose(self.main_window, None, self.on_reset_all_response)
+
+    def on_reset_all_response(self, dialog, result):
+        if dialog.choose_finish(result) != 'reset':
+            return
+        self.settings.reset_preferences()
+        self.settings.pickle()
+        self._show_toast(_('Preferences reset. Reopen Preferences to see all changes.'))
+
+    def _show_toast(self, message):
+        if self.view.toast_overlay is not None:
+            self.view.toast_overlay.add_toast(Adw.Toast(title=message))
+        else:
+            self.preferences.view.add_toast(Adw.Toast(title=message))
+
+    # ---- reset ----
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
             heading=_('Reset to Defaults?'),
@@ -213,21 +306,21 @@ class PageAppearanceColors(object):
             current_lang = defaults['language']
             lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
             self.view.language_combo.set_selected(lang_index)
-            self.view.option_use_system_font.set_active(defaults['use_system_font'])
-            self.view.font_chooser_button.set_font_desc(
-                Pango.FontDescription.from_string(defaults['font_string']))
-            self.view.line_spacing_spin.set_value(defaults['line_spacing'])
+            current_startup = defaults['on_startup']
+            startup_index = next((i for i, m in enumerate(STARTUP_MODES) if m[1] == current_startup), 0)
+            self.view.startup_combo.set_selected(startup_index)
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
 
 
-class PageAppearanceColorsView(Adw.PreferencesPage):
+class PageGeneralView(Adw.PreferencesPage):
 
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
-        self.set_title(_('Appearance'))
-        self.set_icon_name('preferences-desktop-appearance-symbolic')
+        self.set_title(_('General'))
+        self.set_icon_name('preferences-system-symbolic')
+        self.toast_overlay = None
 
         # theme mode
         group_theme = Adw.PreferencesGroup()
@@ -256,32 +349,6 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.language_combo.set_model(language_model)
         group_language.add(self.language_combo)
 
-        # font
-        group_font = Adw.PreferencesGroup()
-        group_font.set_title(_('Font'))
-        self.add(group_font)
-
-        font_string = FontManager.get_system_font() or 'Monospace'
-        self.option_use_system_font = Adw.SwitchRow()
-        self.option_use_system_font.set_title(_('Use the system fixed width font'))
-        self.option_use_system_font.set_subtitle(font_string)
-        group_font.add(self.option_use_system_font)
-
-        self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
-        self.font_chooser_button.set_valign(Gtk.Align.CENTER)
-        self.font_chooser_row = Adw.ActionRow()
-        self.font_chooser_row.set_title(_('Set Editor Font'))
-        self.font_chooser_row.add_suffix(self.font_chooser_button)
-        group_font.add(self.font_chooser_row)
-
-        # 行距：每行下方额外添加的像素间距。0 = 紧凑（默认），增大后行间更宽松。
-        self.line_spacing_spin = Adw.SpinRow.new_with_range(0.0, 12.0, 1.0)
-        self.line_spacing_spin.set_digits(0)
-        self.line_spacing_spin.set_title(_('Line Spacing'))
-        self.line_spacing_spin.set_subtitle(
-            _('Extra vertical space between lines in pixels.'))
-        group_font.add(self.line_spacing_spin)
-
         # preview width
         group_preview = Adw.PreferencesGroup()
         group_preview.set_title(_('Preview'))
@@ -300,6 +367,20 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
         self.preview_width_row.add_suffix(self.preview_width_scale)
         group_preview.add(self.preview_width_row)
 
+        # on startup（应用级/界面设置，归属此通用页）
+        group_startup = Adw.PreferencesGroup()
+        group_startup.set_title(_('On Startup'))
+        self.add(group_startup)
+
+        self.startup_combo = Adw.ComboRow()
+        self.startup_combo.set_title(_('Open'))
+        self.startup_combo.set_subtitle(_('Whether to restore the previous session or start with an empty workspace.'))
+        startup_model = Gtk.StringList()
+        for name, _value in STARTUP_MODES:
+            startup_model.append(_(name))
+        self.startup_combo.set_model(startup_model)
+        group_startup.add(self.startup_combo)
+
         # 预览 PDF 配色随主题：深色模式下把 PDF 前景/背景重着色以匹配编辑器
         # 深浅色（recolor_pdf）。该值在 preview 工具栏有快速切换按钮，此处暴露
         # 为偏好以便持久化与重置。
@@ -309,6 +390,57 @@ class PageAppearanceColorsView(Adw.PreferencesPage):
             _('Recolor the PDF preview to match the light/dark theme.'))
         group_preview.add(self.option_recolor_pdf)
 
+        # tutorial（来自 First Run 页）
+        group_tutorial = Adw.PreferencesGroup()
+        group_tutorial.set_title(_('First-Run Tutorial'))
+        self.add(group_tutorial)
+
+        self.show_again_row = Adw.ActionRow()
+        self.show_again_row.set_title(_('Show the tutorial again'))
+        self.show_again_row.set_subtitle(_('Open the welcome tips dialog.'))
+        self.show_again_button = Gtk.Button(label=_('Show'))
+        self.show_again_button.set_valign(Gtk.Align.CENTER)
+        self.show_again_row.add_suffix(self.show_again_button)
+        self.show_again_row.set_activatable_widget(self.show_again_button)
+        group_tutorial.add(self.show_again_row)
+
+        # backup and restore（来自 Settings Data 页）
+        group_backup = Adw.PreferencesGroup()
+        group_backup.set_title(_('Backup and Restore'))
+        group_backup.set_description(_('Export your preferences and keyboard shortcuts to a '
+                                        'file, or import them on another machine.'))
+        self.add(group_backup)
+
+        self.export_row = Adw.ActionRow()
+        self.export_row.set_title(_('Export Settings'))
+        self.export_row.set_subtitle(_('Save your preferences and keyboard shortcuts to a file.'))
+        self.option_export = Gtk.Button(label=_('Export'))
+        self.option_export.add_css_class('suggested-action')
+        self.option_export.set_valign(Gtk.Align.CENTER)
+        self.export_row.add_suffix(self.option_export)
+        self.export_row.set_activatable_widget(self.option_export)
+        group_backup.add(self.export_row)
+
+        self.import_row = Adw.ActionRow()
+        self.import_row.set_title(_('Import Settings'))
+        self.import_row.set_subtitle(_('Load preferences and keyboard shortcuts from a file.'))
+        self.option_import = Gtk.Button(label=_('Import'))
+        self.option_import.set_valign(Gtk.Align.CENTER)
+        self.import_row.add_suffix(self.option_import)
+        self.import_row.set_activatable_widget(self.option_import)
+        group_backup.add(self.import_row)
+
+        self.reset_all_row = Adw.ActionRow()
+        self.reset_all_row.set_title(_('Reset all preferences'))
+        self.reset_all_row.set_subtitle(_('Restore all preference values to their defaults.'))
+        self.option_reset_all = Gtk.Button(label=_('Reset'))
+        self.option_reset_all.add_css_class('destructive-action')
+        self.option_reset_all.set_valign(Gtk.Align.CENTER)
+        self.reset_all_row.add_suffix(self.option_reset_all)
+        self.reset_all_row.set_activatable_widget(self.option_reset_all)
+        group_backup.add(self.reset_all_row)
+
+        # reset（通用页偏好）
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
 

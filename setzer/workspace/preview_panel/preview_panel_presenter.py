@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from gi.repository import GLib, Adw
 
 
@@ -103,7 +104,7 @@ class PreviewPanelPresenter(object):
 
     def on_pdf_changed(self, preview):
         if preview.poppler_document is not None:
-            self._show_backward_sync_hint()
+            maybe_show_first_run_tutorial()
         self.update_label()
         self.update_buttons()
         self._sync_zoom_action_state()
@@ -174,18 +175,6 @@ class PreviewPanelPresenter(object):
         if main_window is not None and hasattr(main_window, 'toast_overlay'):
             toast = Adw.Toast.new(message)
             toast.set_timeout(2)
-            main_window.toast_overlay.add_toast(toast)
-
-    def _show_backward_sync_hint(self):
-        if self.workspace.settings.get_value('preferences', 'backward_sync_hint_shown'):
-            return
-        self.workspace.settings.set_value('preferences', 'backward_sync_hint_shown', True)
-        # 持久化，确保跨会话只提示一次。
-        self.workspace.settings.pickle()
-        main_window = ServiceLocator.get_main_window()
-        if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Tip: hold Ctrl and click the preview to jump to the matching source'))
-            toast.set_timeout(6)
             main_window.toast_overlay.add_toast(toast)
 
     def update_label_debounced(self):

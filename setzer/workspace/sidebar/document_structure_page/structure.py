@@ -49,6 +49,10 @@ class StructureSection(object):
 
         self.nodes = list()
         self.nodes_in_line = list()
+        # 子树折叠状态：以节节点稳定偏移（block[0]）为 key，记录已折叠（收起
+        # 子节点）的节点集合。跨 update_items 重建时节点对象被重建，但偏移稳定，
+        # 故折叠状态可保留；节点消失后其偏移残留在集合内无害（体积小、仅作查表）。
+        self.collapsed = set()
         self._row_map = dict()
         self._current_highlight_row = None
         # 高亮短路缓存：记录上次高亮的节节点及其行区间。cursor_position_changed
@@ -82,6 +86,30 @@ class StructureSection(object):
 
     def register_row(self, row, node):
         self._row_map[id(node)] = row
+
+    def toggle_node(self, offset):
+        '''折叠/展开某个有子节点的节。offset 为节点稳定偏移（block[0]）。
+
+        仅翻转折叠集合并重建可见行；不重建模型树，故节点对象、折叠状态、
+        行映射的 id 引用均保持稳定。重建后重置高亮缓存并重新应用当前节高亮，
+        使新行获得 accent 类。
+        '''
+        if offset in self.collapsed:
+            self.collapsed.discard(offset)
+        else:
+            self.collapsed.add(offset)
+
+        # 行将被重建，旧 row 失效：清空高亮缓存，避免向已销毁行 remove/add css。
+        self._current_highlight_row = None
+        self._last_highlight_doc = None
+        self._last_highlight_node = None
+        self._last_highlight_line = None
+        self._next_highlight_line = None
+
+        self.view.populate()
+
+        if self.data_provider.document is not None:
+            self.on_cursor_position_changed(self.data_provider, self.data_provider.document)
 
     def on_cursor_position_changed(self, data_provider, document):
         if document is None:
@@ -194,7 +222,7 @@ class StructureSection(object):
         for section in sections.values():
             section_type = section['block'][4]
             level = self.levels[section_type]
-            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list()}
+            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list(), 'offset': section['offset_start']}
             if predecessor[level] == None:
                 nodes.append(node)
             else:

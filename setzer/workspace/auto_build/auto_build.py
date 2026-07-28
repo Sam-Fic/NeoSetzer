@@ -85,7 +85,7 @@ class AutoBuild(object):
             return
         self._retry_counts.pop(document, None)
         delay = self.settings.get_value('preferences', 'auto_build_delay')
-        delay_ms = max(int(delay), 1) * 1000
+        delay_ms = max(int(delay * 1000), 500)
         self.schedule_build(document, delay_ms)
 
     def on_document_saved(self, document, filename=None):

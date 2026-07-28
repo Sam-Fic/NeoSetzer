@@ -61,6 +61,10 @@ class DocumentSettings():
         DocumentSettings.update_document(document, document_data)
 
     def update_document(document, document_data):
+        # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
+        # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
+        document.recent_symbols = list(document_data.get('recent_symbols', []))
+
         # save_date 可能为 None（极端情况：文档状态在文件已被删除后保存）。
         # None <= number 在 Python 3 中抛 TypeError，用 is None 守卫跳过比较，
         # 直接恢复其余状态（折叠区域等不依赖 save_date）。
@@ -145,6 +149,8 @@ class DocumentSettings():
         document_data['yoffset'] = document.preview.view.content.scrolling_offset_y
         document_data['zoom_level'] = document.preview.zoom_manager.zoom_level
         document_data['zoom_mode'] = document.preview.zoom_manager.zoom_mode
+        # 最近符号按文档区分，随状态文件落盘（save_document_state 入口已守卫 filename != None）。
+        document_data['recent_symbols'] = document.recent_symbols
 
         # 文件名走 state_paths（hash+basename 可读方案）。save_document_state
         # 入口已守卫 document.filename != None，此处不会收到 None。
