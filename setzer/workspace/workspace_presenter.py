@@ -269,6 +269,10 @@ class WorkspacePresenter(object):
         else:
             FontManager.font_string = self.settings.get_value('preferences', 'font_string')
         FontManager.propagate_font_setting()
+        # 编辑器字体变化（含缩放）后，帮助文档 WebView 也用同一字体，需同步
+        # 重新注入其 CSS（update_colors 仅颜色，不含字体，故单独刷新）。
+        try: self.workspace.help_panel.update_colors()
+        except AttributeError: pass
 
     def update_colors(self):
         # 自定义主题系统已移除，改为跟随系统 Libadwaita 调色板。

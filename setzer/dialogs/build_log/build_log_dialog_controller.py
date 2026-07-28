@@ -18,7 +18,7 @@
 from gi.repository import Gdk, Adw, Gtk, Gio
 import os.path
 
-# 延迟导入避免循环：controller 引用 presenter 的 TYPE_FILTER 常量。
+# 延迟导入避免循环：controller 引用 presenter 的 ALL_TYPES 常量。
 import setzer.dialogs.build_log.build_log_dialog_presenter as presenter_module
 
 
@@ -58,7 +58,22 @@ class BuildLogDialogController(object):
         # 同时注入 ai_fix_row_callback，使行尾 AI 修复按钮点击转回 controller。
         for lst in self.view.lists.values():
             lst.connect('row-activated', self.on_row_activated)
+            lst.connect('selected-rows-changed', self.on_selected_rows_changed)
             lst.ai_fix_row_callback = self.on_ai_fix_row_clicked
+
+    def on_selected_rows_changed(self, listbox):
+        '''保证整个 Build Log 弹窗内只有一个高亮选中项。
+
+        弹窗内有 3 个独立的 Gtk.ListBox（Error / Warning / Badbox），各自
+        的 SINGLE 选择模式只在「单个列表内部」保证唯一。点击不同分类里的
+        行会导致多个分类同时各有一个高亮项，不符合「整体唯一选中」的语义。
+        这里在任一列表出现选中时，清空其余列表的选中，使全局只有一项高亮。
+        '''
+        if listbox.get_selected_row() is None:
+            return
+        for other in self.view.lists.values():
+            if other is not listbox:
+                other.unselect_all()
 
     def on_row_activated(self, listbox, row):
         '''单击行：打开对应源文件并定位到报错行。
@@ -142,10 +157,12 @@ class BuildLogDialogController(object):
             self.view.toast_overlay.add_toast(Adw.Toast.new(_('Failed to save build log')))
 
     def _get_filtered_lines(self):
-        '''获取当前过滤条件下所有 items 的文本行列表。'''
-        autoshow = self.build_log.settings.get_value('preferences', 'autoshow_build_log')
-        visible_types = presenter_module.BuildLogDialogPresenter.TYPE_FILTER.get(
-            autoshow, presenter_module.BuildLogDialogPresenter.TYPE_FILTER['all'])
+        '''获取当前过滤条件下所有 items 的文本行列表。
+
+        类型可见性始终为全部类型；`autoshow_build_log` 设置项只控制「何时
+        自动弹出」弹窗，不用于过滤内容（内容筛选完全由弹窗内控件决定）。
+        '''
+        visible_types = presenter_module.BuildLogDialogPresenter.ALL_TYPES
 
         # 获取过滤器值
         file_filter = self.view.file_filter_combo.get_active_text()

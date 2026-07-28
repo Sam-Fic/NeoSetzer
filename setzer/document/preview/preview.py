@@ -261,12 +261,14 @@ class Preview(Observable):
         if len(rectangles) > 0:
             content = self.view.content
             position = rectangles[0]
-            window_width = self.view.get_allocated_width()
             page_number = position['page']
-            left = position['h'] * self.layout.scale_factor
-            top = position['v'] * self.layout.scale_factor
-            width = position['width'] * self.layout.scale_factor
-            height = position['height'] * self.layout.scale_factor
+            sf = self.layout.scale_factor
+            # SyncTeX v 是包围框底部距页面顶部的距离 (即包围框的下边缘 y 坐标)。
+            # 要得到包围框上边缘 (cairo y)，需减去高度：top = v - height。
+            left = position['h'] * sf
+            top = (position['v'] - position['height']) * sf
+            width = position['width'] * sf
+            height = position['height'] * sf
 
             x = max(min(left - 18, content.scrolling_offset_x), left + width - content.width + 18)
             y = (self.layout.page_height + self.layout.page_gap) * (page_number - 1) + max(0, top - height / 2 - content.height * 0.3)

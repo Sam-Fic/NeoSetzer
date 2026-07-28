@@ -38,6 +38,7 @@ class PreviewPresenter(object):
         self.highlight_duration = 1.5
         self.count = 1
         self._fade_loop_id = None
+        self._current_time_factor = 0.0
 
         self._build_in_progress = False
         self._last_build_result = None
@@ -110,20 +111,27 @@ class PreviewPresenter(object):
     def start_fade_loop(self):
         # 取消进行中的淡出动画，避免连续 sync 叠加多个 timeout 同时 queue_draw。
         self.cancel_fade_loop()
+        self._current_time_factor = 1.0
 
-        def draw():
-            timer = (self.highlight_duration + 0.25 - time.time() + self.preview.visible_synctex_rectangles_time)
-            if timer <= 0.4:
+        def fade_tick():
+            elapsed = time.time() - self.preview.visible_synctex_rectangles_time
+            remaining = self.highlight_duration + 0.25 - elapsed
+            if remaining <= 0:
+                # 淡出结束：在 fade loop 中统一清理，避免在 draw 回调里修改状态。
+                self.preview.set_synctex_rectangles(list())
+                self._fade_loop_id = None
+                self._current_time_factor = 0
                 self.view.drawing_area.queue_draw()
-            if timer >= 0:
-                return True
-            self._fade_loop_id = None
-            return False
+                return False
+
+            # 将剩余时间映射到 0~1 范围：最后 0.25s 完成淡出
+            time_factor = self.ease(min(remaining, 0.25) * 4)
+            self._current_time_factor = time_factor
+            self.view.drawing_area.queue_draw()
+            return True
+
         self.view.drawing_area.queue_draw()
-        # 15ms（~67fps）远超人眼对淡出动画的感知阈值，30ms（~33fps）足够，
-        # 重绘次数减半（最后 0.4s 约 27 次 → 13 次），减轻与滚动 queue_draw
-        # 叠加的双重全画布重绘。
-        self._fade_loop_id = GObject.timeout_add(30, draw)
+        self._fade_loop_id = GObject.timeout_add(30, fade_tick)
 
     def cancel_fade_loop(self):
         '''取消挂起的 synctex 高亮淡出动画。由 preview.shutdown 调用，
@@ -131,6 +139,7 @@ class PreviewPresenter(object):
         if self._fade_loop_id is not None:
             GObject.source_remove(self._fade_loop_id)
             self._fade_loop_id = None
+        self._current_time_factor = 0
 
     #@timer
     def draw(self, drawing_area, ctx, width, height):
@@ -233,19 +242,18 @@ class PreviewPresenter(object):
         ctx.set_matrix(matrix)
 
     def draw_synctex_rectangles(self, ctx, page_number, synctex_color):
+        if self._current_time_factor <= 0:
+            return
         try:
             rectangles = self.preview.layout.visible_synctex_rectangles[page_number]
         except KeyError:
             return
-        time_factor = self.ease(min(self.highlight_duration + 0.25 - (time.time() - self.preview.visible_synctex_rectangles_time), 0.25) * 4)
-        if time_factor < 0:
-            self.preview.set_synctex_rectangles(list())
-        elif synctex_color is not None:
+        if synctex_color is not None:
             # 不原地修改 synctex_color.alpha：ColorManager 返回的对象可能被缓存，
             # 原代码 color.alpha *= time_factor 会污染缓存，使后续取色（含本帧
             # 其它页与后续帧）拿到不断衰减的 alpha，高亮颜色越来越淡甚至归零。
             # 直接在 set_source_rgba 中计算乘积，零副作用。
-            ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue, synctex_color.alpha * time_factor)
+            ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue, synctex_color.alpha * self._current_time_factor)
             ctx.set_operator(cairo.Operator.MULTIPLY)
             for rectangle in rectangles:
                 ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)

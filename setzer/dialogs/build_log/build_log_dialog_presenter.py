@@ -20,22 +20,17 @@ import os.path
 
 
 class BuildLogDialogPresenter(object):
-    '''同步 build_log.items → dialog view，按设置项过滤显示哪些类型。
+    '''同步 build_log.items → dialog view。
 
-    `autoshow_build_log` 设置项的语义在 Pass-10 扩展为「弹窗显示哪些类型」：
-      - 'errors'          → 仅 Errors
-      - 'errors_warnings' → Errors + Warnings（不含 Badboxes）
-      - 'all'             → Errors + Warnings + Badboxes
-
-    该常量同时被 BuildLogDialogController.on_copy_all_clicked 引用，
-    保证 Copy All 与显示范围一致。
+    「Automatically show build log」设置项（`autoshow_build_log`）只决定
+    **何时自动弹出**日志弹窗（见 build_log.py 的 update_items/has_items），
+    **不**用于过滤弹窗内显示的内容。弹窗里显示哪些类型完全由弹窗自身的
+    筛选控件（文件 / 类型 / 行号 / 搜索）决定，因此这里始终展示全部三种
+    类型，交由窗口内控件进一步筛选。
     '''
 
-    TYPE_FILTER = {
-        'errors': {'Error'},
-        'errors_warnings': {'Error', 'Warning'},
-        'all': {'Error', 'Warning', 'Badbox'},
-    }
+    # 弹窗始终展示全部日志类型，内容的筛选交给窗口内的筛选控件。
+    ALL_TYPES = {'Error', 'Warning', 'Badbox'}
 
     def __init__(self, build_log, dialog_view):
         self.build_log = build_log
@@ -78,9 +73,12 @@ class BuildLogDialogPresenter(object):
         self.populate()
 
     def _get_visible_types(self):
-        '''根据 autoshow_build_log 设置返回当前可见的类型集合。'''
-        autoshow = self.build_log.settings.get_value('preferences', 'autoshow_build_log')
-        return self.TYPE_FILTER.get(autoshow, self.TYPE_FILTER['all'])
+        '''弹窗始终展示全部类型；具体筛选由窗口内的筛选控件决定。
+
+        `autoshow_build_log` 设置项只控制「何时自动弹出」弹窗，不用于
+        过滤弹窗内显示的内容（见 build_log.py 的 update_items/has_items）。
+        '''
+        return self.ALL_TYPES
 
     def _matches_search(self, it):
         '''检查日志项是否匹配当前搜索文本。'''
@@ -113,7 +111,7 @@ class BuildLogDialogPresenter(object):
     def get_visible_items(self):
         '''返回当前在 Build Log 弹窗中可见的所有日志项（原始 item 元组）。
 
-        可见性 = autoshow_build_log 类型筛选 + 搜索文本 + 文件/类型/行号筛选器。
+        可见性 = 全部类型（弹窗始终展示） + 搜索文本 + 文件/类型/行号筛选器。
         即用户在弹窗里「看到什么」就返回什么。供 AI Fix All 按钮使用，
         保证发送给 Agent 的内容与用户视线一致。
         '''

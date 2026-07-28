@@ -34,7 +34,10 @@ import os.path
 import pickle
 import html
 import re
+import json
 from string import Template
+from gi.repository import Pango
+from setzer.app.font_manager import FontManager
 
 from setzer.helpers.observable import Observable
 from setzer.helpers.persistence import load_json, load_pickle_restricted
@@ -49,8 +52,9 @@ from setzer.app.color_manager import ColorManager
 # 单次替换为当前主题颜色。替代原 5 次链式 str.replace：新增颜色变量只需在
 # 模板加一个 $name 并在 _COLOR_KEYS 补一项，无需再叠一行 replace。
 # safe_substitute 对未提供的 $name 保留原样（不抛 KeyError），且 CSS 不含
-# '$' 字符，无需 '$$' 转义。
-_CSS_TEMPLATE = Template('''body {margin: 1em; margin-top: 0px; padding-top: 1px; background: $view_bg_color; color: $view_fg_color; }
+# '$' 字符，无需 '$$' 转义。字体（family/size）由 update_colors 从编辑器
+# 字体设置注入，使帮助文档与编辑器使用同一字体。
+_CSS_TEMPLATE = Template('''body {margin: 1em; margin-top: 0px; padding-top: 1px; background: $view_bg_color; color: $view_fg_color; font-family: $editor_font_family; font-size: $editor_font_size; }
 a {color: $link_color; }
 a:visited {color: $link_color_visited; }
 a:active {color: $link_color_active; }
@@ -195,6 +199,17 @@ class HelpPanel(Observable):
         # 只需在 _COLOR_KEYS 加一行 + 模板用 $name，无需改此方法。
         substitutions = {name: ColorManager.get_ui_color_string(key)
                          for name, key in _COLOR_KEYS.items()}
+
+        # 编辑器字体：用 FontManager.font_string（当前生效字体，含设置与缩放），
+        # 与 GtkSourceView/TextView 走同一来源，使帮助文档与编辑器字体一致。
+        # 字体名用 json.dumps 双引号包裹转义，防止字体名里的特殊字符破坏 CSS
+        # 结构（参照 font_manager.propagate_font_setting 的写法）。
+        font_desc = Pango.FontDescription.from_string(FontManager.font_string)
+        font_family = json.dumps(font_desc.get_family())
+        font_size = font_desc.get_size() / Pango.SCALE
+        substitutions['editor_font_family'] = font_family
+        substitutions['editor_font_size'] = f'{font_size}pt'
+
         css = _CSS_TEMPLATE.safe_substitute(substitutions)
 
         style_sheet = WebKit.UserStyleSheet.new(css, WebKit.UserContentInjectedFrames.ALL_FRAMES, WebKit.UserStyleLevel.USER, None, None)

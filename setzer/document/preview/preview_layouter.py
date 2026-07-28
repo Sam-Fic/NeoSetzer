@@ -53,6 +53,8 @@ class PreviewLayouter(Observable):
     def update_synctex_rectangles(self, layout):
         layout.visible_synctex_rectangles = dict()
         sf = layout.scale_factor
+        # SyncTeX v 是包围框底部距页面顶部的距离 (即包围框的下边缘 y 坐标)。
+        # 要得到包围框上边缘 (cairo y)，需减去高度：top = v - height。
         for rectangle in self.preview.visible_synctex_rectangles:
             new_rectangle = SynctexRect(
                 rectangle['page'],
@@ -61,8 +63,6 @@ class PreviewLayouter(Observable):
                 rectangle['width'] * sf,
                 rectangle['height'] * sf,
             )
-            # setdefault 替代 try/except KeyError：语义更清晰，且对已存在页
-            # 不触发异常抛掷开销。
             layout.visible_synctex_rectangles.setdefault(rectangle['page'] - 1, []).append(new_rectangle)
 
 
