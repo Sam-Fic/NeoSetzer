@@ -1391,6 +1391,118 @@ msgstr ""
 msgid "Reset"
 msgstr "Restablecer"
 
+#: setzer/dialogs/preferences/pages/page_appearance.py:191
+msgid "General"
+msgstr "General"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py
+msgid "All build system and AI Fix settings will be restored to their default values. Custom tools and trusted directories will be removed."
+msgstr "Todas las preferencias del sistema de compilación y de AI Fix se restaurarán a sus valores predeterminados. Las herramientas personalizadas y los directorios de confianza se eliminarán."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:572
+msgid "AI Fix"
+msgstr "Corrección con IA"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:576
+msgid "Enable AI Fix"
+msgstr "Activar corrección con IA"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:577
+msgid "Show \"AI Fix\" buttons in the Build Log dialog"
+msgstr "Mostrar botones de «Corrección con IA» en el diálogo de registro de compilación"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:581
+msgid "Active agent tool"
+msgstr "Herramienta agente activa"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:582
+msgid "Which CLI to invoke when clicking AI Fix"
+msgstr "CLI que se invoca al hacer clic en Corrección con IA"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:586
+msgid "Terminal command (optional)"
+msgstr "Comando de terminal (opcional)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:588
+msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
+msgstr "Déjelo vacío para detección automática (gnome-terminal / xterm / konsole / ...). Bajo Flatpak, flatpak-spawn --host se añade automáticamente."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:593
+msgid "Agent tools"
+msgstr "Herramientas de agente"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:594
+msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
+msgstr "Los ajustes preestablecidos integrados no se pueden eliminar. Añada una herramienta personalizada para integrar otras CLI de agente."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:600
+msgid "+ Add custom tool"
+msgstr "+ Añadir herramienta personalizada"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:605
+msgid "Trusted directories"
+msgstr "Directorios de confianza"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:606
+msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
+msgstr "Directorios donde se omite el diálogo de vista previa. Haga clic en eliminar para revocar la confianza de un proyecto."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:323
+msgid "(active)"
+msgstr "(activo)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:327
+msgid "built-in"
+msgstr "integrado"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:329
+msgid "custom"
+msgstr "personalizado"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:332
+msgid "installed"
+msgstr "instalado"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:334
+msgid "not installed"
+msgstr "no instalado"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:343
+msgid "Remove this custom tool"
+msgstr "Eliminar esta herramienta personalizada"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:361
+msgid "No trusted directories yet"
+msgstr "Aún no hay directorios de confianza"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:362
+msgid "Check \"Don't ask again\" in the preview dialog to add one."
+msgstr "Marque «No preguntar de nuevo» en el diálogo de vista previa para añadir uno."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:375
+msgid "Remove from trusted list"
+msgstr "Eliminar de la lista de confianza"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:629
+msgid "Add custom tool"
+msgstr "Añadir herramienta personalizada"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:659
+msgid "Tool name (unique)"
+msgstr "Nombre de herramienta (único)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:663
+msgid "Executable (e.g. aider)"
+msgstr "Ejecutable (ej. aider)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:667
+msgid "Headed command template"
+msgstr "Plantilla de comando con cabecera"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:668
+msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
+msgstr "Argumentos separados por espacios. Use {prompt} / {file} / {cwd} como marcadores de posición. Ejemplo: aider --message {prompt} --no-auto-commits. Si se deja en blanco o sin {prompt}, la instrucción se copia al portapapeles."
+
 #: setzer/dialogs/preferences/pages/page_appearance.py:229
 #: setzer/dialogs/preferences/pages/page_editor.py:264
 msgid "Appearance"
@@ -2576,6 +2688,10 @@ msgstr ""
 "al documento principal. Esto suele ser útil al trabajar en proyectos grandes "
 "donde, normalmente, un documento de nivel superior (el principal) contendrá "
 "varios archivos de nivel inferior mediante instrucciones de inclusión."
+
+#: setzer/popovers/document_switcher/document_switcher.py:365
+msgid "Select Root Document"
+msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
@@ -4407,12 +4523,6 @@ msgstr "No se pudo guardar el estado del área de trabajo: {error}"
 
 #~ msgid "Add a BibTeX Entry from an Online Database"
 #~ msgstr "Añadir una entrada BibTeX desde una base de datos online"
-
-#~ msgid ""
-#~ "Click the open or create buttons in the headerbar above to start editing."
-#~ msgstr ""
-#~ "Haga clic en los botones Abrir o Crear de la barra de título para empezar "
-#~ "a editar."
 
 #~ msgid "additional math fonts from AMS."
 #~ msgstr "fuentes matemáticas adicionales de AMS."

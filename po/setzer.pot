@@ -2449,6 +2449,10 @@ msgid ""
 "files via include statements."
 msgstr ""
 
+#: setzer/popovers/document_switcher/document_switcher.py:365
+msgid "Select Root Document"
+msgstr ""
+
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
 msgstr ""

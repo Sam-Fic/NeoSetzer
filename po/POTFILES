@@ -56,6 +56,8 @@
 ./setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py
 ./setzer/dialogs/include_latex_file/__init__.py
 ./setzer/dialogs/__init__.py
+./setzer/dialogs/first_run_tutorial/__init__.py
+./setzer/dialogs/first_run_tutorial/first_run_tutorial.py
 ./setzer/dialogs/interpreter_missing/__init__.py
 ./setzer/dialogs/interpreter_missing/interpreter_missing.py
 ./setzer/dialogs/keyboard_shortcuts/__init__.py

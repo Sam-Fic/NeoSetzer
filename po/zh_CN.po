@@ -1361,6 +1361,118 @@ msgstr "所有外观设置将恢复为默认值"
 msgid "Reset"
 msgstr "重置"
 
+#: setzer/dialogs/preferences/pages/page_appearance.py:191
+msgid "General"
+msgstr "常规"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py
+msgid "All build system and AI Fix settings will be restored to their default values. Custom tools and trusted directories will be removed."
+msgstr "构建系统与 AI Fix 的所有设置都将恢复为默认值。自定义工具与受信任目录将被移除。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:572
+msgid "AI Fix"
+msgstr "AI 修复"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:576
+msgid "Enable AI Fix"
+msgstr "启用 AI 修复"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:577
+msgid "Show \"AI Fix\" buttons in the Build Log dialog"
+msgstr "在构建日志对话框中显示"AI 修复"按钮"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:581
+msgid "Active agent tool"
+msgstr "当前 Agent 工具"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:582
+msgid "Which CLI to invoke when clicking AI Fix"
+msgstr "点击 AI 修复按钮时调用的 CLI"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:586
+msgid "Terminal command (optional)"
+msgstr "终端命令（可选）"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:588
+msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
+msgstr "留空自动检测（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自动添加 flatpak-spawn --host。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:593
+msgid "Agent tools"
+msgstr "Agent 工具"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:594
+msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
+msgstr "内置预设无法删除。添加自定义工具以集成其他 Agent CLI。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:600
+msgid "+ Add custom tool"
+msgstr "+ 添加自定义工具"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:605
+msgid "Trusted directories"
+msgstr "受信任目录"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:606
+msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
+msgstr "跳过预览对话框的目录。点击删除可撤销对项目的信任。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:323
+msgid "(active)"
+msgstr "（当前）"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:327
+msgid "built-in"
+msgstr "内置"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:329
+msgid "custom"
+msgstr "自定义"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:332
+msgid "installed"
+msgstr "已安装"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:334
+msgid "not installed"
+msgstr "未安装"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:343
+msgid "Remove this custom tool"
+msgstr "移除该自定义工具"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:361
+msgid "No trusted directories yet"
+msgstr "暂无受信任目录"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:362
+msgid "Check \"Don't ask again\" in the preview dialog to add one."
+msgstr "在预览对话框中勾选"不再询问"以添加。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:375
+msgid "Remove from trusted list"
+msgstr "从信任列表中移除"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:629
+msgid "Add custom tool"
+msgstr "添加自定义工具"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:659
+msgid "Tool name (unique)"
+msgstr "工具名称（唯一）"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:663
+msgid "Executable (e.g. aider)"
+msgstr "可执行文件（如 aider）"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:667
+msgid "Headed command template"
+msgstr "有头命令模板"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:668
+msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
+msgstr "以空格分隔的参数。使用 {prompt} / {file} / {cwd} 作为占位符。例如：aider --message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示信息将复制到剪贴板。"
+
 #: setzer/dialogs/preferences/pages/page_appearance.py:229
 #: setzer/dialogs/preferences/pages/page_editor.py:264
 msgid "Appearance"
@@ -2510,6 +2622,10 @@ msgstr ""
 "点击下方列表中的文档将其设为根文档。无论你当前正在编辑哪个文档，根文档都会被"
 "构建，并始终显示在 .pdf 预览中。构建日志也会指向根文档。在处理大型项目时这通"
 "常很有用——顶层文档（根）通常通过 include 语句包含多个下层文件"
+
+#: setzer/popovers/document_switcher/document_switcher.py:365
+msgid "Select Root Document"
+msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
@@ -4254,10 +4370,6 @@ msgstr "无法保存工作区状态：{error}"
 
 #~ msgid "Add a BibTeX Entry from an Online Database"
 #~ msgstr "从在线数据库添加 BibTeX 条目"
-
-#~ msgid ""
-#~ "Click the open or create buttons in the headerbar above to start editing."
-#~ msgstr "点击上方标题栏中的打开或创建按钮即可开始编辑。"
 
 #~ msgid "additional math fonts from AMS."
 #~ msgstr "来自 AMS 的附加数学字体"

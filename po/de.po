@@ -1382,6 +1382,118 @@ msgstr ""
 msgid "Reset"
 msgstr "Zurücksetzen"
 
+#: setzer/dialogs/preferences/pages/page_appearance.py:191
+msgid "General"
+msgstr "Allgemein"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py
+msgid "All build system and AI Fix settings will be restored to their default values. Custom tools and trusted directories will be removed."
+msgstr "Alle Einstellungen von Build-System und AI Fix werden auf ihre Standardwerte zurückgesetzt. Benutzerdefinierte Werkzeuge und vertrauenswürdige Verzeichnisse werden entfernt."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:572
+msgid "AI Fix"
+msgstr "KI-Fehlerbehebung"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:576
+msgid "Enable AI Fix"
+msgstr "KI-Fehlerbehebung aktivieren"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:577
+msgid "Show \"AI Fix\" buttons in the Build Log dialog"
+msgstr "Schaltflächen „KI-Fehlerbehebung" im Build-Log-Dialog anzeigen"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:581
+msgid "Active agent tool"
+msgstr "Aktives Agent-Werkzeug"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:582
+msgid "Which CLI to invoke when clicking AI Fix"
+msgstr "Welche CLI beim Klick auf KI-Fehlerbehebung aufgerufen wird"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:586
+msgid "Terminal command (optional)"
+msgstr "Terminalbefehl (optional)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:588
+msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
+msgstr "Leer lassen zur automatischen Erkennung (gnome-terminal / xterm / konsole / ...). Unter Flatpak wird flatpak-spawn --host automatisch hinzugefügt."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:593
+msgid "Agent tools"
+msgstr "Agent-Werkzeuge"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:594
+msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
+msgstr "Integrierte Voreinstellungen können nicht entfernt werden. Fügen Sie ein benutzerdefiniertes Werkzeug hinzu, um andere Agent-CLIs zu integrieren."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:600
+msgid "+ Add custom tool"
+msgstr "+ Benutzerdefiniertes Werkzeug hinzufügen"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:605
+msgid "Trusted directories"
+msgstr "Vertrauenswürdige Verzeichnisse"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:606
+msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
+msgstr "Verzeichnisse, in denen der Vorschaudialog übersprungen wird. Klicken Sie auf Löschen, um die Vertrauensstellung für ein Projekt zu widerrufen."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:323
+msgid "(active)"
+msgstr "(aktiv)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:327
+msgid "built-in"
+msgstr "integriert"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:329
+msgid "custom"
+msgstr "benutzerdefiniert"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:332
+msgid "installed"
+msgstr "installiert"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:334
+msgid "not installed"
+msgstr "nicht installiert"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:343
+msgid "Remove this custom tool"
+msgstr "Dieses benutzerdefinierte Werkzeug entfernen"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:361
+msgid "No trusted directories yet"
+msgstr "Noch keine vertrauenswürdigen Verzeichnisse"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:362
+msgid "Check \"Don't ask again\" in the preview dialog to add one."
+msgstr "Aktivieren Sie „Nicht erneut fragen" im Vorschaudialog, um eines hinzuzufügen."
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:375
+msgid "Remove from trusted list"
+msgstr "Aus der Vertrauensliste entfernen"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:629
+msgid "Add custom tool"
+msgstr "Benutzerdefiniertes Werkzeug hinzufügen"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:659
+msgid "Tool name (unique)"
+msgstr "Werkzeugname (eindeutig)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:663
+msgid "Executable (e.g. aider)"
+msgstr "Ausführbare Datei (z.B. aider)"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:667
+msgid "Headed command template"
+msgstr "Befehlskopfvorlage"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:668
+msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
+msgstr "Leerzeichengetrennte Argumente. Verwenden Sie {prompt} / {file} / {cwd} als Platzhalter. Beispiel: aider --message {prompt} --no-auto-commits. Wenn Sie das Feld leer lassen oder ohne {prompt}, wird die Eingabeaufforderung in die Zwischenablage kopiert."
+
 #: setzer/dialogs/preferences/pages/page_appearance.py:229
 #: setzer/dialogs/preferences/pages/page_editor.py:264
 msgid "Appearance"
@@ -2559,6 +2671,10 @@ msgstr ""
 "oft nützlich bei großen Projekten, bei denen ein übergeordnetes Dokument "
 "(das Hauptdokument) über \\include-Anweisungen mehrere untergeordnete "
 "Dateien einbindet."
+
+#: setzer/popovers/document_switcher/document_switcher.py:365
+msgid "Select Root Document"
+msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
@@ -4398,12 +4514,6 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 
 #~ msgid "Add a BibTeX Entry from an Online Database"
 #~ msgstr "Einen BibTex Eintrag aus einer Online-Datenbank hinzufügen"
-
-#~ msgid ""
-#~ "Click the open or create buttons in the headerbar above to start editing."
-#~ msgstr ""
-#~ "Klicken Sie auf die Schaltflächen zum Öffnen oder Erstellen in der "
-#~ "Kopfbalkenleiste oben, um mit dem Bearbeiten zu beginnen."
 
 #~ msgid "additional math fonts from AMS."
 #~ msgstr "zusätliche mathematischen Schriftarten von AMS."
