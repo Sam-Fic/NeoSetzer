@@ -1400,7 +1400,7 @@ msgstr "KI-Fehlerbehebung aktivieren"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:577
 msgid "Show \"AI Fix\" buttons in the Build Log dialog"
-msgstr "Schaltflächen „KI-Fehlerbehebung" im Build-Log-Dialog anzeigen"
+msgstr "Schaltflächen „KI-Fehlerbehebung” im Build-Log-Dialog anzeigen"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:581
 msgid "Active agent tool"
@@ -1468,7 +1468,7 @@ msgstr "Noch keine vertrauenswürdigen Verzeichnisse"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:362
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
-msgstr "Aktivieren Sie „Nicht erneut fragen" im Vorschaudialog, um eines hinzuzufügen."
+msgstr "Aktivieren Sie „Nicht erneut fragen” im Vorschaudialog, um eines hinzuzufügen."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:375
 msgid "Remove from trusted list"

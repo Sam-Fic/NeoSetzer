@@ -12,7 +12,7 @@
 #   meson test -C builddir
 #   meson test -C builddir test_persistence
 
-python_bin = import('python').find_installation().full_path()
+python_bin = import('python').find_installation()
 
 test_env = environment()
 test_env.set('PYTHONPATH', meson.source_root())

@@ -1379,7 +1379,7 @@ msgstr "启用 AI 修复"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:577
 msgid "Show \"AI Fix\" buttons in the Build Log dialog"
-msgstr "在构建日志对话框中显示"AI 修复"按钮"
+msgstr "在构建日志对话框中显示“AI 修复”按钮"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:581
 msgid "Active agent tool"
@@ -1447,7 +1447,7 @@ msgstr "暂无受信任目录"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:362
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
-msgstr "在预览对话框中勾选"不再询问"以添加。"
+msgstr "在预览对话框中勾选“不再询问”以添加。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:375
 msgid "Remove from trusted list"
