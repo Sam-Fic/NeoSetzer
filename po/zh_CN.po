@@ -3083,8 +3083,8 @@ msgstr[0] "{n} 个结果"
 msgstr[1] "{n} 个结果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Home"
-msgstr "主页"
+msgid "Help home"
+msgstr "帮助主页"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3115,6 +3115,10 @@ msgstr "搜索帮助"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:146
 msgid "No results found"
 msgstr "未找到结果"
+
+#: setzer/workspace/help_panel/help_panel_presenter.py:74
+msgid "No results for '{query}'"
+msgstr "未找到“{query}”的结果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:155
 msgid "Search Help"

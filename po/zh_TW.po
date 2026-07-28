@@ -3081,8 +3081,8 @@ msgid_plural "{n} results"
 msgstr[0] "{n} 個結果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Home"
-msgstr "首頁"
+msgid "Help home"
+msgstr "說明首頁"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3113,6 +3113,10 @@ msgstr "搜尋說明"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:146
 msgid "No results found"
 msgstr "沒有結果"
+
+#: setzer/workspace/help_panel/help_panel_presenter.py:74
+msgid "No results for '{query}'"
+msgstr "沒有「{query}」的結果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:155
 msgid "Search Help"

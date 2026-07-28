@@ -3137,8 +3137,8 @@ msgstr[0] "{n} Ergebnis"
 msgstr[1] "{n} Ergebnisse"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Home"
-msgstr "Startseite"
+msgid "Help home"
+msgstr "Hilfe-Startseite"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3169,6 +3169,10 @@ msgstr "Hilfe durchsuchen"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:146
 msgid "No results found"
 msgstr "Keine Ergebnisse"
+
+#: setzer/workspace/help_panel/help_panel_presenter.py:74
+msgid "No results for '{query}'"
+msgstr "Keine Ergebnisse für „{query}“"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:155
 msgid "Search Help"
