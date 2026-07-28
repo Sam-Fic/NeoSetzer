@@ -1,9 +1,11 @@
 # Setzer
 
+[简体中文](README.zh-CN.md)
+
 Simple yet full-featured LaTeX editor for the GNU/Linux desktop, written in Python with GTK.
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
-> The original project lives at <https://www.cvfosammmm.org/setzer/> and is licensed under GPL-3.0-or-later.
+> The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
 > This fork is maintained at <https://github.com/Sam-Fic/Setzer>.
 
 ![Screenshot](data/screenshot.png)
@@ -15,22 +17,22 @@ Setzer is a LaTeX editor written in Python with GTK. I'm happy if you give it a 
 This fork is **not** published on Flathub. There are two ways to get it:
 
 1. **Build from source** (see below) — works on any GNU/Linux distribution with the dependencies available.
-2. **Debian package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Check there for the latest build.
+2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Check there for the latest build.
 
 ## Running Setzer with Gnome Builder
 
 To run Setzer with Gnome Builder just click the "Clone.." button on the start screen, paste in the url (https://github.com/Sam-Fic/Setzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
 
-Warning: Building Setzer this way may take a long time (~ 30 minutes on my laptop).
+Warning: Building Setzer this way may take a long time.
 
-## Running Setzer on Debian (probably Ubuntu, other distributions too?)
+## Running Setzer on Debian/Ubuntu
 
-This way is probably a bit faster and may save you some disk space. I develop Setzer on Debian and that's what I tested it with. On Debian derivatives (like Ubuntu) it should probably work the same. On distributions other than Debian and Debian derivatives it should work more or less the same. If you want to run Setzer from source on another distribution and don't know how please open an issue here on GitHub. I will then try to provide instructions for your system.
+I develop Setzer on Ubuntu and that's what I tested it with.
 
-1. Run the following command to install prerequisite Debian packages:<br />
+1. Run the following command to install prerequisite packages:<br />
 `apt-get install meson python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-willow python3-numpy gir1.2-xdp-1.0`
 
-2. Download and Unpack Setzer from GitHub
+2. Clone Setzer repository from GitHub
 
 3. cd to Setzer folder
 
@@ -42,7 +44,7 @@ Or run it locally: `./scripts/setzer.dev`
 
 ## Building your documents from within the app
 
-To build your documents from within the app you have to install a LaTeX interpreter. For example if you want to build with XeLaTeX, on Debian this can be installed like so:
+To build your documents from within the app you have to install a LaTeX interpreter. For example if you want to build with XeLaTeX, on Ubuntu this can be installed like so:
 `apt-get install texlive-xetex`
 
 To specify a build command open the "Preferences" dialog and choose the command you want to use under "LaTeX Interpreter".
