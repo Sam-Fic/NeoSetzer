@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -58,7 +58,12 @@ class PreviewLayouter(Observable):
             layout.rotation = rotation
 
             layout.page_gap = layout.hidpi_factor * 10
-            layout.border_width = 0
+            # 描边：draw_page_background_and_outline 先填一个略大的
+            # border_color 矩形、再用页面底色覆盖中心，留下边缘 border_width
+            # 那一圈作描边。值=0 时外/内矩形同尺寸描边被完全覆盖（不可见）。
+            # 画布已有 view_bg 背景板后，描边强化"纸浮在桌面上"
+            # 的层次感；此前曾因画布与页面同色（纯白）显得突兀而置 0。
+            layout.border_width = 3
             layout.canvas_width = layout.page_width + 2 * layout.get_horizontal_margin(window_width)
             layout.canvas_height = self.preview.poppler_document.get_n_pages() * (layout.page_height + layout.page_gap) - layout.page_gap
             self.update_synctex_rectangles(layout)
@@ -144,5 +149,3 @@ class PreviewLayout(object):
 
     def get_page_by_offset(self, offset):
         return int(1 + offset // (self.page_height + self.page_gap))
-
-

@@ -153,13 +153,20 @@ class PreviewPresenter(object):
         # 后降为每帧 2 次。synctex 颜色仅在有高亮矩形时才取（else None），
         # 保持原「无高亮时零取色」行为。
         border_color = ColorManager.get_ui_color('borders')
+        # 画布（"桌面"）背景始终跟随视图背景色，与 PDF 页面颜色解耦。
+        # 原实现让画布跟随页面底色（recolor 用 view_bg，否则纯白），导致
+        # 深色模式下画布与纸张同色融合，看不到"背景板"层次——白色纸张在
+        # 深色窗口里应浮在深色桌面之上，而非与桌面融为一体。
+        canvas_bg_color = ColorManager.get_ui_color('view_bg_color')
+        # 页面（纸张）底色：recolor 时跟随视图背景（匹配反色后页面的深色背景），
+        # 否则纯白（None 让子函数走 set_source_rgba(1,1,1,1)）。
         if self.preview.recolor_pdf:
-            bg_color = ColorManager.get_ui_color('view_bg_color')
+            page_bg_color = canvas_bg_color
         else:
-            bg_color = None  # 非反色用纯白，None 让子函数走 set_source_rgba(1,1,1,1)
+            page_bg_color = None
         synctex_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.visible_synctex_rectangles else None
 
-        self.draw_background(ctx, drawing_area, bg_color)
+        self.draw_background(ctx, drawing_area, canvas_bg_color)
 
         # 缓存 layout 引用到局部变量：draw 每帧调用，原代码在循环体内多次
         # 经 self.preview.layout.xxx 两级属性链查找（每级 __dict__ 哈希）。
@@ -187,7 +194,7 @@ class PreviewPresenter(object):
         page_step = page_height + page_gap
         rotation = self.preview.rotation
         for page_number in range(first_page, last_page + 1):
-            self.draw_page_background_and_outline(ctx, layout, border_color, bg_color)
+            self.draw_page_background_and_outline(ctx, layout, border_color, page_bg_color)
             if rotation != 0:
                 # Draw the un-rotated texture (and synctex highlight) inside a
                 # rotation transform so it appears rotated within the page box.
@@ -205,13 +212,11 @@ class PreviewPresenter(object):
             ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_step))
 
     def draw_background(self, ctx, drawing_area, bg_color):
-        # 画布底色跟随 PDF 页面底色（recolor 用 view_bg，否则纯白），
-        # 让页面与画布无缝融合，消除页面边缘的“描边框”观感。
+        # 画布（"桌面"）背景始终跟随视图背景色（view_bg_color），与页面
+        # 颜色解耦：浅色模式画布为浅灰、深色模式为深色，纸张（白或反色后
+        # 深色）浮于其上，形成"纸在桌面上"的视觉层次。
         ctx.rectangle(0, 0, drawing_area.get_allocated_width(), drawing_area.get_allocated_height())
-        if bg_color is not None:
-            ctx.set_source_rgba(bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha)
-        else:
-            ctx.set_source_rgba(1, 1, 1, 1)
+        ctx.set_source_rgba(bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha)
         ctx.fill()
 
     #@timer
