@@ -64,7 +64,7 @@ class DocumentSwitcherView(object):
         self.explanation_group.add(self.explanation_label)
 
         # 选择模式下的显式退出路径：独立的「取消」按钮，避免只能靠 Esc 关闭。
-        # 它随 explanation_group 一起显隐，常驻底部、居中对齐、加宽便于点击。
+        # 它随 explanation_group 一起显隐，常驻底部、居中对齐。
         self.cancel_button = Gtk.Button(label=_('Cancel'))
         self.cancel_button.set_halign(Gtk.Align.CENTER)
         self.cancel_button.set_margin_top(10)
@@ -72,7 +72,6 @@ class DocumentSwitcherView(object):
         self.cancel_button.set_hexpand(True)
         self.cancel_button.set_margin_start(12)
         self.cancel_button.set_margin_end(12)
-        self.cancel_button.set_css_classes(['suggested-action', 'pill'])
         self.explanation_group.add(self.cancel_button)
 
         self.explanation_group.set_visible(False)
