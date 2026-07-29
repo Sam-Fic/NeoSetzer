@@ -3571,6 +3571,11 @@ msgstr "Sitzung konnte nicht geöffnet werden: {name}"
 msgid "Could not save workspace state: {error}"
 msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 
+#: setzer/dialogs/save_document/save_document_viewgtk.py:88
+#, python-brace-format
+msgid "Could not save document: {error}"
+msgstr "Das Dokument konnte nicht gespeichert werden: {error}"
+
 #~ msgid "Discard"
 #~ msgstr "Verwerfen"
 #~ msgid "General"

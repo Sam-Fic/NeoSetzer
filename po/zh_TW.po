@@ -3508,6 +3508,11 @@ msgstr "無法開啟作業階段：{name}"
 msgid "Could not save workspace state: {error}"
 msgstr "無法儲存工作區狀態：{error}"
 
+#: setzer/dialogs/save_document/save_document_viewgtk.py:88
+#, python-brace-format
+msgid "Could not save document: {error}"
+msgstr "無法儲存文件：{error}"
+
 #~ msgid "Discard"
 #~ msgstr "丟棄"
 #~ msgid "General"

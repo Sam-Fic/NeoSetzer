@@ -3581,6 +3581,11 @@ msgstr "Impossibile aprire la sessione: {name}"
 msgid "Could not save workspace state: {error}"
 msgstr "Impossibile salvare lo stato dell'area di lavoro: {error}"
 
+#: setzer/dialogs/save_document/save_document_viewgtk.py:88
+#, python-brace-format
+msgid "Could not save document: {error}"
+msgstr "Impossibile salvare il documento: {error}"
+
 #~ msgid "Discard"
 #~ msgstr "Scarta"
 #~ msgid "General"

@@ -311,7 +311,7 @@ msgstr "复制到剪贴板"
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
 msgid "Document \"{document}\" has no filename."
-msgstr "文档"{document}"没有文件名"
+msgstr "文档{{document}}没有文件名"
 
 #: setzer/dialogs/build_save/build_save.py:36
 msgid ""
@@ -329,7 +329,7 @@ msgstr "立即保存文档"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
 msgid "Document \"{document}\" has unsaved changes."
-msgstr "文档"{document}"有未保存的修改"
+msgstr "文档{{document}}有未保存的修改"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
 msgid "If you close without saving, these changes will be lost."
@@ -366,7 +366,7 @@ msgstr "全部保存"
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
 msgid "Document \"{document}\" has changed on disk."
-msgstr "文档"{document}"在磁盘上有变化"
+msgstr "文档{{document}}在磁盘上有变化"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
 msgid "Should Setzer reload it now? Reloading will discard your unsaved changes."
@@ -383,7 +383,7 @@ msgstr "从磁盘重新加载"
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
 msgid "Document \"{document}\" was deleted from disk or moved."
-msgstr "文档"{document}"已从磁盘删除或移走"
+msgstr "文档{{document}}已从磁盘删除或移走"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
@@ -959,7 +959,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer 配置使用的解释器 "{interpreter}" 似乎未安装在系统中。\n"
+"Setzer 配置使用的解释器 {{interpreter}} 似乎未安装在系统中。\n"
 "\n"
 "你可以通过以下方式安装：\n"
 "• Ubuntu/Debian：sudo apt install texlive-latex-base\n"
@@ -2300,7 +2300,7 @@ msgstr "第 {page} 页，共 {total} 页"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
 msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
-msgstr "将 "{original}" 的所有匹配替换为 "{replacement}"？"
+msgstr "将 {{original}} 的所有匹配替换为 {{replacement}}？"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 msgid "Counting matches… The number of occurrences is still being calculated."
@@ -2311,8 +2311,8 @@ msgstr "正在统计匹配数……匹配数量仍在计算中"
 msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
 "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
-msgstr[0] "正在将 {amount} 处 "{original}" 替换为 "{replacement}""
-msgstr[1] "正在将 {amount} 处 "{original}" 替换为 "{replacement}""
+msgstr[0] "正在将 {amount} 处 {{original}} 替换为 {{replacement}}"
+msgstr[1] "正在将 {amount} 处 {{original}} 替换为 {{replacement}}"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:51
 msgid "Do you really want to do this?"
@@ -3625,6 +3625,31 @@ msgstr "无法打开会话：{name}"
 msgid "Could not save workspace state: {error}"
 msgstr "无法保存工作区状态：{error}"
 
+#: setzer/dialogs/close_confirmation/close_confirmation_viewgtk.py:59
+msgid "Close without Saving"
+msgstr "不保存关闭"
+
+#: setzer/dialogs/document_changed_on_disk/document_changed_on_disk_viewgtk.py:43
+msgid "Should Setzer reload it now?"
+msgstr "是否立即重新加载？"
+
+#: setzer/dialogs/interpreter_missing/interpreter_missing_viewgtk.py:35
+msgid "LateX Interpreter is missing."
+msgstr "LaTeX 解释器缺失"
+
+#: setzer/document/build_system/page_build_system.py:291
+msgid "Use Latexmk"
+msgstr "使用 Latexmk"
+
+#: setzer/dialogs/save_document/save_document_viewgtk.py:88
+#, python-brace-format
+msgid "Could not save document: {error}"
+msgstr "无法保存文档：{error}"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:64
+msgid "Home"
+msgstr "主页"
+
 #~ msgid "Copy All"
 #~ msgstr "复制全部"
 
@@ -4185,7 +4210,7 @@ msgstr "无法保存工作区状态：{error}"
 
 #, python-brace-format
 #~ msgid ""
-#~ "Setzer is configured to use "{interpreter}" which seems to be missing on "
+#~ "Setzer is configured to use {{interpreter}} which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4195,13 +4220,13 @@ msgstr "无法保存工作区状态：{error}"
 #~ "\n"
 #~ "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 #~ msgstr ""
-#~ "Setzer 已配置使用 "{interpreter}"，但系统中似乎缺失该解释器。要选择其他解"
+#~ "Setzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
 #~ "释器，请前往首选项。若要在 Flatpak 中安装解释器，请打开终端并运行以下命"
 #~ "令：    flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #, python-brace-format
 #~ msgid ""
-#~ "Setzer is configured to use "{interpreter}" which seems to be missing on "
+#~ "Setzer is configured to use {{interpreter}} which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4210,7 +4235,7 @@ msgstr "无法保存工作区状态：{error}"
 #~ "en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/"
 #~ "LaTeX/Installation</a>"
 #~ msgstr ""
-#~ "Setzer 已配置使用 "{interpreter}"，但系统中似乎缺失该解释器。要选择其他解"
+#~ "Setzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
 #~ "释器，请前往首选项。"
 
 #~ msgid "Show symbols panel"
@@ -4251,10 +4276,6 @@ msgstr "无法保存工作区状态：{error}"
 
 #~ msgid "Add Scheme"
 #~ msgstr "添加方案"
-
-#, python-brace-format
-#~ msgid "Removing syntax scheme "{name}"."
-#~ msgstr "移除语法方案"{name}""
 
 #~ msgid "_Yes, remove it"
 #~ msgstr "是，移除它(_Y)"
