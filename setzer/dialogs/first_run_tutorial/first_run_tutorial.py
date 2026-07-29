@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import os
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -120,6 +122,22 @@ class FirstRunTutorialDialog(object):
             image.set_pixel_size(28)
             row.add_prefix(image)
             listbox.append(row)
+
+        # 引导用户打开示例文档（与欢迎页入口保持一致）。
+        example_button = Gtk.Button()
+        example_button.set_icon_name('document-open-symbolic')
+        example_button.set_label(_('Open Example Document'))
+        example_button.set_halign(Gtk.Align.CENTER)
+        example_button.connect('clicked', self.on_open_example_clicked)
+        box.append(example_button)
+
+    def on_open_example_clicked(self, button):
+        example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')
+        if os.path.isfile(example_path):
+            workspace = ServiceLocator.get_workspace()
+            if workspace is not None:
+                workspace.open_document_by_filename(example_path)
+        self.view.close()
 
     def run(self):
         # 标记已展示，确保只自动弹一次（无论以何种方式关闭）。
