@@ -90,7 +90,6 @@ class DocumentPropertiesDialog(object):
         '''When user manually toggles a switch, clear the inherited state.'''
         if hasattr(switch, '_is_inherited') and switch._is_inherited:
             switch._is_inherited = False
-            switch.remove_css_class('dim-label')
 
     def _sync_controls(self):
         '''Load current overrides (or global defaults) into the UI controls.'''
@@ -136,15 +135,13 @@ class DocumentPropertiesDialog(object):
     def _sync_combo(self, combo, override, global_value, options, effective):
         '''Set combo box active item based on override state.'''
         if override is None:
-            # Use the "Follow global" option (index 0)
-            combo.set_active(0)
+            combo.set_selected(0)
         else:
-            # Find the matching option
             for i, (label, value) in enumerate(options):
                 if value == override:
-                    combo.set_active(i)
+                    combo.set_selected(i)
                     return
-            combo.set_active(0)
+            combo.set_selected(0)
 
     def _sync_switch(self, switch, override, effective):
         '''Set switch state based on override state.'''
@@ -152,11 +149,9 @@ class DocumentPropertiesDialog(object):
             # For "follow global", we show the effective value but mark it as inherited
             switch.set_active(effective)
             switch._is_inherited = True
-            switch.add_css_class('dim-label')
         else:
             switch.set_active(override)
             switch._is_inherited = False
-            switch.remove_css_class('dim-label')
 
     def _on_apply(self, button):
         '''Save overrides to DocumentSettings.'''
@@ -164,7 +159,7 @@ class DocumentPropertiesDialog(object):
 
         # --- Build System ---
         # Interpreter
-        interp_idx = self._combo_interpreter.get_active()
+        interp_idx = self._combo_interpreter.get_selected()
         if interp_idx == 0:
             DocumentSettings.set_document_override(doc, 'latex_interpreter', None)
         else:
@@ -194,7 +189,7 @@ class DocumentPropertiesDialog(object):
 
         # --- Editor ---
         # Indent mode
-        indent_idx = self._combo_indent_mode.get_active()
+        indent_idx = self._combo_indent_mode.get_selected()
         if indent_idx == 0:
             DocumentSettings.set_document_override(doc, 'spaces_instead_of_tabs', None)
         else:
@@ -202,7 +197,7 @@ class DocumentPropertiesDialog(object):
             DocumentSettings.set_document_override(doc, 'spaces_instead_of_tabs', value)
 
         # Tab width
-        tw_idx = self._combo_tab_width.get_active()
+        tw_idx = self._combo_tab_width.get_selected()
         if tw_idx == 0:
             DocumentSettings.set_document_override(doc, 'tab_width', None)
         else:

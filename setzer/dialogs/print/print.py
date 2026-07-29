@@ -119,7 +119,7 @@ class PrintDialog(object):
 
     def on_done(self, op, result):
         '''打印对话框结束后把用户改动后的设置持久化（取消/报错时丢弃）。'''
-        if result in (Gtk.PrintOperationResult.OK, Gtk.PrintOperationResult.APPLY):
+        if result == Gtk.PrintOperationResult.APPLY:
             self.print_settings = op.get_print_settings()
             self.page_setup = op.get_default_page_setup()
             self._save_settings()
