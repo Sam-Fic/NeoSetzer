@@ -64,8 +64,13 @@ class PreviewLayouter(Observable):
             # 画布已有 view_bg 背景板后，描边强化"纸浮在桌面上"
             # 的层次感；此前曾因画布与页面同色（纯白）显得突兀而置 0。
             layout.border_width = 3
+            # 画布顶/底的缓冲高度：第一页不直接从 canvas y=0 开始、最后一页
+            # 也不直接到 canvas_height 结束，而是各留一段 vertical_padding
+            # 的"桌面"空白。滚到顶/底时纸张不再贴窗口边缘，与左右水平 margin
+            # 形成四周呼吸空间。值取 page_gap 的 3 倍，与页间距视觉协调。
+            layout.vertical_padding = layout.page_gap * 1
             layout.canvas_width = layout.page_width + 2 * layout.get_horizontal_margin(window_width)
-            layout.canvas_height = self.preview.poppler_document.get_n_pages() * (layout.page_height + layout.page_gap) - layout.page_gap
+            layout.canvas_height = self.preview.poppler_document.get_n_pages() * (layout.page_height + layout.page_gap) - layout.page_gap + 2 * layout.vertical_padding
             self.update_synctex_rectangles(layout)
             return layout
         else:
@@ -97,6 +102,8 @@ class PreviewLayout(object):
         self.page_height_original = None
         self.page_gap = None
         self.border_width = None
+        # 画布顶/底缓冲（见 create_layout）。None 表示尚未 layout。
+        self.vertical_padding = None
         self.canvas_width = None
         self.canvas_height = None
         self.scale_factor = None
@@ -110,13 +117,17 @@ class PreviewLayout(object):
         # 此方法在每次滚动/悬停时经 update_cursor 调用。原代码 3 次调用
         # get_horizontal_margin（各做 int(max(...))），3 次计算
         # page_height + page_gap。缓存到局部变量后各只算一次。
+        # vertical_padding：第一页顶部之前是画布缓冲区，点击该区域（y <
+        # vertical_padding）应判为"不在任何页面上"，与页面间 gap 的处理一致。
+        if y < self.vertical_padding: return None
+        y_local = y - self.vertical_padding
         page_height_plus_gap = self.page_height + self.page_gap
-        if y % page_height_plus_gap > self.page_height: return None
+        if y_local % page_height_plus_gap > self.page_height: return None
         h_margin = self.get_horizontal_margin(window_width)
         if x < h_margin or x > (h_margin + self.page_width): return None
 
-        page_number = int(y // page_height_plus_gap)
-        y_offset = y % page_height_plus_gap
+        page_number = int(y_local // page_height_plus_gap)
+        y_offset = y_local % page_height_plus_gap
         x_offset = x - h_margin
 
         rotation = self.rotation
@@ -148,4 +159,9 @@ class PreviewLayout(object):
         return (page_number, x_offset, y_offset)
 
     def get_page_by_offset(self, offset):
-        return int(1 + offset // (self.page_height + self.page_gap))
+        # 1-based page number at the given canvas y offset。被
+        # preview_page_renderer.compute_visible_pages 用于确定当前页。
+        # offset 落在顶部 vertical_padding 区时（滚到最顶）应返回第 1 页
+        # 而非 0/负数，故先 max(0, offset - vertical_padding) 再整除。
+        offset_local = max(0, offset - self.vertical_padding)
+        return int(1 + offset_local // (self.page_height + self.page_gap))

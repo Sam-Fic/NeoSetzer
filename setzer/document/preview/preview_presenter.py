@@ -174,6 +174,10 @@ class PreviewPresenter(object):
         layout = self.preview.layout
         page_height = layout.page_height
         page_gap = layout.page_gap
+        # vertical_padding：第一页顶部在 canvas 中的 y 偏移。first_page /
+        # last_page 按页面局部坐标（去掉 padding）计算，transform 时再把
+        # padding 加回去，使页面绘制在 vertical_padding 处而非 canvas 顶。
+        vertical_padding = layout.vertical_padding
         # ``width``/``height`` are the full canvas size now; the visible
         # viewport size is read from the ScrolledWindow adjustments.
         visible_width = self.view.content.adjustment_x.get_page_size()
@@ -181,17 +185,22 @@ class PreviewPresenter(object):
         margin = layout.get_horizontal_margin(visible_width)
         scrolling_offset_x = self.view.content.scrolling_offset_x
         scrolling_offset_y = self.view.content.scrolling_offset_y
-        first_page = int(scrolling_offset_y // (page_height + page_gap))
+        # 视口顶部在"页面局部坐标系"中的 y（减去 padding）。滚到最顶时
+        # scrolling_offset_y=0 → local_y=-padding（负值），max(0) clamp 到 0
+        # 即第 0 页，确保缓冲区显示空白而非漏画第一页。
+        local_y = max(scrolling_offset_y - vertical_padding, 0)
+        page_step = page_height + page_gap
+        first_page = int(local_y // page_step)
         # +1 像素确保底部部分可见的最后一页也被渲染：visible_height 若恰好是
         # page_step 的整数倍，整除会漏掉刚好露出一行的下一页；+1 让商越过
         # 整数边界把该页纳入 range。min 限制不超过文档实际页数。
-        last_page = min(int((scrolling_offset_y + visible_height + 1) // (page_height + page_gap)), self.preview.poppler_document.get_n_pages() - 1)
+        last_page = min(int((local_y + visible_height + 1) // page_step), self.preview.poppler_document.get_n_pages() - 1)
         # The ScrolledWindow already translates the context by
         # ``(-scrolling_offset_x, -scrolling_offset_y)``, so pages are drawn at
-        # their absolute canvas coordinates.
-        ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page * (page_height + page_gap)))
+        # their absolute canvas coordinates. transform 到第一页左上角：
+        # vertical_padding（canvas 顶缓冲）+ first_page * page_step。
+        ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, vertical_padding + first_page * page_step))
 
-        page_step = page_height + page_gap
         rotation = self.preview.rotation
         for page_number in range(first_page, last_page + 1):
             self.draw_page_background_and_outline(ctx, layout, border_color, page_bg_color)

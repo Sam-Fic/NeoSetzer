@@ -247,7 +247,7 @@ class Preview(Observable):
             # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
             width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
             x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
-            y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap
+            y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap + self.layout.vertical_padding
             self.view.content.scroll_to_position([x, y])
         else:
             # dest coords are PDF (y-up). Convert the target to displayed canvas
@@ -292,7 +292,8 @@ class Preview(Observable):
             by = cy + dx * sin_t + dy * cos_t
         margin = layout.get_horizontal_margin(self.view.get_allocated_width())
         x_canvas = margin + bx
-        y_canvas = page_number * (layout.page_height + layout.page_gap) + by
+        # page 0 顶部位于 canvas 的 vertical_padding 处，故页面 y 坐标需加 padding。
+        y_canvas = page_number * (layout.page_height + layout.page_gap) + by + layout.vertical_padding
         return (x_canvas, y_canvas)
 
     def update_position(self):
@@ -328,7 +329,9 @@ class Preview(Observable):
         layout = self.layout
         page_height_plus_gap = layout.page_height + layout.page_gap
         n_pages = self.poppler_document.get_n_pages()
-        page_number = int(y_offset // page_height_plus_gap)
+        # y_offset 减去 vertical_padding 转到"页面局部坐标系"再整除得 page_number。
+        # 点在顶部缓冲区（y < padding）时整除得负数，下方 clamp 到第 0 页。
+        page_number = int((y_offset - layout.vertical_padding) // page_height_plus_gap)
         if page_number < 0: page_number = 0
         if page_number >= n_pages: page_number = n_pages - 1
 
@@ -337,7 +340,7 @@ class Preview(Observable):
             _, x_pt, y_pt = data
         else:
             x_pt = (x_offset - layout.get_horizontal_margin(window_width)) / layout.scale_factor
-            y_pt = (y_offset - page_number * page_height_plus_gap) / layout.scale_factor
+            y_pt = (y_offset - layout.vertical_padding - page_number * page_height_plus_gap) / layout.scale_factor
 
         links = self.links_parser.get_links_for_page(page_number)
         x_off = self.page_width - x_pt
@@ -424,7 +427,7 @@ class Preview(Observable):
             height = position['height'] * sf
 
             x = max(min(left - 18, content.scrolling_offset_x), left + width - content.width + 18)
-            y = (self.layout.page_height + self.layout.page_gap) * (page_number - 1) + max(0, top - height / 2 - content.height * 0.3)
+            y = (self.layout.page_height + self.layout.page_gap) * (page_number - 1) + max(0, top - height / 2 - content.height * 0.3) + self.layout.vertical_padding
 
             content.scroll_to_position([x, y])
             self.presenter.start_fade_loop()
@@ -439,8 +442,10 @@ class Preview(Observable):
         data = self.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
         if data is None:
             # Click in the gap between pages or outside the page margin: clamp to
-            # the nearest page and page-local offsets.
-            y_total_pixels = min(max(y_offset, 0), (self.layout.page_height + self.layout.page_gap) * self.poppler_document.get_n_pages() - self.layout.page_gap)
+            # the nearest page and page-local offsets。先减 vertical_padding 转
+            # 到页面局部坐标系，再 clamp 到 [0, 总页高度]，与无 padding 时一致。
+            y_local = y_offset - self.layout.vertical_padding
+            y_total_pixels = min(max(y_local, 0), (self.layout.page_height + self.layout.page_gap) * self.poppler_document.get_n_pages() - self.layout.page_gap)
             x_pixels = min(max(x_offset - self.layout.get_horizontal_margin(window_width), 0), self.layout.page_width)
             page = math.floor(y_total_pixels / (self.layout.page_height + self.layout.page_gap))
             y_pixels = min(max(y_total_pixels - page * (self.layout.page_height + self.layout.page_gap), 0), self.layout.page_height)

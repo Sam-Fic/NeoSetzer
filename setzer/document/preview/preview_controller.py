@@ -391,8 +391,9 @@ class PreviewController(object):
             return
         content = self.view.content
         step = layout.page_height + layout.page_gap
-        # page_number 是 1-based，Y 偏移从第 0 页顶部开始
-        y = (page_number - 1) * step
+        # page_number 是 1-based。第 N 页顶部在 canvas y = vertical_padding +
+        # (N-1) * step 处（page 0 顶部因 padding 不在 canvas y=0）。
+        y = layout.vertical_padding + (page_number - 1) * step
         self.preview.scroll_to_position(content.scrolling_offset_x, y)
 
 
