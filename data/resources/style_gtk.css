@@ -249,6 +249,13 @@ textview gutter {
     background: @card_bg_color;
 }
 
+/* F11 全屏 + shortcut 栏隐藏时，编辑器卡片顶部加 6px 间距，
+   避免内容紧贴窗口顶边。条件由 JS 逻辑在 document_stack_wrapper
+   上切换 .fullscreen-no-shortcuts 类驱动。 */
+.fullscreen-no-shortcuts .editor-card {
+    margin-top: 6px;
+}
+
 .preview-card {
     margin: 0 6px 6px 6px;
     border-radius: 8px;

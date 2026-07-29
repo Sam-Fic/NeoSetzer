@@ -300,6 +300,9 @@ class MainWindow(Adw.ApplicationWindow):
         # 全屏状态变化监听
         self.connect('notify::fullscreened', self._on_fullscreened_changed)
 
+        # 监听 shortcut 栏可见性变化，与全屏状态联动更新编辑器卡片边距
+        self.shortcutsbar.connect('notify::visible', self._on_shortcutsbar_visibility_changed)
+
     # ---- 文件拖放（DnD）处理 ----
 
     def _extract_drop_files(self, value):
@@ -442,6 +445,21 @@ class MainWindow(Adw.ApplicationWindow):
             self._enter_fullscreen()
         else:
             self._exit_fullscreen()
+        # 更新编辑器卡片在全屏 + shortcut 隐藏时的顶部边距
+        self._update_fullscreen_editor_margin()
+
+    def _on_shortcutsbar_visibility_changed(self, shortcutsbar, param):
+        '''shortcut 栏可见性变化回调：联动更新编辑器卡片顶部边距。'''
+        self._update_fullscreen_editor_margin()
+
+    def _update_fullscreen_editor_margin(self):
+        '''F11 全屏 + shortcut 栏隐藏时，编辑器卡片顶部加 6px 间距。'''
+        fullscreen = getattr(self, '_is_fullscreen', False)
+        shortcuts_hidden = not self.shortcutsbar.get_visible()
+        if fullscreen and shortcuts_hidden:
+            self.document_stack_wrapper.add_css_class('fullscreen-no-shortcuts')
+        else:
+            self.document_stack_wrapper.remove_css_class('fullscreen-no-shortcuts')
 
     def _enter_fullscreen(self):
         '''进入全屏：隐藏 headerbar，折叠 sidebar。'''
