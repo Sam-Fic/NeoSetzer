@@ -81,6 +81,13 @@ class DocumentPropertiesView(DialogView):
         self.combo_interpreter = interp_row
         build_group.add(interp_row)
 
+        # Override build options row
+        override_row = Adw.SwitchRow()
+        override_row.set_title(_('Override build options'))
+        override_row.set_subtitle(_('Use document-specific settings instead of global defaults'))
+        self.switch_override_build = override_row
+        build_group.add(override_row)
+
         # Auto build row
         auto_build_row = Adw.SwitchRow()
         auto_build_row.set_title(_('Auto Build'))

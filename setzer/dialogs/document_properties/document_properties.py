@@ -72,6 +72,7 @@ class DocumentPropertiesDialog(object):
         self.view.apply_button.connect('clicked', self._on_apply)
 
         # Build System group
+        self._switch_override_build = self.view.switch_override_build
         self._combo_interpreter = self.view.combo_interpreter
         self._switch_auto_build = self.view.switch_auto_build
         self._switch_use_latexmk = self.view.switch_use_latexmk
@@ -81,15 +82,10 @@ class DocumentPropertiesDialog(object):
         self._combo_indent_mode = self.view.combo_indent_mode
         self._combo_tab_width = self.view.combo_tab_width
 
-        # Connect switch notify::active to clear inherited state when user toggles
-        self._switch_auto_build.connect('notify::active', self._on_switch_toggled)
-        self._switch_use_latexmk.connect('notify::active', self._on_switch_toggled)
-        self._switch_cleanup.connect('notify::active', self._on_switch_toggled)
+        self._switch_override_build.connect('notify::active', self._on_build_override_toggled)
 
-    def _on_switch_toggled(self, switch, pspec):
-        '''When user manually toggles a switch, clear the inherited state.'''
-        if hasattr(switch, '_is_inherited') and switch._is_inherited:
-            switch._is_inherited = False
+    def _on_build_override_toggled(self, switch, pspec):
+        self._sync_build_switches()
 
     def _sync_controls(self):
         '''Load current overrides (or global defaults) into the UI controls.'''
@@ -97,27 +93,23 @@ class DocumentPropertiesDialog(object):
         s = self.settings
 
         # --- Build System ---
-        # Interpreter
+        # Master switch: ON if any per-document build option is overridden
+        any_build_override = (
+            DocumentSettings.get_document_override(doc, 'auto_build') is not None or
+            DocumentSettings.get_document_override(doc, 'use_latexmk') is not None or
+            DocumentSettings.get_document_override(doc, 'cleanup_build_files') is not None
+        )
+        self._switch_override_build.handler_block_by_func(self._on_build_override_toggled)
+        self._switch_override_build.set_active(any_build_override)
+        self._switch_override_build.handler_unblock_by_func(self._on_build_override_toggled)
+        self._sync_build_switches()
+
+        # Interpreter (keeps its own "Follow global default" option)
         interp = DocumentSettings.get_effective_value(doc, s, 'latex_interpreter')
         interp_global = s.get_value('preferences', 'latex_interpreter')
         interp_override = DocumentSettings.get_document_override(doc, 'latex_interpreter')
         self._sync_combo(self._combo_interpreter, interp_override, interp_global,
                          self._interpreter_options, interp)
-
-        # Auto build
-        auto_build = DocumentSettings.get_effective_value(doc, s, 'auto_build')
-        auto_build_override = DocumentSettings.get_document_override(doc, 'auto_build')
-        self._sync_switch(self._switch_auto_build, auto_build_override, auto_build)
-
-        # Use latexmk
-        use_latexmk = DocumentSettings.get_effective_value(doc, s, 'use_latexmk')
-        use_latexmk_override = DocumentSettings.get_document_override(doc, 'use_latexmk')
-        self._sync_switch(self._switch_use_latexmk, use_latexmk_override, use_latexmk)
-
-        # Cleanup
-        cleanup = DocumentSettings.get_effective_value(doc, s, 'cleanup_build_files')
-        cleanup_override = DocumentSettings.get_document_override(doc, 'cleanup_build_files')
-        self._sync_switch(self._switch_cleanup, cleanup_override, cleanup)
 
         # --- Editor ---
         # Indent mode
@@ -143,15 +135,40 @@ class DocumentPropertiesDialog(object):
                     return
             combo.set_selected(0)
 
-    def _sync_switch(self, switch, override, effective):
-        '''Set switch state based on override state.'''
-        if override is None:
-            # For "follow global", we show the effective value but mark it as inherited
-            switch.set_active(effective)
-            switch._is_inherited = True
+    def _sync_build_switches(self):
+        '''Sync the three build option switches based on the master override switch.'''
+        doc = self.document
+        s = self.settings
+        master_active = self._switch_override_build.get_active()
+
+        self._switch_auto_build.set_sensitive(master_active)
+        self._switch_use_latexmk.set_sensitive(master_active)
+        self._switch_cleanup.set_sensitive(master_active)
+
+        if master_active:
+            # Document-level: use override if present, otherwise fall back to global default
+            auto_build = DocumentSettings.get_document_override(doc, 'auto_build')
+            if auto_build is None:
+                auto_build = s.get_value('preferences', 'auto_build')
+            self._switch_auto_build.set_active(auto_build)
+
+            use_latexmk = DocumentSettings.get_document_override(doc, 'use_latexmk')
+            if use_latexmk is None:
+                use_latexmk = s.get_value('preferences', 'use_latexmk')
+            self._switch_use_latexmk.set_active(use_latexmk)
+
+            cleanup = DocumentSettings.get_document_override(doc, 'cleanup_build_files')
+            if cleanup is None:
+                cleanup = s.get_value('preferences', 'cleanup_build_files')
+            self._switch_cleanup.set_active(cleanup)
         else:
-            switch.set_active(override)
-            switch._is_inherited = False
+            # Follow global default: show effective (global) value and disable switches
+            self._switch_auto_build.set_active(
+                DocumentSettings.get_effective_value(doc, s, 'auto_build'))
+            self._switch_use_latexmk.set_active(
+                DocumentSettings.get_effective_value(doc, s, 'use_latexmk'))
+            self._switch_cleanup.set_active(
+                DocumentSettings.get_effective_value(doc, s, 'cleanup_build_files'))
 
     def _on_apply(self, button):
         '''Save overrides to DocumentSettings.'''
@@ -166,26 +183,18 @@ class DocumentPropertiesDialog(object):
             value = self._interpreter_options[interp_idx][1]
             DocumentSettings.set_document_override(doc, 'latex_interpreter', value)
 
-        # Auto build
-        if getattr(self._switch_auto_build, '_is_inherited', False):
-            DocumentSettings.set_document_override(doc, 'auto_build', None)
-        else:
+        # Build options: either save all three as document overrides or clear them
+        if self._switch_override_build.get_active():
             DocumentSettings.set_document_override(doc, 'auto_build',
                                                    self._switch_auto_build.get_active())
-
-        # Use latexmk
-        if getattr(self._switch_use_latexmk, '_is_inherited', False):
-            DocumentSettings.set_document_override(doc, 'use_latexmk', None)
-        else:
             DocumentSettings.set_document_override(doc, 'use_latexmk',
                                                    self._switch_use_latexmk.get_active())
-
-        # Cleanup
-        if getattr(self._switch_cleanup, '_is_inherited', False):
-            DocumentSettings.set_document_override(doc, 'cleanup_build_files', None)
-        else:
             DocumentSettings.set_document_override(doc, 'cleanup_build_files',
                                                    self._switch_cleanup.get_active())
+        else:
+            DocumentSettings.set_document_override(doc, 'auto_build', None)
+            DocumentSettings.set_document_override(doc, 'use_latexmk', None)
+            DocumentSettings.set_document_override(doc, 'cleanup_build_files', None)
 
         # --- Editor ---
         # Indent mode
