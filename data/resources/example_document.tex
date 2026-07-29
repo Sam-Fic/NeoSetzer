@@ -12,10 +12,13 @@
 \usepackage{amsthm}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{fontspec}
+\setmonofont{JetBrains Mono}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{float}
 \usepackage{textcomp}
+\usepackage{titling}
 
 % --- Colors ---
 \definecolor{linkblue}{RGB}{0, 102, 204}
@@ -56,7 +59,7 @@
 
 % --- Listings setup ---
 \lstset{
-    basicstyle=\ttfamily\small,
+    basicstyle=\ttfamily,
     backgroundcolor=\color{codebg},
     frame=single,
     framerule=0.6pt,
@@ -68,6 +71,9 @@
     captionpos=b,
     xleftmargin=1.5em,
     xrightmargin=1.5em,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
 }
 
 % The `listings` package does not ship a JSON language definition.
@@ -82,7 +88,12 @@
 }
 
 % --- Title ---
-\title{\textbf{Example Document: A Tour of \LaTeX{} Features}}
+% Push the title block toward the vertical middle of the cover page.
+\pretitle{\begin{center}\vspace*{0.25\textheight}\Huge\bfseries}
+\posttitle{\end{center}}
+\postdate{\par\end{center}\vspace*{0.2\textheight}}
+
+\title{Example Document: A Tour of \LaTeX{} and Setzer Features}
 \author{Sam Fic}
 \date{\today}
 
@@ -90,20 +101,22 @@
 \begin{document}
 
 \maketitle
-\thispagestyle{fancy}
+\thispagestyle{empty}
+
+\clearpage
 
 \tableofcontents
 \newpage
 
 % --- Abstract ---
 \begin{abstract}
-This document is a compact showcase of common \LaTeX{} elements.
+This document is a compact showcase of common \LaTeX{} elements
+together with Setzer-specific features and tips.
 It is intended as a friendly starting point: you can read the source
 to see how each effect is produced, and modify it freely.
 Sections cover formatting, mathematics, lists, tables, figures,
-code listings, and cross-references.
-The final section introduces Setzer-specific features and tips to help
-you get the most out of the editor.
+code listings, cross-references, and practical guidance for using
+the Setzer editor.
 \end{abstract}
 
 % ============================================================
@@ -519,6 +532,21 @@ Key shortcuts:
 The build log parser categorizes errors, warnings, and bad boxes;
 click a log entry to jump to the offending line.
 
+\subsection{AI Fix}
+\label{sec:setzer:ai-fix}
+
+Setzer can connect to external AI agent CLIs to suggest fixes for
+\LaTeX{} build errors directly from the build log.
+When an error is selected, Setzer assembles a prompt containing the
+error message and a snippet of surrounding source code, then hands it
+off to an agent such as \texttt{opencode}, \texttt{claude},
+\texttt{codex}, \texttt{gemini}, or \texttt{aider}.
+The agent runs in a real terminal window so you can watch every step;
+Setzer saves the document first, then reloads it automatically after
+the agent finishes.
+For trusted project directories, the hand-off happens without any
+extra confirmation dialogs.
+
 \subsection{Session Management}
 \label{sec:setzer:session}
 
@@ -528,6 +556,26 @@ Auto-save writes unsaved changes to a temporary location every few
 seconds, and a recovery dialog appears after a crash.
 You can also reopen a recently closed document with
 \menu{Ctrl+Shift+T}.
+
+\subsection{AI-Driven Workflow}
+\label{sec:setzer:ai-workflow}
+
+For an AI-driven writing and compilation workflow, combine
+\textbf{AI Fix} with two editor preferences:
+\begin{enumerate}[noitemsep]
+    \item Open \menu{Preferences} and go to the
+          \menu{Editor $\rightarrow$ External Changes} group.
+          Enable \menu{Automatically reload changed files} so that
+          Setzer picks up edits made by external AI agents without
+          prompting.
+    \item Then enable \menu{Auto Build} in the
+          \menu{Build System} preferences.
+          The document will be saved and rebuilt automatically
+          shortly after you stop typing.
+\end{enumerate}
+With these settings, an external AI agent can edit your \LaTeX{}
+source and Setzer will immediately reload and recompile the
+document, giving you a smooth AI-assisted authoring loop.
 
 \subsection{Tips for New Users}
 \label{sec:setzer:tips}
@@ -549,7 +597,7 @@ You can also reopen a recently closed document with
 \subsection{More Shortcuts}
 \label{sec:setzer:shortcuts-more}
 
-A few more shortcuts that speed up everyday editing:
+A quick reference for common shortcuts:
 
 \begin{itemize}[noitemsep]
     \item \textbf{Undo / Redo}: \menu{Ctrl+Z} and \menu{Ctrl+Shift+Z}.
@@ -562,14 +610,6 @@ A few more shortcuts that speed up everyday editing:
     \item \textbf{Document structure}: \menu{Ctrl+Shift+B} shows the section outline.
     \item \textbf{Symbols panel}: \menu{F8} opens the math symbols sidebar.
 \end{itemize}
-
-Beyond shortcuts, Setzer also includes quality-of-life features such as
-\textbf{named templates} in the document wizard,
-\textbf{pinned recent documents}, and a
-\textbf{recently closed documents} stack (\menu{Ctrl+Shift+T}).
-The build log parser further classifies messages into
-\textbf{Error}, \textbf{Warning}, and \textbf{Badbox} categories,
-and lets you click straight through to the offending source line.
 
 
 % ============================================================
