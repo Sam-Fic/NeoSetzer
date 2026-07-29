@@ -390,9 +390,10 @@ toolbarview > * > * > * {
  */
 .build-log-stage-header {
     font-size: 0.85em;
-    opacity: 0.7;
+    font-weight: bold;
+    color: @window_fg_color;
+    opacity: 0.55;
     padding: 2px 0 2px 8px;
-    border-left: 2px solid alpha(@theme_selected_bg_color, 0.35);
     margin-top: 2px;
 }
 
