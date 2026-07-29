@@ -364,7 +364,7 @@ class DocumentSwitcher(Observable):
         self.workspace.unset_root_document()
         self.activate_normal_mode()
 
-    def activate_normal_mode(self):
+    def activate_normal_mode(self, button=None):
         self.root_selection_mode = False
         self.view.dialog.set_title(_('Open Documents'))
         self.activate_set_root_document_button()

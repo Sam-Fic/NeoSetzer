@@ -31,6 +31,18 @@ class HelpPanelPresenter(object):
         self.view.content.load_uri(self.help_panel.current_uri)
 
     def on_search_query_changed(self, help_panel):
+        # 空查询：始终显示初始提示，绝不展示残留的 search_results_blank 历史，
+        # 否则清空搜索框后会像"又搜了一个字符"（如残留的 'k'）一样显示旧结果。
+        if self.help_panel.query == '':
+            self.view.search_entry.remove_css_class('error')
+            self.view.search_scroll.set_visible(False)
+            self.view.no_results_slate.set_visible(False)
+            self.view.initial_slate.set_visible(True)
+            self.view.result_count_label.set_visible(False)
+            for row in self.view.search_result_items:
+                row.set_visible(False)
+            return
+
         results_list = self.help_panel.search_results
         if results_list:
             self.view.search_entry.remove_css_class('error')
@@ -67,7 +79,7 @@ class HelpPanelPresenter(object):
             # 隐藏多余 row（结果数比上次少时）
             for i in range(len(results_list), len(existing)):
                 existing[i].set_visible(False)
-        elif self.help_panel.query != '':
+        else:
             self.view.search_entry.add_css_class('error')
             self.view.search_scroll.set_visible(False)
             self.view.no_results_slate.set_title(
@@ -76,14 +88,6 @@ class HelpPanelPresenter(object):
             self.view.initial_slate.set_visible(False)
             self.view.result_count_label.set_visible(False)
             # 隐藏所有已有 row 而非销毁，下次搜索可复用
-            for row in self.view.search_result_items:
-                row.set_visible(False)
-        else:
-            self.view.search_entry.remove_css_class('error')
-            self.view.search_scroll.set_visible(False)
-            self.view.no_results_slate.set_visible(False)
-            self.view.initial_slate.set_visible(True)
-            self.view.result_count_label.set_visible(False)
             for row in self.view.search_result_items:
                 row.set_visible(False)
 
