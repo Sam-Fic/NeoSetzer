@@ -1,5 +1,23 @@
 # Changelog
 
+## v72 — 2026-07-30
+
+### 主要改进
+
+- **新增多项 LaTeX 编辑功能与体验优化**：增强代码编辑效率与用户交互体验
+- **完善全屏编辑器顶部间距逻辑**：修复全屏隐藏快捷键栏时编辑器顶边紧贴窗口的问题
+- **修复清空搜索框时显示旧结果的问题**：改善帮助面板与搜索交互体验
+- **更新翻译文件**：完善多语言支持
+
+### Improvements
+
+- **feat**: Enhance LaTeX editing with multiple new features and user experience optimization
+- **fix**: Refine fullscreen editor top spacing logic and fix top border tightly貼 window issue when hiding shortcut bar
+- **fix**: Fix help panel search box showing stale results when cleared
+- **chore**: Update translations for better internationalization support
+
+---
+
 ## v71 — 2026-07-29
 
 ### 主要改进
