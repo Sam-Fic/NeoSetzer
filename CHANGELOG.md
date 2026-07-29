@@ -4,17 +4,43 @@
 
 ### 主要改进
 
-- **新增多项 LaTeX 编辑功能与体验优化**：增强代码编辑效率与用户交互体验
+- **新增全局异常处理器**：覆盖主线程(sys.excepthook)、子线程(threading.excepthook)与 GLib 回调，避免未捕获异常导致静默崩溃
+- **新增首次运行教程**：首次启动时自动展示引导界面，帮助新用户快速上手
+- **新增导出 PDF 功能**：支持将构建后的 PDF 另存到其他位置（仅副本，不修改源文件关联）
+- **新增书签系统**：支持切换、跳转（上一个/下一个）和清除书签，提升长文档导航效率
+- **新增代码折叠操作**：支持一键折叠/展开全部代码块
+- **新增缩进控制**：支持增加/减少缩进（Indent/Outdent）
+- **新增多光标编辑**：支持选择下一个/所有匹配项、添加上下光标等高级编辑能力
+- **增强预览面板交互**：支持右键菜单进行旋转、复制文本/图片、保存图片、PDF 内搜索、显示源码、重新着色、打印等操作
+- **增强标签页右键菜单**：支持跳转到定义、复制引用标签、查找所有引用
+- **新增全屏模式切换**：通过动作切换全屏状态
+- **重构构建系统**：简化架构，移除冗余查询循环与轮询逻辑；修复构建日志无法持久化的问题（恢复 parse_result 方法）
+- **构建日志增加阶段标识**：区分 LaTeX 与 BibTeX 阶段的错误/警告/坏盒子条目
+- **修正窗口状态保存**：改为保存 surface 实际宽高而非默认尺寸，确保窗口大小变更后能被正确恢复
+- **修复日期时间本地化**：显式设置 LC_TIME，使时间戳（如日志、文件属性）跟随界面语言本地化
 - **完善全屏编辑器顶部间距逻辑**：修复全屏隐藏快捷键栏时编辑器顶边紧贴窗口的问题
-- **修复清空搜索框时显示旧结果的问题**：改善帮助面板与搜索交互体验
-- **更新翻译文件**：完善多语言支持
+- **修复帮助面板搜索框问题**：清空搜索框时不再显示旧结果
+- **更新翻译文件**：修复多项翻译条目，统一引号格式，补充缺失翻译
 
 ### Improvements
 
-- **feat**: Enhance LaTeX editing with multiple new features and user experience optimization
-- **fix**: Refine fullscreen editor top spacing logic and fix top border tightly貼 window issue when hiding shortcut bar
-- **fix**: Fix help panel search box showing stale results when cleared
-- **chore**: Update translations for better internationalization support
+- **feat**: Add global exception handler covering main thread, threading, and GLib callbacks
+- **feat**: Add first-run tutorial shown on first application launch
+- **feat**: Add "Export PDF As..." action to save built PDF to a different location
+- **feat**: Add bookmark system with toggle, navigation (next/previous), and clear actions
+- **feat**: Add code folding actions (fold all / unfold all)
+- **feat**: Add indent/outdent actions
+- **feat**: Add multi-cursor editing (select next/all occurrences, add cursor above/below)
+- **feat**: Add preview panel context menu (rotate, copy text/image, save image, search PDF, show source, recolor, print)
+- **feat**: Add label context menu for references (jump-to-definition, copy-ref, find-all-refs)
+- **feat**: Add toggle-fullscreen action
+- **refactor**: Restructure build system architecture; restore parse_result to fix build log persistence
+- **feat**: Show build log stage (LaTeX/BibTeX) per item
+- **fix**: Save actual surface width/height instead of default size for window state
+- **fix**: Set LC_TIME locale for localized date/time format in logs/file properties
+- **fix**: Refine fullscreen editor top spacing logic when shortcut bar is hidden
+- **fix**: Fix help panel search box retaining stale results when cleared
+- **chore(i18n)**: Update translations, unify quotation marks, fix python-brace-format placeholders, add missing entries
 
 ---
 
