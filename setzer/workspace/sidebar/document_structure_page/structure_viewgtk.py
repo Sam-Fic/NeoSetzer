@@ -64,7 +64,7 @@ class StructureSectionView(structure_widget.StructureWidget):
         for node in nodes:
             item = node['item']
             icon_name = item[2]
-            if icon_name == 'file-symbolic':
+            if icon_name == 'text-x-generic-symbolic':
                 text = os.path.basename(item[3])
             else:
                 text = item[3]

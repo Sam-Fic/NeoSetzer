@@ -58,7 +58,7 @@ class FilesSectionView(structure_widget.StructureWidget):
             row = self.make_file_row(
                 include['filename'],
                 doc_dir,
-                'file-symbolic',
+                'text-x-generic-symbolic',
                 18
             )
             row.item_data = ('include', include)

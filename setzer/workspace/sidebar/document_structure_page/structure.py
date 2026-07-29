@@ -31,18 +31,20 @@ class StructureSection(object):
 
         self.levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6, 'file': 7}
 
+        # 文档结构图标统一改用系统自带（Adwaita）symbolic 图标，
+        # 避免应用自带的 section/file 等图标样式不统一且观感较差。
         self.icon_map = {
-            'part': 'part-symbolic',
-            'chapter': 'chapter-symbolic',
-            'section': 'section-symbolic',
-            'subsection': 'subsection-symbolic',
-            'subsubsection': 'subsubsection-symbolic',
-            'paragraph': 'paragraph-symbolic',
-            'subparagraph': 'subparagraph-symbolic',
-            'file': 'file-symbolic',
+            'part': 'view-paged-symbolic',
+            'chapter': 'bookmark-new-symbolic',
+            'section': 'view-list-symbolic',
+            'subsection': 'view-list-bullet-symbolic',
+            'subsubsection': 'view-list-ordered-symbolic',
+            'paragraph': 'format-justify-left-symbolic',
+            'subparagraph': 'insert-text-symbolic',
+            'file': 'text-x-generic-symbolic',
             'figure': 'image-x-generic-symbolic',
             'table': 'view-grid-symbolic',
-            'equation': 'insert-math-symbolic',
+            'equation': 'accessories-calculator-symbolic',
         }
 
         self.view = structure_section_view.StructureSectionView(self)
