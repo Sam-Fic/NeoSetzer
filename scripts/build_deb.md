@@ -38,9 +38,7 @@ sudo apt-get install -y meson ninja-build gettext
 # 回到仓库根目录
 cd /path/to/Setzer
 
-# 清理可能存在的旧 build 目录
-rm -rf builddir
-
+# 保留 builddir，不删除，以便后续增量构建更快
 # 以 /usr 为前缀配置（决定 dist-packages 等标准安装路径）
 meson setup builddir --prefix=/usr
 
@@ -156,7 +154,7 @@ setzer                   # 启动验证
 ## 6. 清理
 
 ```bash
-rm -rf /tmp/setzer_deb_root builddir
+rm -rf /tmp/setzer_deb_root
 ```
 
 > 打包产物 `*.deb` 已被仓库 `.gitignore` 忽略，勿提交进版本库。
@@ -227,7 +225,8 @@ git tag v${NEWVER}
 git push && git push --tags
 
 # 6. 构建 deb 包
-rm -rf /tmp/setzer_deb_root builddir
+rm -rf /tmp/setzer_deb_root
+# 保留 builddir，不删除，以便后续增量构建更快
 meson setup builddir --prefix=/usr
 DESTDIR=/tmp/setzer_deb_root meson install -C builddir
 mkdir -p /tmp/setzer_deb_root/DEBIAN
