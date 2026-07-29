@@ -135,6 +135,8 @@ class ScrollingWidget(Observable):
 
             self.adjustment_x.set_value(self.adjustment_x.get_value() + dx)
             self.adjustment_y.set_value(self.adjustment_y.get_value() + dy)
+            # 已手动处理滚动,消费事件避免 ScrolledWindow 再次平移。
+            return True
 
         if event_state & modifiers == Gdk.ModifierType.CONTROL_MASK:
             if unit == Gdk.ScrollUnit.WHEEL:
@@ -142,6 +144,10 @@ class ScrollingWidget(Observable):
             else:
                 zoom_amount = (dy + dx) * 0.005
             self.add_change_code('zoom_request', zoom_amount)
+            # 已处理为缩放,消费事件避免 ScrolledWindow 同时做平移。
+            return True
+
+        return False
 
     def on_decelerate(self, controller, vel_x, vel_y):
         if abs(vel_x) > 0 and abs(vel_y / vel_x) > 1: vel_x = 0
