@@ -1,5 +1,35 @@
 # Changelog
 
+## v73 — 2026-07-30
+
+### 主要改进
+
+- **重构构建流程与剪贴板适配**：改用线程池+idle回调替换轮询模式，新增构建中止提示；适配GTK4剪贴板API
+- **修复预览滚动与布局问题**：添加预览窗口垂直边距，修复页面贴边问题；调整PDF预览边框和背景配色逻辑
+- **修复撤销重做与构建日志问题**：修复undo组异常和日志表头样式；修复重载文件后未触发自动构建的问题
+- **修复GTK4控件兼容性**：修复打印对话框和文档属性对话框的GTK4 API调用
+- **修复滚动事件重复处理**：消费滚动事件避免ScrolledWindow重复执行平移操作
+- **新增文档属性构建选项覆盖开关**：统一控制单个文档的构建设置是否使用全局默认值
+- **新增首次运行教程打开示例文档按钮**：匹配欢迎页面入口
+- **AI修复提示词增强**：在提示词中包含LaTeX引擎信息
+- **更新示例文档**：新增AI相关功能说明，优化代码块显示样式
+- **更新翻译文件**
+
+### Improvements
+
+- **refactor**: Restructure build system with thread pool + idle callbacks; adapt GTK4 clipboard API
+- **fix**: Add vertical padding to document preview layout; adjust PDF preview border and background color logic
+- **fix**: Fix undo group exception and build log header style; fix auto-build not triggering after file reload
+- **fix**: Fix GTK4 control API compatibility in print and document properties dialogs
+- **fix**: Consume scroll events to prevent duplicate handling in ScrolledWindow
+- **feat**: Add build option override master switch in document properties
+- **feat**: Add open example document button in first-run tutorial
+- **feat**: Include LaTeX engine info in AI fix prompts
+- **docs**: Update example document with AI feature descriptions
+- **chore(i18n)**: Update translations
+
+---
+
 ## v72 — 2026-07-30
 
 ### 主要改进
