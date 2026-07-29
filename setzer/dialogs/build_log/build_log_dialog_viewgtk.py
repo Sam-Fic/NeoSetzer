@@ -530,7 +530,12 @@ class BuildLogList(Gtk.ListBox):
         return text
 
     def add_stage_header(self, stage):
-        '''追加一个阶段分隔行（不可选中、不可激活）。'''
+        '''追加一个阶段分隔行（不可选中、不可激活）。
+
+        用裸 Gtk.ListBoxRow + Gtk.Label，区分度靠 CSS 字重 + 文字色
+        （见 .build-log-stage-header），不引入 accent 边框，从根上避免
+        强调色泄漏。
+        '''
         row = Gtk.ListBoxRow()
         row.add_css_class('build-log-stage-header')
         label = Gtk.Label(label=stage)

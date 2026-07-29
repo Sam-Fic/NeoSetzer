@@ -83,6 +83,9 @@ class Document(Observable):
         # Undo 分组：合并连续打字为一个 undo 组，停顿 500ms 后开新组。
         self._undo_timeout_id = None
         self._undo_group_depth = 0
+        # undo/redo 期间置 True，使 _ensure_undo_group 跳过——undo manager 修改
+        # buffer 时触发的 insert-text/delete-range 不应再开新 user action 组。
+        self._in_undo = False
         self.source_buffer.connect('insert-text', self._on_buffer_insert_text)
         self.source_buffer.connect('delete-range', self._on_buffer_delete_range)
         self.source_buffer.connect('undo', self._on_buffer_undo)
@@ -829,12 +832,27 @@ class Document(Observable):
         # end_user_action 在不一致状态下段错误。
         if getattr(self, '_loading_from_disk', False):
             return
+        # 撤销/重做期间 undo manager 会修改 buffer（delete-range / insert-text），
+        # 此信号会回到这里。若此时 begin_user_action 开新组，会在 undo manager
+        # 正在重组栈的过程中嵌套一个用户动作，破坏其内部状态；随后 500ms 定时器
+        # 的 end_user_action 在该不一致状态下段错误。故 undo/redo 期间跳过。
+        # _in_undo 在 _on_buffer_undo / _on_buffer_redo（undo 信号，RUN_LAST，
+        # 先于默认 handler 即真正的撤销/重做执行）中置位，idle 清除。
+        if getattr(self, '_in_undo', False):
+            return
         if self._undo_group_depth == 0:
             self.source_buffer.begin_user_action()
             self._undo_group_depth = 1
         if self._undo_timeout_id is not None:
             GLib.Source.remove(self._undo_timeout_id)
-        self._undo_timeout_id = GLib.timeout_add(500, self._close_undo_group)
+        self._undo_timeout_id = GLib.timeout_add(500, self._on_undo_timeout)
+
+    def _on_undo_timeout(self):
+        # 定时器回调：source 由返回 False 自动移除，先清 id 再调 _close_undo_group，
+        # 使后者不会重复 remove 一个正在派发的 source。
+        self._undo_timeout_id = None
+        self._close_undo_group()
+        return False
 
     def _close_undo_group(self):
         if self._is_shutdown:
@@ -842,14 +860,30 @@ class Document(Observable):
         if self._undo_group_depth > 0:
             self.source_buffer.end_user_action()
             self._undo_group_depth = 0
-        self._undo_timeout_id = None
+        # 必须移除 GLib source 再置 None：仅置 None 会留下孤儿 source，它稍后触发
+        # 时会误关新开的 undo 组（_undo_group_depth 仍为 1），或在文档关闭后访问
+        # 已释放的 buffer。定时器回调路径已在 _on_undo_timeout 清 id，此处为 None 跳过。
+        if self._undo_timeout_id is not None:
+            GLib.Source.remove(self._undo_timeout_id)
+            self._undo_timeout_id = None
         return False
 
     def _on_buffer_undo(self, buffer):
+        # undo 信号是 RUN_LAST：本回调先于默认 handler（真正的撤销）执行。
+        # 置 _in_undo 使随后撤销操作修改 buffer 时触发的 _ensure_undo_group 跳过，
+        # 避免在 undo manager 重组栈期间嵌套 begin_user_action。idle 清除。
+        self._in_undo = True
         self._close_undo_group()
+        GLib.idle_add(self._end_undo_redo)
 
     def _on_buffer_redo(self, buffer):
+        self._in_undo = True
         self._close_undo_group()
+        GLib.idle_add(self._end_undo_redo)
+
+    def _end_undo_redo(self):
+        self._in_undo = False
+        return False
 
     def _on_buffer_paste_done(self, buffer, clipboard):
         self._close_undo_group()
