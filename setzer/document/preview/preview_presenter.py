@@ -317,7 +317,9 @@ class PreviewPresenter(object):
         if doc is None: return
         text = doc.get_page(page_number).get_text()
         if text:
-            Gdk.Display.get_default().get_clipboard().set_text(text)
+            # GTK4 移除了 Gdk.Clipboard.set_text()，改用 set_content + ContentProvider。
+            # 与下方 copy_page_image 的 new_for_pixbuf 同范式。
+            Gdk.Display.get_default().get_clipboard().set_content(Gdk.ContentProvider.new_for_value(text))
 
     def copy_page_image(self, page_number):
         surface, w, h = self._render_page_surface(page_number)

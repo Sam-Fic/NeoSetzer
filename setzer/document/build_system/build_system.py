@@ -297,14 +297,256 @@ class BuildSystem(Observable):
         # 构建完成后刷新 LaTeXDB 的 label/bibitem 数据库（事件驱动）。
         LaTeXDB.schedule_parse_included_files()
 
+    def add_query(self, query):
+        if self.active_query != None:
+            # 旧构建被中止：显示 toast 通知用户（手动 F5 触发新构建时可能
+            # 上一次构建仍在进行，旧构建被静默丢弃）。
+            main_window = ServiceLocator.get_main_window()
+            if hasattr(main_window, 'toast_overlay'):
+                toast = Adw.Toast.new(_('Previous build cancelled'))
+                toast.set_timeout(2)
+                main_window.toast_overlay.add_toast(toast)
+        self.stop_building(notify=False)
+        self.active_query = query
+        threading.Thread(target=self.execute_query, args=(query,), daemon=True).start()
+
+        self.change_build_state('building_in_progress')
+
+    def execute_query(self, query):
+        while len(query.jobs) > 0:
+            if not query.force_building_to_stop:
+                self.builders[query.jobs.pop(0)].run(query)
+        # worker 线程结束：把结果处理调度到主线程，替代原「设 done 标志 +
+        # 主线程 50ms 轮询 is_done()」的 poll-for-completion 模式。
+        # GLib.idle_add 线程安全，回调在主线程执行（代码库已有 10+ 处同范式）。
+        GLib.idle_add(self._on_query_done, query)
+
+    def start_building(self):
+        if self.build_mode == 'forward_sync' and not self.has_synctex_file: return
+        if self.build_mode == 'backward_sync' and self.backward_sync_data == None: return
+        if self.document.filename == None: return
+
+        self.build_time = None
+        mode = self.get_build_mode()
+        query_obj = query.Query(self.document.get_filename()[:])
+
+        if mode in ['forward_sync', 'build_and_forward_sync']:
+            synctex_arguments = self.forward_sync_arguments
+
+        if mode in ['build', 'build_and_forward_sync']:
+            interpreter = self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
+            use_latexmk = self.settings.get_value('preferences', 'use_latexmk')
+            build_option_system_commands = self.settings.get_value('preferences', 'build_option_system_commands')
+            additional_arguments = ''
+
+            if interpreter == 'tectonic':
+                pass
+            else:
+                lualatex_prefix = ' -' if interpreter == 'lualatex' else ' '
+                if build_option_system_commands == 'disable':
+                    additional_arguments += lualatex_prefix + '-no-shell-escape'
+                elif build_option_system_commands == 'restricted':
+                    additional_arguments += lualatex_prefix + '-shell-restricted'
+                elif build_option_system_commands == 'enable':
+                    additional_arguments += lualatex_prefix + '-shell-escape'
+
+            text = self.document.get_all_text()
+            do_cleanup = self.settings.get_value('preferences', 'cleanup_build_files')
+
+        if mode == 'build':
+            query_obj.jobs = ['build_latex']
+            query_obj.build_data['text'] = text
+            query_obj.build_data['latex_interpreter'] = interpreter
+            query_obj.build_data['use_latexmk'] = use_latexmk
+            query_obj.build_data['additional_arguments'] = additional_arguments
+            query_obj.build_data['do_cleanup'] = do_cleanup
+        elif mode == 'forward_sync':
+            query_obj.jobs = ['forward_sync']
+            query_obj.can_sync = True
+            query_obj.forward_sync_data['filename'] = synctex_arguments['filename']
+            query_obj.forward_sync_data['line'] = synctex_arguments['line']
+            query_obj.forward_sync_data['line_offset'] = synctex_arguments['line_offset']
+        elif mode == 'backward_sync' and self.backward_sync_data != None:
+            query_obj.jobs = ['backward_sync']
+            query_obj.can_sync = True
+            query_obj.backward_sync_data['page'] = self.backward_sync_data['page']
+            query_obj.backward_sync_data['x'] = self.backward_sync_data['x']
+            query_obj.backward_sync_data['y'] = self.backward_sync_data['y']
+            query_obj.backward_sync_data['word'] = self.backward_sync_data['word']
+            query_obj.backward_sync_data['context'] = self.backward_sync_data['context']
+            query_obj.backward_sync_data['pdf_line_offset'] = self.backward_sync_data.get('pdf_line_offset')
+            query_obj.backward_sync_data['pdf_line_text'] = self.backward_sync_data.get('pdf_line_text')
+        else:
+            query_obj.jobs = ['build_latex', 'forward_sync']
+            query_obj.build_data['text'] = text
+            query_obj.build_data['latex_interpreter'] = interpreter
+            query_obj.build_data['use_latexmk'] = use_latexmk
+            query_obj.build_data['additional_arguments'] = additional_arguments
+            query_obj.build_data['do_cleanup'] = do_cleanup
+            query_obj.can_sync = False
+            query_obj.forward_sync_data['filename'] = synctex_arguments['filename']
+            query_obj.forward_sync_data['line'] = synctex_arguments['line']
+            query_obj.forward_sync_data['line_offset'] = synctex_arguments['line_offset']
+
+        self.add_query(query_obj)
+
+    def stop_building(self, notify=True):
+        if self.active_query != None:
+            self.active_query.jobs = []
+            self.active_query = None
+        for builder in self.builders.values():
+            builder.stop_running()
+        if notify:
+            self.show_build_state('')
+            # 使用 building_to_stop 过渡状态：按钮变为不可点击，直到 worker
+            # 线程真正退出后 _on_query_done 将状态切回 idle。避免用户在
+            # 进程尚未退出时再次点击构建按钮导致冲突。
+            self.change_build_state('building_to_stop')
+
+    def set_latex_interpreter(self, value):
+        '''设置每文档 LaTeX 解释器覆盖并广播变更，使标题栏"保存并构建"
+        按钮的 tooltip 能实时反映当前引擎名（见 build_widget.BuildWidget）。'''
+        self.latex_interpreter = value
+        self.add_change_code('latex_interpreter_changed')
+
     def set_synctex_position(self, document, position):
-        '''反查光标定位（行级）。refactor 移除了字符级偏移/词匹配映射，
-        此处将光标置于 PDF 点击对应的源文件行并高亮整行。'''
         position_found, start = document.source_buffer.get_iter_at_line(position['line'])
-        if not position_found:
-            return
         end = start.copy()
         if not start.ends_line():
             end.forward_to_line_end()
-        document.source_buffer.place_cursor(start)
-        document.highlight_section(start, end)
+        text = document.source_buffer.get_text(start, end, False)
+
+        # Primary: map the clicked PDF character offset to the source line.
+        # SequenceMatcher aligns the PDF line text with the source line text
+        # (which may differ due to LaTeX commands, ligatures, etc.), giving
+        # character-level cursor alignment instead of just line/paragraph.
+        pdf_line_offset = position.get('pdf_line_offset')
+        pdf_line_text = position.get('pdf_line_text')
+        if pdf_line_offset is not None and pdf_line_text:
+            src_offset = self._map_pdf_offset_to_source(pdf_line_text, text, pdf_line_offset)
+            if src_offset is not None:
+                cursor = start.copy()
+                cursor.forward_chars(min(src_offset, len(text)))
+                # Highlight the word at the cursor for visual feedback.
+                hl_start = cursor.copy()
+                hl_end = cursor.copy()
+                if not hl_start.starts_line():
+                    hl_start.backward_word_start()
+                if not hl_end.ends_line():
+                    hl_end.forward_word_end()
+                if hl_start.equal(cursor) and hl_end.equal(cursor) and not hl_end.ends_line():
+                    hl_end.forward_char()
+                document.source_buffer.place_cursor(cursor)
+                document.highlight_section(hl_start, hl_end)
+                return
+
+        # Fallback 1: match the clicked word within the source line.
+        matches = self.get_synctex_word_bounds(text, position['word'], position['context'])
+        if matches != None:
+            for word_bounds in matches:
+                end = start.copy()
+                new_start = start.copy()
+                new_start.forward_chars(word_bounds[0])
+                end.forward_chars(word_bounds[1])
+                document.source_buffer.place_cursor(new_start)
+                document.highlight_section(new_start, end)
+        else:
+            ws_number = len(text) - len(text.lstrip())
+            start.forward_chars(ws_number)
+            document.source_buffer.place_cursor(start)
+            document.highlight_section(start, end)
+
+    def _map_pdf_offset_to_source(self, pdf_text, source_text, pdf_offset):
+        '''Map a 0-based character offset in pdf_text to the corresponding
+        offset in source_text via fuzzy alignment.
+
+        SequenceMatcher finds matching blocks between the two texts; the PDF
+        offset is translated through the block that contains it. When the
+        offset falls in a non-matching gap (e.g. inside a LaTeX command that
+        has no PDF counterpart), the end of the last preceding match is used.
+        Returns the source offset, or None when no mapping is possible.
+        '''
+        if pdf_offset is None or pdf_offset < 0 or not pdf_text or not source_text:
+            return None
+        pdf_offset = min(pdf_offset, len(pdf_text))
+
+        # Normalize source to NFC: pdf_text is already NFC (normalized in
+        # preview._get_pdf_line_offset), but the Gtk source buffer may store
+        # characters in either form. Aligning on a common form lets accented
+        # characters match even when Poppler decomposes them.
+        source_text = unicodedata.normalize('NFC', source_text)
+
+        matcher = difflib.SequenceMatcher(None, pdf_text, source_text, autojunk=False)
+        for block in matcher.get_matching_blocks():
+            if block.size == 0:
+                continue
+            if block.a <= pdf_offset < block.a + block.size:
+                return block.b + (pdf_offset - block.a)
+
+        # Offset is in a gap between matching blocks: snap to the end of the
+        # last block before it (or 0 if before all blocks).
+        src_offset = 0
+        for block in matcher.get_matching_blocks():
+            if block.size == 0:
+                continue
+            if block.a + block.size <= pdf_offset:
+                src_offset = block.b + block.size
+            else:
+                break
+        return src_offset
+
+    def get_synctex_word_bounds(self, text, word, context):
+        if not word: return None
+        word = word.split(' ')
+        if len(word) > 2:
+            word = word[:2]
+        word = ' '.join(word)
+        regex_pattern = re.escape(word)
+
+        # 原 for c in regex_pattern 逐字符扫描 + replace 替换非 ASCII 字符。
+        # re.sub 一次扫描完成所有非 ASCII 字符的替换，语义等价（每个非 ASCII
+        # 字符都替换为 (?:\w)），且避免 N 次 str.replace 的字符串分配。
+        regex_pattern = re.sub(r'[^\x00-\x7f]', lambda m: r'(?:\w)', regex_pattern)
+
+        # 占位符替换：synctex 的 word 可能含 \x1b/\x1c/\x1d/\- 等文本标记，
+        # 替换为对应正则片段。保持原行为不变。
+        regex_pattern = regex_pattern.replace('\\x1b', r'(?:\w{2,3})').replace('\\x1c', r'(?:\w{2})').replace('\\x1d', r'(?:\w{2,3})').replace('\\-', r'(?:-{0,1})')
+        regex = ServiceLocator.get_regex_object(r'(\W{0,1})' + regex_pattern + r'(\W{0,1})')
+
+        # 循环不变量提到循环外：offset1/offset2 仅依赖 context 与 word，
+        # 与 match 无关。原实现每个 match 都重新计算 context.find(word)。
+        offset1 = context.find(word)
+        offset2 = len(context) - offset1 - len(word)
+        lo_pad = max(offset1, 0)
+        hi_pad = max(offset2, 0)
+        text_len = len(text)
+
+        matches = list()
+        top_score = 0.1
+        # 复用 SequenceMatcher：set_seq2(context) 一次，循环内仅 set_seq1(match_text)。
+        # SequenceMatcher 的 ratio() 在 set_seqs 后会缓存 chaining/autojunk 等中间
+        # 状态，原实现每个 match 都新建 SequenceMatcher 重新计算。
+        matcher = difflib.SequenceMatcher(None)
+        matcher.set_seq2(context)
+        for match in regex.finditer(text):
+            if not (match.group(1) or match.group(2)):
+                # 原实现先算 score 再判断 group，但 score 仅在 group 非空时使用。
+                # 提前 continue 跳过 group 皆空的 match，省去 SequenceMatcher.ratio()。
+                continue
+            match_text = text[max(match.start() - lo_pad, 0):min(match.end() + hi_pad, text_len)]
+            matcher.set_seq1(match_text)
+            score = matcher.ratio()
+            if score > top_score + 0.1:
+                top_score = score
+                matches = [[match.start() + len(match.group(1)), match.end() - len(match.group(2))]]
+                # 提前终止：score >= 0.99 视为完美匹配，不再扫描后续 match。
+                # 文档含 N 个相同词的匹配时，原实现 N × SequenceMatcher.ratio()
+                # （每个最坏 O(n*m)），此处典型情况 1 次即退出。
+                if score >= 0.99:
+                    break
+            elif score > top_score - 0.1:
+                matches.append([match.start() + len(match.group(1)), match.end() - len(match.group(2))])
+        if len(matches) > 0:
+            return matches
+        else:
+            return None

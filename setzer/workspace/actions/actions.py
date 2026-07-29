@@ -1184,7 +1184,8 @@ class Actions(object):
         link = preview.context_menu.current_link
         if link is not None:
             text = link[1] if link[1] is not None else ''
-            Gdk.Display.get_default().get_clipboard().set_text(text)
+            # GTK4 移除了 Gdk.Clipboard.set_text()，改用 set_content + ContentProvider。
+            Gdk.Display.get_default().get_clipboard().set_content(Gdk.ContentProvider.new_for_value(text))
 
     def preview_copy_text(self, action, parameter=None):
         preview = self._get_preview()
