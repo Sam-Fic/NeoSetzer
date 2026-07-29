@@ -65,6 +65,7 @@ class FilesSectionView(structure_widget.StructureWidget):
             self.append_row(row)
 
         self.set_empty_state_visible(False)
+        self._sync_selection_to_accent_row()
 
     def make_file_row(self, filename, doc_dir, icon_name, indent):
         basename = os.path.basename(filename)

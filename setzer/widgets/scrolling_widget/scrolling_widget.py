@@ -85,6 +85,16 @@ class ScrollingWidget(Observable):
         self.secondary_click_controller.connect('pressed', self.on_secondary_button_press)
         self.content.add_controller(self.secondary_click_controller)
 
+        # 双指缩放手势：在 viewport (ScrolledWindow) 上监听捏合手势，
+        # 因为捏合中心点需要 viewport-relative 坐标（与 cursor_x/y 同坐标系）。
+        # 使用 'update' 信号而非 'zoom-changed'，确保每帧都能连续缩放。
+        self.zoom_gesture = Gtk.GestureZoom()
+        self.zoom_gesture.connect('begin', self.on_zoom_gesture_begin)
+        self.zoom_gesture.connect('update', self.on_zoom_gesture_update)
+        self.zoom_gesture.connect('end', self.on_zoom_gesture_end)
+        self.zoom_gesture.connect('cancel', self.on_zoom_gesture_end)
+        self.view.add_controller(self.zoom_gesture)
+
         # widget 销毁时自动取消减速动画 timeout。原实现仅靠各调用方
         # (preview.shutdown 等)手动调 cancel_deceleration，若有调用方遗漏，
         # ScrolledWindow 销毁后 timeout 仍会反复触发，访问已释放的 adjustment
@@ -220,3 +230,22 @@ class ScrollingWidget(Observable):
             self.cursor_x, self.cursor_y = x, y
             self.add_change_code('hover_state_changed')
             self.content.queue_draw()
+
+    # ---- 双指缩放 (pinch-to-zoom) ----
+
+    def on_zoom_gesture_begin(self, gesture, n_events):
+        if len(gesture.get_sequences()) < 2:
+            return
+        success, cx, cy = gesture.get_bounding_box_center()
+        if not success:
+            return
+        self.add_change_code('pinch_zoom', ('begin', gesture.get_scale_delta(), cx, cy))
+
+    def on_zoom_gesture_update(self, gesture, n_events):
+        success, cx, cy = gesture.get_bounding_box_center()
+        if not success:
+            return
+        self.add_change_code('pinch_zoom', ('update', gesture.get_scale_delta(), cx, cy))
+
+    def on_zoom_gesture_end(self, gesture, n_events):
+        self.add_change_code('pinch_zoom', ('end', gesture.get_scale_delta(), 0, 0))

@@ -94,6 +94,11 @@ class PageGeneral(object):
         self.view.preview_width_scale.set_value(int(fraction * 100))
         self.view.preview_width_scale.connect('value-changed', self.on_preview_width_changed)
 
+        # sidebar width fraction
+        fraction = self.settings.get_value('window_state', 'sidebar_width_fraction')
+        self.view.sidebar_width_scale.set_value(int(fraction * 100))
+        self.view.sidebar_width_scale.connect('value-changed', self.on_sidebar_width_changed)
+
         # recolor_pdf
         self.view.option_recolor_pdf.set_active(
             self.settings.get_value('preferences', 'recolor_pdf'))
@@ -162,6 +167,13 @@ class PageGeneral(object):
         self.settings.set_value('window_state', 'preview_width_fraction', fraction)
         if self.main_window is not None:
             self.main_window.preview_split.set_sidebar_width_fraction(fraction)
+
+    # ---- sidebar width ----
+    def on_sidebar_width_changed(self, scale):
+        fraction = scale.get_value() / 100.0
+        self.settings.set_value('window_state', 'sidebar_width_fraction', fraction)
+        if self.main_window is not None:
+            self.main_window.sidebar_split.set_sidebar_width_fraction(fraction)
 
     def on_recolor_pdf_toggled(self, switch, pspec=None):
         self.settings.set_value('preferences', 'recolor_pdf', switch.get_active())
@@ -311,6 +323,8 @@ class PageGeneral(object):
             self.view.startup_combo.set_selected(startup_index)
             fraction = self.settings.defaults['window_state']['preview_width_fraction']
             self.view.preview_width_scale.set_value(int(fraction * 100))
+            fraction = self.settings.defaults['window_state']['sidebar_width_fraction']
+            self.view.sidebar_width_scale.set_value(int(fraction * 100))
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
 
 
@@ -389,6 +403,24 @@ class PageGeneralView(Adw.PreferencesPage):
         self.option_recolor_pdf.set_subtitle(
             _('Recolor the PDF preview to match the light/dark theme.'))
         group_preview.add(self.option_recolor_pdf)
+
+        # sidebar width
+        group_sidebar = Adw.PreferencesGroup()
+        group_sidebar.set_title(_('Sidebar'))
+        self.add(group_sidebar)
+
+        self.sidebar_width_scale = Gtk.Scale.new_with_range(
+            Gtk.Orientation.HORIZONTAL, 10, 45, 1)
+        self.sidebar_width_scale.set_valign(Gtk.Align.CENTER)
+        self.sidebar_width_scale.set_hexpand(True)
+        self.sidebar_width_scale.set_draw_value(True)
+        self.sidebar_width_scale.set_value_pos(Gtk.PositionType.RIGHT)
+        self.sidebar_width_scale.add_mark(20, Gtk.PositionType.BOTTOM, None)
+        self.sidebar_width_row = Adw.ActionRow()
+        self.sidebar_width_row.set_title(_('Sidebar Width'))
+        self.sidebar_width_row.set_subtitle(_('Percentage of the window width allocated to the sidebar.'))
+        self.sidebar_width_row.add_suffix(self.sidebar_width_scale)
+        group_sidebar.add(self.sidebar_width_row)
 
         # tutorial（来自 First Run 页）
         group_tutorial = Adw.PreferencesGroup()

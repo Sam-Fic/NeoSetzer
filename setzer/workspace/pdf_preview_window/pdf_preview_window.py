@@ -35,7 +35,7 @@ target bar）整体 reparent 到本窗口的内容区。模型↔view 引用不�
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, Gio
+from gi.repository import Adw, Gtk, Gio, GLib
 
 import os.path
 
@@ -75,6 +75,8 @@ class PdfPreviewWindow(Adw.Window):
         self._panel = None
         # 当前连接了 sync 信号的活动文档 preview（用于切文档时重连）。
         self._preview = None
+        # 避免重复添加 timeout 回调：当用户快速切换时。
+        self._zoom_update_timeout_id = None
 
         # 关窗 = 收回，而非销毁。返回 True 阻止默认 destroy。
         self.connect('close-request', self._on_close_request)
@@ -111,6 +113,84 @@ class PdfPreviewWindow(Adw.Window):
         self._panel = panel
         self.content_box.append(panel)
         self._connect_active_preview()
+        # 延迟调用 update_dynamic_zoom_levels，让 GTK 先完成尺寸分配。
+        # 否则 fit_to_text_width 等模式的缩放不会根据新窗口尺寸重新计算，
+        # 用户需要滚动一下才能触发 size_changed → update_dynamic_zoom_levels。
+        self._schedule_zoom_update()
+
+    def _schedule_zoom_update(self, delay=50):
+        '''延迟更新缩放，避免重复添加 timeout 回调。'''
+        if self._zoom_update_timeout_id is not None:
+            GLib.source_remove(self._zoom_update_timeout_id)
+        self._zoom_update_timeout_id = GLib.timeout_add(delay, self._update_zoom_after_reparent)
+
+    def _update_zoom_after_reparent(self):
+        '''reparent 完成后更新动态缩放级别，确保 fit 模式正确。
+
+        使用自适应重试：检查 view 的 allocated width 是否有效（>= 300），
+        如果无效则重新调度自己（最多重试 5 次），确保 GTK 完成布局后再更新。
+        
+        对于 fit_to_text_width 模式，会在 update_dynamic_zoom_levels 后
+        强制重新应用一次，确保水平居中正确。'''
+        self._zoom_update_timeout_id = None
+        doc = self.workspace.get_root_or_active_latex_document()
+        if doc is None or not hasattr(doc.preview, 'zoom_manager'):
+            return False
+
+        view = doc.preview.view
+        zoom_manager = doc.preview.zoom_manager
+        
+        # 检查 allocated width 是否有效
+        if view.get_allocated_width() < 300:
+            # 如果无效，重新调度（最多重试 5 次，每次增加延迟）
+            retry_count = getattr(self, '_zoom_retry_count', 0)
+            if retry_count < 5:
+                self._zoom_retry_count = retry_count + 1
+                delay = 50 * (retry_count + 2)  # 增加延迟：100, 150, 200, 250, 300
+                self._schedule_zoom_update(delay)
+                return False
+            else:
+                # 达到最大重试次数，强制更新
+                self._zoom_retry_count = 0
+
+        # 重置重试计数
+        self._zoom_retry_count = 0
+        zoom_manager.update_dynamic_zoom_levels()
+        
+        # 专门为 fit_to_text_width 模式做额外处理：
+        # 延迟后强制重新应用一次，确保缩放比例和水平居中都正确
+        if zoom_manager.zoom_mode == 'fit_to_text_width':
+            self._fit_text_retry_count = 0
+            GLib.timeout_add(100, lambda: self._reapply_fit_to_text_width(zoom_manager))
+        
+        return False
+
+    def _reapply_fit_to_text_width(self, zoom_manager):
+        '''强制重新应用 fit_to_text_width，确保水平居中正确。
+
+        使用自适应重试：检查 viewport width 是否有效，
+        如果无效则重新调度自己（最多重试 3 次）。'''
+        view = zoom_manager.view
+        viewport_width = view.content.adjustment_x.get_page_size()
+        
+        # 检查 viewport width 是否有效
+        if viewport_width <= 0:
+            # 如果无效，重新调度（最多重试 3 次）
+            retry_count = getattr(self, '_fit_text_retry_count', 0)
+            if retry_count < 3:
+                self._fit_text_retry_count = retry_count + 1
+                delay = 100 * (retry_count + 2)  # 增加延迟：200, 300, 400
+                GLib.timeout_add(delay, lambda: self._reapply_fit_to_text_width(zoom_manager))
+                return False
+            else:
+                # 达到最大重试次数，仍然尝试应用
+                pass
+        
+        # 如果还是 fit_to_text_width 模式，强制重新应用
+        if zoom_manager.zoom_mode == 'fit_to_text_width':
+            zoom_manager.set_zoom_fit_to_text_width()
+        self._fit_text_retry_count = 0
+        return False
 
     def take_panel(self):
         '''把 preview_panel 从本窗口取回（交还侧边栏），断开 sync 信号。'''
@@ -121,6 +201,10 @@ class PdfPreviewWindow(Adw.Window):
             except Exception:
                 pass
             self._panel = None
+
+    def schedule_zoom_update(self):
+        '''公开方法：安排缩放更新（用于 pop_in_preview 等场景）。'''
+        self._schedule_zoom_update()
 
     def _on_close_request(self, window):
         # 关窗 → 收回到侧边栏。pop_in_preview 会把 panel 取回并隐藏本窗口。

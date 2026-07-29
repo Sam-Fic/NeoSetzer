@@ -9,6 +9,7 @@
 - **集成 AI 代码修复**：新增构建日志行内和批量 AI 修复功能，提升开发效率
 - **添加周期快照与会话恢复**：支持自动保存会话状态，崩溃后可恢复工作状态
 - **改进构建按钮与预览缩放体验**：优化构建流程和预览交互操作
+- **调整注释快捷键默认值**：注释/取消注释快捷键默认由 Ctrl+K 改为更通用的 Ctrl+/（仍可在偏好设置中自定义）
 
 ### Improvements
 
@@ -17,6 +18,7 @@
 - **feat**: Integrate AI code fix feature with inline and batch build log fix support
 - **feat**: Add periodic snapshot and session restore with crash recovery
 - **feat**: Improve build button and preview zoom interaction experience
+- **change**: Set comment/uncomment default shortcut to Ctrl+/ instead of Ctrl+K (still customizable)
 
 ---
 

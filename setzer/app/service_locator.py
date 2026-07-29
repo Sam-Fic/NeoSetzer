@@ -143,14 +143,20 @@ class ServiceLocator():
     def get_source_language_manager():
         if ServiceLocator.source_language_manager == None:
             ServiceLocator.source_language_manager = GtkSource.LanguageManager()
-            path = os.path.join(ServiceLocator.get_resources_path(), 'language-specs')
-            ServiceLocator.source_language_manager.set_search_path((path,))
+            resources_path = ServiceLocator.get_resources_path()
+            if resources_path:
+                path = os.path.join(resources_path, 'language-specs')
+                ServiceLocator.source_language_manager.set_search_path((path,))
         return ServiceLocator.source_language_manager
 
     def get_source_style_scheme_manager():
         if ServiceLocator.source_style_scheme_manager == None:
             ServiceLocator.source_style_scheme_manager = GtkSource.StyleSchemeManager()
-            path1 = os.path.join(ServiceLocator.get_resources_path(), 'themes')
+            resources_path = ServiceLocator.get_resources_path()
+            if resources_path:
+                path1 = os.path.join(resources_path, 'themes')
+            else:
+                path1 = None
             if not os.path.isdir(os.path.join(ServiceLocator.get_config_folder(), 'themes')):
                 os.mkdir(os.path.join(ServiceLocator.get_config_folder(), 'themes'))
             path2 = os.path.join(ServiceLocator.get_config_folder(), 'themes')
@@ -158,7 +164,10 @@ class ServiceLocator():
             # 同名系统方案；同时保留系统默认搜索路径，使用户在 Appearance 偏好
             # 中可选择 Adwaita / Solarized / Oblivion 等 GtkSource 内置方案。
             default_paths = ServiceLocator.source_style_scheme_manager.get_search_path()
-            combined_paths = (path1, path2) + tuple(p for p in default_paths if p not in (path1, path2))
+            if path1:
+                combined_paths = (path1, path2) + tuple(p for p in default_paths if p not in (path1, path2))
+            else:
+                combined_paths = (path2,) + tuple(p for p in default_paths if p != path2)
             ServiceLocator.source_style_scheme_manager.set_search_path(combined_paths)
         return ServiceLocator.source_style_scheme_manager
 

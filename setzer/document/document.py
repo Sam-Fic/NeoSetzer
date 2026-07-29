@@ -23,6 +23,8 @@ from gi.repository import GtkSource, Gtk, GObject, Adw, GLib, Gdk
 
 import os.path, stat, time
 
+from setzer.helpers.file_io import read_text_with_encoding, write_text_with_encoding, detect_encoding
+
 import setzer.document.document_controller as document_controller
 import setzer.document.document_presenter as document_presenter
 import setzer.document.document_viewgtk as document_view
@@ -33,6 +35,7 @@ import setzer.document.parser.parser_latex as parser_latex
 import setzer.document.parser.parser_bibtex as parser_bibtex
 import setzer.document.parser.parser_dummy as parser_dummy
 import setzer.document.code_folding.code_folding as code_folding
+import setzer.document.bookmarks.bookmarks as bookmarks
 import setzer.document.bracket_completion.bracket_completion as bracket_completion
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
 import setzer.document.autocomplete.autocomplete as autocomplete
@@ -52,10 +55,15 @@ class Document(Observable):
         self.filename = None
         self.save_date = None
         self.last_activated = 0
+        # 记录原始文件的换行符格式（'\n' | '\r\n' | '\r'），用于保存时还原
+        self.line_ending = '\n'
         # 每文档「最近使用」符号列表，结构同 favorites：[(category, command), ...]。
         # 由 DocumentSettings 随文档状态文件持久化（仅 filename 非空时落盘），
         # 区别于全局 app_recent_symbols——最近符号按文档区分，切文档即切换列表。
         self.recent_symbols = list()
+        # 每文档「文档结构折叠」状态：已折叠的 section 节点 offset 集合。
+        # 由 DocumentSettings 随文档状态文件持久化，切换文档或重启后恢复。
+        self.collapsed_sections = set()
         self.is_root = False
         self.root_is_set = False
         self.highlight_tag_count = 0
@@ -79,6 +87,7 @@ class Document(Observable):
         elif self.is_bibtex_document(): self.parser = parser_bibtex.ParserBibTeX(self)
         else: self.parser = parser_dummy.ParserDummy(self)
         self.code_folding = code_folding.CodeFolding(self)
+        self.bookmarks = bookmarks.Bookmarks(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
@@ -97,6 +106,8 @@ class Document(Observable):
         # 以便激活/关闭时取消。详见 populate_from_disk / _load_content_if_pending。
         self._content_pending = False
         self._lazy_load_idle_id = None
+        self.file_encoding = 'utf-8'
+        self.has_bom = False
         # 程序化读盘期间（_load_file_content 的 set_text）置 True。set_text 会
         # 触发 buffer 'changed' 信号，但这是会话恢复/懒加载/文件打开，并非用户
         # 编辑——auto_build 据此跳过启动即重编。仅 auto_build 读取此标志，
@@ -189,6 +200,15 @@ class Document(Observable):
         if gutter is not None:
             try:
                 gutter.shutdown()
+            except Exception:
+                pass
+
+        # bookmarks 连接了 source_buffer 的 insert-text / delete-range 信号,
+        # 需断开以防止已关闭文档的回调继续被触发。
+        bookmarks = getattr(self, 'bookmarks', None)
+        if bookmarks is not None:
+            try:
+                bookmarks.shutdown()
             except Exception:
                 pass
 
@@ -302,6 +322,49 @@ class Document(Observable):
         self._load_file_content()
         return True
 
+    @staticmethod
+    def _detect_line_ending(raw_bytes):
+        '''检测文件的换行符格式。
+
+        优先级：CRLF > CR > LF（CRLF 包含 CR 子串，需先判定）。
+        空文件返回 LF。
+        '''
+        if b'\r\n' in raw_bytes:
+            return '\r\n'
+        if b'\r' in raw_bytes:
+            return '\r'
+        return '\n'
+
+    @staticmethod
+    def _strip_bom_bytes(raw_bytes):
+        '''移除文件开头的 BOM 字节（如果存在）。
+
+        支持 UTF-8 BOM (EF BB BF)、UTF-16 LE BOM (FF FE)、
+        UTF-16 BE BOM (FE FF)。只移除 BOM 字节，不修改其他内容。
+        '''
+        if raw_bytes.startswith(b'\xef\xbb\xbf'):
+            return raw_bytes[3:]
+        if raw_bytes.startswith(b'\xff\xfe'):
+            return raw_bytes[2:]
+        if raw_bytes.startswith(b'\xfe\xff'):
+            return raw_bytes[2:]
+        return raw_bytes
+
+    @staticmethod
+    def _prepend_bom(encoded_bytes, encoding):
+        '''根据编码类型在字节开头添加对应的 BOM。
+
+        只在 has_bom=True 时调用，支持 utf-8/utf-16-le/utf-16-be。
+        '''
+        enc = encoding.lower().replace('-', '_')
+        if enc in ('utf_8', 'utf8'):
+            return b'\xef\xbb\xbf' + encoded_bytes
+        if enc in ('utf_16_le', 'utf16_le', 'utf_16le'):
+            return b'\xff\xfe' + encoded_bytes
+        if enc in ('utf_16_be', 'utf16_be', 'utf_16be'):
+            return b'\xfe\xff' + encoded_bytes
+        return encoded_bytes
+
     def _load_file_content(self):
         '''读取文件内容并填入 source_buffer。
 
@@ -310,9 +373,21 @@ class Document(Observable):
         加载后应用 _restore_cursor_offset / _restore_scroll_offset（若存在），
         因为懒加载文档在 _restore_document_states idle 时缓冲区尚为空，
         偏移恢复会失败——此处补做。
+
+        同时检测原始换行符格式（CRLF / CR / LF）并缓存，保存时还原。
+        GtkTextBuffer 内部统一用 LF，不保留原始换行符，需要外部记录。
         '''
-        with open(self.filename) as f:
-            text = f.read()
+        # 先用二进制读原始字节，检测换行符格式
+        with open(self.filename, 'rb') as f:
+            raw_bytes = f.read()
+        self.line_ending = self._detect_line_ending(raw_bytes)
+
+        # 先去掉 BOM（如果存在），再用正确的编码解码
+        raw_bytes_no_bom = self._strip_bom_bytes(raw_bytes)
+
+        # 检测编码并用正确的编码解码
+        self.file_encoding, self.has_bom = detect_encoding(raw_bytes)
+        text = raw_bytes_no_bom.decode(self.file_encoding, errors='replace')
 
         # 预置行号宽度：在 set_text 之前用文件真实行数把 gutter 宽度算好，
         # 避免大文档加载后行数从 0 跳到几千时行号区域“突然变宽”的跳变。
@@ -336,16 +411,13 @@ class Document(Observable):
         self.place_cursor(0, 0)
         self.update_save_date()
 
+        # 更新状态栏的编码显示（已在 __init__ 初始化，这里根据实际检测结果更新）
+        if getattr(self, 'statusbar', None) is not None:
+            self.statusbar.update_encoding_display()
+
         # 懒加载文档的游标/滚动恢复：_restore_document_states idle 在内容
         # 加载前运行时偏移无效（缓冲区空），此处内容已就绪，补做恢复。
-        cursor_offset = getattr(self, '_restore_cursor_offset', None)
-        if cursor_offset is not None:
-            try:
-                if cursor_offset <= self.source_buffer.get_end_iter().get_offset():
-                    self.source_buffer.place_cursor(self.source_buffer.get_iter_at_offset(cursor_offset))
-            except Exception:
-                pass
-            self._restore_cursor_offset = None
+        self.apply_restored_cursor()
         scroll_offset = getattr(self, '_restore_scroll_offset', None)
         if scroll_offset is not None:
             try:
@@ -396,7 +468,7 @@ class Document(Observable):
         self._load_content_if_pending()
         return False
 
-    def save_to_disk(self):
+    def save_to_disk(self, show_toast=True):
         if self.filename == None: return False
 
         # 懒加载安全守卫：内容未加载时缓冲区为空，直接保存会用空内容覆盖
@@ -409,14 +481,36 @@ class Document(Observable):
         text = self.get_all_text()
         if text == None: return False
 
-        dirname = os.path.dirname(self.filename)
-        # exist_ok=True 一次调用替代 exists + makedirs：dirname 几乎总是存在，
-        # 原实现每次保存都做一次多余 stat；exist_ok 时已存在不报错，省一次系统调用。
-        if dirname:
-            os.makedirs(dirname, exist_ok=True)
+        # 将 GtkTextBuffer 中的 LF 转换回原始换行符格式
+        # 先统一所有换行符为 LF（防御性处理），再转换为目标格式
+        line_ending = getattr(self, 'line_ending', '\n')
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        if line_ending != '\n':
+            text = text.replace('\n', line_ending)
 
-        with open(self.filename, 'w') as f:
-            f.write(text)
+        try:
+            dirname = os.path.dirname(self.filename)
+            # exist_ok=True 一次调用替代 exists + makedirs：dirname 几乎总是存在，
+            # 原实现每次保存都做一次多余 stat；exist_ok 时已存在不报错，省一次系统调用。
+            if dirname:
+                os.makedirs(dirname, exist_ok=True)
+
+            # 使用二进制模式写入，避免 Python 在文本模式下额外转换换行符
+            try:
+                encoded = text.encode(self.file_encoding)
+                # 如果原文件有 BOM，保存时保留 BOM 状态
+                if self.has_bom:
+                    encoded = self._prepend_bom(encoded, self.file_encoding)
+            except (UnicodeEncodeError, LookupError):
+                encoded = text.encode('utf-8', errors='replace')
+                # BOM 状态不传递给 fallback 编码，保持安全
+            with open(self.filename, 'wb') as f:
+                f.write(encoded)
+        except OSError as e:
+            if show_toast:
+                self._show_save_error_toast(str(e))
+            return False
+
         self.update_save_date()
         self.controller.deleted_on_disk_dialog_shown_after_last_save = False
         self.source_buffer.set_modified(False)
@@ -424,6 +518,14 @@ class Document(Observable):
         # 避免下次启动误把已保存的旧版本当作可恢复内容）。无参数，与 'changed'
         # 同模式：回调签名 callback(document)。
         self.add_change_code('saved')
+        return True
+
+    def _show_save_error_toast(self, error_msg):
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('Could not save document: {error}').format(error=error_msg))
+            toast.set_timeout(5)
+            main_window.toast_overlay.add_toast(toast)
 
     def update_save_date(self):
         self.save_date = os.path.getmtime(self.filename)
@@ -499,6 +601,31 @@ class Document(Observable):
     def place_cursor(self, line_number, offset=0):
         _, text_iter = self.source_buffer.get_iter_at_line_offset(line_number, offset)
         self.source_buffer.place_cursor(text_iter)
+
+    def apply_restored_cursor(self):
+        '''应用会话恢复的光标位置及（可选）选区范围。
+        由 _restore_document_states（idle，内容已加载）与 _load_file_content
+        （懒加载内容就绪后补做）共同调用，避免两处重复维护导致行为漂移。
+        仅恢复 insert 与 selection_bound 两个 mark：若无选区则折叠光标，
+        否则按保存的两端分别落点，保留原有选择方向与范围。'''
+        cursor_offset = getattr(self, '_restore_cursor_offset', None)
+        if cursor_offset is None:
+            return
+        try:
+            buf = self.source_buffer
+            end_offset = buf.get_end_iter().get_offset()
+            if 0 <= cursor_offset <= end_offset:
+                insert_iter = buf.get_iter_at_offset(cursor_offset)
+                sel_bound = getattr(self, '_restore_selection_bound_offset', None)
+                if sel_bound is not None and 0 <= sel_bound <= end_offset and sel_bound != cursor_offset:
+                    buf.move_mark(buf.get_insert(), insert_iter)
+                    buf.move_mark(buf.get_selection_bound(), buf.get_iter_at_offset(sel_bound))
+                else:
+                    buf.place_cursor(insert_iter)
+        except Exception:
+            pass
+        self._restore_cursor_offset = None
+        self._restore_selection_bound_offset = None
 
     def delete_selection(self):
         self.source_buffer.delete_selection(True, True)

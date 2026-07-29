@@ -89,6 +89,9 @@ class PageEditor(object):
         self.view.option_show_line_numbers.set_active(self.settings.get_value('preferences', 'show_line_numbers'))
         self.view.option_show_line_numbers.connect('notify::active', self.on_switch_toggled, 'show_line_numbers')
 
+        self.view.option_show_shortcuts_bar.set_active(self.settings.get_value('preferences', 'show_shortcuts_bar'))
+        self.view.option_show_shortcuts_bar.connect('notify::active', self.on_switch_toggled, 'show_shortcuts_bar')
+
         self.view.option_line_wrapping.set_active(self.settings.get_value('preferences', 'enable_line_wrapping'))
         self.view.option_line_wrapping.connect('notify::active', self.on_switch_toggled, 'enable_line_wrapping')
 
@@ -301,6 +304,7 @@ class PageEditor(object):
         self.view.option_spaces_instead_of_tabs.set_active(defaults['spaces_instead_of_tabs'])
         self.view.tab_width_spinbutton.set_property('value', defaults['tab_width'])
         self.view.option_show_line_numbers.set_active(defaults['show_line_numbers'])
+        self.view.option_show_shortcuts_bar.set_active(defaults['show_shortcuts_bar'])
         self.view.option_line_wrapping.set_active(defaults['enable_line_wrapping'])
         self.view.option_code_folding.set_active(defaults['enable_code_folding'])
         self.view.option_highlight_current_line.set_active(defaults['highlight_current_line'])
@@ -319,6 +323,8 @@ class PageEditor(object):
         self.view.preview_source_view.set_pixels_above_lines(ls // 2)
         self.view.preview_source_view.set_pixels_below_lines(ls - ls // 2)
         self.view.preview_source_view.set_pixels_inside_wrap(ls)
+        # 重置编辑器字号缩放倍率为默认值 1.0
+        self.settings.set_value('preferences', 'editor_font_zoom_level', 1.0)
 
 
 class PageEditorView(Adw.PreferencesPage):
@@ -413,6 +419,15 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_show_line_numbers.set_title(_('Show line numbers'))
         self.option_show_line_numbers.set_subtitle(_('Display line numbers in the editor gutter.'))
         group_line_numbers.add(self.option_show_line_numbers)
+
+        group_shortcuts_bar = Adw.PreferencesGroup()
+        group_shortcuts_bar.set_title(_('Shortcuts Bar'))
+        self.add(group_shortcuts_bar)
+
+        self.option_show_shortcuts_bar = Adw.SwitchRow()
+        self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
+        self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
+        group_shortcuts_bar.add(self.option_show_shortcuts_bar)
 
         group_line_wrapping = Adw.PreferencesGroup()
         group_line_wrapping.set_title(_('Line Wrapping'))

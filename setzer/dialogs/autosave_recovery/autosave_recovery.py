@@ -23,6 +23,8 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gtk
 
+from setzer.helpers.file_io import read_text_with_encoding
+
 
 class AutosaveRecoveryDialog(object):
     '''启动时若检测到 ~/.config/setzer/autosave/ 下有残留临时文件，
@@ -100,8 +102,7 @@ class AutosaveRecoveryDialog(object):
         '''把每个临时文件内容作为新 untitled 文档打开，然后清理临时文件。'''
         for temp_path, info in list(self.manifest.items()):
             try:
-                with open(temp_path, 'r') as f:
-                    text = f.read()
+                text, encoding, has_bom = read_text_with_encoding(temp_path)
             except OSError:
                 continue
             language = info.get('language', 'latex')
@@ -111,6 +112,9 @@ class AutosaveRecoveryDialog(object):
             else:
                 document = self.workspace.create_latex_document()
             self.workspace.add_document(document)
+            # 设置从临时文件检测到的编码和 BOM 状态
+            document.file_encoding = encoding
+            document.has_bom = has_bom
             # 用临时文件内容替换缓冲区（irreversible_action 避免污染 undo 栈）
             document.source_buffer.begin_irreversible_action()
             document.source_buffer.set_text(text)

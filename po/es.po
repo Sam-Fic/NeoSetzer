@@ -322,7 +322,7 @@ msgstr "Copiado al portapapeles"
 
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
-msgid "Document »{document}« has no filename."
+msgid "Document \"{document}\" has no filename."
 msgstr "El documento »{document}« no tiene nombre de archivo."
 
 #: setzer/dialogs/build_save/build_save.py:36
@@ -342,7 +342,7 @@ msgstr "_Guardar documento ahora"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
-msgid "Document »{document}« has unsaved changes."
+msgid "Document \"{document}\" has unsaved changes."
 msgstr "El documento »{document}« tiene cambios sin guardar."
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
@@ -350,8 +350,9 @@ msgid "If you close without saving, these changes will be lost."
 msgstr "Si cierra sin guardar, estos cambios se perderán."
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
+#, fuzzy
 msgid "Close without Saving"
-msgstr "Cerrar _sin guardar"
+msgstr "Compilar PDF sin guardar"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:71
 #, python-brace-format
@@ -379,7 +380,7 @@ msgstr "Guardar todo"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
-msgid "Document »{document}« has changed on disk."
+msgid "Document \"{document}\" has changed on disk."
 msgstr "El documento »{document}« ha cambiado en el disco."
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
@@ -396,7 +397,7 @@ msgstr "_Recargar desde disco"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
-msgid "Document »{document}« was deleted from disk or moved."
+msgid "Document \"{document}\" was deleted from disk or moved."
 msgstr "El documento »{document}« ha sido borrado del disco o movido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
@@ -425,7 +426,9 @@ msgstr "Introduzca un nombre para la nueva plantilla."
 msgid ""
 "Please enter a document title before creating the document. Otherwise the "
 "generated \\title{} will be empty."
-msgstr "Introduzca un título de documento antes de crear el documento. De lo contrario, el \\title{} generado estará vacío."
+msgstr ""
+"Introduzca un título de documento antes de crear el documento. De lo "
+"contrario, el \\title{} generado estará vacío."
 
 #: setzer/dialogs/document_wizard/document_wizard.py:320
 msgid "Cannot continue"
@@ -648,7 +651,9 @@ msgstr ""
 msgid ""
 "<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many "
 "customizations and sensible defaults."
-msgstr "<b>Scrartcl:</b> reemplazo de KOMA-Script para la clase article. Añade muchas personalizaciones y valores predeterminados razonables."
+msgstr ""
+"<b>Scrartcl:</b> reemplazo de KOMA-Script para la clase article. Añade "
+"muchas personalizaciones y valores predeterminados razonables."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:102
 msgid "<b>Scrreprt:</b>  KOMA-Script replacement for the report class."
@@ -850,7 +855,9 @@ msgstr "Disposición a dos columnas"
 
 #: setzer/dialogs/document_wizard/pages/page.py:128
 msgid "LaTeX standard default is 10pt; 12pt is common for book and letter."
-msgstr "El valor predeterminado estándar de LaTeX es 10pt; 12pt es común para book y letter."
+msgstr ""
+"El valor predeterminado estándar de LaTeX es 10pt; 12pt es común para book y "
+"letter."
 
 #: setzer/dialogs/document_wizard/pages/page.py:132
 msgid "Use default margins"
@@ -858,7 +865,9 @@ msgstr "Usar márgenes predeterminados"
 
 #: setzer/dialogs/document_wizard/pages/page.py:133
 msgid "On: use LaTeX default margins. Off: set custom margins below."
-msgstr "Activado: usar márgenes predeterminados de LaTeX. Desactivado: definir márgenes personalizados abajo."
+msgstr ""
+"Activado: usar márgenes predeterminados de LaTeX. Desactivado: definir "
+"márgenes personalizados abajo."
 
 #: setzer/dialogs/document_wizard/pages/page.py:135
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:139
@@ -989,13 +998,14 @@ msgstr ""
 "su sistema de archivos."
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:35
+#, fuzzy
 msgid "LateX Interpreter is missing."
 msgstr "Falta el intérprete LateX."
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use »{interpreter}« which seems to be missing on "
+"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -1391,118 +1401,6 @@ msgstr ""
 msgid "Reset"
 msgstr "Restablecer"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:191
-msgid "General"
-msgstr "General"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py
-msgid "All build system and AI Fix settings will be restored to their default values. Custom tools and trusted directories will be removed."
-msgstr "Todas las preferencias del sistema de compilación y de AI Fix se restaurarán a sus valores predeterminados. Las herramientas personalizadas y los directorios de confianza se eliminarán."
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:572
-msgid "AI Fix"
-msgstr "Corrección con IA"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:576
-msgid "Enable AI Fix"
-msgstr "Activar corrección con IA"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:577
-msgid "Show \"AI Fix\" buttons in the Build Log dialog"
-msgstr "Mostrar botones de «Corrección con IA» en el diálogo de registro de compilación"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:581
-msgid "Active agent tool"
-msgstr "Herramienta agente activa"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:582
-msgid "Which CLI to invoke when clicking AI Fix"
-msgstr "CLI que se invoca al hacer clic en Corrección con IA"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:586
-msgid "Terminal command (optional)"
-msgstr "Comando de terminal (opcional)"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:588
-msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
-msgstr "Déjelo vacío para detección automática (gnome-terminal / xterm / konsole / ...). Bajo Flatpak, flatpak-spawn --host se añade automáticamente."
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:593
-msgid "Agent tools"
-msgstr "Herramientas de agente"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:594
-msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
-msgstr "Los ajustes preestablecidos integrados no se pueden eliminar. Añada una herramienta personalizada para integrar otras CLI de agente."
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:600
-msgid "+ Add custom tool"
-msgstr "+ Añadir herramienta personalizada"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:605
-msgid "Trusted directories"
-msgstr "Directorios de confianza"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:606
-msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
-msgstr "Directorios donde se omite el diálogo de vista previa. Haga clic en eliminar para revocar la confianza de un proyecto."
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:323
-msgid "(active)"
-msgstr "(activo)"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:327
-msgid "built-in"
-msgstr "integrado"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:329
-msgid "custom"
-msgstr "personalizado"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:332
-msgid "installed"
-msgstr "instalado"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:334
-msgid "not installed"
-msgstr "no instalado"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:343
-msgid "Remove this custom tool"
-msgstr "Eliminar esta herramienta personalizada"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:361
-msgid "No trusted directories yet"
-msgstr "Aún no hay directorios de confianza"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:362
-msgid "Check \"Don't ask again\" in the preview dialog to add one."
-msgstr "Marque «No preguntar de nuevo» en el diálogo de vista previa para añadir uno."
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:375
-msgid "Remove from trusted list"
-msgstr "Eliminar de la lista de confianza"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:629
-msgid "Add custom tool"
-msgstr "Añadir herramienta personalizada"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:659
-msgid "Tool name (unique)"
-msgstr "Nombre de herramienta (único)"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:663
-msgid "Executable (e.g. aider)"
-msgstr "Ejecutable (ej. aider)"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:667
-msgid "Headed command template"
-msgstr "Plantilla de comando con cabecera"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:668
-msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
-msgstr "Argumentos separados por espacios. Use {prompt} / {file} / {cwd} como marcadores de posición. Ejemplo: aider --message {prompt} --no-auto-commits. Si se deja en blanco o sin {prompt}, la instrucción se copia al portapapeles."
-
 #: setzer/dialogs/preferences/pages/page_appearance.py:229
 #: setzer/dialogs/preferences/pages/page_editor.py:264
 msgid "Appearance"
@@ -1551,6 +1449,18 @@ msgstr "Ancho de la barra lateral de vista previa"
 #: setzer/dialogs/preferences/pages/page_appearance.py:299
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "Porcentaje del ancho de la ventana asignado a la vista previa del PDF."
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:393
+msgid "Sidebar"
+msgstr "Barra lateral"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:401
+msgid "Sidebar Width"
+msgstr "Ancho de la barra lateral"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:402
+msgid "Percentage of the window width allocated to the sidebar."
+msgstr "Porcentaje del ancho de la ventana asignado a la barra lateral."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:307
 msgid "Match PDF colors to theme"
@@ -1663,6 +1573,7 @@ msgstr ""
 "construir .pdf."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:291
+#, fuzzy
 msgid "Use Latexmk"
 msgstr "Usar Latexmk"
 
@@ -2355,7 +2266,7 @@ msgstr "Página {page} de {total}"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
-msgid "Replace all matches of »{original}« with »{replacement}«?"
+msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
 msgstr ""
 "¿Reemplazar todas las coincidencias de »{original}« por »{replacement}«?"
 
@@ -2365,9 +2276,9 @@ msgstr "Contando coincidencias… El número de ocurrencias se está calculando.
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
 #, python-brace-format
-msgid "Replacing {amount} occurence of »{original}« with »{replacement}«."
+msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
-"Replacing {amount} occurrences of »{original}« with »{replacement}«."
+"Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
 msgstr[0] ""
 "Reemplazando {amount} ocurrencia de »{original}« por »{replacement}«."
 msgstr[1] ""
@@ -3268,8 +3179,8 @@ msgstr[0] "{n} resultado"
 msgstr[1] "{n} resultados"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Help home"
-msgstr "Inicio de ayuda"
+msgid "Home"
+msgstr ""
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3300,10 +3211,6 @@ msgstr "Buscar en la ayuda"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:146
 msgid "No results found"
 msgstr "Sin resultados"
-
-#: setzer/workspace/help_panel/help_panel_presenter.py:74
-msgid "No results for '{query}'"
-msgstr "Sin resultados para «{query}»"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:155
 msgid "Search Help"
@@ -3754,6 +3661,128 @@ msgstr "No se pudo abrir: {filename}"
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr "No se pudo guardar el estado del área de trabajo: {error}"
+
+#~ msgid "Discard"
+#~ msgstr "Descartar"
+
+#~ msgid "General"
+#~ msgstr "General"
+
+#~ msgid ""
+#~ "All build system and AI Fix settings will be restored to their default "
+#~ "values. Custom tools and trusted directories will be removed."
+#~ msgstr ""
+#~ "Todas las preferencias del sistema de compilación y de AI Fix se "
+#~ "restaurarán a sus valores predeterminados. Las herramientas "
+#~ "personalizadas y los directorios de confianza se eliminarán."
+
+#~ msgid "AI Fix"
+#~ msgstr "Corrección con IA"
+
+#~ msgid "Enable AI Fix"
+#~ msgstr "Activar corrección con IA"
+
+#~ msgid "Show \"AI Fix\" buttons in the Build Log dialog"
+#~ msgstr ""
+#~ "Mostrar botones de «Corrección con IA» en el diálogo de registro de "
+#~ "compilación"
+
+#~ msgid "Active agent tool"
+#~ msgstr "Herramienta agente activa"
+
+#~ msgid "Which CLI to invoke when clicking AI Fix"
+#~ msgstr "CLI que se invoca al hacer clic en Corrección con IA"
+
+#~ msgid "Terminal command (optional)"
+#~ msgstr "Comando de terminal (opcional)"
+
+#~ msgid ""
+#~ "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). "
+#~ "Under Flatpak, flatpak-spawn --host is added automatically."
+#~ msgstr ""
+#~ "Déjelo vacío para detección automática (gnome-terminal / xterm / "
+#~ "konsole / ...). Bajo Flatpak, flatpak-spawn --host se añade "
+#~ "automáticamente."
+
+#~ msgid "Agent tools"
+#~ msgstr "Herramientas de agente"
+
+#~ msgid ""
+#~ "Built-in presets cannot be removed. Add a custom tool to integrate other "
+#~ "Agent CLIs."
+#~ msgstr ""
+#~ "Los ajustes preestablecidos integrados no se pueden eliminar. Añada una "
+#~ "herramienta personalizada para integrar otras CLI de agente."
+
+#~ msgid "+ Add custom tool"
+#~ msgstr "+ Añadir herramienta personalizada"
+
+#~ msgid "Trusted directories"
+#~ msgstr "Directorios de confianza"
+
+#~ msgid ""
+#~ "Directories where the preview dialog is skipped. Click delete to revoke "
+#~ "trust for a project."
+#~ msgstr ""
+#~ "Directorios donde se omite el diálogo de vista previa. Haga clic en "
+#~ "eliminar para revocar la confianza de un proyecto."
+
+#~ msgid "(active)"
+#~ msgstr "(activo)"
+
+#~ msgid "built-in"
+#~ msgstr "integrado"
+
+#~ msgid "custom"
+#~ msgstr "personalizado"
+
+#~ msgid "installed"
+#~ msgstr "instalado"
+
+#~ msgid "not installed"
+#~ msgstr "no instalado"
+
+#~ msgid "Remove this custom tool"
+#~ msgstr "Eliminar esta herramienta personalizada"
+
+#~ msgid "No trusted directories yet"
+#~ msgstr "Aún no hay directorios de confianza"
+
+#~ msgid "Check \"Don't ask again\" in the preview dialog to add one."
+#~ msgstr ""
+#~ "Marque «No preguntar de nuevo» en el diálogo de vista previa para añadir "
+#~ "uno."
+
+#~ msgid "Remove from trusted list"
+#~ msgstr "Eliminar de la lista de confianza"
+
+#~ msgid "Add custom tool"
+#~ msgstr "Añadir herramienta personalizada"
+
+#~ msgid "Tool name (unique)"
+#~ msgstr "Nombre de herramienta (único)"
+
+#~ msgid "Executable (e.g. aider)"
+#~ msgstr "Ejecutable (ej. aider)"
+
+#~ msgid "Headed command template"
+#~ msgstr "Plantilla de comando con cabecera"
+
+#~ msgid ""
+#~ "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
+#~ "Example: aider --message {prompt} --no-auto-commits. If left blank or "
+#~ "without {prompt}, the prompt is copied to clipboard."
+#~ msgstr ""
+#~ "Argumentos separados por espacios. Use {prompt} / {file} / {cwd} como "
+#~ "marcadores de posición. Ejemplo: aider --message {prompt} --no-auto-"
+#~ "commits. Si se deja en blanco o sin {prompt}, la instrucción se copia al "
+#~ "portapapeles."
+
+#~ msgid "Help home"
+#~ msgstr "Inicio de ayuda"
+
+#~ msgid "No results for '{query}'"
+#~ msgstr "Sin resultados para «{query}»"
 
 #~ msgid "Copy All"
 #~ msgstr "Copiar todo"

@@ -30,6 +30,7 @@ foreach t : [
   ['test_matching_blocks_regex',  'test_matching_blocks_regex.py'],
   ['test_help_search',            'test_help_search.py'],
   ['test_latex_db_error_flag',    'test_latex_db_error_flag.py'],
+  ['test_line_ending',            'test_line_ending.py'],
 ]
   test(
     t[0],

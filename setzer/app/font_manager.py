@@ -31,6 +31,9 @@ class FontManager():
     default_font_string = None
     font_string = None
     zoom_level = 1.0
+    # 保存的编辑器字号缩放倍率：1.0 = 默认。与 font_string 分离，使 system font 模式
+    # 下的缩放偏好也能跨重启持久化。
+    saved_zoom_level = 1.0
     # 字体缩放范围与步长：原硬编码在 document_controller.py 的 on_scroll 中
     # （6pt 下限、24pt 上限、1.1× 步长）。提取为模块级常量后，document_controller
     # 与未来其他缩放入口（如菜单项）共用同一份定义，避免值漂移。
@@ -105,5 +108,18 @@ class FontManager():
 
     def get_system_font():
         return FontManager.default_font_string
+
+    def apply_zoom_to_font(base_font_string, zoom_factor):
+        '''Apply a zoom factor (e.g., 1.2 for 120%) to a base font string and return
+        the resulting font string. This is used when loading the font on startup
+        to restore the saved zoom level.'''
+        font_desc = Pango.FontDescription.from_string(base_font_string)
+        current_size = font_desc.get_size()
+        new_size = int(current_size * zoom_factor)
+        # Clamp to valid range
+        new_size = max(int(FontManager.FONT_SIZE_MIN_PT * Pango.SCALE),
+                       min(int(FontManager.FONT_SIZE_MAX_PT * Pango.SCALE), new_size))
+        font_desc.set_size(new_size)
+        return font_desc.to_string()
 
 

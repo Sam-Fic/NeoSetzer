@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gdk, Gtk, Adw, Pango
+from gi.repository import Gdk, Gtk, Adw, Pango, Gio
 
 import xml.etree.ElementTree as ET
 import os
@@ -41,14 +41,28 @@ class SymbolsPageView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
 
-        self.section_label = Gtk.Label(label='')
-        self.section_label.add_css_class('dim-label')
-        self.section_label.add_css_class('sidebar-section-title')
-        self.section_label.set_halign(Gtk.Align.START)
-        self.section_label.set_hexpand(True)
-        self.section_label.set_xalign(0.0)
-        self.section_label.set_ellipsize(Pango.EllipsizeMode.END)
-        self.toolbar.append(self.section_label)
+        # 下拉菜单：Gtk.MenuButton + .flat 样式（与项目中其他 MenuButton 一致）
+        self.section_menu_button = Gtk.MenuButton()
+        self.section_menu_button.add_css_class('flat')
+        self.section_menu_button.set_can_focus(False)
+        self.section_menu_button.set_halign(Gtk.Align.START)
+        self.section_menu_button.set_hexpand(True)
+        self.section_menu_button.set_tooltip_text(_('Jump to category'))
+
+        menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+        self.section_menu_label = Gtk.Label(label='')
+        self.section_menu_label.add_css_class('dim-label')
+        self.section_menu_label.set_xalign(0.0)
+        self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
+        menu_box.append(self.section_menu_label)
+
+        arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
+        arrow_icon.set_pixel_size(12)
+        arrow_icon.add_css_class('dim-label')
+        menu_box.append(arrow_icon)
+
+        self.section_menu_button.set_child(menu_box)
+        self.toolbar.append(self.section_menu_button)
 
         self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
@@ -187,10 +201,17 @@ class SidebarSymbolsList(Gtk.FlowBox):
         # 关闭选中态：插入符号后不残留高亮（child-activated 仍会正常触发）。
         self.set_selection_mode(Gtk.SelectionMode.NONE)
 
-        xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', symbol_folder + '.xml'))
-        xml_root = xml_tree.getroot()
-        for symbol_tag in xml_root:
-            self.symbols.append([symbol_tag.attrib['file'].rsplit('.')[0], symbol_tag.attrib['command'], symbol_tag.attrib.get('package', None), int(symbol_tag.attrib.get('original_width', 10)), int(symbol_tag.attrib.get('original_height', 10))])
+        resources_path = ServiceLocator.get_resources_path()
+        if resources_path:
+            xml_file = os.path.join(resources_path, 'symbols', symbol_folder + '.xml')
+            try:
+                xml_tree = ET.parse(xml_file)
+                xml_root = xml_tree.getroot()
+                for symbol_tag in xml_root:
+                    self.symbols.append([symbol_tag.attrib['file'].rsplit('.')[0], symbol_tag.attrib['command'], symbol_tag.attrib.get('package', None), int(symbol_tag.attrib.get('original_width', 10)), int(symbol_tag.attrib.get('original_height', 10))])
+            except (FileNotFoundError, ET.ParseError, KeyError, ValueError) as e:
+                import sys
+                print(f'Warning: Could not load symbols XML {xml_file}: {e}', file=sys.stderr)
 
         self.init_symbols_list()
 

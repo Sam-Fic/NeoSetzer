@@ -59,7 +59,9 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('save', shortcuts.get('save', '<Control>s'), self.actions.save)
         self._register_configurable('save_as', shortcuts.get('save_as', '<Control><Shift>s'), self.actions.save_as)
         self._register_configurable('close_document', shortcuts.get('close_document', '<Control>w'), self.actions.close_active_document)
-        # 非配置：硬编码快捷键，不通过设置修改
+        # 非配置：硬编码快捷键，不通过设置修改。
+        # Ctrl+Shift+T 固定给"重开最近关闭的文档"（浏览器惯例）；typewriter
+        # (\texttt) 的默认值因此让位为 Ctrl+Shift+Y（见 settings.py），避免同键双触发。
         self.create_and_add_shortcut('<Control><Shift>t', self.actions.reopen_last_closed_document)
         self._register_configurable('quit', shortcuts.get('quit', '<Control>q'), self.actions.actions['quit'].activate)
         self._register_configurable('show_shortcuts', shortcuts.get('show_shortcuts', '<Control>question'), self.actions.show_shortcuts_dialog)
@@ -80,14 +82,19 @@ class ShortcutControllerApp(ShortcutController):
         self.create_and_add_shortcut('<Shift>F3', self.actions.find_previous)
         self._register_configurable('help', shortcuts.get('help', 'F1'), self.shortcut_help)
         self._register_configurable('document_structure', shortcuts.get('document_structure', '<Control><Shift>b'), self.shortcut_document_structure_toggle)
-        self._register_configurable('symbols', shortcuts.get('symbols', '<Control><Shift>s'), self.shortcut_symbols_toggle)
+        self._register_configurable('symbols', shortcuts.get('symbols', 'F8'), self.shortcut_symbols_toggle)
         self._register_configurable('save_and_build', shortcuts.get('save_and_build', 'F5'), self.actions.save_and_build)
         self._register_configurable('build', shortcuts.get('build', 'F6'), self.actions.build)
         self._register_configurable('print', shortcuts.get('print', '<Control>p'), self.actions.print_document)
         self._register_configurable('forward_sync', shortcuts.get('forward_sync', 'F7'), self.actions.forward_sync)
-        self._register_configurable('build_log', shortcuts.get('build_log', '<Control><Shift>l'), self.shortcut_build_log)
+        self._register_configurable('build_log', shortcuts.get('build_log', 'F4'), self.shortcut_build_log)
         self._register_configurable('preview', shortcuts.get('preview', '<Control><Shift>p'), self.shortcut_preview)
         self._register_configurable('hamburger_menu', shortcuts.get('hamburger_menu', 'F10'), self.shortcut_show_hamburger)
+        self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.toggle_fullscreen)
+        self._register_configurable('show_preferences_dialog', shortcuts.get('show_preferences_dialog', '<Control>comma'), self.actions.show_preferences_dialog)
+        self._register_configurable('show_about_dialog', shortcuts.get('show_about_dialog', '<Control><Shift>h'), self.actions.show_about_dialog)
+        self._register_configurable('close_all_documents', shortcuts.get('close_all_documents', '<Control><Shift>w'), self.actions.close_all)
+        self._register_configurable('restore_session', shortcuts.get('restore_session', '<Control><Shift>j'), lambda: self.main_window.activate_action('restore-session'))
 
     def _register_configurable(self, action_name, trigger_string, callback):
         '''Register a user-configurable shortcut and track it by action_name

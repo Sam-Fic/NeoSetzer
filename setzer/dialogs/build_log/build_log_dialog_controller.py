@@ -94,6 +94,8 @@ class BuildLogDialogController(object):
         if line_number < 0:
             return
 
+        # 错误行若落在折叠区内会不可见，跳转前先展开包含它的所有折叠区域。
+        document.code_folding.unfold_region_containing_line(line_number)
         document.place_cursor(line_number)
         document.scroll_cursor_onscreen()
         document.source_view.grab_focus()
@@ -382,11 +384,9 @@ class BuildLogDialogController(object):
         if document.get_filename() is None:
             self._toast(_('Please save the document first'))
             return
-        try:
-            document.save_to_disk()
-        except Exception:
-            # 保存失败不阻塞执行：用户在终端可手动保存
-            pass
+        if not document.save_to_disk():
+            # 保存失败，中止 AI fix（toast 已由 save_to_disk 弹出）
+            return
 
         from setzer.ai_fix import agent_runner
         filename = document.get_filename()

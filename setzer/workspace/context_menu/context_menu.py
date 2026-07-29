@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gdk, Gtk
 
+from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
 
 
@@ -50,9 +51,9 @@ class ContextMenu(object):
         self.popover_pointer = Gtk.PopoverMenu()
         self.popover_pointer.set_size_request(288, -1)
         self.popover_pointer.set_has_arrow(False)
-        self.popover_pointer.set_can_focus(False)
         self.popover_pointer.set_menu_model(self.popover_more.view.model)
         self.popover_pointer.add_child(self._build_zoom_widget(), 'zoom-controls')
+        self.popover_pointer.connect('map', self.on_popover_map)
 
         self.workspace.connect('new_active_document', self.on_new_active_document)
 
@@ -78,7 +79,7 @@ class ContextMenu(object):
         button_zoom_out.set_action_name('win.zoom-out')
         inner_box.append(button_zoom_out)
 
-        self.reset_zoom_button_pointer = Gtk.Button.new_with_label('100%')
+        self.reset_zoom_button_pointer = Gtk.Button.new_with_label("{:.0%}".format(FontManager.zoom_level))
         self.reset_zoom_button_pointer.add_css_class('flat')
         self.reset_zoom_button_pointer.set_action_name('win.reset-zoom')
         inner_box.append(self.reset_zoom_button_pointer)
@@ -97,6 +98,9 @@ class ContextMenu(object):
         # （popovers/context_menu 的 on_new_active_document 回调），对共享 model
         # 生效，本 popover 自动反映。此处只更新 document 引用供 popup_at_cursor 判空。
         self.document = self.workspace.active_document
+
+    def on_popover_map(self, popover):
+        popover.grab_focus()
 
     def popup_at_cursor(self, x, y):
         if self.document == None: return

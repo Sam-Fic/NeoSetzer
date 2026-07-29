@@ -69,15 +69,8 @@ class WorkspaceController(object):
             # _load_content_if_pending / _load_file_content 处理。
             if getattr(document, '_content_pending', False):
                 continue
-            cursor_offset = getattr(document, '_restore_cursor_offset', None)
-            if cursor_offset is not None:
-                try:
-                    buf = document.source_buffer
-                    if cursor_offset <= buf.get_end_iter().get_offset():
-                        document.source_buffer.place_cursor(buf.get_iter_at_offset(cursor_offset))
-                except Exception:
-                    pass
-                document._restore_cursor_offset = None
+            # 内容就绪后恢复游标位置（及可选选区）。
+            document.apply_restored_cursor()
             scroll_offset = getattr(document, '_restore_scroll_offset', None)
             if scroll_offset is not None:
                 try:

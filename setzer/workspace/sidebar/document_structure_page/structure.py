@@ -28,6 +28,9 @@ class StructureSection(object):
         self.data_provider = data_provider
         self.data_provider.connect('data_updated', self.update_items)
         self.data_provider.connect('cursor_position_changed', self.on_cursor_position_changed)
+        self.data_provider.connect('document_changed', self.on_document_changed)
+        # 跟踪当前文档，用于在切换时保存旧文档的折叠状态
+        self._current_document = None
 
         self.levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6, 'file': 7}
 
@@ -89,6 +92,18 @@ class StructureSection(object):
     def register_row(self, row, node):
         self._row_map[id(node)] = row
 
+    def on_document_changed(self, data_provider, new_document):
+        """文档切换时，保存旧文档的折叠状态并加载新文档的。"""
+        # 保存旧文档的折叠状态
+        if self._current_document is not None:
+            self._current_document.collapsed_sections = set(self.collapsed)
+        # 加载新文档的折叠状态
+        if new_document is not None:
+            self.collapsed = set(new_document.collapsed_sections)
+        else:
+            self.collapsed = set()
+        self._current_document = new_document
+
     def toggle_node(self, offset):
         '''折叠/展开某个有子节点的节。offset 为节点稳定偏移（block[0]）。
 
@@ -100,6 +115,10 @@ class StructureSection(object):
             self.collapsed.discard(offset)
         else:
             self.collapsed.add(offset)
+
+        # 同步到文档对象的 collapsed_sections，以便持久化
+        if self.data_provider.document is not None:
+            self.data_provider.document.collapsed_sections = set(self.collapsed)
 
         # 行将被重建，旧 row 失效：清空高亮缓存，避免向已销毁行 remove/add css。
         self._current_highlight_row = None
@@ -182,6 +201,11 @@ class StructureSection(object):
 
     #@timer
     def update_items(self, *params):
+        # 确保 _current_document 与 data_provider.document 同步
+        # 这处理了在 data_updated 信号之前发生的文档切换
+        if self._current_document is not self.data_provider.document:
+            self.on_document_changed(self.data_provider, self.data_provider.document)
+
         sections = dict()
 
         # 用游标 include_idx 推进而非 del(includes[0])：后者每次删除需把
@@ -224,7 +248,7 @@ class StructureSection(object):
         for section in sections.values():
             section_type = section['block'][4]
             level = self.levels[section_type]
-            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list(), 'offset': section['offset_start']}
+            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list(), 'offset': section['offset_start'], 'block': section['block']}
             if predecessor[level] == None:
                 nodes.append(node)
             else:
@@ -246,3 +270,297 @@ class StructureSection(object):
         self.view.populate()
         if self.data_provider.document is not None:
             self.on_cursor_position_changed(self.data_provider, self.data_provider.document)
+
+    def _get_document_for_node(self, node):
+        document = node['item'][0]
+        if document is None:
+            filename = node['item'][3]
+            document = self.data_provider.workspace.open_document_by_filename(filename)
+        return document
+
+    def _copy_to_clipboard(self, text):
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.set(text)
+
+    def find_label_for_node(self, node):
+        block = node.get('block', None)
+        if block is None:
+            return None
+        document = self._get_document_for_node(node)
+        if document is None:
+            return None
+        # Labels are stored as [label_name, offset]
+        labels = document.parser.symbols.get('labels_with_offset', [])
+        start_offset = block[0]
+        end_offset = block[1] if block[1] is not None else document.source_buffer.get_end_iter().get_offset()
+        for label_name, label_offset in labels:
+            if start_offset <= label_offset < end_offset:
+                return label_name
+        return None
+
+    def copy_title(self, node):
+        block = node.get('block', None)
+        if block is None:
+            return
+        title = block[5] if len(block) > 5 else ''
+        self._copy_to_clipboard(title)
+
+    def copy_ref(self, node):
+        label_name = self.find_label_for_node(node)
+        if label_name is None:
+            return
+        self._copy_to_clipboard('\\ref{' + label_name + '}')
+
+    def copy_label(self, node):
+        label_name = self.find_label_for_node(node)
+        if label_name is None:
+            return
+        self._copy_to_clipboard('\\label{' + label_name + '}')
+
+    def rename_section(self, node):
+        block = node.get('block', None)
+        if block is None:
+            return
+        document = self._get_document_for_node(node)
+        if document is None:
+            return
+        old_title = block[5]
+        label_name = self.find_label_for_node(node)
+
+        dialog = Gtk.Dialog(title=_('Rename Section'), parent=self.view.get_root())
+        dialog.set_modal(True)
+        dialog.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
+        dialog.add_button(_('Rename'), Gtk.ResponseType.OK)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+
+        content_area = dialog.get_content_area()
+
+        title_label = Gtk.Label(label=_('Title:'))
+        title_label.set_halign(Gtk.Align.START)
+        content_area.append(title_label)
+
+        title_entry = Gtk.Entry()
+        title_entry.set_text(old_title)
+        title_entry.set_activates_default(True)
+        content_area.append(title_entry)
+
+        label_entry = None
+        if label_name is not None:
+            label_label = Gtk.Label(label=_('Label:'))
+            label_label.set_halign(Gtk.Align.START)
+            content_area.append(label_label)
+
+            label_entry = Gtk.Entry()
+            label_entry.set_text(label_name)
+            content_area.append(label_entry)
+
+        dialog.title_entry = title_entry
+        dialog.label_entry = label_entry
+        dialog.block = block
+        dialog.document = document
+        dialog.old_title = old_title
+        dialog.old_label = label_name
+
+        dialog.connect('response', self._on_rename_response)
+        dialog.present()
+
+    def _on_rename_response(self, dialog, response):
+        title_entry = dialog.title_entry
+        label_entry = dialog.label_entry
+        block = dialog.block
+        document = dialog.document
+        old_title = dialog.old_title
+        old_label = dialog.old_label
+
+        new_title = title_entry.get_text().strip()
+        new_label = label_entry.get_text().strip() if label_entry is not None else None
+
+        dialog.destroy()
+
+        if response != Gtk.ResponseType.OK:
+            return
+
+        # Rename label FIRST (offsets are still valid before title edit)
+        if new_label is not None and old_label is not None and new_label != old_label:
+            self._rename_label_in_document(document, old_label, new_label)
+            self._update_label_references(old_label, new_label)
+
+        # Then update section title
+        if new_title != old_title:
+            self._update_section_title(document, block, new_title)
+
+    def _update_section_title(self, document, block, new_title):
+        start_offset = block[0]
+        start_iter = document.source_buffer.get_iter_at_offset(start_offset)
+        brace_iter = start_iter.copy()
+        result = brace_iter.forward_search('{', Gtk.TextSearchFlags.VISIBLE_ONLY, None)
+        if result is not None:
+            open_brace = result[0]
+            close_brace = open_brace.copy()
+            depth = 1
+            close_brace.forward_char()
+            while depth > 0 and not close_brace.is_end():
+                ch = close_brace.get_char()
+                if ch == '{':
+                    depth += 1
+                elif ch == '}':
+                    depth -= 1
+                close_brace.forward_char()
+            if depth == 0:
+                close_brace.backward_char()
+                document.source_buffer.begin_user_action()
+                document.source_buffer.delete(open_brace, close_brace)
+                document.source_buffer.insert(open_brace, new_title)
+                document.source_buffer.end_user_action()
+
+    def _rename_label_in_document(self, document, old_label, new_label):
+        labels_with_offset = document.parser.symbols.get('labels_with_offset', [])
+        for label_name, label_offset in labels_with_offset:
+            if label_name == old_label:
+                label_start = document.source_buffer.get_iter_at_offset(label_offset)
+                open_brace = label_start.copy()
+                result = open_brace.forward_search('{', Gtk.TextSearchFlags.VISIBLE_ONLY, None)
+                if result is None:
+                    continue
+                open_brace = result[0]
+                close_brace = open_brace.copy()
+                depth = 1
+                close_brace.forward_char()
+                while depth > 0 and not close_brace.is_end():
+                    ch = close_brace.get_char()
+                    if ch == '{':
+                        depth += 1
+                    elif ch == '}':
+                        depth -= 1
+                    close_brace.forward_char()
+                if depth != 0:
+                    continue
+                close_brace.backward_char()
+                after_close = close_brace.copy()
+                after_close.forward_char()
+                document.source_buffer.begin_user_action()
+                document.source_buffer.delete(label_start, after_close)
+                document.source_buffer.insert(label_start, '\\label{' + new_label + '}')
+                document.source_buffer.end_user_action()
+
+    def _update_label_references(self, old_label, new_label):
+        import re
+        pattern = re.compile(r'(\\(?:ref|eqref|pageref|autoref)\{)' + re.escape(old_label) + r'(\})')
+        all_docs = self.data_provider.workspace.open_documents
+        for doc in all_docs:
+            buffer = doc.source_buffer
+            text = doc.get_all_text()
+            if old_label not in text:
+                continue
+            buffer.begin_user_action()
+            search_iter = buffer.get_start_iter()
+            while True:
+                result = search_iter.forward_search('{' + old_label + '}', Gtk.TextSearchFlags.VISIBLE_ONLY, None)
+                if result is None:
+                    break
+                match_start, match_end = result
+                before_start = match_start.copy()
+                before_start.backward_chars(5)
+                before_text = buffer.get_text(before_start, match_start, False)
+                if before_text.endswith('\\ref{') or before_text.endswith('\\eqref{') or before_text.endswith('\\pageref{') or before_text.endswith('\\autoref{'):
+                    full_start = before_start
+                    match_end_copy = match_end.copy()
+                    full_text = buffer.get_text(full_start, match_end_copy, False)
+                    new_full_text = pattern.sub(r'\1' + new_label + r'\2', full_text)
+                    buffer.delete(full_start, match_end_copy)
+                    buffer.insert(full_start, new_full_text)
+                    search_iter = full_start.copy()
+                    search_iter.forward_chars(len(new_full_text))
+                else:
+                    search_iter = match_end
+            buffer.end_user_action()
+
+    def delete_section(self, node):
+        block = node.get('block', None)
+        if block is None:
+            return
+        document = self._get_document_for_node(node)
+        if document is None:
+            return
+
+        start_offset = block[0]
+        end_offset = block[1] if block[1] is not None else document.source_buffer.get_end_iter().get_offset()
+
+        dialog = Gtk.MessageDialog(
+            parent=self.view.get_root(),
+            message_type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text=_('Delete Section?'),
+        )
+        dialog.set_modal(True)
+        dialog.format_secondary_text(_('Remove the entire section including its content. This action cannot be undone.'))
+
+        dialog.connect('response', lambda d, response: self._on_delete_response(d, response, document, start_offset, end_offset))
+        dialog.present()
+
+    def _on_delete_response(self, dialog, response, document, start_offset, end_offset):
+        dialog.destroy()
+        if response != Gtk.ResponseType.OK:
+            return
+
+        document.source_buffer.begin_user_action()
+        start_iter = document.source_buffer.get_iter_at_offset(start_offset)
+        end_iter = document.source_buffer.get_iter_at_offset(end_offset + 1)
+        document.source_buffer.delete(start_iter, end_iter)
+        document.source_buffer.end_user_action()
+
+    def promote_section(self, node):
+        block = node.get('block', None)
+        if block is None or block[4] not in self.levels:
+            return
+        document = self._get_document_for_node(node)
+        if document is None:
+            return
+
+        current_level = self.levels[block[4]]
+        if current_level <= 0:
+            return
+
+        types_by_level = {v: k for k, v in self.levels.items()}
+        new_type = types_by_level[current_level - 1]
+        self._change_section_command(document, block, new_type)
+
+    def demote_section(self, node):
+        block = node.get('block', None)
+        if block is None or block[4] not in self.levels:
+            return
+        document = self._get_document_for_node(node)
+        if document is None:
+            return
+
+        current_level = self.levels[block[4]]
+        if current_level >= len(self.levels) - 1:
+            return
+
+        types_by_level = {v: k for k, v in self.levels.items()}
+        new_type = types_by_level[current_level + 1]
+        self._change_section_command(document, block, new_type)
+
+    def _change_section_command(self, document, block, new_type):
+        old_type = block[4]
+        start_offset = block[0]
+
+        start_iter = document.source_buffer.get_iter_at_offset(start_offset)
+        end_iter = start_iter.copy()
+        # Find the opening brace
+        brace_iter = start_iter.copy()
+        result = brace_iter.forward_search('{', Gtk.TextSearchFlags.VISIBLE_ONLY, None)
+        if result is None:
+            return
+        end_iter = result[0]
+
+        old_command_text = document.source_buffer.get_text(start_iter, end_iter, True)
+        new_command_text = old_command_text.replace('\\' + old_type, '\\' + new_type)
+        if new_command_text == old_command_text:
+            # Try with different backslash handling
+            new_command_text = '\\' + new_type
+
+        document.source_buffer.begin_user_action()
+        document.source_buffer.delete(start_iter, end_iter)
+        document.source_buffer.insert(start_iter, new_command_text)
+        document.source_buffer.end_user_action()

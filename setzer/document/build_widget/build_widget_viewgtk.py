@@ -19,6 +19,8 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, GLib
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
+
 
 class BuildWidgetView(Gtk.Box):
 
@@ -46,7 +48,7 @@ class BuildWidgetView(Gtk.Box):
         self.active_box.append(self.active_icon)
         self.active_box.append(self.timer_label)
 
-        self.build_button.set_tooltip_text(_('Save and build .pdf-file from document') + ' (F5)')
+        shortcut_tooltips.set_tooltip(self.build_button, _('Save and build .pdf-file from document'), 'save_and_build')
         self.build_button.add_css_class('suggested-action')
 
         self.clean_button = Gtk.Button()
@@ -64,14 +66,15 @@ class BuildWidgetView(Gtk.Box):
 
     def switch_to_building(self):
         self.build_button.set_child(self.active_box)
-        self.build_button.set_tooltip_text(_('Stop building'))
+        # 不带动作名注册：覆盖 idle 状态的条目，构建期间改键也不会误刷回旧文案
+        shortcut_tooltips.set_tooltip(self.build_button, _('Stop building'))
         self.build_button.set_action_name(None)
         self.build_button.remove_css_class('suggested-action')
         self.build_button.add_css_class('destructive-action')
 
     def switch_to_idle(self):
         self.build_button.set_child(self.idle_icon)
-        self.build_button.set_tooltip_text(_('Save and build .pdf-file from document') + ' (F5)')
+        shortcut_tooltips.set_tooltip(self.build_button, _('Save and build .pdf-file from document'), 'save_and_build')
         self.build_button.set_action_name('win.save-and-build')
         self.build_button.remove_css_class('destructive-action')
         self.build_button.add_css_class('suggested-action')

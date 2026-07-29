@@ -313,7 +313,7 @@ msgstr "已複製到剪貼簿"
 
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
-msgid "Document »{document}« has no filename."
+msgid "Document \"{document}\" has no filename."
 msgstr "文件 »{document}« 沒有檔案名稱。"
 
 #: setzer/dialogs/build_save/build_save.py:36
@@ -331,7 +331,7 @@ msgstr "立即儲存文件(_S)"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
-msgid "Document »{document}« has unsaved changes."
+msgid "Document \"{document}\" has unsaved changes."
 msgstr "文件 »{document}« 有未儲存的變更。"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
@@ -339,8 +339,9 @@ msgid "If you close without saving, these changes will be lost."
 msgstr "如果直接關閉而不儲存，這些變更將會遺失。"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
+#, fuzzy
 msgid "Close without Saving"
-msgstr "不儲存並關閉(_W)"
+msgstr "不儲存即建置 PDF"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:71
 #, python-brace-format
@@ -368,7 +369,7 @@ msgstr "全部儲存"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
-msgid "Document »{document}« has changed on disk."
+msgid "Document \"{document}\" has changed on disk."
 msgstr "文件 »{document}« 在磁碟上已變更。"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
@@ -385,7 +386,7 @@ msgstr "從磁碟重新載入(_R)"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
-msgid "Document »{document}« was deleted from disk or moved."
+msgid "Document \"{document}\" was deleted from disk or moved."
 msgstr "文件 »{document}« 已從磁碟刪除或移動。"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
@@ -632,7 +633,9 @@ msgstr ""
 msgid ""
 "<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many "
 "customizations and sensible defaults."
-msgstr "<b>Scrartcl：</b> article 類別的 KOMA-Script 替代。提供更多自訂選項與合理的預設值。"
+msgstr ""
+"<b>Scrartcl：</b> article 類別的 KOMA-Script 替代。提供更多自訂選項與合理的預"
+"設值。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:102
 msgid "<b>Scrreprt:</b>  KOMA-Script replacement for the report class."
@@ -963,13 +966,14 @@ msgid ""
 msgstr "<b>絕對路徑：</b>指定引入檔案在檔案系統中的絕對位置。"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:35
+#, fuzzy
 msgid "LateX Interpreter is missing."
 msgstr "缺少 LaTeX 解譯器。"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use »{interpreter}« which seems to be missing on "
+"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -1361,118 +1365,6 @@ msgstr "所有外觀設定都將恢復為預設值。"
 msgid "Reset"
 msgstr "重設"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:191
-msgid "General"
-msgstr "一般"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py
-msgid "All build system and AI Fix settings will be restored to their default values. Custom tools and trusted directories will be removed."
-msgstr "建置系統與 AI Fix 的所有設定都將還原為預設值。自訂工具與受信任目錄將被移除。"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:572
-msgid "AI Fix"
-msgstr "AI 修復"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:576
-msgid "Enable AI Fix"
-msgstr "啟用 AI 修復"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:577
-msgid "Show \"AI Fix\" buttons in the Build Log dialog"
-msgstr "在建置記錄對話方塊中顯示「AI 修復」按鈕"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:581
-msgid "Active agent tool"
-msgstr "目前 Agent 工具"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:582
-msgid "Which CLI to invoke when clicking AI Fix"
-msgstr "點按 AI 修復按鈕時呼叫的 CLI"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:586
-msgid "Terminal command (optional)"
-msgstr "終端機指令（選用）"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:588
-msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
-msgstr "留空自動偵測（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自動加入 flatpak-spawn --host。"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:593
-msgid "Agent tools"
-msgstr "Agent 工具"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:594
-msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
-msgstr "內建預設無法刪除。加入自訂工具以整合其他 Agent CLI。"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:600
-msgid "+ Add custom tool"
-msgstr "+ 加入自訂工具"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:605
-msgid "Trusted directories"
-msgstr "受信任目錄"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:606
-msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
-msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的信任。"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:323
-msgid "(active)"
-msgstr "（目前）"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:327
-msgid "built-in"
-msgstr "內建"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:329
-msgid "custom"
-msgstr "自訂"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:332
-msgid "installed"
-msgstr "已安裝"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:334
-msgid "not installed"
-msgstr "未安裝"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:343
-msgid "Remove this custom tool"
-msgstr "移除此自訂工具"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:361
-msgid "No trusted directories yet"
-msgstr "尚無受信任目錄"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:362
-msgid "Check \"Don't ask again\" in the preview dialog to add one."
-msgstr "在預覽對話方塊中勾選「不再詢問」以加入。"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:375
-msgid "Remove from trusted list"
-msgstr "從信任清單中移除"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:629
-msgid "Add custom tool"
-msgstr "加入自訂工具"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:659
-msgid "Tool name (unique)"
-msgstr "工具名稱（唯一）"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:663
-msgid "Executable (e.g. aider)"
-msgstr "可執行檔（如 aider）"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:667
-msgid "Headed command template"
-msgstr "有頭指令範本"
-
-#: setzer/dialogs/preferences/pages/page_build_system.py:668
-msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
-msgstr "以空格分隔的引數。使用 {prompt} / {file} / {cwd} 作為佔位符。例如：aider --message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示資訊將複製到剪貼簿。"
-
 #: setzer/dialogs/preferences/pages/page_appearance.py:229
 #: setzer/dialogs/preferences/pages/page_editor.py:264
 msgid "Appearance"
@@ -1521,6 +1413,18 @@ msgstr "預覽側邊欄寬度"
 #: setzer/dialogs/preferences/pages/page_appearance.py:299
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "分配給 PDF 預覽的視窗寬度百分比。"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:393
+msgid "Sidebar"
+msgstr "側邊欄"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:401
+msgid "Sidebar Width"
+msgstr "側邊欄寬度"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:402
+msgid "Percentage of the window width allocated to the sidebar."
+msgstr "分配給側邊欄的視窗寬度百分比"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:307
 msgid "Match PDF colors to theme"
@@ -1623,6 +1527,7 @@ msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
 msgstr "建置 .pdf 後自動移除輔助檔案（.log、.dvi 等）。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:291
+#, fuzzy
 msgid "Use Latexmk"
 msgstr "使用 Latexmk"
 
@@ -2302,7 +2207,7 @@ msgstr "第 {page} 頁，共 {total} 頁"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
-msgid "Replace all matches of »{original}« with »{replacement}«?"
+msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
 msgstr "要將所有 »{original}« 取代為 »{replacement}« 嗎？"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
@@ -2311,9 +2216,9 @@ msgstr "正在計算符合項… 出現次數仍在計算中。"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
 #, python-brace-format
-msgid "Replacing {amount} occurence of »{original}« with »{replacement}«."
+msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
-"Replacing {amount} occurrences of »{original}« with »{replacement}«."
+"Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
 msgstr[0] "正在將 {amount} 處 »{original}« 取代為 »{replacement}«。"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:51
@@ -3197,8 +3102,8 @@ msgid_plural "{n} results"
 msgstr[0] "{n} 個結果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Help home"
-msgstr "說明首頁"
+msgid "Home"
+msgstr ""
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3229,10 +3134,6 @@ msgstr "搜尋說明"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:146
 msgid "No results found"
 msgstr "沒有結果"
-
-#: setzer/workspace/help_panel/help_panel_presenter.py:74
-msgid "No results for '{query}'"
-msgstr "沒有「{query}」的結果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:155
 msgid "Search Help"
@@ -3671,6 +3572,117 @@ msgstr "無法開啟：{filename}"
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr "無法儲存工作區狀態：{error}"
+
+#~ msgid "Discard"
+#~ msgstr "丟棄"
+
+#~ msgid "General"
+#~ msgstr "一般"
+
+#~ msgid ""
+#~ "All build system and AI Fix settings will be restored to their default "
+#~ "values. Custom tools and trusted directories will be removed."
+#~ msgstr ""
+#~ "建置系統與 AI Fix 的所有設定都將還原為預設值。自訂工具與受信任目錄將被移"
+#~ "除。"
+
+#~ msgid "AI Fix"
+#~ msgstr "AI 修復"
+
+#~ msgid "Enable AI Fix"
+#~ msgstr "啟用 AI 修復"
+
+#~ msgid "Show \"AI Fix\" buttons in the Build Log dialog"
+#~ msgstr "在建置記錄對話方塊中顯示「AI 修復」按鈕"
+
+#~ msgid "Active agent tool"
+#~ msgstr "目前 Agent 工具"
+
+#~ msgid "Which CLI to invoke when clicking AI Fix"
+#~ msgstr "點按 AI 修復按鈕時呼叫的 CLI"
+
+#~ msgid "Terminal command (optional)"
+#~ msgstr "終端機指令（選用）"
+
+#~ msgid ""
+#~ "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). "
+#~ "Under Flatpak, flatpak-spawn --host is added automatically."
+#~ msgstr ""
+#~ "留空自動偵測（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自"
+#~ "動加入 flatpak-spawn --host。"
+
+#~ msgid "Agent tools"
+#~ msgstr "Agent 工具"
+
+#~ msgid ""
+#~ "Built-in presets cannot be removed. Add a custom tool to integrate other "
+#~ "Agent CLIs."
+#~ msgstr "內建預設無法刪除。加入自訂工具以整合其他 Agent CLI。"
+
+#~ msgid "+ Add custom tool"
+#~ msgstr "+ 加入自訂工具"
+
+#~ msgid "Trusted directories"
+#~ msgstr "受信任目錄"
+
+#~ msgid ""
+#~ "Directories where the preview dialog is skipped. Click delete to revoke "
+#~ "trust for a project."
+#~ msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的信任。"
+
+#~ msgid "(active)"
+#~ msgstr "（目前）"
+
+#~ msgid "built-in"
+#~ msgstr "內建"
+
+#~ msgid "custom"
+#~ msgstr "自訂"
+
+#~ msgid "installed"
+#~ msgstr "已安裝"
+
+#~ msgid "not installed"
+#~ msgstr "未安裝"
+
+#~ msgid "Remove this custom tool"
+#~ msgstr "移除此自訂工具"
+
+#~ msgid "No trusted directories yet"
+#~ msgstr "尚無受信任目錄"
+
+#~ msgid "Check \"Don't ask again\" in the preview dialog to add one."
+#~ msgstr "在預覽對話方塊中勾選「不再詢問」以加入。"
+
+#~ msgid "Remove from trusted list"
+#~ msgstr "從信任清單中移除"
+
+#~ msgid "Add custom tool"
+#~ msgstr "加入自訂工具"
+
+#~ msgid "Tool name (unique)"
+#~ msgstr "工具名稱（唯一）"
+
+#~ msgid "Executable (e.g. aider)"
+#~ msgstr "可執行檔（如 aider）"
+
+#~ msgid "Headed command template"
+#~ msgstr "有頭指令範本"
+
+#~ msgid ""
+#~ "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
+#~ "Example: aider --message {prompt} --no-auto-commits. If left blank or "
+#~ "without {prompt}, the prompt is copied to clipboard."
+#~ msgstr ""
+#~ "以空格分隔的引數。使用 {prompt} / {file} / {cwd} 作為佔位符。例如：aider "
+#~ "--message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示資訊"
+#~ "將複製到剪貼簿。"
+
+#~ msgid "Help home"
+#~ msgstr "說明首頁"
+
+#~ msgid "No results for '{query}'"
+#~ msgstr "沒有「{query}」的結果"
 
 #~ msgid "Copy All"
 #~ msgstr "複製全部"

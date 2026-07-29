@@ -126,6 +126,13 @@ class CodeFolding(Observable):
             return self.folding_regions_by_line[line]
         return None
 
+    def unfold_region_containing_line(self, line):
+        '''展开包含指定行的所有已折叠区域（含嵌套祖先），使该行可见。
+        用于错误跳转等场景：目标行若落在折叠区内会被隐藏，跳转前先展开。'''
+        for region in self.folding_regions.values():
+            if region['is_folded'] and region['starting_line'] < line <= region['ending_line']:
+                self.unfold(region)
+
     def fold(self, region):
         region['is_folded'] = True
         self.hide_region(region)

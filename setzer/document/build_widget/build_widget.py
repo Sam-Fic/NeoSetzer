@@ -21,6 +21,7 @@ from gi.repository import Adw, GLib
 
 import setzer.document.build_widget.build_widget_viewgtk as build_widget_view
 from setzer.helpers.observable import Observable
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.color_manager import ColorManager
@@ -219,9 +220,10 @@ class BuildWidget(Observable):
         if self.build_button_state[0] == 'building':
             return
         engine = self._active_interpreter_display()
-        text = _('Save and build .pdf-file from document') + ' (F5)'
+        text = _('Save and build .pdf-file from document')
         if engine:
             text = text + '  ·  ' + engine
-        self.view.build_button.set_tooltip_text(text)
+        # 经注册处设置：快捷键后缀随设置实时渲染，用户改键后自动刷新
+        shortcut_tooltips.set_tooltip(self.view.build_button, text, 'save_and_build')
 
 

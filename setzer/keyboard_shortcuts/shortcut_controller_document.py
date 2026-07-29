@@ -57,5 +57,8 @@ class ShortcutControllerDocument(ShortcutController):
         self.create_and_add_shortcut(shortcuts.get('move_line_up', '<Alt>Up'), self.actions.move_line_up)
         self.create_and_add_shortcut(shortcuts.get('move_line_down', '<Alt>Down'), self.actions.move_line_down)
         self.create_and_add_shortcut(shortcuts.get('context_menu', '<Shift>F10'), self.actions.show_context_menu)
+        self.create_and_add_shortcut(shortcuts.get('toggle_bookmark', '<Control>F2'), self.actions.toggle_bookmark)
+        self.create_and_add_shortcut(shortcuts.get('next_bookmark', 'F2'), self.actions.next_bookmark)
+        self.create_and_add_shortcut(shortcuts.get('previous_bookmark', '<Control><Shift>F2'), self.actions.previous_bookmark)
 
 

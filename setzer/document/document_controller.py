@@ -300,7 +300,11 @@ class DocumentController(object):
 
     def _persist_zoom(self):
         self._zoom_persist_timeout_id = None
-        ServiceLocator.get_settings().set_value('preferences', 'font_string', FontManager.font_string)
+        settings = ServiceLocator.get_settings()
+        settings.set_value('preferences', 'font_string', FontManager.font_string)
+        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
+        FontManager.saved_zoom_level = FontManager.zoom_level
         return False
 
     def on_decelerate(self, controller, vel_x, vel_y):

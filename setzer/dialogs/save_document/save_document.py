@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
 import gi
@@ -69,32 +69,25 @@ class SaveDocumentDialog(object):
         else:
             if file != None:
                 filename = file.get_path()
-                try:
-                    self.document.set_filename(filename)
-                    self.document.save_to_disk()
+                self.document.set_filename(filename)
+                if self.document.save_to_disk(show_toast=False):
                     self.workspace.update_recently_opened_document(filename)
-                except OSError as e:
-                    # 保存失败（权限不足/磁盘满/路径不存在）：用 toast 通知用户。
-                    # 不阻断 callback——调用方（如关闭确认流程）依赖 callback
-                    # 推进状态，否则会卡死。文档仍为 modified 状态，用户可 Ctrl+S 重试。
-                    self._show_save_error(e)
+                else:
+                    # save_to_disk 返回 False，用带重试按钮的 toast 提示
+                    self._show_retry_toast()
 
         if self.callback != None:
             self.callback(self.arguments)
 
-    def _show_save_error(self, error):
-        '''保存失败时弹出带「重试」按钮的 toast，用户可一键重试或按 Ctrl+S。'''
+    def _show_retry_toast(self):
         main_window = ServiceLocator.get_main_window()
-        toast = Adw.Toast.new(_('Could not save document: {error}').format(error=str(error)))
-        toast.set_timeout(0)
-        toast.set_button_label(_('Retry'))
-        toast.connect('button-clicked', self._on_retry_clicked)
-        main_window.toast_overlay.add_toast(toast)
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('Could not save document. Click to retry.'))
+            toast.set_timeout(0)
+            toast.set_button_label(_('Retry'))
+            toast.connect('button-clicked', self._on_retry_clicked)
+            main_window.toast_overlay.add_toast(toast)
 
     def _on_retry_clicked(self, toast):
-        try:
-            self.document.save_to_disk()
-        except OSError as e:
-            self._show_save_error(e)
-
-
+        if not self.document.save_to_disk(show_toast=False):
+            self._show_retry_toast()

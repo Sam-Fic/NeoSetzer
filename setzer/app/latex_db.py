@@ -203,12 +203,19 @@ class LaTeXDB():
 
     def get_commands():
         commands = dict()
+        if LaTeXDB.resources_path is None:
+            return commands
         for filename in ['additional.xml', 'latex-document.xml', 'dynamic.xml', 'tex.xml', 'textcomp.xml', 'graphicx.xml', 'latex-dev.xml', 'amsmath.xml', 'amsopn.xml', 'amsbsy.xml', 'amsfonts.xml', 'amssymb.xml', 'amsthm.xml', 'color.xml', 'url.xml', 'geometry.xml', 'glossaries.xml', 'beamer.xml', 'hyperref.xml']:
-            tree = ET.parse(os.path.join(LaTeXDB.resources_path, 'latexdb', 'commands', filename))
-            root = tree.getroot()
-            for child in root:
-                attrib = child.attrib
-                commands[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description']), 'lowpriority': True if attrib['lowpriority'] == "True" else False, 'dotlabels': attrib['dotlabels']}
+            file_path = os.path.join(LaTeXDB.resources_path, 'latexdb', 'commands', filename)
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+                for child in root:
+                    attrib = child.attrib
+                    commands[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description']), 'lowpriority': True if attrib['lowpriority'] == "True" else False, 'dotlabels': attrib['dotlabels']}
+            except (FileNotFoundError, ET.ParseError, KeyError) as e:
+                import sys
+                print(f'Warning: Could not load commands XML {file_path}: {e}', file=sys.stderr)
         return commands
 
     def get_dynamic_proposals(word):
@@ -293,7 +300,7 @@ class LaTeXDB():
                 LaTeXDB.files[filename]['last_parse'] = st.st_mtime
 
     def parse_latex_file(pathname):
-        with open(pathname, 'r') as f:
+        with open(pathname, 'r', encoding='utf-8', errors='replace') as f:
             text = f.read()
         labels = set()
         bibitems = set()
@@ -308,7 +315,7 @@ class LaTeXDB():
         LaTeXDB.files[pathname]['labels'] = labels
 
     def parse_bibtex_file(pathname):
-        with open(pathname, 'r') as f:
+        with open(pathname, 'r', encoding='utf-8', errors='replace') as f:
             db = bibtexparser.load(f)
         bibitems = set()
         for match in db.entries:
@@ -321,13 +328,20 @@ class LaTeXDB():
             LaTeXDB.languages_dict = dict()
 
             resources_path = ServiceLocator.get_resources_path()
-            tree = ET.parse(os.path.join(resources_path, 'latexdb', 'languages', 'languages.xml'))
-            root = tree.getroot()
-            for child in root:
-                attrib = child.attrib
-                # 语言名使用各语言原生自名（endonym），不再经 gettext 翻译到
-                # 某一种界面语言。name 仅用于显示，babel 实际参数由 code 决定。
-                LaTeXDB.languages_dict[attrib['code']] = attrib['name']
+            if resources_path is None:
+                return LaTeXDB.languages_dict
+            file_path = os.path.join(resources_path, 'latexdb', 'languages', 'languages.xml')
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+                for child in root:
+                    attrib = child.attrib
+                    # 语言名使用各语言原生自名（endonym），不再经 gettext 翻译到
+                    # 某一种界面语言。name 仅用于显示，babel 实际参数由 code 决定。
+                    LaTeXDB.languages_dict[attrib['code']] = attrib['name']
+            except (FileNotFoundError, ET.ParseError, KeyError) as e:
+                import sys
+                print(f'Warning: Could not load languages XML {file_path}: {e}', file=sys.stderr)
 
         return LaTeXDB.languages_dict
 
@@ -336,9 +350,16 @@ class LaTeXDB():
             LaTeXDB.packages_dict = dict()
 
             resources_path = ServiceLocator.get_resources_path()
-            tree = ET.parse(os.path.join(resources_path, 'latexdb', 'packages', 'general.xml'))
-            root = tree.getroot()
-            for child in root:
-                attrib = child.attrib
-                LaTeXDB.packages_dict[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description'])}
+            if resources_path is None:
+                return LaTeXDB.packages_dict
+            file_path = os.path.join(resources_path, 'latexdb', 'packages', 'general.xml')
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+                for child in root:
+                    attrib = child.attrib
+                    LaTeXDB.packages_dict[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description'])}
+            except (FileNotFoundError, ET.ParseError, KeyError) as e:
+                import sys
+                print(f'Warning: Could not load packages XML {file_path}: {e}', file=sys.stderr)
         return LaTeXDB.packages_dict

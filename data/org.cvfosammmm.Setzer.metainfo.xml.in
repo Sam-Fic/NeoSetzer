@@ -252,7 +252,7 @@
         </release>
         <release version="0.2.9" date="2020-8-12">
             <description translate="no">
-                <p>Use Latexmk with any LaTeX interpreter, invert colors in .pdf preview, ...</p>
+                <p>Use latexmk with any LaTeX interpreter, invert colors in .pdf preview, ...</p>
             </description>
         </release>
         <release version="0.2.8" date="2020-5-27">

@@ -60,10 +60,16 @@ class Actions(object):
         self.add_action('close-active-document', self.close_active_document)
         self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
         self.add_action('go-to-line', self.go_to_line)
+        self.add_action('toggle-bookmark', self.toggle_bookmark)
+        self.add_action('next-bookmark', self.next_bookmark)
+        self.add_action('previous-bookmark', self.previous_bookmark)
+        self.add_action('clear-bookmarks', self.clear_bookmarks)
         self.add_action('duplicate-line', self.duplicate_line)
         self.add_action('delete-line', self.delete_line)
         self.add_action('move-line-up', self.move_line_up)
         self.add_action('move-line-down', self.move_line_down)
+        self.add_action('indent', self.indent)
+        self.add_action('outdent', self.outdent)
 
         self.add_action('show-document-wizard', self.start_wizard, None)
         self.add_action('insert-before-after', self.insert_before_after, GLib.VariantType('as'))
@@ -116,6 +122,7 @@ class Actions(object):
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
+        self.add_action('toggle-fullscreen', self.toggle_fullscreen)
 
         # 每文档 LaTeX 解释器覆盖（优先于全局 preferences['latex_interpreter']）。
         # 用 stateful action（字符串状态）使菜单项自动以勾选态反映当前选中值。
@@ -242,9 +249,15 @@ class Actions(object):
         # 基本编辑功能。LaTeX 专属动作（insert-*、add-packages、wizard 等）
         # 仍保持 document_active_is_latex 限制。
         self.actions['go-to-line'].set_enabled(document_active)
+        self.actions['toggle-bookmark'].set_enabled(document_active)
+        self.actions['next-bookmark'].set_enabled(document_active)
+        self.actions['previous-bookmark'].set_enabled(document_active)
+        self.actions['clear-bookmarks'].set_enabled(document_active)
         self.actions['duplicate-line'].set_enabled(document_active)
         self.actions['move-line-up'].set_enabled(document_active)
         self.actions['move-line-down'].set_enabled(document_active)
+        self.actions['indent'].set_enabled(document_active)
+        self.actions['outdent'].set_enabled(document_active)
         self.actions['forward-sync'].set_enabled(can_sync)
         self.actions['build'].set_enabled(can_build)
         self.actions['save-and-build'].set_enabled(can_build)
@@ -418,15 +431,16 @@ class Actions(object):
             if document.get_filename() == None:
                 DialogLocator.get_dialog('save_document').run(document, self.close_all)
             else:
-                document.save_to_disk()
-                self.close_all()
+                if document.save_to_disk():
+                    self.close_all()
+                # 保存失败：不继续关闭，toast 已弹出
         elif response == 3:  # save_all (批量)
             # 保存所有有 filename 的；无 filename 的逐个弹 save_document。
             # save_all_processed 记录本次 save_all 流程已提示过的 untitled 文档，
             # 避免用户取消保存时同一文档被重复提示（无限循环）。
             for d in list(unsaved_documents):
                 if d.get_filename() is not None:
-                    d.save_to_disk()
+                    d.save_to_disk()  # 单个失败不中断批量保存，toast 各自弹出
             parameters['save_all_processed'] = set()
             untitled = [d for d in unsaved_documents if d.get_filename() is None]
             if untitled:
@@ -551,6 +565,49 @@ class Actions(object):
         document.scroll_cursor_onscreen()
         document.view.source_view.grab_focus()
 
+    def toggle_bookmark(self, action=None, parameter=None):
+        """Toggle a bookmark on the current line."""
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        cursor_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        current_line = cursor_iter.get_line()
+        document.bookmarks.toggle_bookmark(current_line)
+
+    def next_bookmark(self, action=None, parameter=None):
+        """Navigate to the next bookmark."""
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        cursor_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        current_line = cursor_iter.get_line()
+        next_line = document.bookmarks.get_next_bookmark_line(current_line)
+        if next_line is not None:
+            buffer.place_cursor(buffer.get_iter_at_line(next_line)[1])
+            document.scroll_cursor_onscreen()
+
+    def previous_bookmark(self, action=None, parameter=None):
+        """Navigate to the previous bookmark."""
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        cursor_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        current_line = cursor_iter.get_line()
+        prev_line = document.bookmarks.get_previous_bookmark_line(current_line)
+        if prev_line is not None:
+            buffer.place_cursor(buffer.get_iter_at_line(prev_line)[1])
+            document.scroll_cursor_onscreen()
+
+    def clear_bookmarks(self, action=None, parameter=None):
+        """Clear all bookmarks in the active document."""
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        document.bookmarks.clear_bookmarks()
+
     def duplicate_line(self, action=None, parameter=None):
         document = self.workspace.get_active_document()
         if document == None: return
@@ -659,6 +716,36 @@ class Actions(object):
         buffer.end_user_action()
         document.scroll_cursor_onscreen()
 
+    def indent(self, action=None, parameter=None):
+        self._indent_selection(outdent=False)
+
+    def outdent(self, action=None, parameter=None):
+        self._indent_selection(outdent=True)
+
+    def _indent_selection(self, outdent=False):
+        '''缩进 / 取消缩进当前行或选区（右键菜单项入口）。
+
+        无选区时先选中光标所在整行，再交给 DocumentController.indent_selection
+        处理——与 Tab / Shift+Tab 的「有选区才缩进」行为互补：菜单项始终可作用于
+        当前行，不必先手动框选。'''
+        document = self.workspace.get_active_document()
+        if document == None: return
+
+        buffer = document.source_buffer
+        if not buffer.get_has_selection():
+            insert = buffer.get_iter_at_mark(buffer.get_insert())
+            line_number = insert.get_line()
+            line_start = buffer.get_iter_at_line(line_number)
+            if line_number == buffer.get_line_count() - 1:
+                # 末行无换行符：选中到行末；否则选中到下一行行首以免吞掉换行。
+                line_end = buffer.get_end_iter()
+            else:
+                line_end = buffer.get_iter_at_line(line_number + 1)
+            buffer.select_range(line_start, line_end)
+
+        document.controller.indent_selection(outdent=outdent)
+        document.scroll_cursor_onscreen()
+
 
     def close_document_callback(self, parameters):
         if parameters['response'] == 0:
@@ -668,8 +755,9 @@ class Actions(object):
             if document.get_filename() == None:
                 DialogLocator.get_dialog('save_document').run(document)
             else:
-                document.save_to_disk()
-                self.workspace.remove_document(parameters['unsaved_document'])
+                if document.save_to_disk():
+                    self.workspace.remove_document(parameters['unsaved_document'])
+                # 保存失败：不移除文档，toast 已弹出
 
     def start_wizard(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -890,6 +978,9 @@ class Actions(object):
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
         self.settings.set_value('preferences', 'font_string', FontManager.font_string)
+        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
+        FontManager.saved_zoom_level = FontManager.zoom_level
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 
@@ -899,6 +990,9 @@ class Actions(object):
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
         self.settings.set_value('preferences', 'font_string', FontManager.font_string)
+        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
+        FontManager.saved_zoom_level = FontManager.zoom_level
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 
@@ -908,6 +1002,9 @@ class Actions(object):
         else:
             FontManager.font_string = self.settings.get_value('preferences', 'font_string')
         FontManager.propagate_font_setting()
+        # 重置缩放倍率为 1.0，同时保存到独立设置项
+        self.settings.set_value('preferences', 'editor_font_zoom_level', 1.0)
+        FontManager.saved_zoom_level = 1.0
         self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
         self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
 
@@ -949,5 +1046,8 @@ class Actions(object):
 
     def show_context_menu(self, action=None, parameter=''):
         PopoverManager.create_popover('context_menu').view.popup()
+
+    def toggle_fullscreen(self, action=None, parameter=None):
+        self.main_window.toggle_fullscreen()
 
 

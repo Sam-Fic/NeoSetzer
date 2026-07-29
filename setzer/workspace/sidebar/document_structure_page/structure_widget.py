@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Adw
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Adw, Gdk
 from setzer.widgets.search_highlight import escape_markup, highlight
 
 
@@ -39,13 +40,30 @@ class StructureWidget(Gtk.Box):
         self.model = model
 
         self.list_box = Gtk.ListBox()
-        self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.list_box.set_selection_mode(Gtk.SelectionMode.BROWSE)
         self.list_box.set_activate_on_single_click(True)
-        self.list_box.set_can_focus(False)
+        self.list_box.set_can_focus(True)
         self.list_box.set_hexpand(True)
         self.list_box.add_css_class('compact-rows')
         self.list_box.add_css_class('boxed-list')
         self.list_box.connect('row-activated', self.on_row_activated)
+        self.list_box.connect('map', self._on_list_box_map)
+
+        # Focus-in handler: sync keyboard selection to the currently
+        # accent-highlighted row (the one matching the editor cursor),
+        # so keyboard navigation starts from the user's current context
+        # rather than the top of the list.
+        focus_controller = Gtk.EventControllerFocus()
+        focus_controller.connect('enter', self._on_list_box_focus_in)
+        self.list_box.add_controller(focus_controller)
+
+        # Tab/Shift+Tab: move focus to the editor instead of cycling
+        # through the sidebar's internal widgets. This lets keyboard
+        # users quickly jump between the outline and the source view.
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect('key-pressed', self._on_list_box_key_pressed)
+        self.list_box.add_controller(key_controller)
+
         Gtk.Box.append(self, self.list_box)
 
         self.empty_state = Adw.StatusPage()
@@ -77,6 +95,108 @@ class StructureWidget(Gtk.Box):
     def on_row_activated(self, listbox, row):
         self.model.on_row_activated(row)
 
+    def _on_list_box_map(self, widget):
+        """When the list_box is first mapped, attempt to select the row
+        that matches the cursor position (accent-highlighted)."""
+        self._sync_selection_to_accent_row()
+
+    def _on_list_box_focus_in(self, controller):
+        """When the list_box gains focus, sync the keyboard selection
+        to the accent-highlighted row so the user starts navigating
+        from the section they're currently editing."""
+        self._sync_selection_to_accent_row()
+
+    def _sync_selection_to_accent_row(self):
+        """Select the row that has the 'accent' CSS class (the row
+        matching the current editor cursor position). Falls back to
+        the first visible row if no row has 'accent'."""
+        # GTK sets the initial selection to the first row; override it
+        # to follow the cursor instead.
+        selected = self.list_box.get_selected_row()
+        accent_row = self._find_accent_row()
+        if accent_row is not None and accent_row != selected:
+            self.list_box.select_row(accent_row)
+        elif selected is None:
+            # No accent row and nothing selected — select first visible.
+            first_visible = self._get_first_visible_row()
+            if first_visible is not None:
+                self.list_box.select_row(first_visible)
+
+    def _find_accent_row(self):
+        """Walk visible rows looking for one with the 'accent' class."""
+        child = self.list_box.get_first_child()
+        while child is not None:
+            if isinstance(child, Adw.ActionRow) and child.get_visible():
+                if child.has_css_class('accent'):
+                    return child
+            child = child.get_next_sibling()
+        return None
+
+    def _get_first_visible_row(self):
+        """Return the first visible Adw.ActionRow, or None."""
+        child = self.list_box.get_first_child()
+        while child is not None:
+            if isinstance(child, Adw.ActionRow) and child.get_visible():
+                return child
+            child = child.get_next_sibling()
+        return None
+
+    def _on_list_box_key_pressed(self, controller, keyval, keycode, state):
+        """Handle Tab / Shift+Tab to move focus to the editor instead
+        of cycling through internal sidebar widgets."""
+        if keyval == Gdk.KEY_Tab and not (state & Gdk.ModifierType.CONTROL_MASK):
+            if state & Gdk.ModifierType.SHIFT_MASK:
+                self._focus_previous()
+            else:
+                self._focus_editor()
+            return True
+        return False
+
+    def _focus_editor(self):
+        """Move focus to the active document's source view."""
+        source_view = self._get_source_view()
+        if source_view is not None:
+            source_view.grab_focus()
+
+    def _focus_previous(self):
+        """Move focus to the search entry (if visible) or the search button."""
+        page = self._get_document_structure_page()
+        if page is not None:
+            if page.search_revealer.get_reveal_child():
+                page.search_entry.grab_focus()
+            else:
+                page.search_button.grab_focus()
+
+    def _get_source_view(self):
+        """Get the source view from the model's data provider.
+
+        This is the most reliable path since all models have
+        data_provider.workspace which exposes the active document.
+        """
+        if hasattr(self, 'model') and self.model is not None:
+            if hasattr(self.model, 'data_provider'):
+                workspace = self.model.data_provider.workspace
+                if workspace is not None:
+                    doc = workspace.active_document
+                    if doc is not None and hasattr(doc, 'view') and hasattr(doc.view, 'source_view'):
+                        return doc.view.source_view
+        # Fallback: try via the widget tree
+        window = self.get_root()
+        if window is not None and hasattr(window, 'workspace'):
+            doc = window.workspace.active_document
+            if doc is not None and hasattr(doc, 'view') and hasattr(doc.view, 'source_view'):
+                return doc.view.source_view
+        return None
+
+    def _get_document_structure_page(self):
+        """Walk up the widget hierarchy to find the DocumentStructurePage."""
+        widget = self
+        while widget is not None:
+            if widget.__class__.__name__ == 'DocumentStructurePage':
+                return widget
+            widget = widget.get_parent()
+        return None
+
     def set_empty_state(self, icon_name, title, description=None):
         self.empty_state.set_icon_name(icon_name)
         self.empty_state.set_title(title)
@@ -105,6 +225,8 @@ class StructureWidget(Gtk.Box):
         # 行已全部移除，缓存的过滤状态失效：新行无 _filter_visible / _filter_*_lower
         # 属性，下次 filter_rows 必须重新计算。置 None 使同查询短路失效。
         self._last_filter_query = None
+        # 清除当前选择，避免指向已销毁的行。
+        self.list_box.unselect_all()
         # Gtk.ListBox.remove_all（GTK 4.6+）内部批量释放，替代原手动
         # get_first_child + remove 循环（n 次 remove 各 O(n) → O(n²)）。
         self.list_box.remove_all()
@@ -147,7 +269,31 @@ class StructureWidget(Gtk.Box):
                     any_visible = True
             child = child.get_next_sibling()
         self._last_filter_any_visible = any_visible
+
+        # If the currently selected row became invisible, select the
+        # next visible row to keep keyboard navigation functional.
+        selected = self.list_box.get_selected_row()
+        if selected is not None and not selected.get_visible():
+            new_selected = self._find_next_visible_row(selected)
+            if new_selected is not None:
+                self.list_box.select_row(new_selected)
+            else:
+                self.list_box.unselect_all()
         return any_visible
+
+    def _find_next_visible_row(self, row):
+        """Find the next visible row after the given row (or the first visible row)."""
+        child = self.list_box.get_first_child()
+        found = False
+        while child is not None:
+            if isinstance(child, Adw.ActionRow):
+                if found and child.get_visible():
+                    return child
+                if child is row:
+                    found = True
+            child = child.get_next_sibling()
+        # If we didn't find a next visible row, try the first visible row
+        return self._get_first_visible_row()
 
     def _highlight_row(self, row, query, title_lower, subtitle_lower):
         '''Bold the matched substring of a row's title/subtitle via Pango markup.
@@ -216,7 +362,7 @@ class StructureWidget(Gtk.Box):
 
     def make_row(self, icon_name, text, indent):
         row = Adw.ActionRow()
-        row.set_selectable(False)
+        row.set_selectable(True)
         row.set_activatable(True)
         prefix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         # 用细竖线树形指示符（│ ）表达嵌套层级，替代原来每层约 18px 的

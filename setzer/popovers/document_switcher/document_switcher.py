@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
 gi.require_version('Gtk', '4.0')
@@ -108,7 +108,7 @@ class DocumentSwitcher(Observable):
             try:
                 relpath = os.path.relpath(filename, base_dir)
             except ValueError:
-                # Windows 跨盘符等情况下 relpath 会抛 ValueError，回退绝对路径
+                # Windows 跨盘符等情况下 relpath 会抛 ValueError，回滚绝对路径
                 relpath = filename
         display = Gdk.Display.get_default()
         if display is not None:
@@ -193,6 +193,7 @@ class DocumentSwitcher(Observable):
         rect.height = 1
         popover.set_pointing_to(rect)
         popover.set_parent(row)
+        popover.connect('map', lambda p: p.grab_focus())
         # closed 后 unparent，避免 row 持有已关闭 popover 的引用导致泄漏
         popover.connect('closed', lambda p: p.unparent())
         popover.popup()
@@ -315,8 +316,14 @@ class DocumentSwitcher(Observable):
                     document, self._on_save_new_document_callback, parameters)
                 return
             else:
-                document.save_to_disk()
-                self.workspace.remove_document(parameters['unsaved_document'])
+                if document.save_to_disk():
+                    self.workspace.remove_document(document)
+                else:
+                    # 保存失败：保持文档打开，toast 已由 save_to_disk 弹出
+                    if is_active:
+                        self.workspace.set_active_document(document)
+                    self._show_switcher()
+                    return
 
         # 非活动文档被关闭 / 取消时重显切换器；
         # 活动文档被关闭时，remove_document 已自动切换到其他文档，不重显。
@@ -387,7 +394,7 @@ class DocumentSwitcher(Observable):
             self.view.set_root_document_row.set_sensitive(False)
 
     def update_unset_root_button(self):
-        if self.workspace.root_document != None:
+        if self.workspace.root_document is not None:
             self.view.unset_root_document_row.set_sensitive(True)
         else:
             self.view.unset_root_document_row.set_sensitive(False)

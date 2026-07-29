@@ -49,6 +49,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.toast_overlay.set_child(self.popoverlay)
         self.set_content(self.toast_overlay)
 
+        # 全屏状态追踪
+        self._is_fullscreen = False
+        self._headerbar_visible_in_fullscreen = False
+        self._sidebar_was_visible = False
+
     def create_widgets(self):
         self.shortcutsbar = shortcutsbar_view.ShortcutsBar()
 
@@ -130,9 +135,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.sidebar_split = Adw.OverlaySplitView()
         self.sidebar_split.set_sidebar(self.sidebar)
         self.sidebar_split.set_content(self.preview_paned_overlay)
-        self.sidebar_split.set_min_sidebar_width(252)
+        self.sidebar_split.set_min_sidebar_width(120)
         self.sidebar_split.set_max_sidebar_width(600)
-        self.sidebar_split.set_sidebar_width_fraction(0.25)
+        # 初始值仅为占位：真正的宽度由 setup_paneds() 按持久化的
+        # window_state/sidebar_width_fraction（默认 0.20）覆盖设定。
+        self.sidebar_split.set_sidebar_width_fraction(0.20)
 
         self.welcome_screen = welcome_screen_view.WelcomeScreenView()
 
@@ -186,6 +193,23 @@ class MainWindow(Adw.ApplicationWindow):
         self.content_overlay = Gtk.Overlay()
         self.content_overlay.set_child(self.mode_stack)
         self.popoverlay.set_child(self.content_overlay)
+
+        # 文件拖放视觉反馈浮层：覆盖整个内容区，带圆角描边 + 居中计数标签。
+        # can_target=False 让拖放事件穿透到窗口级 DropTarget（不被此浮层拦截），
+        # 否则它会抢走 drag/drop 事件导致 on_drop 收不到。enter 时显示、
+        # leave 时隐藏，motion 时根据可接受文件数更新标签文字。
+        # 文件类型不可接受时叠加 .drop-reject（描边转错误色），配合 GTK「禁止」光标。
+        self.drop_highlight = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.drop_highlight.set_can_target(False)
+        self.drop_highlight.add_css_class('drop-highlight')
+        self.drop_highlight.set_visible(False)
+        self.drop_label = Gtk.Label()
+        self.drop_label.add_css_class('drop-label')
+        self.drop_label.set_valign(Gtk.Align.CENTER)
+        self.drop_label.set_halign(Gtk.Align.CENTER)
+        self.drop_label.set_text('拖放以打开文件')
+        self.drop_highlight.append(self.drop_label)
+        self.content_overlay.add_overlay(self.drop_highlight)
 
         # 窄窗口（<700px）自动把侧边栏与预览侧栏折叠为浮层抽屉
         # （Adw.OverlaySplitView 的 collapsed 属性）。两者同款控件、同一 breakpoint，
@@ -246,27 +270,109 @@ class MainWindow(Adw.ApplicationWindow):
         GLib.timeout_add(250, _poll_sb_width)
 
         # 文件拖放:挂到窗口级（EventController 需挂 GtkWidget，窗口本身即覆盖
-        # 整个区域）。content_type=Gio.File 接收来自文件管理器的 URI；多文件拖入
-        # 时 GTK4 对每个文件分别触发 'drop' 信号，无需手动遍历。扩展名过滤与
-        # do_open（setzer_dev.py）保持一致：仅接受 .tex/.bib/.cls/.sty。
-        drop_target = Gtk.DropTarget.new(Gio.File, Gdk.DragAction.COPY)
+        # 整个区域）。优先用 Gdk.FileList 接收整批文件（多文件拖入时仍能一次拿到
+        # 全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
+        # 设 preload=True 以便 drag 过程中就能通过 get_value() 读取文件列表，
+        # 从而实时显示「将打开 N 个文件」以及按文件类型决定「禁止」光标。
+        # 扩展名过滤与 do_open（setzer_dev.py）保持一致：仅接受 .tex/.bib/.cls/.sty。
+        self._drop_exts = ('.tex', '.bib', '.cls', '.sty')
+        drop_target = Gtk.DropTarget()
+        drop_target.set_actions(Gdk.DragAction.COPY)
+        gtypes = [Gio.File]
+        if hasattr(Gdk, 'FileList'):
+            gtypes = [Gdk.FileList, Gio.File]
+        drop_target.set_gtypes(gtypes)
+        drop_target.set_preload(True)
+        drop_target.connect('enter', self.on_drag_enter)
+        drop_target.connect('leave', self.on_drag_leave)
+        drop_target.connect('motion', self.on_drag_motion)
+        drop_target.connect('accept', self.on_drag_accept)
         drop_target.connect('drop', self.on_drop)
         self.add_controller(drop_target)
+        self.drop_target = drop_target
+
+        # 全屏鼠标追踪：检测鼠标是否在窗口顶部边缘，以显示/隐藏 headerbar
+        self._motion_controller = Gtk.EventControllerMotion()
+        self._motion_controller.connect('motion', self._on_motion)
+        self._motion_controller.connect('leave', self._on_leave)
+        self.add_controller(self._motion_controller)
+
+        # 全屏状态变化监听
+        self.connect('notify::fullscreened', self._on_fullscreened_changed)
+
+    # ---- 文件拖放（DnD）处理 ----
+
+    def _extract_drop_files(self, value):
+        '''从拖放值中归一化出文件路径列表（兼容 Gdk.FileList 与单 Gio.File）。'''
+        if value is None:
+            return []
+        if hasattr(Gdk, 'FileList') and isinstance(value, Gdk.FileList):
+            return value.get_files()
+        if isinstance(value, Gio.File):
+            return [value]
+        return []
+
+    def _is_acceptable_file(self, file):
+        path = file.get_path()
+        if path is None:
+            return False
+        return path.endswith(self._drop_exts)
+
+    def _update_drop_feedback(self):
+        '''根据当前拖放值刷新浮层标签（文件计数 / 可接受性提示）。'''
+        if not hasattr(self, 'drop_highlight') or not self.drop_highlight.get_visible():
+            return
+        files = self._extract_drop_files(self.drop_target.get_value())
+        if not files:
+            # preload 尚未拿到文件列表，保持中性提示，避免误闪「无法打开」
+            self.drop_label.set_text('拖放以打开文件')
+            return
+        count = sum(1 for f in files if self._is_acceptable_file(f))
+        if count > 1:
+            self.drop_label.set_text(f'将打开 {count} 个文件')
+        elif count == 1:
+            self.drop_label.set_text('拖放以打开文件')
+        else:
+            self.drop_label.set_text('无法打开此文件类型')
+
+    def on_drag_enter(self, target, x, y):
+        self.drop_highlight.set_visible(True)
+        self._update_drop_feedback()
+        return False
+
+    def on_drag_motion(self, target, x, y):
+        self._update_drop_feedback()
+        return False
+
+    def on_drag_leave(self, target):
+        self.drop_highlight.set_visible(False)
+        self.drop_highlight.remove_css_class('drop-reject')
+        return False
+
+    def on_drag_accept(self, target, drop):
+        '''按文件类型决定是否接受拖放：无可接受文件时返回 False，
+        GTK 据此显示「禁止」光标；可接受时浮层描边保持强调色。'''
+        files = self._extract_drop_files(target.get_value())
+        acceptable = any(self._is_acceptable_file(f) for f in files) if files else False
+        if acceptable:
+            self.drop_highlight.remove_css_class('drop-reject')
+        else:
+            self.drop_highlight.add_css_class('drop-reject')
+        return acceptable
 
     def on_drop(self, target, value, x, y):
         workspace = ServiceLocator.get_workspace()
+        self.drop_highlight.set_visible(False)
+        self.drop_highlight.remove_css_class('drop-reject')
         if workspace is None:
             return False
-        try:
-            path = value.get_path()
-        except AttributeError:
-            return False
-        if path is None:
-            return False
-        if not path.endswith(('.tex', '.bib', '.cls', '.sty')):
-            return False
-        workspace.open_document_by_filename(path)
-        return True
+        opened = False
+        for file in self._extract_drop_files(value):
+            path = file.get_path()
+            if path and self._is_acceptable_file(file):
+                workspace.open_document_by_filename(path)
+                opened = True
+        return opened
 
 
     def do_size_allocate(self, width, height, baseline):
@@ -276,13 +382,18 @@ class MainWindow(Adw.ApplicationWindow):
         # 保证内容不会被标题栏遮住，同时避免硬编码固定高度。
         # Pass-12: 预览/帮助侧栏不再被标题栏覆盖——它们有自己的工具栏，
         # 故不再设置 preview_panel.stack / help_panel.stack 的 margin_top。
+        # 全屏隐藏 headerbar 时 margin_top 设为 0，让内容占满全高。
         if hasattr(self, 'headerbar') and hasattr(self, 'document_stack_wrapper'):
             headerbar_height = self.headerbar.widget.get_allocated_height()
-            if headerbar_height > 0:
-                if self.document_stack_wrapper.get_margin_top() != headerbar_height:
-                    self.document_stack_wrapper.set_margin_top(headerbar_height)
-                if hasattr(self, 'welcome_screen') and self.welcome_screen.get_margin_top() != headerbar_height:
-                    self.welcome_screen.set_margin_top(headerbar_height)
+            if self._is_fullscreen and not self._headerbar_visible_in_fullscreen:
+                # 全屏且 headerbar 隐藏：内容不需要上边距
+                target_margin = 0
+            else:
+                target_margin = headerbar_height
+            if target_margin >= 0 and self.document_stack_wrapper.get_margin_top() != target_margin:
+                self.document_stack_wrapper.set_margin_top(target_margin)
+            if hasattr(self, 'welcome_screen') and self.welcome_screen.get_margin_top() != target_margin:
+                self.welcome_screen.set_margin_top(target_margin)
 
     def reparent_headerbar(self, to_welcome):
         '''在 welcome_overlay 与 document_stack_overlay 之间迁移 headerbar。
@@ -316,3 +427,69 @@ class MainWindow(Adw.ApplicationWindow):
             self.welcome_overlay.remove_overlay(hb)
             self.document_stack_overlay.add_overlay(hb)
             self._headerbar_in_welcome = False
+
+    def toggle_fullscreen(self):
+        '''切换全屏模式。F11 快捷键入口。'''
+        if self.is_fullscreen():
+            self.unfullscreen()
+        else:
+            self.fullscreen()
+
+    def _on_fullscreened_changed(self, window, param):
+        '''全屏状态变化回调：保存/恢复 UI 状态。'''
+        self._is_fullscreen = self.is_fullscreen()
+        if self._is_fullscreen:
+            self._enter_fullscreen()
+        else:
+            self._exit_fullscreen()
+
+    def _enter_fullscreen(self):
+        '''进入全屏：隐藏 headerbar，折叠 sidebar。'''
+        workspace = ServiceLocator.get_workspace()
+        if workspace is None:
+            return
+        # 保存并隐藏 headerbar
+        self._show_fullscreen_headerbar(False)
+        # 折叠 sidebar（如果开启）
+        self._sidebar_was_visible = (workspace.show_symbols or workspace.show_document_structure)
+        if self._sidebar_was_visible:
+            workspace.set_show_sidebar(False)
+
+    def _exit_fullscreen(self):
+        '''退出全屏：恢复 headerbar 和 sidebar。'''
+        workspace = ServiceLocator.get_workspace()
+        if workspace is None:
+            return
+        # 恢复 headerbar
+        self._show_fullscreen_headerbar(True)
+        # 恢复 sidebar
+        if self._sidebar_was_visible:
+            workspace.set_show_sidebar(True)
+
+    def _show_fullscreen_headerbar(self, show):
+        '''全屏时显示/隐藏 headerbar（通过 opacity 过渡）。'''
+        self._headerbar_visible_in_fullscreen = show
+        headerbar = self.headerbar.widget
+        if show:
+            headerbar.set_opacity(1.0)
+            headerbar.set_can_target(True)
+        else:
+            headerbar.set_opacity(0.0)
+            headerbar.set_can_target(False)
+        # 触发重新分配以更新 margin
+        self.queue_resize()
+
+    def _on_motion(self, controller, x, y):
+        '''鼠标移动回调：检测是否在顶部边缘，显示/隐藏 headerbar。'''
+        if not self._is_fullscreen:
+            return
+        # 顶部边缘阈值（像素）
+        edge_threshold = 5
+        show = y <= edge_threshold
+        if show != self._headerbar_visible_in_fullscreen:
+            self._show_fullscreen_headerbar(show)
+
+    def _on_leave(self, controller):
+        '''鼠标离开窗口：全屏时隐藏 headerbar。'''
+        if self._is_fullscreen and self._headerbar_visible_in_fullscreen:
+            self._show_fullscreen_headerbar(False)

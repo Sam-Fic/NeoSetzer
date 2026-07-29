@@ -19,7 +19,9 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.widgets.search_entry.search_entry import SearchEntry
+from setzer.document.search.search_history_popup import SearchHistoryPopup
 
 
 class SearchBar(Gtk.SearchBar):
@@ -82,6 +84,16 @@ class SearchBar(Gtk.SearchBar):
         self._update_counter_margin()
         self.find_row.append(self.entry_overlay)
 
+        self.find_history_button = Gtk.Button()
+        self.find_history_button.set_icon_name('document-open-recent-symbolic')
+        self.find_history_button.set_can_focus(False)
+        self.find_history_button.add_css_class('flat')
+        self.find_history_button.set_tooltip_text(_('Search history'))
+        self.find_history_popup = SearchHistoryPopup()
+        self.find_history_popup.set_parent(self.find_history_button)
+        self.find_history_button.connect('clicked', self._on_find_history_button_clicked)
+        self.find_row.append(self.find_history_button)
+
         # --- match-option toggles (case / regex / whole-word / preserve-case) ---
         # 与 gedit / GNOME Text Editor 一致的右侧一排开关。
         options_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -89,7 +101,7 @@ class SearchBar(Gtk.SearchBar):
         options_box.set_valign(Gtk.Align.CENTER)
 
         self.case_toggle = Gtk.ToggleButton()
-        self.case_toggle.set_child(Gtk.Image(icon_name='xapp-text-case-symbolic'))
+        self.case_toggle.set_child(Gtk.Image(icon_name='font-select-symbolic'))
         self.case_toggle.set_can_focus(False)
         self.case_toggle.set_hexpand(False)
         self.case_toggle.add_css_class('flat')
@@ -98,7 +110,7 @@ class SearchBar(Gtk.SearchBar):
         options_box.append(self.case_toggle)
 
         self.regex_toggle = Gtk.ToggleButton()
-        self.regex_toggle.set_child(Gtk.Image(icon_name='xsi-use-regex-symbolic'))
+        self.regex_toggle.set_child(Gtk.Image(icon_name='insert-text-symbolic'))
         self.regex_toggle.set_can_focus(False)
         self.regex_toggle.set_hexpand(False)
         self.regex_toggle.add_css_class('flat')
@@ -138,12 +150,12 @@ class SearchBar(Gtk.SearchBar):
 
         self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
         self.prev_button.set_can_focus(False)
-        self.prev_button.set_tooltip_text(_('Previous result') + ' (Ctrl+Shift+G)')
+        shortcut_tooltips.set_tooltip(self.prev_button, _('Previous result'), 'find_previous')
         self.find_row.append(self.prev_button)
 
         self.next_button = Gtk.Button(icon_name='go-down-symbolic')
         self.next_button.set_can_focus(False)
-        self.next_button.set_tooltip_text(_('Next result') + ' (Ctrl+G)')
+        shortcut_tooltips.set_tooltip(self.next_button, _('Next result'), 'find_next')
         self.find_row.append(self.next_button)
 
         self.close_button = Gtk.Button(icon_name='window-close-symbolic')
@@ -170,6 +182,16 @@ class SearchBar(Gtk.SearchBar):
         self.replace_entry.set_placeholder_text(_('Type replacement text…'))
         self.replace_wrapper.append(self.replace_entry)
 
+        self.replace_history_button = Gtk.Button()
+        self.replace_history_button.set_icon_name('document-open-recent-symbolic')
+        self.replace_history_button.set_can_focus(False)
+        self.replace_history_button.add_css_class('flat')
+        self.replace_history_button.set_tooltip_text(_('Replacement history'))
+        self.replace_history_popup = SearchHistoryPopup()
+        self.replace_history_popup.set_parent(self.replace_history_button)
+        self.replace_history_button.connect('clicked', self._on_replace_history_button_clicked)
+        self.replace_wrapper.append(self.replace_history_button)
+
         self.replace_button = Gtk.Button.new_with_label(_('Replace'))
         self.replace_button.set_can_focus(False)
         self.replace_button.set_tooltip_text(_('Replace selected result'))
@@ -192,7 +214,7 @@ class SearchBar(Gtk.SearchBar):
 
     def _on_replace_mode_active_notify(self, button, gparam):
         '''切换按钮图标：未展开时显示向右箭头，展开后显示向下箭头。'''
-        icon_name = 'go-down-symbolic' if button.get_active() else 'go-next-symbolic'
+        icon_name = 'document-open-recent-symbolic' if button.get_active() else 'go-next-symbolic'
         button.get_child().set_from_icon_name(icon_name)
 
     def _update_counter_margin(self, *args):
@@ -214,3 +236,15 @@ class SearchBar(Gtk.SearchBar):
             self.find_row.set_margin_bottom(6)
         else:
             self.find_row.set_margin_bottom(0)
+
+    def _on_find_history_button_clicked(self, button):
+        self._toggle_popover(self.find_history_popup)
+
+    def _on_replace_history_button_clicked(self, button):
+        self._toggle_popover(self.replace_history_popup)
+
+    def _toggle_popover(self, popover):
+        if popover.get_visible():
+            popover.popdown()
+        else:
+            popover.popup()

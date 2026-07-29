@@ -29,12 +29,20 @@ from setzer.helpers.document_state_paths import (
 class DocumentSettings():
 
     def load_document_state(document):
-        if not document.is_latex_document(): return
         if document.filename == None: return
 
         config_folder = ServiceLocator.get_config_folder()
         json_path, _ = state_paths(document.filename, config_folder)
 
+        # 非 LaTeX 文档只加载书签状态
+        if not document.is_latex_document():
+            document_data = load_json(json_path)
+            if document_data is None:
+                return
+            DocumentSettings.update_general_state(document, document_data)
+            return
+
+        # 以下为 LaTeX 文档的完整状态加载
         # 一次性迁移：新名文件不存在时，查找旧 base64 名文件并迁移过来。
         # - 旧 .json 已存在（上一版本已迁移到 JSON 但仍用 base64 名）→ 重命名
         # - 旧 .pickle 已存在（更早版本）→ pickle→json 迁移并写到新名
@@ -60,10 +68,28 @@ class DocumentSettings():
             return
         DocumentSettings.update_document(document, document_data)
 
+    def update_general_state(document, document_data):
+        """Restore general (non-LaTeX-specific) document state."""
+        # restore bookmarks (general editor feature for all document types)
+        bookmark_lines = document_data.get('bookmarks', [])
+        if bookmark_lines:
+            document.bookmarks.load_bookmarks_from_data(bookmark_lines)
+        # restore recent symbols
+        document.recent_symbols = list(document_data.get('recent_symbols', []))
+
     def update_document(document, document_data):
         # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
         # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
         document.recent_symbols = list(document_data.get('recent_symbols', []))
+
+        # restore bookmarks (general editor feature for all document types)
+        bookmark_lines = document_data.get('bookmarks', [])
+        if bookmark_lines:
+            document.bookmarks.load_bookmarks_from_data(bookmark_lines)
+
+        # 恢复文档结构折叠状态：list → set。放在 save_date 检查之前，
+        # 确保即便后续因文件修改等提前 return，折叠状态也已恢复。
+        document.collapsed_sections = set(document_data.get('structure_collapsed', []))
 
         # save_date 可能为 None（极端情况：文档状态在文件已被删除后保存）。
         # None <= number 在 Python 3 中抛 TypeError，用 is None 守卫跳过比较，
@@ -132,9 +158,23 @@ class DocumentSettings():
 
     def save_document_state(document):
         if document.filename == None: return
-        if not document.is_latex_document(): return
 
         document_data = dict()
+        # 保存书签 (所有文档类型)
+        document_data['bookmarks'] = document.bookmarks.get_data_for_persistence()
+        document_data['recent_symbols'] = list(getattr(document, 'recent_symbols', []))
+
+        # 非 LaTeX 文档只保存书签和最近符号
+        if not document.is_latex_document():
+            config_folder = ServiceLocator.get_config_folder()
+            json_path, _ = state_paths(document.filename, config_folder)
+            try:
+                save_json(json_path, document_data)
+            except (OSError, TypeError, ValueError):
+                pass
+            return
+
+        # LaTeX 文档保存完整状态
         document_data['save_date'] = document.save_date
         document_data['folded_regions'] = document.code_folding.get_folded_regions()
         document_data['build_log_data'] = document.build_system.build_log_data
@@ -149,8 +189,8 @@ class DocumentSettings():
         document_data['yoffset'] = document.preview.view.content.scrolling_offset_y
         document_data['zoom_level'] = document.preview.zoom_manager.zoom_level
         document_data['zoom_mode'] = document.preview.zoom_manager.zoom_mode
-        # 最近符号按文档区分，随状态文件落盘（save_document_state 入口已守卫 filename != None）。
-        document_data['recent_symbols'] = document.recent_symbols
+        # 文档结构折叠状态：set → list 便于 JSON 序列化。
+        document_data['structure_collapsed'] = list(document.collapsed_sections)
 
         # 文件名走 state_paths（hash+basename 可读方案）。save_document_state
         # 入口已守卫 document.filename != None，此处不会收到 None。

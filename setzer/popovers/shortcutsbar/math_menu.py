@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import GLib
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.helpers.gio_menu_builder import GioMenuBuilder
 
 
@@ -27,18 +28,21 @@ class MathMenu(GioMenuBuilder):
     def __init__(self, popover_manager=None):
         GioMenuBuilder.__init__(self)
 
+        # 菜单项的快捷键标签从设置实时读取（构建时），不再写死字面量
+        key = lambda action: (shortcut_tooltips.get_action_label(action) or None)
+
         self.add_action_button('main', _('Include AMS Packages'), 'win.add-packages', GLib.Variant('as', ['amsmath', 'amssymb', 'amsfonts', 'amsthm']))
         self.add_separator()
-        self.add_before_after_item('main', _('Inline Math Section') + ' ($ ... $)', ['$ ', ' $'], shortcut=_('Ctrl') + '+M')
-        self.add_before_after_item('main', _('Display Math Section') + ' (\\[ ... \\])', ['\\[ ', ' \\]'], shortcut=_('Shift') + '+Ctrl' + '+M')
+        self.add_before_after_item('main', _('Inline Math Section') + ' ($ ... $)', ['$ ', ' $'], shortcut=key('inline_math'))
+        self.add_before_after_item('main', _('Display Math Section') + ' (\\[ ... \\])', ['\\[ ', ' \\]'], shortcut=key('display_math'))
         self.add_menu_button(_('Math Environments'), 'math_environments')
         self.add_separator()
-        self.add_before_after_item('main', _('Subscript') + ' (_{})', ['_{', '}'], shortcut=_('Shift') + '+' + _('Ctrl') + '+D')
-        self.add_before_after_item('main', _('Superscript') + ' (^{})', ['^{', '}'], shortcut=_('Shift') + '+' + _('Ctrl') + '+U')
-        self.add_insert_symbol_item('main', _('Fraction') + ' (\\frac)', ['\\frac{•}{•}'], shortcut=_('Shift') + '+Alt' + '+F')
+        self.add_before_after_item('main', _('Subscript') + ' (_{})', ['_{', '}'], shortcut=key('subscript'))
+        self.add_before_after_item('main', _('Superscript') + ' (^{})', ['^{', '}'], shortcut=key('superscript'))
+        self.add_insert_symbol_item('main', _('Fraction') + ' (\\frac)', ['\\frac{•}{•}'], shortcut=key('fraction'))
         self.add_before_after_item('main', _('Square Root') + ' (\\sqrt)', ['\\sqrt{', '}'])
-        self.add_insert_symbol_item('main', '\\left', ['\\left •'], shortcut=_('Shift') + '+' + _('Ctrl') + '+L')
-        self.add_insert_symbol_item('main', '\\right', ['\\right •'], shortcut=_('Shift') + '+' + _('Ctrl') + '+R')
+        self.add_insert_symbol_item('main', '\\left', ['\\left •'], shortcut=key('left'))
+        self.add_insert_symbol_item('main', '\\right', ['\\right •'], shortcut=key('right'))
         self.add_separator()
         self.add_menu_button(_('Math Functions'), 'math_functions')
         self.add_menu_button(_('Math Font Styles'), 'math_font_styles')
@@ -48,7 +52,7 @@ class MathMenu(GioMenuBuilder):
 
         # submenu: math environments
         self.add_page('math_environments', _('Math Environments'))
-        self.add_before_after_item('math_environments', 'equation', ['\\begin{equation}\n\t', '\n\\end{equation}'], shortcut=_('Shift') + '+' + _('Ctrl') + '+N')
+        self.add_before_after_item('math_environments', 'equation', ['\\begin{equation}\n\t', '\n\\end{equation}'], shortcut=key('equation'))
         self.add_before_after_item('math_environments', 'equation*', ['\\begin{equation*}\n\t', '\n\\end{equation*}'])
         self.add_before_after_item('math_environments', 'align', ['\\begin{align}\n\t', '\n\\end{align}'])
         self.add_before_after_item('math_environments', 'align*', ['\\begin{align*}\n\t', '\n\\end{align*}'])

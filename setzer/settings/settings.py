@@ -54,6 +54,8 @@ class Settings(Observable):
         if not self.unpickle():
             self.data = self.defaults
             self.pickle()
+        else:
+            self._migrate_conflicting_shortcut_defaults()
 
     @staticmethod
     def _migrate_presets_bytes(data):
@@ -151,6 +153,7 @@ class Settings(Observable):
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         self.defaults['preferences']['show_line_numbers'] = True
+        self.defaults['preferences']['show_shortcuts_bar'] = True
         # 行距（像素）：每行之间的额外垂直间距。均分到 pixels_above_lines /
         # pixels_below_lines 使文本在行 slot 中竖直居中；pixels_inside_wrap
         # 设为完整值使自动换行续行间距与段落间一致。get_line_yrange().height
@@ -214,6 +217,12 @@ class Settings(Observable):
         textview.set_monospace(True)
         font_string = textview.get_pango_context().get_font_description().to_string()
         self.defaults['preferences']['font_string'] = font_string
+        # 编辑器字号缩放倍率（1.0 = 默认）：与 font_string 分离，使 system font 模式
+        # 下的缩放偏好也能跨重启持久化。
+        self.defaults['preferences']['editor_font_zoom_level'] = 1.0
+
+        # 搜索/替换历史记录：全局共享（跨文档），最多 15 条，去重，最新在前。
+        self.defaults['search_history'] = {'find': [], 'replace': []}
 
         self.defaults['keyboard_shortcuts'] = dict()
         self.defaults['keyboard_shortcuts']['new_document'] = '<Control>n'
@@ -236,14 +245,24 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['find_previous'] = '<Control><Shift>g'
         self.defaults['keyboard_shortcuts']['help'] = 'F1'
         self.defaults['keyboard_shortcuts']['document_structure'] = '<Control><Shift>b'
-        self.defaults['keyboard_shortcuts']['symbols'] = '<Control><Shift>s'
+        # symbols 不能用 <Control><Shift>s：与 save_as 相同，而 save_as 在
+        # ShortcutControllerApp 中先注册，symbols 永远不会触发。F8 空闲且
+        # 与 F5/F6/F7（构建组）、F10-F12（界面组）同风格。
+        self.defaults['keyboard_shortcuts']['symbols'] = 'F8'
         self.defaults['keyboard_shortcuts']['save_and_build'] = 'F5'
         self.defaults['keyboard_shortcuts']['build'] = 'F6'
         self.defaults['keyboard_shortcuts']['forward_sync'] = 'F7'
-        self.defaults['keyboard_shortcuts']['build_log'] = '<Control><Shift>l'
+        # build_log 不能用 <Control><Shift>l：与 left（插入 \left）相同，
+        # 且 app 控制器在 CAPTURE 阶段消费事件，\left 永远不触发。F4 空闲。
+        self.defaults['keyboard_shortcuts']['build_log'] = 'F4'
         self.defaults['keyboard_shortcuts']['preview'] = '<Control><Shift>p'
         self.defaults['keyboard_shortcuts']['hamburger_menu'] = 'F10'
+        self.defaults['keyboard_shortcuts']['fullscreen'] = 'F11'
         self.defaults['keyboard_shortcuts']['context_menu'] = 'F12'
+        self.defaults['keyboard_shortcuts']['show_preferences_dialog'] = '<Control>comma'
+        self.defaults['keyboard_shortcuts']['show_about_dialog'] = '<Control><Shift>h'
+        self.defaults['keyboard_shortcuts']['close_all_documents'] = '<Control><Shift>w'
+        self.defaults['keyboard_shortcuts']['restore_session'] = '<Control><Shift>j'
         self.defaults['keyboard_shortcuts']['cut'] = '<Control>x'
         self.defaults['keyboard_shortcuts']['copy'] = '<Control>c'
         self.defaults['keyboard_shortcuts']['paste'] = '<Control>v'
@@ -251,7 +270,7 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['redo'] = '<Control><Shift>z'
         self.defaults['keyboard_shortcuts']['select_all'] = '<Control>a'
         self.defaults['keyboard_shortcuts']['delete_line'] = '<Control><Shift>k'
-        self.defaults['keyboard_shortcuts']['toggle_comment'] = '<Control>k'
+        self.defaults['keyboard_shortcuts']['toggle_comment'] = '<Control>slash'
         self.defaults['keyboard_shortcuts']['duplicate_line'] = '<Alt><Shift>d'
         self.defaults['keyboard_shortcuts']['move_line_up'] = '<Alt>Up'
         self.defaults['keyboard_shortcuts']['move_line_down'] = '<Alt>Down'
@@ -259,7 +278,10 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['bold'] = '<Control>b'
         self.defaults['keyboard_shortcuts']['italic'] = '<Control>i'
         self.defaults['keyboard_shortcuts']['underline'] = '<Control>u'
-        self.defaults['keyboard_shortcuts']['typewriter'] = '<Control><Shift>t'
+        # typewriter 不能用 <Control><Shift>t：该键被 reopen_last_closed_document
+        # 占用（浏览器式"重开标签页"惯例，硬编码于 shortcut_controller_app.py）。
+        # 改用 <Control><Shift>y（Ctrl+Y 单键是 redo，加 Shift 后空闲）。
+        self.defaults['keyboard_shortcuts']['typewriter'] = '<Control><Shift>y'
         self.defaults['keyboard_shortcuts']['emphasized'] = '<Control><Shift>e'
         self.defaults['keyboard_shortcuts']['quotation_marks'] = '<Control>quotedbl'
         self.defaults['keyboard_shortcuts']['list_item'] = '<Control><Shift>i'
@@ -272,6 +294,56 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['fraction'] = '<Alt><Shift>f'
         self.defaults['keyboard_shortcuts']['left'] = '<Control><Shift>l'
         self.defaults['keyboard_shortcuts']['right'] = '<Control><Shift>r'
+        self.defaults['keyboard_shortcuts']['toggle_bookmark'] = '<Control>f2'
+        self.defaults['keyboard_shortcuts']['next_bookmark'] = 'f2'
+        self.defaults['keyboard_shortcuts']['previous_bookmark'] = '<Control><Shift>f2'
+
+    def _migrate_conflicting_shortcut_defaults(self):
+        '''把已持久化配置中仍等于"旧冲突默认值"的快捷键迁到新默认值。
+
+        首次运行时 defaults 会被整体写入 settings.json，因此仅改 defaults
+        无法修复老用户的配置——它们仍保存着冲突的旧默认值：
+        - symbols    = <Control><Shift>s（被 save_as 抢占，从未生效）
+        - typewriter = <Control><Shift>t（被硬编码的 reopen 标签页抢占）
+        - build_log  = <Control><Shift>l（在 CAPTURE 阶段抢占 left 的 \\left）
+        只有当保存值仍等于旧默认值时才改写（说明用户从未主动改过该键，
+        或改了也因冲突从未生效）；用户自定义的其他值一律保留。
+        '''
+        shortcuts = self.data.get('keyboard_shortcuts')
+        if not isinstance(shortcuts, dict):
+            return
+        migrations = {
+            'symbols': ('<Control><Shift>s', 'F8'),
+            'typewriter': ('<Control><Shift>t', '<Control><Shift>y'),
+            'build_log': ('<Control><Shift>l', 'F4'),
+        }
+        changed = False
+        for action, (old_default, new_default) in migrations.items():
+            if shortcuts.get(action) == old_default:
+                shortcuts[action] = new_default
+                changed = True
+        if changed:
+            self.pickle()
+
+    def add_to_search_history(self, field, text, max_items=15):
+        """Add text to search history ('find' or 'replace'). Dupes moved to top."""
+        if not text or not text.strip():
+            return
+        history = self.get_value('search_history', None)
+        items = list(history.get(field, []))
+        if text in items:
+            items.remove(text)
+        items.insert(0, text)
+        self.set_value('search_history', field, items[:max_items])
+
+    def get_search_history(self, field):
+        """Return search history list for 'find' or 'replace'."""
+        history = self.get_value('search_history', None)
+        return list(history.get(field, []))
+
+    def clear_search_history(self, field):
+        """Clear search history for 'find' or 'replace'."""
+        self.set_value('search_history', field, [])
 
     def get_value(self, section, item):
         # 读操作不应有写副作用。原实现读缺失键时调 set_value 把默认值写回

@@ -40,3 +40,4 @@ class TodosSectionView(structure_widget.StructureWidget):
             row.item_data = todo
             self.append_row(row)
         self.set_empty_state_visible(len(self.model.todos) == 0)
+        self._sync_selection_to_accent_row()

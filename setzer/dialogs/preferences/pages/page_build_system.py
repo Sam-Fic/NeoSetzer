@@ -489,7 +489,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         group_options.add(self.option_cleanup_build_files)
 
         self.option_use_latexmk = Adw.SwitchRow()
-        self.option_use_latexmk.set_title(_('Use Latexmk'))
+        self.option_use_latexmk.set_title(_('Use latexmk'))
         group_options.add(self.option_use_latexmk)
 
         group_auto_build = Adw.PreferencesGroup()

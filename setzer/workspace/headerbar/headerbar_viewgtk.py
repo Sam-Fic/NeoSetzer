@@ -20,6 +20,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gio
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
 
 
@@ -38,7 +39,8 @@ class HeaderBar(object):
         self.sidebar_toggle = Gtk.ToggleButton()
         self.sidebar_toggle.set_child(Gtk.Image(icon_name='sidebar-show-symbolic'))
         self.sidebar_toggle.set_can_focus(False)
-        self.sidebar_toggle.set_tooltip_text(_('Toggle sidebar (Document Structure / Symbols)') + ' (F2)')
+        # tooltip 中的快捷键随设置动态渲染（原先写死 "(F2)"，早已与实际绑定脱节）
+        shortcut_tooltips.set_tooltip(self.sidebar_toggle, _('Toggle sidebar (Document Structure / Symbols)'), 'document_structure', 'symbols')
         self.sidebar_toggle.add_css_class('headerbar-plain')
         self.sidebar_toggle.add_css_class('headerbar-icon')
 
@@ -53,7 +55,7 @@ class HeaderBar(object):
         self.open_document_button = Adw.SplitButton()
         self.open_document_button.set_child(Gtk.Image(icon_name='document-open-symbolic'))
         self.open_document_button.set_can_focus(False)
-        self.open_document_button.set_tooltip_text(_('Open a document') + ' (' + _('Ctrl') + '+O)')
+        shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
         self.open_document_button.set_action_name('win.open-document-dialog')
         self.open_document_button.add_css_class('headerbar-plain')
         self.open_document_button.add_css_class('headerbar-icon')
@@ -100,32 +102,24 @@ class HeaderBar(object):
         self.menu_button.add_css_class('headerbar-plain')
         self.menu_button.add_css_class('headerbar-icon')
 
-        # save document button (icon only)
-        self.save_document_button = Gtk.Button(icon_name='document-save-symbolic')
-        self.save_document_button.set_can_focus(False)
-        self.save_document_button.set_tooltip_text(_('Save the current document') + ' (' + _('Ctrl') + '+S)')
-        self.save_document_button.set_action_name('win.save')
-        self.save_document_button.add_css_class('headerbar-plain')
-        self.save_document_button.add_css_class('headerbar-icon')
-
         # preview/help toggle — 合并为单一按钮控制右侧栏显隐
         self.preview_help_toggle = Gtk.ToggleButton()
         self.preview_help_toggle.set_child(Gtk.Image(icon_name='sidebar-show-right-symbolic'))
         self.preview_help_toggle.set_can_focus(False)
-        self.preview_help_toggle.set_tooltip_text(_('Toggle preview panel (PDF Preview / Help)') + ' (F9)')
+        # 原先写死 "(F9)"，实际 preview=Ctrl+Shift+P、help=F1，现随设置动态渲染
+        shortcut_tooltips.set_tooltip(self.preview_help_toggle, _('Toggle preview panel (PDF Preview / Help)'), 'preview', 'help')
         self.preview_help_toggle.add_css_class('headerbar-plain')
         self.preview_help_toggle.add_css_class('headerbar-icon')
 
-        # build button wrapper (contains Save and Build / stop / clean / timer)
+        # build button wrapper (contains Build / stop / clean / timer)
         self.build_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         # Pass-12: 预览/帮助按钮回到各自侧栏的内嵌工具栏（与左侧栏一致），
         # 标题栏不再持有 panel_buttons_stack。pack_end 顺序恢复为原始布局：
-        # menu → build → toggles → save（从右到左）。
+        # menu → build → toggles（从右到左）。
         self.widget.pack_end(self.menu_button)
         self.widget.pack_end(self.build_wrapper)
         self.widget.pack_end(self.preview_help_toggle)
-        self.widget.pack_end(self.save_document_button)
 
         # title / open documents popover
         self.open_docs_popover = PopoverManager.get_popover('document_switcher')
@@ -143,7 +137,7 @@ class HeaderBar(object):
         self.center_box.append(self.center_down_arrow)
 
         self.center_button = Gtk.Button()
-        self.center_button.set_tooltip_text(_('Show open documents') + ' (' + _('Ctrl') + '+T)')
+        shortcut_tooltips.set_tooltip(self.center_button, _('Show open documents'), 'show_open_docs')
         self.center_button.set_can_focus(False)
         self.center_button.set_halign(Gtk.Align.CENTER)
         self.center_button.set_child(self.center_box)

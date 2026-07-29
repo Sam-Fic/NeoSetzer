@@ -303,7 +303,7 @@ msgstr ""
 
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
-msgid "Document »{document}« has no filename."
+msgid "Document \"{document}\" has no filename."
 msgstr ""
 
 #: setzer/dialogs/build_save/build_save.py:36
@@ -319,7 +319,7 @@ msgstr ""
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
-msgid "Document »{document}« has unsaved changes."
+msgid "Document \"{document}\" has unsaved changes."
 msgstr ""
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
@@ -351,7 +351,7 @@ msgstr ""
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
-msgid "Document »{document}« has changed on disk."
+msgid "Document \"{document}\" has changed on disk."
 msgstr ""
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
@@ -368,7 +368,7 @@ msgstr ""
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
-msgid "Document »{document}« was deleted from disk or moved."
+msgid "Document \"{document}\" was deleted from disk or moved."
 msgstr ""
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
@@ -928,7 +928,7 @@ msgstr ""
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use »{interpreter}« which seems to be missing on "
+"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -1359,6 +1359,18 @@ msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:299
 msgid "Percentage of the window width allocated to the PDF preview."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:393
+msgid "Sidebar"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:401
+msgid "Sidebar Width"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:402
+msgid "Percentage of the window width allocated to the sidebar."
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:307
@@ -2131,7 +2143,7 @@ msgstr ""
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
-msgid "Replace all matches of »{original}« with »{replacement}«?"
+msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
 msgstr ""
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
@@ -2140,9 +2152,9 @@ msgstr ""
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:49
 #, python-brace-format
-msgid "Replacing {amount} occurence of »{original}« with »{replacement}«."
+msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
-"Replacing {amount} occurrences of »{original}« with »{replacement}«."
+"Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
 msgstr[0] ""
 msgstr[1] ""
 

@@ -89,6 +89,10 @@ class SymbolsPage(ScrollAnimatorMixin):
         self.view.search_button.connect('toggled', self.on_search_button_toggled)
         self.view.search_entry.connect('stop-search', self.on_search_stopped)
         self.view.search_entry.connect('changed', self.on_search_changed)
+
+        # 初始化下拉菜单
+        self._init_section_menu()
+
         # widget 销毁时取消进行中的滚动动画 timeout，避免回调访问已释放的
         # scrolled_window 并持有引用阻碍 GC。SymbolsPage 非控件，故连接
         # 其持有的 scrolled_window 的 destroy。
@@ -127,15 +131,19 @@ class SymbolsPage(ScrollAnimatorMixin):
             return None
         cache = self._symbol_attrib_cache.get(category)
         if cache is None:
-            try:
-                xml_tree = ET.parse(os.path.join(ServiceLocator.get_resources_path(), 'symbols', category + '.xml'))
-            except (FileNotFoundError, ET.ParseError):
+            resources_path = ServiceLocator.get_resources_path()
+            if resources_path is None:
                 cache = {}
             else:
-                # iter('symbol') 替代原 findall('./symbol[@command=...']')
-                # 字符串拼接：避免 command 含单引号（如 \\text{'}）破坏
-                # XPath 语法或注入任意表达式。建字典后按 key O(1) 取值。
-                cache = {sym.attrib['command']: sym.attrib for sym in xml_tree.getroot().findall('./symbol')}
+                try:
+                    xml_tree = ET.parse(os.path.join(resources_path, 'symbols', category + '.xml'))
+                except (FileNotFoundError, ET.ParseError, TypeError):
+                    cache = {}
+                else:
+                    # iter('symbol') 替代原 findall('./symbol[@command=...']')
+                    # 字符串拼接：避免 command 含单引号（如 \\text{'}）破坏
+                    # XPath 语法或注入任意表达式。建字典后按 key O(1) 取值。
+                    cache = {sym.attrib['command']: sym.attrib for sym in xml_tree.getroot().findall('./symbol')}
             self._symbol_attrib_cache[category] = cache
         return cache.get(command)
 
@@ -237,6 +245,8 @@ class SymbolsPage(ScrollAnimatorMixin):
         self.favorites.append(new_item)
         self.add_favorite_symbol_to_flowbox(new_item)
         self.view.favorites_group.set_visible(True)
+        # 收藏列表改变时重建菜单（Favorites 现在可见了）
+        self._rebuild_section_menu()
         self.save_favorites()
 
     def remove_favorite_symbol(self, item):
@@ -249,6 +259,8 @@ class SymbolsPage(ScrollAnimatorMixin):
                 self.favorites_details.remove(symbol)
         if len(self.favorites) == 0:
             self.view.favorites_group.set_visible(False)
+            # 收藏列表清空时重建菜单（Favorites 不再可见）
+            self._rebuild_section_menu()
         self.save_favorites()
 
     def toggle_favorite_symbol(self, folder, command):
@@ -363,7 +375,51 @@ class SymbolsPage(ScrollAnimatorMixin):
         current_title = self.get_current_section_title(sections)
         if current_title != self._current_section_title:
             self._current_section_title = current_title
-            self.view.section_label.set_text(current_title)
+            self.view.section_menu_label.set_text(current_title)
+
+    def _init_section_menu(self):
+        """初始化下拉菜单：绑定 action group，首次构建菜单项。"""
+        # 创建菜单模型
+        self._section_menu = Gio.Menu()
+        self._section_menu_section = Gio.Menu()
+        self._section_menu.append_section(None, self._section_menu_section)
+
+        # 创建 action group 用于处理菜单项点击
+        self._section_action_group = Gio.SimpleActionGroup()
+        self.view.section_menu_button.insert_action_group('symbols', self._section_action_group)
+
+        # 为每个分类创建 action
+        self._section_actions = {}
+        for i, group in enumerate(self.view.labels):
+            action_name = f'jump-{i}'
+            action = Gio.SimpleAction.new(action_name, None)
+            action.connect('activate', self._on_section_menu_item_activated, i)
+            self._section_action_group.add_action(action)
+            self._section_actions[i] = action
+
+        # 构建菜单项
+        self._rebuild_section_menu()
+        self.view.section_menu_button.set_menu_model(self._section_menu)
+
+        # 给自动创建的 Popover 添加 .menu CSS class（项目标准做法）
+        popover = self.view.section_menu_button.get_popover()
+        if popover is not None:
+            popover.add_css_class('menu')
+
+    def _rebuild_section_menu(self):
+        """根据当前可见分类重建菜单项。"""
+        self._section_menu_section.remove_all()
+        for i, group in enumerate(self.view.labels):
+            if group.get_visible():
+                menu_item = Gio.MenuItem.new(group.get_title(), f'symbols.jump-{i}')
+                self._section_menu_section.append_item(menu_item)
+
+    def _on_section_menu_item_activated(self, action, parameter, index):
+        """菜单项点击：滚动到对应分类。"""
+        if index < len(self.view.labels):
+            group = self.view.labels[index]
+            if group.get_visible():
+                self.scroll_view(group.get_allocation().y)
 
     def on_next_button_clicked(self, button):
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
@@ -443,12 +499,38 @@ class SymbolsPage(ScrollAnimatorMixin):
             self.view.labels[i + offset].set_visible(symbols_found)
             self.view.placeholders[i + offset].set_visible(symbols_found)
 
+        # 搜索激活时，也需要过滤 Recent 和 Favorites 分组
+        if search_active:
+            for section_idx in [0, 1]:  # Recent, Favorites
+                section = self.view.labels[section_idx]
+                section_found = any(
+                    self._symbol_matches_search(sym, search_words)
+                    for sym in (self.recent_details if section_idx == 0 else self.favorites_details)
+                )
+                any_symbols_found |= section_found
+                section.set_visible(section_found)
+
+        # 搜索无结果时隐藏菜单按钮
+        self.view.section_menu_button.set_visible(not search_active or any_symbols_found)
+
         if search_active and not any_symbols_found:
             self.view.search_entry.add_css_class('error')
             self.view.content_stack.set_visible_child_name('no-results')
         else:
             self.view.search_entry.remove_css_class('error')
             self.view.content_stack.set_visible_child_name('content')
+
+        # 过滤后重建菜单（只显示可见分类）
+        self._rebuild_section_menu()
+
+    def _symbol_matches_search(self, symbol, search_words):
+        """检查单个 symbol 是否匹配搜索词列表。"""
+        if not search_words:
+            return True
+        for word in search_words:
+            if symbol[0].find(word) == -1 and symbol[1].find(word) == -1:
+                return False
+        return True
 
     def on_symbols_view_size_allocate(self, *arguments):
         for symbols_view in self.view.symbols_views:

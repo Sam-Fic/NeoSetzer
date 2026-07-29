@@ -117,6 +117,10 @@ class Workspace(Observable):
         document_candidate = self.get_document_by_filename(filename)
         if document_candidate != None:
             self.set_active_document(document_candidate)
+            main_window = ServiceLocator.get_main_window()
+            if main_window and hasattr(main_window, 'toast_overlay'):
+                GLib.idle_add(self._do_show_toast, main_window,
+                    _('{name} is already open').format(name=os.path.basename(filename)))
             return document_candidate
         else:
             document = self.create_document_from_filename(filename)
@@ -229,7 +233,9 @@ class Workspace(Observable):
         elif filename.endswith('.cls') or filename.endswith('.sty'):
             document = self.create_other_document()
         else:
-            return None
+            # 兜底：用户通过"All Files"选择的非 TeX/BibTeX 文件（如 .txt/.md）
+            # 作为纯文本(other)文档打开。
+            document = self.create_other_document()
         document.set_filename(filename)
         if lazy:
             # 懒加载：构造文档（含 view 加入 Stack）但不读文件内容，
@@ -609,6 +615,8 @@ class Workspace(Observable):
         document.set_last_activated(item['last_activated'])
         if 'cursor_offset' in item:
             document._restore_cursor_offset = item['cursor_offset']
+        if 'selection_bound_offset' in item:
+            document._restore_selection_bound_offset = item['selection_bound_offset']
         if 'scroll_offset' in item:
             document._restore_scroll_offset = item['scroll_offset']
         if 'folded_regions' in item:
@@ -641,6 +649,9 @@ class Workspace(Observable):
                 try:
                     cursor_offset = document.source_buffer.get_property('cursor-position')
                     doc_data['cursor_offset'] = cursor_offset
+                    if document.source_buffer.get_has_selection():
+                        doc_data['selection_bound_offset'] = document.source_buffer.get_iter_at_mark(
+                            document.source_buffer.get_selection_bound()).get_offset()
                 except Exception:
                     pass
                 try:
@@ -674,6 +685,9 @@ class Workspace(Observable):
                 try:
                     cursor_offset = document.source_buffer.get_property('cursor-position')
                     doc_data['cursor_offset'] = cursor_offset
+                    if document.source_buffer.get_has_selection():
+                        doc_data['selection_bound_offset'] = document.source_buffer.get_iter_at_mark(
+                            document.source_buffer.get_selection_bound()).get_offset()
                 except Exception:
                     pass
                 try:
@@ -933,6 +947,10 @@ class Workspace(Observable):
             self.set_show_preview_or_help(target_preview, target_help)
         else:
             self.presenter.update_preview_help_visibility(False)
+
+        # 在所有 reparent 和布局操作完成后，延迟更新缩放。
+        # 确保从独立窗口回到侧边栏后，fit 模式的缩放能正确适应新宽度。
+        self.pdf_preview_window.schedule_zoom_update()
 
         self.add_change_code('preview_pop_state_changed', False)
 

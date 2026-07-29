@@ -56,6 +56,7 @@ class WorkspacePresenter(object):
         self.main_window.reparent_headerbar(to_welcome=True)
         self.update_font()
         self.update_colors()
+        self.update_shortcuts_bar_visibility()
         self.setup_paneds()
 
     def on_settings_changed(self, settings, parameter):
@@ -66,6 +67,9 @@ class WorkspacePresenter(object):
 
         if item == 'color_scheme':
             self.update_colors()
+
+        if item == 'show_shortcuts_bar':
+            self.update_shortcuts_bar_visibility()
 
     def on_new_document(self, workspace, document):
         self.main_window.document_stack.add_child(document.view)
@@ -279,9 +283,17 @@ class WorkspacePresenter(object):
 
     def update_font(self):
         if self.settings.get_value('preferences', 'use_system_font'):
-            FontManager.font_string = FontManager.default_font_string
+            base_font_string = FontManager.default_font_string
         else:
-            FontManager.font_string = self.settings.get_value('preferences', 'font_string')
+            base_font_string = self.settings.get_value('preferences', 'font_string')
+        # 加载保存的缩放倍率：默认 1.0（无缩放）。应用到基准字号上得到最终字号。
+        # 这样即使 use_system_font=True，用户的缩放偏好也能跨重启保持。
+        saved_zoom = self.settings.get_value('preferences', 'editor_font_zoom_level')
+        FontManager.saved_zoom_level = saved_zoom
+        if saved_zoom != 1.0:
+            FontManager.font_string = FontManager.apply_zoom_to_font(base_font_string, saved_zoom)
+        else:
+            FontManager.font_string = base_font_string
         FontManager.propagate_font_setting()
         # 编辑器字体变化（含缩放）后，帮助文档 WebView 也用同一字体，需同步
         # 重新注入其 CSS（update_colors 仅颜色，不含字体，故单独刷新）。
@@ -293,6 +305,10 @@ class WorkspacePresenter(object):
         # 自绘控件通过 ColorManager 的内置色回退取色。
         try: self.workspace.help_panel.update_colors()
         except AttributeError: pass
+
+    def update_shortcuts_bar_visibility(self):
+        show = self.settings.get_value('preferences', 'show_shortcuts_bar')
+        self.main_window.shortcutsbar.set_visible(show)
 
     def setup_paneds(self):
         sidebar_visible_for_latex_docs = self.workspace.show_symbols or self.workspace.show_document_structure

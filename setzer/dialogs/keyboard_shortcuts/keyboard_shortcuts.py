@@ -50,6 +50,8 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Save the current document'), 'shortcut': shortcuts.get('save', '<ctrl>S')})
         section['items'].append({'title': _('Save the document with a new filename'), 'shortcut': shortcuts.get('save_as', '<ctrl><shift>S')})
         section['items'].append({'title': _('Close the current document'), 'shortcut': shortcuts.get('close_document', '<ctrl>W')})
+        section['items'].append({'title': _('Close all open documents'), 'shortcut': shortcuts.get('close_all_documents', '<ctrl><shift>W')})
+        section['items'].append({'title': _('Restore a previously saved session'), 'shortcut': shortcuts.get('restore_session', '<ctrl><shift>J')})
         data.append(section)
 
         section = {'title': _('Tools'), 'items': list()}
@@ -59,7 +61,10 @@ class KeyboardShortcutsDialog(object):
         data.append(section)
 
         section = {'title': _('Windows and Panels'), 'items': list()}
+        section['items'].append({'title': _('Open the preferences dialog'), 'shortcut': shortcuts.get('show_preferences_dialog', '<ctrl>comma')})
+        section['items'].append({'title': _('Show the about dialog'), 'shortcut': shortcuts.get('show_about_dialog', '<ctrl><shift>H')})
         section['items'].append({'title': _('Show help panel'), 'shortcut': shortcuts.get('help', 'F1')})
+        section['items'].append({'title': _('Toggle fullscreen'), 'shortcut': shortcuts.get('fullscreen', 'F11')})
         section['items'].append({'title': _('Toggle document structure panel'), 'shortcut': shortcuts.get('document_structure', '<ctrl><shift>B')})
         section['items'].append({'title': _('Toggle symbols panel'), 'shortcut': shortcuts.get('symbols', '<ctrl><shift>S')})
         section['items'].append({'title': _('Toggle build log'), 'shortcut': shortcuts.get('build_log', '<ctrl><shift>L')})
@@ -110,7 +115,7 @@ class KeyboardShortcutsDialog(object):
         data.append(section)
 
         section = {'title': _('LaTeX Shortcuts'), 'items': list()}
-        section['items'].append({'title': _('Comment / Uncomment current line(s)'), 'shortcut': shortcuts.get('toggle_comment', '<ctrl>k')})
+        section['items'].append({'title': _('Comment / Uncomment current line(s)'), 'shortcut': shortcuts.get('toggle_comment', '<ctrl>slash')})
         section['items'].append({'title': _('New Line') + ' (\\\\)', 'shortcut': shortcuts.get('new_line', '<ctrl>Return')})
         section['items'].append({'title': _('Bold Text'), 'shortcut': shortcuts.get('bold', '<ctrl>B')})
         section['items'].append({'title': _('Italic Text'), 'shortcut': shortcuts.get('italic', '<ctrl>I')})

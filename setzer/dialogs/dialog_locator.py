@@ -63,7 +63,7 @@ class DialogLocator():
         dialogs['save_document'] = SaveDocumentDialog(main_window, workspace)
         dialogs['save_session'] = SaveSessionDialog(main_window, workspace)
         dialogs['close_confirmation'] = CloseConfirmationDialog(main_window, workspace)
-        dialogs['building_failed'] = BuildingFailedDialog(main_window, dialogs['preferences'])
+        dialogs['building_failed'] = BuildingFailedDialog(main_window, dialogs['preferences'], workspace)
         dialogs['interpreter_missing'] = InterpreterMissingDialog(main_window, dialogs['preferences'])
         DialogLocator.dialogs = dialogs
     

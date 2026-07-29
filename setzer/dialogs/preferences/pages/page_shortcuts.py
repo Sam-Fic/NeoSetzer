@@ -22,9 +22,35 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gio, GLib, Gdk
 import json
 import os
+import re
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
+
+
+# 修饰符标准顺序，与 setzer/settings/settings.py 中 keyboard_shortcuts
+# 默认值书写顺序一致（<Control><Shift><Alt><Super>）。find_conflicting_action
+# 用字符串相等判断冲突，因此 Gtk.accelerator_name 返回的任意顺序（如
+# '<Shift><Control>s'）都必须归一化到该顺序才能正确匹配。
+_CANONICAL_MOD_ORDER = ('Control', 'Shift', 'Alt', 'Super')
+
+# 这些 keysym 只是修饰键本身（Ctrl / Shift / Alt / …），单独按下不应被当作
+# 快捷键，而是等待主键。
+_MODIFIER_KEYVAL_NAMES = {
+    'Control_L', 'Control_R', 'Shift_L', 'Shift_R', 'Alt_L', 'Alt_R',
+    'Super_L', 'Super_R', 'Meta_L', 'Meta_R', 'ISO_Level3_Shift',
+    'ISO_Level5_Shift', 'Num_Lock', 'Caps_Lock', 'Scroll_Lock',
+}
+
+
+def _normalize_shortcut(raw):
+    '''把 Gtk.accelerator_name 的输出重排成与默认值一致的标准顺序。'''
+    mods = re.findall(r'<([^>]+)>', raw)
+    key = re.sub(r'<[^>]+>', '', raw)
+    ordered = [m for m in _CANONICAL_MOD_ORDER if m in mods]
+    ordered += [m for m in mods if m not in _CANONICAL_MOD_ORDER]
+    return ''.join('<%s>' % m for m in ordered) + key
 
 
 class PageShortcuts(object):
@@ -39,6 +65,7 @@ class PageShortcuts(object):
         self.key_controller = None
         self._batch_update = False
         self._pending_assignment = None
+        self._pending_import = None
         # title/description 字典懒加载缓存：首次调用 get_action_title/
         # get_action_description 时构建（此时 _() 已由 gettext 注入），
         # 后续直接读缓存，不再每次 add_shortcut_row 重建 ~100 项的字典。
@@ -137,7 +164,11 @@ class PageShortcuts(object):
                 'superscript': _('Superscript'),
                 'fraction': _('Fraction'),
                 'left': _('Left'),
-                'right': _('Right')
+                'right': _('Right'),
+                'show_preferences_dialog': _('Preferences'),
+                'show_about_dialog': _('About'),
+                'close_all_documents': _('Close All Documents'),
+                'restore_session': _('Restore Session')
             }
         return self._action_titles.get(action_name, action_name)
 
@@ -199,30 +230,21 @@ class PageShortcuts(object):
                 'superscript': _('Insert superscript'),
                 'fraction': _('Insert fraction'),
                 'left': _('Insert \\left'),
-                'right': _('Insert \\right')
+                'right': _('Insert \\right'),
+                'show_preferences_dialog': _('Open the preferences dialog'),
+                'show_about_dialog': _('Show the about dialog'),
+                'close_all_documents': _('Close all open documents'),
+                'restore_session': _('Restore a previously saved session')
             }
         return self._action_descriptions.get(action_name, '')
 
     def format_shortcut(self, shortcut):
+        # 与 tooltip 共用同一渲染逻辑（shortcut_tooltips.format_shortcut），
+        # 保证偏好页按钮标签和各控件 tooltip 显示完全一致；并且能把
+        # '<Control>quotedbl' 这类 keysym 渲染成 'Ctrl+"' 而非 'CTRL + QUOTEDBL'。
         if not shortcut:
             return _('Not set')
-        
-        parts = shortcut.split('<')
-        formatted_parts = []
-        for part in parts:
-            if not part:
-                continue
-            part = part.rstrip('>')
-            if part == 'Control':
-                formatted_parts.append('Ctrl')
-            elif part == 'Shift':
-                formatted_parts.append('Shift')
-            elif part == 'Alt':
-                formatted_parts.append('Alt')
-            else:
-                formatted_parts.append(part.upper())
-        
-        return ' + '.join(formatted_parts)
+        return shortcut_tooltips.format_shortcut(shortcut)
 
     def on_shortcut_button_clicked(self, button, action_name):
         if self.current_shortcut_button:
@@ -305,31 +327,33 @@ class PageShortcuts(object):
         self._pending_assignment = None
 
     def event_to_shortcut(self, keyval, state):
-        '''Convert a key-press event to a shortcut trigger string.
+        '''把一次按键事件转换成与 settings 中存储格式一致的快捷键串。
 
-        注意：Gtk.accelerator_get_label 返回的键名依赖当前键盘布局——例如
-        Ctrl+[ 在英文键盘返回 '['，但在德语键盘可能返回 'ü'。这是 GTK 的标准
-        本地化行为：用户看到的是其键盘布局上实际按下的键。快捷键字符串存入
-        settings 后，在不同布局的键盘上可能不匹配。这是已知的 GTK 限制，
-        非本代码 bug；GTK4 的 Gtk.ShortcutTrigger.parse_string 对符号键有
-        一定的布局无关匹配能力，但 accelerator_get_label 的输出仍受布局影响。'''
-        parts = []
-        
-        if state & Gdk.ModifierType.CONTROL_MASK:
-            parts.append('Control')
-        if state & Gdk.ModifierType.SHIFT_MASK:
-            parts.append('Shift')
-        if state & Gdk.ModifierType.MOD1_MASK:
-            parts.append('Alt')
-        
-        key_name = Gtk.accelerator_get_label(keyval, state)
-        if key_name and key_name not in ['Control', 'Shift', 'Alt', '']:
-            parts.append(key_name)
-        
-        if len(parts) < 2:
+        必须用 Gtk.accelerator_name（返回 '<Control>c' / 'F5' 这类规范串），
+        绝不能用 Gtk.accelerator_get_label（后者返回 'Ctrl+C' 这种含修饰符的
+        展示标签）。旧实现把展示标签当键名拼接，得到的串形如
+        '<Control><Ctrl+C>'，既无法被 Gtk.ShortcutTrigger.parse_string 解析，
+        也和已存的 '<Control>c' 对不上——这导致 find_conflicting_action
+        永远匹配不到冲突，即用户能静默制造重复绑定（偏好页“没有冲突检测”
+        的真正根因）。'''
+        # 单独按下修饰键（Ctrl / Shift / Alt / …）不算完成，等待主键。
+        if Gdk.keyval_name(keyval) in _MODIFIER_KEYVAL_NAMES:
             return None
-        
-        return '<' + '><'.join(parts) + '>'
+
+        # 忽略 CapsLock / NumLock 等锁存修饰符，它们不应构成快捷键的一部分。
+        state &= Gtk.accelerator_get_default_mod_mask()
+
+        raw = Gtk.accelerator_name(keyval, state)
+        if not raw:
+            return None
+
+        # 无修饰符时，只有功能键（F1-F12）与特殊键（Tab/Return/...）允许单独
+        # 绑定；单个可输入字符（字母/数字/标点）会被正常打字需要，拒绝。
+        key = re.sub(r'<[^>]+>', '', raw)
+        if state == 0 and key and len(key) == 1:
+            return None
+
+        return _normalize_shortcut(raw)
 
     def set_shortcut(self, action_name, shortcut):
         shortcuts = self.settings.get_value('keyboard_shortcuts', None)
@@ -423,31 +447,128 @@ class PageShortcuts(object):
         try:
             file = dialog.open_finish(result)
             if file:
-                with open(file.get_path(), 'r') as f:
-                    shortcuts = json.load(f)
+                with open(file.get_path(), 'r', encoding='utf-8') as f:
+                    raw = json.load(f)
 
-                imported = 0
-                skipped = 0
-                # _batch_update 避免 N 次 set_shortcut 各自更新 controller，
-                # 全部写完后一次 rebuild_shortcut_controllers。
-                self._batch_update = True
-                for action_name, shortcut in shortcuts.items():
-                    if action_name in self.settings.defaults['keyboard_shortcuts']:
-                        self.set_shortcut(action_name, shortcut)
-                        imported += 1
-                    else:
-                        skipped += 1
-                self._batch_update = False
-                self.rebuild_shortcut_controllers()
+                # 仅保留已知 action；未知 action 跳过。导入串统一规范化为存储
+                # 格式（也顺带校验：无法解析的串视为无效而跳过），保证后续冲突
+                # 比较基于一致的字符串。
+                imported = {}
+                skipped_unknown = 0
+                skipped_invalid = 0
+                for action_name, shortcut in raw.items():
+                    if action_name not in self.settings.defaults['keyboard_shortcuts']:
+                        skipped_unknown += 1
+                        continue
+                    normalized = self._normalize_imported_shortcut(shortcut)
+                    if normalized is None:
+                        skipped_invalid += 1
+                        continue
+                    imported[action_name] = normalized
 
-                if skipped > 0:
-                    self._show_toast(
-                        _('Imported {n} shortcuts, skipped {m} unknown actions').format(
-                            n=imported, m=skipped))
-                else:
-                    self._show_toast(_('Imported {n} shortcuts').format(n=imported))
+                # 合并“当前设置 + 导入覆盖”，检测重复绑定冲突。冲突可能来自
+                # 导入文件内部（两个 action 同键），也可能来自导入项与“未参与
+                # 导入的现有项”相撞。
+                current = dict(self.settings.get_value('keyboard_shortcuts', None)
+                               or self.settings.defaults['keyboard_shortcuts'])
+                merged = dict(current)
+                merged.update(imported)
+                conflicts = self._find_conflicts_in_set(merged)
+
+                if conflicts:
+                    self._pending_import = (imported, skipped_unknown, skipped_invalid, conflicts)
+                    self._show_import_conflict_dialog(conflicts)
+                    return
+
+                self._apply_import(imported, skipped_unknown, skipped_invalid, resolve=False)
         except Exception as e:
             self._show_toast(_('Failed to import shortcuts: {error}').format(error=str(e)))
+
+    def _normalize_imported_shortcut(self, shortcut):
+        '''把导入的快捷键串规范化为存储格式；无法解析则返回 None（无效）。'''
+        if not shortcut:
+            return ''  # 未分配
+        _ok, keyval, mods = Gtk.accelerator_parse(shortcut)
+        if keyval == 0:
+            return None
+        return _normalize_shortcut(Gtk.accelerator_name(keyval, mods))
+
+    def _find_conflicts_in_set(self, shortcuts):
+        '''返回 [(shortcut, [action, ...]), ...]，即被 >1 个 action 绑定的快捷键
+        （未分配 '' 不计入）。'''
+        by_shortcut = {}
+        for action, shortcut in shortcuts.items():
+            if not shortcut:
+                continue
+            by_shortcut.setdefault(shortcut, []).append(action)
+        return [(sc, acts) for sc, acts in by_shortcut.items() if len(acts) > 1]
+
+    def _resolve_conflicts(self, merged, imported):
+        '''就地解决合并集里的重复绑定，保证写回后无冲突。
+
+        规则：每个冲突组内保留一个“胜出项”，其余清空。胜出项优先取导入项，
+        同一组内多个导入项则取合并顺序中最后出现的那一个。'''
+        for _sc, acts in self._find_conflicts_in_set(merged):
+            winner = None
+            for action in acts:
+                if action in imported:
+                    winner = action  # 最后一个导入项胜出
+            if winner is None:
+                winner = acts[-1]
+            for action in acts:
+                if action != winner:
+                    merged[action] = ''
+        return merged
+
+    def _apply_import(self, imported, skipped_unknown, skipped_invalid, resolve):
+        current = dict(self.settings.get_value('keyboard_shortcuts', None)
+                       or self.settings.defaults['keyboard_shortcuts'])
+        merged = dict(current)
+        merged.update(imported)
+        if resolve:
+            merged = self._resolve_conflicts(merged, imported)
+
+        # _batch_update 避免 N 次 set_shortcut 各自更新 controller，
+        # 全部写完后一次 rebuild_shortcut_controllers。
+        self._batch_update = True
+        for action, shortcut in merged.items():
+            if shortcut != current.get(action):
+                self.set_shortcut(action, shortcut)
+        self._batch_update = False
+        self.rebuild_shortcut_controllers()
+
+        parts = [_('Imported {n} shortcuts').format(n=len(imported))]
+        if skipped_unknown > 0:
+            parts.append(_('skipped {m} unknown actions').format(m=skipped_unknown))
+        if skipped_invalid > 0:
+            parts.append(_('skipped {m} invalid shortcuts').format(m=skipped_invalid))
+        self._show_toast(', '.join(parts) + '.')
+
+    def _show_import_conflict_dialog(self, conflicts):
+        details = '\n'.join(
+            '• ' + self.format_shortcut(sc) + ': ' +
+            ', '.join(self.get_action_title(a) for a in acts)
+            for sc, acts in conflicts)
+        body = _('The imported file conflicts with existing or other imported '
+                 'shortcuts ({n} conflict(s)). Proceeding will assign each '
+                 'conflicting shortcut to the imported action and clear it from '
+                 'the other action(s).').format(n=len(conflicts))
+        dialog = Adw.AlertDialog(
+            heading=_('Shortcut Conflicts in Import'),
+            body=body + '\n\n' + details)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('resolve', _('Import and Resolve'))
+        dialog.set_response_appearance('resolve', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self.on_import_conflict_response)
+
+    def on_import_conflict_response(self, dialog, result):
+        response_id = dialog.choose_finish(result)
+        if response_id == 'resolve' and self._pending_import is not None:
+            imported, skipped_unknown, skipped_invalid, _conflicts = self._pending_import
+            self._apply_import(imported, skipped_unknown, skipped_invalid, resolve=True)
+        self._pending_import = None
 
     def on_export_clicked(self, button):
         dialog = Gtk.FileDialog()
@@ -471,7 +592,7 @@ class PageShortcuts(object):
                 if shortcuts is None:
                     shortcuts = self.settings.defaults['keyboard_shortcuts']
 
-                with open(file.get_path(), 'w') as f:
+                with open(file.get_path(), 'w', encoding='utf-8') as f:
                     json.dump(shortcuts, f, indent=2)
                 self._show_toast(_('Exported {n} shortcuts').format(n=len(shortcuts)))
         except Exception as e:

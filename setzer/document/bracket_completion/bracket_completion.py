@@ -29,6 +29,7 @@ _KEYVAL_BACKSLASH = Gdk.keyval_from_name('backslash')
 _KEYVAL_BRACKETLEFT = Gdk.keyval_from_name('bracketleft')
 _KEYVAL_BRACELEFT = Gdk.keyval_from_name('braceleft')
 _KEYVAL_PARENLEFT = Gdk.keyval_from_name('parenleft')
+_KEYVAL_DOLLAR = Gdk.keyval_from_name('dollar')
 _KEYVAL_BRACKETRIGHT = Gdk.keyval_from_name('bracketright')
 _KEYVAL_BRACERIGHT = Gdk.keyval_from_name('braceright')
 _KEYVAL_PARENRIGHT = Gdk.keyval_from_name('parenright')
@@ -94,6 +95,8 @@ class BracketCompletion(object):
                 return self.bracket_selection('{')
             if keyval == _KEYVAL_PARENLEFT:
                 return self.bracket_selection('(')
+            if keyval == _KEYVAL_DOLLAR:
+                return self.bracket_selection('$')
         else:
             if keyval == _KEYVAL_BRACKETLEFT:
                 return self.autoclose_brackets('[')
@@ -101,6 +104,8 @@ class BracketCompletion(object):
                 return self.autoclose_brackets('{')
             if keyval == _KEYVAL_PARENLEFT:
                 return self.autoclose_brackets('(')
+            if keyval == _KEYVAL_DOLLAR:
+                return self.autoclose_brackets('$')
 
             if keyval == _KEYVAL_BRACKETRIGHT:
                 return self.handle_autoclosing_bracket_overwrite(']')
@@ -110,6 +115,8 @@ class BracketCompletion(object):
                 return self.handle_autoclosing_bracket_overwrite(')')
             if keyval == _KEYVAL_BACKSLASH:
                 return self.handle_autoclosing_bracket_overwrite('\\')
+            if keyval == _KEYVAL_DOLLAR:
+                return self.handle_autoclosing_bracket_overwrite('$')
 
         return False
 
@@ -137,7 +144,7 @@ class BracketCompletion(object):
         # but put a backslash or brackets around it.
 
         bounds = self.source_buffer.get_selection_bounds()
-        closing_char = {'[': ']', '{': '}', '(': ')', '\\': ''}[char]
+        closing_char = {'[': ']', '{': '}', '(': ')', '$': '$', '\\': ''}[char]
         if self.document.get_chars_at_iter(bounds[0], -1) == '\\' and char in ['[', '{', '(']:
             closing_char = '\\' + closing_char
         offset_start = bounds[0].get_offset()
@@ -160,7 +167,7 @@ class BracketCompletion(object):
     def autoclose_brackets(self, char):
         if not self.autoclose_enabled: return False
 
-        closing_char = {'[': ']', '{': '}', '(': ')'}[char]
+        closing_char = {'[': ']', '{': '}', '(': ')', '$': '$'}[char]
         if self.document.get_chars_at_cursor(-1) == '\\':
             closing_char = '\\' + closing_char
 

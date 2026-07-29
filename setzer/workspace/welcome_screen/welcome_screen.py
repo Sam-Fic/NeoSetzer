@@ -309,11 +309,11 @@ class WelcomeScreen(object):
             return
         import os.path
         if not os.path.isfile(filename):
-            # 文件已被删除：从栈中移除并刷新（reopen_closed_document 内部
-            # 也会处理，但显式检查避免无谓的 open_document_by_filename 调用）
-            self.workspace.actions.reopen_closed_document(filename)
+            if hasattr(self.workspace, 'actions'):
+                self.workspace.actions.reopen_closed_document(filename)
             return
-        self.workspace.actions.reopen_closed_document(filename)
+        if hasattr(self.workspace, 'actions'):
+            self.workspace.actions.reopen_closed_document(filename)
 
     def refresh_closed_documents(self):
         '''从 actions.get_closed_document_stack() 重建「最近关闭」列表。
@@ -321,6 +321,8 @@ class WelcomeScreen(object):
         栈最多 5 项，无需 row 缓存（与 recent 不同，closed 频率低、量小）。
         栈为空时隐藏整个 section。
         '''
+        if not hasattr(self.workspace, 'actions'):
+            return
         listbox = self.view.closed_listbox
         closed_stack = self.workspace.actions.get_closed_document_stack()
 

@@ -49,6 +49,9 @@ class Gutter(object):
         self.code_folding_visible = self.document.is_latex_document() and self.settings.get_value('preferences', 'enable_code_folding')
         self.code_folding_width = None
 
+        self.bookmarks_width = None
+        self._bookmark_icon_nodes = dict()
+
         self.highlight_current_line = self.settings.get_value('preferences', 'highlight_current_line')
 
         self.char_width = FontManager.get_char_width(self.source_view)
@@ -108,6 +111,7 @@ class Gutter(object):
         self.document.connect('changed', self.on_document_change)
         self.document.connect('cursor_position_changed', self.on_cursor_change)
         self.document.code_folding.connect('folding_state_changed', self.on_folding_state_changed)
+        self.document.bookmarks.connect('bookmarks_changed', self.on_bookmarks_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('changed', self.on_adjustment_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
         self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
@@ -130,15 +134,20 @@ class Gutter(object):
         self.drawing_area.add_controller(event_controller)
 
     def shutdown(self):
-        '''文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
+        """文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
         取消挂起的 idle 回调和减速动画 timeout。
 
         settings 是进程级单例，不断开会导致单例持续持有 gutter 回调引用，
         进而通过 gutter 持有 document，文档对象无法被 GC 回收，且后续设置
         变更会调到已失效的 on_settings_changed（访问已销毁的 drawing_area）。
-        '''
+        """
         try:
             self.settings.disconnect('settings_changed', self._settings_callback)
+        except (TypeError, KeyError, AttributeError):
+            pass
+
+        try:
+            self.document.bookmarks.disconnect('bookmarks_changed', self.on_bookmarks_changed)
         except (TypeError, KeyError, AttributeError):
             pass
 
@@ -185,6 +194,9 @@ class Gutter(object):
     def on_folding_state_changed(self, code_folding):
         self._schedule_refresh()
 
+    def on_bookmarks_changed(self, bookmarks):
+        self._schedule_refresh()
+
     def _schedule_refresh(self):
         '''5 路信号共用一次 idle 刷新。单次按键至少触发 on_document_change +
         on_cursor_change 两路，去抖后只跑一遍 update + queue_draw。'''
@@ -199,11 +211,17 @@ class Gutter(object):
         return False
 
     def on_button_press(self, event_controller, n_press, x, y):
-        if self.hovered_folding_region != None:
+        cursor_area = self.get_cursor_area()
+        if cursor_area == 'code_folding' and self.hovered_folding_region != None:
             if self.hovered_folding_region['is_folded']:
                 self.document.code_folding.unfold(self.hovered_folding_region)
             else:
                 self.document.code_folding.fold(self.hovered_folding_region)
+        elif cursor_area == 'bookmarks':
+            offset = self.adjustment.get_value()
+            line_iter, _ = self.source_view.get_line_at_y(offset + y)
+            line = line_iter.get_line()
+            self.document.bookmarks.toggle_bookmark(line)
         else:
             offset = self.adjustment.get_value()
             target = self.source_view.get_line_at_y(offset + y).target_iter
@@ -307,6 +325,7 @@ class Gutter(object):
             # 图标渲染节点是按尺寸缓存的，字体变化导致尺寸变化需失效重算。
             self._folding_icon_nodes.clear()
             self._newline_icon_nodes.clear()
+            self._bookmark_icon_nodes.clear()
 
     def update_size(self, line_count=None):
         self._refresh_font_metrics_if_changed()
@@ -322,6 +341,11 @@ class Gutter(object):
             self.code_folding_width = 3 * self.char_width
         else:
             self.code_folding_width = 0
+
+        # Bookmarks area: always visible, provides toggle for bookmark icons.
+        # Uses ~1.5 chars width (similar to code folding icon size).
+        self.bookmarks_width = max(8, round(self.char_width * 1.5))
+        total_width += self.bookmarks_width
 
         if total_width != self.total_width or line_numbers_width != self.line_numbers_width:
             self.total_width = total_width
@@ -497,6 +521,8 @@ class Gutter(object):
         if self.code_folding_visible:
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
 
+        self.draw_bookmark(ctx, line, offset, line_height)
+
     def draw_line_number(self, ctx, line, is_current, offset, line_height):
         fg, bg = self._get_scheme_colors()
 
@@ -645,6 +671,46 @@ class Gutter(object):
             node.draw(ctx)
             ctx.restore()
 
+    def draw_bookmark(self, ctx, line, offset, line_height):
+        """Draw bookmark icon on lines that have bookmarks."""
+        if not self.document.bookmarks.has_bookmark(line):
+            return
+
+        icon_name = 'bookmark-filled-symbolic'
+        size = self.bookmarks_width
+        node = self._get_bookmark_icon_node(icon_name, size)
+        if node is None:
+            # Fallback to outline icon if filled version is not available
+            node = self._get_bookmark_icon_node('bookmark-new-symbolic', size)
+        if node is not None:
+            # Position: right after code_folding area (or line numbers if no folding)
+            x_offset = self.line_numbers_width
+            if self.code_folding_visible:
+                x_offset += self.code_folding_width
+            x_offset += (self.bookmarks_width - size) / 2
+            y_offset = offset + (line_height - size) / 2
+            ctx.save()
+            ctx.translate(round(x_offset), round(y_offset))
+            node.draw(ctx)
+            ctx.restore()
+
+    def _get_bookmark_icon_node(self, icon_name, size):
+        """Render a bookmark icon as a cached Gsk.RenderNode."""
+        key = (icon_name, size)
+        node = self._bookmark_icon_nodes.get(key)
+        if node is not None:
+            return node
+        theme = Gtk.IconTheme.get_for_display(self.source_view.get_display())
+        paintable = theme.lookup_icon(icon_name, None, size, 1,
+                                      Gtk.TextDirection.NONE, Gtk.IconLookupFlags(0))
+        if paintable is None:
+            return None
+        snapshot = Gtk.Snapshot()
+        paintable.snapshot(snapshot, size, size)
+        node = snapshot.to_node()
+        self._bookmark_icon_nodes[key] = node
+        return node
+
     def draw_hovered_folding_region(self, ctx):
         Gdk.cairo_set_source_rgba(ctx, ColorManager.get_ui_color('code_folding_hover'))
         if self.hovered_folding_region != None:
@@ -666,6 +732,10 @@ class Gutter(object):
         if self.code_folding_visible:
             offset += self.code_folding_width
         if self.cursor_x <= offset: return 'code_folding'
+
+        if self.bookmarks_width:
+            offset += self.bookmarks_width
+        if self.cursor_x <= offset: return 'bookmarks'
 
         return None
 

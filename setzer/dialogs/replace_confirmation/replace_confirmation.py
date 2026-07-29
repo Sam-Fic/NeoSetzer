@@ -43,10 +43,10 @@ class ReplaceConfirmationDialog(object):
         if number_of_occurrences < 0:
             # GtkSource 异步扫描尚未完成（-1）：告知用户正在计算匹配数，
             # 而非静默降级为不含数字的通用提示——用户知道为什么没有具体数字。
-            heading = _('Replace all matches of »{original}« with »{replacement}«?').format(original=original, replacement=replacement)
+            heading = _('Replace all matches of "{original}" with "{replacement}"?').format(original=original, replacement=replacement)
             body = _('Counting matches… The number of occurrences is still being calculated.')
         else:
-            str_occurrences = ngettext('Replacing {amount} occurence of »{original}« with »{replacement}«.', 'Replacing {amount} occurrences of »{original}« with »{replacement}«.', number_of_occurrences)
+            str_occurrences = ngettext('Replacing {amount} occurence of "{original}" with "{replacement}".', 'Replacing {amount} occurrences of "{original}" with "{replacement}".', number_of_occurrences)
             heading = str_occurrences.format(amount=str(number_of_occurrences), original=original, replacement=replacement)
             body = _('Do you really want to do this?')
         self.view = Adw.AlertDialog(

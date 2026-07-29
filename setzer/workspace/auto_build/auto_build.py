@@ -154,7 +154,9 @@ class AutoBuild(object):
 
         # save the edited document if it has unsaved changes, then build.
         if document.source_buffer.get_modified():
-            document.save_to_disk()
+            if not document.save_to_disk():
+                # 保存失败，跳过构建（toast 已由 save_to_disk 弹出）
+                return False
 
         active_document = self.workspace.get_active_document()
         if active_document == None:

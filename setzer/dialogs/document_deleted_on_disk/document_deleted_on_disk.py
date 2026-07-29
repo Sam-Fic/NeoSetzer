@@ -37,7 +37,7 @@ class DocumentDeletedOnDiskDialog(object):
     def setup(self, document):
         self.document = document
         self.view = Adw.AlertDialog(
-            heading=_('Document »{document}« was deleted from disk or moved.').format(document=document.get_displayname()),
+            heading=_('Document "{document}" was deleted from disk or moved.').format(document=document.get_displayname()),
             body=_('If you close it or close Setzer without saving, this document will be lost.'))
         self.view.add_response('save_as', _('Save As…'))
         # 「Ok」语义不清（用户可能误以为「关闭文档」）。实际行为是：保留文档

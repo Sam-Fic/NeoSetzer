@@ -140,12 +140,26 @@ class AutoSave(object):
         text = document.get_all_text()
         if text is None:
             return
+        # 将 GtkTextBuffer 中的 LF 转换回原始换行符格式
+        line_ending = getattr(document, 'line_ending', '\n')
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        if line_ending != '\n':
+            text = text.replace('\n', line_ending)
         temp_path = self.get_temp_filename(document)
         try:
             # 原子写入：先写 .tmp 再 os.replace，避免崩溃时读到半写文件
             tmp = temp_path + '.tmp'
-            with open(tmp, 'w') as f:
-                f.write(text)
+            # 使用文档的原编码保存（保留 BOM 状态，fallback 到 utf-8）
+            encoding = getattr(document, 'file_encoding', 'utf-8')
+            has_bom = getattr(document, 'has_bom', False)
+            try:
+                encoded = text.encode(encoding)
+                if has_bom:
+                    encoded = self._prepend_bom_for_autosave(encoded, encoding)
+            except (UnicodeEncodeError, LookupError):
+                encoded = text.encode('utf-8', errors='replace')
+            with open(tmp, 'wb') as f:
+                f.write(encoded)
             os.replace(tmp, temp_path)
         except OSError:
             return
@@ -162,7 +176,7 @@ class AutoSave(object):
     # ---- manifest ----
     def load_manifest(self):
         try:
-            with open(self.manifest_path, 'r') as f:
+            with open(self.manifest_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except (OSError, ValueError):
             return {}
@@ -170,7 +184,7 @@ class AutoSave(object):
     def save_manifest(self, manifest):
         try:
             tmp = self.manifest_path + '.tmp'
-            with open(tmp, 'w') as f:
+            with open(tmp, 'w', encoding='utf-8') as f:
                 json.dump(manifest, f, ensure_ascii=False, indent=2)
             os.replace(tmp, self.manifest_path)
         except OSError:
@@ -209,3 +223,15 @@ class AutoSave(object):
             os.remove(self.manifest_path)
         except OSError:
             pass
+
+@staticmethod
+def _prepend_bom_for_autosave(encoded_bytes, encoding):
+    '''为 autosave 文件添加 BOM（如果原文件有 BOM）。'''
+    enc = encoding.lower().replace('-', '_')
+    if enc in ('utf_8', 'utf8'):
+        return b'\xef\xbb\xbf' + encoded_bytes
+    if enc in ('utf_16_le', 'utf16_le', 'utf_16le'):
+        return b'\xff\xfe' + encoded_bytes
+    if enc in ('utf_16_be', 'utf16_be', 'utf_16be'):
+        return b'\xfe\xff' + encoded_bytes
+    return encoded_bytes

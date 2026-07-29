@@ -39,8 +39,8 @@ class DocumentChangedOnDiskDialog(object):
 
     def setup(self, document):
         self.view = Adw.AlertDialog(
-            heading=_('Document »{document}« has changed on disk.').format(document=document.get_displayname()),
-            body=_('Should Setzer reload it now?'))
+            heading=_('Document "{document}" has changed on disk.').format(document=document.get_displayname()),
+            body=_('Should Setzer reload it now? Reloading will discard your unsaved changes.'))
         self.view.add_response('keep', _('Keep the current Version'))
         self.view.add_response('reload', _('Reload from Disk'))
         self.view.set_response_appearance('reload', Adw.ResponseAppearance.DESTRUCTIVE)

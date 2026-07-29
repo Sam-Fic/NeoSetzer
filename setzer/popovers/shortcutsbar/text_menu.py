@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import GLib
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.helpers.gio_menu_builder import GioMenuBuilder
 
 
@@ -26,6 +27,9 @@ class TextMenu(GioMenuBuilder):
 
     def __init__(self, popover_manager=None):
         GioMenuBuilder.__init__(self)
+
+        # 菜单项的快捷键标签从设置实时读取（构建时），不再写死字面量
+        key = lambda action: (shortcut_tooltips.get_action_label(action) or None)
 
         self.add_menu_button(_('Font Styles'), 'font_styles')
         self.add_menu_button(_('Font Sizes'), 'font_sizes')
@@ -35,7 +39,7 @@ class TextMenu(GioMenuBuilder):
         self.add_separator()
         self.add_menu_button(_('Sectioning'), 'sectioning')
         self.add_separator()
-        self.add_before_after_item('main', _('Environment'), ['\\begin{•}\n\t', '\n\\end{•}'], shortcut=_('Ctrl') + '+E')
+        self.add_before_after_item('main', _('Environment'), ['\\begin{•}\n\t', '\n\\end{•}'], shortcut=key('environment'))
         self.add_before_after_item('main', _('Verbatim Environment'), ['\\begin{verbatim}\n\t', '\n\\end{verbatim}'])
         self.add_menu_button(_('List Environments'), 'list_environments')
         self.add_menu_button(_('Quotations'), 'quotations')
@@ -45,14 +49,14 @@ class TextMenu(GioMenuBuilder):
 
         # font styles submenu
         self.add_page('font_styles', _('Font Styles'))
-        self.add_before_after_item('font_styles', _('Bold') + ' (\\textbf)', ['\\textbf{', '}'], icon='format-text-bold-symbolic', shortcut=_('Ctrl') + '+B')
-        self.add_before_after_item('font_styles', _('Italic') + ' (\\textit)', ['\\textit{', '}'], icon='format-text-italic-symbolic', shortcut=_('Ctrl') + '+I')
-        self.add_before_after_item('font_styles', _('Underline') + ' (\\underline)', ['\\underline{', '}'], icon='format-text-underline-symbolic', shortcut=_('Ctrl') + '+U')
+        self.add_before_after_item('font_styles', _('Bold') + ' (\\textbf)', ['\\textbf{', '}'], icon='format-text-bold-symbolic', shortcut=key('bold'))
+        self.add_before_after_item('font_styles', _('Italic') + ' (\\textit)', ['\\textit{', '}'], icon='format-text-italic-symbolic', shortcut=key('italic'))
+        self.add_before_after_item('font_styles', _('Underline') + ' (\\underline)', ['\\underline{', '}'], icon='format-text-underline-symbolic', shortcut=key('underline'))
         self.add_before_after_item('font_styles', _('Sans Serif') + ' (\\textsf)', ['\\textsf{', '}'], icon='placeholder')
-        self.add_before_after_item('font_styles', _('Typewriter') + ' (\\texttt)', ['\\texttt{', '}'], icon='placeholder', shortcut=_('Shift') + '+' + _('Ctrl') + '+T')
+        self.add_before_after_item('font_styles', _('Typewriter') + ' (\\texttt)', ['\\texttt{', '}'], icon='placeholder', shortcut=key('typewriter'))
         self.add_before_after_item('font_styles', _('Small Caps') + ' (\\textsc)', ['\\textsc{', '}'], icon='placeholder')
         self.add_before_after_item('font_styles', _('Slanted') + ' (\\textsl)', ['\\textsl{', '}'], icon='placeholder')
-        self.add_before_after_item('font_styles', _('Emphasis') + ' (\\emph)', ['\\emph{', '}'], icon='placeholder', shortcut=_('Shift') + '+' + _('Ctrl') + '+E')
+        self.add_before_after_item('font_styles', _('Emphasis') + ' (\\emph)', ['\\emph{', '}'], icon='placeholder', shortcut=key('emphasized'))
 
         # font sizes submenu
         self.add_page('font_sizes', _('Font Sizes'))
@@ -82,7 +86,7 @@ class TextMenu(GioMenuBuilder):
         self.add_insert_symbol_item('vertical_spacing', '\\medskip', ['\\medskip'])
         self.add_insert_symbol_item('vertical_spacing', '\\smallskip', ['\\smallskip'])
         self.add_insert_symbol_item('vertical_spacing', '\\vspace', ['\\vspace{•}'])
-        self.add_insert_symbol_item('vertical_spacing', _('New Line')+ ' (\\\\)', ['\\\\\n'], shortcut=_('Ctrl') + '+Return')
+        self.add_insert_symbol_item('vertical_spacing', _('New Line')+ ' (\\\\)', ['\\\\\n'], shortcut=key('new_line'))
 
         # international accents submenu
         self.add_page('international_accents', _('International Accents'))
@@ -121,7 +125,7 @@ class TextMenu(GioMenuBuilder):
         self.add_before_after_item('list_environments', _('Numbered List') + ' (enumerate)', ['\\begin{enumerate}\n\t', '\n\\end{enumerate}'])
         self.add_before_after_item('list_environments', _('List with Bold Labels') + ' (description)', ['\\begin{description}\n\t', '\n\\end{description}'])
         self.add_separator('list_environments')
-        self.add_insert_symbol_item('list_environments', _('List Item'), ['\\item •'], shortcut=_('Shift') + '+' + _('Ctrl') + '+I')
+        self.add_insert_symbol_item('list_environments', _('List Item'), ['\\item •'], shortcut=key('list_item'))
 
         # quotations submenu
         self.add_page('quotations', _('Quotations'))

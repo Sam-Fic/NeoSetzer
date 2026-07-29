@@ -49,6 +49,9 @@ class PreviewController(object):
         self.view.content.connect('hover_state_changed', self.on_hover_state_change)
         self.view.content.connect('primary_button_press', self.on_primary_button_press)
         self.view.content.connect('zoom_request', self.on_zoom_request)
+        self.view.content.connect('pinch_zoom', self.on_pinch_zoom)
+
+        self._pinch_baseline_zoom = None
 
         # 键盘导航：PgUp/PgDn 翻页、Home/End 首末页、方向键微调、Ctrl+G 跳页。
         key_controller = Gtk.EventControllerKey()
@@ -81,6 +84,49 @@ class PreviewController(object):
         manager.zoom_mode = 'manual'
         manager.set_zoom_level(zoom_level)
         self.preview.scroll_to_position(x, y)
+
+    def on_pinch_zoom(self, content, data):
+        phase, scale, cx, cy = data
+
+        if phase == 'begin':
+            if self.preview.layout is None:
+                self._pinch_baseline_zoom = None
+                return
+            self._pinch_baseline_zoom = self.preview.zoom_manager.get_zoom_level()
+            self.preview.zoom_manager.zoom_mode = 'manual'
+            return
+
+        if phase == 'end':
+            self._pinch_baseline_zoom = None
+            return
+
+        # phase == 'update'
+        if self._pinch_baseline_zoom is None or self.preview.layout is None:
+            return
+        if scale <= 0:
+            return
+
+        target_zoom = self._pinch_baseline_zoom * scale
+        if target_zoom < 0.25:
+            target_zoom = 0.25
+        elif target_zoom > 4.0:
+            target_zoom = 4.0
+
+        manager = self.preview.zoom_manager
+        prev_zoom = manager.get_zoom_level()
+        if prev_zoom is None or prev_zoom == 0:
+            prev_zoom = self._pinch_baseline_zoom
+
+        factor = target_zoom / prev_zoom
+
+        x = factor * self.view.content.scrolling_offset_x + (factor - 1) * cx
+        layout = self.preview.layout
+        prev_pages = self.view.content.scrolling_offset_y // (layout.page_height + layout.page_gap)
+        y = (1 - factor) * prev_pages * layout.page_gap + factor * self.view.content.scrolling_offset_y + (factor - 1) * cy
+
+        manager.set_zoom_level(target_zoom)
+        self.preview.scroll_to_position(x, y)
+        self.preview.update_position()
 
     def _compute_zoom_level(self, prev_zoom_level, amount):
         '''根据缩放量计算目标缩放级别。

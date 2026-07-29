@@ -28,9 +28,10 @@ from setzer.app.service_locator import ServiceLocator
 
 class BuildingFailedDialog(object):
 
-    def __init__(self, main_window, preferences_dialog):
+    def __init__(self, main_window, preferences_dialog, workspace):
         self.main_window = main_window
         self.preferences_dialog = preferences_dialog
+        self.workspace = workspace
         self.error_message = None
 
     def run(self, error_message):
@@ -40,20 +41,21 @@ class BuildingFailedDialog(object):
 
     def setup(self, error_message):
         self.view = Adw.AlertDialog(
-            heading=_('Something went wrong.'),
+            heading=_('Building the document failed.'),
             body=_('''The build process ended unexpectedly returning "{error_message}".
 
-To configure your build system go to Preferences.''').format(error_message=error_message))
-        # 响应顺序：Copy / Search / Cancel / Preferences（按用户确认的设计：
-        # 仅补两个小按钮，不解析错误行号、不本地化消息）。Copy 与 Search 关闭
-        # 对话框后执行对应操作；用户若想接着去 Preferences 需重开——这与"只补两
-        # 个小按钮"的轻量需求一致，避免对话框变为多步操作面板。
+You can open the build log for more details, copy the error message, or search the web for a solution.''').format(error_message=error_message))
+        # 响应顺序：Copy / Search / Preferences / Cancel / Show Build Log。
+        # "Show Build Log" 设为默认（Enter）且高亮（SUGGESTED），直接打开已有的
+        # build_log 弹窗——比"Go to Preferences"更实用。Copy / Search / Preferences
+        # 关闭对话框后执行；Show Build Log 关闭本对话框后打开 build_log 弹窗。
         self.view.add_response('copy', _('Copy Error'))
         self.view.add_response('search', _('Search Online'))
-        self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('preferences', _('Go to Preferences'))
-        self.view.set_response_appearance('preferences', Adw.ResponseAppearance.SUGGESTED)
-        self.view.set_default_response('preferences')
+        self.view.add_response('cancel', _('Cancel'))
+        self.view.add_response('build_log', _('Show Build Log'))
+        self.view.set_response_appearance('build_log', Adw.ResponseAppearance.SUGGESTED)
+        self.view.set_default_response('build_log')
         self.view.set_close_response('cancel')
 
     def dialog_process_response(self, dialog, result):
@@ -71,6 +73,8 @@ To configure your build system go to Preferences.''').format(error_message=error
             Gio.AppInfo.launch_default_for_uri(url, None)
         elif response_id == 'preferences':
             self.preferences_dialog.run()
+        elif response_id == 'build_log':
+            self.workspace.set_show_build_log(True)
 
     def _show_toast(self, text):
         main_window = ServiceLocator.get_main_window()

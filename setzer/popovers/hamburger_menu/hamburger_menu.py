@@ -22,6 +22,8 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, GLib, Gio
 import os.path
 
+from setzer.keyboard_shortcuts import shortcut_tooltips
+
 
 class HamburgerMenu(object):
 
@@ -72,7 +74,9 @@ class HamburgerMenu(object):
         save_doc = Gio.MenuItem.new(_('Save Document'), 'win.save')
         save_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>s'))
         section_save.append_item(save_doc)
-        section_save.append(_('Save Document As…'), 'win.save-as')
+        save_as = Gio.MenuItem.new(_('Save Document As…'), 'win.save-as')
+        save_as.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>s'))
+        section_save.append_item(save_as)
         section_save.append(_('Save All Documents'), 'win.save-all')
         print_item = Gio.MenuItem.new(_('Print…'), 'win.print')
         print_item.set_attribute_value('accel', GLib.Variant('s', '<Control>p'))
@@ -86,18 +90,27 @@ class HamburgerMenu(object):
         self.menu_model.append_submenu(_('Session'), self.session_section)
 
         section_prefs = Gio.Menu()
-        section_prefs.append(_('Preferences'), 'win.show-preferences-dialog')
+        prefs = Gio.MenuItem.new(_('Preferences'), 'win.show-preferences-dialog')
+        prefs.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>comma'))
+        section_prefs.append_item(prefs)
         self.menu_model.append_section(None, section_prefs)
 
         section_help = Gio.Menu()
+        fullscreen_item = Gio.MenuItem.new(_('Toggle Fullscreen'), 'win.toggle-fullscreen')
+        fullscreen_item.set_attribute_value('accel', GLib.Variant('s', 'F11'))
+        section_help.append_item(fullscreen_item)
         shortcuts = Gio.MenuItem.new(_('Keyboard Shortcuts'), 'win.show-shortcuts-dialog')
         shortcuts.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>question'))
         section_help.append_item(shortcuts)
-        section_help.append(_('About'), 'win.show-about-dialog')
+        about = Gio.MenuItem.new(_('About'), 'win.show-about-dialog')
+        about.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>h'))
+        section_help.append_item(about)
         self.menu_model.append_section(None, section_help)
 
         section_close = Gio.Menu()
-        section_close.append(_('Close All Documents'), 'win.close-all-documents')
+        close_all = Gio.MenuItem.new(_('Close All Documents'), 'win.close-all-documents')
+        close_all.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>w'))
+        section_close.append_item(close_all)
         close_doc = Gio.MenuItem.new(_('Close Document'), 'win.close-active-document')
         close_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>w'))
         section_close.append_item(close_doc)
@@ -115,7 +128,9 @@ class HamburgerMenu(object):
 
     def build_session_submenu(self):
         self.session_section.remove_all()
-        self.session_section.append(_('Restore Previous Session…'), 'win.restore-session')
+        restore = Gio.MenuItem.new(_('Restore Previous Session…'), 'win.restore-session')
+        restore.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>j'))
+        self.session_section.append_item(restore)
         self.session_section.append(_('Save Current Session…'), 'win.save-session')
         # Recent Sessions 作为 labeled section，自带分隔线，无需手动 separator
         self.recent_section = Gio.Menu()
@@ -170,7 +185,7 @@ class HamburgerMenu(object):
     def get_menu_button(self):
         button = Gtk.MenuButton()
         button.set_icon_name('open-menu-symbolic')
-        button.set_tooltip_text(_('Main Menu') + ' (F10)')
+        shortcut_tooltips.set_tooltip(button, _('Main Menu'), 'hamburger_menu')
         button.set_menu_model(self.menu_model)
         popover = button.get_popover()
         if popover is not None:
@@ -225,8 +240,9 @@ class HamburgerMenu(object):
             if document.get_filename() == None:
                 DialogLocator.get_dialog('save_document').run(document, self.restore_session_cb, session_filename)
             else:
-                document.save_to_disk()
-                self.restore_session_cb(session_filename)
+                if document.save_to_disk():
+                    self.restore_session_cb(session_filename)
+                # 保存失败：不恢复会话，toast 已弹出
         elif response == 3:  # save_all (批量)
             # 保存所有有 filename 的；无 filename 的逐个弹 save_document。
             # save_all_processed 跟踪已提示的 untitled，避免取消时无限循环。

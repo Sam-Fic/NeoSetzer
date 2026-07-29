@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GLib, GObject, Adw, Pango
+from gi.repository import Gtk, GLib, GObject, Adw, Pango, Gio
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
@@ -88,6 +88,10 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.search_button.connect('toggled', self.on_search_button_toggled)
         self.search_entry.connect('stop-search', self.on_search_stopped)
         self.search_entry.connect('changed', self.on_search_changed)
+
+        # 初始化下拉菜单
+        self._init_section_menu()
+
         # widget 销毁时取消进行中的滚动动画 timeout，避免回调访问已释放的
         # scrolled_window 并持有引用阻碍 GC。
         self.connect('destroy', self._on_destroy)
@@ -117,6 +121,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.section_widgets[name] = widget
         self.section_titles.append(title)
         self._groups_cache = None
+        self._rebuild_section_menu()
         return group
 
     def set_section_visible(self, name, visible):
@@ -135,15 +140,28 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
 
-        self.section_label = Gtk.Label(label='')
-        self.section_label.add_css_class('dim-label')
-        self.section_label.add_css_class('sidebar-section-title')
-        self.section_label.set_halign(Gtk.Align.START)
-        self.section_label.set_hexpand(True)
-        self.section_label.set_xalign(0.0)
-        self.section_label.set_ellipsize(Pango.EllipsizeMode.END)
-        self.section_label.set_margin_start(2)
-        self.toolbar.append(self.section_label)
+        # 下拉菜单：Gtk.MenuButton + .flat 样式（与项目中其他 MenuButton 一致）
+        self.section_menu_button = Gtk.MenuButton()
+        self.section_menu_button.add_css_class('flat')
+        self.section_menu_button.set_can_focus(False)
+        self.section_menu_button.set_halign(Gtk.Align.START)
+        self.section_menu_button.set_hexpand(True)
+        self.section_menu_button.set_tooltip_text(_('Jump to section'))
+
+        menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+        self.section_menu_label = Gtk.Label(label='')
+        self.section_menu_label.add_css_class('dim-label')
+        self.section_menu_label.set_xalign(0.0)
+        self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
+        menu_box.append(self.section_menu_label)
+
+        arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
+        arrow_icon.set_pixel_size(12)
+        arrow_icon.add_css_class('dim-label')
+        menu_box.append(arrow_icon)
+
+        self.section_menu_button.set_child(menu_box)
+        self.toolbar.append(self.section_menu_button)
 
         self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
@@ -216,7 +234,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         current_title = self._compute_current_title(visible_sections)
         if current_title != self._current_section_title:
             self._current_section_title = current_title
-            self.section_label.set_text(current_title)
+            self.section_menu_label.set_text(current_title)
         return False
 
     def get_visible_sections(self):
@@ -337,3 +355,50 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         #（持有全部 group 引用）仍有效。get_visible_sections 会重新读
         # group.get_visible()，无需在此清空 cache 诱发 _collect_groups 全树遍历。
         # 原实现每次搜索字符都清空，搜索期间滚动结果会反复重建 cache。
+
+        # 搜索无结果时隐藏菜单按钮
+        self.section_menu_button.set_visible(not query or any_visible)
+
+        # 过滤后重建菜单（只显示可见 section）
+        self._rebuild_section_menu()
+
+    def _init_section_menu(self):
+        """初始化下拉菜单的基础设施（menu model / action group / popover class）。"""
+        self._section_menu = Gio.Menu()
+        self._section_menu_section = Gio.Menu()
+        self._section_menu.append_section(None, self._section_menu_section)
+
+        self._section_action_group = Gio.SimpleActionGroup()
+        self.section_menu_button.insert_action_group('structure', self._section_action_group)
+        self.section_menu_button.set_menu_model(self._section_menu)
+
+        popover = self.section_menu_button.get_popover()
+        if popover is not None:
+            popover.add_css_class('menu')
+
+    def _rebuild_section_menu(self):
+        """根据当前 sections 重建菜单项和 actions。"""
+        # 清除旧 actions
+        for action in getattr(self, '_section_actions', {}).values():
+            self._section_action_group.remove_action(action.get_name())
+        self._section_actions = {}
+
+        self._section_menu_section.remove_all()
+        groups = self.get_page_groups()
+        for i, (name, group) in enumerate(self.sections.items()):
+            if group.get_visible():
+                action_name = f'jump-{i}'
+                action = Gio.SimpleAction.new(action_name, None)
+                action.connect('activate', self._on_section_menu_item_activated, name)
+                self._section_action_group.add_action(action)
+                self._section_actions[i] = action
+
+                title = group.get_title() or name
+                menu_item = Gio.MenuItem.new(title, f'structure.{action_name}')
+                self._section_menu_section.append_item(menu_item)
+
+    def _on_section_menu_item_activated(self, action, parameter, name):
+        """菜单项点击：滚动到对应 section。"""
+        if name in self.sections:
+            group = self.sections[name]
+            self.scroll_view(group.get_allocation().y)

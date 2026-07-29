@@ -22,6 +22,7 @@ from gi.repository import GLib
 from gi.repository import Gio
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.popovers.shortcutsbar.document_menu import DocumentMenu
 from setzer.popovers.shortcutsbar.beamer_menu import BeamerMenu
@@ -426,8 +427,10 @@ class ShortcutsBar(Gtk.Box):
     def insert_quotes_button(self):
         self.quotes_button = Gtk.MenuButton()
         self.quotes_button.set_icon_name('own-quotes-symbolic')
-        self.quotes_button.set_tooltip_text(_('Quotes') + ' (' + _('Ctrl') + '+")')
+        # 先给纯文本 tooltip 供 _setup_menu_button 提取 label，再注册动态 tooltip
+        self.quotes_button.set_tooltip_text(_('Quotes'))
         self._setup_menu_button(self.quotes_button, QuotesMenu())
+        shortcut_tooltips.set_tooltip(self.quotes_button, _('Quotes'), 'quotation_marks')
         self._add_left_button(self.quotes_button)
 
     def insert_math_button(self):
@@ -450,11 +453,11 @@ class ShortcutsBar(Gtk.Box):
         self.bold_button.add_css_class('flat')
         self.bold_button.set_action_name('win.insert-before-after')
         self.bold_button.set_action_target_value(GLib.Variant('as', ['\\textbf{', '}']))
-        self.bold_button.set_tooltip_text(_('Bold') + ' (' + _('Ctrl') + '+B)')
+        shortcut_tooltips.set_tooltip(self.bold_button, _('Bold'), 'bold')
         self._button_meta[id(self.bold_button)] = {
             'icon_name': 'format-text-bold-symbolic',
             'label': _('Bold'),
-            'tooltip': _('Bold') + ' (' + _('Ctrl') + '+B)',
+            'tooltip': _('Bold'),
             'menu_model': None,
             'action_name': 'win.insert-before-after',
             'action_target': GLib.Variant('as', ['\\textbf{', '}']),
@@ -467,11 +470,11 @@ class ShortcutsBar(Gtk.Box):
         self.italic_button.add_css_class('flat')
         self.italic_button.set_action_name('win.insert-before-after')
         self.italic_button.set_action_target_value(GLib.Variant('as', ['\\textit{', '}']))
-        self.italic_button.set_tooltip_text(_('Italic') + ' (' + _('Ctrl') + '+I)')
+        shortcut_tooltips.set_tooltip(self.italic_button, _('Italic'), 'italic')
         self._button_meta[id(self.italic_button)] = {
             'icon_name': 'format-text-italic-symbolic',
             'label': _('Italic'),
-            'tooltip': _('Italic') + ' (' + _('Ctrl') + '+I)',
+            'tooltip': _('Italic'),
             'menu_model': None,
             'action_name': 'win.insert-before-after',
             'action_target': GLib.Variant('as', ['\\textit{', '}']),
@@ -496,14 +499,14 @@ class ShortcutsBar(Gtk.Box):
         self.button_more.set_icon_name('open-menu-symbolic')
         self.button_more.add_css_class('flat')
         self.button_more.set_popover(PopoverManager.create_popover('context_menu').view)
-        self.button_more.set_tooltip_text(_('Context Menu') + ' (F12)')
+        shortcut_tooltips.set_tooltip(self.button_more, _('Context Menu'), 'context_menu')
         self._add_right_button(self.button_more)
 
     def insert_build_log_button(self):
         self.button_build_log = Gtk.ToggleButton()
         self.button_build_log.set_icon_name('build-log-symbolic')
         self.button_build_log.add_css_class('flat')
-        self.button_build_log.set_tooltip_text(_('Build log') + ' (Ctrl+Shift+L)')
+        shortcut_tooltips.set_tooltip(self.button_build_log, _('Build log'), 'build_log')
         self._add_right_button(self.button_build_log)
 
     def _setup_menu_button(self, button, menu_builder):

@@ -49,14 +49,14 @@ class CloseConfirmationDialog(object):
 
     def setup(self, document):
         self.view = Adw.AlertDialog(
-            heading=_('Document »{document}« has unsaved changes.').format(document=document.get_displayname()),
+            heading=_('Document "{document}" has unsaved changes.').format(document=document.get_displayname()),
             body=_('If you close without saving, these changes will be lost.'))
         # 按钮顺序遵循 GNOME HIG：Cancel（取消）最左、Discard（破坏性）居中、
         # Save（建议操作）最右。Adw.AlertDialog 按添加顺序从左到右排列。
         # 响应映射 (dialog_process_response) 按字符串 response_id 查表，与顺序无关，
         # 调换 add_response 顺序不影响下游 {discard:0, cancel:1, save:2} 的数字契约。
         self.view.add_response('cancel', _('Cancel'))
-        self.view.add_response('discard', _('Close without Saving'))
+        self.view.add_response('discard', _('Discard'))
         self.view.add_response('save', _('Save'))
         self.view.set_response_appearance('discard', Adw.ResponseAppearance.DESTRUCTIVE)
         self.view.set_response_appearance('save', Adw.ResponseAppearance.SUGGESTED)

@@ -30,10 +30,6 @@ DocumentView 在 Gtk.Stack 中切换时，对应文档的状态栏自然可见�
 import setzer.document.statusbar.statusbar_viewgtk as statusbar_view
 
 
-# 编码：应用统一用 open(filename) 无显式 encoding（见 document.py load_from_disk），
-# 默认 UTF-8（Linux locale 通常为 UTF-8）。无多编码追踪，状态栏显示静态 UTF-8。
-_ENCODING_LABEL = 'UTF-8'
-
 # 语言显示名映射：document.language ('latex'/'bibtex') → 展示名
 _LANGUAGE_LABELS = {'latex': 'LaTeX', 'bibtex': 'BibTeX'}
 
@@ -46,8 +42,8 @@ class StatusBar(object):
         self.settings = document.settings
         self.view = statusbar_view.StatusBarView()
 
-        # 静态字段：编码、语言（文档生命周期内不变）
-        self.view.encoding_label.set_text(_ENCODING_LABEL)
+        # 动态字段：从 document.file_encoding 读取
+        self.update_encoding_display()
         self.view.language_label.set_text(
             _LANGUAGE_LABELS.get(document.language, document.language))
 
@@ -105,3 +101,12 @@ class StatusBar(object):
             self.view.indent_label.set_text(_('Spaces: {n}').format(n=tab_width))
         else:
             self.view.indent_label.set_text(_('Tabs: {n}').format(n=tab_width))
+
+    def update_encoding_display(self):
+        '''更新编码显示。从 document.file_encoding 读取，若有 BOM 则附加提示。'''
+        encoding = getattr(self.document, 'file_encoding', 'utf-8')
+        has_bom = getattr(self.document, 'has_bom', False)
+        display_name = encoding.upper()
+        if has_bom:
+            display_name += ' (BOM)'
+        self.view.encoding_label.set_text(display_name)

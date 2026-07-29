@@ -47,7 +47,6 @@ class ContextMenu(object):
         self.popover_pointer.set_size_request(260, -1)
         self.popover_pointer.set_has_arrow(False)
         self.popover_pointer.set_offset(130, 0)
-        self.popover_pointer.set_can_focus(False)
         self.build_popover(self.popover_pointer)
 
         self.update_buttons()

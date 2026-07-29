@@ -133,6 +133,27 @@ textview gutter {
 .compact-rows row image {
     -gtk-icon-size: 16px;
 }
+
+/*
+ * 键盘导航选择态：BROWSE 模式下 GTK 给选中行加 :selected 伪类。
+ * 但列表失去焦点后（如点击行跳转到编辑器）不应残留选中高亮——
+ * 仅当列表拥有焦点（:focus-within）时才显示。accent 类（光标跟随）
+ * 与 :selected（键盘焦点）语义不同，可共存，accent 行的叠加效果更深。
+ * accent 类在无焦点时也应可见（较淡的底色），保持光标位置提示。
+ */
+.compact-rows row:selected {
+    background: transparent;
+}
+.compact-rows row.accent {
+    background: alpha(@theme_selected_bg_color, 0.12);
+}
+.compact-rows:focus-within row:selected {
+    background: alpha(@theme_selected_bg_color, 0.25);
+}
+.compact-rows:focus-within row:selected.accent {
+    background: alpha(@theme_selected_bg_color, 0.35);
+}
+
 /* 文档结构嵌套层级的细竖线树形指示符（替代大缩进）。调暗、收窄，
    与行高对齐，呈现层级而非占用过多横向空间。 */
 .compact-rows .structure-tree-line {
@@ -432,4 +453,36 @@ toolbarview > * > * > * {
     border: none;
     border-bottom: none;
     box-shadow: none;
+}
+
+/*
+ * 全屏 headerbar 淡入淡出过渡。
+ * 当 headerbar 通过 set_opacity 在 0 和 1 之间切换时，
+ * 添加 150ms 的过渡使其平滑。
+ */
+headerbar {
+    transition: opacity 150ms ease;
+}
+
+/*
+ * 文件拖放视觉反馈浮层（DnD overlay）。
+ * - .drop-highlight：覆盖整个内容区的浮层，带圆角描边 + 淡强调色底，
+ *   提示「可在此放置文件」。can_target=False，不拦截拖放事件。
+ * - .drop-reject：当拖入的文件类型不可接受（非 .tex/.bib/.cls/.sty）时叠加，
+ *   描边转为错误色，配合 GTK 的「禁止」光标。
+ * - .drop-label：浮层居中文字（如「将打开 N 个文件」）。
+ */
+.drop-highlight {
+    border: 3px solid @theme_selected_bg_color;
+    border-radius: 12px;
+    background: alpha(@theme_selected_bg_color, 0.10);
+    margin: 12px;
+}
+.drop-highlight.drop-reject {
+    border-color: @error_color;
+    background: alpha(@error_color, 0.10);
+}
+.drop-label {
+    font-weight: 600;
+    font-size: 1.1em;
 }

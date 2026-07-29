@@ -47,6 +47,6 @@ class ContextMenu(object):
 
     def on_new_active_document(self, workspace=None, parameter=None):
         document = self.workspace.active_document
-        self.view.rebuild_latex_section(document != None and document.is_latex_document())
+        self.view.rebuild_latex_section(document)
 
 

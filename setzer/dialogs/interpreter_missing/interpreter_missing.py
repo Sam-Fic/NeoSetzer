@@ -32,8 +32,8 @@ class InterpreterMissingDialog(object):
 
     def setup(self, interpreter_name):
         self.view = Adw.AlertDialog(
-            heading=_('LateX Interpreter is missing.'),
-            body=_('''Setzer is configured to use »{interpreter}« which seems to be missing on this system.
+            heading=_('LaTeX Interpreter is missing.'),
+            body=_('''Setzer is configured to use "{interpreter}" which seems to be missing on this system.
 
 You can install it with:
 • Ubuntu/Debian: sudo apt install texlive-latex-base

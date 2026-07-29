@@ -19,6 +19,9 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, GLib
 
+from setzer.app.font_manager import FontManager
+from setzer.app.latex_templates import WRAP_COMMANDS, WRAP_ENVIRONMENTS, INSERT_TEMPLATES
+
 
 def _action_item(label, detailed_action, accel=None):
     '''A Gio.MenuItem for an action, optionally with a parseable accel.
@@ -31,13 +34,48 @@ def _action_item(label, detailed_action, accel=None):
     return item
 
 
+def _wrap_item(label, before, after):
+    '''A Gio.MenuItem that invokes ``win.insert-before-after`` with a [before, after]
+    parameter. When a range is selected the wrapped text becomes the payload;
+    otherwise the ``•`` placeholder is left for the cursor (the calling action
+    handles both cases).
+
+    ``label`` is localised here (at menu-build time) because the template data
+    stores raw English strings to avoid calling _() at module import time.'''
+    item = Gio.MenuItem.new(_(label), 'win.insert-before-after')
+    item.set_action_and_target_value('win.insert-before-after',
+                                     GLib.Variant('as', [before, after]))
+    return item
+
+
+def _insert_item(label, template):
+    '''A Gio.MenuItem that invokes ``win.insert-symbol`` with a template string.
+
+    ``label`` is localised here (at menu-build time) — see _wrap_item for why.'''
+    item = Gio.MenuItem.new(_(label), 'win.insert-symbol')
+    item.set_action_and_target_value('win.insert-symbol',
+                                     GLib.Variant('as', [template]))
+    return item
+
+
+def _build_submenu_from_list(items, builder_fn):
+    '''Build a Gio.Menu submenu from a list of template dicts.
+
+    Each dict is passed to ``builder_fn`` which returns a Gio.MenuItem.
+    Returns the populated Gio.Menu.'''
+    submenu = Gio.Menu()
+    for entry in items:
+        submenu.append_item(builder_fn(entry))
+    return submenu
+
+
 class ContextMenuView(Gtk.PopoverMenu):
     '''Shortcutsbar "more" popover (the F12 context menu).
 
     Built from a ``Gio.Menu`` model on a native ``Gtk.PopoverMenu`` — the same
     form as the hamburger menu — instead of the former hand-built
     ListBox-in-popover. Action items use real GAction targets and parseable
-    accelerators. The LaTeX-only items (Toggle Comment / Show in Preview) live
+    accelerators. The LaTeX/BibTeX items (Toggle Comment / Show in Preview) live
     in a section rebuilt on active-document changes. The Zoom controls are a
     custom child widget (so the buttons can trigger actions without closing
     the popover and the reset label can be updated dynamically).
@@ -53,6 +91,7 @@ class ContextMenuView(Gtk.PopoverMenu):
         self.model = self._build_model()
         self.set_menu_model(self.model)
         self.add_child(self._build_zoom_widget(), 'zoom-controls')
+        self.connect('map', self.on_map)
 
     def _build_model(self):
         model = Gio.Menu()
@@ -73,7 +112,17 @@ class ContextMenuView(Gtk.PopoverMenu):
         section_select.append_item(_action_item(_('Select All'), 'win.select-all', '<Control>a'))
         model.append_section(None, section_select)
 
-        # LaTeX-only section: rebuilt via rebuild_latex_section().
+        # 行操作：快捷键已存在（Alt+Up/Down、Alt+Shift+D、Tab/Shift+Tab），
+        # 此前仅藏在线下，放进菜单提升可发现性。非 LaTeX 专属，对任何文档可用。
+        section_lines = Gio.Menu()
+        section_lines.append_item(_action_item(_('Duplicate Line'), 'win.duplicate-line', '<Alt><Shift>d'))
+        section_lines.append_item(_action_item(_('Move Line Up'), 'win.move-line-up', '<Alt>Up'))
+        section_lines.append_item(_action_item(_('Move Line Down'), 'win.move-line-down', '<Alt>Down'))
+        section_lines.append_item(_action_item(_('Indent'), 'win.indent', '<Tab>'))
+        section_lines.append_item(_action_item(_('Unindent'), 'win.outdent', '<Shift>Tab'))
+        model.append_section(None, section_lines)
+
+        # LaTeX/BibTeX section: rebuilt via rebuild_latex_section().
         model.append_section(None, self.latex_section)
 
         # Zoom controls as a custom child row.
@@ -104,7 +153,7 @@ class ContextMenuView(Gtk.PopoverMenu):
         button_zoom_out.set_action_name('win.zoom-out')
         inner_box.append(button_zoom_out)
 
-        self.reset_zoom_button = Gtk.Button.new_with_label('100%')
+        self.reset_zoom_button = Gtk.Button.new_with_label("{:.0%}".format(FontManager.zoom_level))
         self.reset_zoom_button.add_css_class('flat')
         self.reset_zoom_button.set_action_name('win.reset-zoom')
         inner_box.append(self.reset_zoom_button)
@@ -118,9 +167,48 @@ class ContextMenuView(Gtk.PopoverMenu):
         box.set_end_widget(inner_box)
         return box
 
-    def rebuild_latex_section(self, visible):
-        '''Populate (or clear) the LaTeX-only section for the active document.'''
+    def rebuild_latex_section(self, document):
+        '''Populate (or clear) the LaTeX/BibTeX section for the active document.
+
+        "Toggle Comment" is shown for any document (LaTeX, BibTeX, etc.),
+        while "Show in Preview" and the LaTeX-specific sub-menus are limited
+        to LaTeX documents.  The three sub-menus (Wrap in Command / Wrap in
+        Environment / Insert Template) provide quick access to common LaTeX
+        constructs via the existing ``insert-before-after`` and ``insert-symbol``
+        G-actions (registered in ``Actions``) — no new action plumbing needed.
+        '''
         self.latex_section.remove_all()
-        if visible:
-            self.latex_section.append_item(_action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>slash'))
-            self.latex_section.append(_('Show in Preview'), 'win.forward-sync')
+        if document is None:
+            return
+
+        self.latex_section.append_item(
+            _action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>slash'))
+
+        if document.is_latex_document():
+            # -- Wrap in Command sub-menu ---------------------------------------
+            wrap_cmds_submenu = _build_submenu_from_list(
+                WRAP_COMMANDS,
+                lambda e: _wrap_item(e['label'], e['before'], e['after']))
+            self.latex_section.append_submenu(
+                _('Wrap in Command'), wrap_cmds_submenu)
+
+            # -- Wrap in Environment sub-menu ----------------------------------
+            wrap_envs_submenu = _build_submenu_from_list(
+                WRAP_ENVIRONMENTS,
+                lambda e: _wrap_item(e['label'], e['before'], e['after']))
+            self.latex_section.append_submenu(
+                _('Wrap in Environment'), wrap_envs_submenu)
+
+            # -- Insert Template sub-menu --------------------------------------
+            insert_submenu = _build_submenu_from_list(
+                INSERT_TEMPLATES,
+                lambda e: _insert_item(e['label'], e['template']))
+            self.latex_section.append_submenu(
+                _('Insert Template'), insert_submenu)
+
+            # -- Show in Preview ------------------------------------------------
+            self.latex_section.append_item(
+                _action_item(_('Show in Preview'), 'win.forward-sync', 'F7'))
+
+    def on_map(self, popover):
+        popover.grab_focus()

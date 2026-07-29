@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GLib, Adw
+from gi.repository import Gtk, GLib, Adw, Gio
 
 
 class OpenDocumentDialog(object):
@@ -37,13 +37,22 @@ class OpenDocumentDialog(object):
         self.view.set_modal(True)
         self.view.set_title(_('Open'))
 
-        file_filter = Gtk.FileFilter()
-        file_filter.add_pattern('*.tex')
-        file_filter.add_pattern('*.bib')
-        file_filter.add_pattern('*.cls')
-        file_filter.add_pattern('*.sty')
-        file_filter.set_name(_('LaTeX and BibTeX Files'))
-        self.view.set_default_filter(file_filter)
+        latex_filter = Gtk.FileFilter()
+        latex_filter.add_pattern('*.tex')
+        latex_filter.add_pattern('*.bib')
+        latex_filter.add_pattern('*.cls')
+        latex_filter.add_pattern('*.sty')
+        latex_filter.set_name(_('LaTeX and BibTeX Files'))
+
+        all_filter = Gtk.FileFilter()
+        all_filter.add_pattern('*')
+        all_filter.set_name(_('All Files'))
+
+        filters_model = Gio.ListStore.new(Gtk.FileFilter)
+        filters_model.append(latex_filter)
+        filters_model.append(all_filter)
+        self.view.set_filters(filters_model)
+        self.view.set_default_filter(latex_filter)
 
     def dialog_process_response(self, dialog, result):
         try:

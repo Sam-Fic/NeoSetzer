@@ -22,11 +22,13 @@ from gi.repository import GLib
 from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GtkSource
+from gi.repository import Adw
 
 import setzer.document.search.search_viewgtk as search_view
 from setzer.helpers.observable import Observable
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.helpers.timer import timer
+from setzer.app.service_locator import ServiceLocator
 
 
 class Search(Observable):
@@ -36,6 +38,7 @@ class Search(Observable):
 
         self.view = search_view.SearchBar()
         self.search_bar_mode = None
+        self.settings = ServiceLocator.get_settings()
 
         self.document_view = document_view
         self.document = document
@@ -56,10 +59,10 @@ class Search(Observable):
         # 等 total 就绪时一并显示。
         self._pending_match_no = None
 
-        self.view.entry.connect('changed', self.on_search_entry_changed)
+        self._find_entry_changed_handler = self.view.entry.connect('changed', self.on_search_entry_changed)
         self.view.entry.connect('stop-search', self.on_search_stop)
-        self.view.entry.connect('next-match', self.on_search_next_match)
-        self.view.entry.connect('previous-match', self.on_search_previous_match)
+        self.view.entry.connect('next-match', lambda entry: self.on_search_next_match(entry, record_history=True))
+        self.view.entry.connect('previous-match', lambda entry: self.on_search_previous_match(entry, record_history=True))
         self.view.entry.connect('activate', self.on_search_entry_activate)
         self.view.close_button.connect('clicked', self.on_search_close_button_click)
         self.view.next_button.connect('clicked', self.on_search_next_button_click)
@@ -77,6 +80,80 @@ class Search(Observable):
         self._search_in_selection = False
         self._selection_start = None
         self._selection_end = None
+
+        # 历史 popup 信号连接
+        find_popup = self.view.find_history_popup
+        find_popup.connect('item-selected', self._on_find_history_selected)
+        find_popup.connect('item-deleted', self._on_find_history_deleted)
+        find_popup.connect('show', self._on_find_history_show)
+
+        replace_popup = self.view.replace_history_popup
+        replace_popup.connect('item-selected', self._on_replace_history_selected)
+        replace_popup.connect('item-deleted', self._on_replace_history_deleted)
+        replace_popup.connect('show', self._on_replace_history_show)
+
+    # --- History handling ---
+
+    def _add_find_history(self, text):
+        """Add a search term to history (called on user-initiated search)."""
+        self.settings.add_to_search_history('find', text)
+
+    def _add_replace_history(self, text):
+        """Add a replacement term to history (called on replace)."""
+        self.settings.add_to_search_history('replace', text)
+
+    def _set_entry_text_blocked(self, entry, text, handler_id):
+        """Set entry text while blocking the given signal handler.
+
+        Prevents programmatic text changes (e.g. from picking a history
+        item) from triggering side-effects like auto-copying search text
+        into the replace field.
+        """
+        entry.handler_block(handler_id)
+        entry.set_text(text)
+        entry.handler_unblock(handler_id)
+
+    def _on_find_history_show(self, popup):
+        """Populate the find-history popup when it's about to be shown."""
+        items = self.settings.get_search_history('find')
+        popup.populate(items, on_clear=self._clear_find_history)
+
+    def _on_replace_history_show(self, popup):
+        """Populate the replace-history popup when it's about to be shown."""
+        items = self.settings.get_search_history('replace')
+        popup.populate(items, on_clear=self._clear_replace_history)
+
+    def _clear_find_history(self):
+        """Clear all search history (called from popup's Clear button)."""
+        self.settings.clear_search_history('find')
+
+    def _clear_replace_history(self):
+        """Clear all replace history (called from popup's Clear button)."""
+        self.settings.clear_search_history('replace')
+
+    def _on_find_history_selected(self, popup, text):
+        """Handle selecting an item from find history: set search text."""
+        self._set_entry_text_blocked(self.view.entry, text, self._find_entry_changed_handler)
+        self.on_search_entry_changed(self.view.entry)
+
+    def _on_replace_history_selected(self, popup, text):
+        """Handle selecting an item from replace history: set replace text."""
+        self.view.replace_entry.set_text(text)
+        self.update_replace_button()
+
+    def _on_find_history_deleted(self, popup, text):
+        """Handle deleting a single item from find history."""
+        history = self.settings.get_search_history('find')
+        if text in history:
+            history.remove(text)
+        self.settings.set_value('search_history', 'find', history)
+
+    def _on_replace_history_deleted(self, popup, text):
+        """Handle deleting a single item from replace history."""
+        history = self.settings.get_search_history('replace')
+        if text in history:
+            history.remove(text)
+        self.settings.set_value('search_history', 'replace', history)
 
     def on_selection_might_have_changed(self, document):
         self.update_replace_button()
@@ -133,10 +210,10 @@ class Search(Observable):
         self.on_search_stop()
 
     def on_search_next_button_click(self, button_object=None):
-        self.on_search_next_match()
+        self.on_search_next_match(record_history=True)
         
     def on_search_prev_button_click(self, button_object=None):
-        self.on_search_previous_match()
+        self.on_search_previous_match(record_history=True)
         
     def on_replace_button_click(self, button_object=None):
         replacement = self.view.replace_entry.get_text()
@@ -144,11 +221,14 @@ class Search(Observable):
         if len(bounds) == 2:
             matched_text = bounds[0].get_text(bounds[1])
             self.search_context.replace(*bounds, self._apply_preserve_case(matched_text, replacement), -1)
+            self._add_replace_history(replacement)
             self.on_search_next_match()
 
     def on_replace_all_button_click(self, button_object=None):
         original = self.view.entry.get_text()
         replacement = self.view.replace_entry.get_text()
+        if replacement:
+            self._add_replace_history(replacement)
 
         if self._search_in_selection:
             # 选区模式：GtkSource.SearchContext 无选区范围的 replace_all，只能
@@ -271,10 +351,15 @@ class Search(Observable):
         return replacement
 
     def on_search_entry_activate(self, entry=None):
-        self.on_search_next_match(entry, True)
+        self.on_search_next_match(entry, True, record_history=True)
         self.document_view.source_view.grab_focus()
 
-    def on_search_next_match(self, entry=None, include_current_highlight=False):
+    def on_search_next_match(self, entry=None, include_current_highlight=False, record_history=False):
+        if record_history:
+            search_text = self.view.entry.get_text()
+            if search_text:
+                self._add_find_history(search_text)
+
         buffer = self.search_context.get_buffer()
         insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
         bound_iter = buffer.get_iter_at_mark(buffer.get_selection_bound())
@@ -305,8 +390,14 @@ class Search(Observable):
                     self._skip_to_selection_end(buffer, forward=True)
                     return
                 self._select_match(buffer, result)
+                self._show_wrap_around_toast('next')
 
-    def on_search_previous_match(self, entry=None):
+    def on_search_previous_match(self, entry=None, record_history=False):
+        if record_history:
+            search_text = self.view.entry.get_text()
+            if search_text:
+                self._add_find_history(search_text)
+
         buffer = self.search_context.get_buffer()
         insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
         bound_iter = buffer.get_iter_at_mark(buffer.get_selection_bound())
@@ -332,6 +423,15 @@ class Search(Observable):
                     self._skip_to_selection_end(buffer, forward=False)
                     return
                 self._select_match(buffer, result, reverse=True)
+                self._show_wrap_around_toast('prev')
+
+    def _show_wrap_around_toast(self, direction):
+        message = _('已到文档末尾，从头继续') if direction == 'next' else _('已到文档开头，从末尾继续')
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(message)
+            toast.set_timeout(2)
+            main_window.toast_overlay.add_toast(toast)
 
     def _is_in_selection(self, start_iter, end_iter):
         start_offset = start_iter.get_offset()
@@ -402,13 +502,23 @@ class Search(Observable):
             result = self.search_context.forward(buffer.get_start_iter())
             if result[0] == False:
                 self._pending_match_no = None
-                # 明确无匹配：立即显示「No matches」，不要等异步。occurrences-count
-                # 回调最终也会给出 0，但此刻已可确定，避免误显示「Searching…」。
-                self.set_match_counter(-1, 0)
+                # 检查是否有正则表达式错误（GtkSource.SearchContext 提供
+                # get_regex_error() 返回 GLib.Error，包含具体的语法错误描述）。
+                # 这比笼统的 "No matches" 更有信息量，告诉用户问题出在
+                # 正则表达式本身而非文档中不存在该模式。
+                regex_error = self.search_context.get_regex_error()
+                if regex_error is not None:
+                    self.set_match_counter(-1, -2, regex_error.message)
+                else:
+                    # 明确无匹配：立即显示「No matches」，不要等异步。occurrences-count
+                    # 回调最终也会给出 0，但此刻已可确定，避免误显示「Searching…」。
+                    self.set_match_counter(-1, 0)
                 search_view.entry.add_css_class('error')
                 search_view.replace_all_button.set_sensitive(False)
             else:
                 search_view.entry.remove_css_class('error')
+                # 清除之前可能存在的正则错误状态
+                self.set_match_counter(-1, -1)
                 # 不再用 while 循环强制同步扫描整本 buffer（大文档每次按键
                 # 阻塞主线程）。改为：立即跳到首个匹配让用户看到结果，总数由
                 # notify::occurrences-count 异步回调刷新计数器。
@@ -505,9 +615,17 @@ class Search(Observable):
             entry.select_region(0, len(entry.get_text()))
             self.on_search_entry_changed(entry)
 
-    def set_match_counter(self, match_no=-1, total=-1):
+    def set_match_counter(self, match_no=-1, total=-1, error_message=None):
         search_bar = self.view
-        if total == 0:
+        if total == -2 and error_message is not None:
+            # 正则表达式语法错误：显示 GtkSource 返回的具体错误消息
+            # （如 "missing terminating ] for character class"），
+            # 比通用 "No matches" 更能帮助用户定位问题。
+            search_bar.match_counter.set_text(error_message)
+            search_bar.prev_button.set_sensitive(False)
+            search_bar.next_button.set_sensitive(False)
+            search_bar.replace_all_button.set_tooltip_text(_('Replace all results'))
+        elif total == 0:
             search_bar.match_counter.set_text(_('No matches'))
             search_bar.prev_button.set_sensitive(False)
             search_bar.next_button.set_sensitive(False)

@@ -20,7 +20,7 @@ import os.path
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, Adw
+from gi.repository import Gtk, Gdk, Adw, Gio
 
 import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
 
@@ -53,6 +53,11 @@ class StructureSectionView(structure_widget.StructureWidget):
         self.set_empty_state_visible(len(self.model.nodes) == 0)
         if filter_query:
             self.filter_rows(filter_query)
+        # After rebuilding rows, sync the keyboard selection.
+        # The _sync_selection_to_accent_row() is inherited from StructureWidget
+        # and will select the row matching the cursor position (accent class)
+        # or fall back to the first visible row.
+        self._sync_selection_to_accent_row()
 
     def _collect_signature(self, nodes, level, acc):
         for node in nodes:
@@ -81,9 +86,14 @@ class StructureSectionView(structure_widget.StructureWidget):
 
     def make_row(self, icon_name, text, level, node, has_children, expanded):
         row = Adw.ActionRow()
-        row.set_selectable(False)
+        row.set_selectable(True)
         # 保留行可激活：点击行（非展开器）仍跳转至对应节。
         row.set_activatable(True)
+        # Store tree navigation info on the row for keyboard handling.
+        row.has_children = has_children
+        row.is_expanded = expanded
+        row.node_offset = node['offset']
+        row.tree_level = level
         prefix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         # 纯缩进表达嵌套层级：按层级递增的左缩进，不绘制竖线占位，更简洁、
         # 不依赖字体字形宽度。每层 INDENT 像素。
@@ -143,7 +153,180 @@ class StructureSectionView(structure_widget.StructureWidget):
                 row.update_property(expanded_prop, expanded)
             except (TypeError, ValueError):
                 pass
+        # Right-click context menu: attach GestureClick with button=3 (secondary)
+        row.right_click_gesture = Gtk.GestureClick()
+        row.right_click_gesture.set_button(3)
+        row.right_click_gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        row.right_click_gesture.connect('pressed', self._on_row_right_click_pressed, row)
+        row.right_click_gesture.connect('released', self._on_row_right_click_released, row)
+        row.add_controller(row.right_click_gesture)
         return row
+
+    def _on_row_right_click_pressed(self, gesture, n_press, x, y, row):
+        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+
+    def _on_row_right_click_released(self, gesture, n_press, x, y, row):
+        node = getattr(row, 'item_data', None)
+        if node is None:
+            return
+        self._show_context_menu(row, node, x, y)
+
+    def _build_menu_model(self, node):
+        """Build a Gio.Menu model for the context menu."""
+        block = node.get('block', None)
+        if block is None:
+            return None
+
+        section_type = block[4] if len(block) > 4 else None
+        is_file = section_type == 'file'
+
+        menu = Gio.Menu()
+
+        # Copy section
+        copy_section = Gio.Menu()
+        copy_section.append_item(Gio.MenuItem.new(_('Copy Title'), 'outline.copy-title'))
+        menu.append_section(None, copy_section)
+
+        if not is_file:
+            label_name = self.model.find_label_for_node(node)
+            if label_name is not None:
+                copy_section.append_item(
+                    Gio.MenuItem.new(_('Copy Reference') + f'  \\ref{{{label_name}}}', 'outline.copy-ref'))
+                copy_section.append_item(
+                    Gio.MenuItem.new(_('Copy Label') + f'  \\label{{{label_name}}}', 'outline.copy-label'))
+
+            # Edit section
+            edit_section = Gio.Menu()
+            edit_section.append_item(Gio.MenuItem.new(_('Rename Section…'), 'outline.rename'))
+            edit_section.append_item(Gio.MenuItem.new(_('Delete Section'), 'outline.delete'))
+            menu.append_section(None, edit_section)
+
+            # Level section
+            can_promote = section_type in self.model.levels and self.model.levels[section_type] > 0
+            can_demote = section_type in self.model.levels and self.model.levels[section_type] < len(self.model.levels) - 1
+
+            level_section = Gio.Menu()
+            promote_item = Gio.MenuItem.new(_('Promote') + '  ←', 'outline.promote')
+            demote_item = Gio.MenuItem.new(_('Demote') + '  →', 'outline.demote')
+            level_section.append_item(promote_item)
+            level_section.append_item(demote_item)
+            menu.append_section(None, level_section)
+
+            # Store capabilities for action enable/disable
+            self._can_promote = can_promote
+            self._can_demote = can_demote
+
+        return menu
+
+    def _build_action_group(self, node):
+        """Build a Gio.SimpleActionGroup with all outline context actions."""
+        action_group = Gio.SimpleActionGroup()
+
+        copy_title_action = Gio.SimpleAction.new('copy-title', None)
+        copy_title_action.connect('activate', lambda a, p: self._on_action_copy_title(node))
+        action_group.add_action(copy_title_action)
+
+        copy_ref_action = Gio.SimpleAction.new('copy-ref', None)
+        copy_ref_action.connect('activate', lambda a, p: self._on_action_copy_ref(node))
+        action_group.add_action(copy_ref_action)
+
+        copy_label_action = Gio.SimpleAction.new('copy-label', None)
+        copy_label_action.connect('activate', lambda a, p: self._on_action_copy_label(node))
+        action_group.add_action(copy_label_action)
+
+        rename_action = Gio.SimpleAction.new('rename', None)
+        rename_action.connect('activate', lambda a, p: self._on_action_rename(node))
+        action_group.add_action(rename_action)
+
+        delete_action = Gio.SimpleAction.new('delete', None)
+        delete_action.connect('activate', lambda a, p: self._on_action_delete(node))
+        action_group.add_action(delete_action)
+
+        promote_action = Gio.SimpleAction.new('promote', None)
+        promote_action.connect('activate', lambda a, p: self._on_action_promote(node))
+        action_group.add_action(promote_action)
+
+        demote_action = Gio.SimpleAction.new('demote', None)
+        demote_action.connect('activate', lambda a, p: self._on_action_demote(node))
+        action_group.add_action(demote_action)
+
+        return action_group
+
+    def _show_context_menu(self, row, node, x, y):
+        block = node.get('block', None)
+        if block is None:
+            return
+
+        section_type = block[4] if len(block) > 4 else None
+        is_file = section_type == 'file'
+
+        # Build the menu model
+        menu_model = self._build_menu_model(node)
+        if menu_model is None:
+            return
+
+        # Build the action group
+        action_group = self._build_action_group(node)
+
+        # Set action enable states based on capabilities
+        action_group.lookup_action('copy-title').set_enabled(True)
+        action_group.lookup_action('copy-ref').set_enabled(
+            not is_file and self.model.find_label_for_node(node) is not None)
+        action_group.lookup_action('copy-label').set_enabled(
+            not is_file and self.model.find_label_for_node(node) is not None)
+        action_group.lookup_action('rename').set_enabled(not is_file)
+        action_group.lookup_action('delete').set_enabled(not is_file)
+        action_group.lookup_action('promote').set_enabled(not is_file and getattr(self, '_can_promote', False))
+        action_group.lookup_action('demote').set_enabled(not is_file and getattr(self, '_can_demote', False))
+
+        # Create popover menu
+        popover = Gtk.PopoverMenu()
+        popover.set_parent(row)
+        popover.set_has_arrow(False)
+        popover.set_size_request(288, -1)
+        popover.set_menu_model(menu_model)
+
+        # Insert the action group at 'outline.xxx' namespace
+        popover.insert_action_group('outline', action_group)
+
+        # Set up positioning
+        # Standard context menu positioning: cursor lands at a corner of the popover,
+        # not at the top center. By default, GTK centers the popover horizontally
+        # on the pointing-to rect. We offset right by half the popover width (288/2=144)
+        # so the cursor aligns with the popover's left edge.
+        popover.set_offset(144, 0)
+
+        rect = Gdk.Rectangle()
+        rect.x = x
+        rect.y = y
+        rect.width = 1
+        rect.height = 1
+        popover.set_pointing_to(rect)
+        popover.popup()
+
+        # Clean up when popover is closed
+        popover.connect('closed', lambda p: p.remove_action_group('outline'))
+
+    def _on_action_copy_title(self, node):
+        self.model.copy_title(node)
+
+    def _on_action_copy_ref(self, node):
+        self.model.copy_ref(node)
+
+    def _on_action_copy_label(self, node):
+        self.model.copy_label(node)
+
+    def _on_action_rename(self, node):
+        self.model.rename_section(node)
+
+    def _on_action_delete(self, node):
+        self.model.delete_section(node)
+
+    def _on_action_promote(self, node):
+        self.model.promote_section(node)
+
+    def _on_action_demote(self, node):
+        self.model.demote_section(node)
 
     def _on_expander_pressed(self, gesture, n_press, x, y, node):
         # 截断事件传播，避免点击展开器时激活行（跳转）。
@@ -151,3 +334,75 @@ class StructureSectionView(structure_widget.StructureWidget):
 
     def _on_expander_released(self, gesture, n_press, x, y, node):
         self.model.toggle_node(node['offset'])
+
+    def _on_list_box_key_pressed(self, controller, keyval, keycode, state):
+        """Extend base handler with Left/Right for tree expand/collapse.
+
+        Right: expand a collapsed node (if it has children).
+        Left: collapse an expanded node, or move focus to the parent node
+              if the current node is already collapsed or has no children.
+        Otherwise, delegate to the base handler for Tab/Shift+Tab.
+        """
+        selected = self.list_box.get_selected_row()
+        if selected is not None:
+            if keyval == Gdk.KEY_Right:
+                if getattr(selected, 'has_children', False) and not getattr(selected, 'is_expanded', False):
+                    offset = selected.node_offset
+                    self.model.toggle_node(offset)
+                    self._select_row_by_offset(offset)
+                    return True
+            elif keyval == Gdk.KEY_Left:
+                if getattr(selected, 'has_children', False) and getattr(selected, 'is_expanded', False):
+                    offset = selected.node_offset
+                    self.model.toggle_node(offset)
+                    self._select_row_by_offset(offset)
+                    return True
+                else:
+                    # Move focus to the parent node (previous node at a lower level)
+                    parent_row = self._find_parent_row(selected)
+                    if parent_row is not None:
+                        self.list_box.select_row(parent_row)
+                        return True
+        # Fallback to base handler for Tab/Shift+Tab
+        return super()._on_list_box_key_pressed(controller, keyval, keycode, state)
+
+    def _select_row_by_offset(self, offset):
+        """Find and select a visible row by its node_offset.
+
+        After toggle_node → populate, all rows are recreated with new
+        Python objects but the same node_offset. This method finds the
+        new row matching the offset and selects it so keyboard focus
+        stays on the toggled node rather than jumping to the cursor row.
+        """
+        child = self.list_box.get_first_child()
+        while child is not None:
+            if isinstance(child, Adw.ActionRow) and child.get_visible():
+                if getattr(child, 'node_offset', None) == offset:
+                    self.list_box.select_row(child)
+                    return
+            child = child.get_next_sibling()
+
+    def _find_parent_row(self, row):
+        """Find the parent row of the given row by walking backwards
+        through visible rows and finding one with a lower tree_level."""
+        current_level = getattr(row, 'tree_level', 0)
+
+        # Collect all visible rows
+        child = self.list_box.get_first_child()
+        rows = []
+        while child is not None:
+            if isinstance(child, Adw.ActionRow) and child.get_visible():
+                rows.append(child)
+            child = child.get_next_sibling()
+
+        try:
+            idx = rows.index(row)
+        except ValueError:
+            return None
+
+        for i in range(idx - 1, -1, -1):
+            r = rows[i]
+            r_level = getattr(r, 'tree_level', 0)
+            if r_level < current_level:
+                return r
+        return None

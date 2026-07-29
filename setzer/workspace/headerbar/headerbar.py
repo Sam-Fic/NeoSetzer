@@ -116,7 +116,6 @@ class Headerbar(object):
     def activate_welcome_screen_mode(self):
         self.hide_sidebar_toggles()
         self.hide_preview_help_toggles()
-        self.view.save_document_button.set_visible(False)
         self.view.open_document_button.set_visible(False)
         self.view.new_document_button.set_visible(False)
         self.view.center_button.set_sensitive(False)
@@ -124,15 +123,11 @@ class Headerbar(object):
         self.view.widget.add_css_class('welcome')
 
     def activate_document_mode(self):
-        self.view.save_document_button.set_visible(True)
         self.view.new_document_button.set_visible(True)
         self.on_update_recently_opened_documents(None, self.workspace.recently_opened_documents)
         self.view.center_button.set_sensitive(True)
         self.view.center_widget.set_visible_child_name('button')
         self.view.widget.remove_css_class('welcome')
-        # compact 覆盖：窄窗隐藏 save（Ctrl+S 兜底，hamburger 有 Save Document 项）
-        if self._compact:
-            self.view.save_document_button.set_visible(False)
 
     def show_document_name(self, document):
         mod_text = '*' if document.source_buffer.get_modified() else ''
