@@ -453,10 +453,14 @@ class MainWindow(Adw.ApplicationWindow):
         self._update_fullscreen_editor_margin()
 
     def _update_fullscreen_editor_margin(self):
-        '''F11 全屏 + shortcut 栏隐藏时，编辑器卡片顶部加 6px 间距。'''
+        '''F11 全屏 + shortcut 栏隐藏 + headerbar 也隐藏时，编辑器卡片顶部加 6px 间距。
+
+        鼠标靠近顶部边缘时 headerbar 会临时显示（_headerbar_visible_in_fullscreen=True），
+        此时不需要额外的顶部间距，避免内容与 headerbar 重叠。'''
         fullscreen = getattr(self, '_is_fullscreen', False)
         shortcuts_hidden = not self.shortcutsbar.get_visible()
-        if fullscreen and shortcuts_hidden:
+        headerbar_hidden = fullscreen and not getattr(self, '_headerbar_visible_in_fullscreen', True)
+        if fullscreen and shortcuts_hidden and headerbar_hidden:
             self.document_stack_wrapper.add_css_class('fullscreen-no-shortcuts')
         else:
             self.document_stack_wrapper.remove_css_class('fullscreen-no-shortcuts')
@@ -496,6 +500,8 @@ class MainWindow(Adw.ApplicationWindow):
             headerbar.set_can_target(False)
         # 触发重新分配以更新 margin
         self.queue_resize()
+        # 同步更新编辑器卡片在全屏 + shortcut 隐藏时的顶部边距
+        self._update_fullscreen_editor_margin()
 
     def _on_motion(self, controller, x, y):
         '''鼠标移动回调：检测是否在顶部边缘，显示/隐藏 headerbar。'''
