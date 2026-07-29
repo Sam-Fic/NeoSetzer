@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
+from setzer.settings.document_settings import DocumentSettings
 
 
 class DocumentView(Gtk.Box):
@@ -40,9 +41,16 @@ class DocumentView(Gtk.Box):
         self.vbox.set_overflow(Gtk.Overflow.HIDDEN)
 
         self.source_view = document.source_view
+        self.document = document
         self.source_view.set_monospace(True)
         self.source_view.set_smart_home_end(True)
         self.source_view.set_auto_indent(True)
+
+        # LaTeX 感知自动缩进：监听插入文本，在用户按回车时根据上一行
+        # 的 \begin / \end 调整缩进。
+        self.source_buffer = self.source_view.get_buffer()
+        self.source_buffer.connect('insert-text', self.on_insert_text)
+
         self.source_view.set_left_margin(12)
         self.source_view.set_right_margin(12)
 
@@ -87,6 +95,66 @@ class DocumentView(Gtk.Box):
         # 包含状态栏，状态栏高度变化（如换行）会改变编辑区可视高度但外层
         # 不变。取 source_view 高度更准确。
         self._update_bottom_margin(self.source_view.get_allocated_height())
+
+    def on_insert_text(self, buffer, location_iter, text, text_length):
+        '''处理 LaTeX 感知的自动缩进。'''
+        if '\n' not in text:
+            return
+        if not self.document.is_latex_document():
+            return
+
+        new_line = location_iter.get_line() + 1
+        GLib.idle_add(self._adjust_latex_indent, new_line)
+
+    def _adjust_latex_indent(self, line_number):
+        buffer = self.source_buffer
+        document = self.document
+
+        prev_line = line_number - 1
+        if prev_line < 0:
+            return False
+
+        prev_text = document.get_line(prev_line)
+        stripped = prev_text.strip()
+
+        current_line_text = document.get_line(line_number)
+        ws_len = len(current_line_text) - len(current_line_text.lstrip())
+
+        use_spaces = DocumentSettings.get_effective_value(document, document.settings, 'spaces_instead_of_tabs')
+        tab_width = DocumentSettings.get_effective_value(document, document.settings, 'tab_width')
+
+        if stripped.startswith('\\begin{'):
+            ws_len = ws_len + tab_width if use_spaces else ws_len + 1
+        elif stripped.startswith('\\end{'):
+            ws_len = max(0, ws_len - tab_width) if use_spaces else max(0, ws_len - 1)
+        else:
+            return False
+
+        if ws_len != len(current_line_text) - len(current_line_text.lstrip()):
+            self._set_line_indent(line_number, ws_len)
+
+        return False
+
+    def _set_line_indent(self, line_number, ws_len):
+        buffer = self.source_buffer
+        found, line_start = buffer.get_iter_at_line(line_number)
+        if not found:
+            return
+
+        iter_after_ws = line_start.copy()
+        while not iter_after_ws.ends_line() and iter_after_ws.get_char() in (' ', '\t'):
+            iter_after_ws.forward_chars(1)
+
+        use_spaces = DocumentSettings.get_effective_value(self.document, self.document.settings, 'spaces_instead_of_tabs')
+        if use_spaces:
+            new_ws = ' ' * ws_len
+        else:
+            new_ws = '\t' * ws_len
+
+        buffer.begin_user_action()
+        buffer.delete(line_start, iter_after_ws)
+        buffer.insert(line_start, new_ws)
+        buffer.end_user_action()
 
     def _update_bottom_margin(self, height):
         # 底部留白 = 编辑区高度的 30%，夹在 [60, 200] px 之间。

@@ -22,7 +22,6 @@ from gi.repository import GLib, Gio, Gtk, Gdk, Pango
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
-from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.settings.document_settings import DocumentSettings
@@ -55,6 +54,7 @@ class Actions(object):
         self.add_action('save-as', self.save_as)
         self.add_action('save-all', self.save_all)
         self.add_action('save-session', self.save_session)
+        self.add_action('export-pdf-as', self.export_pdf_as)
         self.add_action('print', self.print_document)
         self.add_action('close-all-documents', self.close_all)
         self.add_action('close-active-document', self.close_active_document)
@@ -81,13 +81,29 @@ class Actions(object):
         self.add_action('include-latex-file', self.start_include_latex_file_dialog, None)
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
         self.add_action('toggle-comment', self.toggle_comment)
+        self.add_action('fold-all', self.fold_all)
+        self.add_action('unfold-all', self.unfold_all)
         self.add_action('forward-sync', self.forward_sync)
+
+        # Label context menu actions (right-click on \ref{...})
+        self.add_action('jump-to-definition', self.jump_to_definition, GLib.VariantType('s'))
+        self.add_action('copy-ref', self.copy_ref_label, GLib.VariantType('s'))
+        self.add_action('copy-pageref', self.copy_pageref_label, GLib.VariantType('s'))
+        self.add_action('copy-autoref', self.copy_autoref_label, GLib.VariantType('s'))
+        self.add_action('find-all-refs', self.find_all_refs, GLib.VariantType('s'))
 
         self.add_action('start-search', self.start_search)
         self.add_action('start-search-and-replace', self.start_search_and_replace)
         self.add_action('find-next', self.find_next)
         self.add_action('find-previous', self.find_previous)
         self.add_action('stop-search', self.stop_search)
+
+        # Multi-cursor actions
+        self.add_action('select-next-occurrence', self.select_next_occurrence)
+        self.add_action('select-all-occurrences', self.select_all_occurrences)
+        self.add_action('add-cursor-above', self.add_cursor_above)
+        self.add_action('add-cursor-below', self.add_cursor_below)
+        self.add_action('clear-multi-cursor', self.clear_multi_cursor)
 
         self.add_action('cut', self.cut)
         self.add_action('copy', self.copy)
@@ -118,7 +134,29 @@ class Actions(object):
         self.main_window.add_action(preview_set_zoom_level_action)
         self.actions['preview-set-zoom-level'] = preview_set_zoom_level_action
 
+        # Preview context menu actions
+        self.add_action('preview-rotate-cw', self.preview_rotate_cw)
+        self.add_action('preview-rotate-ccw', self.preview_rotate_ccw)
+        self.add_action('preview-open-link', self.preview_open_link)
+        self.add_action('preview-copy-link', self.preview_copy_link)
+        self.add_action('preview-copy-text', self.preview_copy_text, GLib.VariantType('i'))
+        self.add_action('preview-copy-image', self.preview_copy_image, GLib.VariantType('i'))
+        self.add_action('preview-save-image', self.preview_save_image, GLib.VariantType('i'))
+        self.add_action('preview-search-pdf', self.preview_search_pdf)
+        self.add_action('preview-show-source', self.preview_show_source)
+        self.add_action('preview-zoom-in', self.preview_zoom_in)
+        self.add_action('preview-zoom-out', self.preview_zoom_out)
+        self.add_action('preview-print', self.preview_print_pdf)
+
+        # Stateful recolor action: boolean state drives the checkmark in menu.
+        recolor_action = Gio.SimpleAction.new_stateful(
+            'preview-recolor', None, GLib.Variant.new_boolean(False))
+        recolor_action.connect('activate', self.preview_toggle_recolor)
+        self.main_window.add_action(recolor_action)
+        self.actions['preview-recolor'] = recolor_action
+
         self.add_action('show-preferences-dialog', self.show_preferences_dialog)
+        self.add_action('show-document-properties', self.show_document_properties)
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
@@ -223,6 +261,10 @@ class Actions(object):
         self.actions['save'].set_enabled(enable_save)
         self.actions['save-as'].set_enabled(document_active)
         self.actions['print'].set_enabled(document_active)
+        # Export PDF As…：仅当已 build 出 PDF（preview.pdf_filename 已就绪）时启用。
+        pdf_document = self.workspace.get_root_or_active_latex_document()
+        has_pdf = pdf_document is not None and pdf_document.preview.pdf_filename is not None
+        self.actions['export-pdf-as'].set_enabled(has_pdf)
         self.actions['save-all'].set_enabled(len(self.workspace.get_unsaved_documents()) > 0)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['redo'].set_enabled(document_active and document.source_buffer.get_can_redo())
@@ -267,6 +309,25 @@ class Actions(object):
         self.actions['zoom-in'].set_enabled(can_zoom_in)
         self.actions['zoom-out'].set_enabled(can_zoom_out)
 
+        # Preview context menu: sync recolor state and enable/disable.
+        has_pdf = document_active and document.preview is not None and document.preview.pdf_filename is not None
+        self.actions['preview-rotate-cw'].set_enabled(has_pdf)
+        self.actions['preview-rotate-ccw'].set_enabled(has_pdf)
+        self.actions['preview-search-pdf'].set_enabled(has_pdf)
+        self.actions['preview-show-source'].set_enabled(document_active)
+        self.actions['preview-copy-text'].set_enabled(has_pdf)
+        self.actions['preview-copy-image'].set_enabled(has_pdf)
+        self.actions['preview-save-image'].set_enabled(has_pdf)
+        self.actions['preview-open-link'].set_enabled(has_pdf)
+        self.actions['preview-copy-link'].set_enabled(has_pdf)
+        if document_active and document.preview is not None:
+            self.actions['preview-recolor'].set_state(
+                GLib.Variant.new_boolean(document.preview.recolor_pdf))
+        self.actions['preview-recolor'].set_enabled(has_pdf)
+        self.actions['preview-zoom-in'].set_enabled(has_pdf)
+        self.actions['preview-zoom-out'].set_enabled(has_pdf)
+        self.actions['preview-print'].set_enabled(has_pdf)
+
         # 每文档 LaTeX 解释器覆盖：活动文档为 LaTeX 时启用并反映当前选择。
         if document_active_is_latex:
             current = document.build_system.latex_interpreter or 'default'
@@ -303,7 +364,6 @@ class Actions(object):
 
     def save_and_build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
-        maybe_show_first_run_tutorial()
 
         document = self.workspace.get_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
@@ -320,7 +380,6 @@ class Actions(object):
 
     def build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
-        maybe_show_first_run_tutorial()
 
         document = self.workspace.get_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
@@ -365,6 +424,17 @@ class Actions(object):
 
         document = self.workspace.get_active_document()
         DialogLocator.get_dialog('save_document').run(document)
+
+    def export_pdf_as(self, action=None, parameter=None):
+        '''把 build 生成的 PDF 另存到其他位置（副本，不改源文件）。'''
+        if self.workspace.get_active_document() == None: return
+
+        # 导出的是 build 产物（root 文档的 PDF），而非当前活动文档本体。
+        document = self.workspace.get_root_or_active_latex_document()
+        if document is None or document.preview.pdf_filename is None:
+            return
+
+        DialogLocator.get_dialog('export_pdf').run(document)
 
     def print_document(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -560,7 +630,7 @@ class Actions(object):
         line_count = buffer.get_line_count()
         if line < 1 or line > line_count: return
 
-        insert_iter = buffer.get_iter_at_line(line - 1)
+        insert_iter = buffer.get_iter_at_line(line - 1)[1]
         buffer.place_cursor(insert_iter)
         document.scroll_cursor_onscreen()
         document.view.source_view.grab_focus()
@@ -690,28 +760,28 @@ class Actions(object):
         buffer.begin_user_action()
         if direction < 0:
             # 与上一行交换：取 first_line-1 行块，移到 first_line..last_line 之后。
-            upper_start = buffer.get_iter_at_line(first_line - 1)
-            upper_end = buffer.get_iter_at_line(first_line)
+            upper_start = buffer.get_iter_at_line(first_line - 1)[1]
+            upper_end = buffer.get_iter_at_line(first_line)[1]
             block = buffer.get_slice(upper_start, upper_end, False)
             buffer.delete(upper_start, upper_end)
-            lower_start = buffer.get_iter_at_line(first_line)
-            lower_end = buffer.get_iter_at_line(last_line + 1)
+            lower_start = buffer.get_iter_at_line(first_line)[1]
+            lower_end = buffer.get_iter_at_line(last_line + 1)[1]
             lower_end = lower_end if lower_end.get_line_offset() == 0 or lower_end.ends_line() else lower_end
             # 在块尾（last_line 行末）后插入原上一行内容。
-            insert_at = buffer.get_iter_at_line(last_line)
+            insert_at = buffer.get_iter_at_line(last_line)[1]
             if not insert_at.ends_line():
                 insert_at.forward_to_line_end()
             insert_at.forward_char()
             buffer.insert(insert_at, block)
         else:
             # 与下一行交换：取 last_line+1 行块，移到 first_line 之前。
-            lower_start = buffer.get_iter_at_line(last_line + 1)
-            lower_end = buffer.get_iter_at_line(last_line + 2) if last_line + 2 <= line_count - 1 else buffer.get_end_iter()
+            lower_start = buffer.get_iter_at_line(last_line + 1)[1]
+            lower_end = buffer.get_iter_at_line(last_line + 2)[1] if last_line + 2 <= line_count - 1 else buffer.get_end_iter()
             if last_line + 1 == line_count - 1:
                 lower_end = buffer.get_end_iter()
             block = buffer.get_slice(lower_start, lower_end, False)
             buffer.delete(lower_start, lower_end)
-            upper_start = buffer.get_iter_at_line(first_line)
+            upper_start = buffer.get_iter_at_line(first_line)[1]
             buffer.insert(upper_start, block)
         buffer.end_user_action()
         document.scroll_cursor_onscreen()
@@ -735,12 +805,12 @@ class Actions(object):
         if not buffer.get_has_selection():
             insert = buffer.get_iter_at_mark(buffer.get_insert())
             line_number = insert.get_line()
-            line_start = buffer.get_iter_at_line(line_number)
+            line_start = buffer.get_iter_at_line(line_number)[1]
             if line_number == buffer.get_line_count() - 1:
                 # 末行无换行符：选中到行末；否则选中到下一行行首以免吞掉换行。
                 line_end = buffer.get_end_iter()
             else:
-                line_end = buffer.get_iter_at_line(line_number + 1)
+                line_end = buffer.get_iter_at_line(line_number + 1)[1]
             buffer.select_range(line_start, line_end)
 
         document.controller.indent_selection(outdent=outdent)
@@ -932,6 +1002,44 @@ class Actions(object):
 
         self.workspace.get_active_document().search.hide_search_bar()
 
+    def _get_active_multicursor(self):
+        """获取当前活动文档的 MultiCursor 实例，或 None。"""
+        document = self.workspace.get_active_document()
+        if document is None:
+            return None
+        mc = getattr(document, 'multicursor', None)
+        return mc
+
+    def select_next_occurrence(self, action=None, parameter=None):
+        """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。"""
+        mc = self._get_active_multicursor()
+        if mc is not None:
+            mc.select_next_occurrence()
+
+    def select_all_occurrences(self, action=None, parameter=None):
+        """选中所有相同词/匹配（Ctrl+Shift+L）。"""
+        mc = self._get_active_multicursor()
+        if mc is not None:
+            mc.select_all_occurrences()
+
+    def add_cursor_above(self, action=None, parameter=None):
+        """在当前光标所在位置上方行添加光标（Ctrl+Alt+Up）。"""
+        mc = self._get_active_multicursor()
+        if mc is not None:
+            mc.add_cursor_above()
+
+    def add_cursor_below(self, action=None, parameter=None):
+        """在当前光标所在位置下方行添加光标（Ctrl+Alt+Down）。"""
+        mc = self._get_active_multicursor()
+        if mc is not None:
+            mc.add_cursor_below()
+
+    def clear_multi_cursor(self, action=None, parameter=None):
+        """清除所有附加光标（Escape）。"""
+        mc = self._get_active_multicursor()
+        if mc is not None:
+            mc.clear_all()
+
     def cut(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
@@ -1035,8 +1143,100 @@ class Actions(object):
         elif mode == 'height':
             zoom_manager.set_zoom_fit_to_height()
 
+    # --- Preview context menu actions -----------------------------------------
+
+    def _get_preview(self):
+        '''Return the active document's preview, or None.'''
+        document = self.workspace.get_root_or_active_latex_document()
+        if document is None:
+            return None
+        return document.preview
+
+    def preview_rotate_cw(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is not None:
+            preview.rotate(90)
+
+    def preview_rotate_ccw(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is not None:
+            preview.rotate(-90)
+
+    def preview_toggle_recolor(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None:
+            return
+        preview.toggle_recolor()
+        action.set_state(GLib.Variant.new_boolean(preview.recolor_pdf))
+
+    def preview_open_link(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None:
+            return
+        link = preview.context_menu.current_link
+        if link is not None:
+            preview.open_link(link)
+
+    def preview_copy_link(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None:
+            return
+        link = preview.context_menu.current_link
+        if link is not None:
+            text = link[1] if link[1] is not None else ''
+            Gdk.Display.get_default().get_clipboard().set_text(text)
+
+    def preview_copy_text(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None or parameter is None:
+            return
+        preview.copy_page_text(parameter.get_int32())
+
+    def preview_copy_image(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None or parameter is None:
+            return
+        preview.copy_page_image(parameter.get_int32())
+
+    def preview_save_image(self, action, parameter=None):
+        preview = self._get_preview()
+        if preview is None or parameter is None:
+            return
+        preview.save_page_image(parameter.get_int32())
+
+    def preview_search_pdf(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is None:
+            return
+        preview.context_menu.open_search_popover(None)
+
+    def preview_show_source(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document is not None and hasattr(document, 'view') and hasattr(document.view, 'source_view'):
+            document.view.source_view.grab_focus()
+
+    def preview_zoom_in(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is not None:
+            preview.zoom_manager.zoom_in()
+
+    def preview_zoom_out(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is not None:
+            preview.zoom_manager.zoom_out()
+
+    def preview_print_pdf(self, action=None, parameter=None):
+        preview = self._get_preview()
+        if preview is not None:
+            preview.print_pdf()
+
     def show_preferences_dialog(self, action=None, parameter=''):
         DialogLocator.get_dialog('preferences').run()
+
+    def show_document_properties(self, action=None, parameter=''):
+        if self.workspace.get_active_document() == None: return
+        document = self.workspace.get_active_document()
+        DialogLocator.get_dialog('document_properties').run(document)
 
     def show_shortcuts_dialog(self, action=None, parameter=''):
         DialogLocator.get_dialog('keyboard_shortcuts').run()
@@ -1049,5 +1249,101 @@ class Actions(object):
 
     def toggle_fullscreen(self, action=None, parameter=None):
         self.main_window.toggle_fullscreen()
+
+    # --- Label context menu actions ------------------------------------------
+
+    def jump_to_definition(self, action=None, parameter=None):
+        r'''Jump to the \label{...} definition for the given label name.'''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        document = self.workspace.get_active_document()
+        if document is None or not document.is_latex_document():
+            return
+        # Search for \label{label} in the document
+        import re
+        pattern = r'\\label\{' + re.escape(label) + r'\}'
+        text = document.get_all_text()
+        match = re.search(pattern, text)
+        if match:
+            offset = match.start()
+            line = document.source_buffer.get_iter_at_offset(offset).get_line()
+            document.place_cursor(line)
+            document.scroll_cursor_onscreen()
+            document.view.source_view.grab_focus()
+        else:
+            # Check included documents
+            workspace = self.workspace
+            for doc in workspace.open_documents:
+                if doc is document:
+                    continue
+                if not doc.is_latex_document():
+                    continue
+                text = doc.get_all_text()
+                match = re.search(pattern, text)
+                if match:
+                    workspace.set_active_document(doc)
+                    offset = match.start()
+                    line = doc.source_buffer.get_iter_at_offset(offset).get_line()
+                    doc.place_cursor(line)
+                    doc.scroll_cursor_onscreen()
+                    doc.view.source_view.grab_focus()
+                    return
+
+    def copy_ref_label(self, action=None, parameter=None):
+        r'''Copy \ref{label} to clipboard.'''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.set('\\ref{' + label + '}')
+
+    def copy_pageref_label(self, action=None, parameter=None):
+        r'''Copy \pageref{label} to clipboard.'''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.set('\\pageref{' + label + '}')
+
+    def copy_autoref_label(self, action=None, parameter=None):
+        '''Copy \autoref{label} to clipboard.'''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.set('\\autoref{' + label + '}')
+
+    def find_all_refs(self, action=None, parameter=None):
+        '''Search for all \ref{label} occurrences in the document.'''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        # Use the search bar to find all \ref{label} occurrences
+        search = document.search
+        search.set_mode_search()
+        search.view.entry.set_text('\\ref{' + label + '}')
+        search.on_search_entry_changed(search.view.entry)
+
+    def fold_all(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        buffer = document.source_buffer
+        buffer.begin_user_action()
+        document.code_folding.fold_all()
+        buffer.end_user_action()
+
+    def unfold_all(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        buffer = document.source_buffer
+        buffer.begin_user_action()
+        document.code_folding.unfold_all()
+        buffer.end_user_action()
 
 

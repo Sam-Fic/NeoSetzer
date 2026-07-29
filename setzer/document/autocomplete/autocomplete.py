@@ -29,10 +29,21 @@ from setzer.app.service_locator import ServiceLocator
 
 # activate_if_possible 在每次单字符插入时调用（打字热路径），预编译避免
 # re.search 每次查 re._cache 的字典开销。
-_ACTIVATE_REGEX = re.compile(r'\\[a-zA-Z]+\Z')
+_ACTIVATE_REGEX = re.compile(r'\\[a-zA-Z0-9@]+\Z')
 
 # \begin{...} 上下文：光标在 \begin{ 的花括号内时补全环境名而非 LaTeX 命令。
 _BEGIN_REGEX = re.compile(r'\\begin\{([a-zA-Z]*)\Z')
+
+# math mode 检测：光标前奇数个未转义 $ 视为 math mode。
+def _is_in_math_mode(text_before_cursor):
+    count = 0
+    i = 0
+    while i < len(text_before_cursor):
+        if text_before_cursor[i] == '$':
+            if i == 0 or text_before_cursor[i - 1] != '\\':
+                count += 1
+        i += 1
+    return count % 2 == 1
 
 # 仅 preamble 可用、文档体（\begin{document} 之后）应隐藏的命令基础名。
 # 用于 update_suggestions 的上下文过滤（报告 #7）。
@@ -206,6 +217,12 @@ class Autocomplete(object):
             self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + matching_result.start()
             self.is_active = True
             self.update_suggestions()
+        # math mode 内输入单个字母：以该字母为前缀补全 onlymath 命令（希腊字母等）。
+        elif _is_in_math_mode(line_before_cursor) and len(line_before_cursor) > 0 and line_before_cursor[-1].isalpha():
+            self.context = 'math'
+            self.current_word_offset = insert_iter.get_offset() - 1
+            self.is_active = True
+            self.update_suggestions()
         self.widget.queue_draw()
 
     def deactivate_if_necessary(self):
@@ -267,7 +284,7 @@ class Autocomplete(object):
             if self.context == 'begin':
                 self.items = LaTeXDB.get_environment_items(self.current_word)
             else:
-                self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item)
+                self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item, onlymath=(self.context == 'math'))
             # 文档体（\begin{document} 之后）隐藏仅 preamble 命令（报告 #7）。
             if self.context != 'begin':
                 preamble_end = self._get_preamble_end()
@@ -393,8 +410,10 @@ class Autocomplete(object):
                 self.last_tabbed_item = self.items[self.selected_item_index]['command']
                 if lcp == command and command.startswith('\\begin{'):
                     bracket_pos = command.find('}') + 1
-                    command += '\n\t•\n\\end{' + command[7:bracket_pos]
-                    self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
+                    end_name = command[7:bracket_pos]
+                    if not self._replace_begin_keep_auto_end(end_name):
+                        command += '\n\t•\n\\end{' + end_name + '}'
+                        self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
                     self.deactivate()
                 else:
                     self.replace_current_word_in_buffer(lcp, select_dot_and_scroll=False)
@@ -419,12 +438,60 @@ class Autocomplete(object):
             command = self.items[self.selected_item_index]['command']
             if command.startswith('\\begin{'):
                 bracket_pos = command.find('}') + 1
-                command += '\n\t•\n\\end{' + command[7:bracket_pos]
+                end_name = command[7:bracket_pos]
+                if self._replace_begin_keep_auto_end(end_name):
+                    self.deactivate()
+                    return
+                command += '\n\t•\n\\end{' + end_name + '}'
                 self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
             else:
                 self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
 
         self.deactivate()
+
+    def _replace_begin_keep_auto_end(self, end_name):
+        r'''若光标后已存在环境自动补插入的配对 \end{}（含占位符 •），
+        仅补全 \begin{name} 部分并保留已有 \end{}，避免重复插入。'''
+        source_buffer = self.source_buffer
+        begin_start_iter = source_buffer.get_iter_at_offset(self.current_word_offset)
+        if begin_start_iter is None:
+            return False
+        insert_iter = source_buffer.get_iter_at_mark(source_buffer.get_insert())
+
+        text_after = source_buffer.get_text(insert_iter, source_buffer.get_end_iter(), False)
+        match = re.search(r'^\}?\n\t•\n\\end\{', text_after)
+        if match is None:
+            return False
+
+        close_iter = insert_iter.copy()
+        if match.group(0).startswith('}'):
+            close_iter.forward_char()
+        dot_offset = insert_iter.get_offset() + match.start() + len('\n\t')
+        dot_mark = source_buffer.create_mark(None, source_buffer.get_iter_at_offset(dot_offset), True)
+
+        source_buffer.begin_user_action()
+        try:
+            source_buffer.delete(begin_start_iter, close_iter)
+            source_buffer.insert(begin_start_iter, '\\begin{' + end_name + '}')
+            # begin_start_iter 现位于尾串起始（\begin{name} 之后），把已插入的 \end{} 环境名同步为 name
+            found, end_bs_iter, _ = begin_start_iter.forward_search('\\end{', Gtk.TextSearchFlags(0), None)
+            if found:
+                name_start = end_bs_iter.copy()
+                name_start.forward_chars(5)
+                name_end = name_start.copy()
+                while not name_end.get_char() == '}' and not name_end.is_end():
+                    name_end.forward_char()
+                source_buffer.delete(name_start, name_end)
+                source_buffer.insert(name_start, end_name)
+        finally:
+            source_buffer.end_user_action()
+
+        dot_iter = source_buffer.get_iter_at_mark(dot_mark)
+        source_buffer.delete_mark(dot_mark)
+        source_buffer.place_cursor(dot_iter)
+        self.document.select_first_dot_around_cursor(1, 0)
+        self.document.scroll_cursor_onscreen()
+        return True
 
     def match_current_command_with_buffer(self):
         command = self.items[self.selected_item_index]['command']

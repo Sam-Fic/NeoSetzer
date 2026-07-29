@@ -50,9 +50,12 @@ class StatusBarView(Gtk.Box):
         self.language_label = Gtk.Label(label='')
         self.encoding_label = Gtk.Label(label='')
         self.indent_label = Gtk.Label(label='')
+        self.labels_count_label = Gtk.Label(label='')
+        self.todos_count_label = Gtk.Label(label='')
 
         for label in (self.line_col_label, self.language_label,
-                      self.encoding_label, self.indent_label):
+                      self.encoding_label, self.indent_label,
+                      self.labels_count_label, self.todos_count_label):
             label.add_css_class('caption')
             label.add_css_class('dim-label')
             self.info_box.append(label)

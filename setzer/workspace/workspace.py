@@ -92,6 +92,26 @@ class Workspace(Observable):
         # 原值，下次启动恢复正确。
         self.preview_popped_out = False
         self.pdf_preview_window = None
+        self._loading_count = 0
+
+    def _loading_start(self):
+        '''开始加载：计数器+1并发射信号。'''
+        self._loading_count += 1
+        self.add_change_code('loading-started')
+
+    def _loading_finish(self):
+        '''结束加载：计数器-1并发射信号（计数器归零时才发）。'''
+        if self._loading_count > 0:
+            self._loading_count -= 1
+        if self._loading_count == 0:
+            self.add_change_code('loading-finished')
+
+    def _on_document_loading(self, document, action):
+        '''文档加载回调：由 document._load_file_content 调用。'''
+        if action == 'start':
+            self._loading_start()
+        elif action == 'finish':
+            self._loading_finish()
 
     def init_workspace_controller(self):
         # 缓存 main_window 引用：PdfPreviewWindow 等子组件通过 workspace.main_window
@@ -213,17 +233,21 @@ class Workspace(Observable):
         # BuildSystem.__init__ 内原本在此连接 preview 的 pdf_changed 信号，
         # 因构造时 preview 尚不存在而推迟到此处（两者均已就绪）。
         document.preview.connect('pdf_changed', document.build_system.update_can_sync)
+        # 设置加载回调，使文档读盘时能通知 workspace 显示/隐藏 spinner
+        document._loading_callback = lambda action: self._on_document_loading(document, action)
         return document
 
     def create_bibtex_document(self):
         document = Document('bibtex')
+        document._loading_callback = lambda action: self._on_document_loading(document, action)
         return document
 
     def create_other_document(self):
         document = Document('other')
+        document._loading_callback = lambda action: self._on_document_loading(document, action)
         return document
 
-    def create_document_from_filename(self, filename, lazy=False):
+    def create_document_from_filename(self, filename, lazy=False, with_loading_indicator=True):
         # 文件名可能短于 4 字符（极端但合法），[-4:] 会返回整个字符串，
         # endswith 在此情形下仍能正确比较，且语义更清晰。
         if filename.endswith('.tex'):
@@ -243,7 +267,13 @@ class Workspace(Observable):
             self.add_document(document)
             document.schedule_lazy_load()
             return document
-        response = document.populate_from_filename()
+        if with_loading_indicator:
+            self._loading_start()
+        try:
+            response = document.populate_from_filename()
+        finally:
+            if with_loading_indicator:
+                self._loading_finish()
         if response != False:
             self.add_document(document)
             return document
@@ -269,8 +299,12 @@ class Workspace(Observable):
         # 懒加载同步兜底：用户切换到尚未加载内容的文档时，取消其 idle 回调
         # 并立即读取文件内容。idle 后台加载虽已调度，但用户主动切换意味着
         # 要立即查看该文档——不能等 idle 排到它。
-        if document is not None and document._content_pending:
-            document._load_content_if_pending()
+        if document is not None and getattr(document, '_content_pending', False):
+            self._loading_start()
+            try:
+                document._load_content_if_pending()
+            finally:
+                self._loading_finish()
 
         if self.active_document != None:
             self.add_change_code('new_inactive_document', self.active_document)
@@ -288,7 +322,7 @@ class Workspace(Observable):
 
     def set_build_log(self):
         document = self.get_root_or_active_latex_document()
-        if document != None:
+        if document != None and hasattr(self, 'build_log'):
             self.build_log.set_document(document)
 
     def get_last_active_document(self):
@@ -397,51 +431,55 @@ class Workspace(Observable):
             self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
             self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
             return
+        self._loading_start()
         try:
-            root_document_filename = data['root_document_filename']
-        except KeyError:
-            root_document_filename = None
-        active_filename = data.get('active_document_filename')
-        # 懒加载：仅活跃文档同步读取文件内容，其余文档延迟到 idle 后台加载。
-        # 启动时若有 N 个大 .tex 文件，原实现同步读 N 次（阻塞主线程），
-        # 改为只读活跃文档 1 次，其余在 idle 中分批读取，主窗口更快可交互。
-        # 排序保持原序（按 last_activated），活跃文档仍可能非末尾。
-        for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
-            is_active = (item['filename'] == active_filename)
-            document = self.create_document_from_filename(item['filename'], lazy=not is_active)
-            if document != None:
-                self._restore_document_state(document, item, root_document_filename)
-        # 恢复未命名文档（临时内容文件）
-        for item in sorted(data.get('untitled_documents', {}).values(), key=lambda val: val['last_activated']):
-            is_active = (item.get('untitled_id') == active_filename)
-            document = self._restore_untitled_document(item)
-            if document is not None and is_active:
-                self._restore_active_filename = item.get('untitled_id')
-        for item in data['recently_opened_documents'].values():
-            self.update_recently_opened_document(item['filename'], item['date'], notify=False)
-        try:
-            self.pinned_recent_documents = set(data['pinned_recent_documents'])
-        except KeyError:
-            self.pinned_recent_documents = set()
-        # update_recently_opened_document 已对不存在的文件调
-        # remove_recently_opened_document（不添加到 dict），故无需再做一轮
-        # stale 清理。原实现额外遍历 recently_opened_documents 逐个 os.path.isfile
-        # 是冗余的二次 stat（上限 50 文件 × 2 = 100 次 stat）。recently_opened_documents
-        # 在 __init__ 中初始化为空 dict，populate_from_disk 是启动时唯一填充点，
-        # 不存在「加载前残留的过期条目」需要清理。
-        try:
-            self.help_panel.search_results_blank = data['recent_help_searches']
-        except KeyError:
-            pass
-        try:
-            recently_opened_session_files = data['recently_opened_session_files'].values()
-        except KeyError:
-            recently_opened_session_files = []
-        for item in recently_opened_session_files:
-            self.update_recently_opened_session_file(item['filename'], item['date'], notify=False)
-        self._restore_active_filename = active_filename
-        self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
-        self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
+            try:
+                root_document_filename = data['root_document_filename']
+            except KeyError:
+                root_document_filename = None
+            active_filename = data.get('active_document_filename')
+            # 懒加载：仅活跃文档同步读取文件内容，其余文档延迟到 idle 后台加载。
+            # 启动时若有 N 个大 .tex 文件，原实现同步读 N 次（阻塞主线程），
+            # 改为只读活跃文档 1 次，其余在 idle 中分批读取，主窗口更快可交互。
+            # 排序保持原序（按 last_activated），活跃文档仍可能非末尾。
+            for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
+                is_active = (item['filename'] == active_filename)
+                document = self.create_document_from_filename(item['filename'], lazy=not is_active, with_loading_indicator=False)
+                if document != None:
+                    self._restore_document_state(document, item, root_document_filename)
+            # 恢复未命名文档（临时内容文件）
+            for item in sorted(data.get('untitled_documents', {}).values(), key=lambda val: val['last_activated']):
+                is_active = (item.get('untitled_id') == active_filename)
+                document = self._restore_untitled_document(item)
+                if document is not None and is_active:
+                    self._restore_active_filename = item.get('untitled_id')
+            for item in data['recently_opened_documents'].values():
+                self.update_recently_opened_document(item['filename'], item['date'], notify=False)
+            try:
+                self.pinned_recent_documents = set(data['pinned_recent_documents'])
+            except KeyError:
+                self.pinned_recent_documents = set()
+            # update_recently_opened_document 已对不存在的文件调
+            # remove_recently_opened_document（不添加到 dict），故无需再做一轮
+            # stale 清理。原实现额外遍历 recently_opened_documents 逐个 os.path.isfile
+            # 是冗余的二次 stat（上限 50 文件 × 2 = 100 次 stat）。recently_opened_documents
+            # 在 __init__ 中初始化为空 dict，populate_from_disk 是启动时唯一填充点，
+            # 不存在「加载前残留的过期条目」需要清理。
+            try:
+                self.help_panel.search_results_blank = data['recent_help_searches']
+            except KeyError:
+                pass
+            try:
+                recently_opened_session_files = data['recently_opened_session_files'].values()
+            except KeyError:
+                recently_opened_session_files = []
+            for item in recently_opened_session_files:
+                self.update_recently_opened_session_file(item['filename'], item['date'], notify=False)
+            self._restore_active_filename = active_filename
+            self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+            self.add_change_code('update_recently_opened_session_files', self.recently_opened_session_files)
+        finally:
+            self._loading_finish()
 
     def _restore_untitled_document(self, item):
         '''从 workspace.json 的 untitled_documents 条目恢复一个未命名文档。
@@ -543,6 +581,7 @@ class Workspace(Observable):
             # 改为弹 toast 告知是哪个文件加载失败（与 save_session 的失败反馈对称）。
             self._notify_session_load_error(filename)
             return False
+        self._loading_start()
         try:
             try:
                 root_document_filename = data['root_document_filename']
@@ -551,7 +590,7 @@ class Workspace(Observable):
             active_filename = data.get('active_document_filename')
             opened_count = 0
             for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
-                document = self.create_document_from_filename(item['filename'])
+                document = self.create_document_from_filename(item['filename'], with_loading_indicator=False)
                 if document is None:
                     continue
                 opened_count += 1
@@ -588,6 +627,8 @@ class Workspace(Observable):
             # 原实现会抛未捕获异常直接崩溃。
             self._notify_session_load_error(filename)
             return False
+        finally:
+            self._loading_finish()
 
     def _notify_session_load_error(self, filename, message=None):
         '''session 文件解析/结构失败，或加载后无任何文档打开时弹 toast 告知用户。'''

@@ -189,6 +189,11 @@ class LaTeXLogParser():
                     line_number = self.bl_get_line_number(line, matchiter)
                     log_messages['warning'].append((None, line_number, text))
 
+                elif line.startswith('LaTeX Font Warning: '):
+                    text = line[20:].strip()
+                    line_number = self.bl_get_line_number(line, matchiter)
+                    log_messages['warning'].append((None, line_number, text))
+
                 elif line.startswith('! Undefined control sequence'):
                     text = line.strip()
                     line_number = self.bl_get_line_number(line, matchiter)

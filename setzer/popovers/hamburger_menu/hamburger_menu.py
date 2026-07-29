@@ -78,6 +78,8 @@ class HamburgerMenu(object):
         save_as.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>s'))
         section_save.append_item(save_as)
         section_save.append(_('Save All Documents'), 'win.save-all')
+        # Export PDF As…：把 build 生成的 PDF 另存到其他位置（副本，不改源文件）。
+        section_save.append(_('Export PDF As…'), 'win.export-pdf-as')
         print_item = Gio.MenuItem.new(_('Print…'), 'win.print')
         print_item.set_attribute_value('accel', GLib.Variant('s', '<Control>p'))
         section_save.append_item(print_item)
@@ -93,6 +95,8 @@ class HamburgerMenu(object):
         prefs = Gio.MenuItem.new(_('Preferences'), 'win.show-preferences-dialog')
         prefs.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>comma'))
         section_prefs.append_item(prefs)
+        doc_props = Gio.MenuItem.new(_('Document Properties'), 'win.show-document-properties')
+        section_prefs.append_item(doc_props)
         self.menu_model.append_section(None, section_prefs)
 
         section_help = Gio.Menu()
@@ -103,7 +107,8 @@ class HamburgerMenu(object):
         shortcuts.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>question'))
         section_help.append_item(shortcuts)
         about = Gio.MenuItem.new(_('About'), 'win.show-about-dialog')
-        about.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>h'))
+        # 不设 accel 提示：show_about_dialog 现无默认快捷键（About 对话框菜单可达），
+        # 若仍写死 Ctrl+Shift+H 会与默认行为不一致、误导用户。
         section_help.append_item(about)
         self.menu_model.append_section(None, section_help)
 

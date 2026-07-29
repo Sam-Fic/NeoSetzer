@@ -16,7 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import os
-import datetime
 
 from gi.repository import Adw, Gtk, GLib
 
@@ -44,6 +43,7 @@ class WelcomeScreen(object):
         self.view.new_latex_button.connect('clicked', self.on_new_latex_clicked)
         self.view.new_bibtex_button.connect('clicked', self.on_new_bibtex_clicked)
         self.view.wizard_button.connect('clicked', self.on_wizard_clicked)
+        self.view.example_button.connect('clicked', self.on_example_clicked)
 
         # open a recent document when its row is activated
         self.view.recent_listbox.connect('row-activated', self.on_recent_row_activated)
@@ -102,6 +102,11 @@ class WelcomeScreen(object):
             self.workspace.set_active_document(document)
         else:
             self.workspace.remove_document(document)
+
+    def on_example_clicked(self, button):
+        example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')
+        if os.path.isfile(example_path):
+            self.workspace.open_document_by_filename(example_path)
 
     # --- recent documents ---
 
@@ -184,21 +189,22 @@ class WelcomeScreen(object):
         icon = Gtk.Image.new_from_icon_name(icon_name)
         row.add_prefix(icon)
 
-        # 右侧信息区：文件大小 · 时间戳 + 修改指示 + 置顶按钮 + 移除按钮
+        # 右侧信息区：修改指示 + 文件大小 · 时间戳 + 置顶按钮 + 移除按钮
         info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         info_box.set_valign(Gtk.Align.CENTER)
+
+        modified_image = Gtk.Image(icon_name='document-revert-symbolic')
+        modified_image.set_tooltip_text(_('Changed on disk since last opened'))
+        modified_image.set_visible(False)
+        modified_image.set_opacity(0.6)
+        info_box.append(modified_image)
+        row._modified_image = modified_image
 
         info_label = Gtk.Label()
         info_label.add_css_class('dim-label')
         info_label.add_css_class('caption')
         info_box.append(info_label)
         row._info_label = info_label
-
-        modified_image = Gtk.Image(icon_name='document-modified-symbolic')
-        modified_image.set_tooltip_text(_('Changed on disk since last opened'))
-        modified_image.set_visible(False)
-        info_box.append(modified_image)
-        row._modified_image = modified_image
 
         pin_button = Gtk.Button(icon_name='view-pin-symbolic')
         pin_button.set_has_frame(False)
@@ -273,7 +279,10 @@ class WelcomeScreen(object):
 
     @staticmethod
     def _format_timestamp(t):
-        return datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d %H:%M')
+        dt = GLib.DateTime.new_from_unix_local(t)
+        if dt is None:
+            return ''
+        return dt.format('%x %H:%M')
 
     def on_remove_recent_clicked(self, button, filename):
         self.workspace.remove_recently_opened_document(filename, notify=True)

@@ -101,6 +101,8 @@ class Settings(Observable):
         self.defaults['window_state']['show_help'] = False
         self.defaults['window_state']['show_preview'] = False
         self.defaults['window_state']['show_build_log'] = False
+        # todos 侧栏：是否显示所有文档的 todos。True=全部文档, False=仅当前文档。
+        self.defaults['window_state']['todos_show_all_documents'] = False
         self.defaults['window_state']['preview_paned_position'] = -1
         # preview 宽度占比（Adw.OverlaySplitView）。旧版用像素 preview_paned_position，
         # 由 workspace_presenter.setup_paneds 一次性迁移到 fraction；此处保留旧键默认值
@@ -109,6 +111,10 @@ class Settings(Observable):
         self.defaults['window_state']['notebook_paned_position'] = -1
         # Pass-10: build_log_paned_position 已废弃（build_log 改为 Adw.Dialog 弹窗，
         # 尺寸由 dialog 自管理）。旧 pickle 文件中若有该 key 不影响，只是不再读它。
+        # 构建日志弹窗内各 group 的展开/折叠状态。True=展开, False=折叠。
+        self.defaults['window_state']['build_log_groups_expanded'] = {
+            'Error': True, 'Warning': True, 'Badbox': True
+        }
 
         self.defaults['app_document_wizard'] = dict()
         self.defaults['app_document_wizard']['presets'] = None
@@ -153,6 +159,8 @@ class Settings(Observable):
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         self.defaults['preferences']['show_line_numbers'] = True
+        self.defaults['preferences']['show_right_margin'] = True
+        self.defaults['preferences']['right_margin_position'] = 80
         self.defaults['preferences']['show_shortcuts_bar'] = True
         # 行距（像素）：每行之间的额外垂直间距。均分到 pixels_above_lines /
         # pixels_below_lines 使文本在行 slot 中竖直居中；pixels_inside_wrap
@@ -160,9 +168,16 @@ class Settings(Observable):
         # 自动包含这些间距，gutter 行号间距随之同步。
         self.defaults['preferences']['line_spacing'] = 0
         self.defaults['preferences']['enable_code_folding'] = True
+        self.defaults['preferences']['enable_sticky_scroll'] = True
         self.defaults['preferences']['enable_line_wrapping'] = True
         self.defaults['preferences']['highlight_current_line'] = True
         self.defaults['preferences']['highlight_matching_brackets'] = True
+        self.defaults['preferences']['highlight_matching_begin_end'] = True
+        # 行尾/空白可见性：调试缩进问题时有用。
+        # show_line_endings: 在行尾显示 ¶ 符号。
+        self.defaults['preferences']['show_line_endings'] = False
+        # show_whitespace: 显示空白字符（空格 · Tab →）。
+        self.defaults['preferences']['show_whitespace'] = False
         self.defaults['preferences']['build_option_system_commands'] = 'disable'
         self.defaults['preferences']['enable_autocomplete'] = True
         self.defaults['preferences']['enable_bracket_completion'] = True
@@ -181,6 +196,8 @@ class Settings(Observable):
         self.defaults['preferences']['autocomplete_accept'] = 'Return'
         self.defaults['preferences']['autocomplete_cancel'] = 'Escape'
         self.defaults['preferences']['update_matching_blocks'] = True
+        # 环境自动补：输入 \begin{ 时自动插入配对的 \end{}（含内容占位符）。默认关闭，避免干扰可选参数环境。
+        self.defaults['preferences']['enable_environment_autocomplete'] = False
         # 自动保存（崩溃恢复模式）：定时把缓冲区内容写入
         # ~/.config/setzer/autosave/<hash>.tex，应用崩溃后下次启动弹恢复对话框。
         # 默认开启，间隔 60 秒（与 VS Code 默认 files.autoSave=off 不同；Setzer
@@ -190,7 +207,15 @@ class Settings(Observable):
         # 当检测到外部程序修改磁盘文件时，是否自动静默重载。
         # 仅对本地 buffer 无未保存修改的文档生效；有未保存修改时回退到对话框。
         self.defaults['preferences']['auto_reload_on_external_change'] = True
-        # 首次运行引导（welcome dialog）：在用户首次构建或首次预览时弹一次，
+        # 默认编码：新建文档的初始编码，也是无法自动检测编码时的回退。
+        self.defaults['preferences']['default_encoding'] = 'utf-8'
+        # 默认行尾格式：新建文档的初始换行符。可选 '\n'（LF）、'\r\n'（CRLF）、'\r'（CR）。
+        self.defaults['preferences']['default_line_ending'] = '\n'
+        # PDF 预览默认缩放模式：'fit_to_width'（适应宽度）、
+        # 'fit_to_text_width'（适应文字宽度）、
+        # 'fit_to_height'（适应高度）、'manual'（手动缩放，100% 起步）。
+        self.defaults['preferences']['preview_zoom'] = 'fit_to_width'
+        # 首次运行引导（welcome dialog）：应用真正首次启动时弹一次，
         # 列出 Setzer 的核心功能要点。first_run_tutorial_shown 置 True 后不再
         # 自动弹；偏好页的“再次显示首次引导”按钮可随时手动重看。
         self.defaults['preferences']['first_run_tutorial_shown'] = False
@@ -211,6 +236,10 @@ class Settings(Observable):
         # setzer/ai_fix/presets.py。default_tools() 返回深拷贝避免污染常量。
         from setzer.ai_fix.presets import default_tools
         self.defaults['preferences']['ai_fix_tools'] = default_tools()
+        # 「忽略此类 warning」：存放被用户右键忽略的 warning/badbox 类型 key
+        #（跨构建稳定，与具体行号/文件名无关）。见
+        # setzer/dialogs/build_log/build_log_dialog_presenter.classify_warning_type。
+        self.defaults['preferences']['ignored_warning_types'] = []
 
         self.defaults['preferences']['use_system_font'] = True
         textview = Gtk.TextView()
@@ -260,9 +289,15 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['fullscreen'] = 'F11'
         self.defaults['keyboard_shortcuts']['context_menu'] = 'F12'
         self.defaults['keyboard_shortcuts']['show_preferences_dialog'] = '<Control>comma'
-        self.defaults['keyboard_shortcuts']['show_about_dialog'] = '<Control><Shift>h'
+        # show_about_dialog 不设默认快捷键：About 对话框在各平台均无专属快捷键，
+        # 标准入口是「帮助 ▸ 关于」；且 Ctrl+Shift+H 恰是 Ctrl+H（查找替换）的 Shift
+        # 变体，易被误触、易误解。动作仍可通过菜单触发，也仍可在偏好设置里手动绑定。
+        self.defaults['keyboard_shortcuts']['show_about_dialog'] = ''
         self.defaults['keyboard_shortcuts']['close_all_documents'] = '<Control><Shift>w'
         self.defaults['keyboard_shortcuts']['restore_session'] = '<Control><Shift>j'
+        # reopen_last_closed_document：默认 Ctrl+Shift+T（浏览器式"重开标签页"惯例）。
+        # 此前为硬编码、用户无法改绑；现提升为可配置项，纳入偏好设置的快捷键编辑器。
+        self.defaults['keyboard_shortcuts']['reopen_last_closed_document'] = '<Control><Shift>t'
         self.defaults['keyboard_shortcuts']['cut'] = '<Control>x'
         self.defaults['keyboard_shortcuts']['copy'] = '<Control>c'
         self.defaults['keyboard_shortcuts']['paste'] = '<Control>v'
@@ -297,6 +332,12 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['toggle_bookmark'] = '<Control>f2'
         self.defaults['keyboard_shortcuts']['next_bookmark'] = 'f2'
         self.defaults['keyboard_shortcuts']['previous_bookmark'] = '<Control><Shift>f2'
+        # Multi-cursor shortcuts (VS Code-style)
+        self.defaults['keyboard_shortcuts']['select_next_occurrence'] = '<Control>d'
+        self.defaults['keyboard_shortcuts']['select_all_occurrences'] = '<Control><Shift>l'
+        self.defaults['keyboard_shortcuts']['add_cursor_above'] = '<Control><Alt>Up'
+        self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Alt>Down'
+        self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
 
     def _migrate_conflicting_shortcut_defaults(self):
         '''把已持久化配置中仍等于"旧冲突默认值"的快捷键迁到新默认值。
@@ -321,6 +362,13 @@ class Settings(Observable):
         for action, (old_default, new_default) in migrations.items():
             if shortcuts.get(action) == old_default:
                 shortcuts[action] = new_default
+                changed = True
+        # 补齐新增的可配置快捷键（如 reopen_last_closed_document）：老用户的已保存
+        # 配置中没有这些键，用默认值补上，使其出现在偏好设置编辑器并参与冲突检测、
+        # 导入/导出。仅补全缺失键，绝不动用户已自定义的值。
+        for action, default in self.defaults['keyboard_shortcuts'].items():
+            if action not in shortcuts:
+                shortcuts[action] = default
                 changed = True
         if changed:
             self.pickle()

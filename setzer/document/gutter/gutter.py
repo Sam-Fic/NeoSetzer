@@ -225,7 +225,13 @@ class Gutter(object):
         else:
             offset = self.adjustment.get_value()
             target = self.source_view.get_line_at_y(offset + y).target_iter
-            self.source_buffer.place_cursor(target)
+            line_number = target.get_line()
+            line_start = self.source_buffer.get_iter_at_line(line_number)[1]
+            if line_number == self.source_buffer.get_line_count() - 1:
+                line_end = self.source_buffer.get_end_iter()
+            else:
+                line_end = self.source_buffer.get_iter_at_line(line_number + 1)[1]
+            self.source_buffer.select_range(line_start, line_end)
         return True
 
     def on_scroll(self, controller, dx, dy):

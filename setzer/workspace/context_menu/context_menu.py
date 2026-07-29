@@ -39,6 +39,7 @@ class ContextMenu(object):
     def __init__(self, workspace):
         self.workspace = workspace
         self.document = None
+        self._label_context = None
 
         # The shortcutsbar "more" popover (F12). Also the source of the shared
         # Gio.Menu model — actions.py updates its reset_zoom_button on zoom.
@@ -54,8 +55,21 @@ class ContextMenu(object):
         self.popover_pointer.set_menu_model(self.popover_more.view.model)
         self.popover_pointer.add_child(self._build_zoom_widget(), 'zoom-controls')
         self.popover_pointer.connect('map', self.on_popover_map)
+        self.popover_pointer.connect('unmap', self.on_popover_unmap)
+        # Clear label context when F12 popover is shown, so label items don't
+        # leak from right-click into the F12 menu.
+        self.popover_more.view.connect('map', self.on_f12_popover_map)
 
         self.workspace.connect('new_active_document', self.on_new_active_document)
+
+    def set_label_context(self, label):
+        '''Set the label name for the right-click context menu.
+        Called from document_controller before showing the popup.'''
+        self._label_context = label
+        if label is not None and self.document is not None:
+            self.popover_more.view.rebuild_latex_section(self.document, label)
+        else:
+            self.popover_more.view.rebuild_latex_section(self.document)
 
     def _build_zoom_widget(self):
         '''右键 popover 自己的 zoom 控件行。与 ContextMenuView._build_zoom_widget
@@ -101,6 +115,21 @@ class ContextMenu(object):
 
     def on_popover_map(self, popover):
         popover.grab_focus()
+
+    def on_f12_popover_map(self, popover):
+        '''Clear label context when F12 popover is shown, so label items don't
+        leak from right-click into the F12 menu.'''
+        if self._label_context is not None:
+            self._label_context = None
+            if self.document is not None:
+                self.popover_more.view.rebuild_latex_section(self.document)
+
+    def on_popover_unmap(self, popover):
+        '''Clear label context when popover closes.'''
+        if self._label_context is not None:
+            self._label_context = None
+            if self.document is not None:
+                self.popover_more.view.rebuild_latex_section(self.document)
 
     def popup_at_cursor(self, x, y):
         if self.document == None: return

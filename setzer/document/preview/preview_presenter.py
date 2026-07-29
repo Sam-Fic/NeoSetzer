@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GObject, Gdk
+from gi.repository import GObject, Gdk, Gtk
 import cairo
 
 import os.path
@@ -185,10 +185,22 @@ class PreviewPresenter(object):
         ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page * (page_height + page_gap)))
 
         page_step = page_height + page_gap
+        rotation = self.preview.rotation
         for page_number in range(first_page, last_page + 1):
             self.draw_page_background_and_outline(ctx, layout, border_color, bg_color)
-            self.draw_rendered_page(ctx, page_number, layout)
-            self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+            if rotation != 0:
+                # Draw the un-rotated texture (and synctex highlight) inside a
+                # rotation transform so it appears rotated within the page box.
+                ctx.save()
+                ctx.translate(layout.page_width / 2.0, layout.page_height / 2.0)
+                ctx.rotate(math.radians(rotation))
+                ctx.translate(-layout.page_width_original / 2.0, -layout.page_height_original / 2.0)
+                self.draw_rendered_page(ctx, page_number, layout)
+                self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+                ctx.restore()
+            else:
+                self.draw_rendered_page(ctx, page_number, layout)
+                self.draw_synctex_rectangles(ctx, page_number, synctex_color)
 
             ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_step))
 
@@ -226,19 +238,22 @@ class PreviewPresenter(object):
         if rendered_page_data is None: return
 
         surface = rendered_page_data[0]
-        page_width = rendered_page_data[1] * layout.hidpi_factor
-
         if not isinstance(surface, cairo.ImageSurface): return
 
+        # rendered_page_data[1] / [2] are the un-rotated CSS page dimensions.
+        page_width_css = rendered_page_data[1]
+        page_height_css = rendered_page_data[2]
+        device_w = page_width_css * layout.hidpi_factor
+        device_h = page_height_css * layout.hidpi_factor
+
+        # The context is already rotated (if needed), so we draw the un-rotated
+        # page texture at its natural CSS size: scale the device-px surface down
+        # to CSS px and fill the page rectangle.
         matrix = ctx.get_matrix()
-        layout_page_width = layout.page_width
-        factor = layout_page_width / page_width
-        ctx.scale(factor, factor)
-
+        ctx.scale(1.0 / layout.hidpi_factor, 1.0 / layout.hidpi_factor)
         ctx.set_source_surface(surface, 0, 0)
-        ctx.rectangle(0, 0, layout_page_width / factor, layout.page_height / factor)
+        ctx.rectangle(0, 0, device_w, device_h)
         ctx.fill()
-
         ctx.set_matrix(matrix)
 
     def draw_synctex_rectangles(self, ctx, page_number, synctex_color):
@@ -261,5 +276,100 @@ class PreviewPresenter(object):
             ctx.set_operator(cairo.Operator.OVER)
 
     def ease(self, factor): return (factor - 1)**3 + 1
+
+    # --- Context-menu actions -------------------------------------------------
+
+    def _render_page_surface(self, page_number, scale=None):
+        '''Render a single page to a cairo surface at the given scale.
+
+        Honors the current preview rotation. Used by "Copy Image" and
+        "Save Image As".
+        '''
+        doc = self.preview.poppler_document
+        if doc is None: return (None, 0, 0)
+        page = doc.get_page(page_number)
+        pw, ph = page.get_size()
+        rotation = self.preview.rotation
+        if rotation in (90, 270):
+            sw, sh = ph, pw
+        else:
+            sw, sh = pw, ph
+        if scale is None:
+            layout_scale = self.preview.layout.scale_factor if self.preview.layout is not None else 1.0
+            scale = max(layout_scale, 2.0)
+        surf_w = max(1, int(round(sw * scale)))
+        surf_h = max(1, int(round(sh * scale)))
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, surf_w, surf_h)
+        ctx = cairo.Context(surface)
+        if rotation == 0:
+            ctx.scale(scale, scale)
+            page.render(ctx)
+        else:
+            ctx.translate(surf_w / 2.0, surf_h / 2.0)
+            ctx.rotate(math.radians(rotation))
+            ctx.translate(-pw * scale / 2.0, -ph * scale / 2.0)
+            ctx.scale(scale, scale)
+            page.render(ctx)
+        return (surface, surf_w, surf_h)
+
+    def copy_page_text(self, page_number):
+        doc = self.preview.poppler_document
+        if doc is None: return
+        text = doc.get_page(page_number).get_text()
+        if text:
+            Gdk.Display.get_default().get_clipboard().set_text(text)
+
+    def copy_page_image(self, page_number):
+        surface, w, h = self._render_page_surface(page_number)
+        if surface is None: return
+        pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, w, h)
+        if pixbuf is None: return
+        Gdk.Display.get_default().get_clipboard().set_content(Gdk.ContentProvider.new_for_pixbuf(pixbuf))
+
+    def save_page_image(self, page_number):
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_('Save Image As'))
+        dialog.set_initial_name('page-{:03d}.png'.format(page_number + 1))
+        file_filter = Gtk.FileFilter()
+        file_filter.set_name('PNG')
+        file_filter.add_mime_type('image/png')
+        dialog.set_default_filter(file_filter)
+        window = self.view.get_root()
+        dialog.save(window, None, self._on_save_image_response, page_number)
+
+    def _on_save_image_response(self, dialog, result, page_number):
+        try:
+            file = dialog.save_finish(result)
+        except Exception:
+            return
+        if file is None: return
+        path = file.get_path()
+        if path is None: return
+        surface, w, h = self._render_page_surface(page_number)
+        if surface is None: return
+        try:
+            surface.write_to_png(path)
+        except Exception:
+            pass
+
+    def print_pdf(self):
+        doc = self.preview.poppler_document
+        if doc is None: return
+        window = self.view.get_root()
+        operation = Gtk.PrintOperation()
+        operation.set_n_pages(doc.get_n_pages())
+        operation.connect('draw-page', self._print_draw_page)
+        operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, window)
+
+    def _print_draw_page(self, operation, context, page_num):
+        doc = self.preview.poppler_document
+        page = doc.get_page(page_num)
+        cr = context.get_cairo_context()
+        w, h = page.get_size()
+        pw = context.get_width()
+        ph = context.get_height()
+        scale = min(pw / w, ph / h)
+        cr.scale(scale, scale)
+        page.render(cr)
 
 

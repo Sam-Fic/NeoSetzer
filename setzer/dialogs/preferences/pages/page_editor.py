@@ -89,6 +89,12 @@ class PageEditor(object):
         self.view.option_show_line_numbers.set_active(self.settings.get_value('preferences', 'show_line_numbers'))
         self.view.option_show_line_numbers.connect('notify::active', self.on_switch_toggled, 'show_line_numbers')
 
+        self.view.option_show_right_margin.set_active(self.settings.get_value('preferences', 'show_right_margin'))
+        self.view.option_show_right_margin.connect('notify::active', self.on_switch_toggled, 'show_right_margin')
+
+        self.view.right_margin_position_row.set_property('value', self.settings.get_value('preferences', 'right_margin_position'))
+        self.view.right_margin_position_row.connect('notify::value', self.preferences.spin_button_changed, 'right_margin_position')
+
         self.view.option_show_shortcuts_bar.set_active(self.settings.get_value('preferences', 'show_shortcuts_bar'))
         self.view.option_show_shortcuts_bar.connect('notify::active', self.on_switch_toggled, 'show_shortcuts_bar')
 
@@ -98,11 +104,26 @@ class PageEditor(object):
         self.view.option_code_folding.set_active(self.settings.get_value('preferences', 'enable_code_folding'))
         self.view.option_code_folding.connect('notify::active', self.on_switch_toggled, 'enable_code_folding')
 
+        self.view.option_sticky_scroll.set_active(self.settings.get_value('preferences', 'enable_sticky_scroll'))
+        self.view.option_sticky_scroll.connect('notify::active', self.on_switch_toggled, 'enable_sticky_scroll')
+
         self.view.option_highlight_current_line.set_active(self.settings.get_value('preferences', 'highlight_current_line'))
         self.view.option_highlight_current_line.connect('notify::active', self.on_switch_toggled, 'highlight_current_line')
 
         self.view.option_highlight_matching_brackets.set_active(self.settings.get_value('preferences', 'highlight_matching_brackets'))
         self.view.option_highlight_matching_brackets.connect('notify::active', self.on_switch_toggled, 'highlight_matching_brackets')
+
+        self.view.option_highlight_matching_begin_end.set_active(self.settings.get_value('preferences', 'highlight_matching_begin_end'))
+        self.view.option_highlight_matching_begin_end.connect('notify::active', self.on_switch_toggled, 'highlight_matching_begin_end')
+
+        self.view.option_show_line_endings.set_active(self.settings.get_value('preferences', 'show_line_endings'))
+        self.view.option_show_line_endings.connect('notify::active', self.on_switch_toggled, 'show_line_endings')
+
+        self.view.option_show_whitespace.set_active(self.settings.get_value('preferences', 'show_whitespace'))
+        self.view.option_show_whitespace.connect('notify::active', self.on_switch_toggled, 'show_whitespace')
+
+        # 同步到预览 SourceView（初始状态）。
+        self._apply_preview_space_drawer()
 
         self.view.option_auto_save_enabled.set_active(self.settings.get_value('preferences', 'auto_save_enabled'))
         self.view.option_auto_save_enabled.connect('notify::active', self.on_switch_toggled, 'auto_save_enabled')
@@ -114,6 +135,28 @@ class PageEditor(object):
 
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
+
+        # Default encoding / line ending
+        self.view.encoding_values = ['utf-8', 'iso-8859-1', 'windows-1252', 'utf-16']
+        self.view.line_ending_values = ['\n', '\r\n', '\r']
+        current_encoding = self.settings.get_value('preferences', 'default_encoding')
+        try:
+            encoding_index = self.view.encoding_values.index(current_encoding)
+        except ValueError:
+            encoding_index = 0
+        self.view.option_default_encoding.set_selected(encoding_index)
+        self.view.option_default_encoding.connect('notify::selected',
+            lambda combo, _ps: self.settings.set_value('preferences', 'default_encoding',
+                self.view.encoding_values[combo.get_selected()]))
+        current_line_ending = self.settings.get_value('preferences', 'default_line_ending')
+        try:
+            line_ending_index = self.view.line_ending_values.index(current_line_ending)
+        except ValueError:
+            line_ending_index = 0
+        self.view.option_default_line_ending.set_selected(line_ending_index)
+        self.view.option_default_line_ending.connect('notify::selected',
+            lambda combo, _ps: self.settings.set_value('preferences', 'default_line_ending',
+                self.view.line_ending_values[combo.get_selected()]))
 
         # ---- 字体（从 Appearance 页移入，配合上方预览 SourceView 实时预览）----
         self.view.option_use_system_font.set_active(
@@ -133,9 +176,33 @@ class PageEditor(object):
         self.view.preview_source_view.set_pixels_below_lines(ls - ls // 2)
         self.view.preview_source_view.set_pixels_inside_wrap(ls)
 
+    def _setup_combo_row(self, combo_row, pref_key, values):
+        idx = values.index(self.settings.get_value('preferences', pref_key))
+        combo_row.set_selected(idx)
+        combo_row.connect('notify::selected', self.on_combo_row_changed, pref_key, values)
+
+    def on_combo_row_changed(self, combo_row, pspec, pref_key, values):
+        value = values[combo_row.get_selected()]
+        self.settings.set_value('preferences', pref_key, value)
+
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
+        # 实时同步到预览 SourceView，让用户在偏好设置界面就能看到效果。
+        if preference_name in ('show_line_endings', 'show_whitespace'):
+            self._apply_preview_space_drawer()
+
+    def _apply_preview_space_drawer(self):
+        '''将 show_line_endings / show_whitespace 设置同步到预览 SourceView。'''
+        sd = self.view.preview_source_view.get_space_drawer()
+        show_le = self.settings.get_value('preferences', 'show_line_endings')
+        show_ws = self.settings.get_value('preferences', 'show_whitespace')
+        types = 0
+        if show_le:
+            types |= GtkSource.SpaceTypeFlags.NEWLINE
+        if show_ws:
+            types |= GtkSource.SpaceTypeFlags.SPACE | GtkSource.SpaceTypeFlags.TAB
+        sd.set_types_for_locations(GtkSource.SpaceLocationFlags.ALL, types)
 
     # ---- 字体（实时预览于 Appearance 组的预览 SourceView）----
     def on_use_system_font_toggled(self, switch, pspec):
@@ -304,15 +371,26 @@ class PageEditor(object):
         self.view.option_spaces_instead_of_tabs.set_active(defaults['spaces_instead_of_tabs'])
         self.view.tab_width_spinbutton.set_property('value', defaults['tab_width'])
         self.view.option_show_line_numbers.set_active(defaults['show_line_numbers'])
+        self.view.option_show_right_margin.set_active(defaults['show_right_margin'])
+        self.view.right_margin_position_row.set_value(defaults['right_margin_position'])
         self.view.option_show_shortcuts_bar.set_active(defaults['show_shortcuts_bar'])
         self.view.option_line_wrapping.set_active(defaults['enable_line_wrapping'])
         self.view.option_code_folding.set_active(defaults['enable_code_folding'])
+        self.view.option_sticky_scroll.set_active(defaults['enable_sticky_scroll'])
         self.view.option_highlight_current_line.set_active(defaults['highlight_current_line'])
         self.view.option_highlight_matching_brackets.set_active(defaults['highlight_matching_brackets'])
+        self.view.option_highlight_matching_begin_end.set_active(defaults['highlight_matching_begin_end'])
+        self.view.option_show_line_endings.set_active(defaults['show_line_endings'])
+        self.view.option_show_whitespace.set_active(defaults['show_whitespace'])
+        self._apply_preview_space_drawer()
         self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
         self.view.option_auto_reload_on_external_change.set_active(
             defaults['auto_reload_on_external_change'])
+        self.view.option_default_encoding.set_selected(
+            self.view.encoding_values.index(defaults['default_encoding']))
+        self.view.option_default_line_ending.set_selected(
+            self.view.line_ending_values.index(defaults['default_line_ending']))
         # 字体（从 Appearance 页移入，随此处一并重置）。
         self.view.option_use_system_font.set_active(defaults['use_system_font'])
         self.view.font_chooser_button.set_font_desc(
@@ -379,6 +457,9 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_use_system_font = Adw.SwitchRow()
         self.option_use_system_font.set_title(_('Use the system fixed width font'))
         self.option_use_system_font.set_subtitle(font_string)
+        self.option_use_system_font.set_tooltip_text(_(
+            'Use the system fixed-width font for editing. '
+            'When enabled, the font set below is overridden.'))
         group_font.add(self.option_use_system_font)
 
         self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
@@ -386,11 +467,17 @@ class PageEditorView(Adw.PreferencesPage):
         self.font_chooser_row = Adw.ActionRow()
         self.font_chooser_row.set_title(_('Set Editor Font'))
         self.font_chooser_row.add_suffix(self.font_chooser_button)
+        self.font_chooser_row.set_tooltip_text(_(
+            'Choose a custom font for the LaTeX editor. '
+            'Only active when "Use the system fixed width font" is off.'))
         group_font.add(self.font_chooser_row)
 
         self.line_spacing_spin = Adw.SpinRow()
         self.line_spacing_spin.set_title(_('Line Spacing'))
         self.line_spacing_spin.set_subtitle(_('Extra vertical space between lines in pixels.'))
+        self.line_spacing_spin.set_tooltip_text(_(
+            'Extra vertical space between lines, in pixels. '
+            'Affects readability and line density in the editor.'))
         adjustment_line_spacing = Gtk.Adjustment(value=0, lower=0, upper=12, step_increment=1)
         self.line_spacing_spin.set_adjustment(adjustment_line_spacing)
         group_font.add(self.line_spacing_spin)
@@ -402,12 +489,17 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_spaces_instead_of_tabs = Adw.SwitchRow()
         self.option_spaces_instead_of_tabs.set_title(_('Insert spaces instead of tabs'))
         self.option_spaces_instead_of_tabs.set_subtitle(_('Use spaces when pressing Tab, instead of a tab character.'))
+        self.option_spaces_instead_of_tabs.set_tooltip_text(_(
+            'When enabled, pressing Tab inserts spaces instead of a tab character.'))
         group_tab_stops.add(self.option_spaces_instead_of_tabs)
 
         self.tab_width_row = Adw.SpinRow()
         self.tab_width_row.set_title(_('Tab Width'))
         adjustment = Gtk.Adjustment(value=1, lower=1, upper=8, step_increment=1)
         self.tab_width_row.set_adjustment(adjustment)
+        self.tab_width_row.set_tooltip_text(_(
+            'Number of spaces a tab character occupies '
+            'when "Insert spaces instead of tabs" is enabled.'))
         group_tab_stops.add(self.tab_width_row)
         self.tab_width_spinbutton = self.tab_width_row
 
@@ -418,7 +510,31 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_show_line_numbers = Adw.SwitchRow()
         self.option_show_line_numbers.set_title(_('Show line numbers'))
         self.option_show_line_numbers.set_subtitle(_('Display line numbers in the editor gutter.'))
+        self.option_show_line_numbers.set_tooltip_text(_(
+            'Display line numbers in the left gutter of the editor.'))
         group_line_numbers.add(self.option_show_line_numbers)
+
+        group_right_margin = Adw.PreferencesGroup()
+        group_right_margin.set_title(_('Right Margin'))
+        self.add(group_right_margin)
+
+        self.option_show_right_margin = Adw.SwitchRow()
+        self.option_show_right_margin.set_title(_('Show right margin guide'))
+        self.option_show_right_margin.set_subtitle(_('Display a vertical line at a fixed column.'))
+        self.option_show_right_margin.set_tooltip_text(_(
+            'Display a vertical line at a fixed column position '
+            'to help keep lines within a recommended width.'))
+        group_right_margin.add(self.option_show_right_margin)
+
+        self.right_margin_position_row = Adw.SpinRow()
+        self.right_margin_position_row.set_title(_('Right margin column'))
+        self.right_margin_position_row.set_subtitle(_('Column position for the right margin guide.'))
+        self.right_margin_position_row.set_tooltip_text(_(
+            'Column position for the right margin guide vertical line. '
+            'LaTeX documents are typically kept within 80 columns.'))
+        adjustment_right_margin = Gtk.Adjustment(value=80, lower=40, upper=200, step_increment=1)
+        self.right_margin_position_row.set_adjustment(adjustment_right_margin)
+        group_right_margin.add(self.right_margin_position_row)
 
         group_shortcuts_bar = Adw.PreferencesGroup()
         group_shortcuts_bar.set_title(_('Shortcuts Bar'))
@@ -427,6 +543,8 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_show_shortcuts_bar = Adw.SwitchRow()
         self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
         self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
+        self.option_show_shortcuts_bar.set_tooltip_text(_(
+            'Display a bar of keyboard shortcuts above the editor.'))
         group_shortcuts_bar.add(self.option_show_shortcuts_bar)
 
         group_line_wrapping = Adw.PreferencesGroup()
@@ -436,6 +554,9 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_line_wrapping = Adw.SwitchRow()
         self.option_line_wrapping.set_title(_('Enable line wrapping'))
         self.option_line_wrapping.set_subtitle(_('Wrap long lines instead of scrolling horizontally.'))
+        self.option_line_wrapping.set_tooltip_text(_(
+            'Wrap long lines to fit within the editor window '
+            'instead of scrolling horizontally.'))
         group_line_wrapping.add(self.option_line_wrapping)
 
         group_code_folding = Adw.PreferencesGroup()
@@ -445,7 +566,23 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_code_folding = Adw.SwitchRow()
         self.option_code_folding.set_title(_('Enable code folding'))
         self.option_code_folding.set_subtitle(_('Allow collapsing blocks of code such as environments.'))
+        self.option_code_folding.set_tooltip_text(_(
+            'Allow collapsing and expanding code blocks '
+            'such as LaTeX environments, sections, and functions.'))
         group_code_folding.add(self.option_code_folding)
+
+        group_sticky_scroll = Adw.PreferencesGroup()
+        group_sticky_scroll.set_title(_('Sticky Scroll'))
+        self.add(group_sticky_scroll)
+
+        self.option_sticky_scroll = Adw.SwitchRow()
+        self.option_sticky_scroll.set_title(_('Enable sticky scroll for sections'))
+        self.option_sticky_scroll.set_subtitle(_('Show the current section header at the top of the editor while scrolling.'))
+        self.option_sticky_scroll.set_tooltip_text(_(
+            'Displays a sticky header at the top of the editor showing the '
+            'current section hierarchy (chapter, section, subsection, etc.) '
+            'as you scroll through long documents.'))
+        group_sticky_scroll.add(self.option_sticky_scroll)
 
         group_highlighting = Adw.PreferencesGroup()
         group_highlighting.set_title(_('Highlighting'))
@@ -454,12 +591,44 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_highlight_current_line = Adw.SwitchRow()
         self.option_highlight_current_line.set_title(_('Highlight current line'))
         self.option_highlight_current_line.set_subtitle(_('Visually emphasize the line containing the cursor.'))
+        self.option_highlight_current_line.set_tooltip_text(_(
+            'Visually highlight the line where the cursor is located.'))
         group_highlighting.add(self.option_highlight_current_line)
 
         self.option_highlight_matching_brackets = Adw.SwitchRow()
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
         self.option_highlight_matching_brackets.set_subtitle(_('Highlight the bracket matching the one next to the cursor.'))
+        self.option_highlight_matching_brackets.set_tooltip_text(_(
+            'Highlight the bracket that matches the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_brackets)
+
+        self.option_highlight_matching_begin_end = Adw.SwitchRow()
+        self.option_highlight_matching_begin_end.set_title(_('Highlight matching \\begin/\\end'))
+        self.option_highlight_matching_begin_end.set_subtitle(_('Highlight the environment matching the \\begin or \\end command next to the cursor.'))
+        self.option_highlight_matching_begin_end.set_tooltip_text(_(
+            'Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor.'))
+        group_highlighting.add(self.option_highlight_matching_begin_end)
+
+        # 可见字符：显示行尾 ¶ 和空白（空格 · Tab →），调试缩进问题时有用。
+        group_visible_chars = Adw.PreferencesGroup()
+        group_visible_chars.set_title(_('Visible Characters'))
+        self.add(group_visible_chars)
+
+        self.option_show_line_endings = Adw.SwitchRow()
+        self.option_show_line_endings.set_title(_('Show line endings'))
+        self.option_show_line_endings.set_subtitle(_('Display line ending characters (¶) at the end of each line.'))
+        self.option_show_line_endings.set_tooltip_text(_(
+            'Display a paragraph symbol (¶) at the end of each line '
+            'to help identify trailing whitespace and line ending issues.'))
+        group_visible_chars.add(self.option_show_line_endings)
+
+        self.option_show_whitespace = Adw.SwitchRow()
+        self.option_show_whitespace.set_title(_('Show whitespace'))
+        self.option_show_whitespace.set_subtitle(_('Display whitespace characters (· for spaces, → for tabs).'))
+        self.option_show_whitespace.set_tooltip_text(_(
+            'Display symbols for spaces (·) and tabs (→) '
+            'to help debug indentation and trailing whitespace issues.'))
+        group_visible_chars.add(self.option_show_whitespace)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
         # 应用崩溃后下次启动可恢复未保存的编辑。
@@ -470,12 +639,19 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_auto_save_enabled = Adw.SwitchRow()
         self.option_auto_save_enabled.set_title(_('Enable auto save (crash recovery)'))
         self.option_auto_save_enabled.set_subtitle(_('Periodically save buffer to a temp file for crash recovery'))
+        self.option_auto_save_enabled.set_tooltip_text(_(
+            'Periodically save the buffer to a temporary file '
+            'for crash recovery. Setzer can restore unsaved edits '
+            'after an unexpected application exit.'))
         group_auto_save.add(self.option_auto_save_enabled)
 
         self.auto_save_delay_row = Adw.SpinRow()
         self.auto_save_delay_row.set_title(_('Auto save interval (seconds)'))
         adjustment_auto_save = Gtk.Adjustment(value=60, lower=10, upper=600, step_increment=5)
         self.auto_save_delay_row.set_adjustment(adjustment_auto_save)
+        self.auto_save_delay_row.set_tooltip_text(_(
+            'Time interval in seconds between automatic saves '
+            'when auto save is enabled.'))
         group_auto_save.add(self.auto_save_delay_row)
 
         # 外部变更：自动静默重载磁盘上被其他程序修改的文件。
@@ -487,7 +663,46 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_auto_reload_on_external_change.set_title(_('Automatically reload changed files'))
         self.option_auto_reload_on_external_change.set_subtitle(
             _('Reload files modified by external applications without prompting'))
+        self.option_auto_reload_on_external_change.set_tooltip_text(_(
+            'Automatically reload files modified by external applications '
+            'without showing a prompt. Unsaved changes in the editor will be lost.'))
         group_external_changes.add(self.option_auto_reload_on_external_change)
+
+        # 新建文档默认设置：编码与行尾格式
+        group_new_doc = Adw.PreferencesGroup()
+        group_new_doc.set_title(_('New Document'))
+        self.add(group_new_doc)
+
+        self.option_default_encoding = Adw.ComboRow()
+        self.option_default_encoding.set_title(_('Default Encoding'))
+        self.option_default_encoding.set_subtitle(
+            _('Encoding used when creating new documents'))
+        self.option_default_encoding.set_tooltip_text(_(
+            'Default character encoding for new documents. '
+            'UTF-8 is the recommended choice for cross-platform collaboration.'))
+        encoding_list = Gtk.StringList.new([
+            _('UTF-8'),
+            _('ISO-8859-1'),
+            _('Windows-1252'),
+            _('UTF-16'),
+        ])
+        self.option_default_encoding.set_model(encoding_list)
+        group_new_doc.add(self.option_default_encoding)
+
+        self.option_default_line_ending = Adw.ComboRow()
+        self.option_default_line_ending.set_title(_('Default Line Ending'))
+        self.option_default_line_ending.set_subtitle(
+            _('Line ending format for new documents'))
+        self.option_default_line_ending.set_tooltip_text(_(
+            'Default line ending format for new documents. '
+            'LF is Unix/macOS style; CRLF is Windows style; CR is old macOS style.'))
+        line_ending_list = Gtk.StringList.new([
+            _('LF (Unix)'),
+            _('CRLF (Windows)'),
+            _('CR (Old macOS)'),
+        ])
+        self.option_default_line_ending.set_model(line_ending_list)
+        group_new_doc.add(self.option_default_line_ending)
 
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)

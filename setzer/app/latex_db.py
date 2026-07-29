@@ -29,7 +29,7 @@ from setzer.app.service_locator import ServiceLocator
 class LaTeXDB():
 
     static_proposals = dict()
-    resources_path = None
+    all_commands = list()
     dynamic_commands = dict()
     dynamic_commands['references'] = ['\\ref*', '\\ref', '\\pageref*', '\\pageref', '\\eqref']
     dynamic_commands['citations'] = ['\\citet*', '\\citet', '\\citep*', '\\citep', '\\citealt', '\\citealp', '\\citeauthor*', '\\citeauthor', '\\citeyearpar', '\\citeyear', '\\textcite', '\\parencite', '\\autocite', '\\cite']
@@ -133,7 +133,7 @@ class LaTeXDB():
         return (LaTeXDB._ref_regex.match(word) is not None or
                 LaTeXDB._cite_regex.match(word) is not None)
 
-    def get_items(word, top_item=None):
+    def get_items(word, top_item=None, onlymath=False):
         r'''返回 word 的补全提案列表（动态 labels/bibitems + 静态命令）。
 
         排序策略（当 static 与 dynamic 同时存在且 dynamic>4 时）：
@@ -143,12 +143,43 @@ class LaTeXDB():
         埋没，剩余 label 排最后。当 dynamic≤4 或无 static 时简单拼接即可。
 
         top_item（如刚用过的 \ref 命令）无论在 dynamic 还是 static 中，
-        都被移到列表首位（下方循环），不会被 dynamic[:5] 覆盖。'''
-        # word.lower() 缓存：原代码在 L62 和 L64 各调一次 .lower()，每次按键
-        # 都执行。缓存到局部变量避免重复字符串分配。
+        都被移到列表首位（下方循环），不会被 dynamic[:5] 覆盖。
+
+        onlymath：若为 True，仅返回 onlymath 标记的静态命令（math mode
+        上下文感知补全希腊字母等符号）。
+
+        匹配策略：
+        - 若 word 不以 \ 开头（如 math mode 输入单个字母 a），自动补 \ 前缀
+          再匹配，使 a → \alpha 等工作。
+        - 优先精确前缀匹配（static_proposals 字典查询，O(1)）。
+        - 精确无果时走 fuzzy 回退：按 VS Code 风格，要求 query 的每个字符
+          按顺序出现在 command 中，连续命中加权更高，命中位置越靠前得分越高。
+        '''
         word_lower = word.lower()
-        try: static_items = LaTeXDB.static_proposals[word_lower]
+        # math mode 等场景下 word 可能不带 \，补前缀后统一匹配。
+        search_word = word_lower
+        if not search_word.startswith('\\'):
+            search_word = '\\' + search_word
+
+        # 快速路径：精确前缀匹配。
+        try: static_items = LaTeXDB.static_proposals[search_word]
         except KeyError: static_items = list()
+
+        # Fuzzy 回退：精确无果时遍历所有命令，按分数排序。
+        if not static_items and LaTeXDB.all_commands:
+            scored = []
+            for command in LaTeXDB.all_commands:
+                if onlymath and not command.get('onlymath', False):
+                    continue
+                cmd_text = command['command'].lower()
+                score = _fuzzy_match_score(search_word, cmd_text)
+                if score is not None:
+                    scored.append((score, command))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            static_items = [c for _, c in scored]
+        elif onlymath:
+            static_items = [it for it in static_items if it.get('onlymath', False)]
+
         dynamic_items = LaTeXDB.get_dynamic_proposals(word_lower)
         if len(static_items) > 0 and len(dynamic_items) > 4:
             items = dynamic_items[:5] + static_items + dynamic_items[5:]
@@ -186,14 +217,15 @@ class LaTeXDB():
     def generate_static_proposals():
         commands = LaTeXDB.get_commands()
         LaTeXDB.static_proposals = dict()
-        for command in commands.values():
+        LaTeXDB.all_commands = list(commands.values())
+        for command in LaTeXDB.all_commands:
             if not command['lowpriority']:
                 for i in range(2, len(command['command']) + 1):
                     if not command['command'][0:i].lower() in LaTeXDB.static_proposals:
                         LaTeXDB.static_proposals[command['command'][0:i].lower()] = []
                     if len(LaTeXDB.static_proposals[command['command'][0:i].lower()]) < 20:
                         LaTeXDB.static_proposals[command['command'][0:i].lower()].append(command)
-        for command in commands.values():
+        for command in LaTeXDB.all_commands:
             if command['lowpriority']:
                 for i in range(2, len(command['command']) + 1):
                     if not command['command'][0:i].lower() in LaTeXDB.static_proposals:
@@ -212,7 +244,7 @@ class LaTeXDB():
                 root = tree.getroot()
                 for child in root:
                     attrib = child.attrib
-                    commands[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description']), 'lowpriority': True if attrib['lowpriority'] == "True" else False, 'dotlabels': attrib['dotlabels']}
+                    commands[attrib['name']] = {'command': attrib['text'], 'description': _(attrib['description']), 'lowpriority': True if attrib['lowpriority'] == "True" else False, 'dotlabels': attrib['dotlabels'], 'onlymath': True if attrib.get('onlymath') == "True" else False}
             except (FileNotFoundError, ET.ParseError, KeyError) as e:
                 import sys
                 print(f'Warning: Could not load commands XML {file_path}: {e}', file=sys.stderr)
@@ -243,13 +275,14 @@ class LaTeXDB():
         for file in LaTeXDB.files.values():
             for value in file[key]:
                 command = prefix + '{' + value + '}'
-                if command.startswith(word) and command not in seen:
+                score = _fuzzy_match_score(word, command)
+                if score is not None and command not in seen:
                     seen.add(command)
-                    commands.append({'command': command, 'description': '', 'lowpriority': False, 'dotlabels': ''})
-        # 按字母排序（大小写不敏感）：大文档可能有数百个 label，无序时用户难定位；
-        # 排序后用户可按字母顺序快速跳转。casefold 比 lower 更适合 Unicode，
-        # 但 LaTeX label 几乎都是 ASCII，lower 足够且更快。
-        commands.sort(key=lambda item: item['command'].lower())
+                    commands.append((score, {'command': command, 'description': '', 'lowpriority': False, 'dotlabels': ''}))
+        # 按分数降序排列（fuzzy 分数越高越靠前）；无 fuzzy 时 startswith 等价
+        # 于最高分，排序结果不变。
+        commands.sort(key=lambda x: x[0], reverse=True)
+        commands = [c for _, c in commands]
         return commands
 
     def parse_included_files():
@@ -363,3 +396,47 @@ class LaTeXDB():
                 import sys
                 print(f'Warning: Could not load packages XML {file_path}: {e}', file=sys.stderr)
         return LaTeXDB.packages_dict
+
+
+def _fuzzy_match_score(query, text):
+    """Return score if query fuzzy-matches text, None otherwise.
+
+    Scoring strategy (VS Code-style):
+    - Exact prefix match: very high score (1000 + len(query))
+    - All query chars appear in text in order: score based on consecutive
+      matches and position (earlier = better)
+    - No match: return None
+    """
+    query = query.lower()
+    text = text.lower()
+
+    if not query:
+        return 0
+
+    # Exact prefix match gets highest score
+    if text.startswith(query):
+        return 1000 + len(query)
+
+    # Fuzzy match: all chars in query must appear in text in order
+    qi = 0
+    score = 0
+    consecutive = 0
+    prev_idx = -2
+
+    for ti, tc in enumerate(text):
+        if qi < len(query) and tc == query[qi]:
+            if ti == prev_idx + 1:
+                consecutive += 1
+                score += consecutive * 10
+            else:
+                consecutive = 1
+                score += 1
+            prev_idx = ti
+            qi += 1
+
+    if qi == len(query):
+        # Bonus for matching earlier in text (smaller prev_idx = better)
+        score += max(0, 100 - prev_idx)
+        return score
+
+    return None

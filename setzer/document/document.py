@@ -36,6 +36,7 @@ import setzer.document.parser.parser_bibtex as parser_bibtex
 import setzer.document.parser.parser_dummy as parser_dummy
 import setzer.document.code_folding.code_folding as code_folding
 import setzer.document.bookmarks.bookmarks as bookmarks
+import setzer.document.multicursor.multicursor as multicursor
 import setzer.document.bracket_completion.bracket_completion as bracket_completion
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
 import setzer.document.autocomplete.autocomplete as autocomplete
@@ -79,6 +80,15 @@ class Document(Observable):
         self.source_buffer.connect('notify::cursor-position', self.on_cursor_position_change)
         self.settings = ServiceLocator.get_settings()
 
+        # Undo 分组：合并连续打字为一个 undo 组，停顿 500ms 后开新组。
+        self._undo_timeout_id = None
+        self._undo_group_depth = 0
+        self.source_buffer.connect('insert-text', self._on_buffer_insert_text)
+        self.source_buffer.connect('delete-range', self._on_buffer_delete_range)
+        self.source_buffer.connect('undo', self._on_buffer_undo)
+        self.source_buffer.connect('redo', self._on_buffer_redo)
+        self.source_buffer.connect('paste-done', self._on_buffer_paste_done)
+
         self.view = document_view.DocumentView(self)
         self.presenter = document_presenter.DocumentPresenter(self, self.view)
         self.controller = document_controller.DocumentController(self, self.view)
@@ -90,6 +100,7 @@ class Document(Observable):
         self.bookmarks = bookmarks.Bookmarks(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
+        self.multicursor = multicursor.MultiCursor(self)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
         # 更新行/列、语言、编码、缩进、选区词数。构造后注入 view。
         self.statusbar = statusbar.StatusBar(self)
@@ -170,6 +181,10 @@ class Document(Observable):
         if self._lazy_load_idle_id is not None:
             GLib.Source.remove(self._lazy_load_idle_id)
             self._lazy_load_idle_id = None
+        # 取消 undo 分组定时器，防止文档关闭后回调访问已释放的 buffer。
+        if self._undo_timeout_id is not None:
+            GLib.Source.remove(self._undo_timeout_id)
+            self._undo_timeout_id = None
 
         # 断开单例信号连接。
         # settings 是 Observable（自定义观察者模式），disconnect 接受
@@ -209,6 +224,16 @@ class Document(Observable):
         if bookmarks is not None:
             try:
                 bookmarks.shutdown()
+            except Exception:
+                pass
+
+        # multicursor 连接了 source_view 的 draw 信号和 source_buffer 的
+        # cursor/insert/delete 信号，也挂载了 overlay，需清理以防止
+        # 已关闭文档的回调继续触发和 UI 残留。
+        mc = getattr(self, 'multicursor', None)
+        if mc is not None:
+            try:
+                mc.shutdown()
             except Exception:
                 pass
 
@@ -593,6 +618,53 @@ class Document(Observable):
     def get_chars_at_cursor(self, number_of_chars):
         return self.get_chars_at_iter(self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()), number_of_chars)
 
+    # ref-like 命令的命令名集合：get_label_at_iter 在此集合中查找。
+    _REF_COMMANDS = frozenset([
+        'ref', 'eqref', 'autoref', 'pageref', 'nameref', 'vref',
+        'cref', 'Cref', 'cite', 'citep', 'citet', 'citeauthor',
+        'citeyear', 'citealt', 'citealp', 'citealt*', 'citealp*',
+    ])
+
+    def get_label_at_iter(self, iter_at_click):
+        r'''检查 iter 是否在 \ref{...} 等引用命令的参数内，返回引用的 label 名。
+
+        从 iter 所在行向前搜索反斜杠开头的命令名，若命令名属于
+        _REF_COMMANDS 且 iter 在其后 {…} 大括号参数范围内，则返回
+        去除空白后的参数文本；否则返回 None。
+        '''
+        if not self.is_latex_document():
+            return None
+        offset = iter_at_click.get_offset()
+        line = iter_at_click.get_line()
+        line_text = self.get_line(line)
+        line_start_offset = self.source_buffer.get_iter_at_line(line)[1].get_offset()
+        col = offset - line_start_offset
+        if col < 0 or col > len(line_text):
+            return None
+        # 从光标位置向前查找最近的反斜杠
+        search_text = line_text[:col + 1]
+        backslash_pos = search_text.rfind('\\')
+        if backslash_pos < 0:
+            return None
+        rest = line_text[backslash_pos:]
+        # 匹配 \command{...} 模式
+        import re
+        match = re.match(r'\\([a-zA-Z]+)\*?\{([^}]*)\}', rest)
+        if match is None:
+            # 光标可能在 { 内但 } 尚未闭合
+            match = re.match(r'\\([a-zA-Z]+)\*?\{([^}]*)$', rest)
+        if match is None:
+            return None
+        command = match.group(1)
+        if command not in self._REF_COMMANDS:
+            return None
+        label = match.group(2).strip()
+        return label if label else None
+
+    def get_label_at_cursor(self):
+        r'''返回光标位置处的引用 label 名（若在 \ref{...} 内），否则 None。'''
+        return self.get_label_at_iter(self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()))
+
     def get_chars_at_iter(self, start_iter, number_of_chars):
         end_iter = start_iter.copy()
         end_iter.forward_chars(number_of_chars)
@@ -739,6 +811,48 @@ class Document(Observable):
         self.add_change_code('cursor_position_changed')
         self.scroll_cursor_onscreen(margin_lines=0)
         return True
+
+    # ------------------------------------------------------------------
+    # Undo 分组：合并连续打字为一个 undo 组，停顿 500ms 后开新组。
+    # ------------------------------------------------------------------
+    def _on_buffer_insert_text(self, buffer, location, text, length):
+        self._ensure_undo_group()
+
+    def _on_buffer_delete_range(self, buffer, start, end):
+        self._ensure_undo_group()
+
+    def _ensure_undo_group(self):
+        if self._is_shutdown:
+            return
+        # 跳过程序化读盘（set_text）：在此期间调用 begin_user_action 会
+        # 在 buffer 内部插入操作的信号处理中嵌套，导致 500ms 后
+        # end_user_action 在不一致状态下段错误。
+        if getattr(self, '_loading_from_disk', False):
+            return
+        if self._undo_group_depth == 0:
+            self.source_buffer.begin_user_action()
+            self._undo_group_depth = 1
+        if self._undo_timeout_id is not None:
+            GLib.Source.remove(self._undo_timeout_id)
+        self._undo_timeout_id = GLib.timeout_add(500, self._close_undo_group)
+
+    def _close_undo_group(self):
+        if self._is_shutdown:
+            return False
+        if self._undo_group_depth > 0:
+            self.source_buffer.end_user_action()
+            self._undo_group_depth = 0
+        self._undo_timeout_id = None
+        return False
+
+    def _on_buffer_undo(self, buffer):
+        self._close_undo_group()
+
+    def _on_buffer_redo(self, buffer):
+        self._close_undo_group()
+
+    def _on_buffer_paste_done(self, buffer, clipboard):
+        self._close_undo_group()
 
     def select_first_dot_around_cursor(self, offset_before, offset_after):
         end_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())

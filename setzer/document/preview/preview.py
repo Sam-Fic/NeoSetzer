@@ -57,6 +57,10 @@ class Preview(Observable):
         self.page_height = None
         self.layout = None
 
+        self.rotation = 0
+        self._search_query = ''
+        self._search_page = 0
+
         self.visible_synctex_rectangles = list()
         self.visible_synctex_rectangles_time = None
 
@@ -235,21 +239,170 @@ class Preview(Observable):
 
         page_number = dest.page_num
         content = self.view.content
-        left = dest.left * self.layout.scale_factor
-        top = dest.top * self.layout.scale_factor
-        # width 原代码未定义直接使用，导致 NameError 崩溃。
-        # Poppler.Dest 有 right/left 属性，但 XYZ 型链接目标通常只设
-        # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
-        width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
-        x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
-        y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap
+        if self.rotation == 0:
+            left = dest.left * self.layout.scale_factor
+            top = dest.top * self.layout.scale_factor
+            # width 原代码未定义直接使用，导致 NameError 崩溃。
+            # Poppler.Dest 有 right/left 属性，但 XYZ 型链接目标通常只设
+            # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
+            width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
+            x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
+            y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap
+            self.view.content.scroll_to_position([x, y])
+        else:
+            # dest coords are PDF (y-up). Convert the target to displayed canvas
+            # coordinates via the rotation transform, then scroll there.
+            top_down_top = self.page_height - dest.top
+            pos = self.original_to_canvas(page_number, dest.left, top_down_top)
+            if pos is None: return
+            x_canvas, y_canvas = pos
+            pos_r = self.original_to_canvas(page_number, dest.right, self.page_height - dest.bottom)
+            width = max(abs(pos_r[0] - x_canvas), 0) if pos_r is not None else 0
+            x = max(min(x_canvas, content.scrolling_offset_x), x_canvas + width - content.width + 18)
+            self.view.content.scroll_to_position([x, y_canvas])
 
-        self.view.content.scroll_to_position([x, y])
+    def original_to_canvas(self, page_number, x_pt, y_pt):
+        '''Map an original (un-rotated) page point in PDF points (y-down, page
+        top-left origin) to canvas coordinates, honoring the current rotation.
+        '''
+        layout = self.layout
+        if layout is None: return None
+        rotation = self.rotation
+        scale = layout.scale_factor
+        if rotation == 0:
+            bx = x_pt * scale
+            by = y_pt * scale
+        else:
+            disp_w = layout.page_width
+            disp_h = layout.page_height
+            orig_w = layout.page_width_original
+            orig_h = layout.page_height_original
+            ocx = orig_w / 2.0
+            ocy = orig_h / 2.0
+            cx = disp_w / 2.0
+            cy = disp_h / 2.0
+            theta = math.radians(rotation)
+            cos_t = math.cos(theta)
+            sin_t = math.sin(theta)
+            ox = x_pt * scale
+            oy = y_pt * scale
+            dx = ox - ocx
+            dy = oy - ocy
+            bx = cx + dx * cos_t - dy * sin_t
+            by = cy + dx * sin_t + dy * cos_t
+        margin = layout.get_horizontal_margin(self.view.get_allocated_width())
+        x_canvas = margin + bx
+        y_canvas = page_number * (layout.page_height + layout.page_gap) + by
+        return (x_canvas, y_canvas)
 
     def update_position(self):
         if self.layout == None: return
 
         self.add_change_code('position_changed')
+
+    # --- View toggles used by the context menu --------------------------------
+
+    def rotate(self, delta):
+        self.rotation = (self.rotation + delta) % 360
+        if self.layout is not None:
+            self.layout = self.layouter.create_layout()
+            self.add_change_code('layout_changed')
+        self.view.drawing_area.queue_draw()
+
+    def toggle_recolor(self):
+        self.recolor_pdf = not self.recolor_pdf
+        try:
+            self.document.settings.set_value('preferences', 'recolor_pdf', self.recolor_pdf)
+        except Exception:
+            pass
+        self.add_change_code('recolor_pdf_changed')
+        self.view.drawing_area.queue_draw()
+
+    def open_link(self, link):
+        self.controller.open_link(link)
+
+    def get_context_at(self, x_offset, y_offset):
+        if self.layout is None or self.poppler_document is None:
+            return (None, None)
+        window_width = self.view.get_allocated_width()
+        layout = self.layout
+        page_height_plus_gap = layout.page_height + layout.page_gap
+        n_pages = self.poppler_document.get_n_pages()
+        page_number = int(y_offset // page_height_plus_gap)
+        if page_number < 0: page_number = 0
+        if page_number >= n_pages: page_number = n_pages - 1
+
+        data = layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
+        if data is not None:
+            _, x_pt, y_pt = data
+        else:
+            x_pt = (x_offset - layout.get_horizontal_margin(window_width)) / layout.scale_factor
+            y_pt = (y_offset - page_number * page_height_plus_gap) / layout.scale_factor
+
+        links = self.links_parser.get_links_for_page(page_number)
+        x_off = self.page_width - x_pt
+        y_off = self.page_height - y_pt
+        link = None
+        for l in links:
+            if x_off > l[0].x1 and x_off < l[0].x2 and y_off > l[0].y1 and y_off < l[0].y2:
+                link = l
+                break
+        return (page_number, link)
+
+    # --- Context-menu text / image / print actions ----------------------------
+
+    def copy_page_text(self, page_number):
+        self.presenter.copy_page_text(page_number)
+
+    def copy_page_image(self, page_number):
+        self.presenter.copy_page_image(page_number)
+
+    def save_page_image(self, page_number):
+        self.presenter.save_page_image(page_number)
+
+    def print_pdf(self):
+        self.presenter.print_pdf()
+
+    # --- PDF search ------------------------------------------------------------
+
+    def search(self, query, forward=True, start_page=None):
+        if self.poppler_document is None: return False
+        query = query.strip()
+        if query == '': return False
+        n = self.poppler_document.get_n_pages()
+        if start_page is None:
+            start_page = 0 if (self._search_query != query) else self._search_page
+        result = self._search_from(query, start_page, forward)
+        if result is None:
+            result = self._search_from(query, 0 if forward else n - 1, forward)
+        if result is None:
+            return False
+        self._search_query = query
+        self._search_page = result[0]
+        self._highlight_search(result[0], result[1])
+        return True
+
+    def _search_from(self, query, start_page, forward):
+        n = self.poppler_document.get_n_pages()
+        for i in range(n):
+            p = (start_page + (i if forward else -i)) % n
+            page = self.poppler_document.get_page(p)
+            try:
+                rect = page.find_text(query)
+            except AttributeError:
+                rect = page.search_text(query, 0)
+            if rect is not None:
+                return (p, rect)
+        return None
+
+    def _highlight_search(self, page, rect):
+        h = rect.x1
+        top = self.page_height - rect.y2
+        width = max(rect.x2 - rect.x1, 0)
+        height = max(rect.y2 - rect.y1, 0)
+        if width <= 0 or height <= 0:
+            return
+        self.set_synctex_rectangles([{'page': page + 1, 'h': h, 'v': top, 'width': width, 'height': height}])
 
     def set_synctex_rectangles(self, rectangles):
         if self.layout == None: return
@@ -283,15 +436,23 @@ class Preview(Observable):
         if self.layout == None: return False
 
         window_width = self.view.get_allocated_width()
-        y_total_pixels = min(max(y_offset, 0), (self.layout.page_height + self.layout.page_gap) * self.poppler_document.get_n_pages() - self.layout.page_gap)
-        x_pixels = min(max(x_offset - self.layout.get_horizontal_margin(window_width), 0), self.layout.page_width)
-        page = math.floor(y_total_pixels / (self.layout.page_height + self.layout.page_gap))
-        y_pixels = min(max(y_total_pixels - page * (self.layout.page_height + self.layout.page_gap), 0), self.layout.page_height)
-        x = x_pixels / self.layout.scale_factor
-        y = y_pixels / self.layout.scale_factor
-        page += 1
+        data = self.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
+        if data is None:
+            # Click in the gap between pages or outside the page margin: clamp to
+            # the nearest page and page-local offsets.
+            y_total_pixels = min(max(y_offset, 0), (self.layout.page_height + self.layout.page_gap) * self.poppler_document.get_n_pages() - self.layout.page_gap)
+            x_pixels = min(max(x_offset - self.layout.get_horizontal_margin(window_width), 0), self.layout.page_width)
+            page = math.floor(y_total_pixels / (self.layout.page_height + self.layout.page_gap))
+            y_pixels = min(max(y_total_pixels - page * (self.layout.page_height + self.layout.page_gap), 0), self.layout.page_height)
+            x = x_pixels / self.layout.scale_factor
+            y = y_pixels / self.layout.scale_factor
+        else:
+            page, x, y = data
 
-        poppler_page = self.poppler_document.get_page(page - 1)
+        n_pages = self.poppler_document.get_n_pages()
+        if page < 0 or page >= n_pages: return False
+
+        poppler_page = self.poppler_document.get_page(page)
         rect = Poppler.Rectangle()
         rect.x1 = max(min(x, self.page_width), 0)
         rect.y1 = max(min(y, self.page_height), 0)
@@ -306,7 +467,7 @@ class Preview(Observable):
         # to align the cursor to the precise character, not just the line.
         pdf_line_offset, pdf_line_text = self._get_pdf_line_offset(poppler_page, x, y)
 
-        self.document.build_system.backward_sync(page, x, y, word, context, pdf_line_offset, pdf_line_text)
+        self.document.build_system.backward_sync(page + 1, x, y, word, context, pdf_line_offset, pdf_line_text)
         # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到反向跳转的源码位置。
         # 点击发生在独立窗口，抬起主窗口让源码跳转可见。
         self.add_change_code('synctex_backward')

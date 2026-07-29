@@ -16,7 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import os
-import time
+
+from gi.repository import GLib
 
 import gi
 gi.require_version('Gtk', '4.0')
@@ -60,7 +61,11 @@ class AutosaveRecoveryDialog(object):
         for temp_path, info in entries:
             displayname = info.get('displayname') or os.path.basename(temp_path)
             ts = info.get('timestamp', 0)
-            time_str = time.strftime('%Y-%m-%d %H:%M', time.localtime(ts)) if ts else ''
+            if ts:
+                dt = GLib.DateTime.new_from_unix_local(ts)
+                time_str = dt.format('%x %H:%M') if dt is not None else ''
+            else:
+                time_str = ''
             names.append('• {name}  <span alpha="50%">{ts}</span>'.format(
                 name=displayname, ts=time_str))
 

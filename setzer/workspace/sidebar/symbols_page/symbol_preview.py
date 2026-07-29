@@ -17,24 +17,21 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk, Gio
 
 
 # 悬停预览中放大符号的像素尺寸（侧边栏列表里仅约 16px，放大便于看清细节）。
 PREVIEW_PIXEL_SIZE = 56
 
 
-def attach_symbol_hover_preview(button, symbol, folder=None,
-                                 favorite_state_func=None, favorite_toggle_func=None):
+def attach_symbol_hover_preview(button, symbol):
     '''为符号按钮挂载 hover 预览 Popover：放大版符号 + LaTeX 命令（+ 包名）。
 
     symbol 结构为 [icon_name_suffix, command, package, w, h, ...]，与
     SidebarSymbolsList 及 recent 列表保持一致。鼠标进入时弹出，离开时收起。
 
-    folder 为该符号所属分类目录（如 'greek_letters'），用于收藏时标识。
-    favorite_state_func(folder, command) -> bool：当前是否已收藏。
-    favorite_toggle_func(folder, command)：切换收藏状态（由 SymbolsPage 实现，
-    内部负责刷新 Favorites 列表）。二者均提供时，Popover 内显示收藏按钮。
+    收藏操作已统一收进右键上下文菜单（见 attach_symbol_context_menu），
+    hover 预览只负责展示，不再带收藏按钮。
 
     Popover 懒创建：主列表约 10 个分类 × 每分类数十到上百符号 = 数百到上千
     按钮，原实现为每个按钮立即构造完整 Popover + Image + Label (+ Button)，
@@ -69,27 +66,6 @@ def attach_symbol_hover_preview(button, symbol, folder=None,
             package_label.add_css_class('dim-label')
             box.append(package_label)
 
-        if folder is not None and favorite_state_func is not None and favorite_toggle_func is not None:
-            favorite_button = Gtk.Button()
-            favorite_button.add_css_class('flat')
-            command = symbol[1]
-
-            def refresh_favorite_label():
-                if favorite_state_func(folder, command):
-                    favorite_button.set_label(_('★ Remove from Favorites'))
-                else:
-                    favorite_button.set_label(_('☆ Add to Favorites'))
-
-            def on_favorite_clicked(btn):
-                favorite_toggle_func(folder, command)
-                refresh_favorite_label()
-
-            favorite_button.connect('clicked', on_favorite_clicked)
-            box.append(favorite_button)
-            # 暴露刷新函数：每次 hover 重新读取当前收藏状态（收藏可能在
-            # 别处被切换），而非沿用构造时的快照。
-            popover._refresh_favorite_label = refresh_favorite_label
-
         popover.set_child(box)
         return popover
 
@@ -114,3 +90,76 @@ def attach_symbol_hover_preview(button, symbol, folder=None,
     motion.connect('enter', on_enter)
     motion.connect('leave', on_leave)
     button.add_controller(motion)
+
+
+def attach_symbol_context_menu(button, symbol, folder=None,
+                                insert_func=None, copy_func=None,
+                                favorite_state_func=None, favorite_toggle_func=None):
+    '''为符号按钮挂载右键上下文菜单：Insert / Add to Favorites / Copy LaTeX Command。
+
+    symbol 同 attach_symbol_hover_preview：[icon_name_suffix, command, package, w, h, ...]。
+    folder 为该符号所属分类目录，用于插入时记最近、以及对收藏状态（最近/收藏列表中的符号
+    同样携带其原始分类）的判断。
+
+    insert_func(folder, command)：执行「插入」操作（与左键一致：插入 + 记最近）。
+    copy_func(command)：把 LaTeX 命令复制到剪贴板。
+    favorite_state_func(folder, command) -> bool / favorite_toggle_func(folder, command)：
+    二者齐备时菜单显示「Add/Remove from Favorites」项，并按当前状态切换文案。
+    '''
+    command = symbol[1]
+
+    action_group = Gio.SimpleActionGroup()
+    button.insert_action_group('symbol-context', action_group)
+
+    def on_insert(action, param):
+        if insert_func is not None:
+            insert_func(folder, command)
+
+    def on_copy(action, param):
+        if copy_func is not None:
+            copy_func(command)
+
+    def on_favorite(action, param):
+        if folder is not None and favorite_toggle_func is not None:
+            favorite_toggle_func(folder, command)
+
+    insert_action = Gio.SimpleAction.new('insert', None)
+    insert_action.connect('activate', on_insert)
+    action_group.add_action(insert_action)
+
+    copy_action = Gio.SimpleAction.new('copy', None)
+    copy_action.connect('activate', on_copy)
+    action_group.add_action(copy_action)
+
+    if folder is not None and favorite_state_func is not None and favorite_toggle_func is not None:
+        favorite_action = Gio.SimpleAction.new('favorite', None)
+        favorite_action.connect('activate', on_favorite)
+        action_group.add_action(favorite_action)
+
+    def build_menu_model():
+        menu = Gio.Menu()
+        menu.append(_('Insert'), 'symbol-context.insert')
+        if favorite_state_func is not None and folder is not None:
+            if favorite_state_func(folder, command):
+                menu.append(_('★ Remove from Favorites'), 'symbol-context.favorite')
+            else:
+                menu.append(_('☆ Add to Favorites'), 'symbol-context.favorite')
+        menu.append(_('Copy LaTeX Command'), 'symbol-context.copy')
+        return menu
+
+    gesture = Gtk.GestureClick()
+    gesture.set_button(Gdk.BUTTON_SECONDARY)
+
+    def on_pressed(gesture, n_press, x, y):
+        # 每次右键重建菜单模型，以刷新「收藏」项的文案（状态可能在别处被切换）。
+        popover = getattr(button, '_context_menu', None)
+        if popover is None:
+            popover = Gtk.PopoverMenu()
+            popover.set_parent(button)
+            popover.set_has_arrow(True)
+            button._context_menu = popover
+        popover.set_menu_model(build_menu_model())
+        popover.popup()
+
+    gesture.connect('pressed', on_pressed)
+    button.add_controller(gesture)

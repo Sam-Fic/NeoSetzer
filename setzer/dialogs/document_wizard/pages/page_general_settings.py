@@ -150,16 +150,16 @@ class GeneralSettingsPageView(PageView):
         # runtime, after gettext.install has run).
         self.package_descriptions = {
             'ams': _('<b>AMS packages:</b> provide mathematical symbols, math-related environments, …') + ' (' + _('recommended') + ')',
-            'textcomp': '<b>textcomp:</b> ' + _('contains symbols to be used in textmode.') + ' (' + _('recommended') + ')',
+            'textcomp': '<b>textcomp:</b> ' + _('contains symbols to be used in textmode.'),
             'graphicx': '<b>graphicx:</b> ' + _('include graphics in your document.') + ' (' + _('recommended') + ')',
-            'color': '<b>color:</b> ' + _('foreground and background color.') + ' (' + _('recommended') + ')',
-            'xcolor': '<b>xcolor:</b> ' + _('enables colored text.') + ' (' + _('recommended') + ')',
-            'url': '<b>url:</b> ' + _('type urls with the \\url{..} command without escaping them.') + ' (' + _('recommended') + ')',
+            'color': '<b>color:</b> ' + _('foreground and background color.'),
+            'xcolor': '<b>xcolor:</b> ' + _('enables colored text.'),
+            'url': '<b>url:</b> ' + _('type urls with the \\url{..} command without escaping them.'),
             'hyperref': '<b>hyperref:</b> ' + _('create hyperlinks within your document.'),
             'theorem': '<b>theorem:</b> ' + _('define theorem environments (like "definition", "lemma", …) with custom styling.'),
             'listings': '<b>listings:</b> ' + _('provides the \\listing environment for embedding programming code.'),
             'glossaries': '<b>glossaries:</b> ' + _('create a glossary for your document.'),
-            'parskip': '<b>parskip:</b> ' + _('paragraphs without indentation.'),
+            'parskip': '<b>parskip:</b> ' + _('paragraphs without indentation.') + ' (' + _('recommended') + ')',
         }
 
         # Document properties ------------------------------------------------
@@ -225,25 +225,50 @@ class GeneralSettingsPageView(PageView):
         self.group_font.add(self.fontspec_note)
 
         # Packages -----------------------------------------------------------
+        # Category groups: each group is an Adw.PreferencesGroup with a title.
+        # The group references are stored in _package_groups for search filtering.
+        self._package_groups = dict()
         self.option_packages = dict()
+
+        # -- Math --
         self.option_packages['ams'] = self._create_package_row(_('AMS math packages'), 'ams')
-        self.option_packages['textcomp'] = self._create_package_row('textcomp', 'textcomp')
+        self._package_groups['math'] = self._create_package_group(_('Math'), [self.option_packages['ams']])
+
+        # -- Graphics --
         self.option_packages['graphicx'] = self._create_package_row('graphicx', 'graphicx')
+        self._package_groups['graphics'] = self._create_package_group(_('Graphics'), [self.option_packages['graphicx']])
+
+        # -- Text --
+        self.option_packages['textcomp'] = self._create_package_row('textcomp', 'textcomp')
         self.option_packages['color'] = self._create_package_row('color', 'color')
         self.option_packages['xcolor'] = self._create_package_row('xcolor', 'xcolor')
+        self._package_groups['text'] = self._create_package_group(_('Text'), [
+            self.option_packages['textcomp'],
+            self.option_packages['color'],
+            self.option_packages['xcolor'],
+        ])
+
+        # -- References --
         self.option_packages['url'] = self._create_package_row('url', 'url')
         self.option_packages['hyperref'] = self._create_package_row('hyperref', 'hyperref')
+        self.option_packages['glossaries'] = self._create_package_row('glossaries', 'glossaries')
+        self._package_groups['references'] = self._create_package_group(_('References'), [
+            self.option_packages['url'],
+            self.option_packages['hyperref'],
+            self.option_packages['glossaries'],
+        ])
+
+        # -- Layout --
+        self.option_packages['parskip'] = self._create_package_row('parskip', 'parskip')
         self.option_packages['theorem'] = self._create_package_row('theorem', 'theorem')
         self.option_packages['listings'] = self._create_package_row('listings', 'listings')
-        self.option_packages['glossaries'] = self._create_package_row('glossaries', 'glossaries')
-        self.option_packages['parskip'] = self._create_package_row('parskip', 'parskip')
+        self._package_groups['layout'] = self._create_package_group(_('Layout'), [
+            self.option_packages['parskip'],
+            self.option_packages['theorem'],
+            self.option_packages['listings'],
+        ])
 
-        # Packages 区：原生结构 = 竖排 Box 承载标题 + 独立搜索栏 + 列表组。
-        # 不用「把搜索框塞进 PreferencesGroup」的 hack——Adw.PreferencesGroup
-        # 只对 PreferencesRow 子类按 add 顺序布局，裸 Gtk.SearchEntry 会被
-        # 排到组末尾。改为：搜索栏作为列表上方的独立控件（GNOME 标准
-        # 做法，如 gnome-control-center / Files 的搜索栏），下方列表组
-        # 不再带标题，由外层标题统一。
+        # Packages 区：标题 + 搜索栏 + 分组列表。
         self.group_packages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.group_packages_title = Gtk.Label(label=_('Packages'))
         self.group_packages_title.add_css_class('title-4')
@@ -255,19 +280,17 @@ class GeneralSettingsPageView(PageView):
         self.packages_search_entry.connect('search-changed', self.on_packages_search)
         self.group_packages.append(self.packages_search_entry)
 
-        self.packages_list = Adw.PreferencesGroup()
-        for name in ['ams', 'textcomp', 'graphicx', 'color', 'xcolor', 'url', 'hyperref', 'theorem', 'listings', 'glossaries', 'parskip']:
-            self.packages_list.add(self.option_packages[name])
+        self.packages_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        for group in self._package_groups.values():
+            self.packages_box.append(group)
 
         # 自定义包输入（报告 #2）：逗号分隔的包名，额外插入 preamble。
-        # 放在包列表末尾，避免打断搜索框与包开关之间的视觉关联。
         self.custom_packages_entry = Adw.EntryRow()
         self.custom_packages_entry.set_title(_('Other packages'))
-        # Adw.EntryRow 无 subtitle 属性，说明文字用 tooltip 展示。
         self.custom_packages_entry.set_tooltip_text(_('Comma-separated package names to include additionally.'))
-        self.packages_list.add(self.custom_packages_entry)
+        self.packages_box.append(self.custom_packages_entry)
 
-        self.group_packages.append(self.packages_list)
+        self.group_packages.append(self.packages_box)
 
         # Preview -------------------------------------------------------------
         # 实时预览将生成的 \\documentclass 行（报告 #3），由 controller 在
@@ -297,8 +320,23 @@ class GeneralSettingsPageView(PageView):
         row.set_tooltip_markup(self.package_descriptions[name])
         return row
 
+    def _create_package_group(self, title, rows):
+        group = Adw.PreferencesGroup()
+        group.set_title(title)
+        for row in rows:
+            group.add(row)
+        return group
+
     def on_packages_search(self, entry):
-        '''按包名（键）过滤下方开关行（报告 #2）。'''
+        '''按包名（键）过滤开关行，同时隐藏空分组。'''
         query = entry.get_text().lower().strip()
         for name, row in self.option_packages.items():
             row.set_visible(query == '' or query in name.lower())
+        # Hide groups where all children are hidden
+        for group_name, group in self._package_groups.items():
+            any_visible = any(
+                child.get_visible()
+                for child in group
+                if isinstance(child, Adw.SwitchRow)
+            )
+            group.set_visible(any_visible)

@@ -17,14 +17,14 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, Gio, GLib, GObject
+from gi.repository import Gtk, Gdk, Gio, GLib, GObject, Adw
 
 import setzer.workspace.sidebar.symbols_page.symbols_page_viewgtk as symbols_page_view
 from setzer.app.service_locator import ServiceLocator
 import setzer.helpers.timer as timer
 from setzer.helpers.symbol_categories import is_valid_category
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
-from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview
+from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview, attach_symbol_context_menu
 from setzer.settings.document_settings import DocumentSettings
 
 import math
@@ -214,8 +214,12 @@ class SymbolsPage(ScrollAnimatorMixin):
         button.set_accessible_name(_('Insert') + ' ' + symbol[1])
         # 悬停时弹出放大预览（放大版符号 + LaTeX 命令 + 收藏切换按钮）。
         # Recent 与 Favorites 共用同一预览组件，仅 folder 与 favorite 回调不同。
-        attach_symbol_hover_preview(
+        attach_symbol_hover_preview(button, symbol)
+        # 右键上下文菜单：Insert / Add to Favorites / Copy LaTeX Command。
+        attach_symbol_context_menu(
             button, symbol, folder=category,
+            insert_func=self._context_insert_symbol,
+            copy_func=self._context_copy_symbol,
             favorite_state_func=self.is_favorite_symbol,
             favorite_toggle_func=self.toggle_favorite_symbol)
         child = Gtk.FlowBoxChild()
@@ -300,12 +304,12 @@ class SymbolsPage(ScrollAnimatorMixin):
         return True
 
     def wire_favorites(self):
-        '''为主列表（SidebarSymbolsList）的每个符号按钮挂载 hover 预览。
+        '''为主列表（SidebarSymbolsList）的每个符号按钮挂载 hover 预览与右键菜单。
 
         主列表按钮在 SymbolsPageView 构造时创建，早于本页面实例，故无法在
-        构造期拿到 favorites 回调；统一在此（self 已就绪）补挂，使预览气泡
-        带收藏切换按钮。Recent / Favorites 列表的按钮在各自 add_* 方法中创建，
-        已直接挂载，无需重复。
+        构造期拿到 favorites 回调；统一在此（self 已就绪）补挂右键上下文菜单
+        （hover 预览只负责展示、不带收藏，收藏统一走右键菜单）。Recent /
+        Favorites 列表的按钮在各自 add_* 方法中创建，已直接挂载，无需重复。
         '''
         for symbols_view in self.view.symbols_views:
             folder = symbols_view.symbol_folder
@@ -314,11 +318,33 @@ class SymbolsPage(ScrollAnimatorMixin):
                 button = child.get_child()
                 symbol = child.symbol_data
                 if button is not None and symbol is not None:
-                    attach_symbol_hover_preview(
+                    attach_symbol_hover_preview(button, symbol)
+                    attach_symbol_context_menu(
                         button, symbol, folder=folder,
+                        insert_func=self._context_insert_symbol,
+                        copy_func=self._context_copy_symbol,
                         favorite_state_func=self.is_favorite_symbol,
                         favorite_toggle_func=self.toggle_favorite_symbol)
                 child = child.get_next_sibling()
+
+    def _context_insert_symbol(self, folder, command):
+        '''右键菜单「Insert」：与左键一致——插入符号并把本次使用记为最近符号。'''
+        if self.workspace.active_document is None:
+            return
+        self.workspace.actions.insert_symbol(None, [command])
+        self.add_recent_symbol((folder, command))
+
+    def _context_copy_symbol(self, command):
+        '''右键菜单「Copy LaTeX Command」：把 LaTeX 命令复制到系统剪贴板。'''
+        display = Gdk.Display.get_default()
+        if display is not None:
+            display.get_clipboard().set(command)
+        main_window = ServiceLocator.get_main_window()
+        toast_overlay = getattr(main_window, 'toast_overlay', None)
+        if toast_overlay is not None:
+            toast = Adw.Toast.new(_('Copied to clipboard'))
+            toast.set_timeout(2)
+            toast_overlay.add_toast(toast)
 
     def on_scroll_or_resize(self, *args):
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()

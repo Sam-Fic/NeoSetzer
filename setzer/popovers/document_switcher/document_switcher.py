@@ -207,6 +207,9 @@ class DocumentSwitcher(Observable):
         if document is None:
             return
         self._show_context_menu(row, document, int(x), int(y))
+        # 与源码编辑器右键菜单（document_controller.py:185）保持一致：
+        # 弹出后 reset，结束当前手势序列，避免手势持续 claim 后续事件。
+        gesture.reset()
 
     def show(self):
         self._is_visible = True
@@ -235,6 +238,10 @@ class DocumentSwitcher(Observable):
             # （GTK4 controller 不能跨 widget 共享）。
             gesture = Gtk.GestureClick()
             gesture.set_button(3)
+            # 与源码编辑器右键菜单（document_controller.py:68）保持一致：
+            # TARGET 阶段处理，仅 claim 右键（set_button(3)），左键事件正常
+            # 传播到 row 的 activated 信号。
+            gesture.set_propagation_phase(Gtk.PropagationPhase.TARGET)
             gesture.connect('pressed', self._on_row_right_click)
             row.add_controller(gesture)
 

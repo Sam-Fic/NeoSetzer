@@ -24,7 +24,7 @@ from setzer.app.service_locator import ServiceLocator
 
 
 def maybe_show_first_run_tutorial():
-    '''渐进式触发：用户首次构建或首次预览时，弹一次欢迎引导。
+    '''首次启动引导：应用真正首次启动时弹一次欢迎引导。
 
     由 settings 标志位保证只自动弹一次：first_run_tutorial_shown 置 True
     后不再自动弹。偏好页的“再次显示首次引导”按钮可随时手动重看。

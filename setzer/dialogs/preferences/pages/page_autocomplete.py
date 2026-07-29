@@ -69,6 +69,9 @@ class PageAutocomplete(object):
         self.view.option_update_matching_blocks.set_active(self.settings.get_value('preferences', 'update_matching_blocks'))
         self.view.option_update_matching_blocks.connect('notify::active', self.on_switch_toggled, 'update_matching_blocks')
 
+        self.view.option_environment_autocomplete.set_active(self.settings.get_value('preferences', 'enable_environment_autocomplete'))
+        self.view.option_environment_autocomplete.connect('notify::active', self.on_switch_toggled, 'enable_environment_autocomplete')
+
         accel = self.settings.get_value('preferences', 'autocomplete_manual_trigger')
         self.view.trigger_button.set_label(self._accel_label(accel))
         self.view.trigger_button.connect('clicked', self.on_trigger_capture_start)
@@ -116,6 +119,7 @@ class PageAutocomplete(object):
             self.view.option_selection_brackets.set_active(defaults['bracket_selection'])
             self.view.option_tab_jump_brackets.set_active(defaults['tab_jump_brackets'])
             self.view.option_update_matching_blocks.set_active(defaults['update_matching_blocks'])
+            self.view.option_environment_autocomplete.set_active(defaults['enable_environment_autocomplete'])
             self.view.trigger_button.set_label(self._accel_label(defaults['autocomplete_manual_trigger']))
             self.settings.set_value('preferences', 'autocomplete_manual_trigger', defaults['autocomplete_manual_trigger'])
             # 复位所有补全弹窗导航键（报告 #6 遗留项）。
@@ -254,6 +258,12 @@ class PageAutocompleteView(Adw.PreferencesPage):
         self.option_update_matching_blocks.set_title(_('Update matching begin / end blocks'))
         self.option_update_matching_blocks.set_subtitle(_('Keep matching \\begin{} / \\end{} blocks in sync when you edit one.'))
         group_others.add(self.option_update_matching_blocks)
+
+        # 环境自动补：输入 \begin{ 时自动补出配对的 \end{}（报告 #9）。
+        self.option_environment_autocomplete = Adw.SwitchRow()
+        self.option_environment_autocomplete.set_title(_('Automatically add matching \\end{}'))
+        self.option_environment_autocomplete.set_subtitle(_('When you type \\begin{, automatically insert the matching \\end{} (use Tab to jump to the content placeholder).'))
+        group_others.add(self.option_environment_autocomplete)
 
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)

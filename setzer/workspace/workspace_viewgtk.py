@@ -45,7 +45,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.popoverlay = Gtk.Overlay()
         # ToastOverlay 包裹整个窗口内容，供全局 toast 通知使用
         # （保存失败、工作区状态丢失等非阻塞提示）。
+        # hexpand/vexpand 确保 toast overlay 填满窗口，避免其 natural size
+        # 因内部 toast 间距/阴影而略大于窗口宽度，触发 Adwaita 告警。
         self.toast_overlay = Adw.ToastOverlay()
+        self.toast_overlay.set_hexpand(True)
+        self.toast_overlay.set_vexpand(True)
         self.toast_overlay.set_child(self.popoverlay)
         self.set_content(self.toast_overlay)
 
@@ -53,6 +57,15 @@ class MainWindow(Adw.ApplicationWindow):
         self._is_fullscreen = False
         self._headerbar_visible_in_fullscreen = False
         self._sidebar_was_visible = False
+        # popover 是否打开：防止鼠标进入 popover（独立 surface）时主窗口
+        # leave 导致顶栏收起。该标志由 popover 的 map / closed 信号维护。
+        self._popover_open = False
+        # 顶栏隐藏延时计时器：隐藏不再「立即」执行，而是经计时器再判定，
+        # 以消解「主窗口 leave」与「popover 打开」之间的竞态。
+        self._headerbar_hide_timeout_id = None
+        # 鼠标是否在主窗口内、最近一次纵向位置：供隐藏判定使用。
+        self._pointer_inside = True
+        self._last_pointer_y = 0
 
     def create_widgets(self):
         self.shortcutsbar = shortcutsbar_view.ShortcutsBar()
@@ -185,6 +198,32 @@ class MainWindow(Adw.ApplicationWindow):
         self.headerbar.widget.set_valign(Gtk.Align.START)
         self.document_stack_overlay.add_overlay(self.headerbar.widget)
 
+        # 全屏模式下 headerbar 是浮层，默认隐藏；鼠标移到顶部边缘时弹出。
+        # 对有下拉气泡（popover）的按钮（open / new 箭头、汉堡菜单），点击后
+        # 气泡作为独立 surface 弹出，鼠标从主窗口移入气泡会触发主窗口的 leave；
+        # 若此时直接隐藏顶栏，用户操作菜单时顶栏会闪退。处理要点：
+        #   1. 监听每个 popover 的 map / closed，可靠维护 _popover_open；
+        #      popover 可能首次激活时才创建，故按钮回调里也补连（用 _hb_tracked
+        #      标记防重复连接）。
+        #   2. 顶栏隐藏不再「立即」执行，而是经延时计时器再判定：计时器触发时
+        #      才核对 _popover_open 与鼠标位置，从而消解「leave 先于 activate /
+        #      map 设置标志」的竞态——即便 leave 先到，气泡一旦 map，_popover_open
+        #      即被置 True，延时回调会跳过隐藏。
+        self.headerbar.sidebar_toggle.connect('clicked', self._on_headerbar_clicked)
+        self.headerbar.open_document_button.connect('clicked', self._on_headerbar_clicked)
+        self.headerbar.open_document_button.connect('activate', self._on_split_button_activate)
+        self.headerbar.new_document_button.connect('clicked', self._on_headerbar_clicked)
+        self.headerbar.new_document_button.connect('activate', self._on_split_button_activate)
+        self.headerbar.center_button.connect('clicked', self._on_headerbar_clicked)
+        self.headerbar.preview_help_toggle.connect('clicked', self._on_headerbar_clicked)
+        # Gtk.MenuButton（汉堡菜单）没有 clicked 信号，用 activate 替代。
+        self.headerbar.menu_button.connect('activate', self._on_menu_button_activate)
+
+        # 预创建阶段 popover 已存在则直接连接；不存在则等首次激活时再连。
+        self._track_popover(self.headerbar.open_document_button.get_popover())
+        self._track_popover(self.headerbar.new_document_button.get_popover())
+        self._track_popover(self.headerbar.menu_button.get_popover())
+
         # 记录 headerbar 当前所在 overlay，供 reparent_headerbar 判断迁移方向。
         # 不用 get_parent()：Gtk.Overlay 的 overlay 子部件实际父级是内部 Bin，
         # 而非 Gtk.Overlay 本身，get_parent() 比较会失真。
@@ -193,6 +232,14 @@ class MainWindow(Adw.ApplicationWindow):
         self.content_overlay = Gtk.Overlay()
         self.content_overlay.set_child(self.mode_stack)
         self.popoverlay.set_child(self.content_overlay)
+
+        # 加载指示器：覆盖整个内容区，在打开文档/启动恢复时显示
+        self._loading_spinner = Gtk.Spinner()
+        self._loading_spinner.set_size_request(48, 48)
+        self._loading_spinner.set_halign(Gtk.Align.CENTER)
+        self._loading_spinner.set_valign(Gtk.Align.CENTER)
+        self._loading_spinner.set_visible(False)
+        self.content_overlay.add_overlay(self._loading_spinner)
 
         # 文件拖放视觉反馈浮层：覆盖整个内容区，带圆角描边 + 居中计数标签。
         # can_target=False 让拖放事件穿透到窗口级 DropTarget（不被此浮层拦截），
@@ -269,12 +316,14 @@ class MainWindow(Adw.ApplicationWindow):
             return True
         GLib.timeout_add(250, _poll_sb_width)
 
-        # 文件拖放:挂到窗口级（EventController 需挂 GtkWidget，窗口本身即覆盖
-        # 整个区域）。优先用 Gdk.FileList 接收整批文件（多文件拖入时仍能一次拿到
-        # 全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
-        # 设 preload=True 以便 drag 过程中就能通过 get_value() 读取文件列表，
-        # 从而实时显示「将打开 N 个文件」以及按文件类型决定「禁止」光标。
-        # 扩展名过滤与 do_open（setzer_dev.py）保持一致：仅接受 .tex/.bib/.cls/.sty。
+        # 文件拖放：仅限欢迎页（welcome_overlay）。该 overlay 只在欢迎模式是
+        # mode_stack 的可见页，挂上去后拖放自然只在欢迎页生效；编辑器等其他界面
+        # 不再处理（按需求放弃）。优先用 Gdk.FileList 接收整批文件（多文件拖入时
+        # 一次拿到全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
+        # preload=True：拖拽过程中即可通过 get_value() 读取文件列表，实时显示
+        # 「将打开 N 个文件」。扩展名过滤与 do_open（setzer_dev.py）一致：仅打开
+        # .tex/.bib/.cls/.sty；其它文件不打开但拖放仍被消费（返回 True），以红色描边提示。
+        # CAPTURE 阶段：先于欢迎页内子控件接管，避免任何子控件抢走文件拖放。
         self._drop_exts = ('.tex', '.bib', '.cls', '.sty')
         drop_target = Gtk.DropTarget()
         drop_target.set_actions(Gdk.DragAction.COPY)
@@ -283,12 +332,13 @@ class MainWindow(Adw.ApplicationWindow):
             gtypes = [Gdk.FileList, Gio.File]
         drop_target.set_gtypes(gtypes)
         drop_target.set_preload(True)
+        drop_target.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         drop_target.connect('enter', self.on_drag_enter)
         drop_target.connect('leave', self.on_drag_leave)
         drop_target.connect('motion', self.on_drag_motion)
         drop_target.connect('accept', self.on_drag_accept)
         drop_target.connect('drop', self.on_drop)
-        self.add_controller(drop_target)
+        self.welcome_overlay.add_controller(drop_target)
         self.drop_target = drop_target
 
         # 全屏鼠标追踪：检测鼠标是否在窗口顶部边缘，以显示/隐藏 headerbar
@@ -322,13 +372,17 @@ class MainWindow(Adw.ApplicationWindow):
         return path.endswith(self._drop_exts)
 
     def _update_drop_feedback(self):
-        '''根据当前拖放值刷新浮层标签（文件计数 / 可接受性提示）。'''
+        '''根据当前拖放值刷新浮层标签与描边（文件计数 / 可接受性提示）。
+        描边状态必须在这里同步，因为 enter/motion 时 preload 已读到文件列表，
+        而 accept 可能在列表就绪前就跑过一次（那时 get_value() 为空）——若只在
+        accept 里设描边，红框会卡住。'''
         if not hasattr(self, 'drop_highlight') or not self.drop_highlight.get_visible():
             return
         files = self._extract_drop_files(self.drop_target.get_value())
         if not files:
             # preload 尚未拿到文件列表，保持中性提示，避免误闪「无法打开」
             self.drop_label.set_text('拖放以打开文件')
+            self.drop_highlight.remove_css_class('drop-reject')
             return
         count = sum(1 for f in files if self._is_acceptable_file(f))
         if count > 1:
@@ -337,8 +391,21 @@ class MainWindow(Adw.ApplicationWindow):
             self.drop_label.set_text('拖放以打开文件')
         else:
             self.drop_label.set_text('无法打开此文件类型')
+        # 同步描边：有可接受文件→强调色；全不可接受→红色禁止样式
+        if count > 0:
+            self.drop_highlight.remove_css_class('drop-reject')
+        else:
+            self.drop_highlight.add_css_class('drop-reject')
+
+    def _dnd_debug(self, tag, *args):
+        try:
+            with open('/tmp/setzer_dnd.log', 'a', encoding='utf-8') as f:
+                f.write(tag + ': ' + ' | '.join(str(a) for a in args) + '\n')
+        except Exception:
+            pass
 
     def on_drag_enter(self, target, x, y):
+        self._dnd_debug('enter', 'value=', repr(target.get_value()))
         self.drop_highlight.set_visible(True)
         self._update_drop_feedback()
         return False
@@ -348,34 +415,44 @@ class MainWindow(Adw.ApplicationWindow):
         return False
 
     def on_drag_leave(self, target):
+        self._dnd_debug('leave')
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
         return False
 
     def on_drag_accept(self, target, drop):
-        '''按文件类型决定是否接受拖放：无可接受文件时返回 False，
-        GTK 据此显示「禁止」光标；可接受时浮层描边保持强调色。'''
-        files = self._extract_drop_files(target.get_value())
-        acceptable = any(self._is_acceptable_file(f) for f in files) if files else False
-        if acceptable:
-            self.drop_highlight.remove_css_class('drop-reject')
-        else:
-            self.drop_highlight.add_css_class('drop-reject')
-        return acceptable
+        '''必须返回 True 才能被 GTK 选为拖放目标。一旦返回 False，GTK 会直接
+        否决该目标，导致 enter/motion/drop 永远不触发。文件类型已由 gtypes 限定，
+        这里始终接收；红框/计数等视觉状态统一由 _update_drop_feedback 根据已读取
+        的文件列表同步，拖放仍由 on_drop 消费掉。'''
+        self._update_drop_feedback()
+        return True
 
     def on_drop(self, target, value, x, y):
         workspace = ServiceLocator.get_workspace()
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
-        if workspace is None:
+        self._dnd_debug('drop', 'value_type=', type(value), 'value_repr=', repr(value),
+                        'get_value=', repr(target.get_value()),
+                        'drop_formats=', repr(target.get_drop().get_formats()) if target.get_drop() else 'no-drop')
+        # 某些 GTK 版本/构建中，drop 信号的 value 参数未被正确解包（仍是空或原始
+        # GValue），直接用会导致取不到文件。优先用参数，拿不到时回退到
+        # target.get_value()——拖拽过程中 _update_drop_feedback 正是靠它拿到文件
+        # 列表，是可靠的来源。
+        files = self._extract_drop_files(value)
+        if not files:
+            files = self._extract_drop_files(target.get_value())
+        self._dnd_debug('drop_files', [ (type(f), f.get_path() if hasattr(f,'get_path') else None) for f in files])
+        if not files:
             return False
-        opened = False
-        for file in self._extract_drop_files(value):
-            path = file.get_path()
-            if path and self._is_acceptable_file(file):
-                workspace.open_document_by_filename(path)
-                opened = True
-        return opened
+        # 始终消费拖放（返回 True），避免文本视图接管并插入路径。
+        # 仅打开白名单内的文件，其余静默忽略。
+        if workspace is not None:
+            for file in files:
+                path = file.get_path()
+                if path and self._is_acceptable_file(file):
+                    workspace.open_document_by_filename(path)
+        return True
 
 
     def do_size_allocate(self, width, height, baseline):
@@ -470,6 +547,13 @@ class MainWindow(Adw.ApplicationWindow):
         workspace = ServiceLocator.get_workspace()
         if workspace is None:
             return
+        # 重置 popover / 指针追踪状态，避免上次全屏残留的标志影响本次判定。
+        if self._headerbar_hide_timeout_id is not None:
+            GLib.Source.remove(self._headerbar_hide_timeout_id)
+            self._headerbar_hide_timeout_id = None
+        self._popover_open = False
+        self._pointer_inside = True
+        self._last_pointer_y = 0
         # 保存并隐藏 headerbar
         self._show_fullscreen_headerbar(False)
         # 折叠 sidebar（如果开启）
@@ -482,6 +566,12 @@ class MainWindow(Adw.ApplicationWindow):
         workspace = ServiceLocator.get_workspace()
         if workspace is None:
             return
+        # 取消任何待隐藏计时并重置追踪状态。
+        if self._headerbar_hide_timeout_id is not None:
+            GLib.Source.remove(self._headerbar_hide_timeout_id)
+            self._headerbar_hide_timeout_id = None
+        self._popover_open = False
+        self._pointer_inside = True
         # 恢复 headerbar
         self._show_fullscreen_headerbar(True)
         # 恢复 sidebar
@@ -504,16 +594,134 @@ class MainWindow(Adw.ApplicationWindow):
         self._update_fullscreen_editor_margin()
 
     def _on_motion(self, controller, x, y):
-        '''鼠标移动回调：检测是否在顶部边缘，显示/隐藏 headerbar。'''
+        '''全屏下根据鼠标位置显隐 headerbar。
+
+        - headerbar 隐藏时：鼠标进入顶部边缘（<=阈值）即显示。
+        - headerbar 显示后：鼠标仍在 headerbar 高度内则保持；移动到 headerbar
+          之外且无打开 popover 时，经延时再隐藏，避免点击按钮打开下拉菜单后
+          鼠标短暂移出顶栏导致闪退。'''
         if not self._is_fullscreen:
             return
-        # 顶部边缘阈值（像素）
-        edge_threshold = 5
-        show = y <= edge_threshold
+        self._pointer_inside = True
+        self._last_pointer_y = y
+
+        if not self._headerbar_visible_in_fullscreen:
+            show = y <= 5
+        else:
+            headerbar_height = self.headerbar.widget.get_allocated_height()
+            show = y <= headerbar_height
+
         if show != self._headerbar_visible_in_fullscreen:
-            self._show_fullscreen_headerbar(show)
+            if show:
+                self._cancel_hide_headerbar()
+                self._show_fullscreen_headerbar(True)
+            else:
+                # 鼠标移出 headerbar 区域：无打开 popover 时才安排隐藏，
+                # 否则交给定时器在 popover 关闭后再判定。
+                if not self._popover_open:
+                    self._schedule_hide_headerbar()
+        else:
+            # 状态未翻转：鼠标仍在 headerbar 内且无 popover 时取消待隐藏，
+            # 防止此前因 popover 关闭等触发的延时隐藏在鼠标回到顶栏后误执行。
+            if show and not self._popover_open:
+                self._cancel_hide_headerbar()
+
+    def _schedule_hide_headerbar(self):
+        '''(重)启动隐藏顶栏的延时计时器。延时回调会再次核对 _popover_open
+        与鼠标位置，因此可安全地在 leave / 移出等竞态场景下调用。'''
+        if self._headerbar_hide_timeout_id is not None:
+            GLib.Source.remove(self._headerbar_hide_timeout_id)
+        self._headerbar_hide_timeout_id = GLib.timeout_add(1500, self._do_hide_headerbar)
+
+    def _cancel_hide_headerbar(self):
+        if self._headerbar_hide_timeout_id is not None:
+            GLib.Source.remove(self._headerbar_hide_timeout_id)
+            self._headerbar_hide_timeout_id = None
+
+    def _do_hide_headerbar(self):
+        '''延时隐藏：最终判定后才执行隐藏。'''
+        self._headerbar_hide_timeout_id = None
+        if not (self._is_fullscreen and self._headerbar_visible_in_fullscreen):
+            return False
+        # 有 popover 打开时绝不隐藏；其 closed 信号会重新评估。
+        if self._popover_open:
+            return False
+        # 鼠标仍在窗口内且位于 headerbar 高度范围内，保持显示。
+        headerbar_height = self.headerbar.widget.get_allocated_height()
+        if self._pointer_inside and self._last_pointer_y <= headerbar_height:
+            return False
+        self._show_fullscreen_headerbar(False)
+        return False
 
     def _on_leave(self, controller):
-        '''鼠标离开窗口：全屏时隐藏 headerbar。'''
+        '''鼠标离开主窗口：全屏时安排隐藏，但不在 leave 时立即隐藏——否则鼠标
+        移入 popover（独立 surface）触发的 leave 会立刻收起顶栏。
+
+        是否真正隐藏交由延时计时器在 fire 时核对 _popover_open 与鼠标位置决定，
+        从而消解「leave 先于 activate / map 设置标志」的竞态。'''
+        if not (self._is_fullscreen and self._headerbar_visible_in_fullscreen):
+            return
+        self._pointer_inside = False
+        if not self._popover_open:
+            self._schedule_hide_headerbar()
+
+    def _on_headerbar_clicked(self, button):
+        '''无 popover 的 headerbar 按钮（sidebar_toggle / 主操作区 /
+        preview_help_toggle / center）：点击后取消待隐藏计时，保持顶栏可见。'''
+        if not (self._is_fullscreen and self._headerbar_visible_in_fullscreen):
+            return
+        self._cancel_hide_headerbar()
+
+    def show_loading_spinner(self):
+        '''显示加载中 spinner。'''
+        self._loading_spinner.set_visible(True)
+        self._loading_spinner.start()
+
+    def hide_loading_spinner(self):
+        '''隐藏加载中 spinner。'''
+        self._loading_spinner.stop()
+        self._loading_spinner.set_visible(False)
+
+    def _on_split_button_activate(self, button):
+        '''Adw.SplitButton 的下拉箭头只发 activate、不发 clicked；点击箭头
+        展开 popover。立即标记打开并补连 popover 的 map / closed 信号。'''
+        self._track_popover(button.get_popover())
+        self._popover_open = True
+        self._cancel_hide_headerbar()
+
+    def _on_menu_button_activate(self, button):
+        '''Gtk.MenuButton（汉堡菜单）没有 clicked 信号，用 activate。
+        点击展开 popover，立即标记打开并补连 map / closed 信号。'''
+        self._track_popover(button.get_popover())
+        self._popover_open = True
+        self._cancel_hide_headerbar()
+
+    def _track_popover(self, popover):
+        '''为 popover 连接 map / closed，可靠维护 _popover_open。
+
+        GTK4 的 popover 用 map（而非 show）表示显示。用 _hb_tracked 标记
+        防止重复连接（popover 可能首次激活时才创建）。'''
+        if popover is None:
+            return
+        if getattr(popover, '_hb_tracked', False):
+            return
+        popover.connect('map', self._on_popover_opened)
+        popover.connect('closed', self._on_popover_closed)
+        popover._hb_tracked = True
+
+    def _on_popover_opened(self, popover):
+        '''popover 显示：标记打开并取消待隐藏计时。'''
+        self._popover_open = True
+        self._cancel_hide_headerbar()
+
+    def _on_popover_closed(self, popover):
+        '''popover 关闭：解除标记并重新评估是否隐藏顶栏。'''
+        self._popover_open = False
         if self._is_fullscreen and self._headerbar_visible_in_fullscreen:
-            self._show_fullscreen_headerbar(False)
+            headerbar_height = self.headerbar.widget.get_allocated_height()
+            if self._pointer_inside and self._last_pointer_y <= headerbar_height:
+                # 鼠标仍在 headerbar 上，保持显示。
+                self._cancel_hide_headerbar()
+            else:
+                self._schedule_hide_headerbar()
+        return False

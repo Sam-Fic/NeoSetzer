@@ -25,6 +25,7 @@ from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.color_manager import ColorManager
+from setzer.settings.document_settings import DocumentSettings
 
 import time
 import os.path
@@ -180,7 +181,7 @@ class BuildWidget(Observable):
                         if os.path.exists(filename_base + ending): return True
             return False
 
-        if self.settings.get_value('preferences', 'cleanup_build_files') == True:
+        if DocumentSettings.get_effective_value(self.document, self.settings, 'cleanup_build_files') == True:
             self.view.clean_button.set_visible(False)
         else:
             # 无构建产物时隐藏按钮（而非显示灰色不可点击按钮），减少视觉干扰。
@@ -209,9 +210,7 @@ class BuildWidget(Observable):
 
     def _active_interpreter_display(self):
         '''当前文档实际使用的引擎显示名：每文档覆盖优先于全局默认。'''
-        interp = self.document.build_system.latex_interpreter
-        if interp in (None, 'default'):
-            interp = self.settings.get_value('preferences', 'latex_interpreter')
+        interp = DocumentSettings.get_effective_value(self.document, self.settings, 'latex_interpreter')
         return _INTERPRETER_DISPLAY.get(interp, interp)
 
     def update_build_button_tooltip(self, *args):

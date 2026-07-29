@@ -18,8 +18,9 @@
 from gi.repository import Gdk, Adw, Gtk, Gio
 import os.path
 
-# 延迟导入避免循环：controller 引用 presenter 的 ALL_TYPES 常量。
+# 延迟导入避免循环：controller 引用 presenter 的 ALL_TYPES 常量及 classify_warning_type。
 import setzer.dialogs.build_log.build_log_dialog_presenter as presenter_module
+from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
 
 
 class BuildLogDialogController(object):
@@ -60,6 +61,14 @@ class BuildLogDialogController(object):
             lst.connect('row-activated', self.on_row_activated)
             lst.connect('selected-rows-changed', self.on_selected_rows_changed)
             lst.ai_fix_row_callback = self.on_ai_fix_row_clicked
+            lst.ignore_row_callback = self.on_ignore_row_clicked
+
+        # 「恢复忽略的警告」头部按钮：注入回调并初始化显隐（若有已忽略类型）。
+        self.view.on_restore_ignored_callback = self.on_restore_ignored_clicked
+        self._update_restore_button()
+
+        # group 折叠/展开切换回调：保存状态到 settings
+        self.view.on_group_toggle_callback = self.on_group_toggle
 
     def on_selected_rows_changed(self, listbox):
         '''保证整个 Build Log 弹窗内只有一个高亮选中项。
@@ -74,6 +83,10 @@ class BuildLogDialogController(object):
         for other in self.view.lists.values():
             if other is not listbox:
                 other.unselect_all()
+
+    def on_group_toggle(self, item_type, expanded):
+        '''用户切换 group 折叠/展开状态时调用，保存到 settings。'''
+        self.presenter.on_group_toggle(item_type, expanded)
 
     def on_row_activated(self, listbox, row):
         '''单击行：打开对应源文件并定位到报错行。
@@ -100,7 +113,7 @@ class BuildLogDialogController(object):
         document.scroll_cursor_onscreen()
         document.source_view.grab_focus()
 
-        start, end = document.source_buffer.get_iter_at_line(line_number), None
+        start, end = document.source_buffer.get_iter_at_line(line_number)[1], None
         if start is not None:
             end = start.copy()
             if not start.ends_line():
@@ -177,8 +190,14 @@ class BuildLogDialogController(object):
 
         lines = []
         search_text = self.view.search_entry.get_text().lower()
+        # 「忽略此类 warning」同样作用于复制 / 保存，与弹窗展示保持一致。
+        ignored_keys = set(
+            self.build_log.settings.get_value('preferences', 'ignored_warning_types') or [])
         for item in self.build_log.items:
             if item[0] not in visible_types:
+                continue
+            # 被忽略的 warning 类型：跳过
+            if ignored_keys and classify_warning_type(item[0], item[4])[0] in ignored_keys:
                 continue
             # 搜索过滤
             if search_text:
@@ -235,7 +254,7 @@ class BuildLogDialogController(object):
     @staticmethod
     def _format_item(item):
         '''单行文本格式，与 BuildLogList._format_row_text 一致。'''
-        # item 元组：item[0]=type, item[1]=未用, item[2]=filename, item[3]=line_number, item[4]=description
+        # item 元组：item[0]=type, item[1]=stage, item[2]=filename, item[3]=line_number, item[4]=description
         item_type, _, filename, line_number, description = item
         parts = []
         if filename:
@@ -246,6 +265,64 @@ class BuildLogDialogController(object):
         if description:
             text = (text + ': ' + description) if text else description
         return text
+
+    # ==================== 忽略此类 warning ====================
+    # 右键弹出的「忽略此类 warning」入口。被忽略的类型（稳定 key）存入
+    # preferences.ignored_warning_types，写入配置文件持久化；弹窗展示、Copy All、
+    # Save Log 均会跳过这些类型，从而消除「每次构建都看到同一类无意义 warning」。
+    # 为避免误忽略无法挽回，忽略后弹 toast 提供 Undo。
+
+    def on_ignore_row_clicked(self, row):
+        '''右键菜单「忽略此类 warning」回调：把该 row 的类型加入忽略列表。'''
+        key, label = classify_warning_type(row.item_type, row.description)
+        settings = self.build_log.settings
+        ignored = list(settings.get_value('preferences', 'ignored_warning_types') or [])
+        if key in ignored:
+            return
+        ignored.append(key)
+        settings.set_value('preferences', 'ignored_warning_types', ignored)
+        settings.pickle()
+        # 强制重建弹窗内容（绕过签名短路），被忽略项立即消失。
+        if self.presenter is not None:
+            self.presenter.refresh()
+        self._update_restore_button()
+        toast = Adw.Toast.new(_('Ignored “{label}” warnings').format(label=label))
+        toast.set_timeout(6)
+        toast.set_button_label(_('Undo'))
+        toast.connect('button-clicked', self._on_undo_ignore, key)
+        self._dispatch_toast(toast)
+
+    def _on_undo_ignore(self, toast, key):
+        '''toast 的 Undo：从忽略列表移除该类型并重建弹窗。'''
+        settings = self.build_log.settings
+        ignored = list(settings.get_value('preferences', 'ignored_warning_types') or [])
+        if key in ignored:
+            ignored.remove(key)
+            settings.set_value('preferences', 'ignored_warning_types', ignored)
+            settings.pickle()
+            if self.presenter is not None:
+                self.presenter.refresh()
+            self._update_restore_button()
+
+    def on_restore_ignored_clicked(self):
+        '''头部「恢复忽略的警告」按钮：清空忽略列表并重建弹窗。'''
+        settings = self.build_log.settings
+        if settings.get_value('preferences', 'ignored_warning_types'):
+            settings.set_value('preferences', 'ignored_warning_types', [])
+            settings.pickle()
+            if self.presenter is not None:
+                self.presenter.refresh()
+            self._toast(_('Restored all ignored warnings'))
+        self._update_restore_button()
+
+    def _update_restore_button(self):
+        '''根据当前忽略列表刷新头部「恢复忽略的警告」按钮的显隐与计数。'''
+        try:
+            ignored = self.build_log.settings.get_value('preferences', 'ignored_warning_types') or []
+            if self.view is not None and hasattr(self.view, 'set_restore_visible'):
+                self.view.set_restore_visible(bool(ignored), len(ignored))
+        except Exception:
+            pass
 
     # ==================== AI 修复集成 ====================
     # 设计见 .trae/documents/ai-fix-agent-integration.md §3.2。
@@ -410,8 +487,14 @@ class BuildLogDialogController(object):
     def _toast(self, message):
         '''显示 toast：若弹窗已打开用弹窗的 toast_overlay，否则用主窗口的。'''
         try:
-            toast = Adw.Toast.new(message)
-            if self.build_log.is_open:
+            self._dispatch_toast(Adw.Toast.new(message))
+        except Exception:
+            pass  # toast 失败不影响主流程
+
+    def _dispatch_toast(self, toast):
+        """把已有 toast 对象派发到正确的 toast_overlay（弹窗已打开则弹窗内，否则主窗口）。"""
+        try:
+            if self.build_log.is_open and self.view is not None and self.view.toast_overlay is not None:
                 self.view.toast_overlay.add_toast(toast)
             else:
                 main_window = self._get_main_window()

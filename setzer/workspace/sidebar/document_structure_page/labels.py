@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 
 import setzer.workspace.sidebar.document_structure_page.labels_viewgtk as labels_section_view
 
@@ -56,7 +56,7 @@ class LabelsSection(object):
         for include_document in self.data_provider.integrated_includes:
             for label in include_document.parser.symbols['labels_with_offset']:
                 labels.append([label[0], label[1], include_document])
-        labels.sort(key=lambda label: label[0].lower())
+        labels.sort(key=lambda label: GLib.utf8_collate_key(label[0].casefold(), len(label[0].casefold())))
         self.labels = labels
 
         self.view.populate()

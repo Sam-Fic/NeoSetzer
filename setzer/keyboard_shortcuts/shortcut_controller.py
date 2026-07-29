@@ -27,11 +27,31 @@ class ShortcutController(Gtk.ShortcutController):
     def __init__(self):
         Gtk.ShortcutController.__init__(self)
 
+    def _parse_trigger(self, trigger_string):
+        try:
+            trigger = Gtk.ShortcutTrigger.parse_string(trigger_string)
+            if trigger is not None:
+                return trigger
+        except TypeError:
+            pass
+
+        try:
+            _success, keyval, mods = Gtk.accelerator_parse(trigger_string)
+            if _success:
+                return Gtk.KeyvalTrigger.new(keyval, mods)
+        except Exception:
+            pass
+
+        return None
+
     def create_and_add_shortcut(self, trigger_string, callback):
         shortcut = Gtk.Shortcut()
 
         shortcut.set_action(Gtk.CallbackAction.new(self.action, callback))
-        shortcut.set_trigger(Gtk.ShortcutTrigger.parse_string(trigger_string))
+
+        trigger = self._parse_trigger(trigger_string)
+        if trigger is not None:
+            shortcut.set_trigger(trigger)
 
         self.add_shortcut(shortcut)
 

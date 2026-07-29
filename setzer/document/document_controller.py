@@ -25,11 +25,21 @@ from gi.repository import Gdk, GLib, Gtk, GObject, Pango, Adw
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
+from setzer.settings.document_settings import DocumentSettings
 
 
 # on_keypress 每次按键都跑，Gdk.keyval_from_name 模块级预计算避免每次 C 查表。
 _KEYVAL_TAB = Gdk.keyval_from_name('Tab')
 _KEYVAL_ISO_LEFT_TAB = Gdk.keyval_from_name('ISO_Left_Tab')
+_KEYVAL_BACKSPACE = Gdk.keyval_from_name('BackSpace')
+_KEYVAL_DELETE = Gdk.keyval_from_name('Delete')
+_KEYVAL_RETURN = Gdk.keyval_from_name('Return')
+_KEYVAL_KP_ENTER = Gdk.keyval_from_name('KP_Enter')
+_KEYVAL_ESCAPE = Gdk.keyval_from_name('Escape')
+_KEYVAL_UP = Gdk.keyval_from_name('Up')
+_KEYVAL_DOWN = Gdk.keyval_from_name('Down')
+_KEYVAL_LEFT = Gdk.keyval_from_name('Left')
+_KEYVAL_RIGHT = Gdk.keyval_from_name('Right')
 
 
 class DocumentController(object):
@@ -80,6 +90,12 @@ class DocumentController(object):
         key_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.document.view.source_view.add_controller(key_controller)
 
+        # 失去焦点时关闭 undo 分组，避免用户切走后再切回时 Ctrl+Z 仍作用于
+        # 上一段连续输入。
+        self._focus_controller = Gtk.EventControllerFocus()
+        self._focus_controller.connect('leave', self._on_focus_leave)
+        self.view.source_view.add_controller(self._focus_controller)
+
         # Ctrl+Click 前向同步的视觉反馈：Ctrl 按下并悬停时显示 pointer 光标，
         # 提示此处可 Ctrl+Click 跳转到 PDF。EventControllerMotion 在鼠标进入/
         # 移动时检查修饰键状态；静止时 Ctrl 按下/释放 不触发（局限性，但移动
@@ -93,6 +109,26 @@ class DocumentController(object):
         self._motion_controller.connect('motion', self._on_motion_motion)
         self._motion_controller.connect('leave', self._on_motion_leave)
         self.view.source_view.add_controller(self._motion_controller)
+
+        # Alt+Drag 列选（column selection）：通过 GestureDrag 识别 Alt 修饰键
+        # 按下时从鼠标起点拖动形成矩形选区。同时也支持 Ctrl+点击添加光标
+        # 和 Alt+点击添加光标（通过 primary_click_controller 的事件处理）。
+        self._column_drag_controller = Gtk.GestureDrag()
+        self._column_drag_controller.set_button(0)  # 接受所有按键（在回调中检查 Alt）
+        self._column_drag_controller.set_propagation_phase(Gtk.PropagationPhase.TARGET)
+        self._column_drag_controller.connect('drag-begin', self._on_column_drag_begin)
+        self._column_drag_controller.connect('drag-update', self._on_column_drag_update)
+        self._column_drag_controller.connect('drag-end', self._on_column_drag_end)
+        self.view.source_view.add_controller(self._column_drag_controller)
+
+        # 列选拖动状态
+        self._column_dragging = False
+        self._column_drag_start_iter = None
+
+        # Ctrl+Click 添加光标（非前向同步）：在 primary_click_controller 的
+        # on_primary_buttonpress 中已处理 Ctrl+Click 前向同步。这里额外识别
+        # Ctrl+Click 不释放时添加额外光标的场景。
+        self._ctrl_click_consumed_for_sync = False
 
         # 窗口获得焦点时立即检查外部磁盘变更，缩短用户切回 Setzer 时的感知
         # 延迟（原仅靠 2 秒轮询，Alt+Tab 切回后最多等 2 秒才提示）。2 秒
@@ -128,21 +164,77 @@ class DocumentController(object):
 
     def on_primary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
+        state = controller.get_current_event_state()
 
         if n_press == 1:
-            if controller.get_current_event_state() & modifiers == Gdk.ModifierType.CONTROL_MASK:
+            # Alt+Click: 添加/移除额外光标（多光标模式）
+            if state & Gdk.ModifierType.ALT_MASK:
+                success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
+                if success:
+                    self._handle_alt_click(iter_at_click, x, y)
+                return
+
+            if state & modifiers == Gdk.ModifierType.CONTROL_MASK:
                 workspace = ServiceLocator.get_workspace()
                 active_document = workspace.get_active_document()
                 if active_document is not None:
-                    # forward_sync action 仅在 can_sync 时启用，但 Ctrl+Click
+                    # 优先检查是否在 \ref{...} 上,如果是则跳转到定义
+                    success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
+                    if success:
+                        label = active_document.get_label_at_iter(iter_at_click)
+                        if label is not None:
+                            # 在 ref 命令上:跳转到 \label{...} 定义
+                            GLib.idle_add(self._do_jump_to_label, label)
+                            return
+
+                        # 在 \begin/\end 命令上:Ctrl+Click 跳转到配对端
+                        if active_document.is_latex_document():
+                            offset = iter_at_click.get_offset()
+                            pair = active_document.begin_end_highlight.find_pair_at_offset(offset)
+                            if pair is not None:
+                                _, partner_span = pair
+                                buffer = active_document.source_buffer
+                                partner_iter = buffer.get_iter_at_offset(partner_span[0])
+                                buffer.place_cursor(partner_iter)
+                                active_document.scroll_cursor_onscreen()
+                                active_document.view.source_view.grab_focus()
+                                return
+
+                    # 不在 ref 命令或环境命令上:执行 forward sync
+                    # forward_sync action 仅在 can_sync 时启用,但 Ctrl+Click
                     # 绕过 action enablement 直接调用。这里复用相同的可同步
-                    # 判定：不可同步时（PDF 未生成 / 非 LaTeX）弹 toast 提示，
+                    # 判定:不可同步时(PDF 未生成 / 非 LaTeX)弹 toast 提示,
                     # 避免无声失败让用户困惑「为什么没反应」。
                     sync_document = workspace.root_document or active_document
                     if sync_document.is_latex_document() and sync_document.build_system.can_sync:
                         GLib.idle_add(workspace.actions.forward_sync)
                     else:
                         self._show_sync_unavailable_toast()
+
+    def _do_jump_to_label(self, label):
+        r'''在 idle 时跳转到指定 label 的 \label{...} 定义位置。'''
+        workspace = ServiceLocator.get_workspace()
+        workspace.actions.actions['jump-to-definition'].activate(
+            GLib.Variant('s', label))
+        return False  # 确保 idle 只执行一次
+
+    def _handle_alt_click(self, iter_at_click, x, y):
+        """处理 Alt+Click 添加/移除额外光标。"""
+        mc = self.document.multicursor
+        # 检查点击位置是否靠近已有额外光标（移除）
+        if mc.has_multiple_cursors():
+            click_offset = iter_at_click.get_offset()
+            # 检查是否点击了已有额外光标
+            for cursor_mark, _ in mc.cursors:
+                cursor_offset = cursor_mark.get_iter().get_offset()
+                if abs(click_offset - cursor_offset) <= 2:
+                    mc.remove_cursor_at_offset(click_offset)
+                    return
+            # 没有点击已有光标，添加新光标
+            mc.add_cursor_at_iter(iter_at_click)
+        else:
+            # 只有主光标，添加额外光标
+            mc.add_cursor_at_iter(iter_at_click)
 
     def _show_sync_unavailable_toast(self):
         '''Ctrl+Click 前向同步不可用时提示用户。常见原因：PDF 尚未构建。'''
@@ -162,8 +254,14 @@ class DocumentController(object):
         # 离开编辑区：恢复文本光标（I-beam）。
         self.view.source_view.set_cursor(self._cursor_text)
 
+    def _on_focus_leave(self, controller):
+        # 失去焦点时关闭 undo 分组，避免切走后再切回时 Ctrl+Z 仍作用于
+        # 上一段连续输入。
+        self.document._close_undo_group()
+
     def _update_ctrl_cursor(self, controller):
-        '''Ctrl 按下时切换为 pointer 光标，提示可 Ctrl+Click 前向同步；
+        r'''Ctrl 按下时切换为 pointer 光标，提示可 Ctrl+Click 跳转
+        （\ref 跳定义、\begin/\end 跳配对端、其它位置前向同步 PDF）；
         否则恢复文本光标。仅在鼠标移动/进入时触发，静止状态下 Ctrl 按下/
         释放不刷新（移动鼠标即可刷新，局限性见 __init__ 注释）。'''
         modifiers = Gtk.accelerator_get_default_mod_mask()
@@ -172,15 +270,146 @@ class DocumentController(object):
         else:
             self.view.source_view.set_cursor(self._cursor_text)
 
+    def _on_column_drag_begin(self, controller, x, y):
+        """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。"""
+        state = controller.get_current_event_state()
+        if not (state & Gdk.ModifierType.ALT_MASK):
+            return  # 非 Alt+Drag，忽略
+
+        # Ctrl+Alt+Drag: 添加新的列选区到现有光标
+        if state & Gdk.ModifierType.CONTROL_MASK:
+            self._column_drag_additive = True
+        else:
+            self._column_drag_additive = False
+            # 清除现有多光标（仅当非加法模式）
+            if not self._column_drag_additive:
+                self.document.multicursor.clear_all()
+
+        self._column_dragging = True
+        self._column_drag_start_iter = self.view.source_view.get_iter_at_location(x, y)
+        self._column_drag_last_iter = self._column_drag_start_iter
+        self._column_drag_last_x = x
+        self._column_drag_last_y = y
+
+    def _on_column_drag_update(self, controller, x, y):
+        """Alt+Drag 进行中：更新列选区。"""
+        if not self._column_dragging or self._column_drag_start_iter is None:
+            return
+
+        # 限制拖动距离（每像素更新过于频繁）
+        dx = x - self._column_drag_last_x
+        dy = y - self._column_drag_last_y
+        if abs(dx) < 2 and abs(dy) < 2:
+            return
+
+        current_iter = self.view.source_view.get_iter_at_location(x, y)
+        self._column_drag_last_iter = current_iter
+        self._column_drag_last_x = x
+        self._column_drag_last_y = y
+
+        # 更新列选区
+        self.document.multicursor.add_cursors_column(
+            self._column_drag_start_iter, current_iter)
+
+    def _on_column_drag_end(self, controller, x, y):
+        """Alt+Drag 结束：完成列选区。"""
+        if not self._column_dragging:
+            return
+
+        self._column_dragging = False
+        self._column_drag_start_iter = None
+        self._column_drag_last_iter = None
+
     def on_secondary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if n_press == 1:
-            ServiceLocator.get_workspace().context_menu.popup_at_cursor(x, y)
+            # Detect label under cursor for right-click context menu
+            label = self.document.get_label_at_cursor()
+            workspace = ServiceLocator.get_workspace()
+            workspace.context_menu.set_label_context(label)
+            workspace.context_menu.popup_at_cursor(x, y)
         controller.reset()
 
     def on_keypress(self, controller, keyval, keycode, state):
         modifiers = Gtk.accelerator_get_default_mod_mask()
+
+        # 撤销/重做快捷键：关闭当前 undo 分组，确保 can_undo/can_redo 立即可用。
+        if keyval == Gdk.KEY_z and (state & modifiers & Gdk.ModifierType.CONTROL_MASK):
+            self.document._close_undo_group()
+        elif keyval == Gdk.KEY_y and (state & modifiers & Gdk.ModifierType.CONTROL_MASK):
+            self.document._close_undo_group()
+        elif keyval == Gdk.KEY_Z and (state & modifiers & Gdk.ModifierType.CONTROL_MASK) and (state & modifiers & Gdk.ModifierType.SHIFT_MASK):
+            self.document._close_undo_group()
+
+        mc = self.document.multicursor
+        has_multi = mc.has_multiple_cursors() or mc.is_column_mode()
+
+        # --- Multi-cursor specific shortcuts ---
+
+        # Escape: 清除多光标
+        if keyval == _KEYVAL_ESCAPE and has_multi:
+            mc.clear_all()
+            return True
+
+        # Ctrl+D: 选中下一个相同词/匹配
+        if keyval == Gdk.keyval_from_name('d') and state & modifiers == Gdk.ModifierType.CONTROL_MASK:
+            mc.select_next_occurrence()
+            return True
+
+        # Ctrl+Shift+L: 选中所有相同词/匹配
+        if keyval == Gdk.keyval_from_name('l') and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
+            mc.select_all_occurrences()
+            return True
+
+        # Ctrl+Alt+Up: 每行上方添加光标
+        if keyval == _KEYVAL_UP and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
+            mc.add_cursor_above()
+            return True
+
+        # Ctrl+Alt+Down: 每行下方添加光标
+        if keyval == _KEYVAL_DOWN and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
+            mc.add_cursor_below()
+            return True
+
+        # --- Multi-cursor edit handling ---
+
+        # Backspace: 多光标删除前一个字符
+        if keyval == _KEYVAL_BACKSPACE and has_multi:
+            if mc.handle_delete('backspace'):
+                return True
+
+        # Delete: 多光标删除后一个字符
+        if keyval == _KEYVAL_DELETE and has_multi:
+            if mc.handle_delete('delete'):
+                return True
+
+        # Tab / Shift+Tab: 多光标缩进/反缩进
+        if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB] and has_multi:
+            # 对所有光标位置应用相同的缩进操作
+            if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
+                self._multi_cursor_indent(outdent=True)
+            else:
+                self._multi_cursor_indent(outdent=False)
+            return True
+
+        # Printable characters: 在所有光标位置插入
+        if has_multi:
+            # 检查是否为可打印字符（Gdk.keyval_is_char 返回 unichar or 0）
+            unichar = Gdk.keyval_is_char(keyval)
+            if unichar and unichar > 0:
+                text = chr(unichar)
+                # 处理 Shift 修饰（keyval_is_char 已考虑）
+                if mc.handle_insert(text):
+                    return True
+
+        # Enter: 在所有光标位置换行（处理较复杂，先清除多光标让默认处理器处理）
+        if keyval in [_KEYVAL_RETURN, _KEYVAL_KP_ENTER] and has_multi:
+            # 简化处理：清除多光标，让 Enter 正常插入换行
+            mc.clear_all()
+            return False
+
+        # --- Normal key handling (original code) ---
 
         if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB]:
             if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
@@ -199,8 +428,8 @@ class DocumentController(object):
                 # 非 LaTeX 文档（BibTeX 等）无 placeholder / 括号跳转：
                 # 直接插入缩进字符（Tab 或空格，取决于偏好设置）。
                 if not self.document.is_latex_document():
-                    if self.document.settings.get_value('preferences', 'spaces_instead_of_tabs'):
-                        tab_width = self.document.settings.get_value('preferences', 'tab_width')
+                    if DocumentSettings.get_effective_value(self.document, self.document.settings, 'spaces_instead_of_tabs'):
+                        tab_width = DocumentSettings.get_effective_value(self.document, self.document.settings, 'tab_width')
                         self.document.source_buffer.insert_at_cursor(' ' * tab_width)
                     else:
                         self.document.source_buffer.insert_at_cursor('\t')
@@ -222,6 +451,51 @@ class DocumentController(object):
 
         return False
 
+    def _multi_cursor_indent(self, outdent=False):
+        """多光标模式下的缩进/反缩进：对每个光标所在行执行操作。"""
+        mc = self.document.multicursor
+        buffer = self.document.source_buffer
+        use_spaces = DocumentSettings.get_effective_value(
+            self.document, self.document.settings, 'spaces_instead_of_tabs')
+        tab_width = DocumentSettings.get_effective_value(
+            self.document, self.document.settings, 'tab_width')
+        indent_unit = ' ' * tab_width if use_spaces else '\t'
+
+        # 收集所有需要编辑的行（去重）
+        lines_to_edit = set()
+        for cursor_mark, anchor_mark in mc.cursors:
+            cursor_iter = cursor_mark.get_iter()
+            lines_to_edit.add(cursor_iter.get_line())
+            if anchor_mark:
+                anchor_iter = anchor_mark.get_iter()
+                lines_to_edit.add(anchor_iter.get_line())
+        # 也包含主光标所在行
+        primary = buffer.get_iter_at_mark(buffer.get_insert())
+        lines_to_edit.add(primary.get_line())
+
+        buffer.begin_user_action()
+        for line_num in sorted(lines_to_edit, reverse=True):
+            found, line_start = buffer.get_iter_at_line(line_num)
+            if not found:
+                continue
+
+            line_text = self.document.get_line(line_num)
+            if outdent:
+                if line_text.startswith('\t'):
+                    end_iter = line_start.copy()
+                    end_iter.forward_char()
+                    buffer.delete(line_start, end_iter)
+                elif line_text.startswith(' '):
+                    remove = min(len(line_text) - len(line_text.lstrip()), tab_width)
+                    if remove > 0:
+                        end_iter = line_start.copy()
+                        end_iter.forward_chars(remove)
+                        buffer.delete(line_start, end_iter)
+            else:
+                buffer.insert(line_start, indent_unit)
+        buffer.end_user_action()
+        mc.clear_all()
+
     def indent_selection(self, outdent=False):
         '''对选区覆盖的每一行前插 / 删除一个缩进单元。
 
@@ -230,8 +504,8 @@ class DocumentController(object):
         单个 user_action 内，保证可一次撤销。
         '''
         buffer = self.document.source_buffer
-        use_spaces = self.document.settings.get_value('preferences', 'spaces_instead_of_tabs')
-        tab_width = self.document.settings.get_value('preferences', 'tab_width')
+        use_spaces = DocumentSettings.get_effective_value(self.document, self.document.settings, 'spaces_instead_of_tabs')
+        tab_width = DocumentSettings.get_effective_value(self.document, self.document.settings, 'tab_width')
         indent_unit = ' ' * tab_width if use_spaces else '\t'
 
         start, end = buffer.get_selection_bounds()
@@ -314,6 +588,14 @@ class DocumentController(object):
             GLib.Source.remove(self._zoom_persist_timeout_id)
             self._persist_zoom()
 
+    def _on_focus_leave(self, controller):
+        """当 source_view 失去焦点时调用。
+
+        预留钩子：未来可在此结束可能进行的 undo 分组（GTK 4 暂无
+        inside_user_action 检测方法）。当前实现为空。
+        """
+        pass
+
     def _on_window_active_changed(self, window, gparam):
         '''窗口获得焦点时立即检查外部磁盘变更，缩短用户切回 Setzer 时的
         感知延迟（原仅靠 2s 轮询）。save_date_loop 内部有 dialog_shown
@@ -393,7 +675,12 @@ class DocumentController(object):
             return False
 
         # 执行静默重载：populate_from_filename 会更新 buffer、modified flag 与 save_date。
-        self.document.populate_from_filename()
+        workspace = ServiceLocator.get_workspace()
+        workspace._loading_start()
+        try:
+            self.document.populate_from_filename()
+        finally:
+            workspace._loading_finish()
         return False
 
     def changed_on_disk_cb(self, do_reload):
@@ -402,7 +689,12 @@ class DocumentController(object):
             GLib.Source.remove(self._auto_reload_timeout_id)
             self._auto_reload_timeout_id = None
         if do_reload:
-            self.document.populate_from_filename()
+            workspace = ServiceLocator.get_workspace()
+            workspace._loading_start()
+            try:
+                self.document.populate_from_filename()
+            finally:
+                workspace._loading_finish()
             self.document.source_buffer.set_modified(False)
         else:
             self.document.source_buffer.set_modified(True)

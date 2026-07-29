@@ -36,6 +36,10 @@ class WorkspaceController(object):
         self.main_window.headerbar.sidebar_toggle.connect('toggled', self.on_sidebar_toggle_toggled)
         self.main_window.headerbar.preview_help_toggle.connect('toggled', self.on_preview_help_toggle_toggled)
 
+        # 加载指示器：连接 workspace 的 loading 信号到主窗口 spinner
+        self.workspace.connect('loading-started', self.on_loading_started)
+        self.workspace.connect('loading-finished', self.on_loading_finished)
+
         # populate workspace
         # ③ 启动偏好：on_startup='empty' 时不恢复上次会话，直接显示欢迎屏。
         on_startup = self.workspace.settings.get_value('preferences', 'on_startup')
@@ -89,6 +93,16 @@ class WorkspaceController(object):
                     pass
                 document._restore_scroll_offset = None
         return False
+
+    def on_loading_started(self, workspace):
+        '''显示加载中 spinner。'''
+        if hasattr(self.main_window, 'show_loading_spinner'):
+            self.main_window.show_loading_spinner()
+
+    def on_loading_finished(self, workspace):
+        '''隐藏加载中 spinner。'''
+        if hasattr(self.main_window, 'hide_loading_spinner'):
+            self.main_window.hide_loading_spinner()
 
     def on_sidebar_toggle_toggled(self, toggle_button, parameter=None):
         show = toggle_button.get_active()

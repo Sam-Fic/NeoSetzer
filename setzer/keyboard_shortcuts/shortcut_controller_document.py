@@ -56,9 +56,18 @@ class ShortcutControllerDocument(ShortcutController):
         self.create_and_add_shortcut(shortcuts.get('duplicate_line', '<Alt><Shift>d'), self.actions.duplicate_line)
         self.create_and_add_shortcut(shortcuts.get('move_line_up', '<Alt>Up'), self.actions.move_line_up)
         self.create_and_add_shortcut(shortcuts.get('move_line_down', '<Alt>Down'), self.actions.move_line_down)
-        self.create_and_add_shortcut(shortcuts.get('context_menu', '<Shift>F10'), self.actions.show_context_menu)
+        # 编辑器内右键上下文菜单：默认 F12（与 shortcutsbar 按钮、设置一致）。
+        # fallback 必须与新默认值 F12 一致（旧代码曾写 <Shift>F10）。
+        self.create_and_add_shortcut(shortcuts.get('context_menu', 'F12'), self.actions.show_context_menu)
         self.create_and_add_shortcut(shortcuts.get('toggle_bookmark', '<Control>F2'), self.actions.toggle_bookmark)
         self.create_and_add_shortcut(shortcuts.get('next_bookmark', 'F2'), self.actions.next_bookmark)
         self.create_and_add_shortcut(shortcuts.get('previous_bookmark', '<Control><Shift>F2'), self.actions.previous_bookmark)
+
+        # Multi-cursor shortcuts (VS Code-style)
+        self.create_and_add_shortcut(shortcuts.get('select_next_occurrence', '<Control>d'), self.actions.select_next_occurrence)
+        self.create_and_add_shortcut(shortcuts.get('select_all_occurrences', '<Control><Shift>l'), self.actions.select_all_occurrences)
+        self.create_and_add_shortcut(shortcuts.get('add_cursor_above', '<Control><Alt>Up'), self.actions.add_cursor_above)
+        self.create_and_add_shortcut(shortcuts.get('add_cursor_below', '<Control><Alt>Down'), self.actions.add_cursor_below)
+        self.create_and_add_shortcut(shortcuts.get('clear_multi_cursor', 'Escape'), self.actions.clear_multi_cursor)
 
 

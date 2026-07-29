@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import math
 from collections import namedtuple
 
 from setzer.helpers.observable import Observable
@@ -39,8 +40,23 @@ class PreviewLayouter(Observable):
 
             layout = PreviewLayout(self.view.get_scale_factor())
             layout.scale_factor = self.preview.zoom_manager.get_zoom_level() * layout.hidpi_factor
-            layout.page_width = layout.scale_factor * self.preview.page_width
-            layout.page_height = layout.scale_factor * self.preview.page_height
+
+            # Displayed (canvas) page dimensions honor the preview rotation:
+            # for 90°/270° the page box is swapped. Rendered textures always use
+            # the un-rotated page dimensions, so we keep both around.
+            pw = self.preview.page_width
+            ph = self.preview.page_height
+            rotation = self.preview.rotation
+            if rotation in (90, 270):
+                disp_pw, disp_ph = ph, pw
+            else:
+                disp_pw, disp_ph = pw, ph
+            layout.page_width = layout.scale_factor * disp_pw
+            layout.page_height = layout.scale_factor * disp_ph
+            layout.page_width_original = layout.scale_factor * pw
+            layout.page_height_original = layout.scale_factor * ph
+            layout.rotation = rotation
+
             layout.page_gap = layout.hidpi_factor * 10
             layout.border_width = 0
             layout.canvas_width = layout.page_width + 2 * layout.get_horizontal_margin(window_width)
@@ -72,11 +88,14 @@ class PreviewLayout(object):
         self.hidpi_factor = hidpi_factor
         self.page_width = None
         self.page_height = None
+        self.page_width_original = None
+        self.page_height_original = None
         self.page_gap = None
         self.border_width = None
         self.canvas_width = None
         self.canvas_height = None
         self.scale_factor = None
+        self.rotation = None
         self.visible_synctex_rectangles = dict()
 
     def get_horizontal_margin(self, window_width):
@@ -92,8 +111,34 @@ class PreviewLayout(object):
         if x < h_margin or x > (h_margin + self.page_width): return None
 
         page_number = int(y // page_height_plus_gap)
-        y_offset = y % page_height_plus_gap / self.scale_factor
-        x_offset = (x - h_margin) / self.scale_factor
+        y_offset = y % page_height_plus_gap
+        x_offset = x - h_margin
+
+        rotation = self.rotation
+        if rotation != 0:
+            # x_offset / y_offset are now in displayed box-local coords (CSS,
+            # y-down). Invert the rotation transform used when drawing the page
+            # to recover the original (un-rotated) page coordinates.
+            disp_w = self.page_width
+            disp_h = self.page_height
+            orig_w = self.page_width_original
+            orig_h = self.page_height_original
+            cx = disp_w / 2.0
+            cy = disp_h / 2.0
+            ocx = orig_w / 2.0
+            ocy = orig_h / 2.0
+            theta = math.radians(rotation)
+            cos_t = math.cos(theta)
+            sin_t = math.sin(theta)
+            dx = x_offset - cx
+            dy = y_offset - cy
+            ox_css = ocx + dx * cos_t + dy * sin_t
+            oy_css = ocy - dx * sin_t + dy * cos_t
+            x_offset = ox_css / self.scale_factor
+            y_offset = oy_css / self.scale_factor
+        else:
+            x_offset = x_offset / self.scale_factor
+            y_offset = y_offset / self.scale_factor
 
         return (page_number, x_offset, y_offset)
 

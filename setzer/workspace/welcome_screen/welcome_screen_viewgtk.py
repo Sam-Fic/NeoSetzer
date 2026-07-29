@@ -108,9 +108,15 @@ def WelcomeScreenView():
     wizard_button.set_label(_('Use a Template…'))
     wizard_button.set_hexpand(True)
 
+    example_button = Gtk.Button()
+    example_button.set_icon_name('document-new-symbolic')
+    example_button.set_label(_('Open Example Document'))
+    example_button.set_hexpand(True)
+
     actions_box.append(new_latex_button)
     actions_box.append(new_bibtex_button)
     actions_box.append(wizard_button)
+    actions_box.append(example_button)
     content.append(actions_box)
 
     # recent documents heading + clear-all button
@@ -171,6 +177,7 @@ def WelcomeScreenView():
     scrolled.new_latex_button = new_latex_button
     scrolled.new_bibtex_button = new_bibtex_button
     scrolled.wizard_button = wizard_button
+    scrolled.example_button = example_button
     scrolled.closed_heading = closed_heading
     scrolled.closed_listbox = closed_listbox
     # 暴露 actions_box 供 MainWindow 在窄窗口 breakpoint 下切 orientation

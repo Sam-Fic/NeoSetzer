@@ -375,6 +375,28 @@ toolbarview > * > * > * {
 }
 
 /*
+ * 构建出错时 shortcuts bar 的 Log 按钮变红提示。
+ */
+.build-log-error {
+    color: @error_color;
+}
+
+/*
+ * 构建日志阶段分隔标题：Adw.PreferencesGroup 的 header 内插入 Gtk.Label
+ * 作 stage header（stage: 'BibTeX' / 'LaTeX'）。样式要低调但可区分：
+ * - 小字号 + dim-label 降低视觉重量；
+ * - 左侧细竖线 + 内边距形成"分区柱"隐喻，与 group header 的粗体标题
+ *   形成层级：group header 是"类型分区"，stage header 是"阶段子分区"。
+ */
+.build-log-stage-header {
+    font-size: 0.85em;
+    opacity: 0.7;
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid alpha(@theme_selected_bg_color, 0.35);
+    margin-top: 2px;
+}
+
+/*
  * 编辑器配色方案网格（复刻 gnome-text-editor 的 Appearance 面板）。
  * 参考项目的 dialog.preferences preferencesgroup flowboxchild 选择器在
  * Setzer 中对应 .preferences .scheme-flowbox flowboxchild（对话框加了
@@ -492,4 +514,13 @@ headerbar {
 .drop-label {
     font-weight: 600;
     font-size: 1.1em;
+}
+
+/*
+ * Sticky scroll overlay: 显示当前 section 层级的悬浮头部。
+ * 半透明背景 + 底部细分割线，使其与编辑区内容区分。
+ * overflow: hidden 保证 sticky header 不会超出编辑器卡片顶部。
+ */
+.sticky-scroll {
+    border-radius: 4px 4px 0 0;
 }

@@ -29,19 +29,25 @@ from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import Adw, GLib
 
-import sys, gettext, argparse, os.path
+import sys, gettext, argparse, os.path, locale
 
 from setzer.workspace.workspace import Workspace
 import setzer.workspace.workspace_viewgtk as view
 import setzer.keyboard_shortcuts.shortcuts as shortcuts
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
+from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.app.latex_db import LaTeXDB
 from setzer.settings.document_settings import DocumentSettings
 from setzer.helpers.timer import timer
+
+# 尽早安装全局异常处理器，确保后续任何代码抛出的未捕获异常都不会静默崩溃。
+# 覆盖：主线程 (sys.excepthook)、非主线程 (threading.excepthook)、GLib 回调。
+from setzer.app.exception_handler import install as install_exception_handler
+install_exception_handler()
 
 
 class MainApplicationController(Adw.Application):
@@ -113,6 +119,19 @@ class MainApplicationController(Adw.Application):
         builtins._ = trans.gettext
         builtins.ngettext = trans.ngettext
 
+        # 日期/时间显示（GLib.DateTime.format 的 %x/%X）依赖 C 库 LC_TIME。
+        # gettext 已按 lang 加载界面译文，但 LC_TIME 默认仍是 C/POSIX，不显式
+        # setlocale 则时间戳不会本地化（如德语应为 29.07.2026 而非 2026-07-29）。
+        # 仅设置 LC_TIME，避免影响数字格式等其他分类。用户未显式选语言时
+        # 用空串 '' 跟随系统环境变量（LANG/LANGUAGE）。locale 未安装则静默跳过。
+        try:
+            if lang:
+                locale.setlocale(locale.LC_TIME, lang)
+            else:
+                locale.setlocale(locale.LC_TIME, '')
+        except locale.Error:
+            pass
+
         # get settings
         self.settings = ServiceLocator.get_settings()
         # 应用主题模式（system/light/dark），默认跟随系统。
@@ -169,6 +188,10 @@ class MainApplicationController(Adw.Application):
         if pos_x >= 0 and pos_y >= 0:
             self.main_window.move(pos_x, pos_y)
         self.main_window.present()
+
+        # 首次启动引导：应用真正首次启动时弹一次（由 settings 标志保证只弹一次）。
+        # 放在 present() 之后，确保窗口已可见、作为模态浮于其上。
+        maybe_show_first_run_tutorial()
 
         self.main_window.connect('close-request', self.on_window_close)
 

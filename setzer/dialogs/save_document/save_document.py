@@ -82,7 +82,7 @@ class SaveDocumentDialog(object):
     def _show_retry_toast(self):
         main_window = ServiceLocator.get_main_window()
         if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Could not save document. Click to retry.'))
+            toast = Adw.Toast.new(_('Save failed. The disk may be full or you may not have permission to write the file.'))
             toast.set_timeout(0)
             toast.set_button_label(_('Retry'))
             toast.connect('button-clicked', self._on_retry_clicked)

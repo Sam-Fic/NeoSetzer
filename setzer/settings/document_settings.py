@@ -28,6 +28,46 @@ from setzer.helpers.document_state_paths import (
 
 class DocumentSettings():
 
+    # 支持 per-document 覆盖的偏好设置键列表。
+    # None/缺失 = 使用全局默认；有值 = 使用覆盖值。
+    _OVERRIDABLE_KEYS = (
+        'latex_interpreter',
+        'spaces_instead_of_tabs',
+        'tab_width',
+        'auto_build',
+        'auto_build_delay',
+        'use_latexmk',
+        'cleanup_build_files',
+    )
+
+    def get_document_override(document, preference_key):
+        """返回 per-document 覆盖值。None 表示使用全局默认。"""
+        if document.filename is None:
+            return None
+        overrides = getattr(document, '_per_document_overrides', {})
+        return overrides.get(preference_key)
+
+    def set_document_override(document, preference_key, value):
+        """设置 per-document 覆盖。value=None 表示清除（回到全局默认）。"""
+        if document.filename is None:
+            return
+        if not hasattr(document, '_per_document_overrides'):
+            document._per_document_overrides = {}
+        if value is None:
+            document._per_document_overrides.pop(preference_key, None)
+        else:
+            document._per_document_overrides[preference_key] = value
+        DocumentSettings.save_document_state(document)
+        document.add_change_code('document_settings_changed',
+                                 (preference_key, value))
+
+    def get_effective_value(document, settings, preference_key):
+        """返回有效值：per-document 覆盖 > 全局默认。"""
+        override = DocumentSettings.get_document_override(document, preference_key)
+        if override is not None:
+            return override
+        return settings.get_value('preferences', preference_key)
+
     def load_document_state(document):
         if document.filename == None: return
 
@@ -78,6 +118,12 @@ class DocumentSettings():
         document.recent_symbols = list(document_data.get('recent_symbols', []))
 
     def update_document(document, document_data):
+        # 加载 per-document 偏好覆盖（统一容器）。
+        # 缺失时默认空 dict，不影响已有行为。
+        document._per_document_overrides = dict(
+            document_data.get('per_document_overrides', {})
+        )
+
         # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
         # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
         document.recent_symbols = list(document_data.get('recent_symbols', []))
@@ -176,12 +222,19 @@ class DocumentSettings():
 
         # LaTeX 文档保存完整状态
         document_data['save_date'] = document.save_date
+        # 折叠区域状态：含内容锚点（起始/结束行文本 + 跨度）与绝对行号，
+        # 按内容锚点恢复以抵抗文档他处增删行导致的行号偏移错位。
         document_data['folded_regions'] = document.code_folding.get_folded_regions()
         document_data['build_log_data'] = document.build_system.build_log_data
         document_data['has_been_built'] = document.build_system.document_has_been_built
         document_data['build_time'] = document.build_system.build_time
         document_data['latex_interpreter'] = document.build_system.latex_interpreter
         document_data['has_synctex_file'] = document.build_system.has_synctex_file
+
+        # 保存 per-document 偏好覆盖。空 dict 不写入以减小文件体积。
+        overrides = getattr(document, '_per_document_overrides', {})
+        if overrides:
+            document_data['per_document_overrides'] = dict(overrides)
 
         document_data['pdf_filename'] = document.preview.pdf_filename
         document_data['pdf_date'] = document.preview.get_pdf_date()

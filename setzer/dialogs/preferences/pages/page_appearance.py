@@ -105,6 +105,13 @@ class PageGeneral(object):
         self.view.option_recolor_pdf.connect(
             'notify::active', self.on_recolor_pdf_toggled)
 
+        self.view.preview_zoom_values = ['fit_to_width', 'fit_to_text_width', 'fit_to_height', 'manual']
+        idx = self.view.preview_zoom_values.index(
+            self.settings.get_value('preferences', 'preview_zoom'))
+        self.view.option_preview_zoom.set_selected(idx)
+        self.view.option_preview_zoom.connect(
+            'notify::selected', self.on_preview_zoom_changed)
+
         # Tutorial（来自 First Run 页）
         self.view.show_again_button.connect('clicked', self.on_show_again_clicked)
 
@@ -177,6 +184,10 @@ class PageGeneral(object):
 
     def on_recolor_pdf_toggled(self, switch, pspec=None):
         self.settings.set_value('preferences', 'recolor_pdf', switch.get_active())
+
+    def on_preview_zoom_changed(self, combo_row, pspec):
+        value = self.view.preview_zoom_values[combo_row.get_selected()]
+        self.settings.set_value('preferences', 'preview_zoom', value)
 
     # ---- tutorial（来自 First Run 页） ----
     def on_show_again_clicked(self, button):
@@ -326,6 +337,8 @@ class PageGeneral(object):
             fraction = self.settings.defaults['window_state']['sidebar_width_fraction']
             self.view.sidebar_width_scale.set_value(int(fraction * 100))
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
+        self.view.option_preview_zoom.set_selected(
+            self.view.preview_zoom_values.index(defaults['preview_zoom']))
 
 
 class PageGeneralView(Adw.PreferencesPage):
@@ -403,6 +416,23 @@ class PageGeneralView(Adw.PreferencesPage):
         self.option_recolor_pdf.set_subtitle(
             _('Recolor the PDF preview to match the light/dark theme.'))
         group_preview.add(self.option_recolor_pdf)
+
+        self.option_preview_zoom = Adw.ComboRow()
+        self.option_preview_zoom.set_title(_('Default Zoom'))
+        self.option_preview_zoom.set_subtitle(
+            _('Initial zoom mode for the PDF preview.'))
+        self.option_preview_zoom.set_tooltip_text(_(
+            'Default zoom mode for the PDF preview. '
+            'Fit Width fills the preview width; Fit Text Width fits the text column; '
+            'Fit Height fills the preview height; Manual starts at 100%.'))
+        zoom_model = Gtk.StringList.new([
+            _('Fit Width'),
+            _('Fit Text Width'),
+            _('Fit Height'),
+            _('Manual (100%)'),
+        ])
+        self.option_preview_zoom.set_model(zoom_model)
+        group_preview.add(self.option_preview_zoom)
 
         # sidebar width
         group_sidebar = Adw.PreferencesGroup()

@@ -16,7 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from gi.repository import GLib, Adw
 
 
@@ -114,8 +113,6 @@ class PreviewPanelPresenter(object):
             self._attach_target_bar(self.document.preview.view)
 
     def on_pdf_changed(self, preview):
-        if preview.poppler_document is not None:
-            maybe_show_first_run_tutorial()
         self.update_label()
         self.update_buttons()
         self._sync_zoom_action_state()

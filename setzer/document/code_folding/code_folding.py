@@ -169,11 +169,44 @@ class CodeFolding(Observable):
         self.source_buffer.apply_tag(self.tag, start_iter, end_iter)
         self.add_change_code('folding_state_changed')
 
+    def fold_all(self):
+        '''折叠所有有效的折叠区域。'''
+        for region in self.folding_regions.values():
+            self.fold(region)
+
+    def unfold_all(self):
+        '''展开所有折叠区域。'''
+        for region in self.folding_regions.values():
+            self.unfold(region)
+
+    def _line_text(self, line):
+        '''返回第 line 行（0-based）的文本内容（不含换行符）；越界返回 None。'''
+        line_count = self.source_buffer.get_line_count()
+        if line < 0 or line >= line_count:
+            return None
+        start = self.source_buffer.get_iter_at_line(line)[1]
+        stop = start.copy()
+        if not stop.ends_line():
+            stop.forward_to_line_end()
+        return self.source_buffer.get_text(start, stop, False)
+
     def get_folded_regions(self):
         folded_regions = list()
         for region in self.folding_regions.values():
             if region['is_folded']:
-                folded_regions.append({'starting_line': region['starting_line'], 'ending_line': region['ending_line']})
+                start_line = region['starting_line']
+                end_line = region['ending_line']
+                # 除绝对行号外，额外保存「内容锚点」：起始/结束行文本 + 行跨度。
+                # 行号在文档他处增删行后会发生偏移，仅按行号恢复会错位（甚至
+                # 折叠到错误的区域）。内容锚点不依赖绝对位置，可正确恢复。
+                # 旧格式（仅 starting_line/ending_line）仍被保留以兼容老状态文件。
+                folded_regions.append({
+                    'starting_line': start_line,
+                    'ending_line': end_line,
+                    'start_text': self._line_text(start_line),
+                    'end_text': self._line_text(end_line),
+                    'span': end_line - start_line,
+                })
         return folded_regions
 
     def set_initial_folded_regions(self, folded_regions):
@@ -183,10 +216,49 @@ class CodeFolding(Observable):
 
     def initial_folding(self):
         if self.initial_folded_regions != None:
-            for line_range in self.initial_folded_regions:
-                region = self.get_region_by_line(line_range['starting_line'])
-                if region != None and line_range['ending_line'] == region['ending_line']:
+            for anchor in self.initial_folded_regions:
+                region = self._find_region_by_anchor(anchor)
+                if region != None:
                     self.fold(region)
         self.initial_folded_regions = None
+
+    def _find_region_by_anchor(self, anchor):
+        '''按保存的锚点定位应折叠的区域。
+
+        新格式含内容锚点（start_text / end_text / span）：优先用起始行文本匹配，
+        不依赖绝对行号，因而在文档他处增删行后仍能正确恢复。同名区域（如两个
+        \\section{Introduction}）用结束行文本、再用行跨度进一步消歧。
+        旧格式（仅 starting_line / ending_line）：回退到按行号匹配，兼容老状态文件。
+        '''
+        start_text = anchor.get('start_text')
+        if start_text is not None:
+            candidates = [r for r in self.folding_regions.values()
+                          if self._line_text(r['starting_line']) == start_text]
+            if not candidates:
+                return None
+            if len(candidates) == 1:
+                return candidates[0]
+            # 多个起始行文本相同的区域：用结束行文本进一步区分。
+            end_text = anchor.get('end_text')
+            if end_text is not None:
+                narrowed = [r for r in candidates
+                            if self._line_text(r['ending_line']) == end_text]
+                if narrowed:
+                    candidates = narrowed
+                    if len(candidates) == 1:
+                        return candidates[0]
+            # 仍不唯一：用行跨度（ending_line - starting_line）区分。
+            span = anchor.get('span')
+            if span is not None:
+                narrowed = [r for r in candidates
+                            if (r['ending_line'] - r['starting_line']) == span]
+                if narrowed:
+                    return narrowed[0]
+            return candidates[0]
+        # 旧格式：按行号匹配。
+        region = self.get_region_by_line(anchor.get('starting_line'))
+        if region != None and anchor.get('ending_line') == region['ending_line']:
+            return region
+        return None
 
 

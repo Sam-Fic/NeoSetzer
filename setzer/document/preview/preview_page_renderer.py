@@ -204,7 +204,7 @@ class PreviewPageRenderer(Observable):
             if todo['render_count'] == render_count and is_visible:
                 colors = todo['matching_theme_colors']
                 width = todo['page_width'] * todo['hidpi_factor']
-                height = todo['page_height'] * 2
+                height = todo['page_height'] * todo['hidpi_factor']
                 surface = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
                 ctx = cairo.Context(surface)
 
@@ -248,7 +248,7 @@ class PreviewPageRenderer(Observable):
                     temp_ctx.rectangle(0, 0, width, height)
                     temp_ctx.fill()
 
-                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['pdf_date'], colors]})
+                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_date'], colors]})
 
     def rendered_pages_loop(self):
         with self.is_active_lock:
@@ -276,13 +276,17 @@ class PreviewPageRenderer(Observable):
         if self.preview.layout == None: return
 
         hidpi_factor = self.preview.layout.hidpi_factor
-        page_width = int(self.preview.layout.page_width)
-        page_height = int(self.preview.layout.page_height)
+        # Textures are always rendered at the un-rotated page dimensions.
+        page_width = int(self.preview.layout.page_width_original)
+        page_height = int(self.preview.layout.page_height_original)
+        # The number of pages that fit vertically depends on the displayed
+        # (possibly rotated) page height.
+        displayed_page_height = int(self.preview.layout.page_height)
 
         offset = self.preview.view.content.scrolling_offset_y
         current_page = self.preview.layout.get_page_by_offset(offset) - 1
 
-        visible_pages = [current_page, min(current_page + math.floor(self.preview.view.get_allocated_height() / page_height) + 1, self.preview.poppler_document.get_n_pages() - 1)]
+        visible_pages = [current_page, min(current_page + math.floor(self.preview.view.get_allocated_height() / displayed_page_height) + 1, self.preview.poppler_document.get_n_pages() - 1)]
 
         max_additional_pages = max(math.floor(self.maximum_rendered_pixels / (page_width * page_height * hidpi_factor * hidpi_factor) - visible_pages[1] + visible_pages[0]), 0)
         visible_pages_additional = [max(int(visible_pages[0] - max_additional_pages / 2), 0), min(int(visible_pages[1] + max_additional_pages / 2), self.preview.poppler_document.get_n_pages() - 1)]
@@ -306,7 +310,7 @@ class PreviewPageRenderer(Observable):
         # 缓存到 page_data 后每次循环只查一次。滚动/缩放时此循环每次都跑。
         for page_number in list(self.rendered_pages):
             page_data = self.rendered_pages[page_number]
-            stored_colors = page_data[3]
+            stored_colors = page_data[4]
             if stored_colors is None or colors is None:
                 colors_changed = (stored_colors is not colors)
             elif not stored_colors[0].equal(colors[0]) or not stored_colors[1].equal(colors[1]):
@@ -314,7 +318,7 @@ class PreviewPageRenderer(Observable):
             else:
                 colors_changed = False
 
-            if page_data[2] != pdf_date or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
+            if page_data[3] != pdf_date or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
                 del(self.rendered_pages[page_number])
                 changed = True
         if changed:

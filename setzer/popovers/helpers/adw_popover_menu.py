@@ -105,15 +105,27 @@ class AdwPopoverMenu(Gtk.Popover):
         self.listbox.append(row)
         return row
 
-    def add_callback_item(self, title, callback=None, *user_data):
+    def add_callback_item(self, title, callback=None, *user_data, icon_name=None, check=False):
         '''Add a callback menu item. Returns the Adw.ActionRow.
 
         On activation ``callback(row, *user_data)`` is invoked and the popover
         closes. The callback can be supplied now or later via ``set_callback``.
+
+        ``icon_name`` adds a leading icon; ``check`` adds a trailing checkmark
+        suffix (used for toggle items such as "Invert Colors").
         '''
         row = Adw.ActionRow()
         row.set_title(title)
         row.set_activatable(True)
+        if icon_name not in (None, 'placeholder'):
+            icon = Gtk.Image(icon_name=icon_name)
+            icon.set_pixel_size(16)
+            row.add_prefix(icon)
+        if check:
+            check_img = Gtk.Image(icon_name='object-select-symbolic')
+            check_img.set_pixel_size(16)
+            check_img.add_css_class('dim-label')
+            row.add_suffix(check_img)
         row._callback = callback
         row._callback_data = user_data
         self.listbox.append(row)
@@ -123,6 +135,14 @@ class AdwPopoverMenu(Gtk.Popover):
         '''Wire (or rewire) a callback to an existing callback row.'''
         row._callback = callback
         row._callback_data = user_data
+
+    def clear(self):
+        '''Remove all rows so the menu can be rebuilt with fresh context.'''
+        child = self.listbox.get_first_child()
+        while child is not None:
+            next_child = child.get_next_sibling()
+            self.listbox.remove(child)
+            child = next_child
 
     def add_separator(self):
         '''Add a standard separator row (non-activatable).'''

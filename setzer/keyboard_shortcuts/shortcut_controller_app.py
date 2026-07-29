@@ -59,10 +59,9 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('save', shortcuts.get('save', '<Control>s'), self.actions.save)
         self._register_configurable('save_as', shortcuts.get('save_as', '<Control><Shift>s'), self.actions.save_as)
         self._register_configurable('close_document', shortcuts.get('close_document', '<Control>w'), self.actions.close_active_document)
-        # 非配置：硬编码快捷键，不通过设置修改。
-        # Ctrl+Shift+T 固定给"重开最近关闭的文档"（浏览器惯例）；typewriter
-        # (\texttt) 的默认值因此让位为 Ctrl+Shift+Y（见 settings.py），避免同键双触发。
-        self.create_and_add_shortcut('<Control><Shift>t', self.actions.reopen_last_closed_document)
+        # reopen_last_closed_document 现为可配置项（默认 Ctrl+Shift+T，浏览器式
+        # "重开标签页"惯例）；此前为硬编码、用户无法改绑，现纳入快捷键编辑器。
+        self._register_configurable('reopen_last_closed_document', shortcuts.get('reopen_last_closed_document', '<Control><Shift>t'), self.actions.reopen_last_closed_document)
         self._register_configurable('quit', shortcuts.get('quit', '<Control>q'), self.actions.actions['quit'].activate)
         self._register_configurable('show_shortcuts', shortcuts.get('show_shortcuts', '<Control>question'), self.actions.show_shortcuts_dialog)
         self._register_configurable('show_open_docs', shortcuts.get('show_open_docs', '<Control>t'), self.shortcut_show_open_docs)
@@ -92,17 +91,24 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('hamburger_menu', shortcuts.get('hamburger_menu', 'F10'), self.shortcut_show_hamburger)
         self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.toggle_fullscreen)
         self._register_configurable('show_preferences_dialog', shortcuts.get('show_preferences_dialog', '<Control>comma'), self.actions.show_preferences_dialog)
-        self._register_configurable('show_about_dialog', shortcuts.get('show_about_dialog', '<Control><Shift>h'), self.actions.show_about_dialog)
+        self._register_configurable('show_about_dialog', shortcuts.get('show_about_dialog', ''), self.actions.show_about_dialog)
         self._register_configurable('close_all_documents', shortcuts.get('close_all_documents', '<Control><Shift>w'), self.actions.close_all)
         self._register_configurable('restore_session', shortcuts.get('restore_session', '<Control><Shift>j'), lambda: self.main_window.activate_action('restore-session'))
 
     def _register_configurable(self, action_name, trigger_string, callback):
         '''Register a user-configurable shortcut and track it by action_name
-        so update_shortcut() can replace just its trigger later.'''
+        so update_shortcut() can replace just its trigger later.
+
+        若 trigger_string 为空（如 show_about_dialog 默认未绑定快捷键），
+        只登记 callback、不创建实际 trigger：Gtk.ShortcutTrigger.parse_string('')
+        返回 None，set_trigger(None) 无意义；动作仍可在偏好页里后续改绑。'''
         shortcut = Gtk.Shortcut()
         shortcut.set_action(Gtk.CallbackAction.new(self.action, callback))
-        shortcut.set_trigger(Gtk.ShortcutTrigger.parse_string(trigger_string))
-        self.add_shortcut(shortcut)
+        if trigger_string:
+            trigger = self._parse_trigger(trigger_string)
+            if trigger is not None:
+                shortcut.set_trigger(trigger)
+                self.add_shortcut(shortcut)
         self._configurable_shortcuts[action_name] = (shortcut, callback)
 
     def update_shortcut(self, action_name, new_trigger_string):
@@ -117,12 +123,15 @@ class ShortcutControllerApp(ShortcutController):
         if entry is None:
             return False
         old_shortcut, callback = entry
-        self.remove_shortcut(old_shortcut)
+        if old_shortcut is not None:
+            self.remove_shortcut(old_shortcut)
         if new_trigger_string:
             new_shortcut = Gtk.Shortcut()
             new_shortcut.set_action(Gtk.CallbackAction.new(self.action, callback))
-            new_shortcut.set_trigger(Gtk.ShortcutTrigger.parse_string(new_trigger_string))
-            self.add_shortcut(new_shortcut)
+            trigger = self._parse_trigger(new_trigger_string)
+            if trigger is not None:
+                new_shortcut.set_trigger(trigger)
+                self.add_shortcut(new_shortcut)
             self._configurable_shortcuts[action_name] = (new_shortcut, callback)
         else:
             # 空快捷键 = 未分配，只移除不新增

@@ -93,7 +93,6 @@ class PageShortcuts(object):
         
         shortcut_button = Gtk.Button()
         shortcut_button.set_label(self.format_shortcut(shortcut))
-        shortcut_button.add_css_class('flat')
         shortcut_button.set_valign(Gtk.Align.CENTER)
         shortcut_button.connect('clicked', self.on_shortcut_button_clicked, action_name)
         row.add_suffix(shortcut_button)
@@ -168,7 +167,8 @@ class PageShortcuts(object):
                 'show_preferences_dialog': _('Preferences'),
                 'show_about_dialog': _('About'),
                 'close_all_documents': _('Close All Documents'),
-                'restore_session': _('Restore Session')
+                'restore_session': _('Restore Session'),
+                'reopen_last_closed_document': _('Reopen Last Closed Document')
             }
         return self._action_titles.get(action_name, action_name)
 
@@ -234,7 +234,8 @@ class PageShortcuts(object):
                 'show_preferences_dialog': _('Open the preferences dialog'),
                 'show_about_dialog': _('Show the about dialog'),
                 'close_all_documents': _('Close all open documents'),
-                'restore_session': _('Restore a previously saved session')
+                'restore_session': _('Restore a previously saved session'),
+                'reopen_last_closed_document': _('Reopen the most recently closed document')
             }
         return self._action_descriptions.get(action_name, '')
 

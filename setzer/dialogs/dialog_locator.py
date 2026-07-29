@@ -24,6 +24,7 @@ from setzer.dialogs.building_failed.building_failed import BuildingFailedDialog
 from setzer.dialogs.close_confirmation.close_confirmation import CloseConfirmationDialog
 from setzer.dialogs.document_changed_on_disk.document_changed_on_disk import DocumentChangedOnDiskDialog
 from setzer.dialogs.document_deleted_on_disk.document_deleted_on_disk import DocumentDeletedOnDiskDialog
+from setzer.dialogs.document_properties.document_properties import DocumentPropertiesDialog
 from setzer.dialogs.document_wizard.document_wizard import DocumentWizard
 from setzer.dialogs.include_bibtex_file.include_bibtex_file import IncludeBibTeXFile
 from setzer.dialogs.include_latex_file.include_latex_file import IncludeLaTeXFile
@@ -34,6 +35,7 @@ from setzer.dialogs.go_to_line.go_to_line import GoToLineDialog
 from setzer.dialogs.open_session.open_session import OpenSessionDialog
 from setzer.dialogs.preferences.preferences import PreferencesDialog
 from setzer.dialogs.replace_confirmation.replace_confirmation import ReplaceConfirmationDialog
+from setzer.dialogs.export_pdf.export_pdf import ExportPdfDialog
 from setzer.dialogs.save_document.save_document import SaveDocumentDialog
 from setzer.dialogs.save_session.save_session import SaveSessionDialog
 
@@ -51,6 +53,7 @@ class DialogLocator():
         dialogs['build_save'] = BuildSaveDialog(main_window, workspace)
         dialogs['document_changed_on_disk'] = DocumentChangedOnDiskDialog(main_window)
         dialogs['document_deleted_on_disk'] = DocumentDeletedOnDiskDialog(main_window)
+        dialogs['document_properties'] = DocumentPropertiesDialog(main_window)
         dialogs['document_wizard'] = DocumentWizard(main_window)
         dialogs['include_bibtex_file'] = IncludeBibTeXFile(main_window)
         dialogs['include_latex_file'] = IncludeLaTeXFile(main_window)
@@ -60,6 +63,7 @@ class DialogLocator():
         dialogs['open_session'] = OpenSessionDialog(main_window, workspace)
         dialogs['preferences'] = PreferencesDialog(main_window)
         dialogs['replace_confirmation'] = ReplaceConfirmationDialog(main_window)
+        dialogs['export_pdf'] = ExportPdfDialog(main_window, workspace)
         dialogs['save_document'] = SaveDocumentDialog(main_window, workspace)
         dialogs['save_session'] = SaveSessionDialog(main_window, workspace)
         dialogs['close_confirmation'] = CloseConfirmationDialog(main_window, workspace)

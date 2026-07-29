@@ -42,6 +42,7 @@ class BracketCompletion(object):
         self.source_buffer = document.source_buffer
 
         self.autoclose_enabled = self.document.settings.get_value('preferences', 'enable_bracket_completion')
+        self.environment_autocomplete_enabled = self.document.settings.get_value('preferences', 'enable_environment_autocomplete')
         self.bracket_selection_enabled = self.document.settings.get_value('preferences', 'bracket_selection')
 
         key_controller = Gtk.EventControllerKey()
@@ -77,11 +78,20 @@ class BracketCompletion(object):
             self.autoclose_enabled = value
             if not self.autoclose_enabled:
                 self.reconsider_completion_marks()
+        if item == 'enable_environment_autocomplete':
+            self.environment_autocomplete_enabled = value
+            if not value:
+                self.reconsider_completion_marks()
 
         if item == 'bracket_selection':
             self.bracket_selection_enabled = value
 
     def on_keypress(self, controller, keyval, keycode, state):
+        # 环境自动补：输入 \begin{ 时自动补出配对 \end{}（即使补全弹窗已激活）。
+        if keyval == _KEYVAL_BRACELEFT and self.environment_autocomplete_enabled \
+                and self.document.get_chars_at_cursor(-6) == '\\begin':
+            self.complete_environment_on_open()
+            return True
         if self.document.autocomplete.is_active: return False
 
         modifiers = Gtk.accelerator_get_default_mod_mask()
@@ -185,6 +195,21 @@ class BracketCompletion(object):
 
         return True
 
+    def complete_environment_on_open(self):
+        r'''输入 \begin{ 时自动补出配对的 \begin{} 与 \end{}（含内容占位符 •）。'''
+        source_buffer = self.source_buffer
+        source_buffer.begin_user_action()
+        try:
+            source_buffer.insert_at_cursor('{' + '}' + '\n\t•\n\\end{}')
+        finally:
+            source_buffer.end_user_action()
+        # 光标退回 \begin{} 的花括号内，便于继续输入环境名
+        insert_iter = source_buffer.get_iter_at_mark(source_buffer.get_insert())
+        insert_iter.backward_chars(len('\n\t•\n\\end{}') + 1)
+        source_buffer.place_cursor(insert_iter)
+        self.add_completion_marks(insert_iter, 1, 1)
+        self.reconsider_completion_marks()
+
     def add_completion_marks(self, insert_iter, len_before, len_after):
         # marks are added to the text buffer, to signal that a completion took place
         # these are remove whenever the cursor moves outside the bracketed area
@@ -214,7 +239,7 @@ class BracketCompletion(object):
             start_iter = self.source_buffer.get_iter_at_mark(start_mark)
             end_iter = self.source_buffer.get_iter_at_mark(end_mark)
 
-            if self.autoclose_enabled and start_iter.get_offset() < insert_offset and end_iter.get_offset() > insert_offset:
+            if (self.autoclose_enabled or self.environment_autocomplete_enabled) and start_iter.get_offset() < insert_offset and end_iter.get_offset() > insert_offset:
                 completion_marks.append([start_mark, end_mark])
             else:
                 self.source_buffer.delete_mark(start_mark)
@@ -245,6 +270,7 @@ class BracketCompletion(object):
         for start_mark, end_mark in self.completion_marks:
             end_iter = self.source_buffer.get_iter_at_mark(end_mark)
             if end_iter.get_offset() == target_offset:
+                start_iter = self.source_buffer.get_iter_at_mark(start_mark)
                 self.source_buffer.begin_user_action()
                 try:
                     if char == '\\':
@@ -257,11 +283,41 @@ class BracketCompletion(object):
                         self.source_buffer.place_cursor(target_iter)
                     else:
                         self.source_buffer.place_cursor(target_iter)
+                        # 环境自动补：配对的 \begin{} 后含 \end{} 内容占位符，跳过右括号后跳到占位符
+                        if self.environment_autocomplete_enabled:
+                            rest = self.source_buffer.get_text(target_iter, self.source_buffer.get_end_iter(), False)
+                            if rest.startswith('\n\t•\n\\end{'):
+                                # 读取 \begin{} 环境名并同步到已插入的 \end{}
+                                begin_name = self.source_buffer.get_text(start_iter.copy().forward_char(), end_iter, False)
+                                self._update_env_end_name(target_iter, begin_name)
+                                dot_iter = target_iter.copy()
+                                dot_iter.forward_chars(2)
+                                self.source_buffer.place_cursor(dot_iter)
+                                self.document.select_first_dot_around_cursor(1, 0)
+                                self.document.autocomplete.deactivate()
                 finally:
                     self.source_buffer.end_user_action()
                 self.reconsider_completion_marks()
                 return True
 
         return False
+
+    def _update_env_end_name(self, after_begin_iter, begin_name):
+        r'''把已自动补的 \end{} 环境名同步为 begin 的环境名。'''
+        source_buffer = self.source_buffer
+        found, end_bs_iter, _ = after_begin_iter.forward_search('\\end{', Gtk.TextSearchFlags(0), None)
+        if not found:
+            return
+        name_start = end_bs_iter.copy()
+        name_start.forward_chars(5)
+        name_end = name_start.copy()
+        while not name_end.get_char() == '}' and not name_end.is_end():
+            name_end.forward_char()
+        source_buffer.begin_user_action()
+        try:
+            source_buffer.delete(name_start, name_end)
+            source_buffer.insert(name_start, begin_name)
+        finally:
+            source_buffer.end_user_action()
 
 

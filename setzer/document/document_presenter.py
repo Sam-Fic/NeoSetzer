@@ -13,13 +13,15 @@
 # GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GLib
+gi.require_version('GtkSource', '5')
+from gi.repository import Gtk, GtkSource, GLib
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.settings.document_settings import DocumentSettings
 
 
 class DocumentPresenter(object):
@@ -37,9 +39,14 @@ class DocumentPresenter(object):
             if gutter is not None:
                 gutter.set_visible(False)
         self.view.source_view.connect('map', _on_map)
-        self.view.source_view.set_insert_spaces_instead_of_tabs(self.settings.get_value('preferences', 'spaces_instead_of_tabs'))
-        self.view.source_view.set_tab_width(self.settings.get_value('preferences', 'tab_width'))
+        self.view.source_view.set_insert_spaces_instead_of_tabs(
+            DocumentSettings.get_effective_value(self.document, self.settings, 'spaces_instead_of_tabs'))
+        self.view.source_view.set_tab_width(
+            DocumentSettings.get_effective_value(self.document, self.settings, 'tab_width'))
         self.view.source_view.set_highlight_current_line(self.settings.get_value('preferences', 'highlight_current_line'))
+        self.view.source_view.set_show_right_margin(self.settings.get_value('preferences', 'show_right_margin'))
+        self.view.source_view.set_right_margin_position(self.settings.get_value('preferences', 'right_margin_position'))
+        self._apply_space_drawer_settings()
         self.document.source_buffer.set_highlight_matching_brackets(self.settings.get_value('preferences', 'highlight_matching_brackets'))
         if self.settings.get_value('preferences', 'enable_line_wrapping'):
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
@@ -61,6 +68,26 @@ class DocumentPresenter(object):
         self.view.source_view.set_pixels_inside_wrap(line_spacing)
 
         self.settings.connect('settings_changed', self.on_settings_changed)
+        self.document.connect('document_settings_changed', self.on_document_settings_changed)
+
+    def _apply_space_drawer_settings(self):
+        '''根据 show_line_endings / show_whitespace 设置 SpaceDrawer。
+
+        GtkSourceView 5 通过 SpaceDrawer 控制可见字符：
+        - SpaceTypeFlags.SPACE (1): 空格显示为 ·
+        - SpaceTypeFlags.TAB (2): Tab 显示为 →
+        - SpaceTypeFlags.NEWLINE (4): 行尾显示为 ¶
+        SpaceLocationFlags.ALL (7) = LEADING | INSIDE_TEXT | TRAILING。
+        '''
+        sd = self.view.source_view.get_space_drawer()
+        show_line_endings = self.settings.get_value('preferences', 'show_line_endings')
+        show_whitespace = self.settings.get_value('preferences', 'show_whitespace')
+        types = 0
+        if show_line_endings:
+            types |= GtkSource.SpaceTypeFlags.NEWLINE
+        if show_whitespace:
+            types |= GtkSource.SpaceTypeFlags.SPACE | GtkSource.SpaceTypeFlags.TAB
+        sd.set_types_for_locations(GtkSource.SpaceLocationFlags.ALL, types)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -70,6 +97,12 @@ class DocumentPresenter(object):
             self.view.source_view.set_tab_width(value)
         if (section, item) == ('preferences', 'highlight_current_line'):
             self.view.source_view.set_highlight_current_line(value)
+        if (section, item) == ('preferences', 'show_right_margin'):
+            self.view.source_view.set_show_right_margin(value)
+        if (section, item) == ('preferences', 'right_margin_position'):
+            self.view.source_view.set_right_margin_position(value)
+        if (section, item) in (('preferences', 'show_line_endings'), ('preferences', 'show_whitespace')):
+            self._apply_space_drawer_settings()
         if (section, item) == ('preferences', 'highlight_matching_brackets'):
             self.document.source_buffer.set_highlight_matching_brackets(value)
         if (section, item) == ('preferences', 'enable_line_wrapping'):
@@ -82,4 +115,13 @@ class DocumentPresenter(object):
             self.view.source_view.set_pixels_below_lines(value - value // 2)
             self.view.source_view.set_pixels_inside_wrap(value)
 
-
+    def on_document_settings_changed(self, document, parameter):
+        preference_key, value = parameter
+        if preference_key == 'spaces_instead_of_tabs':
+            effective = DocumentSettings.get_effective_value(
+                self.document, self.settings, 'spaces_instead_of_tabs')
+            self.view.source_view.set_insert_spaces_instead_of_tabs(effective)
+        if preference_key == 'tab_width':
+            effective = DocumentSettings.get_effective_value(
+                self.document, self.settings, 'tab_width')
+            self.view.source_view.set_tab_width(effective)

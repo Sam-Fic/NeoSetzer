@@ -59,6 +59,7 @@ class ColorManager():
         'ac_text': 'view_fg_color',
         'highlight_tag_textview': 'accent_color',
         'highlight_tag_preview': 'accent_color',
+        'highlight_begin_end_textview': 'accent_color',
         'dim_fg_color': 'view_fg_color',
         'line_highlighting_color': 'accent_color',
         'code_folding_hover': 'accent_color',

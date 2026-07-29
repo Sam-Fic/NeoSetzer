@@ -18,6 +18,50 @@
 
 import os.path
 
+from gi.repository import GLib
+
+
+def classify_warning_type(item_type, description):
+    '''把一条日志项归类为稳定的「warning 类型」，供「忽略此类 warning」使用。
+
+    返回 (key, label)：
+      - key：跨构建稳定（**不含**行号 / 文件名 / 具体引用名等噪声），存入 settings。
+      - label：给用户看的类型名，用于右键菜单「忽略 <label> 类警告」。
+
+    粒度设计：同一底层原因触发的不同实例（不同行号、不同文件名、不同具体
+    引用名）归为同一 key，从而「忽略」一次即屏蔽全部同类，正好解决用户在
+    每次构建都看到同一类无意义 warning（如 font shape warning）的困扰。
+    '''
+    text = (description or '').strip()
+
+    if item_type == 'Badbox':
+        if text.startswith('Overfull'):
+            return ('badbox:overfull', _('Overfull \\hbox'))
+        if text.startswith('Underfull'):
+            return ('badbox:underfull', _('Underfull \\hbox'))
+        return ('badbox:other', _('Badbox'))
+
+    if item_type == 'Error':
+        # 错误默认不可忽略（误忽略会掩盖真实编译失败），但仍提供稳定分类能力。
+        return ('error:other', _('Error'))
+
+    # —— Warning ——（解析器已去掉 "LaTeX Warning: " 等前缀后的文本）
+    if 'Font shape' in text:
+        return ('warning:font_shape', _('Font shape'))
+    if text.startswith('LaTeX Font') or 'Size substitut' in text:
+        return ('warning:latex_font', _('LaTeX font'))
+    if text.startswith('Package '):
+        # "Package hyperref Warning: <msg>" → 按包名归类，忽略具体消息内容。
+        name = text.split(':', 1)[0].replace('Package ', '', 1).split()[0].strip()
+        return ('warning:package:' + name, _('Package "{name}"').format(name=name))
+    if text.startswith('Citation'):
+        return ('warning:citation', _('Undefined citation'))
+    if text.startswith('Reference'):
+        return ('warning:reference', _('Undefined reference'))
+    if text.startswith('There were'):
+        return ('warning:undefined', _('Undefined references'))
+    return ('warning:other', _('Warning'))
+
 
 class BuildLogDialogPresenter(object):
     '''同步 build_log.items → dialog view。
@@ -52,6 +96,9 @@ class BuildLogDialogPresenter(object):
         self.line_max = 999999
         self._updating_filters = False
 
+        # 初始化 group 折叠/展开状态（从 settings 读取）
+        self._init_group_expanded_state()
+
     def set_search_text(self, text):
         self.search_text = text.lower()
         self._last_signature = None
@@ -67,6 +114,31 @@ class BuildLogDialogPresenter(object):
         self.line_max = line_max if line_max > 0 else 999999
         self._last_signature = None
         self.populate()
+
+    def _init_group_expanded_state(self):
+        '''从 settings 读取 group 折叠/展开状态并应用到视图。'''
+        expanded_state = self.build_log.settings.get_value(
+            'window_state', 'build_log_groups_expanded'
+        )
+        if not isinstance(expanded_state, dict):
+            expanded_state = {}
+        # 确保所有类型都有值（兼容旧版 settings 文件）
+        default_state = {'Error': True, 'Warning': True, 'Badbox': True}
+        for item_type in default_state:
+            expanded = expanded_state.get(item_type, default_state[item_type])
+            self.view.set_group_expanded(item_type, expanded)
+
+    def on_group_toggle(self, item_type, expanded):
+        '''用户切换 group 折叠/展开状态时调用，保存到 settings。'''
+        expanded_state = self.build_log.settings.get_value(
+            'window_state', 'build_log_groups_expanded'
+        )
+        if not isinstance(expanded_state, dict):
+            expanded_state = {'Error': True, 'Warning': True, 'Badbox': True}
+        expanded_state[item_type] = expanded
+        self.build_log.settings.set_value(
+            'window_state', 'build_log_groups_expanded', expanded_state
+        )
 
     def on_build_log_finished_adding(self, build_log, has_been_built):
         self._update_filter_dropdowns()
@@ -108,10 +180,24 @@ class BuildLogDialogPresenter(object):
             return False
         return True
 
+    def _is_ignored(self, it):
+        '''某条日志项是否属于被用户「忽略此类 warning」屏蔽的类型。'''
+        ignored = self.build_log.settings.get_value('preferences', 'ignored_warning_types') or []
+        if not ignored:
+            return False
+        key, _ = classify_warning_type(it[0], it[4])
+        return key in ignored
+
+    def refresh(self):
+        '''忽略列表等外部状态变化后，强制重建弹窗内容（绕过签名短路）。'''
+        self._last_signature = None
+        self.populate()
+
     def get_visible_items(self):
         '''返回当前在 Build Log 弹窗中可见的所有日志项（原始 item 元组）。
 
-        可见性 = 全部类型（弹窗始终展示） + 搜索文本 + 文件/类型/行号筛选器。
+        可见性 = 全部类型（弹窗始终展示） + 搜索文本 + 文件/类型/行号筛选器
+                 + 被「忽略此类 warning」屏蔽的类型。
         即用户在弹窗里「看到什么」就返回什么。供 AI Fix All 按钮使用，
         保证发送给 Agent 的内容与用户视线一致。
         '''
@@ -119,7 +205,8 @@ class BuildLogDialogPresenter(object):
         return [it for it in self.build_log.items
                 if it[0] in visible_types
                 and self._matches_search(it)
-                and self._matches_filters(it)]
+                and self._matches_filters(it)
+                and not self._is_ignored(it)]
 
     def populate(self):
         '''重建弹窗内容：清空所有 group，按设置项过滤后重新追加 items。
@@ -137,14 +224,19 @@ class BuildLogDialogPresenter(object):
         has_been_built = bool(getattr(build_system, 'document_has_been_built', False)) if build_system is not None else False
         build_time = getattr(build_system, 'build_time', None) if build_system is not None else None
 
-        # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、搜索文本、过滤器、可见 items 元组。
+        # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、搜索文本、过滤器、
+        # 被忽略的类型、可见 items 元组。忽略列表变化时务必触发重建，否则用户
+        # 点「忽略」后日志不会刷新。
+        ignored_keys = tuple(sorted(
+            self.build_log.settings.get_value('preferences', 'ignored_warning_types') or []))
         visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items
                               if it[0] in visible_types
                               and self._matches_search(it)
-                              and self._matches_filters(it))
+                              and self._matches_filters(it)
+                              and not self._is_ignored(it))
         signature = (id(document), has_been_built, build_time, self.search_text,
                      self.file_filter, self.type_filter, self.line_min, self.line_max,
-                     visible_items)
+                     ignored_keys, visible_items)
         if signature == self._last_signature:
             self._dirty = False
             return
@@ -157,7 +249,11 @@ class BuildLogDialogPresenter(object):
         for lst in self.view.lists.values():
             lst.search_text = self.search_text
 
+        # 按阶段分隔日志：在类型 group 内，当连续 item 的 stage (item[1])
+        # 发生变化时，插入一个 stage header 行（'LaTeX' 或 'BibTeX'）。
+        # 主文档（LaTeX）的 item 连续出现时不重复插入 header。
         any_visible = False
+        last_stage_by_type = {}
         for item in self.build_log.items:
             item_type = item[0]
             if item_type not in visible_types:
@@ -165,7 +261,15 @@ class BuildLogDialogPresenter(object):
             # 应用过滤器
             if not self._matches_search(item) or not self._matches_filters(item):
                 continue
-            # item 元组：item[0]=type, item[2]=filename, item[3]=line_number, item[4]=description
+            # 应用「忽略此类 warning」过滤
+            if self._is_ignored(item):
+                continue
+            # item 元组：item[0]=type, item[1]=stage, item[2]=filename,
+            #            item[3]=line_number, item[4]=description
+            stage = item[1]
+            if stage != last_stage_by_type.get(item_type):
+                self.view.add_stage_header(item_type, stage)
+                last_stage_by_type[item_type] = stage
             self.view.add_item(item_type, item[2], item[3], item[4])
             any_visible = True
 
@@ -192,7 +296,8 @@ class BuildLogDialogPresenter(object):
         self._updating_filters = True
         try:
             # 收集所有唯一文件名
-            filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]))
+            filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
+                                key=lambda filename: GLib.utf8_collate_key_for_filename(filename, len(filename)))
             filenames.insert(0, _('All'))
             self.view.update_file_filter(filenames)
 

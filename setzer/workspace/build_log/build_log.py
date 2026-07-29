@@ -100,6 +100,9 @@ class BuildLog(Observable):
             return self.document.build_system.get_warning_count()
         elif types == 'badboxes':
             return self.document.build_system.get_badbox_count()
+        elif types == 'never':
+            # 用户明确选择「从不自动显示构建日志」：无论出现何种问题都不自动弹出。
+            return 0
         return 0
 
     def on_present(self):

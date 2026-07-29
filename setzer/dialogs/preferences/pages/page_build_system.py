@@ -31,7 +31,7 @@ from setzer.ai_fix.presets import default_tools, builtin_names
 
 class PageBuildSystem(object):
 
-    autoshow_values = ['errors', 'errors_warnings', 'all']
+    autoshow_values = ['errors', 'errors_warnings', 'all', 'never']
     shell_values = ['disable', 'restricted', 'enable']
 
     def __init__(self, preferences, settings):
@@ -530,7 +530,8 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         autoshow_model = Gtk.StringList()
         for label in [_('.. only when errors occurred.'),
                       _('.. on errors and warnings.'),
-                      _('.. on errors, warnings and badboxes.')]:
+                      _('.. on errors, warnings and badboxes.'),
+                      _('.. never.')]:
             autoshow_model.append(label)
         self.option_autoshow_build_log.set_model(autoshow_model)
         group_build_log.add(self.option_autoshow_build_log)

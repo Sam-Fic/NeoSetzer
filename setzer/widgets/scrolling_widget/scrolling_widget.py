@@ -83,6 +83,7 @@ class ScrollingWidget(Observable):
         self.secondary_click_controller = Gtk.GestureClick()
         self.secondary_click_controller.set_button(3)
         self.secondary_click_controller.connect('pressed', self.on_secondary_button_press)
+        self.secondary_click_controller.connect('released', self.on_secondary_button_release)
         self.content.add_controller(self.secondary_click_controller)
 
         # 双指缩放手势：在 viewport (ScrolledWindow) 上监听捏合手势，
@@ -213,7 +214,15 @@ class ScrollingWidget(Observable):
 
     def on_secondary_button_press(self, controller, n_press, x, y):
         if n_press != 1: return
+        # claim 序列阻止事件继续传播。右键菜单在 released 时才弹出——若在
+        # pressed 里 popup，popover 会被随后的 release 序列立刻关闭。
+        controller.set_state(Gtk.EventSequenceState.CLAIMED)
+
+    def on_secondary_button_release(self, controller, n_press, x, y):
+        if n_press != 1: return
         modifiers = Gtk.accelerator_get_default_mod_mask()
+        # ``x``/``y`` are already in canvas/document coordinates because the
+        # drawing area is canvas-sized inside the ScrolledWindow.
         self.add_change_code('secondary_button_press', (x, y, controller.get_current_event_state() & modifiers))
 
     def on_enter(self, controller, x, y):

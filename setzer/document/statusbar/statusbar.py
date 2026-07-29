@@ -28,6 +28,7 @@ DocumentView 在 Gtk.Stack 中切换时，对应文档的状态栏自然可见�
 '''
 
 import setzer.document.statusbar.statusbar_viewgtk as statusbar_view
+from setzer.settings.document_settings import DocumentSettings
 
 
 # 语言显示名映射：document.language ('latex'/'bibtex') → 展示名
@@ -47,14 +48,21 @@ class StatusBar(object):
         self.view.language_label.set_text(
             _LANGUAGE_LABELS.get(document.language, document.language))
 
-        # 初始刷新一次（行/列、缩进、选区）
+        # 初始刷新一次（行/列、缩进、选区、labels/todos 计数）
         self.update_cursor_fields()
         self.update_indent_field()
+        self.update_labels_todos_count()
 
         # 监听光标移动：行/列与选区词数都依赖光标位置
         document.connect('cursor_position_changed', self.on_cursor_position_changed)
         # 监听设置变化：缩进设置（spaces_instead_of_tabs / tab_width）可被用户在偏好中改
         self.settings.connect('settings_changed', self.on_settings_changed)
+        # 监听 per-document 设置变化：覆盖值改变时也需刷新缩进显示
+        document.connect('document_settings_changed', self.on_document_settings_changed)
+        # 监听 parser 完成：labels/todos 数量变化时刷新计数。
+        # 注意：'finished_parsing' 由 Parser（document.parser）发出，Document
+        # 本身并不转发该信号，因此必须监听 document.parser 而非 document。
+        document.parser.connect('finished_parsing', self.on_finished_parsing)
 
     def on_cursor_position_changed(self, document):
         self.update_cursor_fields()
@@ -67,6 +75,11 @@ class StatusBar(object):
             return
         group, key = parameter[0], parameter[1]
         if group == 'preferences' and key in ('spaces_instead_of_tabs', 'tab_width'):
+            self.update_indent_field()
+
+    def on_document_settings_changed(self, document, parameter):
+        preference_key, value = parameter
+        if preference_key in ('spaces_instead_of_tabs', 'tab_width'):
             self.update_indent_field()
 
     def update_cursor_fields(self):
@@ -95,8 +108,8 @@ class StatusBar(object):
 
     def update_indent_field(self):
         '''更新缩进设置标签。'''
-        spaces = self.settings.get_value('preferences', 'spaces_instead_of_tabs')
-        tab_width = self.settings.get_value('preferences', 'tab_width')
+        spaces = DocumentSettings.get_effective_value(self.document, self.settings, 'spaces_instead_of_tabs')
+        tab_width = DocumentSettings.get_effective_value(self.document, self.settings, 'tab_width')
         if spaces:
             self.view.indent_label.set_text(_('Spaces: {n}').format(n=tab_width))
         else:
@@ -110,3 +123,34 @@ class StatusBar(object):
         if has_bom:
             display_name += ' (BOM)'
         self.view.encoding_label.set_text(display_name)
+
+    def on_finished_parsing(self, document):
+        '''Parser 完成时更新 labels/todos 计数。'''
+        self.update_labels_todos_count()
+
+    def update_labels_todos_count(self):
+        '''更新状态栏中的 Labels/Todos 计数标签。
+        包含当前文档及其已打开的 LaTeX 子文件。'''
+        from setzer.app.service_locator import ServiceLocator
+        document = self.document
+        workspace = ServiceLocator.get_workspace()
+        labels = set()
+        todos = set()
+        # 当前文档
+        for label_name, _ in document.parser.symbols.get('labels_with_offset', []):
+            labels.add(label_name)
+        for todo_text, _ in document.parser.symbols.get('todos_with_offset', []):
+            todos.add(todo_text)
+        # 已打开的 LaTeX 文档（子文件 / 关联文件）
+        if workspace is not None:
+            for doc in workspace.open_documents:
+                if doc is document and doc.is_latex_document():
+                    continue
+                if not doc.is_latex_document():
+                    continue
+                for label_name, _ in doc.parser.symbols.get('labels_with_offset', []):
+                    labels.add(label_name)
+                for todo_text, _ in doc.parser.symbols.get('todos_with_offset', []):
+                    todos.add(todo_text)
+        self.view.labels_count_label.set_text('Labels: {}'.format(len(labels)))
+        self.view.todos_count_label.set_text('Todos: {}'.format(len(todos)))

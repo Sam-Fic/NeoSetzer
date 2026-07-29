@@ -20,6 +20,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gdk, Gio, GObject
 from setzer.widgets.search_highlight import highlight
+from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
 import os.path
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
@@ -96,6 +97,18 @@ class BuildLogDialogView(DialogView):
         self.filter_button.add_css_class('flat')
         self.filter_button.set_can_focus(False)
         self.headerbar.pack_end(self.filter_button)
+
+        # 「恢复忽略的警告」按钮：仅当存在被忽略的 warning 类型时显示，
+        # 避免误忽略后无法撤回（右键的 Undo toast 仅短暂存在）。
+        self.restore_button = Gtk.Button()
+        self.restore_button.set_child(Gtk.Image(icon_name='edit-undo-symbolic'))
+        self.restore_button.set_tooltip_text(_('Restore ignored warnings'))
+        self.restore_button.add_css_class('flat')
+        self.restore_button.set_can_focus(False)
+        self.restore_button.set_visible(False)
+        self.restore_button.connect('clicked', self._on_restore_ignored_clicked)
+        self.headerbar.pack_end(self.restore_button)
+        self.on_restore_ignored_callback = None
 
         self.filter_popover = Gtk.Popover()
         self.filter_popover.set_autohide(True)
@@ -189,8 +202,12 @@ class BuildLogDialogView(DialogView):
         self.content_box.append(self.page)
         self.topbox.append(self.toast_overlay)
 
+        # group 折叠/展开切换回调（由 controller 注入）
+        self.on_group_toggle_callback = None
+
         # 3 个 group（按 TYPE_ORDER 顺序）。group 内嵌 BuildLogList。
         # 显隐由 presenter.populate 按 settings.autoshow_build_log 控制。
+        # 每个 group 的内容用 Gtk.Revealer 包裹，支持折叠/展开。
         # TYPE_LABELS 在此运行时构建（_() 需在 gettext.install 后才可用）。
         type_labels = {
             'Error': _('Errors'),
@@ -199,14 +216,31 @@ class BuildLogDialogView(DialogView):
         }
         self.groups = {}
         self.lists = {}
+        self.revealers = {}
+        self.toggle_buttons = {}
         for item_type in TYPE_ORDER:
             group = Adw.PreferencesGroup()
             group.set_title(type_labels[item_type])
             self.page.add(group)
             self.groups[item_type] = group
 
-            lst = BuildLogList()
-            group.add(lst)
+            # 折叠/展开切换按钮（放在 group header 右侧）
+            toggle_btn = Gtk.Button()
+            toggle_btn.set_icon_name('pan-down-symbolic')
+            toggle_btn.add_css_class('flat')
+            toggle_btn.set_can_focus(False)
+            toggle_btn.connect('clicked', self._on_group_toggle_clicked, item_type)
+            group.set_header_suffix(toggle_btn)
+            self.toggle_buttons[item_type] = toggle_btn
+
+            # 用 Gtk.Revealer 包裹 BuildLogList，支持折叠动画
+            revealer = Gtk.Revealer()
+            revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
+            revealer.set_transition_duration(150)
+            lst = BuildLogList(self.toast_overlay)
+            revealer.set_child(lst)
+            group.add(revealer)
+            self.revealers[item_type] = revealer
             self.lists[item_type] = lst
 
         # 空状态占位：全部 group 都为空时显示。
@@ -231,6 +265,27 @@ class BuildLogDialogView(DialogView):
         '''点击空白处或按 Esc 关闭 popover 后，同步取消按钮的按下状态。'''
         self.filter_button.set_active(False)
 
+    def _on_group_toggle_clicked(self, button, item_type):
+        '''点击 group header 的折叠按钮：切换展开/折叠状态。'''
+        revealer = self.revealers.get(item_type)
+        if revealer is None:
+            return
+        expanded = revealer.get_child_revealed()
+        new_expanded = not expanded
+        self.set_group_expanded(item_type, new_expanded)
+        if self.on_group_toggle_callback is not None:
+            self.on_group_toggle_callback(item_type, new_expanded)
+
+    def set_group_expanded(self, item_type, expanded):
+        '''设置指定 group 的展开/折叠状态。'''
+        revealer = self.revealers.get(item_type)
+        toggle_btn = self.toggle_buttons.get(item_type)
+        if revealer is None or toggle_btn is None:
+            return
+        revealer.set_reveal_child(expanded)
+        # 切换箭头方向：展开时朝下（pan-down），折叠时朝右（pan-end）
+        toggle_btn.set_icon_name('pan-down-symbolic' if expanded else 'pan-end-symbolic')
+
     def clear_all(self):
         '''清空所有 group 的行（用于 presenter 重建前）。'''
         for lst in self.lists.values():
@@ -243,10 +298,29 @@ class BuildLogDialogView(DialogView):
             return
         lst.append(lst.make_row(item_type, filename, line_number, description))
 
+    def add_stage_header(self, item_type, stage):
+        '''在对应类型的列表中插入一个阶段分隔标题行。'''
+        lst = self.lists.get(item_type)
+        if lst is None:
+            return
+        lst.add_stage_header(stage)
+
     def set_header_title(self, title, subtitle=''):
         '''更新 HeaderBar 的标题/副标题（构建状态信息）。'''
         self.title_widget.set_title(title)
         self.title_widget.set_subtitle(subtitle)
+
+    def set_restore_visible(self, visible, count=0):
+        '''更新「恢复忽略的警告」按钮的显隐与文案。'''
+        if visible and count > 0:
+            self.restore_button.set_tooltip_text(
+                _('Restore {count} ignored warning type(s)').format(count=count))
+        self.restore_button.set_visible(visible and count > 0)
+
+    def _on_restore_ignored_clicked(self, button):
+        '''头部「恢复忽略的警告」按钮：转发给 controller 注入的回调。'''
+        if self.on_restore_ignored_callback is not None:
+            self.on_restore_ignored_callback()
 
     def update_file_filter(self, filenames):
         '''更新文件过滤下拉框的选项列表。'''
@@ -282,7 +356,7 @@ class BuildLogList(Gtk.ListBox):
     compact-rows 收紧行距（与 Pass-9 一致）。
     '''
 
-    def __init__(self):
+    def __init__(self, toast_overlay=None):
         Gtk.ListBox.__init__(self)
         # SINGLE 选择模式 + 可聚焦：方向键即可在构建日志条目间导航（可访问性）。
         # 单击激活（跳转报错行）仍由 controller 的 row-activated 处理，不受影响。
@@ -295,8 +369,36 @@ class BuildLogList(Gtk.ListBox):
         # BuildLogList 不直接依赖 ai_fix 服务，仅把 row 转发给 controller，
         # 避免把 service 耦合进纯视图层（与 copy 按钮范式一致）。
         self.ai_fix_row_callback = None
+        # 右键上下文菜单「忽略此类 warning」的回调注入点（由 controller 设置）。
+        self.ignore_row_callback = None
         # 当前搜索文本，供 make_row 对标题/副标题做命中加粗（空串即不高亮）。
         self.search_text = ''
+        self.toast_overlay = toast_overlay
+
+        # 右键上下文菜单：复制单行 + 「忽略 <类型> 类警告」。整个列表共享一个
+        # Gtk.Popover，每次右键只更新文案与可见性，避免逐项建 popover 的开销。
+        self._row_menu = Gtk.Popover()
+        self._row_menu.set_autohide(True)
+        self._row_menu.set_has_arrow(True)
+        menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        menu_box.set_margin_top(4)
+        menu_box.set_margin_bottom(4)
+        menu_box.set_margin_start(4)
+        menu_box.set_margin_end(4)
+        self._menu_copy_button = Gtk.Button()
+        self._menu_copy_button.set_hexpand(True)
+        self._menu_copy_button.set_has_frame(False)
+        self._menu_copy_button.set_halign(Gtk.Align.FILL)
+        self._menu_copy_button.connect('clicked', self._on_menu_copy_clicked)
+        menu_box.append(self._menu_copy_button)
+        self._menu_ignore_button = Gtk.Button()
+        self._menu_ignore_button.set_hexpand(True)
+        self._menu_ignore_button.set_has_frame(False)
+        self._menu_ignore_button.set_halign(Gtk.Align.FILL)
+        self._menu_ignore_button.connect('clicked', self._on_menu_ignore_clicked)
+        menu_box.append(self._menu_ignore_button)
+        self._row_menu.set_child(menu_box)
+        self._row_menu_row = None
 
     def make_row(self, item_type, filename, line_number, description):
         '''构造一条 Adw.ActionRow。
@@ -313,12 +415,18 @@ class BuildLogList(Gtk.ListBox):
         row.set_use_markup(True)
         row.add_prefix(Gtk.Image(icon_name=ICON_MAP.get(item_type, 'dialog-warning-symbolic')))
         # 搜索命中高亮：标题(描述)/副标题(文件:行号)中匹配子串加粗。
-        row.set_title(highlight(description, self.search_text) if description else '')
+        title_text = description if description else ''
+        row.set_title(highlight(title_text, self.search_text))
+        # 长消息（多行 description）默认截断，tooltip 展示完整信息。
+        if description:
+            row._full_description = description
+            row.set_tooltip_text(description)
         if filename:
             subtitle = os.path.basename(filename)
             if line_number >= 0:
                 subtitle += ':' + str(line_number)
             row.set_subtitle(highlight(subtitle, self.search_text) if subtitle else '')
+            row._full_subtitle = subtitle
         row.filename = filename
         row.line_number = line_number
         row.description = description
@@ -370,10 +478,43 @@ class BuildLogList(Gtk.ListBox):
             self.ai_fix_row_callback(row)
 
     def on_right_click(self, gesture, n_press, x, y, row):
-        '''右键直接 copy 单行，格式与 Copy All 一致：file:line: description。'''
-        text = self._format_row_text(row)
-        Gdk.Display.get_default().get_clipboard().set(text)
-        self.toast_overlay.add_toast(Adw.Toast.new(_('Copied to clipboard')))
+        '''右键弹出上下文菜单：复制单行 / 忽略此类 warning。
+
+        错误（Error）默认不提供「忽略」（误忽略会掩盖真实编译失败），
+        Warning / Badbox 才展示忽略项。
+        '''
+        key, label = classify_warning_type(row.item_type, row.description)
+        self._row_menu_row = row
+        self._menu_copy_button.set_label(_('Copy to clipboard'))
+        can_ignore = row.item_type in ('Warning', 'Badbox')
+        if can_ignore:
+            self._menu_ignore_button.set_visible(True)
+            self._menu_ignore_button.set_label(_('Ignore “{label}” warnings').format(label=label))
+        else:
+            self._menu_ignore_button.set_visible(False)
+        self._row_menu.set_parent(row)
+        rect = GdkRectangle()
+        rect.x = int(x)
+        rect.y = int(y)
+        rect.width = 1
+        rect.height = 1
+        self._row_menu.set_pointing_to(rect)
+        self._row_menu.popup()
+
+    def _on_menu_copy_clicked(self, button):
+        '''菜单「复制」：复用行尾复制按钮行为。'''
+        if self._row_menu_row is not None:
+            self.on_copy_row_clicked(button, self._row_menu_row)
+        self._row_menu.popdown()
+        self._row_menu.unparent()
+
+    def _on_menu_ignore_clicked(self, button):
+        '''菜单「忽略此类 warning」：把 row 转发给 controller 注入的回调。'''
+        row = self._row_menu_row
+        self._row_menu.popdown()
+        self._row_menu.unparent()
+        if row is not None and self.ignore_row_callback is not None:
+            self.ignore_row_callback(row)
 
     @staticmethod
     def _format_row_text(row):
@@ -387,6 +528,17 @@ class BuildLogList(Gtk.ListBox):
         if row.description:
             text = (text + ': ' + row.description) if text else row.description
         return text
+
+    def add_stage_header(self, stage):
+        '''追加一个阶段分隔行（不可选中、不可激活）。'''
+        row = Gtk.ListBoxRow()
+        row.add_css_class('build-log-stage-header')
+        label = Gtk.Label(label=stage)
+        label.set_xalign(0)
+        row.set_child(label)
+        row.set_activatable(False)
+        row.set_selectable(False)
+        self.append(row)
 
     def clear_rows(self):
         '''清空所有子行。GTK 4.6+ 的 Gtk.ListBox.remove_all 内部批量释放，

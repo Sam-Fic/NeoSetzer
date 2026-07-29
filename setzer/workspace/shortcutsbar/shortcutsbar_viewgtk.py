@@ -381,10 +381,10 @@ class ShortcutsBar(Gtk.Box):
     def insert_wizard_button(self):
         self.wizard_button = Gtk.Button()
         self.wizard_button.set_icon_name('document-new-symbolic')
-        self.wizard_button.set_tooltip_text(_('Create a template document'))
         self.wizard_button.set_can_focus(False)
         self.wizard_button.add_css_class('flat')
         self.wizard_button.set_action_name('win.show-document-wizard')
+        shortcut_tooltips.set_tooltip(self.wizard_button, _('Create a template document'))
         self._button_meta[id(self.wizard_button)] = {
             'icon_name': 'document-new-symbolic',
             'label': _('New Document'),
@@ -401,6 +401,7 @@ class ShortcutsBar(Gtk.Box):
         self.document_button.set_icon_name('text-x-generic-symbolic')
         self.document_button.set_tooltip_text(_('Document'))
         self._setup_menu_button(self.document_button, DocumentMenu())
+        shortcut_tooltips.set_tooltip(self.document_button, _('Document'))
         self._add_left_button(self.document_button)
 
     def insert_beamer_button(self):
@@ -408,6 +409,7 @@ class ShortcutsBar(Gtk.Box):
         self.beamer_button.set_icon_name('view-list-bullet-symbolic')
         self.beamer_button.set_tooltip_text(_('Beamer'))
         self._setup_menu_button(self.beamer_button, BeamerMenu())
+        shortcut_tooltips.set_tooltip(self.beamer_button, _('Beamer'))
         self._add_left_button(self.beamer_button)
 
     def insert_bibliography_button(self):
@@ -415,6 +417,7 @@ class ShortcutsBar(Gtk.Box):
         self.bibliography_button.set_icon_name('library-symbolic')
         self.bibliography_button.set_tooltip_text(_('Bibliography'))
         self._setup_menu_button(self.bibliography_button, BibliographyMenu())
+        shortcut_tooltips.set_tooltip(self.bibliography_button, _('Bibliography'))
         self._add_left_button(self.bibliography_button)
 
     def insert_text_button(self):
@@ -422,6 +425,7 @@ class ShortcutsBar(Gtk.Box):
         self.text_button.set_icon_name('format-text-rich-symbolic')
         self.text_button.set_tooltip_text(_('Text'))
         self._setup_menu_button(self.text_button, TextMenu())
+        shortcut_tooltips.set_tooltip(self.text_button, _('Text'))
         self._add_left_button(self.text_button)
 
     def insert_quotes_button(self):
@@ -438,6 +442,7 @@ class ShortcutsBar(Gtk.Box):
         self.math_button.set_icon_name('own-math-menu-symbolic')
         self.math_button.set_tooltip_text(_('Math'))
         self._setup_menu_button(self.math_button, MathMenu())
+        shortcut_tooltips.set_tooltip(self.math_button, _('Math'))
         self._add_left_button(self.math_button)
 
     def insert_object_button(self):
@@ -445,6 +450,7 @@ class ShortcutsBar(Gtk.Box):
         self.object_button.set_icon_name('insert-object-symbolic')
         self.object_button.set_tooltip_text(_('Objects'))
         self._setup_menu_button(self.object_button, ObjectMenu())
+        shortcut_tooltips.set_tooltip(self.object_button, _('Objects'))
         self._add_left_button(self.object_button)
 
     def insert_bold_button(self):
@@ -491,7 +497,7 @@ class ShortcutsBar(Gtk.Box):
         # 合并 Find / Find and Replace 为一个入口：图标和 tooltip 都表达"两者皆有"。
         self.button_search.set_icon_name('edit-find-replace-symbolic')
         self.button_search.add_css_class('flat')
-        self.button_search.set_tooltip_text(_('Find and Replace'))
+        shortcut_tooltips.set_tooltip(self.button_search, _('Find and Replace'), 'find')
         self._add_right_button(self.button_search)
 
     def insert_more_button(self):

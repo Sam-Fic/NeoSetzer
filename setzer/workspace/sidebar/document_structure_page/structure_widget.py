@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk
+from gi.repository import Gtk, Adw, Gdk, Pango
 from setzer.widgets.search_highlight import escape_markup, highlight
 
 
@@ -382,6 +382,8 @@ class StructureWidget(Gtk.Box):
         row._title_text = text
         self._capture_row_labels(row, text)
         # 标题可能被容器宽度截断（ellipsize），hover 时给出完整文本。
+        if row._title_label is not None:
+            row._title_label.set_ellipsize(Pango.EllipsizeMode.END)
         row.set_tooltip_text(text)
         # 无障碍：outline 行本质是文档结构的树形项，设为 tree-item 角色
         # 并暴露层级，使屏幕阅读器能朗读「level N」而非仅标题文本。

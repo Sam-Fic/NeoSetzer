@@ -305,7 +305,7 @@ class StructureSectionView(structure_widget.StructureWidget):
         popover.popup()
 
         # Clean up when popover is closed
-        popover.connect('closed', lambda p: p.remove_action_group('outline'))
+        popover.connect('closed', lambda p: p.insert_action_group('outline', None))
 
     def _on_action_copy_title(self, node):
         self.model.copy_title(node)

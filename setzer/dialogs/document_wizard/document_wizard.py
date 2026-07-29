@@ -124,11 +124,11 @@ class DocumentWizard(object):
         self.current_values['packages'] = dict()
         self.current_values['packages']['ams'] = True
         self.current_values['packages']['graphicx'] = True
-        self.current_values['packages']['color'] = True
-        self.current_values['packages']['xcolor'] = True
-        self.current_values['packages']['url'] = True
+        self.current_values['packages']['color'] = False
+        self.current_values['packages']['xcolor'] = False
+        self.current_values['packages']['url'] = False
         self.current_values['packages']['theorem'] = False
-        self.current_values['packages']['textcomp'] = True
+        self.current_values['packages']['textcomp'] = False
         self.current_values['packages']['listings'] = False
         self.current_values['packages']['hyperref'] = False
         self.current_values['packages']['glossaries'] = False

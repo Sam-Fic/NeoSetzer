@@ -52,6 +52,9 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Close the current document'), 'shortcut': shortcuts.get('close_document', '<ctrl>W')})
         section['items'].append({'title': _('Close all open documents'), 'shortcut': shortcuts.get('close_all_documents', '<ctrl><shift>W')})
         section['items'].append({'title': _('Restore a previously saved session'), 'shortcut': shortcuts.get('restore_session', '<ctrl><shift>J')})
+        # 重开最近关闭的文档：现为可配置项（默认 Ctrl+Shift+T，浏览器惯例），
+        # 从设置读取以反映用户改键；与 show_open_docs (Ctrl+T) 仅差一个 Shift。
+        section['items'].append({'title': _('Reopen the last closed document'), 'shortcut': shortcuts.get('reopen_last_closed_document', '<ctrl><shift>T')})
         data.append(section)
 
         section = {'title': _('Tools'), 'items': list()}
@@ -62,12 +65,18 @@ class KeyboardShortcutsDialog(object):
 
         section = {'title': _('Windows and Panels'), 'items': list()}
         section['items'].append({'title': _('Open the preferences dialog'), 'shortcut': shortcuts.get('show_preferences_dialog', '<ctrl>comma')})
-        section['items'].append({'title': _('Show the about dialog'), 'shortcut': shortcuts.get('show_about_dialog', '<ctrl><shift>H')})
+        # show_about_dialog 默认未绑定快捷键（About 对话框菜单可达）；
+        # 仅当用户在偏好页手动绑定后才在对话框里显示，避免空白行。
+        about_shortcut = shortcuts.get('show_about_dialog')
+        if about_shortcut:
+            section['items'].append({'title': _('Show the about dialog'), 'shortcut': about_shortcut})
         section['items'].append({'title': _('Show help panel'), 'shortcut': shortcuts.get('help', 'F1')})
         section['items'].append({'title': _('Toggle fullscreen'), 'shortcut': shortcuts.get('fullscreen', 'F11')})
         section['items'].append({'title': _('Toggle document structure panel'), 'shortcut': shortcuts.get('document_structure', '<ctrl><shift>B')})
-        section['items'].append({'title': _('Toggle symbols panel'), 'shortcut': shortcuts.get('symbols', '<ctrl><shift>S')})
-        section['items'].append({'title': _('Toggle build log'), 'shortcut': shortcuts.get('build_log', '<ctrl><shift>L')})
+        # symbols 默认已改为 F8、build_log 已改为 F4（分别避免与 save_as、\\left
+        # 冲突），fallback 必须与设置里的新默认值一致，否则老配置缺键时会显示错误。
+        section['items'].append({'title': _('Toggle symbols panel'), 'shortcut': shortcuts.get('symbols', 'F8')})
+        section['items'].append({'title': _('Toggle build log'), 'shortcut': shortcuts.get('build_log', 'F4')})
         section['items'].append({'title': _('Toggle preview panel'), 'shortcut': shortcuts.get('preview', '<ctrl><shift>P')})
         section['items'].append({'title': _('Show global menu'), 'shortcut': shortcuts.get('hamburger_menu', 'F10')})
         section['items'].append({'title': _('Show context menu'), 'shortcut': shortcuts.get('context_menu', 'F12')})
@@ -79,6 +88,9 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Find'), 'shortcut': shortcuts.get('find', '<ctrl>F')})
         section['items'].append({'title': _('Find the next match'), 'shortcut': shortcuts.get('find_next', '<ctrl>G')})
         section['items'].append({'title': _('Find the previous match'), 'shortcut': shortcuts.get('find_previous', '<ctrl><shift>G')})
+        # F3 / Shift+F3 是查找下一个/上一个的额外别名（与 Ctrl+G / Ctrl+Shift+G 并存）。
+        section['items'].append({'title': _('Find the next match'), 'shortcut': 'F3'})
+        section['items'].append({'title': _('Find the previous match'), 'shortcut': '<Shift>F3'})
         section['items'].append({'title': _('Find and Replace'), 'shortcut': shortcuts.get('find_and_replace', '<ctrl>H')})
         data.append(section)
 
@@ -97,6 +109,8 @@ class KeyboardShortcutsDialog(object):
         section = {'title': _('Undo and Redo'), 'items': list()}
         section['items'].append({'title': _('Undo previous text edit'), 'shortcut': shortcuts.get('undo', '<ctrl>Z')})
         section['items'].append({'title': _('Redo previous text edit'), 'shortcut': shortcuts.get('redo', '<ctrl><shift>Z')})
+        # Ctrl+Y 是"重做"的额外别名（与 Ctrl+Shift+Z 并存，二者均有效）。
+        section['items'].append({'title': _('Redo previous text edit'), 'shortcut': '<ctrl>Y'})
         data.append(section)
 
         section = {'title': _('Selection'), 'items': list()}
@@ -105,12 +119,14 @@ class KeyboardShortcutsDialog(object):
 
         section = {'title': _('Editing'), 'items': list()}
         section['items'].append({'title': _('Toggle insert / overwrite'), 'shortcut': 'Insert'})
-        section['items'].append({'title': _('Move current line up'), 'shortcut': '<Alt>Up'})
-        section['items'].append({'title': _('Move current line down'), 'shortcut': '<Alt>Down'})
-        section['items'].append({'title': _('Move current word left'), 'shortcut': '<Alt>Left'})
-        section['items'].append({'title': _('Move current word right'), 'shortcut': '<Alt>Right'})
-        section['items'].append({'title': _('Increment number at cursor'), 'shortcut': '<ctrl><shift>A'})
-        section['items'].append({'title': _('Decrement number at cursor'), 'shortcut': '<ctrl><shift>X'})
+        # move_line_up/down 是可配置快捷键，从设置读取以反映用户改键
+        section['items'].append({'title': _('Move current line up'), 'shortcut': shortcuts.get('move_line_up', '<Alt>Up')})
+        section['items'].append({'title': _('Move current line down'), 'shortcut': shortcuts.get('move_line_down', '<Alt>Down')})
+        # 注：Alt+Up/Down 在编辑器外（如侧栏聚焦时）还用于章节导航（prev/next section），
+        # 由 app 控制器在编辑态返回 False 后交由文档控制器处理，二者上下文互斥。
+        # 删除原先「移动单词 / 增减数字」四项：它们在代码里从未注册，属于无效快捷键。
+        # 跳转到行：硬编码 Ctrl+L（编辑器内跳转），不在设置里，写死加速器。
+        section['items'].append({'title': _('Go to line'), 'shortcut': '<ctrl>L'})
         section['items'].append({'title': _('Delete current line'), 'shortcut': shortcuts.get('delete_line', '<ctrl><shift>K')})
         data.append(section)
 
@@ -120,7 +136,8 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Bold Text'), 'shortcut': shortcuts.get('bold', '<ctrl>B')})
         section['items'].append({'title': _('Italic Text'), 'shortcut': shortcuts.get('italic', '<ctrl>I')})
         section['items'].append({'title': _('Underlined Text'), 'shortcut': shortcuts.get('underline', '<ctrl>U')})
-        section['items'].append({'title': _('Typewriter Text'), 'shortcut': shortcuts.get('typewriter', '<ctrl><shift>T')})
+        # typewriter 默认已改为 Ctrl+Shift+Y（原 Ctrl+Shift+T 被重开标签页占用）
+        section['items'].append({'title': _('Typewriter Text'), 'shortcut': shortcuts.get('typewriter', '<ctrl><shift>Y')})
         section['items'].append({'title': _('Emphasized Text'), 'shortcut': shortcuts.get('emphasized', '<ctrl><shift>E')})
         section['items'].append({'title': _('Quotation Marks'), 'shortcut': shortcuts.get('quotation_marks', '<ctrl>quotedbl')})
         section['items'].append({'title': _('List Item'), 'shortcut': shortcuts.get('list_item', '<ctrl><shift>I')})

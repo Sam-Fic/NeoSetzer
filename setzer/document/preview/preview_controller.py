@@ -227,35 +227,39 @@ class PreviewController(object):
             y_offset = self.preview.page_height - y_offset
             for link in links:
                 if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
-                    if link[2] == 'goto':
-                        self.preview.scroll_dest_on_screen(link[1])
-                        return True
-                    elif link[2] == 'uri':
-                        url = link[1]
-                        # 安全：拦截可能执行脚本的 scheme（javascript: / vbscript:
-                        # / data:），并要求用户确认后再打开本地文件（file://），
-                        # 防止恶意 PDF 在用户不知情下运行脚本或访问本机文件。
-                        scheme = ''
-                        try:
-                            scheme = (GLib.uri_parse_scheme(url) or '').lower()
-                        except Exception:
-                            scheme = ''
-                        if scheme in ('javascript', 'vbscript', 'data'):
-                            self._show_blocked_link_toast()
-                            return True
-                        if scheme == 'file':
-                            self._confirm_open_file(url)
-                            return True
-                        # 其它（http(s) / mailto / ftp 等）在后台线程打开，避免
-                        # 阻塞 GTK 主线程；失败时在主线程弹 toast。
-                        def _open_url():
-                            try:
-                                webbrowser.open_new_tab(url)
-                            except Exception:
-                                GLib.idle_add(self._show_url_error_toast)
-                        threading.Thread(target=_open_url, daemon=True).start()
-                        return True
+                    self.open_link(link)
+                    return True
             return True
+
+    def open_link(self, link):
+        if link is None: return
+        if link[2] == 'goto':
+            self.preview.scroll_dest_on_screen(link[1])
+            return
+        if link[2] == 'uri':
+            url = link[1]
+            # 安全：拦截可能执行脚本的 scheme（javascript: / vbscript:
+            # / data:），并要求用户确认后再打开本地文件（file://），
+            # 防止恶意 PDF 在用户不知情下运行脚本或访问本机文件。
+            scheme = ''
+            try:
+                scheme = (GLib.uri_parse_scheme(url) or '').lower()
+            except Exception:
+                scheme = ''
+            if scheme in ('javascript', 'vbscript', 'data'):
+                self._show_blocked_link_toast()
+                return
+            if scheme == 'file':
+                self._confirm_open_file(url)
+                return
+            # 其它（http(s) / mailto / ftp 等）在后台线程打开，避免
+            # 阻塞 GTK 主线程；失败时在主线程弹 toast。
+            def _open_url():
+                try:
+                    webbrowser.open_new_tab(url)
+                except Exception:
+                    GLib.idle_add(self._show_url_error_toast)
+            threading.Thread(target=_open_url, daemon=True).start()
 
     def _show_url_error_toast(self):
         '''在主线程显示「无法打开链接」toast。

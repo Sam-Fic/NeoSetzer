@@ -21,6 +21,7 @@ gi.require_version('Adw', '1')
 from gi.repository import GObject, GLib, Adw
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.settings.document_settings import DocumentSettings
 
 
 class AutoBuild(object):
@@ -78,7 +79,7 @@ class AutoBuild(object):
                 pass
 
     def on_document_changed(self, document):
-        if not self.settings.get_value('preferences', 'auto_build'):
+        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
             return
         # 程序化读盘（会话恢复 / 懒加载 / 文件打开）触发的 buffer 'changed' 不算
         # 用户编辑——磁盘上的 PDF 通常已是最新，启动即重编毫无意义且拖慢启动。
@@ -89,7 +90,7 @@ class AutoBuild(object):
             self._warn_untitled(document)
             return
         self._retry_counts.pop(document, None)
-        delay = self.settings.get_value('preferences', 'auto_build_delay')
+        delay = DocumentSettings.get_effective_value(document, self.settings, 'auto_build_delay')
         delay_ms = max(int(delay * 1000), 500)
         self.schedule_build(document, delay_ms)
 
@@ -125,7 +126,7 @@ class AutoBuild(object):
         # this is a one-shot timeout, drop the stored id right away
         self.timers.pop(document, None)
 
-        if not self.settings.get_value('preferences', 'auto_build'):
+        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
             return False
         if document not in self.workspace.open_documents:
             return False

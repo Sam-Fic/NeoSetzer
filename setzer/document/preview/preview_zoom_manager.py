@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.helpers.observable import Observable
+from setzer.app.service_locator import ServiceLocator
 
 
 class PreviewZoomManager(Observable):
@@ -45,7 +46,7 @@ class PreviewZoomManager(Observable):
         # 当前缩放模式：'fit_to_width' / 'fit_to_text_width' / 'fit_to_height' /
         # 'manual'。重启/重编译/缩放窗口后据此重新推导级别，并在 fit_to_text_width
         # 时重新水平居中，使“文字居中”这一偏好可持久化且始终正确。
-        self.zoom_mode = 'fit_to_width'
+        self.zoom_mode = ServiceLocator.get_settings().get_value('preferences', 'preview_zoom')
         # 文档状态恢复时暂存的滚动位置 (x, y, mode)，待首帧布局就绪后在
         # on_layout_changed 中一次性应用：fit_to_text_width 仅恢复 y（x 由居中决定），
         # 其余模式同时恢复 x/y。

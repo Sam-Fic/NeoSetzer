@@ -43,12 +43,15 @@ class Shortcutsbar(object):
         self.document = self.workspace.active_document
         if self.document != None:
             self.document.search.connect('mode_changed', self.update_buttons)
+            self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
 
     def on_document_removed(self, workspace=None, parameter=None):
         if self.workspace.active_document == None:
             if self.document != None:
                 self.document.search.disconnect('mode_changed', self.update_buttons)
+                self.document.build_system.disconnect('build_state', self.on_build_state)
+                self._clear_build_log_error_style()
             self.document = None
 
         self.update_buttons()
@@ -56,10 +59,12 @@ class Shortcutsbar(object):
     def on_new_active_document(self, workspace=None, parameter=None):
         if self.document != None:
             self.document.search.disconnect('mode_changed', self.update_buttons)
+            self.document.build_system.disconnect('build_state', self.on_build_state)
 
         self.document = self.workspace.active_document
         if self.document != None:
             self.document.search.connect('mode_changed', self.update_buttons)
+            self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
 
         self.update_buttons()
@@ -102,6 +107,16 @@ class Shortcutsbar(object):
 
         # latex 专属按钮可见性变化会改变 left_box 总宽度，需重新计算 overflow
         self.view.request_reflow()
+
+    def on_build_state(self, build_system, message):
+        '''构建状态变化时更新 Log 按钮样式：出错变红。'''
+        if message == 'error':
+            self.view.button_build_log.add_css_class('build-log-error')
+        else:
+            self._clear_build_log_error_style()
+
+    def _clear_build_log_error_style(self):
+        self.view.button_build_log.remove_css_class('build-log-error')
 
     def on_build_log_button_clicked(self, toggle_button, parameter=None):
         self.workspace.set_show_build_log(toggle_button.get_active())

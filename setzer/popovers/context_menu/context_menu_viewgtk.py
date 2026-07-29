@@ -122,6 +122,14 @@ class ContextMenuView(Gtk.PopoverMenu):
         section_lines.append_item(_action_item(_('Unindent'), 'win.outdent', '<Shift>Tab'))
         model.append_section(None, section_lines)
 
+        # 折叠操作：Fold All / Unfold All。对任意文档类型可用，随代码折叠功能
+        # 提供。原放在标题栏汉堡菜单，现移入 Shortcut Bar 的汉堡菜单（F12 上下文菜单），
+        # 与行操作等编辑类功能同处一处，更易发现。
+        section_folding = Gio.Menu()
+        section_folding.append_item(_action_item(_('Fold All'), 'win.fold-all'))
+        section_folding.append_item(_action_item(_('Unfold All'), 'win.unfold-all'))
+        model.append_section(None, section_folding)
+
         # LaTeX/BibTeX section: rebuilt via rebuild_latex_section().
         model.append_section(None, self.latex_section)
 
@@ -167,8 +175,8 @@ class ContextMenuView(Gtk.PopoverMenu):
         box.set_end_widget(inner_box)
         return box
 
-    def rebuild_latex_section(self, document):
-        '''Populate (or clear) the LaTeX/BibTeX section for the active document.
+    def rebuild_latex_section(self, document, label=None):
+        r'''Populate (or clear) the LaTeX/BibTeX section for the active document.
 
         "Toggle Comment" is shown for any document (LaTeX, BibTeX, etc.),
         while "Show in Preview" and the LaTeX-specific sub-menus are limited
@@ -176,6 +184,10 @@ class ContextMenuView(Gtk.PopoverMenu):
         Environment / Insert Template) provide quick access to common LaTeX
         constructs via the existing ``insert-before-after`` and ``insert-symbol``
         G-actions (registered in ``Actions``) — no new action plumbing needed.
+
+        If ``label`` is provided (right-click on a \ref-like command), additional
+        label-specific items are shown: Jump to Definition, Copy \ref{label},
+        Copy \pageref{label}, Copy \autoref{label}, and Find All References.
         '''
         self.latex_section.remove_all()
         if document is None:
@@ -185,6 +197,21 @@ class ContextMenuView(Gtk.PopoverMenu):
             _action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>slash'))
 
         if document.is_latex_document():
+            # -- Label context items (right-click on \ref{...}) -----------------
+            if label is not None:
+                label_section = Gio.Menu()
+                label_section.append_item(
+                    _action_item(_('Jump to Definition'), 'win.jump-to-definition::' + label))
+                label_section.append_item(
+                    _action_item(_('Copy \\ref{' + label + '}'), 'win.copy-ref::' + label))
+                label_section.append_item(
+                    _action_item(_('Copy \\pageref{' + label + '}'), 'win.copy-pageref::' + label))
+                label_section.append_item(
+                    _action_item(_('Copy \\autoref{' + label + '}'), 'win.copy-autoref::' + label))
+                label_section.append_item(
+                    _action_item(_('Find All References'), 'win.find-all-refs::' + label))
+                self.latex_section.append_section(None, label_section)
+
             # -- Wrap in Command sub-menu ---------------------------------------
             wrap_cmds_submenu = _build_submenu_from_list(
                 WRAP_COMMANDS,
