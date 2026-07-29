@@ -681,6 +681,9 @@ class DocumentController(object):
             self.document.populate_from_filename()
         finally:
             workspace._loading_finish()
+        # 重载磁盘内容后唤醒 auto-build 倒计时（普通编辑经 'changed' 信号，
+        # 但读盘期间 _loading_from_disk 使该信号被抑制，需显式触发）。
+        workspace.auto_build.schedule_build_for_reload(self.document)
         return False
 
     def changed_on_disk_cb(self, do_reload):
@@ -696,6 +699,8 @@ class DocumentController(object):
             finally:
                 workspace._loading_finish()
             self.document.source_buffer.set_modified(False)
+            # 用户通过对话框选择重载后，同样唤醒 auto-build 倒计时。
+            workspace.auto_build.schedule_build_for_reload(self.document)
         else:
             self.document.source_buffer.set_modified(True)
         self.changed_on_disk_dialog_shown_after_last_change = False

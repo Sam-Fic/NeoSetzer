@@ -94,6 +94,23 @@ class AutoBuild(object):
         delay_ms = max(int(delay * 1000), 500)
         self.schedule_build(document, delay_ms)
 
+    def schedule_build_for_reload(self, document):
+        '''外部文件变更被重新读盘（自动静默重载或“文件已变更”对话框重载）
+        后，主动触发一次 auto-build 倒计时，等价于用户真实编辑。
+
+        普通编辑经由 buffer 'changed' 信号进入 on_document_changed；但重载
+        读盘时 set_text 会让 _loading_from_disk 置为 True，使 on_document_changed
+        提前返回，故重载完成后须由调用方显式唤醒本计时器。这里复用与真实编辑
+        一致的设置/延迟判定，若 auto_build 关闭或文档未命名则静默不触发。'''
+        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
+            return
+        if document.get_filename() == None:
+            return
+        self._retry_counts.pop(document, None)
+        delay = DocumentSettings.get_effective_value(document, self.settings, 'auto_build_delay')
+        delay_ms = max(int(delay * 1000), 500)
+        self.schedule_build(document, delay_ms)
+
     def on_document_saved(self, document, filename=None):
         # 文档已保存后解除一次性提示屏蔽；若再次变为未命名（如“另存为”到
         # 内存），下次编辑会重新提示。
