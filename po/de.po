@@ -266,16 +266,13 @@ msgstr[1] "{amount} Warnungen oder Badboxen"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:66
 msgid "Copy all log entries"
-msgstr ""
-
+msgstr "Alle Protokolleinträge kopieren"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:73
 msgid "Save log to file"
-msgstr ""
-
+msgstr "Protokoll in Datei speichern"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:84
 msgid "Filter log entries"
-msgstr ""
-
+msgstr "Protokolleinträge filtern"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:102
 msgid "File:"
 msgstr "Datei:"
@@ -313,10 +310,8 @@ msgid "No build log items to show."
 msgstr "Keine Einträge im Erstellungsprotokoll."
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:290
-#, fuzzy
 msgid "Copy to clipboard"
-msgstr "In Zwischenablage kopiert"
-
+msgstr "In Zwischenablage kopieren"
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
 msgid "Document \"{document}\" has no filename."
@@ -347,10 +342,8 @@ msgid "If you close without saving, these changes will be lost."
 msgstr "Wenn Sie schließen ohne zu speichern gehen alle Änderungen verloren."
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
-#, fuzzy
 msgid "Close without Saving"
-msgstr "PDF ohne Speichern erstellen"
-
+msgstr "Ohne Speichern schließen"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:71
 #, python-brace-format
 msgid "You have unsaved changes in {n} documents."
@@ -413,10 +406,8 @@ msgid "Keep Open"
 msgstr "Offen lassen"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:269
-#, fuzzy
 msgid "Save as template"
-msgstr "Vorlage verwenden …"
-
+msgstr "Als Vorlage speichern"
 #: setzer/dialogs/document_wizard/document_wizard.py:270
 msgid "Enter a name for the new template."
 msgstr "Geben Sie einen Namen für die neue Vorlage ein."
@@ -435,8 +426,7 @@ msgstr "Fortfahren nicht möglich"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:322
 msgid "OK"
-msgstr ""
-
+msgstr "OK"
 #: setzer/dialogs/document_wizard/document_wizard.py:492
 msgid "Your name"
 msgstr "Ihr Name"
@@ -510,10 +500,8 @@ msgid "_Cancel"
 msgstr "_Abbrechen"
 
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:64
-#, fuzzy
 msgid "Save as _Template"
-msgstr "Vorlage verwenden …"
-
+msgstr "Als _Vorlage speichern"
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:66
 msgid "_Back"
 msgstr "_Zurück"
@@ -662,15 +650,11 @@ msgid "<b>Scrbook:</b>  KOMA-Script replacement for the book class."
 msgstr "<b>Scrbook:</b> KOMA-Script-Ersatz für die Dokumentklasse book."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:123
-#, fuzzy
 msgid "Templates"
-msgstr "Vorlage verwenden …"
-
+msgstr "Vorlagen"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:125
-#, fuzzy
 msgid "Load template"
-msgstr "Vorlage verwenden …"
-
+msgstr "Vorlage laden"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:143
 msgid "— None —"
 msgstr "— Keine —"
@@ -814,20 +798,14 @@ msgid "Packages"
 msgstr "Pakete"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:249
-#, fuzzy
 msgid "Search packages"
 msgstr "Pakete suchen"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:252
-#, fuzzy
 msgid "Filter"
 msgstr "Filter"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:263
-#, fuzzy
 msgid "Other packages"
 msgstr "Weitere Pakete"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:265
 msgid "Comma-separated package names to include additionally."
 msgstr "Zusätzlich einzubindende Paketnamen, durch Kommas getrennt."
@@ -990,10 +968,8 @@ msgid ""
 msgstr "<b>Absoluter Pfad:</b> absolute Position im Dateisystem."
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:35
-#, fuzzy
 msgid "LateX Interpreter is missing."
 msgstr "LaTeX-Interpreter ist nicht vorhanden."
-
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
@@ -1559,10 +1535,8 @@ msgstr ""
 "Hilfsdateien (.log, .dvi, …) nach der .pdf-Erstellung automatisch entfernen."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:291
-#, fuzzy
 msgid "Use Latexmk"
 msgstr "Latexmk verwenden"
-
 #: setzer/dialogs/preferences/pages/page_build_system.py:295
 msgid "Auto Build"
 msgstr "Automatische Erstellung"
@@ -1615,6 +1589,10 @@ msgstr ".. bei Fehlern und Warnungen."
 msgid ".. on errors, warnings and badboxes."
 msgstr ".. bei Fehlern, Warnungen und Badboxen."
 
+#: setzer/dialogs/preferences/pages/page_build_system.py:334
+msgid ".. never."
+msgstr ".. nie."
+
 #: setzer/dialogs/preferences/pages/page_build_system.py:336
 msgid "Embedded system commands"
 msgstr "Systembefehle einbetten"
@@ -1645,22 +1623,17 @@ msgstr "Vollständig aktiviertes \\write18{SHELL COMMAND}"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:362
 msgid "On Startup"
-msgstr ""
-
+msgstr "Beim Start"
 #: setzer/dialogs/preferences/pages/page_build_system.py:366
 msgid ""
 "Whether to restore the previous session or start with an empty workspace."
-msgstr ""
-
+msgstr "Ob die vorherige Sitzung wiederhergestellt oder mit einem leeren Arbeitsbereich gestartet wird."
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
-#, fuzzy
 msgid "Last session"
-msgstr "Sitzung wiederherstellen"
-
+msgstr "Letzte Sitzung"
 #: setzer/dialogs/preferences/pages/page_build_system.py:369
 msgid "Empty workspace"
-msgstr ""
-
+msgstr "Leerer Arbeitsbereich"
 #: setzer/dialogs/preferences/pages/page_editor.py:257
 msgid "Editor"
 msgstr "Editor"
@@ -2278,10 +2251,10 @@ msgstr "_Ja, alles ersetzen"
 msgid "Save document"
 msgstr "Dokument speichern"
 
-#: setzer/dialogs/save_document/save_document.py:88
+#: setzer/document/document.py:579
 #, python-brace-format
-msgid "Could not save document: {error}"
-msgstr "Dokument konnte nicht gespeichert werden: {error}"
+msgid "Save failed. The disk may be full or you may not have permission to write the file: {error}"
+msgstr "Speichern fehlgeschlagen. Die Festplatte ist möglicherweise voll oder Sie haben keine Berechtigung, die Datei zu schreiben: {error}"
 
 #: setzer/dialogs/save_document/save_document.py:90
 msgid "Retry"
@@ -2371,12 +2344,10 @@ msgstr "Link konnte nicht geöffnet werden"
 
 #: setzer/document/preview/preview_controller.py:231
 msgid "Link blocked: this link type is unsafe"
-msgstr ""
-
+msgstr "Link blockiert: Dieser Linktyp ist unsicher"
 #: setzer/document/preview/preview_controller.py:239
 msgid "Open local file from this PDF?"
-msgstr ""
-
+msgstr "Lokale Datei aus diesem PDF öffnen?"
 #: setzer/document/preview/preview_controller.py:240
 #, python-brace-format
 msgid ""
@@ -2384,7 +2355,9 @@ msgid ""
 "\n"
 "{uri}"
 msgstr ""
-
+"Dieser Link zeigt auf eine Datei auf Ihrem Computer:\n"
+"\n"
+"{uri}"
 #: setzer/document/preview/preview_viewgtk.py:65
 #: setzer/document/preview/preview_viewgtk.py:106
 msgid "PDF build failed, showing previous version"
@@ -2425,12 +2398,11 @@ msgid "Searching…"
 msgstr "Suchen …"
 
 #: setzer/document/search/search.py:531
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{total} match"
 msgid_plural "{total} matches"
-msgstr[0] "Keine Treffer"
-msgstr[1] "Keine Treffer"
-
+msgstr[0] "{total} Treffer"
+msgstr[1] "{total} Treffer"
 #: setzer/document/search/search.py:539
 #, python-brace-format
 msgid "Replace all {amount} match"
@@ -2439,10 +2411,8 @@ msgstr[0] "Alle {amount} Treffer ersetzen"
 msgstr[1] "Alle {amount} Treffer ersetzen"
 
 #: setzer/document/search/search_viewgtk.py:63
-#, fuzzy
 msgid "Search and replace"
-msgstr "Textauswahl"
-
+msgstr "Suchen und Ersetzen"
 #: setzer/document/search/search_viewgtk.py:97
 msgid "Match case"
 msgstr "Groß-/Kleinschreibung beachten"
@@ -2457,8 +2427,7 @@ msgstr "Ganzes Wort suchen"
 
 #: setzer/document/search/search_viewgtk.py:124
 msgid "Preserve case"
-msgstr ""
-
+msgstr "Groß-/Kleinschreibung beibehalten"
 #: setzer/document/search/search_viewgtk.py:133
 msgid "Search in selection"
 msgstr "Textauswahl"
@@ -2561,10 +2530,8 @@ msgid "Open Documents"
 msgstr "Geöffnete Dokumente"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:43
-#, fuzzy
 msgid "Search open documents…"
-msgstr "Geöffnete Dokumente"
-
+msgstr "Geöffnete Dokumente durchsuchen…"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:52
 msgid ""
 "Click on a document in the list below to set it as root. The root document "
@@ -2584,21 +2551,22 @@ msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher.py:365
 msgid "Select Root Document"
-msgstr ""
-
+msgstr "Hauptdokument auswählen"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
 msgstr "Hauptdokument festlegen"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:137
+msgid "Set as Root"
+msgstr "Als Hauptdokument festlegen"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:81
 msgid "Unset Root Document"
 msgstr "Hauptdokument-Auswahl zurücksetzen"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:88
-#, fuzzy
 msgid "No matching documents"
-msgstr "Keine kürzlich geöffneten Dokumente"
-
+msgstr "Keine passenden Dokumente"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:167
 msgid "Root document"
 msgstr "Hauptdokument"
@@ -2819,15 +2787,11 @@ msgstr "LaTeX-Dokument einbinden"
 
 #: setzer/popovers/shortcutsbar/document_menu.py:41
 #: setzer/popovers/shortcutsbar/document_menu.py:50
-#, fuzzy
 msgid "Build Interpreter"
-msgstr "LaTeX-Interpreter"
-
+msgstr "Erstellungs-Interpreter"
 #: setzer/popovers/shortcutsbar/document_menu.py:42
-#, fuzzy
 msgid "Use Global Default"
-msgstr "Auf Standardwerte zurücksetzen"
-
+msgstr "Globale Vorgabe verwenden"
 #: setzer/popovers/shortcutsbar/document_menu.py:57
 msgid "Date Today"
 msgstr "Datum heute"
@@ -3137,20 +3101,14 @@ msgstr ""
 "beschäftigt."
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:41
-#, fuzzy
 msgid "Toggle sidebar (Document Structure / Symbols)"
-msgstr "Dokumentstruktur anzeigen / verbergen"
-
+msgstr "Seitenleiste umschalten (Dokumentstruktur / Symbole)"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:60
-#, fuzzy
 msgid "Open recent documents"
-msgstr "Keine kürzlich geöffneten Dokumente"
-
+msgstr "Kürzlich geöffnete Dokumente öffnen"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:113
-#, fuzzy
 msgid "Toggle preview panel (PDF Preview / Help)"
-msgstr "Vorschau anzeigen / verbergen"
-
+msgstr "Vorschaufenster umschalten (PDF-Vorschau / Hilfe)"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
 msgid "Welcome to Setzer"
 msgstr "Willkommen bei Setzer"
@@ -3164,12 +3122,10 @@ msgstr[1] "{n} Ergebnisse"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
 msgid "Home"
-msgstr ""
-
+msgstr "Startseite"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
-msgstr ""
-
+msgstr "Nach oben scrollen"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:76
 msgid "Back"
 msgstr "Zurück"
@@ -3179,15 +3135,11 @@ msgid "Forward"
 msgstr "Vorwärts"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:94
-#, fuzzy
 msgid "Search help documentation"
-msgstr "Geben Sie ein Stichwort ein, um die Dokumentation zu durchsuchen."
-
+msgstr "Hilfedokumentation durchsuchen"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:103
-#, fuzzy
 msgid "Switch to PDF Preview"
-msgstr "In Vorschau anzeigen"
-
+msgstr "Zur PDF-Vorschau wechseln"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:117
 msgid "Search help"
 msgstr "Hilfe durchsuchen"
@@ -3230,31 +3182,24 @@ msgstr ""
 
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:171
 msgid "Maximum zoom level reached"
-msgstr ""
-
+msgstr "Maximale Zoomstufe erreicht"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:173
 msgid "Minimum zoom level reached"
-msgstr ""
-
+msgstr "Minimale Zoomstufe erreicht"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:188
 msgid "Tip: hold Ctrl and click the preview to jump to the matching source"
-msgstr ""
-
+msgstr "Tipp: Halten Sie Strg gedrückt und klicken Sie in die Vorschau, um zur passenden Quelle zu springen."
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:222
-#, fuzzy
 msgid "of "
 msgstr " von "
-
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:224
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:254
 msgid "No preview"
 msgstr "Keine Vorschau"
 
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:57
-#, fuzzy
 msgid "Switch to Help"
-msgstr "Hilfe durchsuchen"
-
+msgstr "Zur Hilfe wechseln"
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:107
 msgid "Set zoom level"
 msgstr "Skalierung"
@@ -3264,19 +3209,15 @@ msgid "Match theme colors"
 msgstr "Designfarben anpassen"
 
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:126
-#, fuzzy
 msgid "Open in external PDF viewer"
-msgstr "Externes Anzeigeprogramm"
-
+msgstr "In externem PDF-Betrachter öffnen"
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:162
 msgid "Build failed — showing the previous PDF"
 msgstr "Erstellung fehlgeschlagen — vorherige PDF wird angezeigt"
 
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:125
-#, fuzzy
 msgid "More options"
-msgstr "Optionen"
-
+msgstr "Weitere Optionen"
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:401
 msgid "Document"
 msgstr "Dokument"
@@ -3311,18 +3252,13 @@ msgstr "Erstellungsprotokoll"
 
 #: setzer/workspace/sidebar/document_stats/document_stats.py:463
 msgid "Characters"
-msgstr ""
-
+msgstr "Zeichen"
 #: setzer/workspace/sidebar/document_stats/document_stats.py:463
-#, fuzzy
 msgid "no spaces"
-msgstr "Mathematische Leerzeichen"
-
+msgstr "ohne Leerzeichen"
 #: setzer/workspace/sidebar/document_stats/document_stats.py:465
-#, fuzzy
 msgid "Lines"
-msgstr "Zeilen:"
-
+msgstr "Zeilen"
 #: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:29
 msgid "These counts are updated after the document is saved."
 msgstr "Diese Zähler werden nach dem Speichern des Dokumentes aktualisiert."
@@ -3410,15 +3346,11 @@ msgid "Next section"
 msgstr "Nächster Abschnitt"
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:170
-#, fuzzy
 msgid "Search document structure"
-msgstr "Keine Dokumentstruktur"
-
+msgstr "Dokumentstruktur durchsuchen"
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:176
-#, fuzzy
 msgid "Switch to Symbols"
-msgstr "Verschiedene Symbole"
-
+msgstr "Zu Symbolen wechseln"
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:29
 msgid "No files"
 msgstr "Keine Dateien"
@@ -3497,15 +3429,11 @@ msgid "Insert"
 msgstr "Einfügen"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:73
-#, fuzzy
 msgid "Search symbols"
-msgstr "Verschiedene Symbole"
-
+msgstr "Symbole durchsuchen"
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:79
-#, fuzzy
 msgid "Switch to Document Structure"
-msgstr "Dokumentenstruktur"
-
+msgstr "Zur Dokumentstruktur wechseln"
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:104
 msgid "No symbols match your search"
 msgstr "Keine Symbole entsprechen Ihrer Suche"
@@ -3544,21 +3472,17 @@ msgstr "Verschiedene Symbole"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:198
 msgid "Changed on disk since last opened"
-msgstr ""
-
+msgstr "Auf der Festplatte geändert seit dem letzten Öffnen"
 #: setzer/workspace/welcome_screen/welcome_screen.py:217
 msgid "Remove from recent list"
 msgstr "Aus der Liste der zuletzt geöffneten entfernen"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:254
 msgid "Unpin"
-msgstr ""
-
+msgstr "Lösen"
 #: setzer/workspace/welcome_screen/welcome_screen.py:254
-#, fuzzy
 msgid "Pin"
-msgstr "Drucken"
-
+msgstr "Anheften"
 #: setzer/workspace/welcome_screen/welcome_screen.py:285
 msgid "Clear Recent List?"
 msgstr "Liste der zuletzt geöffneten leeren?"
@@ -3637,13 +3561,11 @@ msgstr "Unbenanntes Dokument {number}"
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
-msgstr ""
-
+msgstr "Sitzung geladen, aber es konnten keine Dokumente geöffnet werden (Dateien wurden möglicherweise verschoben oder gelöscht): {name}"
 #: setzer/workspace/workspace.py:473
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Could not open session: {name}"
-msgstr "Konnte nicht geöffnet werden: {filename}"
-
+msgstr "Sitzung konnte nicht geöffnet werden: {name}"
 #: setzer/workspace/workspace.py:554
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
@@ -3651,10 +3573,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 
 #~ msgid "Discard"
 #~ msgstr "Verwerfen"
-
 #~ msgid "General"
 #~ msgstr "Allgemein"
-
 #~ msgid ""
 #~ "All build system and AI Fix settings will be restored to their default "
 #~ "values. Custom tools and trusted directories will be removed."
@@ -3662,25 +3582,18 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Alle Einstellungen von Build-System und AI Fix werden auf ihre "
 #~ "Standardwerte zurückgesetzt. Benutzerdefinierte Werkzeuge und "
 #~ "vertrauenswürdige Verzeichnisse werden entfernt."
-
 #~ msgid "AI Fix"
 #~ msgstr "KI-Fehlerbehebung"
-
 #~ msgid "Enable AI Fix"
 #~ msgstr "KI-Fehlerbehebung aktivieren"
-
 #~ msgid "Show \"AI Fix\" buttons in the Build Log dialog"
 #~ msgstr "Schaltflächen „KI-Fehlerbehebung” im Build-Log-Dialog anzeigen"
-
 #~ msgid "Active agent tool"
 #~ msgstr "Aktives Agent-Werkzeug"
-
 #~ msgid "Which CLI to invoke when clicking AI Fix"
 #~ msgstr "Welche CLI beim Klick auf KI-Fehlerbehebung aufgerufen wird"
-
 #~ msgid "Terminal command (optional)"
 #~ msgstr "Terminalbefehl (optional)"
-
 #~ msgid ""
 #~ "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). "
 #~ "Under Flatpak, flatpak-spawn --host is added automatically."
@@ -3688,71 +3601,52 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Leer lassen zur automatischen Erkennung (gnome-terminal / xterm / "
 #~ "konsole / ...). Unter Flatpak wird flatpak-spawn --host automatisch "
 #~ "hinzugefügt."
-
 #~ msgid "Agent tools"
 #~ msgstr "Agent-Werkzeuge"
-
 #~ msgid ""
 #~ "Built-in presets cannot be removed. Add a custom tool to integrate other "
 #~ "Agent CLIs."
 #~ msgstr ""
 #~ "Integrierte Voreinstellungen können nicht entfernt werden. Fügen Sie ein "
 #~ "benutzerdefiniertes Werkzeug hinzu, um andere Agent-CLIs zu integrieren."
-
 #~ msgid "+ Add custom tool"
 #~ msgstr "+ Benutzerdefiniertes Werkzeug hinzufügen"
-
 #~ msgid "Trusted directories"
 #~ msgstr "Vertrauenswürdige Verzeichnisse"
-
 #~ msgid ""
 #~ "Directories where the preview dialog is skipped. Click delete to revoke "
 #~ "trust for a project."
 #~ msgstr ""
 #~ "Verzeichnisse, in denen der Vorschaudialog übersprungen wird. Klicken Sie "
 #~ "auf Löschen, um die Vertrauensstellung für ein Projekt zu widerrufen."
-
 #~ msgid "(active)"
 #~ msgstr "(aktiv)"
-
 #~ msgid "built-in"
 #~ msgstr "integriert"
-
 #~ msgid "custom"
 #~ msgstr "benutzerdefiniert"
-
 #~ msgid "installed"
 #~ msgstr "installiert"
-
 #~ msgid "not installed"
 #~ msgstr "nicht installiert"
-
 #~ msgid "Remove this custom tool"
 #~ msgstr "Dieses benutzerdefinierte Werkzeug entfernen"
-
 #~ msgid "No trusted directories yet"
 #~ msgstr "Noch keine vertrauenswürdigen Verzeichnisse"
-
 #~ msgid "Check \"Don't ask again\" in the preview dialog to add one."
 #~ msgstr ""
 #~ "Aktivieren Sie „Nicht erneut fragen” im Vorschaudialog, um eines "
 #~ "hinzuzufügen."
-
 #~ msgid "Remove from trusted list"
 #~ msgstr "Aus der Vertrauensliste entfernen"
-
 #~ msgid "Add custom tool"
 #~ msgstr "Benutzerdefiniertes Werkzeug hinzufügen"
-
 #~ msgid "Tool name (unique)"
 #~ msgstr "Werkzeugname (eindeutig)"
-
 #~ msgid "Executable (e.g. aider)"
 #~ msgstr "Ausführbare Datei (z.B. aider)"
-
 #~ msgid "Headed command template"
 #~ msgstr "Befehlskopfvorlage"
-
 #~ msgid ""
 #~ "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
 #~ "Example: aider --message {prompt} --no-auto-commits. If left blank or "
@@ -3762,194 +3656,123 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "als Platzhalter. Beispiel: aider --message {prompt} --no-auto-commits. "
 #~ "Wenn Sie das Feld leer lassen oder ohne {prompt}, wird die "
 #~ "Eingabeaufforderung in die Zwischenablage kopiert."
-
 #~ msgid "Help home"
 #~ msgstr "Hilfe-Startseite"
-
 #~ msgid "No results for '{query}'"
 #~ msgstr "Keine Ergebnisse für „{query}“"
-
 #~ msgid "Copy All"
 #~ msgstr "Alles kopieren"
-
 #~ msgid "Save Log As..."
 #~ msgstr "Protokoll speichern unter…"
-
 #~ msgid "Build .pdf-file from document"
 #~ msgstr ".pdf-Datei erstellen"
-
 #~ msgid "Follow system theme"
 #~ msgstr "Systemdesign folgen"
-
 #~ msgid "Editor Color Scheme"
 #~ msgstr "Editorfarben"
-
 #~ msgid ""
 #~ "Color scheme for the LaTeX editor. \"Follow system theme\" matches the "
 #~ "application light/dark mode."
 #~ msgstr ""
 #~ "Farbpalette für den LaTeX-Editor. „Systemdesign folgen“ entspricht dem "
 #~ "Hell-/Dunkelmodus der Anwendung."
-
 #~ msgid "Toggle symbols"
 #~ msgstr "Symbole anzeigen / verbergen"
-
 #~ msgid "Toggle preview"
 #~ msgstr "Vorschau anzeigen / verbergen"
-
 #~ msgid "Toggle help"
 #~ msgstr "Hilfe anzeigen / verbergen"
-
 #~ msgid "Page "
 #~ msgstr "Seite "
-
 #~ msgid "More"
 #~ msgstr "Mehr"
-
 #~ msgid "Simple yet full-featured LaTeX editor"
 #~ msgstr "LaTeX-Editor mit vielen nützlichen Funktionen"
-
 #~ msgid ""
 #~ "Setzer lets you Write LaTeX documents with an easy to use yet full-"
 #~ "featured editor."
 #~ msgstr ""
 #~ "Schreiben Sie LaTeX-Dokumente in einem einfach zu bedienendem Editor, die "
 #~ "viele nützliche Funktionen hat."
-
 #~ msgid "Features include:"
 #~ msgstr "Enthaltende Funktionen:"
-
 #~ msgid "Buttons and shortcuts for many LaTeX elements and special characters"
 #~ msgstr ""
 #~ "Knöpfe und Tastenkürzel für viele LaTeX-Elemente und spezielle Zeichen"
-
 #~ msgid "Comfortable document creation wizard"
 #~ msgstr "Komfortabler Assistent zum Erstellen von Dokumenten"
-
 #~ msgid "Dark mode"
 #~ msgstr "Nachtmodus"
-
 #~ msgid "Helpful error messages in the build log"
 #~ msgstr "Hilfreiche Fehlermeldungen"
-
 #~ msgid "Looks great on the Gnome desktop"
 #~ msgstr "Sieht gut aus auf dem Gnome-Desktop"
-
 #~ msgid "Good screen to content ratio"
 #~ msgstr "Gutes Verhältnis von Fenstergröße zu Inhalt"
-
 #~ msgid "Arguably the best .pdf viewer of any LaTeX editor"
 #~ msgstr "Der vielleicht beste .pdf-Betrachter von allen LaTeX-Editoren"
-
 #~ msgid "Document creation wizard"
 #~ msgstr "Assistent zum Erstellen von Dokumenten"
-
-#, python-brace-format
 #~ msgid "Reference to '{label}'"
 #~ msgstr "Verweis auf '{label}'"
-
-#, python-brace-format
 #~ msgid "Reference to page of '{label}'"
 #~ msgstr "Verweis auf Seite von '{label}'"
-
-#, python-brace-format
 #~ msgid "Reference to '{label}', with parantheses"
 #~ msgstr "Verweis auf '{label}', mit Klammern"
-
 #~ msgid "Reference with parantheses"
 #~ msgstr "Verweis mit Klammern"
-
-#, python-brace-format
 #~ msgid "Cite '{label}'"
 #~ msgstr "Zitiere '{label}'"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (abbreviated)"
 #~ msgstr "Zitiere '{label}' (Kurzform)"
-
 #~ msgid "Citation (abbreviated)"
 #~ msgstr "Zitat (Kurzform)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (abbreviated with brackets)"
 #~ msgstr "Zitiere '{label}' (Kurzform mit Klammern)"
-
 #~ msgid "Citation (abbreviated with brackets)"
 #~ msgstr "Zitat (Kurzform mit Klammern)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (detailed)"
 #~ msgstr "Zitiere '{label}' (ausführlich)"
-
 #~ msgid "Citation (detailed)"
 #~ msgstr "Zitat (ausführlich)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (detailed with brackets)"
 #~ msgstr "Zitiere '{label}' (ausführlich mit Klammern)"
-
 #~ msgid "Citation (detailed with brackets)"
 #~ msgstr "Zitat (ausführlich mit Klammern)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (alternative style 1)"
 #~ msgstr "Zitiere '{label}' (Stilalternative 1)"
-
 #~ msgid "Citation (alternative style 1)"
 #~ msgstr "Zitat (Stilalternative 1)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (alternative style 2)"
 #~ msgstr "Zitiere '{label}' (Stilalternative 2)"
-
 #~ msgid "Citation (alternative style 2)"
 #~ msgstr "Zitat (Stilalternative 2)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (author)"
 #~ msgstr "Zitiere '{label}' (Autor)"
-
 #~ msgid "Citation (author)"
 #~ msgstr "Zitat (Autor)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (author detailed)"
 #~ msgstr "Zitiere '{label}' (Autor, ausführlich)"
-
 #~ msgid "Citation (author detailed)"
 #~ msgstr "Zitat (Autor, ausführlich)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (year)"
 #~ msgstr "Zitiere '{label}' (Jahr)"
-
 #~ msgid "Citation (year)"
 #~ msgstr "Zitat (Jahr)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (year with brackets)"
 #~ msgstr "Zitiere '{label}' (Jahr mit Klammern)"
-
 #~ msgid "Citation (year with brackets)"
 #~ msgstr "Zitat (Jahr mit Klammern)"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (BibLaTeX)"
 #~ msgstr "Zitiere '{label}' (BibLaTeX)"
-
 #~ msgid "BibLaTeX citation"
 #~ msgstr "BibLaTeX-Zitat"
-
-#, python-brace-format
 #~ msgid "Cite '{label}' (BibLaTeX, with brackets)"
 #~ msgstr "Zitiere '{label}' (BibLaTeX mit Klammern)"
-
 #~ msgid "BibLaTeX citation (with brackets)"
 #~ msgstr "BibLaTeX-Zitat (mit Klammern)"
-
 #~ msgid "Article in Journal"
 #~ msgstr "Zeitschriftenartikel"
-
 #~ msgid ""
 #~ "An article in a journal, magazine, newspaper, or other periodical which "
 #~ "forms a self-contained unit with its own title. The title of the "
@@ -3967,10 +3790,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "dass <tt>editor</tt> und verwandte Felder sich auf das Magazin beziehen, "
 #~ "während sich <tt>translator</tt> und verwandte Felder auf den Artikel "
 #~ "beziehen."
-
 #~ msgid "Book"
 #~ msgstr "Buch"
-
 #~ msgid ""
 #~ "A single-volume book with one or more authors where the authors share "
 #~ "credit for the work as a whole. This entry type also covers the function "
@@ -3979,10 +3800,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ein einbandiges Buch mit einem oder mehreren Autoren, bei dem sich die "
 #~ "Autoren die Annerkennung für das ganze Werk teilen. Dieser Dokumententyp "
 #~ "schließt die Funktion vom @inbook type von traditionellem BibTeX mit ein."
-
 #~ msgid "Multi-volume Book"
 #~ msgstr "Mehrbändiges Buch"
-
 #~ msgid ""
 #~ "A multi-volume @book. For backwards compatibility, multi-volume books are "
 #~ "also supported by the entry type @book. However, it is advisable to make "
@@ -3991,10 +3810,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ein mehrbändiges @book. Zur Abwärtskompatibilität sind mehrbändige Bücher "
 #~ "auch unterstützt von Dokumententyp @book. Allerdings ist es "
 #~ "empfehlenswert den dafür bestimmten Dokumententyp @mvbook zu verwenden."
-
 #~ msgid "Part of a Book With Its Own Title"
 #~ msgstr "Buchteil mit eigenem Titel"
-
 #~ msgid ""
 #~ "A part of a book which forms a self-contained unit with its own title. "
 #~ "Note that the profile of this entry type is different from standard "
@@ -4003,10 +3820,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ein Teil eines Buches welches eine unabhängige Einheit mit seinem eigenen "
 #~ "Titel formt. Beachte, dass das Profil dieses Dokumententypes verschieden "
 #~ "zu standardmäßigem BibTeX ist."
-
 #~ msgid "Book in Book"
 #~ msgstr "Buch in Buch"
-
 #~ msgid ""
 #~ "This type is similar to @inbook but intended for works originally "
 #~ "published as a stand-alone book. A typical example are books reprinted in "
@@ -4016,10 +3831,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "ursprünglich veröffentlicht als selbständiges Buch. Ein typisches "
 #~ "Beispiel sind Bücher, die in einer Sammlung eines Autors veröffentlicht "
 #~ "werden."
-
 #~ msgid "Supplemental Material in a Book"
 #~ msgstr "Ergänzungsmaterial in einem Buch"
-
 #~ msgid ""
 #~ "Supplemental material in a @book. This type is closely related to the "
 #~ "@inbook entry type. While @inbook is primarily intended for a part of a "
@@ -4039,10 +3852,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "voraussetzen, dass solche Elemente anders als @inbook Elemente formatiert "
 #~ "werden. Der gewöhnliche Stil wird diesen Typ wie ein Pseudonym für "
 #~ "@inbook behandeln."
-
 #~ msgid "Booklet"
 #~ msgstr "Broschüre"
-
 #~ msgid ""
 #~ "A book-like work without a formal publisher or sponsoring institution. "
 #~ "Use the field <tt>howpublished</tt> to supply publishing information in "
@@ -4052,10 +3863,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Institution. Nutzen Sie das Feld <tt>howpublished</tt>, um "
 #~ "Veröffentlichungsinformationen in freier Form anzugeben, falls "
 #~ "zutreffend. Das Feld <tt>type</tt> kann ebenfalls nützlich sein."
-
 #~ msgid "Single-volume Collection"
 #~ msgstr "Einbändiger Sammelband"
-
 #~ msgid ""
 #~ "A single-volume collection with multiple, self-contained contributions by "
 #~ "distinct authors which have their own title. The work as a whole has no "
@@ -4064,10 +3873,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ein einbändiger Sammelband mit mehreren, in sich geschlossenen Beiträgen "
 #~ "verschiedener Autoren, die jeweils einen eigenen Titel haben. Das Werk "
 #~ "als Ganzes hat keinen Gesamtautor, aber in der Regel einen Herausgeber."
-
 #~ msgid "Multi-volume Collection"
 #~ msgstr "Mehrbändiger Sammelband"
-
 #~ msgid ""
 #~ "A multi-volume @collection. For backwards compatibility, multi-volume "
 #~ "collections are also supported by the entry type @collection. However, it "
@@ -4077,10 +3884,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "werden mehrbändige Sammelbände auch vom Eintragstyp @collection "
 #~ "unterstützt. Es ist jedoch empfehlenswert, den eigens dafür vorgesehenen "
 #~ "Eintragstyp @mvcollection zu verwenden."
-
 #~ msgid "Article in a Collection"
 #~ msgstr "Artikel in einer Sammlung"
-
 #~ msgid ""
 #~ "A contribution to a collection which forms a self-contained unit with a "
 #~ "distinct author and title. The <tt>author</tt> refers to the <tt>title</"
@@ -4091,10 +3896,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "mit eigenem Autor und Titel bildet. Der <tt>author</tt> bezieht sich auf "
 #~ "den <tt>title</tt>, der <tt>editor</tt> auf den <tt>booktitle</tt>, also "
 #~ "den Titel des Sammelbandes."
-
 #~ msgid "Supplemental Material in a Collection"
 #~ msgstr "Ergänzungsmaterial in einem Sammelband"
-
 #~ msgid ""
 #~ "Supplemental material in a @collection. This type is similar to @suppbook "
 #~ "but related to the @collection entry type. The standard styles will treat "
@@ -4103,17 +3906,13 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ergänzendes Material in einem @collection. Dieser Typ ist ähnlich zu "
 #~ "@suppbook, bezieht sich jedoch auf den Eintragstyp @collection. Die "
 #~ "Standardstile behandeln diesen Eintragstyp als Alias für @incollection."
-
 #~ msgid "Data Set"
 #~ msgstr "Datensatz"
-
 #~ msgid "A data set or a similar collection of (mostly) raw data."
 #~ msgstr ""
 #~ "Ein Datensatz oder eine ähnliche Sammlung von (größtenteils) Rohdaten."
-
 #~ msgid "Technical Manual"
 #~ msgstr "Technisches Handbuch"
-
 #~ msgid ""
 #~ "Technical or other documentation, not necessarily in printed form. The "
 #~ "<tt>author</tt> or <tt>editor</tt> is omissible under certain terms."
@@ -4121,10 +3920,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Technische oder andere Dokumentation, nicht zwangsläufig in gedruckter "
 #~ "Form. Der <tt>author</tt> oder <tt>editor</tt> kann unter bestimmten "
 #~ "Bedingungen weggelassen werden."
-
 #~ msgid "Miscellaneous"
 #~ msgstr "Sonstiges"
-
 #~ msgid ""
 #~ "A fallback type for entries which do not fit into any other category. Use "
 #~ "the field <tt>howpublished</tt> to supply publishing information in free "
@@ -4136,10 +3933,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "freier Form anzugeben, falls zutreffend. Das Feld type kann ebenfalls "
 #~ "nützlich sein. <tt>author</tt>, <tt>editor</tt> und <tt>year</tt> können "
 #~ "unter bestimmten Bedingungen weggelassen werden."
-
 #~ msgid "Online Resource"
 #~ msgstr "Internetseite"
-
 #~ msgid ""
 #~ "An online resource. <tt>author</tt>, <tt>editor</tt>, and <tt>year</tt> "
 #~ "are omissible under certain terms. This entry type is intended for "
@@ -4155,10 +3950,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "das Feld <tt>url</tt> unterstützen. Wenn Sie beispielsweise einen Artikel "
 #~ "aus einer Online-Zeitschrift hinzufügen, ist es unter Umständen "
 #~ "vorzuziehen, den Typ @article und dessen Feld <tt>url</tt> zu verwenden."
-
 #~ msgid "Patent"
 #~ msgstr "Patent"
-
 #~ msgid ""
 #~ "A patent or patent request. The number or record token is given in the "
 #~ "<tt>number</tt> field. Use the <tt>type</tt> field to specify the type "
@@ -4172,10 +3965,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Geltungsbereich des Patents anzugeben, sofern er vom durch <tt>type</tt> "
 #~ "implizierten Bereich abweicht. Beachten Sie, dass das Feld <tt>location</"
 #~ "tt> bei diesem Eintragstyp als Schlüsselliste behandelt wird."
-
 #~ msgid "Complete Issue of a Periodical"
 #~ msgstr "Vollständige Ausgabe einer Zeitschrift"
-
 #~ msgid ""
 #~ "An complete issue of a periodical, such as a special issue of a journal. "
 #~ "The title of the periodical is given in the <tt>title</tt> field. If the "
@@ -4189,10 +3980,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Zeitschrift einen eigenen Titel, so gehört dieser in das Feld "
 #~ "<tt>issuetitle</tt>. Der <tt>editor</tt> kann unter bestimmten "
 #~ "Bedingungen weggelassen werden."
-
 #~ msgid "Supplemental Material in a Periodical"
 #~ msgstr "Ergänzungsmaterial in einer Zeitschrift"
-
 #~ msgid ""
 #~ "Supplemental material in a @periodical. This type is similar to @suppbook "
 #~ "but related to the @periodical entry type. The role of this entry type "
@@ -4212,10 +4001,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Gestaltungsrichtlinien können verlangen, dass solche Elemente anders "
 #~ "formatiert werden als Artikel im engeren Sinne. Die Standardstile "
 #~ "behandeln diesen Eintragstyp als Alias für @article."
-
 #~ msgid "Conference Proceedings"
 #~ msgstr "Tagungsband einer Konferenz"
-
 #~ msgid ""
 #~ "A single-volume conference proceedings. This type is very similar to "
 #~ "@collection. It supports an optional <tt>organization</tt> field which "
@@ -4226,10 +4013,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "ähnlich. Er unterstützt ein optionales Feld <tt>organization</tt>, das "
 #~ "die veranstaltende Institution enthält. Der <tt>editor</tt> kann unter "
 #~ "bestimmten Bedingungen weggelassen werden."
-
 #~ msgid "Multi-volume Proceedings Entry"
 #~ msgstr "Mehrbändiger Tagungsband einer Konferenz"
-
 #~ msgid ""
 #~ "A multi-volume @proceedings entry. For backwards compatibility, multi-"
 #~ "volume proceedings are also supported by the entry type @proceedings. "
@@ -4240,17 +4025,14 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Abwärtskompatibilität werden mehrbändige Konferenzbände auch vom "
 #~ "Eintragstyp @proceedings unterstützt. Es ist jedoch empfehlenswert, den "
 #~ "eigens dafür vorgesehenen Eintragstyp @mvproceedings zu verwenden."
-
 #~ msgid "Article in Conference Proceedings"
 #~ msgstr "Artikel in einem Tagungsband einer Konferenz"
-
 #~ msgid ""
 #~ "An article in a conference proceedings. This type is similar to "
 #~ "@incollection. It supports an optional <tt>organization</tt> field."
 #~ msgstr ""
 #~ "Ein Artikel in einem Konferenzband. Dieser Typ ist dem Typ @incollection "
 #~ "ähnlich. Er unterstützt ein optionales Feld <tt>organization</tt>."
-
 #~ msgid ""
 #~ "A single-volume work of reference such as an encyclopedia or a "
 #~ "dictionary. This is a more specific variant of the generic @collection "
@@ -4261,10 +4043,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Wörterbuch. Dies ist eine spezifischere Variante des allgemeinen "
 #~ "Eintragstyps @collection. Die Standardstile behandeln diesen Eintragstyp "
 #~ "als Alias für @collection."
-
 #~ msgid "Multi-volume Reference Entry"
 #~ msgstr "Mehrbändiges Lexikon"
-
 #~ msgid ""
 #~ "A multi-volume @reference entry. The standard styles will treat this "
 #~ "entry type as an alias for @mvcollection. For backwards compatibility, "
@@ -4277,10 +4057,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Abwärtskompatibilität werden mehrbändige Nachschlagewerke auch vom "
 #~ "Eintragstyp @reference unterstützt. Es ist jedoch empfehlenswert, den "
 #~ "eigens dafür vorgesehenen Eintragstyp @mvreference zu verwenden."
-
 #~ msgid "Article in a Reference"
 #~ msgstr "Lexikonartikel"
-
 #~ msgid ""
 #~ "An article in a work of reference. This is a more specific variant of the "
 #~ "generic @incollection entry type. The standard styles will treat this "
@@ -4289,7 +4067,6 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Ein Artikel in einem Nachschlagewerk. Dies ist eine spezifischere "
 #~ "Variante des allgemeinen Eintragstyps @incollection. Die Standardstile "
 #~ "behandeln diesen Eintragstyp als Alias für @incollection."
-
 #~ msgid ""
 #~ "A technical report, research report, or white paper published by a "
 #~ "university or some other institution. Use the <tt>type</tt> field to "
@@ -4300,20 +4077,16 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "herausgegeben von einer Universität oder einer anderen Institution. "
 #~ "Nutzen Sie das Feld <tt>type</tt>, um die Art des Berichts anzugeben. Die "
 #~ "fördernde Institution wird im Feld <tt>institution</tt> eingetragen."
-
 #~ msgid "Software"
 #~ msgstr "Software"
-
 #~ msgid ""
 #~ "Computer software. The standard styles will treat this entry type as an "
 #~ "alias for @misc."
 #~ msgstr ""
 #~ "Computerprogramm. Die Standardstile werden diesen Eintrag als einen Alias "
 #~ "für @misc bearbeiten."
-
 #~ msgid "Thesis"
 #~ msgstr "Studienarbeit"
-
 #~ msgid ""
 #~ "A thesis written for an educational institution to satisfy the "
 #~ "requirements for a degree. Use the <tt>type</tt> field to specify the "
@@ -4322,10 +4095,8 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Eine für eine Bildungseinrichtung verfasste Abschlussarbeit, die die "
 #~ "Anforderungen für einen akademischen Grad erfüllt. Nutzen Sie das Feld "
 #~ "<tt>type</tt>, um die Art der Arbeit anzugeben."
-
 #~ msgid "Unpublished"
 #~ msgstr "Unveröffentlicht"
-
 #~ msgid ""
 #~ "A work with an author and a title which has not been formally published, "
 #~ "such as a manuscript or the script of a talk. Use the fields "
@@ -4336,57 +4107,40 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "etwa ein Manuskript oder das Skript eines Vortrags. Nutzen Sie die Felder "
 #~ "<tt>howpublished</tt> und <tt>note</tt>, um zusätzliche Informationen in "
 #~ "freier Form anzugeben, falls zutreffend."
-
 #~ msgid "Create a new BibTeX Entry"
 #~ msgstr "Neuen BibTeX Eintrag erstellen"
-
 #~ msgid "Add BibTeX Entry"
 #~ msgstr "BibTeX Eintrag hinzufügen"
-
 #~ msgid "Choose a document type"
 #~ msgstr "Dokumententyp wählen"
-
 #~ msgid "Required fields"
 #~ msgstr "Notwendige Felder"
-
 #~ msgid "Optional fields"
 #~ msgstr "Optionale Felder"
-
 #~ msgid "Entry fields"
 #~ msgstr "Felder ausfüllen"
-
 #~ msgid "Insert empty optional fields"
 #~ msgstr "Leere optionale Felder einfügen"
-
-#, python-brace-format
 #~ msgid ""
 #~ "There are {amount} documents with unsaved changes.\n"
 #~ "Save changes before closing?"
 #~ msgstr ""
 #~ "Es gibt {amount} Dokumente mit ungespeicherten Änderungen.\n"
 #~ "Änderungen vor dem Schließen speichern?"
-
 #~ msgid "Select the documents you want to save:"
 #~ msgstr "Wählen Sie die Dokumente aus die Sie speichern wollen:"
-
 #~ msgid "If you close without saving, all changes will be lost."
 #~ msgstr ""
 #~ "Wenn Sie die Datei schließen ohne zu speichern, gehen alle "
 #~ "ungespeicherten Änderungen verloren."
-
 #~ msgid "_Save"
 #~ msgstr "_Speichern"
-
 #~ msgid "Ok"
 #~ msgstr "Ok"
-
 #~ msgid "Others…"
 #~ msgstr "Weiteres…"
-
 #~ msgid "Portrait"
 #~ msgstr "Hochformat"
-
-#, python-brace-format
 #~ msgid ""
 #~ "Setzer is configured to use »{interpreter}« which seems to be missing on "
 #~ "this system.\n"
@@ -4407,8 +4161,6 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "und führen folgendes Kommando aus:\n"
 #~ "\n"
 #~ "    flatpak install org.freedesktop.Sdk.Extension.texlive"
-
-#, python-brace-format
 #~ msgid ""
 #~ "Setzer is configured to use »{interpreter}« which seems to be missing on "
 #~ "this system.\n"
@@ -4427,80 +4179,54 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "Hilfe zur Installation von LaTeX gibt es auf <a href=\"https://"
 #~ "de.wikibooks.org/wiki/LaTeX/_Installation\">https://de.wikibooks.org/wiki/"
 #~ "LaTeX/_Installation</a>"
-
 #~ msgid "Show symbols panel"
 #~ msgstr "Symbolleiste anzeigen"
-
 #~ msgid "Spellchecking dialog"
 #~ msgstr "Rechtschreibung prüfen"
-
 #~ msgid "Show preview panel"
 #~ msgstr "Vorschau anzeigen"
-
 #~ msgid "_Open"
 #~ msgstr "Öffnen"
-
 #~ msgid "UI Colors"
 #~ msgstr "Benutzeroberflächenfarben"
-
 #~ msgid "Default"
 #~ msgstr "Voreinstellung"
-
 #~ msgid "Light Theme"
 #~ msgstr "helles Thema"
-
 #~ msgid "Dark Theme"
 #~ msgstr "dunkles Thema"
-
 #~ msgid "Invert Colors in .pdf-Preview"
 #~ msgstr "Farben invertieren in .pdf-Vorschau"
-
 #~ msgid "Remove active scheme"
 #~ msgstr "Aktives Schema entfernen"
-
 #~ msgid "Add from file…"
 #~ msgstr "Aus Datei hinzufügen…"
-
 #~ msgid "_Add Scheme"
 #~ msgstr "_Schema hinzufügen"
-
 #~ msgid "Add Scheme"
 #~ msgstr "Schema hinzufügen"
-
-#, python-brace-format
 #~ msgid "Removing syntax scheme »{name}«."
 #~ msgstr "Syntaxschema »{name}« entfernen."
-
 #~ msgid "_Yes, remove it"
 #~ msgstr "_Ja, entfernen"
-
 #~ msgid "Font & Colors"
 #~ msgstr "Schriftsatz & Farben"
-
 #~ msgid "Spellchecking Language"
 #~ msgstr "Sprache"
-
-#, python-brace-format
 #~ msgid "<span color=\"{color}\">Failed</span> ({amount} error)!"
 #~ msgid_plural "<span color=\"{color}\">Failed</span> ({amount} errors)!"
 #~ msgstr[0] "<span color=\"{color}\">Fehler</span> ({amount})!"
 #~ msgstr[1] "<span color=\"{color}\">Fehler</span> ({amount})!"
-
 #~ msgid "Find and Replace (Ctrl+H)"
 #~ msgstr "Suchen und Ersetzen (Strg+H)"
-
 #~ msgid "Find (Ctrl+F)"
 #~ msgstr "Suchen (Strg+F)"
-
 #~ msgid "New Document Wizard"
 #~ msgstr "Dokumenten-Assistent"
-
 #~ msgid "_Select"
 #~ msgstr "_Auswählen"
-
 #~ msgid "Click on a document in the list below to set it as root."
 #~ msgstr "Klicken Sie auf ein Dokument um es als Hauptdokument festzulegen."
-
 #~ msgid ""
 #~ "Save the list of open documents in a session file\n"
 #~ "and restore it later, a convenient way to work\n"
@@ -4510,463 +4236,328 @@ msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 #~ "einer Sitzungdatei und öffnen Sie sie später wieder,\n"
 #~ "eine praktische Methode um an verschiedenen\n"
 #~ "Projekten zu arbeiten."
-
 #~ msgid "View"
 #~ msgstr "Ansicht"
-
 #~ msgid "Dark Mode"
 #~ msgstr "Nachtmodus"
-
 #~ msgid "Check Spelling"
 #~ msgstr "Rechtschreibung prüfen"
-
 #~ msgid "Automatic Spellchecking"
 #~ msgstr "Rechtschreibfehler hervorheben"
-
 #~ msgid "Set Spellchecking Language"
 #~ msgstr "Sprache festlegen"
-
 #~ msgid "Create New Entry"
 #~ msgstr "Neuen Eintrag hinzufügen"
-
 #~ msgid "Create a New BibTeX Entry"
 #~ msgstr "Neuen BibTeX Eintrag hinzufügen"
-
 #~ msgid "Previously Used Entries"
 #~ msgstr "Zuvor verwendete Einträge"
-
 #~ msgid "Add a Previously Used BibTeX Entry"
 #~ msgstr "Zuvor verwendeten Eintrag hinzufügen"
-
 #~ msgid "Add a BibTeX Entry from an Online Database"
 #~ msgstr "Einen BibTex Eintrag aus einer Online-Datenbank hinzufügen"
-
 #~ msgid "additional math fonts from AMS."
 #~ msgstr "zusätliche mathematischen Schriftarten von AMS."
-
 #~ msgid "mathematics package from AMS."
 #~ msgstr "Mathematikpaket von AMS."
-
 #~ msgid "mathematical symbols from AMS."
 #~ msgstr "mathematische Symbole von AMS."
-
 #~ msgid "math theorems setting package from AMS."
 #~ msgstr "AMS Paket für mathematische Sätze."
-
 #~ msgid "multilingual documents."
 #~ msgstr "mehrsprachige Dokumente."
-
 #~ msgid "dirac braket and set notations."
 #~ msgstr "Dirac bra-ket und Mengennotation."
-
 #~ msgid "bibliographies in LaTeX."
 #~ msgstr "Bibliographien in LaTeX."
-
 #~ msgid "foreground and background colors."
 #~ msgstr "Vorder- und Hintergrundfarben."
-
 #~ msgid "colored tables."
 #~ msgstr "farbige Tabellen."
-
 #~ msgid "enumerate with redefinable labels."
 #~ msgstr "Aufzählungen mit redefinierbaren Beschriftungen."
-
 #~ msgid "interface to document dimensions."
 #~ msgstr "Formateinstellungen für das Dokument."
-
 #~ msgid "conditional commands."
 #~ msgstr "von Vorbedingungen abhängige Befehle."
-
 #~ msgid "provides a listing environment for embedding programming code."
 #~ msgstr "stellt die \\listings Umgebung für eingebetteten Code bereit."
-
 #~ msgid "provides additional bibliography and citation styles."
 #~ msgstr "stellt zusätzliche Literaturverzeichnis- und Zitierstile bereit."
-
 #~ msgid "create plots in two and three dimensions."
 #~ msgstr "2- und 3-dimensionale Plots."
-
 #~ msgid ""
 #~ "define theorem environments (like &quot;definition&quot;, "
 #~ "&quot;lemma&quot;, …) with custom styling."
 #~ msgstr ""
 #~ "mathematische Satztypen definieren (wie \"Definition\", \"Lemma\", …) und "
 #~ "deren Aussehen festlegen."
-
 #~ msgid "graphics and plotting."
 #~ msgstr "Plots und Grafiken."
-
 #~ msgid "set transparency for sections in your document."
 #~ msgstr "transparente Abschnitte."
-
 #~ msgid "type urls with the \\\\url{..} command without escaping them."
 #~ msgstr "URLs schreiben mit dem \\url{..} Befehl."
-
 #~ msgid "English"
 #~ msgstr "Englisch"
-
 #~ msgid "Spanish"
 #~ msgstr "Spanisch"
-
 #~ msgid "French"
 #~ msgstr "Französisch"
-
 #~ msgid "Russian"
 #~ msgstr "Russisch"
-
 #~ msgid "Portuguese"
 #~ msgstr "Portugiesisch"
-
 #~ msgid "German"
 #~ msgstr "Deutsch"
-
 #~ msgid "Italian"
 #~ msgstr "Italienisch"
-
 #~ msgid "Afrikaans"
 #~ msgstr "Afrikaans"
-
 #~ msgid "Azerbaijani"
 #~ msgstr "Aserbaidschanisch"
-
 #~ msgid "Basque"
 #~ msgstr "Baskisch"
-
 #~ msgid "Breton"
 #~ msgstr "Bretonisch"
-
 #~ msgid "Bulgarian"
 #~ msgstr "Bulgarisch"
-
 #~ msgid "Catalan"
 #~ msgstr "Katalanisch"
-
 #~ msgid "Croatian"
 #~ msgstr "Kroatisch"
-
 #~ msgid "Czech"
 #~ msgstr "Tschechisch"
-
 #~ msgid "Danish"
 #~ msgstr "Dänisch"
-
 #~ msgid "Dutch"
 #~ msgstr "Niederländisch"
-
 #~ msgid "Esperanto"
 #~ msgstr "Esperanto"
-
 #~ msgid "Estonian"
 #~ msgstr "Estnisch"
-
 #~ msgid "Finnish"
 #~ msgstr "Finnisch"
-
 #~ msgid "Galician"
 #~ msgstr "Galicisch"
-
 #~ msgid "Greek"
 #~ msgstr "Griechisch"
-
 #~ msgid "Hebrew"
 #~ msgstr "Hebräisch"
-
 #~ msgid "Icelandic"
 #~ msgstr "Isländisch"
-
 #~ msgid "Indonesian"
 #~ msgstr "Indonesisch"
-
 #~ msgid "Interlingua"
 #~ msgstr "Interlingua"
-
 #~ msgid "Irish Gaelic"
 #~ msgstr "Irisches Gälisch"
-
 #~ msgid "Latin"
 #~ msgstr "Latein"
-
 #~ msgid "Lower Sorbian"
 #~ msgstr "Niedersorbisch"
-
 #~ msgid "Malay"
 #~ msgstr "Malaysisch"
-
 #~ msgid "Northern Sami"
 #~ msgstr "Nordsamisch"
-
 #~ msgid "Norwegian"
 #~ msgstr "Norwegisch"
-
 #~ msgid "Polish"
 #~ msgstr "Polnisch"
-
 #~ msgid "Romanian"
 #~ msgstr "Rumänisch"
-
 #~ msgid "Scottish Gaelic"
 #~ msgstr "Schottisches Gälisch"
-
 #~ msgid "Slovakian"
 #~ msgstr "Slowakisch"
-
 #~ msgid "Slovenian"
 #~ msgstr "Slowenisch"
-
 #~ msgid "Swedish"
 #~ msgstr "Schwedisch"
-
 #~ msgid "Serbian"
 #~ msgstr "Serbisch"
-
 #~ msgid "Turkish"
 #~ msgstr "Türkisch"
-
 #~ msgid "Ukrainian"
 #~ msgstr "Ukrainisch"
-
 #~ msgid "Upper Sorbian"
 #~ msgstr "Obersorbisch"
-
 #~ msgid "Welsh"
 #~ msgstr "Walisisch"
-
 #~ msgid "Bug fix"
 #~ msgstr "Bug fix"
-
-#, fuzzy
 #~ msgid "Performance improvements, persistent zoom in preview, ..."
 #~ msgstr "Performance improvements, ..."
-
 #~ msgid "Performance improvements, ..."
 #~ msgstr "Performance improvements, ..."
-
 #~ msgid "Support for links in .pdf preview, new welcome screen, ..."
 #~ msgstr "Support for links in .pdf preview, new welcome screen, ..."
-
 #~ msgid "Build button now does save and build, performance improvements, ..."
 #~ msgstr "Build button now does save and build, performance improvements, ..."
-
 #~ msgid ""
 #~ "Save and build on F5, build in the directory of the LaTeX document being "
 #~ "built, .cls and .sty file editing, ..."
 #~ msgstr ""
 #~ "Save and build on F5, build in the directory of the LaTeX document being "
 #~ "built, .cls and .sty file editing, ..."
-
 #~ msgid ""
 #~ "Zoom in editor view, show warning when document was deleted on disk, ..."
 #~ msgstr ""
 #~ "Zoom in editor view, show warning when document was deleted on disk, ..."
-
 #~ msgid "Set editor font, context menu in shortcuts bar, ..."
 #~ msgstr "Set editor font, context menu in shortcuts bar, ..."
-
 #~ msgid ""
 #~ "Add syntax themes from files, edit begin and end commands simultaneously, "
 #~ "autocomplete improvements, ..."
 #~ msgstr ""
 #~ "Add syntax themes from files, edit begin and end commands simultaneously, "
 #~ "autocomplete improvements, ..."
-
 #~ msgid "New syntax highlighting theme, full line indentation, ..."
 #~ msgstr "New syntax highlighting theme, full line indentation, ..."
-
 #~ msgid ""
 #~ "Tab autocomplete, dynamic citations autocomplete, more autocomplete "
 #~ "improvements, ..."
 #~ msgstr ""
 #~ "Tab autocomplete, dynamic citations autocomplete, more autocomplete "
 #~ "improvements, ..."
-
 #~ msgid "Biber support, Glossaries support, ..."
 #~ msgstr "Biber support, Glossaries support, ..."
-
 #~ msgid ""
 #~ "Use Latexmk with any LaTeX interpreter, invert colors in .pdf preview, ..."
 #~ msgstr ""
 #~ "Use Latexmk with any LaTeX interpreter, invert colors in .pdf preview, ..."
-
 #~ msgid ""
 #~ "Redesigned help panel homepage, LaTeX package documentation links, ..."
 #~ msgstr ""
 #~ "Redesigned help panel homepage, LaTeX package documentation links, ..."
-
 #~ msgid ""
 #~ "Italian translation, help panel with LaTeX documentation, open files from "
 #~ "the file manager and command line, ..."
 #~ msgstr ""
 #~ "Italian translation, help panel with LaTeX documentation, open files from "
 #~ "the file manager and command line, ..."
-
 #~ msgid "German translation, external .pdf viewer button, ..."
 #~ msgstr "German translation, external .pdf viewer button, ..."
-
 #~ msgid ""
 #~ "Initial backward synctex support, improved synctex highlighting, search "
 #~ "UI improvements, ..."
 #~ msgstr ""
 #~ "Initial backward synctex support, improved synctex highlighting, search "
 #~ "UI improvements, ..."
-
 #~ msgid "Session management, highlight passages on build, ..."
 #~ msgstr "Session management, highlight passages on build, ..."
-
 #~ msgid ""
 #~ "Zoom level popover for the .pdf preview, preview should use far less "
 #~ "memory now, ..."
 #~ msgstr ""
 #~ "Zoom level popover for the .pdf preview, preview should use far less "
 #~ "memory now, ..."
-
 #~ msgid "Bug fixes"
 #~ msgstr "Bug fixes"
-
 #~ msgid ""
 #~ "Enable embedded system commands, document modified on disk dialog, option "
 #~ "to highlight current line, option to highlight matching brackets, ..."
 #~ msgstr ""
 #~ "Enable embedded system commands, document modified on disk dialog, option "
 #~ "to highlight current line, option to highlight matching brackets, ..."
-
 #~ msgid "Add/remove packages dialog, improved HiDPI support, ..."
 #~ msgstr "Add/remove packages dialog, improved HiDPI support, ..."
-
 #~ msgid "Keyboard shortcuts in popovers, more commands in shortcuts bar, ..."
 #~ msgstr "Keyboard shortcuts in popovers, more commands in shortcuts bar, ..."
-
 #~ msgid ""
 #~ "More commands in shortcuts bar, autocomplete now case insensitive, ..."
 #~ msgstr ""
 #~ "More commands in shortcuts bar, autocomplete now case insensitive, ..."
-
 #~ msgid "HiDPI support in .pdf preview, presistent code folding, ..."
 #~ msgstr "HiDPI support in .pdf preview, presistent code folding, ..."
-
 #~ msgid "Initial code folding support, ..."
 #~ msgstr "Initial code folding support, ..."
-
 #~ msgid ""
 #~ "References to existing labels in autocomplete, persistent root document "
 #~ "state, ..."
 #~ msgstr ""
 #~ "References to existing labels in autocomplete, persistent root document "
 #~ "state, ..."
-
 #~ msgid "Initial spellchecking support, ..."
 #~ msgstr "Initial spellchecking support, ..."
-
 #~ msgid ""
 #~ "Simple BibTeX wizard, more bibliography features in LaTeX editor, ..."
 #~ msgstr ""
 #~ "Simple BibTeX wizard, more bibliography features in LaTeX editor, ..."
-
 #~ msgid "BibTeX support in the build system, edit BibTeX files, ..."
 #~ msgstr "BibTeX support in the build system, edit BibTeX files, ..."
-
 #~ msgid "Editor settings in preferences dialog, ..."
 #~ msgstr "Editor settings in preferences dialog, ..."
-
 #~ msgid ""
 #~ "Build multiple times to resolve undefined references, show warnings in "
 #~ "build log, ..."
 #~ msgstr ""
 #~ "Build multiple times to resolve undefined references, show warnings in "
 #~ "build log, ..."
-
 #~ msgid "Indent multi-line inserts, ..."
 #~ msgstr "Indent multi-line inserts, ..."
-
 #~ msgid "Multiple documents in build log, build in temporary folder, ..."
 #~ msgstr "Multiple documents in build log, build in temporary folder, ..."
-
 #~ msgid "Root document function, ..."
 #~ msgstr "Root document function, ..."
-
 #~ msgid "New app layout, animated wizard button, big code refactor, ..."
 #~ msgstr "New app layout, animated wizard button, big code refactor, ..."
-
 #~ msgid "Set margins in wizard, improved icon, ..."
 #~ msgstr "Set margins in wizard, improved icon, ..."
-
 #~ msgid "Initial release"
 #~ msgstr "Initial release"
-
 #~ msgid "No open documents"
 #~ msgstr "Keine Dokumente geöffnet"
-
 #~ msgid "Setzer"
 #~ msgstr "Setzer"
-
 #~ msgid "Cvfosammmm"
 #~ msgstr "Cvfosammmm"
-
 #~ msgid "Greek letter"
 #~ msgstr "Griechischer Buchstabe"
-
 #~ msgid "Verbatim environment, content won't be interpreted as LaTeX."
 #~ msgstr "Verbatim Umgebung, Inhalt wird nicht von LaTeX ausgewertet."
-
 #~ msgid "Include a non-cited item from the bibliography"
 #~ msgstr "Einen nicht-zitierten BibTeX-Eintrag einbinden"
-
 #~ msgid "Include all non-cited items from the bibliography"
 #~ msgstr "Alle nicht-zitierten BibTeX-Einträge einbinden"
-
 #~ msgid "Colored Text"
 #~ msgstr "Farbiger Text"
-
 #~ msgid "Monospaced Text"
 #~ msgstr "Monospace-Text"
-
 #~ msgid "Inline verbatim text that won't be interpreted as LaTeX."
 #~ msgstr "Verbatim Text, der nicht von LaTeX ausgewertet wird."
-
 #~ msgid "Make text 'tiny' within current scope"
 #~ msgstr "Schriftgröße 'tiny'"
-
 #~ msgid "Make text 'scriptsize' within current scope"
 #~ msgstr "Schriftgröße 'scriptsize'"
-
 #~ msgid "Make text 'footnotesize' within current scope"
 #~ msgstr "Schriftgröße 'footnotesize'"
-
 #~ msgid "Make text 'small' within current scope"
 #~ msgstr "Schriftgröße 'small'"
-
 #~ msgid "Make text 'normalsize' within current scope"
 #~ msgstr "Schriftgröße 'normalsize'"
-
 #~ msgid "Make text 'large' within current scope"
 #~ msgstr "Schriftgröße 'large'"
-
 #~ msgid "Make text 'Large' within current scope"
 #~ msgstr "Schriftgröße 'Large'"
-
 #~ msgid "Make text 'LARGE' within current scope"
 #~ msgstr "Schriftgröße 'LARGE'"
-
 #~ msgid "Make text 'huge' within current scope"
 #~ msgstr "Schriftgröße 'huge'"
-
 #~ msgid "Make text 'Huge' within current scope"
 #~ msgstr "Schriftgröße 'Huge'"
-
 #~ msgid "error"
 #~ msgid_plural "errors"
 #~ msgstr[0] "Fehler"
 #~ msgstr[1] "Fehler"
-
 #~ msgid "warning"
 #~ msgid_plural "warnings"
 #~ msgstr[0] "Warnung"
 #~ msgstr[1] "Warnungen"
-
 #~ msgid "badbox"
 #~ msgid_plural "badboxes"
 #~ msgstr[0] "Badbox"
 #~ msgstr[1] "Badboxen"
-
 #~ msgid "occurrence"
 #~ msgid_plural "occurrences"
 #~ msgstr[0] "Treffer"

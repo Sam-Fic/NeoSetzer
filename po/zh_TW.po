@@ -15,7 +15,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: CodeBuddy\n"
 
 #: setzer/dialogs/about/about.py:44
@@ -247,6 +247,7 @@ msgstr "建置成功"
 msgid "Building failed with {amount} error"
 msgid_plural "Building failed with {amount} errors"
 msgstr[0] "建置失敗，有 {amount} 個錯誤"
+msgstr[1] "建置失敗，有 {amount} 個錯誤"
 
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:225
 msgid "no warnings or badboxes"
@@ -257,19 +258,17 @@ msgstr "沒有警告或 badbox"
 msgid "{amount} warning or badbox"
 msgid_plural "{amount} warnings or badboxes"
 msgstr[0] "{amount} 個警告或 badbox"
+msgstr[1] "{amount} 個警告或 badbox"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:66
 msgid "Copy all log entries"
-msgstr ""
-
+msgstr "複製所有日誌項目"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:73
 msgid "Save log to file"
-msgstr ""
-
+msgstr "將日誌儲存至檔案"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:84
 msgid "Filter log entries"
-msgstr ""
-
+msgstr "篩選日誌項目"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:102
 msgid "File:"
 msgstr "檔案："
@@ -307,14 +306,12 @@ msgid "No build log items to show."
 msgstr "沒有可顯示的建置紀錄項目。"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:290
-#, fuzzy
 msgid "Copy to clipboard"
-msgstr "已複製到剪貼簿"
-
+msgstr "複製到剪貼簿"
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
 msgid "Document \"{document}\" has no filename."
-msgstr "文件 »{document}« 沒有檔案名稱。"
+msgstr "文件 「{document}」 沒有檔案名稱。"
 
 #: setzer/dialogs/build_save/build_save.py:36
 msgid ""
@@ -332,17 +329,15 @@ msgstr "立即儲存文件(_S)"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
 msgid "Document \"{document}\" has unsaved changes."
-msgstr "文件 »{document}« 有未儲存的變更。"
+msgstr "文件 「{document}」 有未儲存的變更。"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
 msgid "If you close without saving, these changes will be lost."
 msgstr "如果直接關閉而不儲存，這些變更將會遺失。"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
-#, fuzzy
 msgid "Close without Saving"
-msgstr "不儲存即建置 PDF"
-
+msgstr "不儲存並關閉"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:71
 #, python-brace-format
 msgid "You have unsaved changes in {n} documents."
@@ -370,7 +365,7 @@ msgstr "全部儲存"
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
 msgid "Document \"{document}\" has changed on disk."
-msgstr "文件 »{document}« 在磁碟上已變更。"
+msgstr "文件 「{document}」 在磁碟上已變更。"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
 msgid "Should Setzer reload it now?"
@@ -387,7 +382,7 @@ msgstr "從磁碟重新載入(_R)"
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
 msgid "Document \"{document}\" was deleted from disk or moved."
-msgstr "文件 »{document}« 已從磁碟刪除或移動。"
+msgstr "文件 「{document}」 已從磁碟刪除或移動。"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
@@ -403,10 +398,8 @@ msgid "Keep Open"
 msgstr "保持開啟"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:269
-#, fuzzy
 msgid "Save as template"
-msgstr "使用範本…"
-
+msgstr "另存為範本"
 #: setzer/dialogs/document_wizard/document_wizard.py:270
 msgid "Enter a name for the new template."
 msgstr "請為新範本輸入一個名稱。"
@@ -423,8 +416,7 @@ msgstr "無法繼續"
 
 #: setzer/dialogs/document_wizard/document_wizard.py:322
 msgid "OK"
-msgstr ""
-
+msgstr "確定"
 #: setzer/dialogs/document_wizard/document_wizard.py:492
 msgid "Your name"
 msgstr "您的姓名"
@@ -497,10 +489,8 @@ msgid "_Cancel"
 msgstr "取消(_C)"
 
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:64
-#, fuzzy
 msgid "Save as _Template"
-msgstr "使用範本…"
-
+msgstr "另存為_範本"
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:66
 msgid "_Back"
 msgstr "上一步(_B)"
@@ -646,15 +636,11 @@ msgid "<b>Scrbook:</b>  KOMA-Script replacement for the book class."
 msgstr "<b>Scrbook：</b> book 類別的 KOMA-Script 替代。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:123
-#, fuzzy
 msgid "Templates"
-msgstr "使用範本…"
-
+msgstr "範本"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:125
-#, fuzzy
 msgid "Load template"
-msgstr "使用範本…"
-
+msgstr "載入範本"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:143
 msgid "— None —"
 msgstr "— 無 —"
@@ -792,20 +778,14 @@ msgid "Packages"
 msgstr "套件"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:249
-#, fuzzy
 msgid "Search packages"
 msgstr "搜尋套件"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:252
-#, fuzzy
 msgid "Filter"
-msgstr "篩選器"
-
+msgstr "篩選"
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:263
-#, fuzzy
 msgid "Other packages"
-msgstr "其他宏包"
-
+msgstr "其他套件"
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:265
 msgid "Comma-separated package names to include additionally."
 msgstr "額外包含的套件名稱，以逗號分隔。"
@@ -966,10 +946,8 @@ msgid ""
 msgstr "<b>絕對路徑：</b>指定引入檔案在檔案系統中的絕對位置。"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:35
-#, fuzzy
 msgid "LateX Interpreter is missing."
-msgstr "缺少 LaTeX 解譯器。"
-
+msgstr "缺少 LaTeX 直譯器。"
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
@@ -983,7 +961,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer 設定為使用 »{interpreter}«，但此系統似乎未安裝。\n"
+"Setzer 設定為使用 「{interpreter}」，但此系統似乎未安裝。\n"
 "\n"
 "您可以透過以下方式安裝：\n"
 "• Ubuntu/Debian：sudo apt install texlive-latex-base\n"
@@ -1527,10 +1505,8 @@ msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
 msgstr "建置 .pdf 後自動移除輔助檔案（.log、.dvi 等）。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:291
-#, fuzzy
 msgid "Use Latexmk"
 msgstr "使用 Latexmk"
-
 #: setzer/dialogs/preferences/pages/page_build_system.py:295
 msgid "Auto Build"
 msgstr "自動建置"
@@ -1578,6 +1554,10 @@ msgstr "發生錯誤與警告時。"
 msgid ".. on errors, warnings and badboxes."
 msgstr "發生錯誤、警告與 badbox 時。"
 
+#: setzer/dialogs/preferences/pages/page_build_system.py:334
+msgid ".. never."
+msgstr "從不顯示建置日誌"
+
 #: setzer/dialogs/preferences/pages/page_build_system.py:336
 msgid "Embedded system commands"
 msgstr "內嵌系統命令"
@@ -1607,22 +1587,17 @@ msgstr "完全啟用 \\write18{SHELL COMMAND}"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:362
 msgid "On Startup"
-msgstr ""
-
+msgstr "啟動時"
 #: setzer/dialogs/preferences/pages/page_build_system.py:366
 msgid ""
 "Whether to restore the previous session or start with an empty workspace."
-msgstr ""
-
+msgstr "是否還原先前的作業階段，或以空白工作區啟動。"
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
-#, fuzzy
 msgid "Last session"
-msgstr "載入工作階段"
-
+msgstr "上次的作業階段"
 #: setzer/dialogs/preferences/pages/page_build_system.py:369
 msgid "Empty workspace"
-msgstr ""
-
+msgstr "空白工作區"
 #: setzer/dialogs/preferences/pages/page_editor.py:257
 msgid "Editor"
 msgstr "編輯器"
@@ -2208,7 +2183,7 @@ msgstr "第 {page} 頁，共 {total} 頁"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
 msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
-msgstr "要將所有 »{original}« 取代為 »{replacement}« 嗎？"
+msgstr "要將所有 「{original}」 取代為 「{replacement}」 嗎？"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 msgid "Counting matches… The number of occurrences is still being calculated."
@@ -2219,7 +2194,8 @@ msgstr "正在計算符合項… 出現次數仍在計算中。"
 msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
 "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
-msgstr[0] "正在將 {amount} 處 »{original}« 取代為 »{replacement}«。"
+msgstr[0] "正在將 {amount} 處 「{original}」 取代為 「{replacement}」。"
+msgstr[1] "正在將 {amount} 處 「{original}」 取代為 「{replacement}」。"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:51
 msgid "Do you really want to do this?"
@@ -2233,10 +2209,15 @@ msgstr "是，取代所有出現項目(_Y)"
 msgid "Save document"
 msgstr "儲存文件"
 
-#: setzer/dialogs/save_document/save_document.py:88
+#: setzer/document/document.py:579
 #, python-brace-format
-msgid "Could not save document: {error}"
-msgstr "無法儲存文件：{error}"
+msgid "Save failed. The disk may be full or you may not have permission to write the file: {error}"
+msgstr "保存失敗，可能是磁碟已滿或權限不足：{error}"
+
+#: setzer/dialogs/save_document/save_document.py:85
+#, python-brace-format
+msgid "Save failed. The disk may be full or you may not have permission to write the file."
+msgstr "保存失敗，可能是磁碟已滿或權限不足"
 
 #: setzer/dialogs/save_document/save_document.py:90
 msgid "Retry"
@@ -2271,6 +2252,7 @@ msgstr "建置成功"
 msgid "{count} error"
 msgid_plural "{count} errors"
 msgstr[0] "{count} 個錯誤"
+msgstr[1] "{count} 個錯誤"
 
 #: setzer/document/build_widget/build_widget.py:138
 msgid "Failed"
@@ -2323,12 +2305,10 @@ msgstr "無法開啟連結"
 
 #: setzer/document/preview/preview_controller.py:231
 msgid "Link blocked: this link type is unsafe"
-msgstr ""
-
+msgstr "連結已封鎖：此連結類型不安全"
 #: setzer/document/preview/preview_controller.py:239
 msgid "Open local file from this PDF?"
-msgstr ""
-
+msgstr "從此 PDF 開啟本機檔案？"
 #: setzer/document/preview/preview_controller.py:240
 #, python-brace-format
 msgid ""
@@ -2336,7 +2316,9 @@ msgid ""
 "\n"
 "{uri}"
 msgstr ""
-
+"此連結指向您電腦上的檔案：\n"
+"\n"
+"{uri}"
 #: setzer/document/preview/preview_viewgtk.py:65
 #: setzer/document/preview/preview_viewgtk.py:106
 msgid "PDF build failed, showing previous version"
@@ -2375,22 +2357,21 @@ msgid "Searching…"
 msgstr "搜尋中…"
 
 #: setzer/document/search/search.py:531
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{total} match"
 msgid_plural "{total} matches"
-msgstr[0] "沒有符合項"
-
+msgstr[0] "{total} 個相符項目"
+msgstr[1] "{total} 個相符項目"
 #: setzer/document/search/search.py:539
 #, python-brace-format
 msgid "Replace all {amount} match"
 msgid_plural "Replace all {amount} matches"
 msgstr[0] "取代全部 {amount} 個符合項"
+msgstr[1] "取代全部 {amount} 個符合項"
 
 #: setzer/document/search/search_viewgtk.py:63
-#, fuzzy
 msgid "Search and replace"
-msgstr "在選取範圍中搜尋"
-
+msgstr "搜尋與取代"
 #: setzer/document/search/search_viewgtk.py:97
 msgid "Match case"
 msgstr "區分大小寫"
@@ -2405,8 +2386,7 @@ msgstr "符合整詞"
 
 #: setzer/document/search/search_viewgtk.py:124
 msgid "Preserve case"
-msgstr ""
-
+msgstr "保留大小寫"
 #: setzer/document/search/search_viewgtk.py:133
 msgid "Search in selection"
 msgstr "在選取範圍中搜尋"
@@ -2449,6 +2429,7 @@ msgstr "第 {line} 行，第 {col} 列"
 msgid "{n} line selected"
 msgid_plural "{n} lines selected"
 msgstr[0] "{n} 行已選取"
+msgstr[1] "{n} 行已選取"
 
 #: setzer/document/statusbar/statusbar.py:105
 #, python-brace-format
@@ -2508,10 +2489,8 @@ msgid "Open Documents"
 msgstr "開啟的文件"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:43
-#, fuzzy
 msgid "Search open documents…"
-msgstr "顯示已開啟的文件"
-
+msgstr "搜尋開啟的文件…"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:52
 msgid ""
 "Click on a document in the list below to set it as root. The root document "
@@ -2529,21 +2508,22 @@ msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher.py:365
 msgid "Select Root Document"
-msgstr ""
-
+msgstr "選取根文件"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Set one Document as Root"
 msgstr "將一份文件設為根文件"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:137
+msgid "Set as Root"
+msgstr "設為根文件"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:81
 msgid "Unset Root Document"
 msgstr "取消根文件設定"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:88
-#, fuzzy
 msgid "No matching documents"
-msgstr "沒有最近的文件"
-
+msgstr "沒有相符的文件"
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:167
 msgid "Root document"
 msgstr "根文件"
@@ -2764,15 +2744,11 @@ msgstr "引入 LaTeX 檔案"
 
 #: setzer/popovers/shortcutsbar/document_menu.py:41
 #: setzer/popovers/shortcutsbar/document_menu.py:50
-#, fuzzy
 msgid "Build Interpreter"
-msgstr "LaTeX 解譯器"
-
+msgstr "建置直譯器"
 #: setzer/popovers/shortcutsbar/document_menu.py:42
-#, fuzzy
 msgid "Use Global Default"
-msgstr "重設為預設值"
-
+msgstr "使用全域預設值"
 #: setzer/popovers/shortcutsbar/document_menu.py:57
 msgid "Date Today"
 msgstr "今天日期"
@@ -3077,20 +3053,14 @@ msgid "Auto-build skipped — the document was busy building."
 msgstr "已略過自動建構——文件正忙於建構。"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:41
-#, fuzzy
 msgid "Toggle sidebar (Document Structure / Symbols)"
-msgstr "切換文件結構"
-
+msgstr "切換側邊欄（文件結構 / 符號）"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:60
-#, fuzzy
 msgid "Open recent documents"
-msgstr "沒有最近的文件"
-
+msgstr "開啟最近的文件"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:113
-#, fuzzy
 msgid "Toggle preview panel (PDF Preview / Help)"
-msgstr "切換預覽"
-
+msgstr "切換預覽面板（PDF 預覽 / 說明）"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
 msgid "Welcome to Setzer"
 msgstr "歡迎使用 Setzer"
@@ -3100,15 +3070,14 @@ msgstr "歡迎使用 Setzer"
 msgid "{n} result"
 msgid_plural "{n} results"
 msgstr[0] "{n} 個結果"
+msgstr[1] "{n} 個結果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
 msgid "Home"
-msgstr ""
-
+msgstr "首頁"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
-msgstr ""
-
+msgstr "捲動至頂端"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:76
 msgid "Back"
 msgstr "返回"
@@ -3118,15 +3087,11 @@ msgid "Forward"
 msgstr "前進"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:94
-#, fuzzy
 msgid "Search help documentation"
-msgstr "請輸入關鍵字以搜尋文件。"
-
+msgstr "搜尋說明文件"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:103
-#, fuzzy
 msgid "Switch to PDF Preview"
-msgstr "在預覽中顯示"
-
+msgstr "切換至 PDF 預覽"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:117
 msgid "Search help"
 msgstr "搜尋說明"
@@ -3166,31 +3131,24 @@ msgstr ""
 
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:171
 msgid "Maximum zoom level reached"
-msgstr ""
-
+msgstr "已達最大縮放層級"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:173
 msgid "Minimum zoom level reached"
-msgstr ""
-
+msgstr "已達最小縮放層級"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:188
 msgid "Tip: hold Ctrl and click the preview to jump to the matching source"
-msgstr ""
-
+msgstr "提示：按住 Ctrl 並點擊預覽，即可跳至對應的來源。"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:222
-#, fuzzy
 msgid "of "
 msgstr " / "
-
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:224
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:254
 msgid "No preview"
 msgstr "無預覽"
 
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:57
-#, fuzzy
 msgid "Switch to Help"
-msgstr "搜尋說明"
-
+msgstr "切換至說明"
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:107
 msgid "Set zoom level"
 msgstr "設定縮放等級"
@@ -3200,19 +3158,15 @@ msgid "Match theme colors"
 msgstr "符合主題顏色"
 
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:126
-#, fuzzy
 msgid "Open in external PDF viewer"
-msgstr "外部檢視器"
-
+msgstr "以外部 PDF 檔案檢視器開啟"
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:162
 msgid "Build failed — showing the previous PDF"
 msgstr "建置失敗——顯示先前的 PDF"
 
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:125
-#, fuzzy
 msgid "More options"
-msgstr "選項"
-
+msgstr "更多選項"
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:401
 msgid "Document"
 msgstr "文件"
@@ -3247,18 +3201,13 @@ msgstr "建置紀錄"
 
 #: setzer/workspace/sidebar/document_stats/document_stats.py:463
 msgid "Characters"
-msgstr ""
-
+msgstr "字元"
 #: setzer/workspace/sidebar/document_stats/document_stats.py:463
-#, fuzzy
 msgid "no spaces"
-msgstr "數學空格"
-
+msgstr "不含空格"
 #: setzer/workspace/sidebar/document_stats/document_stats.py:465
-#, fuzzy
 msgid "Lines"
-msgstr "行數："
-
+msgstr "行數"
 #: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:29
 msgid "These counts are updated after the document is saved."
 msgstr "這些計數會在文件儲存後更新。"
@@ -3343,15 +3292,11 @@ msgid "Next section"
 msgstr "下一個章節"
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:170
-#, fuzzy
 msgid "Search document structure"
-msgstr "沒有文件結構"
-
+msgstr "搜尋文件結構"
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:176
-#, fuzzy
 msgid "Switch to Symbols"
-msgstr "其他符號"
-
+msgstr "切換至符號"
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:29
 msgid "No files"
 msgstr "沒有檔案"
@@ -3425,15 +3370,11 @@ msgid "Insert"
 msgstr "插入"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:73
-#, fuzzy
 msgid "Search symbols"
-msgstr "符號"
-
+msgstr "搜尋符號"
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:79
-#, fuzzy
 msgid "Switch to Document Structure"
-msgstr "文件結構"
-
+msgstr "切換至文件結構"
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:104
 msgid "No symbols match your search"
 msgstr "沒有符合搜尋的符號"
@@ -3472,21 +3413,17 @@ msgstr "其他符號"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:198
 msgid "Changed on disk since last opened"
-msgstr ""
-
+msgstr "自上次開啟後已於磁碟上修改"
 #: setzer/workspace/welcome_screen/welcome_screen.py:217
 msgid "Remove from recent list"
 msgstr "從最近清單移除"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:254
 msgid "Unpin"
-msgstr ""
-
+msgstr "取消釘選"
 #: setzer/workspace/welcome_screen/welcome_screen.py:254
-#, fuzzy
 msgid "Pin"
-msgstr "列印"
-
+msgstr "釘選"
 #: setzer/workspace/welcome_screen/welcome_screen.py:285
 msgid "Clear Recent List?"
 msgstr "清除最近清單？"
@@ -3561,13 +3498,11 @@ msgstr "未命名文件 {number}"
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
-msgstr ""
-
+msgstr "作業階段已載入，但無法開啟任何文件（檔案可能已移動或刪除）：{name}"
 #: setzer/workspace/workspace.py:473
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Could not open session: {name}"
-msgstr "無法開啟：{filename}"
-
+msgstr "無法開啟作業階段：{name}"
 #: setzer/workspace/workspace.py:554
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
@@ -3575,100 +3510,72 @@ msgstr "無法儲存工作區狀態：{error}"
 
 #~ msgid "Discard"
 #~ msgstr "丟棄"
-
 #~ msgid "General"
 #~ msgstr "一般"
-
 #~ msgid ""
 #~ "All build system and AI Fix settings will be restored to their default "
 #~ "values. Custom tools and trusted directories will be removed."
 #~ msgstr ""
 #~ "建置系統與 AI Fix 的所有設定都將還原為預設值。自訂工具與受信任目錄將被移"
 #~ "除。"
-
 #~ msgid "AI Fix"
 #~ msgstr "AI 修復"
-
 #~ msgid "Enable AI Fix"
 #~ msgstr "啟用 AI 修復"
-
 #~ msgid "Show \"AI Fix\" buttons in the Build Log dialog"
 #~ msgstr "在建置記錄對話方塊中顯示「AI 修復」按鈕"
-
 #~ msgid "Active agent tool"
 #~ msgstr "目前 Agent 工具"
-
 #~ msgid "Which CLI to invoke when clicking AI Fix"
 #~ msgstr "點按 AI 修復按鈕時呼叫的 CLI"
-
 #~ msgid "Terminal command (optional)"
 #~ msgstr "終端機指令（選用）"
-
 #~ msgid ""
 #~ "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). "
 #~ "Under Flatpak, flatpak-spawn --host is added automatically."
 #~ msgstr ""
 #~ "留空自動偵測（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自"
 #~ "動加入 flatpak-spawn --host。"
-
 #~ msgid "Agent tools"
 #~ msgstr "Agent 工具"
-
 #~ msgid ""
 #~ "Built-in presets cannot be removed. Add a custom tool to integrate other "
 #~ "Agent CLIs."
 #~ msgstr "內建預設無法刪除。加入自訂工具以整合其他 Agent CLI。"
-
 #~ msgid "+ Add custom tool"
 #~ msgstr "+ 加入自訂工具"
-
 #~ msgid "Trusted directories"
 #~ msgstr "受信任目錄"
-
 #~ msgid ""
 #~ "Directories where the preview dialog is skipped. Click delete to revoke "
 #~ "trust for a project."
 #~ msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的信任。"
-
 #~ msgid "(active)"
 #~ msgstr "（目前）"
-
 #~ msgid "built-in"
 #~ msgstr "內建"
-
 #~ msgid "custom"
 #~ msgstr "自訂"
-
 #~ msgid "installed"
 #~ msgstr "已安裝"
-
 #~ msgid "not installed"
 #~ msgstr "未安裝"
-
 #~ msgid "Remove this custom tool"
 #~ msgstr "移除此自訂工具"
-
 #~ msgid "No trusted directories yet"
 #~ msgstr "尚無受信任目錄"
-
 #~ msgid "Check \"Don't ask again\" in the preview dialog to add one."
 #~ msgstr "在預覽對話方塊中勾選「不再詢問」以加入。"
-
 #~ msgid "Remove from trusted list"
 #~ msgstr "從信任清單中移除"
-
 #~ msgid "Add custom tool"
 #~ msgstr "加入自訂工具"
-
 #~ msgid "Tool name (unique)"
 #~ msgstr "工具名稱（唯一）"
-
 #~ msgid "Executable (e.g. aider)"
 #~ msgstr "可執行檔（如 aider）"
-
 #~ msgid "Headed command template"
 #~ msgstr "有頭指令範本"
-
 #~ msgid ""
 #~ "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
 #~ "Example: aider --message {prompt} --no-auto-commits. If left blank or "
@@ -3677,45 +3584,32 @@ msgstr "無法儲存工作區狀態：{error}"
 #~ "以空格分隔的引數。使用 {prompt} / {file} / {cwd} 作為佔位符。例如：aider "
 #~ "--message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示資訊"
 #~ "將複製到剪貼簿。"
-
 #~ msgid "Help home"
 #~ msgstr "說明首頁"
-
 #~ msgid "No results for '{query}'"
 #~ msgstr "沒有「{query}」的結果"
-
 #~ msgid "Copy All"
 #~ msgstr "複製全部"
-
 #~ msgid "Save Log As..."
 #~ msgstr "另存紀錄為..."
-
 #~ msgid "Build .pdf-file from document"
 #~ msgstr "從文件建置 .pdf 檔案"
-
 #~ msgid "Follow system theme"
 #~ msgstr "跟隨系統主題"
-
 #~ msgid "Editor Color Scheme"
 #~ msgstr "編輯器顏色"
-
 #~ msgid ""
 #~ "Color scheme for the LaTeX editor. \"Follow system theme\" matches the "
 #~ "application light/dark mode."
 #~ msgstr ""
 #~ "LaTeX 編輯器的配色方案。「跟隨系統主題」會符合應用程式的亮色/暗色模式。"
-
 #~ msgid "Toggle symbols"
 #~ msgstr "切換符號"
-
 #~ msgid "Toggle preview"
 #~ msgstr "切換預覽"
-
 #~ msgid "Toggle help"
 #~ msgstr "切換說明"
-
 #~ msgid "Page "
 #~ msgstr "第 "
-
 #~ msgid "More"
 #~ msgstr "更多"
