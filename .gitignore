@@ -50,3 +50,5 @@ build
 *.rpm
 *.tar.xz
 AppDir/
+
+*.pdf
