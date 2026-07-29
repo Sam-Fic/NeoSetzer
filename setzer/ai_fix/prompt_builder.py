@@ -37,6 +37,31 @@ CONTEXT_RADIUS = 5
 MAX_SOURCE_CHARS = 8000
 
 
+def resolve_interpreter(document):
+    '''取当前文档实际使用的 LaTeX 解释器（pdflatex / xelatex / lualatex / tectonic）。
+
+    解析优先级：document.build_system.latex_interpreter（每文档覆盖） →
+    全局 preferences['latex_interpreter']。任一环节缺失/异常时回退 'default'。
+    供 AI 自动修复的系统提示词使用，让 Agent 知晓目标引擎（如 fontspec 仅
+    XeLaTeX/LuaLaTeX 可用等语境信息）。
+    '''
+    if document is None:
+        return 'default'
+    build_system = getattr(document, 'build_system', None)
+    if build_system is None:
+        return 'default'
+    try:
+        interpreter = getattr(build_system, 'latex_interpreter', None)
+        if interpreter:
+            return interpreter
+        settings = getattr(build_system, 'settings', None)
+        if settings is not None:
+            return settings.get_value('preferences', 'latex_interpreter')
+    except Exception:
+        pass
+    return 'default'
+
+
 def read_source_context(source_lines, center_line, radius=CONTEXT_RADIUS):
     '''从已拆行的源码列表中取 [center_line-radius, center_line+radius] 区间。
 
@@ -144,7 +169,8 @@ def build_prompt_for_item(document, item):
     source_block = format_context_block(context, filename)
 
     parts = []
-    parts.append('You are fixing a LaTeX build error. Working directory: {}'.format(cwd or '(unsaved)'))
+    interpreter = resolve_interpreter(document)
+    parts.append('You are fixing a LaTeX build error. Working directory: {}. LaTeX engine currently used for this document: {}'.format(cwd or '(unsaved)', interpreter))
     parts.append('')
     parts.append('File: {}'.format(rel_path or '(unknown)'))
     parts.append('{} at line {}: {}'.format(item_type, line_no if line_no and line_no > 0 else '?', description))
@@ -173,7 +199,8 @@ def build_prompt_for_items(document, items):
     cwd = document.get_dirname() if document is not None else ''
 
     parts = []
-    parts.append('You are fixing multiple LaTeX build errors. Working directory: {}'.format(cwd or '(unsaved)'))
+    interpreter = resolve_interpreter(document)
+    parts.append('You are fixing multiple LaTeX build errors. Working directory: {}. LaTeX engine currently used for this document: {}'.format(cwd or '(unsaved)', interpreter))
     parts.append('')
     parts.append('Errors to fix (grouped by file):')
     parts.append('')
