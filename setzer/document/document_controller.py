@@ -286,7 +286,8 @@ class DocumentController(object):
                 self.document.multicursor.clear_all()
 
         self._column_dragging = True
-        self._column_drag_start_iter = self.view.source_view.get_iter_at_location(x, y)
+        # GTK4: get_iter_at_location 返回 (found, iter) 元组，取 [1] 得 TextIter。
+        self._column_drag_start_iter = self.view.source_view.get_iter_at_location(x, y)[1]
         self._column_drag_last_iter = self._column_drag_start_iter
         self._column_drag_last_x = x
         self._column_drag_last_y = y
@@ -302,7 +303,8 @@ class DocumentController(object):
         if abs(dx) < 2 and abs(dy) < 2:
             return
 
-        current_iter = self.view.source_view.get_iter_at_location(x, y)
+        # GTK4: get_iter_at_location 返回 (found, iter) 元组，取 [1] 得 TextIter。
+        current_iter = self.view.source_view.get_iter_at_location(x, y)[1]
         self._column_drag_last_iter = current_iter
         self._column_drag_last_x = x
         self._column_drag_last_y = y
@@ -395,11 +397,11 @@ class DocumentController(object):
 
         # Printable characters: 在所有光标位置插入
         if has_multi:
-            # 检查是否为可打印字符（Gdk.keyval_is_char 返回 unichar or 0）
-            unichar = Gdk.keyval_is_char(keyval)
+            # Gdk.keyval_to_unicode 返回 keyval 对应的 Unicode 码点（int），非字符返回 0。
+            # GTK4 无 keyval_is_char；keyval_to_unicode 同时覆盖大小写与 Shift 修饰。
+            unichar = Gdk.keyval_to_unicode(keyval)
             if unichar and unichar > 0:
                 text = chr(unichar)
-                # 处理 Shift 修饰（keyval_is_char 已考虑）
                 if mc.handle_insert(text):
                     return True
 

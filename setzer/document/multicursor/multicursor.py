@@ -176,7 +176,7 @@ class MultiCursor(object):
         best_idx = -1
         best_dist = tolerance + 1
         for i, (cursor_mark, _) in enumerate(self.cursors):
-            mark_offset = cursor_mark.get_iter().get_offset()
+            mark_offset = self.buffer.get_iter_at_mark(cursor_mark).get_offset()
             dist = abs(mark_offset - offset)
             if dist < best_dist:
                 best_dist = dist
@@ -247,7 +247,7 @@ class MultiCursor(object):
 
         # Process additional cursors
         for cursor_mark, _ in self.cursors:
-            iter_pos = cursor_mark.get_iter()
+            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
             if iter_pos.get_line() > 0:
                 new_iter = self.buffer.get_iter_at_line(iter_pos.get_line() - 1)[1]
                 new_iter.set_line_offset(iter_pos.get_line_offset())
@@ -277,7 +277,7 @@ class MultiCursor(object):
             new_cursors.append(new_iter)
 
         for cursor_mark, _ in self.cursors:
-            iter_pos = cursor_mark.get_iter()
+            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
             if iter_pos.get_line() < line_count - 1:
                 new_iter = self.buffer.get_iter_at_line(iter_pos.get_line() + 1)[1]
                 new_iter.set_line_offset(iter_pos.get_line_offset())
@@ -411,7 +411,7 @@ class MultiCursor(object):
         """Get the iterator for the last (rightmost) cursor."""
         last_iter = self.buffer.get_iter_at_mark(self.buffer.get_insert())
         for cursor_mark, _ in self.cursors:
-            iter_pos = cursor_mark.get_iter()
+            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
             if iter_pos.get_offset() > last_iter.get_offset():
                 last_iter = iter_pos
         return last_iter.copy()
@@ -442,10 +442,10 @@ class MultiCursor(object):
 
             # Additional cursors
             for cursor_mark, anchor_mark in self.cursors:
-                cursor_iter = cursor_mark.get_iter()
+                cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
                 cursor_offset = cursor_iter.get_offset()
                 if anchor_mark:
-                    anchor_iter = anchor_mark.get_iter()
+                    anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
                     anchor_offset = anchor_iter.get_offset()
                     start = min(cursor_offset, anchor_offset)
                     end = max(cursor_offset, anchor_offset)
@@ -510,10 +510,10 @@ class MultiCursor(object):
 
             # Additional cursors
             for cursor_mark, anchor_mark in self.cursors:
-                cursor_iter = cursor_mark.get_iter()
+                cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
                 cursor_offset = cursor_iter.get_offset()
                 if anchor_mark:
-                    anchor_iter = anchor_mark.get_iter()
+                    anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
                     anchor_offset = anchor_iter.get_offset()
                     start = min(cursor_offset, anchor_offset)
                     end = max(cursor_offset, anchor_offset)
@@ -599,19 +599,21 @@ class MultiCursor(object):
         scroll_y = vadj.get_value() if vadj else 0
 
         # Get cursor color from the source view theme
-        style_context = source_view.get_style_context()
-        color = style_context.get_color(Gtk.StateFlags.NORMAL)
-
+        # GTK4: StyleContext.get_color() 不再接受 state 参数。
+        # 优先用 GtkSource.View.get_cursor_color()，失败则回退到前景色。
+        color = None
         try:
             cursor_color = source_view.get_cursor_color()
             if cursor_color:
                 color = cursor_color
         except:
             pass
+        if color is None:
+            color = source_view.get_style_context().get_color()
 
         # Draw additional cursors
         for cursor_mark, anchor_mark in self.cursors:
-            cursor_iter = cursor_mark.get_iter()
+            cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
             cursor_rect = source_view.get_iter_location(cursor_iter)
 
             # Translate from source view coordinates to drawing area coordinates
@@ -649,7 +651,7 @@ class MultiCursor(object):
 
             # Draw selection if any
             if anchor_mark:
-                anchor_iter = anchor_mark.get_iter()
+                anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
                 self._draw_selection(source_view, cr, anchor_iter, cursor_iter,
                                     scale, offset_x, offset_y, scroll_x, scroll_y)
 
@@ -692,13 +694,20 @@ class MultiCursor(object):
     def _draw_selection(self, source_view, cr, start_iter, end_iter, scale,
                         offset_x, offset_y, scroll_x, scroll_y):
         """Draw selection highlight for additional cursors."""
-        # Get selection color from source view theme
+        # GTK4: StyleContext.get_background_color() 不再接受 state 参数，
+        # 且多数主题下返回透明（背景由 CSS 管理）。检测 alpha 过低则用固定色。
+        # Gdk.RGBA 无 .parse()（见项目记忆），用直接属性赋值。
+        bg_color = None
         try:
-            bg_color = source_view.get_style_context().get_background_color(
-                Gtk.StateFlags.SELECTED)
+            bg_color = source_view.get_style_context().get_background_color()
         except:
+            pass
+        if bg_color is None or bg_color.alpha < 0.01:
             bg_color = Gdk.RGBA()
-            bg_color.parse('#3584e4')
+            bg_color.red = 0.208
+            bg_color.green = 0.518
+            bg_color.blue = 0.894
+            bg_color.alpha = 1.0
 
         # Make it semi-transparent for additional selections
         alpha = 0.4
@@ -731,17 +740,24 @@ class MultiCursor(object):
             if sel_start.get_offset() >= sel_end.get_offset():
                 continue
 
-            # Get rectangles for this line segment
-            rects = source_view.get_selection_bounds(sel_start, sel_end)
-            if rects:
-                for rect in rects:
-                    x = rect.x - scroll_x + offset_x
-                    y = rect.y - scroll_y + offset_y
-                    width = rect.width
-                    height = rect.height
-
-                    cr.rectangle(x, y, width, height)
-                    cr.fill()
+            # GTK4: Gtk.TextView 无 get_selection_bounds(start, end)。
+            # 用 get_iter_location 计算 sel_start→sel_end 的选区矩形。
+            start_rect = source_view.get_iter_location(sel_start)
+            end_rect = source_view.get_iter_location(sel_end)
+            if end_rect.y > start_rect.y:
+                # sel_end 落在下一行（选区跨行尾）：延伸到本行末
+                le_iter = sel_start.copy()
+                if not le_iter.ends_line():
+                    le_iter.forward_to_line_end()
+                le_rect = source_view.get_iter_location(le_iter)
+                rect_width = le_rect.x - start_rect.x
+            else:
+                rect_width = end_rect.x - start_rect.x
+            if rect_width > 0:
+                cr.rectangle(start_rect.x - scroll_x + offset_x,
+                             start_rect.y - scroll_y + offset_y,
+                             rect_width, start_rect.height)
+                cr.fill()
 
     def _add_selection_tag(self, start_iter, end_iter):
         """Add a TextTag for visual selection highlight."""
@@ -769,8 +785,8 @@ class MultiCursor(object):
 
         result = []
         for cursor_mark, anchor_mark in self.cursors:
-            cursor_iter = cursor_mark.get_iter() if cursor_mark else None
-            anchor_iter = anchor_mark.get_iter() if anchor_mark else None
+            cursor_iter = self.buffer.get_iter_at_mark(cursor_mark) if cursor_mark else None
+            anchor_iter = self.buffer.get_iter_at_mark(anchor_mark) if anchor_mark else None
 
             if cursor_iter and anchor_iter:
                 line_num = cursor_iter.get_line()
