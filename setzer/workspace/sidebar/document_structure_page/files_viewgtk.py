@@ -22,6 +22,7 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 import os.path
 
 import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+from setzer.app.service_locator import ServiceLocator
 
 
 class FilesSectionView(structure_widget.StructureWidget):
@@ -33,6 +34,8 @@ class FilesSectionView(structure_widget.StructureWidget):
             _('No files'),
             _('The main document is always shown. Add \\input{...} or \\include{...} to include other files.')
         )
+
+        self._register_context_actions()
 
     def populate(self):
         # 签名 = id(document) + 主文件名 + 各 include 文件名元组。
@@ -117,6 +120,48 @@ class FilesSectionView(structure_widget.StructureWidget):
             document = workspace.get_document_by_filename(filename)
         self._show_context_menu(row, kind, document, filename, x, y)
 
+    def _register_context_actions(self):
+        '''在 main_window 上注册带 win. 前缀的上下文 action（带文件名 target）。
+
+        把 action 注册到窗口而非 PopoverMenu，可避免 Gtk.PopoverMenu 基于
+        menu model 渲染的菜单项在点击时无法解析到 action group 的问题。
+        '''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        if main_window.lookup_action('file-ctx-open-folder') is not None:
+            return  # 已经注册过
+
+        def add(name, callback, param_type=None):
+            action = Gio.SimpleAction.new(name, param_type)
+            action.connect('activate', callback)
+            main_window.add_action(action)
+
+        add('file-ctx-open-folder', self._on_file_ctx_open_folder, GLib.VariantType('s'))
+        add('file-ctx-save-as', self._on_file_ctx_save_as, GLib.VariantType('s'))
+        add('file-ctx-set-root', self._on_file_ctx_set_root, GLib.VariantType('s'))
+        add('file-ctx-unset-root', self._on_file_ctx_unset_root)
+        add('file-ctx-close', self._on_file_ctx_close, GLib.VariantType('s'))
+
+    def _on_file_ctx_open_folder(self, action, parameter):
+        self._open_containing_folder(parameter.get_string())
+
+    def _on_file_ctx_save_as(self, action, parameter):
+        workspace = self.model.data_provider.workspace
+        document = workspace.get_document_by_filename(parameter.get_string())
+        self._save_document_as(document)
+
+    def _on_file_ctx_set_root(self, action, parameter):
+        self._set_as_root(None, parameter.get_string())
+
+    def _on_file_ctx_unset_root(self, action, parameter):
+        self._unset_root()
+
+    def _on_file_ctx_close(self, action, parameter):
+        workspace = self.model.data_provider.workspace
+        document = workspace.get_document_by_filename(parameter.get_string())
+        self._close_document(document)
+
     def _build_menu_model(self, kind, document, filename):
         workspace = self.model.data_provider.workspace
         menu = Gio.Menu()
@@ -124,53 +169,50 @@ class FilesSectionView(structure_widget.StructureWidget):
         # 文件相关：打开所在文件夹（无路径的未保存文档不显示）
         if filename is not None:
             file_section = Gio.Menu()
-            file_section.append_item(Gio.MenuItem.new(_('Open Containing Folder'), 'file.open-folder'))
+            item = Gio.MenuItem.new(_('Open Containing Folder'), 'win.file-ctx-open-folder')
+            item.set_action_and_target_value('win.file-ctx-open-folder', GLib.Variant('s', filename))
+            file_section.append_item(item)
             menu.append_section(None, file_section)
 
         # 文档相关：另存为 / 主文档设置
         doc_section = Gio.Menu()
         if document is not None:
-            doc_section.append_item(Gio.MenuItem.new(_('Save Document As…'), 'file.save-as'))
+            item = Gio.MenuItem.new(_('Save Document As…'), 'win.file-ctx-save-as')
+            item.set_action_and_target_value('win.file-ctx-save-as', GLib.Variant('s', filename or ''))
+            doc_section.append_item(item)
         if kind == 'main' and document is not None and document == workspace.get_root_document():
-            doc_section.append_item(Gio.MenuItem.new(_('Unset Root Document'), 'file.unset-root'))
+            item = Gio.MenuItem.new(_('Unset Root Document'), 'win.file-ctx-unset-root')
+            doc_section.append_item(item)
         else:
-            doc_section.append_item(Gio.MenuItem.new(_('Set as Root'), 'file.set-root'))
+            item = Gio.MenuItem.new(_('Set as Root'), 'win.file-ctx-set-root')
+            item.set_action_and_target_value('win.file-ctx-set-root', GLib.Variant('s', filename or ''))
+            doc_section.append_item(item)
         menu.append_section(None, doc_section)
 
         # 关闭（仅对已打开的文档显示）
         if document is not None:
             close_section = Gio.Menu()
-            close_section.append_item(Gio.MenuItem.new(_('Close Document'), 'file.close'))
+            item = Gio.MenuItem.new(_('Close Document'), 'win.file-ctx-close')
+            item.set_action_and_target_value('win.file-ctx-close', GLib.Variant('s', filename or ''))
+            close_section.append_item(item)
             menu.append_section(None, close_section)
 
         return menu
 
-    def _build_action_group(self, kind, document, filename):
-        action_group = Gio.SimpleActionGroup()
-
-        def add_action(name, callback):
-            action = Gio.SimpleAction.new(name, None)
-            action.connect('activate', callback)
-            action_group.add_action(action)
-
-        add_action('open-folder', lambda a, p: self._open_containing_folder(filename))
-        add_action('save-as', lambda a, p: self._save_document_as(document))
-        add_action('set-root', lambda a, p: self._set_as_root(document, filename))
-        add_action('unset-root', lambda a, p: self._unset_root())
-        add_action('close', lambda a, p: self._close_document(document))
-
-        return action_group
-
     def _show_context_menu(self, row, kind, document, filename, x, y):
+        # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
+        # 这里再尝试一次（_register_context_actions 内部幂等）。
+        self._register_context_actions()
+
         menu_model = self._build_menu_model(kind, document, filename)
-        action_group = self._build_action_group(kind, document, filename)
+        if menu_model.get_n_items() == 0:
+            return
 
         popover = Gtk.PopoverMenu()
         popover.set_parent(row)
         popover.set_has_arrow(False)
         popover.set_size_request(288, -1)
         popover.set_menu_model(menu_model)
-        popover.insert_action_group('file', action_group)
 
         popover.set_offset(144, 0)
         rect = Gdk.Rectangle()
@@ -181,17 +223,25 @@ class FilesSectionView(structure_widget.StructureWidget):
         popover.set_pointing_to(rect)
         popover.popup()
 
-        popover.connect('closed', lambda p: p.insert_action_group('file', None))
-
     def _open_containing_folder(self, filename):
         if filename is None:
             return
         folder = os.path.dirname(filename)
+        if not folder:
+            return
         try:
             folder_uri = GLib.filename_to_uri(folder)
         except Exception:
             return
-        Gio.AppInfo.launch_default_for_uri_async(folder_uri, None, None, None, None)
+        # 目录 URI 以 '/' 结尾更稳妥，部分文件管理器对非结尾斜杠的目录 URI 处理不一致。
+        if not folder_uri.endswith('/'):
+            folder_uri += '/'
+        # launch_default_for_uri_async(..., None, None, None, None) 在本环境下静默失败，
+        # 改用同步版（与预览面板/编译失败对话框一致），失败时不崩溃。
+        try:
+            Gio.AppInfo.launch_default_for_uri(folder_uri)
+        except Exception:
+            pass
 
     def _save_document_as(self, document):
         if document is None:

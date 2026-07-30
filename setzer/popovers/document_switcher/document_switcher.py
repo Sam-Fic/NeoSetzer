@@ -119,11 +119,21 @@ class DocumentSwitcher(Observable):
         if not filename:
             return
         folder = os.path.dirname(filename)
+        if not folder:
+            return
         try:
             folder_uri = GLib.filename_to_uri(folder)
         except Exception:
             return
-        Gio.AppInfo.launch_default_for_uri_async(folder_uri, None, None, None, None)
+        # 目录 URI 以 '/' 结尾更稳妥，部分文件管理器对非结尾斜杠的目录 URI 处理不一致。
+        if not folder_uri.endswith('/'):
+            folder_uri += '/'
+        # launch_default_for_uri_async(..., None, None, None, None) 在本环境下静默失败，
+        # 改用同步版（与预览面板/编译失败对话框一致），失败时不崩溃。
+        try:
+            Gio.AppInfo.launch_default_for_uri(folder_uri)
+        except Exception:
+            pass
 
     def _on_close_others(self, action, parameter):
         keep_filename = parameter.get_string()
