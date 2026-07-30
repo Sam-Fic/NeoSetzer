@@ -108,14 +108,18 @@ class BracketCompletion(object):
             if keyval == _KEYVAL_DOLLAR:
                 return self.bracket_selection('$')
         else:
+            # $ 无独立开/闭键，需先判定“光标后已存在自动补全的 $”再决定跳过还是开启
+            if keyval == _KEYVAL_DOLLAR:
+                if self.handle_autoclosing_bracket_overwrite('$'):
+                    return True
+                return self.autoclose_brackets('$')
+
             if keyval == _KEYVAL_BRACKETLEFT:
                 return self.autoclose_brackets('[')
             if keyval == _KEYVAL_BRACELEFT:
                 return self.autoclose_brackets('{')
             if keyval == _KEYVAL_PARENLEFT:
                 return self.autoclose_brackets('(')
-            if keyval == _KEYVAL_DOLLAR:
-                return self.autoclose_brackets('$')
 
             if keyval == _KEYVAL_BRACKETRIGHT:
                 return self.handle_autoclosing_bracket_overwrite(']')
@@ -125,8 +129,6 @@ class BracketCompletion(object):
                 return self.handle_autoclosing_bracket_overwrite(')')
             if keyval == _KEYVAL_BACKSLASH:
                 return self.handle_autoclosing_bracket_overwrite('\\')
-            if keyval == _KEYVAL_DOLLAR:
-                return self.handle_autoclosing_bracket_overwrite('$')
 
         return False
 
