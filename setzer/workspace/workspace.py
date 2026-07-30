@@ -165,6 +165,10 @@ class Workspace(Observable):
             self.open_latex_documents.append(document)
         DocumentSettings.load_document_state(document)
         self.add_change_code('new_document', document)
+        # 新打开的 LaTeX 文档若已有根文档日志（如会话恢复后），立即同步其
+        # 错误/警告高亮，避免要等下一次编译才显示。
+        if document.is_latex_document():
+            document.update_build_diagnostics()
         self.update_recently_opened_document(document.get_filename(), notify=True)
         # 刷新 LaTeXDB 的 label/bibitem 数据库（事件驱动，替代原 3 秒轮询）。
         # 去抖：会话恢复连续打开 N 个文档时，N 次 schedule 仅触发 1 次
@@ -838,6 +842,13 @@ class Workspace(Observable):
                 self.update_preview_visibility(document)
             self.add_change_code('root_state_change', 'one_document')
             self.set_build_log()
+            # 根文档切换后，重新分发编译诊断高亮（例如会话恢复后根文档已带日志）。
+            self.distribute_build_diagnostics()
+
+    def distribute_build_diagnostics(self):
+        '''把所有打开的 LaTeX 文档的诊断高亮对齐到根文档当前编译日志。'''
+        for document in self.open_latex_documents:
+            document.update_build_diagnostics()
 
     def unset_root_document(self):
         for document in self.open_latex_documents:

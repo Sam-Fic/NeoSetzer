@@ -41,6 +41,7 @@ import setzer.document.bracket_completion.bracket_completion as bracket_completi
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
 import setzer.document.autocomplete.autocomplete as autocomplete
 import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_highlight
+import setzer.document.build_diagnostics.build_diagnostics as build_diagnostics
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
@@ -116,6 +117,7 @@ class Document(Observable):
             self.begin_end_highlight = begin_end_highlight.BeginEndHighlight(self)
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
+        self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
         self.multicursor = multicursor.MultiCursor(self)
@@ -335,7 +337,37 @@ class Document(Observable):
 
     def get_filename(self):
         return self.filename
-        
+
+    def update_build_diagnostics(self):
+        '''从根文档的编译日志里挑出属于本文件路径的错误/警告行号，
+        驱动编辑器 gutter 色条与 source buffer 整行高亮，并保留行内描述
+        供悬停提示使用。'''
+        # line_number(1-based) -> [description, ...]
+        error_map = dict()
+        warning_map = dict()
+
+        source = None
+        workspace = ServiceLocator.get_workspace()
+        if workspace is not None and workspace.root_document is not None and \
+                workspace.root_document.build_system is not None:
+            source = workspace.root_document.build_system.build_log_data['items']
+        elif self.build_system is not None:
+            source = self.build_system.build_log_data['items']
+
+        if source:
+            for item in source:
+                type_name, stage, filename, line_number, description = item
+                if line_number < 1:
+                    continue
+                if self.filename is None or filename != self.filename:
+                    continue
+                if type_name == 'Error':
+                    error_map.setdefault(line_number, list()).append(description)
+                elif type_name == 'Warning':
+                    warning_map.setdefault(line_number, list()).append(description)
+
+        self.build_diagnostics.set_diagnostics(error_map, warning_map)
+
     def get_dirname(self):
         if self.filename != None:
             return os.path.dirname(self.filename)

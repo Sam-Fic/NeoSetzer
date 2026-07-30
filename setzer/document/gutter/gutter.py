@@ -112,6 +112,7 @@ class Gutter(object):
         self.document.connect('cursor_position_changed', self.on_cursor_change)
         self.document.code_folding.connect('folding_state_changed', self.on_folding_state_changed)
         self.document.bookmarks.connect('bookmarks_changed', self.on_bookmarks_changed)
+        self.document.connect('build_diagnostics_changed', self.on_build_diagnostics_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('changed', self.on_adjustment_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
         self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
@@ -132,6 +133,42 @@ class Gutter(object):
         event_controller.connect('motion', self.on_hover)
         event_controller.connect('leave', self.on_leave)
         self.drawing_area.add_controller(event_controller)
+
+        # 悬停诊断行（gutter 色条或整行红/琥珀背景）时显示错误/警告详情。
+        # gutter 是覆盖在 source_view 之上的 DrawingArea，只覆盖左侧窄条，
+        # 因此两个 widget 都要接 query-tooltip 才能覆盖「标红处」的全部范围。
+        self.drawing_area.set_has_tooltip(True)
+        self.drawing_area.connect('query-tooltip', self.on_query_tooltip)
+        self.source_view.set_has_tooltip(True)
+        self.source_view.connect('query-tooltip', self.on_query_tooltip)
+
+    def on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
+        '''鼠标悬停诊断行时返回该行的错误/警告描述文本。'''
+        # gutter 上的 (x, y) 落在左侧窄条，x 对定位行无用：用 source_view
+        # 把 (0, y) 映射到该行文本，y 与文本区共享同一竖直坐标系。
+        if widget is self.drawing_area:
+            found, text_iter = self.source_view.get_iter_at_location(0, y)
+        else:
+            found, text_iter = self.source_view.get_iter_at_location(x, y)
+        if not found:
+            return False
+
+        line = text_iter.get_line() + 1
+        bd = self.document.build_diagnostics
+        error_msgs = bd.error_messages.get(line)
+        warning_msgs = bd.warning_messages.get(line)
+        if error_msgs is None and warning_msgs is None:
+            return False
+
+        # 同行既有错误又有警告时，两类内容一并列出（错误在前、警告在后），
+        # 即便编辑器/gutter 因「错误优先」只显红色，气泡也不丢失警告信息。
+        parts = []
+        if error_msgs:
+            parts.append('Error:\n' + '\n'.join(error_msgs))
+        if warning_msgs:
+            parts.append('Warning:\n' + '\n'.join(warning_msgs))
+        tooltip.set_text('\n\n'.join(parts))
+        return True
 
     def shutdown(self):
         """文档关闭时由 Document.shutdown 调用。断开 settings 单例信号连接、
@@ -195,6 +232,9 @@ class Gutter(object):
         self._schedule_refresh()
 
     def on_bookmarks_changed(self, bookmarks):
+        self._schedule_refresh()
+
+    def on_build_diagnostics_changed(self, document):
         self._schedule_refresh()
 
     def _schedule_refresh(self):
@@ -528,6 +568,29 @@ class Gutter(object):
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
 
         self.draw_bookmark(ctx, line, offset, line_height)
+
+        # 编译诊断色条（错误强制红、警告琥珀色）绘制在最上层、行号左缘，
+        # 不跟随强调色。放在最后以避免被 current-line 背景填充覆盖。
+        self.draw_build_diagnostics(ctx, line)
+
+    def draw_build_diagnostics(self, ctx, line):
+        error_lines = self.document.build_diagnostics.error_lines
+        warning_lines = self.document.build_diagnostics.warning_lines
+        if (line + 1) in error_lines:
+            color = self.document.build_diagnostics.ERROR_COLOR
+        elif (line + 1) in warning_lines:
+            color = self.document.build_diagnostics.WARNING_COLOR
+        else:
+            return
+
+        # 用整条逻辑行的 slot 高度（与 current-line 高亮一致），覆盖自动换行的续行。
+        found, line_start_iter = self.source_buffer.get_iter_at_line(line)
+        yrange = self.source_view.get_line_yrange(line_start_iter)
+        slot_top = yrange.y - self.adjustment.get_value()
+        bar_height = yrange.height
+        ctx.rectangle(0, slot_top, 3, bar_height)
+        Gdk.cairo_set_source_rgba(ctx, color)
+        ctx.fill()
 
     def draw_line_number(self, ctx, line, is_current, offset, line_height):
         fg, bg = self._get_scheme_colors()

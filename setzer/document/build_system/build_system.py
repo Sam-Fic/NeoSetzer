@@ -19,7 +19,7 @@ import gi
 from gi.repository import GObject, GLib, Adw
 
 import threading, queue
-import time, re, difflib, unicodedata
+import time, re, difflib, unicodedata, os
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -72,6 +72,10 @@ class BuildSystem(Observable):
         self.update_can_sync()
 
         self.build_log_data = {'items': list(), 'error_count': 0, 'warning_count': 0, 'badbox_count': 0}
+
+        # 构建时刻 .tex 文件的 mtime，用于会话恢复时判断诊断行号是否仍有效：
+        # 若文件自该次构建后未改动，则恢复高亮；否则行号可能错位，留待下次编译重建。
+        self.build_log_mtime = None
 
         self.builders = dict()
         self.builders['build_latex'] = builder_build_latex.BuilderBuildLaTeX()
@@ -182,6 +186,20 @@ class BuildSystem(Observable):
                     build_log_items.append((type_name, stage, filename, item[1], item[2]))
 
         self.build_log_data = {'items': build_log_items, 'error_count': error_count, 'warning_count': warning_count, 'badbox_count': badbox_count}
+
+        # 记录本次构建对应的 .tex 文件 mtime，供会话恢复时校验诊断行号新鲜度。
+        try:
+            self.build_log_mtime = os.path.getmtime(self.document.filename)
+        except (OSError, TypeError):
+            self.build_log_mtime = None
+
+        # 把解析到的错误/警告行号分发到各打开文档，驱动编辑器 gutter 色条
+        # 与 source buffer 整行高亮，无需切到 build log 即可知道哪行出错。
+        # set_build_log_items 经 GLib.idle_add 在主线程执行，此处操作 GUI 安全。
+        workspace = ServiceLocator.get_workspace()
+        if workspace is not None:
+            for document in workspace.open_latex_documents:
+                document.update_build_diagnostics()
 
     def invalidate_build_log(self):
         self.add_change_code('build_log_update')

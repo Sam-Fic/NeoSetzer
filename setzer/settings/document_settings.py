@@ -140,6 +140,25 @@ class DocumentSettings():
         # save_date 可能为 None（极端情况：文档状态在文件已被删除后保存）。
         # None <= number 在 Python 3 中抛 TypeError，用 is None 守卫跳过比较，
         # 直接恢复其余状态（折叠区域等不依赖 save_date）。
+        # —— 诊断高亮：独立于 save_date 守卫，按「编译时刻的 .tex mtime」判断新鲜度 ——
+        # 只要 .tex 自该次构建后未被改动，就恢复错误/警告行号并重绘高亮，实现与编译
+        # 日志本体一起持久化；文件若已改动则行号可能错位，跳过以免误导，等下次编译重建。
+        build_log_mtime = document_data.get('build_log_mtime')
+        try:
+            tex_mtime = os.stat(document.filename).st_mtime
+        except OSError:
+            tex_mtime = None
+        if (build_log_mtime is not None and tex_mtime is not None
+                and abs(build_log_mtime - tex_mtime) <= 0.001):
+            document.build_system.build_log_data = document_data['build_log_data']
+            document.build_system.document_has_been_built = document_data['has_been_built']
+            document.build_system.build_time = document_data['build_time']
+            document.build_system.latex_interpreter = document_data.get('latex_interpreter')
+            document.build_system.has_synctex_file = document_data['has_synctex_file']
+            document.build_system.build_log_mtime = build_log_mtime
+            document.build_system.update_can_sync()
+
+        # save_date 守卫：文件自状态保存后被改动则跳过位置相关状态（折叠/预览）。
         if document_data.get('save_date') is not None:
             try:
                 if document_data['save_date'] <= os.stat(document.filename).st_mtime - 0.001: return
@@ -147,12 +166,6 @@ class DocumentSettings():
                 pass
 
         document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
-        document.build_system.build_log_data = document_data['build_log_data']
-        document.build_system.document_has_been_built = document_data['has_been_built']
-        document.build_system.build_time = document_data['build_time']
-        document.build_system.latex_interpreter = document_data.get('latex_interpreter')
-        document.build_system.has_synctex_file = document_data['has_synctex_file']
-        document.build_system.update_can_sync()
 
         pdf_filename = document_data['pdf_filename']
         pdf_date = document_data['pdf_date']
@@ -230,6 +243,7 @@ class DocumentSettings():
         document_data['build_time'] = document.build_system.build_time
         document_data['latex_interpreter'] = document.build_system.latex_interpreter
         document_data['has_synctex_file'] = document.build_system.has_synctex_file
+        document_data['build_log_mtime'] = document.build_system.build_log_mtime
 
         # 保存 per-document 偏好覆盖。空 dict 不写入以减小文件体积。
         overrides = getattr(document, '_per_document_overrides', {})
