@@ -17,9 +17,16 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 from setzer.app.color_manager import ColorManager
+
+
+# begin/end 高亮底色的 alpha。Adwaita 主题中 current-line 高亮 alpha
+# 约 0.04-0.10(浅灰极淡),accent_color 全不透明(1.0)又太浓。0.20 在两
+# 者之间——比行高亮明显可见,但远低于完全不透明,符合"比行高亮浓厚一点
+# 点"的要求。若想再淡/再浓,改这个常量即可。
+_BEGIN_END_HIGHLIGHT_ALPHA = 0.20
 
 
 class BeginEndHighlight(object):
@@ -49,7 +56,11 @@ class BeginEndHighlight(object):
         # One persistent tag reused across updates. High priority so the
         # background is drawn on top of syntax highlighting.
         self.tag = self.source_buffer.create_tag('begin_end_match')
-        color = ColorManager.get_ui_color('highlight_begin_end_textview')
+        # get_ui_color 返回缓存对象的**引用**(非副本),改它会污染缓存影响
+        # 其他 ~20 处调用者。先拷一份再改 alpha。
+        accent = ColorManager.get_ui_color('highlight_begin_end_textview')
+        color = Gdk.RGBA(red=accent.red, green=accent.green, blue=accent.blue,
+                         alpha=_BEGIN_END_HIGHLIGHT_ALPHA)
         self.tag.props.background_full_height = True
         self.tag.props.background_rgba = color
         self.tag.set_priority(self.source_buffer.get_tag_table().get_size() - 1)
