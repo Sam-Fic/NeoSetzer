@@ -554,6 +554,7 @@ class DocumentController(object):
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
                 self._schedule_zoom_persist()
+                self._refresh_zoom_indicators()
                 self.zoom_threshold = 0
             elif self.zoom_threshold >= 1:
                 font_desc = Pango.FontDescription.from_string(FontManager.font_string)
@@ -561,6 +562,7 @@ class DocumentController(object):
                 FontManager.font_string = font_desc.to_string()
                 FontManager.propagate_font_setting()
                 self._schedule_zoom_persist()
+                self._refresh_zoom_indicators()
                 self.zoom_threshold = 0
             return True
         return False
@@ -574,11 +576,19 @@ class DocumentController(object):
             GLib.Source.remove(self._zoom_persist_timeout_id)
         self._zoom_persist_timeout_id = GLib.timeout_add(500, self._persist_zoom)
 
+    def _refresh_zoom_indicators(self):
+        '''Ctrl+滚轮缩放后，刷新所有显示的缩放百分比（状态栏 + 右键菜单按钮）。
+        zoom_level 已由 propagate_font_setting 更新，这里复用 workspace 动作里
+        统一的刷新逻辑。'''
+        workspace = ServiceLocator.get_workspace()
+        if workspace is not None:
+            workspace.actions._update_zoom_indicators()
+
     def _persist_zoom(self):
         self._zoom_persist_timeout_id = None
         settings = ServiceLocator.get_settings()
-        settings.set_value('preferences', 'font_string', FontManager.font_string)
-        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        # 仅持久化缩放倍率到独立设置项；不再把缩放后的字号写回 settings.font_string
+        # （那是干净基准，写入会导致 zoom_level 分母被污染、百分比被锁死）。
         settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
         FontManager.saved_zoom_level = FontManager.zoom_level
         return False

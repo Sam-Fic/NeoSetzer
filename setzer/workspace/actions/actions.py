@@ -1085,36 +1085,45 @@ class Actions(object):
         font_desc.set_size(min(font_desc.get_size() * 1.1, 24 * Pango.SCALE))
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
-        self.settings.set_value('preferences', 'font_string', FontManager.font_string)
-        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        # 仅持久化缩放倍率到独立设置项；不要改写 settings.font_string（那是干净基准，
+        # 一旦写入缩放后的字号，zoom_level 的分母会被污染，导致百分比被锁死）。
         self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
         FontManager.saved_zoom_level = FontManager.zoom_level
-        self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
-        self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
+        self._update_zoom_indicators()
 
     def zoom_out(self, action=None, parameter=''):
         font_desc = Pango.FontDescription.from_string(FontManager.font_string)
         font_desc.set_size(max(font_desc.get_size() / 1.1, 6 * Pango.SCALE))
         FontManager.font_string = font_desc.to_string()
         FontManager.propagate_font_setting()
-        self.settings.set_value('preferences', 'font_string', FontManager.font_string)
-        # 同时保存缩放倍率到独立设置项，使 system font 模式下也能持久化缩放偏好
+        # 仅持久化缩放倍率到独立设置项；不要改写 settings.font_string（干净基准）。
         self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
         FontManager.saved_zoom_level = FontManager.zoom_level
-        self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
-        self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
+        self._update_zoom_indicators()
 
     def reset_zoom(self, action=None, parameter=''):
-        if self.settings.get_value('preferences', 'use_system_font'):
-            FontManager.font_string = FontManager.default_font_string
-        else:
-            FontManager.font_string = self.settings.get_value('preferences', 'font_string')
+        # 重置到干净基准字号（100%），不牵连 settings.font_string。
+        FontManager.font_string = FontManager.base_font_string
+        FontManager.zoom_level = 1.0
         FontManager.propagate_font_setting()
         # 重置缩放倍率为 1.0，同时保存到独立设置项
         self.settings.set_value('preferences', 'editor_font_zoom_level', 1.0)
         FontManager.saved_zoom_level = 1.0
-        self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label("{:.0%}".format(FontManager.zoom_level))
-        self.workspace.context_menu.reset_zoom_button_pointer.set_label("{:.0%}".format(FontManager.zoom_level))
+        self._update_zoom_indicators()
+
+    def _update_zoom_indicators(self):
+        '''缩放是全局设置，所有文档共享同一倍率。刷新右键菜单的缩放按钮标签，
+        以及每个已打开文档状态栏中的缩放百分比标签。'''
+        zoom_label = "{:.0%}".format(FontManager.zoom_level)
+        try:
+            self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label(zoom_label)
+            self.workspace.context_menu.reset_zoom_button_pointer.set_label(zoom_label)
+        except AttributeError:
+            pass
+        for document in self.workspace.open_documents:
+            statusbar = getattr(document, 'statusbar', None)
+            if statusbar is not None:
+                statusbar.update_zoom_field()
 
     def preview_set_zoom_level(self, action=None, parameter=None):
         if parameter is None: return

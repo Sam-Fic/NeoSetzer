@@ -52,10 +52,14 @@ class StatusBarView(Gtk.Box):
         self.indent_label = Gtk.Label(label='')
         self.labels_count_label = Gtk.Label(label='')
         self.todos_count_label = Gtk.Label(label='')
+        # 编辑器缩放指示器：缩放是全局（FontManager 类级）设置，所有文档共享，
+        # 故每个文档状态栏都显示同一百分比，在缩放变化时由 actions 统一刷新。
+        self.zoom_label = Gtk.Label(label='')
 
         for label in (self.line_col_label, self.language_label,
                       self.encoding_label, self.indent_label,
-                      self.labels_count_label, self.todos_count_label):
+                      self.labels_count_label, self.todos_count_label,
+                      self.zoom_label):
             label.add_css_class('caption')
             label.add_css_class('dim-label')
             self.info_box.append(label)

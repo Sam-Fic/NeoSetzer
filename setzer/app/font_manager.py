@@ -22,14 +22,16 @@ from gi.repository import Gtk
 
 import json
 
-from setzer.app.service_locator import ServiceLocator
-
 
 class FontManager():
 
     main_window = None
     default_font_string = None
     font_string = None
+    # 干净的基准字号（不含缩放）：在 workspace_presenter.update_font 中设置为
+    # 用户偏好或系统默认，永不被 zoom in/out/reset 污染。zoom_level 以此为准计算，
+    # 因此能真实反映累计缩放倍率，而非被「缩放后又写回 settings.font_string」所破坏。
+    base_font_string = None
     zoom_level = 1.0
     # 保存的编辑器字号缩放倍率：1.0 = 默认。与 font_string 分离，使 system font 模式
     # 下的缩放偏好也能跨重启持久化。
@@ -52,6 +54,7 @@ class FontManager():
 
         FontManager.default_font_string = 'monospace 11'
         FontManager.font_string = 'monospace 11'
+        FontManager.base_font_string = 'monospace 11'
         FontManager._font_desc = None
 
     def propagate_font_setting():
@@ -73,21 +76,15 @@ class FontManager():
                 'listbox.monospace row, listbox.monospace row label { font-size: ' + str(font_size) + 'pt; font-family: ' + quoted_family + '; }')
         FontManager.main_window.css_provider_font_size.load_from_string(data)
 
-        settings = ServiceLocator.get_settings()
-        if settings.get_value('preferences', 'use_system_font'):
-            font_string = FontManager.default_font_string
-        else:
-            font_string = settings.get_value('preferences', 'font_string')
-        font_desc = Pango.FontDescription.from_string(font_string)
-        # zoom_level = 当前（含缩放）字号 / 基准（无缩放）字号。
-        # 注意此处两个 font_string 是不同变量：
-        #   - FontManager.font_string（类属性，第 57 行用过）：含缩放的当前字号，
-        #     由 zoom in/out/reset 修改；FontManager.get_font_desc() 返回的
-        #     _font_desc 缓存即基于它，故分子是「缩放后字号」。
-        #   - font_string（局部变量，第 75-77 行赋值）：基准字号（系统默认或
-        #     用户偏好），不含缩放；font_desc 基于它，故分母是「基准字号」。
-        # 两者命名相同但作用域不同，勿混淆——局部 font_string 不会改类属性。
-        FontManager.zoom_level = FontManager.get_font_desc().get_size() / font_desc.get_size()
+        # zoom_level = 当前（含缩放）字号 / 干净基准字号。
+        # 分子：FontManager.get_font_desc()（基于 FontManager.font_string，含缩放）。
+        # 分母：FontManager.base_font_string（在 update_font 中设置为用户偏好或系统
+        #       默认，永不被缩放动作改写），代表「无缩放」时的基准字号。
+        # 以干净基准为准，可正确反映累计缩放；旧实现用 settings.font_string 作分母，
+        # 而 zoom 动作会把缩放后的字号写回 settings.font_string，导致分母始终等于上一
+        # 步缩放值，缩放百分比被锁死（见 issue：显示一直保持 100%/卡在某一值）。
+        base_desc = Pango.FontDescription.from_string(FontManager.base_font_string)
+        FontManager.zoom_level = FontManager.get_font_desc().get_size() / base_desc.get_size()
 
     def get_char_width(text_view, char='A'):
         context = text_view.get_pango_context()

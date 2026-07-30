@@ -286,6 +286,9 @@ class WorkspacePresenter(object):
             base_font_string = FontManager.default_font_string
         else:
             base_font_string = self.settings.get_value('preferences', 'font_string')
+        # 记录干净基准字号（不含缩放），供 FontManager 计算缩放百分比使用。
+        # 该值只在字体偏好变化时经此处更新，缩放动作不会改写它。
+        FontManager.base_font_string = base_font_string
         # 加载保存的缩放倍率：默认 1.0（无缩放）。应用到基准字号上得到最终字号。
         # 这样即使 use_system_font=True，用户的缩放偏好也能跨重启保持。
         saved_zoom = self.settings.get_value('preferences', 'editor_font_zoom_level')
