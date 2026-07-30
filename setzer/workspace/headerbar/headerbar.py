@@ -80,6 +80,9 @@ class Headerbar(object):
         if initial_doc is not None and initial_doc.is_latex_document():
             self._build_state_handler_id = initial_doc.build_system.connect('build_state', self.on_build_state)
             self._build_state_doc = initial_doc
+            # 启动时若已有活动文档，按其当前编译结果初始化错误样式
+            # （例如会话恢复了一个上次编译报错的文档），避免延后到下次构建才同步。
+            self._refresh_build_log_error_style(initial_doc)
         main_window = ServiceLocator.get_main_window()
         main_window.connect('notify::current-breakpoint', self._on_breakpoint_change)
         # 同步初始状态（窗口启动时可能已在窄窗，breakpoint 已 apply）
@@ -115,15 +118,19 @@ class Headerbar(object):
             self._build_state_doc = document
         else:
             self._build_state_doc = None
+        # 切换文档后立刻按新文档当前的编译结果刷新错误样式。
+        # 关键修复：切换到无 error 的文档时，按钮必须退出红色状态，
+        # 而不能残留上一个文档（曾有 error）的红色样式——因为切换文档本身
+        # 不会触发 build_state 信号，仅靠 on_build_state 无法纠正残留态。
+        self._refresh_build_log_error_style(document)
 
     def on_new_inactive_document(self, workspace, document):
         document.disconnect('filename_change', self.on_name_change)
         document.disconnect('displayname_change', self.on_name_change)
         document.disconnect('modified_changed', self.on_modified_changed)
-        # 注意：与 shortcutsbar 保持一致，不在这里清 build_log_toggle 错误样式。
-        # 错误样式只在「最后一个文档被移除」或「构建变为非 error」时清除——这样
-        # 切换文档时按钮仍维持红/非红状态，符合 shortcutsbar 的既有视觉行为。
-        # build_state 监听由 on_new_active_document 统一挂接新文档时断开旧文档。
+        # 错误样式不在「文档变为非活动」时清除，而是在 on_new_active_document
+        # 中按新活动文档的实际编译结果统一刷新（见 _refresh_build_log_error_style）。
+        # build_state 监听由 on_new_active_document 在挂接新文档时断开旧文档。
 
     def on_root_state_change(self, workspace, state):
         self.set_build_button_state()
@@ -274,6 +281,19 @@ class Headerbar(object):
 
     def _clear_build_log_toggle_error_style(self):
         self.view.build_log_toggle.remove_css_class('build-log-error')
+
+    def _refresh_build_log_error_style(self, document):
+        '''根据文档当前的编译结果刷新 build_log_toggle 错误样式：
+        - 文档未编译过 / 编译无 error（error_count == 0）：清除红色
+        - 文档上次编译产生了 error（error_count > 0）：显示红色
+        用于文档切换与初始构造，使按钮状态始终跟随当前活动文档，
+        而非残留上一个文档的视觉状态。'''
+        has_error = (document is not None and document.is_latex_document()
+                     and document.build_system.get_error_count() > 0)
+        if has_error:
+            self.view.build_log_toggle.add_css_class('build-log-error')
+        else:
+            self._clear_build_log_toggle_error_style()
 
     def _disconnect_build_state_signal(self):
         '''安全断开先前挂接的 build_state 监听（无 handler / 无 document 时

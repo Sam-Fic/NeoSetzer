@@ -45,6 +45,8 @@ class Shortcutsbar(object):
             self.document.search.connect('mode_changed', self.update_buttons)
             self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
+            # 启动时按当前编译结果初始化错误样式（如会话恢复了一个上次报错的文档）。
+            self._refresh_build_log_error_style(self.document)
 
     def on_document_removed(self, workspace=None, parameter=None):
         if self.workspace.active_document == None:
@@ -66,6 +68,11 @@ class Shortcutsbar(object):
             self.document.search.connect('mode_changed', self.update_buttons)
             self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
+            # 切换文档后立刻按新文档当前的编译结果刷新错误样式。
+            # 关键修复：切换到无 error 的文档时，按钮必须退出红色状态，
+            # 而不能残留上一个文档（曾有 error）的红色样式——因为切换文档本身
+            # 不会触发 build_state 信号，仅靠 on_build_state 无法纠正残留态。
+            self._refresh_build_log_error_style(self.document)
 
         self.update_buttons()
 
@@ -117,6 +124,19 @@ class Shortcutsbar(object):
 
     def _clear_build_log_error_style(self):
         self.view.button_build_log.remove_css_class('build-log-error')
+
+    def _refresh_build_log_error_style(self, document):
+        '''根据文档当前的编译结果刷新 build_log 按钮错误样式：
+        - 文档未编译过 / 编译无 error（error_count == 0）：清除红色
+        - 文档上次编译产生了 error（error_count > 0）：显示红色
+        用于文档切换与初始构造，使按钮状态始终跟随当前活动文档，
+        而非残留上一个文档的视觉状态。'''
+        has_error = (document is not None and document.is_latex_document()
+                     and document.build_system.get_error_count() > 0)
+        if has_error:
+            self.view.button_build_log.add_css_class('build-log-error')
+        else:
+            self._clear_build_log_error_style()
 
     def on_build_log_button_clicked(self, toggle_button, parameter=None):
         self.workspace.set_show_build_log(toggle_button.get_active())
