@@ -53,7 +53,16 @@ from setzer.app.color_manager import ColorManager
 # safe_substitute 对未提供的 $name 保留原样（不抛 KeyError），且 CSS 不含
 # '$' 字符，无需 '$$' 转义。字体（family/size）由 update_colors 从编辑器
 # 字体设置注入，使帮助文档与编辑器使用同一字体。
-_CSS_TEMPLATE = Template('''body {margin: 1em; margin-top: 0px; padding-top: 1px; background: $view_bg_color; color: $view_fg_color; font-family: $editor_font_family; font-size: $editor_font_size; }
+#
+# 注意：背景/前景色必须同时作用在 html 与 body 上。WebKit 不会把通过用户
+# 样式表（UserStyleLevel.USER）在 body 上设置的 background 传播到画布
+# （canvas），因此仅写 body 时 body 框外（含 1em margin、内容不足处、滚动
+# 留白）仍是 WebKit 默认白底——深色模式下表现为刺眼的白底。根元素 html 的
+# background 会铺满整个画布，故对 html 也显式设置背景/前景色，从根上消除
+# 白底。preview-card 圆角裁切下的抗锯齿缝隙再由 WebView.set_background_color
+# 兜底（见 update_colors）。
+_CSS_TEMPLATE = Template('''html { background: $view_bg_color; color: $view_fg_color; }
+body {margin: 1em; margin-top: 0px; padding-top: 1px; background: $view_bg_color; color: $view_fg_color; font-family: $editor_font_family; font-size: $editor_font_size; }
 a {color: $link_color; }
 a:visited {color: $link_color_visited; }
 a:active {color: $link_color_active; }
@@ -209,5 +218,15 @@ class HelpPanel(Observable):
                 pass
         self.view.user_content_manager.add_style_sheet(style_sheet)
         self._current_style_sheet = style_sheet
+
+        # 兜底：直接设置 WebView 控件自身的原生背景色（set_background_color）。
+        # 即便 html/body 的 CSS 背景因某些 WebKit 版本/配置未被应用，控件底层
+        # 仍是深色而非默认白底，确保 preview-card 圆角裁切下的抗锯齿缝隙、
+        # 滚动留白等处不会出现刺眼白边。颜色用 ColorManager 取 view_bg_color，
+        # 与 CSS 注入保持一致（深浅模式自动切换）。色彩取缓存对象引用即可，
+        # set_background_color 内部会复制，不污染缓存。
+        content = getattr(self.view, 'content', None)
+        if content is not None and isinstance(content, WebKit.WebView):
+            content.set_background_color(ColorManager.get_ui_color('view_bg_color'))
 
 
