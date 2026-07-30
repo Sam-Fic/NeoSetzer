@@ -100,6 +100,25 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             if os.path.isfile(pdf_filename):
                 os.remove(pdf_filename)
             pdf_filename = None
+        # 修复：LaTeX 日志解析器只匹配 `!` 错误行，但 xelatex 的 xdvipdfmx
+        # / lualatex 的 fontloader 等子工具链 fatal 错误不会写 `!` 错误
+        # （只在 stdout 写 "fatal: ..." 之类），导致 error_count==0 但 PDF
+        # 实际没生成，setzer 误报"成功"。这里在 error_count==0 时再检查
+        # 一次 PDF 文件是否真的存在 + 大小合理，缺则合成一个 error 让上层
+        # 状态栏显示失败 + 弹出 Build failed toast。
+        elif not os.path.isfile(pdf_filename):
+            query.error_count = 1
+            # 尝试从 .log 末尾捞最后几行作为错误信息，常见为
+            # "! xdvipdfmx:fatal: ..." 或类似提示。
+            synthesized_msg = self._extract_silent_failure_reason(query)
+            query.log_messages = {
+                query.tex_filename: {
+                    'error': [{'message': synthesized_msg, 'line_no': 0}],
+                    'warning': [],
+                    'badbox': [],
+                }
+            }
+            pdf_filename = None
 
         with query.build_result_lock:
             query.build_result = {'pdf_filename': pdf_filename, 
@@ -148,5 +167,36 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         try: shutil.copyfile(move_from, move_to)
         except FileNotFoundError: return False
         else: return True
+
+    def _extract_silent_failure_reason(self, query):
+        '''engine 退出 0 但 PDF 没生成时，从 .log 末尾 / stdout 抓取错误线索。
+
+        xelatex 的 xdvipdfmx 致命错误不会出现在 LaTeX 日志的 `!` 错误里，
+        但会写进 .log 末尾（"xdvipdfmx:fatal: ..."）。在无 .log 或
+        无匹配时回落到通用提示，避免用户面对一个空错误。'''
+        log_path = query.tex_filename.rsplit('.tex', 1)[0] + '.log'
+        try:
+            with open(log_path, 'rb') as f:
+                # 只读末尾 8KB 避免大日志拖累
+                f.seek(0, 2)
+                size = f.tell()
+                f.seek(max(0, size - 8192))
+                tail = f.read().decode('utf-8', errors='replace')
+        except (OSError, FileNotFoundError):
+            return 'No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. This often indicates a toolchain failure (e.g. xdvipdfmx/fontloader) that the LaTeX log parser does not detect.'
+
+        # 优先级匹配：xdvipdfmx fatal > 任何 fatal > kpathsea 严重警告
+        for pattern in ('xdvipdfmx:fatal', 'dvipdfmx:fatal',
+                        'fatal:', 'luaotfload', 'kpathsea'):
+            idx = tail.lower().rfind(pattern)
+            if idx != -1:
+                # 截取错误行（去首尾空白）
+                line_end = tail.find('\n', idx)
+                snippet = tail[idx:line_end if line_end != -1 else len(tail)].strip()
+                if len(snippet) > 200:
+                    snippet = snippet[:200] + '…'
+                return snippet
+
+        return 'No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. Check the build log for toolchain-level errors (xdvipdfmx, fontloader, kpathsea).'
 
 

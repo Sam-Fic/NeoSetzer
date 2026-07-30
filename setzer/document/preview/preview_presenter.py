@@ -78,6 +78,15 @@ class PreviewPresenter(object):
                 self.view.blank_slate.set_state('building')
         elif state == 'idle':
             self._build_in_progress = False
+            # 修复 spinner 卡在 'building' 的 bug：
+            # parse_result 内执行顺序为 add_change_code('pdf_updated') → load_pdf
+            # → on_pdf_changed → show_blank_slate()，此时 change_build_state('idle')
+            # 还没跑，_build_in_progress 仍为 True，show_blank_slate 会把 spinner
+            # 设成 'building'；随后 change_build_state('idle') 仅置标志位，没有
+            # 通知 blank_slate 重绘，导致 spinner 永远停留。这里在 idle 时若
+            # blank_slate 仍可见，按 _last_build_result 重算状态并切换。
+            if self.view.stack.get_visible_child_name() == 'blank_slate':
+                self.show_blank_slate()
 
     def on_build_state(self, build_system, message):
         if message in ('error', 'success'):
