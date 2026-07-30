@@ -383,11 +383,16 @@ toolbarview > * > * > * {
 
 /*
  * 预览页码徽章按钮：每个可见页一个，放在画布 overlay 里的真正 Gtk.Button。
- * 主题色 / hover / active 状态由 Gtk.Button 自动处理（不需要手动从
- * ColorManager 取色），本规则只调整尺寸 / 圆角 / 字号。
+ * 本规则只调整尺寸 / 圆角 / 字号 / 颜色。
  *
  * 设计要点:
- * - 跟随主题：默认走 @button_bg_color / @button_fg_color，明暗自动切换。
+ * - 显式配色而非依赖默认按钮主题色：深色模式下若 PDF 做 recoloring，页面会变
+ *   深，若按钮仍走 @button_bg_color（深色）就会"深色按钮浮在深色页面上"几乎
+ *   看不见。这里改用固定的灰底，不依赖主题变量、也不依赖 PDF 是否反色。
+ * - 不用强调色、不用阴影，按主题给固定灰底：
+ *   浅色模式 = 淡灰底 + 深灰字；深色模式 = 深灰底 + 浅灰字。
+ *   你的深色模式下 PDF 未开启 recoloring（页面为白色），深灰底胶囊浮白页清晰
+ *   可见；浅色模式淡灰底浮白页对比度偏低，但数字本身用深灰字仍可读。
  * - 圆角 pill：min-height=28 + border-radius=14 让 1-2 位数字按钮是完美
  *   椭圆;3+ 位数字时按钮变宽,圆角仍 14px,看起来像 pill。
  * - 数字字号比正文略大、加粗,与一般按钮的次级强调接近。
@@ -399,6 +404,18 @@ toolbarview > * > * > * {
     border-radius: 14px;
     font-weight: bold;
     font-size: 0.9em;
+}
+/* 浅色模式：淡灰底 + 深灰字（由 Python 按 Adw.StyleManager 实际状态加
+ * .theme-light / .theme-dark 类触发，不依赖 @media prefers-color-scheme，
+ * 因为 Setzer 的深色模式是应用内强制切换，系统偏好未必同步）。 */
+.page-indicator-button.theme-light {
+    background-color: #e3e3e3;
+    color: #2e2e2e;
+}
+/* 深色模式：深灰底 + 浅灰字 */
+.page-indicator-button.theme-dark {
+    background-color: #3a3a3a;
+    color: #f4f4f4;
 }
 /* label 不要再加 padding,否则会把数字从按钮中心推开。 */
 .page-indicator-button label {

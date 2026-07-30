@@ -31,8 +31,9 @@ class PageIndicatorButton(Gtk.Button):
     数字自动居中（不再像之前那样分别用 cairo 画圆 + Pango 算位置放数字，
     数字容易偏离圆心）。
 
-    主题集成：作为 Gtk.Button 自然走主题的 button bg / fg / hover / active
-    颜色，明暗主题自动跟随，Python 不需要查 ColorManager。
+    主题集成：背景 / 前景色由 CSS .page-indicator-button 按主题给固定灰底
+    （浅色淡灰、深色深灰，无阴影），hover / active 等交互态由 GTK 处理，
+    Python 不需要查 ColorManager。
 
     位置与显隐：实际放上画布 overlay 的是外层 Gtk.Revealer（fade in/out
     容器），按钮是 revealer 的子元素。view 在滚动时实时更新 revealer 的
@@ -153,6 +154,12 @@ class PreviewView(Gtk.Box):
             self._page_indicator_revealers.append(revealer)
             self.content.add_overlay_widget(revealer)
             btn.connect('clicked', self._on_indicator_button_clicked)
+        # 页码徽章配色跟随应用实际深色状态（Adw.StyleManager），而非系统
+        # prefers-color-scheme。初始化一次并监听切换。
+        style_manager = Adw.StyleManager.get_default()
+        if style_manager is not None:
+            style_manager.connect('notify::dark', self._apply_indicator_theme)
+            self._apply_indicator_theme()
         # 外部（presenter）注册的点击回调：收到 (page_number_1based,)
         self._on_page_indicator_clicked = None
 
@@ -271,6 +278,19 @@ class PreviewView(Gtk.Box):
             else:
                 # 池中多余的按钮淡出（被本次可见页列表压缩掉的部分）
                 revealer.set_reveal_child(False)
+
+    def _apply_indicator_theme(self, *args):
+        '''按应用实际深色状态给所有页码徽章按钮加 theme-dark / theme-light
+        类，从而切换到 CSS 里对应的灰底配色。'''
+        style_manager = Adw.StyleManager.get_default()
+        dark = bool(style_manager is not None and style_manager.get_dark())
+        for btn in self._page_indicator_buttons:
+            if dark:
+                btn.add_css_class('theme-dark')
+                btn.remove_css_class('theme-light')
+            else:
+                btn.add_css_class('theme-light')
+                btn.remove_css_class('theme-dark')
 
     def _on_indicator_button_clicked(self, button):
         '''按钮 clicked 信号统一处理：读出该按钮代表的页码，回调给外部。'''
