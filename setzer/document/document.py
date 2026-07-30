@@ -40,6 +40,7 @@ import setzer.document.multicursor.multicursor as multicursor
 import setzer.document.bracket_completion.bracket_completion as bracket_completion
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
 import setzer.document.autocomplete.autocomplete as autocomplete
+import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_highlight
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
@@ -99,6 +100,13 @@ class Document(Observable):
         if self.is_latex_document(): self.parser = parser_latex.ParserLaTeX(self)
         elif self.is_bibtex_document(): self.parser = parser_bibtex.ParserBibTeX(self)
         else: self.parser = parser_dummy.ParserDummy(self)
+        # BeginEndHighlight 仅对 LaTeX 文档构造：它依赖 parser 的
+        # block_symbol_matches['begin_or_end']（latex parser 才会填充）；
+        # 其它类型 parser 没有此字段，构造会 KeyError。DocumentController
+        # 在 on_primary_buttonpress 中对非 LaTeX 文档已前置守卫不访问
+        # begin_end_highlight（document_controller.py:191），与之对齐。
+        if self.is_latex_document():
+            self.begin_end_highlight = begin_end_highlight.BeginEndHighlight(self)
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
         self.gutter = gutter.Gutter(self, self.view)
@@ -266,6 +274,14 @@ class Document(Observable):
         if umb is not None:
             try:
                 self.settings.disconnect('settings_changed', umb.on_settings_changed)
+            except (TypeError, KeyError, AttributeError):
+                pass
+        # begin_end_highlight 同样仅连接 settings 信号,但仅 LaTeX 文档构造。
+        # 不断开会持有文档引用阻碍 GC,且后续设置变更会调到失效的 on_settings_changed。
+        beh = getattr(self, 'begin_end_highlight', None)
+        if beh is not None:
+            try:
+                self.settings.disconnect('settings_changed', beh.on_settings_changed)
             except (TypeError, KeyError, AttributeError):
                 pass
         # build_widget 连接 settings 且持有构建计时器 timeout,需 shutdown
