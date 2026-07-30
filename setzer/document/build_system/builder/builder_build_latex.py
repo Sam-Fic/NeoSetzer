@@ -103,17 +103,28 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         # 修复：LaTeX 日志解析器只匹配 `!` 错误行，但 xelatex 的 xdvipdfmx
         # / lualatex 的 fontloader 等子工具链 fatal 错误不会写 `!` 错误
         # （只在 stdout 写 "fatal: ..." 之类），导致 error_count==0 但 PDF
-        # 实际没生成，setzer 误报"成功"。这里在 error_count==0 时再检查
-        # 一次 PDF 文件是否真的存在 + 大小合理，缺则合成一个 error 让上层
-        # 状态栏显示失败 + 弹出 Build failed toast。
-        elif not os.path.isfile(pdf_filename):
+        # 实际没生成/损坏，setzer 误报"成功"。两种 edge case 都覆盖：
+        #   1) PDF 文件不存在
+        #   2) PDF 文件存在但是空 / 不是合法 PDF（被中断留下的残骸
+        #      如 2910 字节无 trailer dictionary）
+        # 都合成一个 error 让上层走 Build failed 路径，否则会出现
+        # "PDF 预览区 toast 说 build failed, showing previous version"
+        # 与"主窗口 toast 说 Build succeeded"互相矛盾的尴尬情况。
+        elif not self._is_pdf_valid(pdf_filename):
+            # 清理残骸，避免下次 build 之前被 Poppler 当成有效 PDF 读
+            if os.path.isfile(pdf_filename):
+                try: os.remove(pdf_filename)
+                except OSError: pass
             query.error_count = 1
-            # 尝试从 .log 末尾捞最后几行作为错误信息，常见为
-            # "! xdvipdfmx:fatal: ..." 或类似提示。
             synthesized_msg = self._extract_silent_failure_reason(query)
+            # log_messages 项的格式必须与 latex_log_parser.parse_build_log
+            # 输出一致：error/warning/badbox 列表中的元素是
+            # (error_type_or_None, line_number, text) tuple。set_build_log_items
+            # 会读 item[1] (line_number) / item[2] (text)。之前写成 dict
+            # 导致 set_build_log_items 在 item[1] 处抛 KeyError: 1。
             query.log_messages = {
                 query.tex_filename: {
-                    'error': [{'message': synthesized_msg, 'line_no': 0}],
+                    'error': [(None, -1, synthesized_msg)],
                     'warning': [],
                     'badbox': [],
                 }
@@ -167,6 +178,32 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         try: shutil.copyfile(move_from, move_to)
         except FileNotFoundError: return False
         else: return True
+
+    def _is_pdf_valid(self, pdf_filename):
+        '''轻量级 PDF 有效性检查：文件存在 + 非空 + 头部 %PDF- + 末尾 %%EOF。
+
+        单看 %PDF- 头会被 xdvipdfmx "写完头部就崩" 的残骸骗过（实测
+        2910 字节：头是 %PDF-1.7 但无 trailer dictionary）。两个标记
+        一起检查，覆盖正常 PDF 必然满足的"有头有尾"。比 Poppler
+        解析便宜得多（stat + read head/tail）。'''
+        if not os.path.isfile(pdf_filename):
+            return False
+        try:
+            size = os.path.getsize(pdf_filename)
+            # 合法 PDF 至少几十字节（%PDF-1.7\n...%%EOF\n），低于 32 字节
+            # 几乎肯定是残骸。
+            if size < 32:
+                return False
+            with open(pdf_filename, 'rb') as f:
+                head = f.read(5)
+                # 末尾 1KB 内必须能找到 %%EOF（PDF spec 允许 EOF marker
+                # 前有若干空白，但不会在 1KB 之外）。这样既不读全文件，
+                # 又能可靠识别"写到一半被中断"的截断文件。
+                f.seek(max(0, size - 1024))
+                tail = f.read()
+            return head == b'%PDF-' and b'%%EOF' in tail
+        except OSError:
+            return False
 
     def _extract_silent_failure_reason(self, query):
         '''engine 退出 0 但 PDF 没生成时，从 .log 末尾 / stdout 抓取错误线索。
