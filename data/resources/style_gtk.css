@@ -553,6 +553,11 @@ headerbar {
     border-color: @error_color;
     background: alpha(@error_color, 0.10);
 }
+/* 编辑器模式下的拖放浮层：复用 .editor-card 的圆角（8px）与左右内边距（6px），
+   使高亮框与编辑器卡片同形、正好覆盖其上。welcome 模式不挂此类，沿用 12px 圆角。 */
+.drop-highlight.editor-mode {
+    border-radius: 8px;
+}
 .drop-label {
     font-weight: 600;
     font-size: 1.1em;

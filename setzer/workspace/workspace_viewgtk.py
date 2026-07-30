@@ -241,16 +241,19 @@ class MainWindow(Adw.ApplicationWindow):
         self._loading_spinner.set_visible(False)
         self.content_overlay.add_overlay(self._loading_spinner)
 
-        # 文件拖放视觉反馈浮层：覆盖整个内容区，带圆角描边 + 居中计数标签。
-        # can_target=False 让拖放事件穿透到窗口级 DropTarget（不被此浮层拦截），
+        # 文件拖放视觉反馈浮层：圆角描边 + 居中计数标签。
+        # can_target=False 让拖放事件穿透到挂在同一 overlay 上的 DropTarget（不被此浮层拦截），
         # 否则它会抢走 drag/drop 事件导致 on_drop 收不到。enter 时显示、
         # leave 时隐藏，motion 时根据可接受文件数更新标签文字。
         # 文件类型不可接受时叠加 .drop-reject（描边转错误色），配合 GTK「禁止」光标。
+        # 该浮层随 headerbar 在 welcome_overlay 与 document_stack_overlay 间迁移：
+        # welcome 模式下覆盖整窗；documents 模式下只覆盖编辑器列，并通过 .editor-mode 类
+        # 复用 .editor-card 的 8px 圆角与 6px 内边距，正好盖在编辑器卡片上。
         self.drop_highlight = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.drop_highlight.set_can_target(False)
         self.drop_highlight.add_css_class('drop-highlight')
         self.drop_highlight.set_visible(False)
-        # 让浮层铺满整个 content_overlay，描述边框覆盖整片区域；
+        # 让浮层铺满所在 overlay，描述边框覆盖整片区域；
         # 标签则向四个方向撑开并居中，使提示语落在正中。
         self.drop_highlight.set_halign(Gtk.Align.FILL)
         self.drop_highlight.set_valign(Gtk.Align.FILL)
@@ -262,7 +265,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.drop_label.set_halign(Gtk.Align.CENTER)
         self.drop_label.set_text(_('Drop to open file'))
         self.drop_highlight.append(self.drop_label)
-        self.content_overlay.add_overlay(self.drop_highlight)
+        # 初始挂到 document_stack_overlay，与 headerbar 初始位置一致（_headerbar_in_welcome=False）；
+        # 欢迎模式下 reparent_headerbar(True) 会把 headerbar 与浮层一并迁到 welcome_overlay。
+        self.document_stack_overlay.add_overlay(self.drop_highlight)
+        self._drop_highlight_in_welcome = False
 
         # 窄窗口（<700px）自动把侧边栏与预览侧栏折叠为浮层抽屉
         # （Adw.OverlaySplitView 的 collapsed 属性）。两者同款控件、同一 breakpoint，
@@ -322,41 +328,51 @@ class MainWindow(Adw.ApplicationWindow):
             return True
         GLib.timeout_add(250, _poll_sb_width)
 
-        # 文件拖放：仅限欢迎页（welcome_overlay）。该 overlay 只在欢迎模式是
-        # mode_stack 的可见页，挂上去后拖放自然只在欢迎页生效；编辑器等其他界面
-        # 不再处理（按需求放弃）。优先用 Gdk.FileList 接收整批文件（多文件拖入时
-        # 一次拿到全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
-        # preload=True：拖拽过程中即可通过 get_value() 读取文件列表，实时显示
-        # 「将打开 N 个文件」。扩展名过滤与 do_open（setzer_dev.py）一致：仅打开
-        # .tex/.bib/.cls/.sty；其它文件不打开但拖放仍被消费（返回 True），以红色描边提示。
-        # CAPTURE 阶段：先于欢迎页内子控件接管，避免任何子控件抢走文件拖放。
+        # 文件拖放：欢迎页（welcome_overlay）与编辑器列（document_stack_overlay）各挂一个
+        # 同配置的 DropTarget，共用同一套 on_drag_* 处理函数。两 overlay 分别只在对应模式下
+        # 可见/激活，所以拖放自然只在该模式生效。优先用 Gdk.FileList 接收整批文件
+        # （多文件拖入时一次拿到全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
+        # preload=True：拖拽过程中即可通过 get_value() 读取文件列表，实时显示「将打开 N 个文件」。
+        # 扩展名过滤与 do_open（setzer_dev.py）一致：仅打开 .tex/.bib/.cls/.sty；其它文件不打开
+        # 但拖放仍被消费（返回 True），以红色描边提示。CAPTURE 阶段：先于 overlay 内子控件接管，
+        # 避免任何子控件抢走文件拖放（编辑器 Gtk.TextView 自带文本拖放不受影响——本 DropTarget
+        # 的 gtypes 仅含文件类型，纯文本拖放不匹配，不会触发这些 handler）。
         self._drop_exts = ('.tex', '.bib', '.cls', '.sty')
-        drop_target = Gtk.DropTarget()
-        drop_target.set_actions(Gdk.DragAction.COPY)
-        gtypes = [Gio.File]
-        if hasattr(Gdk, 'FileList'):
-            gtypes = [Gdk.FileList, Gio.File]
-        drop_target.set_gtypes(gtypes)
-        drop_target.set_preload(True)
-        drop_target.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-        drop_target.connect('enter', self.on_drag_enter)
-        drop_target.connect('leave', self.on_drag_leave)
-        drop_target.connect('motion', self.on_drag_motion)
-        drop_target.connect('accept', self.on_drag_accept)
-        drop_target.connect('drop', self.on_drop)
-        self.welcome_overlay.add_controller(drop_target)
-        self.drop_target = drop_target
+
+        def _make_drop_target():
+            drop_target = Gtk.DropTarget()
+            drop_target.set_actions(Gdk.DragAction.COPY)
+            gtypes = [Gio.File]
+            if hasattr(Gdk, 'FileList'):
+                gtypes = [Gdk.FileList, Gio.File]
+            drop_target.set_gtypes(gtypes)
+            drop_target.set_preload(True)
+            drop_target.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+            drop_target.connect('enter', self.on_drag_enter)
+            drop_target.connect('leave', self.on_drag_leave)
+            drop_target.connect('motion', self.on_drag_motion)
+            drop_target.connect('accept', self.on_drag_accept)
+            drop_target.connect('drop', self.on_drop)
+            return drop_target
+        self.welcome_overlay.add_controller(_make_drop_target())
+        self.document_stack_overlay.add_controller(_make_drop_target())
 
         # 关闭 GTK/Adwaita/Yaru 自带的 drop(active) 默认高亮：该状态会向祖先控件传播，
         # 每个带状态的祖先都会画一圈直角矩形提示（与圆角浮层叠在一起）。拖放期间给拖放
         # 目标及其所有祖先临时加 .dnd-no-indicator 类（普通 CSS 类，USER 优先级高于主题，
         # 可覆盖 Yaru 的 box-shadow/border/outline 默认描边）；leave/drop 后移除。
         # 注意：此处不能用 :drop(active) 伪类去覆盖——在 CAPTURE 阶段 + 主题组合下不稳定。
+        # 拖放目标链取 welcome_overlay 与 document_stack_overlay 祖先的并集：
+        # 两 overlay 分别只在各自模式下成为实际拖放目标，但其祖先（含 content_overlay、
+        # mode_stack、popoverlay 等）在任一模式下都可能需要清掉 Yaru 默认 drop 高亮，
+        # 故并集统一挂/摘 .dnd-no-indicator。
         self._dnd_chain = []
-        widget = self.welcome_overlay
-        while widget is not None:
-            self._dnd_chain.append(widget)
-            widget = widget.get_parent()
+        for _start in (self.welcome_overlay, self.document_stack_overlay):
+            widget = _start
+            while widget is not None:
+                if widget not in self._dnd_chain:
+                    self._dnd_chain.append(widget)
+                widget = widget.get_parent()
 
         # 全屏鼠标追踪：检测鼠标是否在窗口顶部边缘，以显示/隐藏 headerbar
         self._motion_controller = Gtk.EventControllerMotion()
@@ -381,6 +397,20 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 w.remove_css_class('dnd-no-indicator')
 
+    def _set_dnd_blank(self, active):
+        # 拖放期间把背景淡出为空白以增强圆角浮层下文字的可读性：
+        # welcome 模式淡出欢迎页正文；documents 模式只淡出编辑器卡片区域（document_stack，
+        # 即 .editor-card 的容器），保留快捷键栏可见——即使有快捷键栏也不隐藏它。
+        # leave/drop 后移除类即复原。
+        if self._headerbar_in_welcome:
+            target = self.welcome_screen
+        else:
+            target = self.document_stack
+        if active:
+            target.add_css_class('dnd-blank')
+        else:
+            target.remove_css_class('dnd-blank')
+
     def _extract_drop_files(self, value):
         '''从拖放值中归一化出文件路径列表（兼容 Gdk.FileList 与单 Gio.File）。'''
         if value is None:
@@ -398,28 +428,111 @@ class MainWindow(Adw.ApplicationWindow):
         return path.endswith(self._drop_exts)
 
     def _layout_drop_highlight(self):
-        # 拖放浮层框左右下留 12px 边距，顶部直接使用标题栏高度（welcome 模式下
-        # headerbar 浮在 welcome_overlay 顶部），使框线正好停在标题栏下沿、不覆盖它。
-        # 全屏且标题栏隐藏时回落为 12px。每次 motion 都重算，覆盖拖放期间标题栏
-        # 显隐的动态变化。
-        top = 12
-        fullscreen_hidden = self._is_fullscreen and not self._headerbar_visible_in_fullscreen
-        if not fullscreen_hidden:
-            top = self.headerbar.widget.get_allocated_height()
-        self.drop_highlight.set_margin_top(top)
-        self.drop_highlight.set_margin_bottom(12)
-        self.drop_highlight.set_margin_start(12)
-        self.drop_highlight.set_margin_end(12)
+        # 按当前模式布局拖放浮层框：
+        # - welcome 模式：浮层在 welcome_overlay（整窗），四向 12px 内边距，顶部用标题栏高度
+        #   （headerbar 浮在 welcome_overlay 顶部）使框线停在标题栏下沿、不覆盖它；全屏且标题栏
+        #   隐藏时回落 12px。圆角沿用 .drop-highlight 的 12px。
+        # - documents 模式：浮层在 document_stack_overlay（仅编辑器列），通过 .editor-mode 类
+        #   复用 .editor-card 的 8px 圆角（与卡片同形），左右 6px 内边距也与 .editor-card 对齐；
+        #   顶部跳过浮层标题栏与快捷键栏，正好落在编辑器卡片上沿，使圆角框覆盖在卡片之上。
+        # 每次 motion 都重算，覆盖拖放期间标题栏显隐的动态变化。
+        if self._headerbar_in_welcome:
+            top = 12
+            fullscreen_hidden = self._is_fullscreen and not self._headerbar_visible_in_fullscreen
+            if not fullscreen_hidden:
+                top = self.headerbar.widget.get_allocated_height()
+            self.drop_highlight.set_margin_top(top)
+            self.drop_highlight.set_margin_bottom(12)
+            self.drop_highlight.set_margin_start(12)
+            self.drop_highlight.set_margin_end(12)
+            self.drop_highlight.remove_css_class('editor-mode')
+        else:
+            # documents 模式：高亮浮层覆盖编辑器卡片（.editor-card）。
+            # 卡片几何会随快捷键栏有无、全屏/标题栏显隐等动态变化，故直接取当前文档
+            # 编辑器卡片在编辑器列 overlay 中的实际矩形来对齐（8px 圆角由 .editor-mode
+            # 复用卡片形状；左右内边距随卡片自身的 6px margin 一同对齐）。底部额外留 6px
+            # 呼吸空隙。compute_bounds 不可用时回退到按标题栏/快捷键栏高度估算。
+            self.drop_highlight.add_css_class('editor-mode')
+            overlay = self.document_stack_overlay
+            geom = self._get_card_geom_in_overlay(overlay)
+            if geom is not None:
+                x, y, w, h = geom
+                overlay_w = overlay.get_allocated_width()
+                # 钳制为非负，避免拖放瞬间的布局抖动产生负尺寸分配告警。
+                # 底部固定距编辑器列（窗口）底部 6px，不随卡片几何变化。
+                self.drop_highlight.set_margin_top(max(0, int(y)))
+                self.drop_highlight.set_margin_bottom(6)
+                self.drop_highlight.set_margin_start(max(0, int(x)))
+                self.drop_highlight.set_margin_end(max(0, int(overlay_w - x - w)))
+            else:
+                in_fullscreen_hidden = self._is_fullscreen and not self._headerbar_visible_in_fullscreen
+                headerbar_height = 0 if in_fullscreen_hidden else self.headerbar.widget.get_allocated_height()
+                shortcuts_height = self.shortcutsbar.get_allocated_height() if self.shortcutsbar.get_visible() else 0
+                self.drop_highlight.set_margin_top(headerbar_height + shortcuts_height)
+                self.drop_highlight.set_margin_bottom(6)
+                self.drop_highlight.set_margin_start(6)
+                self.drop_highlight.set_margin_end(6)
 
-    def _update_drop_feedback(self):
+    def _get_card_geom_in_overlay(self, overlay):
+        '''返回当前文档编辑器卡片（.editor-card）在 overlay 坐标系中的 (x, y, w, h)。
+        兼容 Gdk.Rectangle 与 graphene.Rect（compute_bounds 的返回类型随 PyGObject/GTK
+        版本而异），以及 (success, rect) 元组形式；取不到时返回 None。'''
+        try:
+            doc = ServiceLocator.get_workspace().get_active_document()
+            card = doc.view.vbox if doc is not None else None
+            if card is None:
+                return None
+            result = card.compute_bounds(overlay)
+            # compute_bounds 可能返回 (success, rect) 元组（PyGObject 绑定形式）。
+            if isinstance(result, tuple):
+                if len(result) == 2 and isinstance(result[0], bool):
+                    if not result[0]:
+                        return None
+                    rect = result[1]
+                else:
+                    rect = result[0]
+            else:
+                rect = result
+            if rect is None:
+                return None
+            x = getattr(rect, 'x', None)
+            if x is None:
+                try:
+                    x = rect.get_x()
+                except Exception:
+                    x = 0
+            y = getattr(rect, 'y', None)
+            if y is None:
+                try:
+                    y = rect.get_y()
+                except Exception:
+                    y = 0
+            w = getattr(rect, 'width', None)
+            if w is None:
+                try:
+                    w = rect.get_width()
+                except Exception:
+                    w = 0
+            h = getattr(rect, 'height', None)
+            if h is None:
+                try:
+                    h = rect.get_height()
+                except Exception:
+                    h = 0
+            return (x, y, w, h)
+        except Exception:
+            return None
+
+    def _update_drop_feedback(self, target):
         '''根据当前拖放值刷新浮层标签与描边（文件计数 / 可接受性提示）。
-        描边状态必须在这里同步，因为 enter/motion 时 preload 已读到文件列表，
-        而 accept 可能在列表就绪前就跑过一次（那时 get_value() 为空）——若只在
-        accept 里设描边，红框会卡住。'''
+        target 为触发本次回调的 DropTarget（welcome 或 document_stack_overlay 上的那份），
+        用它的 get_value() 读取本拖拽已 preload 的文件列表。描边状态必须在这里同步，
+        因为 enter/motion 时 preload 已读到文件列表，而 accept 可能在列表就绪前就跑过
+        一次（那时 get_value() 为空）——若只在 accept 里设描边，红框会卡住。'''
         self._layout_drop_highlight()
         if not hasattr(self, 'drop_highlight') or not self.drop_highlight.get_visible():
             return
-        files = self._extract_drop_files(self.drop_target.get_value())
+        files = self._extract_drop_files(target.get_value())
         if not files:
             # preload 尚未拿到文件列表，保持中性提示，避免误闪「无法打开」
             self.drop_label.set_text(_('Drop to open file'))
@@ -440,9 +553,9 @@ class MainWindow(Adw.ApplicationWindow):
 
     def on_drag_enter(self, target, x, y):
         self._set_dnd_indicator(True)
-        self.welcome_screen.add_css_class('dnd-blank')
+        self._set_dnd_blank(True)
         self.drop_highlight.set_visible(True)
-        self._update_drop_feedback()
+        self._update_drop_feedback(target)
         # GTK4 中 enter/motion 信号返回的是 GdkDragAction；返回 False 会被当作
         # GDK_ACTION_NONE（不接受该拖放），导致目标被立即否决、drop 永不触发。
         # 必须返回一个有效动作（COPY）。是否真正可接受由 on_drag_accept 与视觉
@@ -450,12 +563,12 @@ class MainWindow(Adw.ApplicationWindow):
         return Gdk.DragAction.COPY
 
     def on_drag_motion(self, target, x, y):
-        self._update_drop_feedback()
+        self._update_drop_feedback(target)
         return Gdk.DragAction.COPY
 
     def on_drag_leave(self, target):
         self._set_dnd_indicator(False)
-        self.welcome_screen.remove_css_class('dnd-blank')
+        self._set_dnd_blank(False)
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
         return False
@@ -465,13 +578,13 @@ class MainWindow(Adw.ApplicationWindow):
         否决该目标，导致 enter/motion/drop 永远不触发。文件类型已由 gtypes 限定，
         这里始终接收；红框/计数等视觉状态统一由 _update_drop_feedback 根据已读取
         的文件列表同步，拖放仍由 on_drop 消费掉。'''
-        self._update_drop_feedback()
+        self._update_drop_feedback(target)
         return True
 
     def on_drop(self, target, value, x, y):
         workspace = ServiceLocator.get_workspace()
         self._set_dnd_indicator(False)
-        self.welcome_screen.remove_css_class('dnd-blank')
+        self._set_dnd_blank(False)
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
         # drop 信号的 value 参数在某些构建中未被正确解包（为空），此时回退到
@@ -543,6 +656,22 @@ class MainWindow(Adw.ApplicationWindow):
             self.welcome_overlay.remove_overlay(hb)
             self.document_stack_overlay.add_overlay(hb)
             self._headerbar_in_welcome = False
+        # 拖放高亮浮层与 headerbar 始终位于同一 overlay：documents 模式下它只覆盖
+        # 编辑器列（与卡片同形），welcome 模式下覆盖整窗。二者随模式切换同步迁移。
+        self._reparent_drop_highlight(to_welcome)
+
+    def _reparent_drop_highlight(self, to_welcome):
+        '''把拖放高亮浮层随 headerbar 一起在 welcome_overlay 与 document_stack_overlay
+        间迁移，使其始终与标题栏同处一个 overlay（从而自动对齐到对应区域）。'''
+        if to_welcome == self._drop_highlight_in_welcome:
+            return
+        if to_welcome:
+            self.document_stack_overlay.remove_overlay(self.drop_highlight)
+            self.welcome_overlay.add_overlay(self.drop_highlight)
+        else:
+            self.welcome_overlay.remove_overlay(self.drop_highlight)
+            self.document_stack_overlay.add_overlay(self.drop_highlight)
+        self._drop_highlight_in_welcome = to_welcome
 
     def toggle_fullscreen(self):
         '''切换全屏模式。F11 快捷键入口。'''
