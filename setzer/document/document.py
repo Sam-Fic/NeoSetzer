@@ -47,6 +47,13 @@ from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
 
 
+# PDF 反向同步 / build log 跳转段落高亮（编辑器侧）的最大 alpha。
+# accent_color 全不透明(1.0)在编辑器里太浓——比行高亮还要浓一个量级。
+# 0.20 与 begin_end_match 保持同一浓度，「比行高亮浓厚一点点」。若想再
+# 淡/再浓,改这个常量即可。详见 begin_end_highlight._BEGIN_END_HIGHLIGHT_ALPHA。
+_HIGHLIGHT_SECTION_MAX_ALPHA = 0.20
+
+
 class Document(Observable):
 
     def __init__(self, language):
