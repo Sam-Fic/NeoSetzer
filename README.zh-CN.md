@@ -30,7 +30,7 @@ Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试�
 我在 Ubuntu 上开发 Setzer，并在此基础上进行了测试。
 
 1. 运行以下命令安装前置软件包：<br />
-`apt-get install meson python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-willow python3-numpy gir1.2-xdp-1.0`
+`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
 
 2. 从 GitHub 克隆 Setzer 仓库
 

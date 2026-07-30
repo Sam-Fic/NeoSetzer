@@ -30,7 +30,7 @@ Warning: Building Setzer this way may take a long time.
 I develop Setzer on Ubuntu and that's what I tested it with.
 
 1. Run the following command to install prerequisite packages:<br />
-`apt-get install meson python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-willow python3-numpy gir1.2-xdp-1.0`
+`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
 
 2. Clone Setzer repository from GitHub
 

@@ -21,7 +21,7 @@ sudo apt-get install -y meson ninja-build gettext
 
 运行时（打进 `Depends`，目标机安装 deb 时由 apt 自动解决）：
 
-- `python3`、`python3-gi`、`python3-cairo`
+- `python3`、`python3-gi`、`python3-cairo`、`python3-gi-cairo`、`python3-pexpect`、`python3-numpy`、`python3-bibtexparser`
 - `gir1.2-gtk-4.0`、`gir1.2-adw-1`、`gir1.2-gtksource-5`、`gir1.2-pango-1.0`
 - `gir1.2-poppler-0.18`、`gir1.2-webkit-6.0`、`gir1.2-xdp-1.0`
 - `Recommends: texlive`（实际编译 LaTeX 文档所需，非编辑器运行必需）
@@ -100,7 +100,7 @@ Version: 67
 Section: editors
 Priority: optional
 Architecture: amd64
-Depends: python3:any, python3-gi, python3-cairo, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
+Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-pexpect, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
 Recommends: texlive
 Maintainer: Setzer Packaging <local@build>
 Description: LaTeX editor for the GNOME desktop
@@ -236,7 +236,7 @@ Version: ${NEWVER}
 Section: editors
 Priority: optional
 Architecture: \$(dpkg --print-architecture)
-Depends: python3:any, python3-gi, python3-cairo, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
+Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-pexpect, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
 Recommends: texlive
 Maintainer: Setzer Packaging <local@build>
 Description: LaTeX editor for the GNOME desktop
