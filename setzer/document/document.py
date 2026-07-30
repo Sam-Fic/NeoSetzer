@@ -961,7 +961,12 @@ class Document(Observable):
             self._highlight_timeout_id = None
 
         self.highlight_tag_count += 1
-        color = ColorManager.get_ui_color('highlight_tag_textview')
+        # 复制并降 alpha:accent 全不透明(1.0)在编辑器里太浓,与
+        # begin_end_match 保持同一浓度(0.20),「比行高亮浓厚一点点」。
+        # get_ui_color 返回的是缓存引用,不能直接改 alpha。
+        accent = ColorManager.get_ui_color('highlight_tag_textview')
+        color = Gdk.RGBA(red=accent.red, green=accent.green, blue=accent.blue,
+                         alpha=_HIGHLIGHT_SECTION_MAX_ALPHA)
         self.source_buffer.create_tag('highlight-' + str(self.highlight_tag_count), background_rgba=color, background_full_height=True)
         tag = self.source_buffer.get_tag_table().lookup('highlight-' + str(self.highlight_tag_count))
         self.source_buffer.apply_tag(tag, start_iter, end_iter)

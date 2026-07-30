@@ -28,6 +28,16 @@ from setzer.app.color_manager import ColorManager
 from setzer.helpers.timer import timer
 
 
+# synctex 正向同步高亮（编辑器 → PDF 预览）的最大 alpha。
+# accent_color 全不透明(1.0)叠加 cairo.Operator.MULTIPLY 在白底 PDF 上
+# 等于直接铺一块实色 accent，过于浓重——比行高亮还要浓一个量级。
+# 0.30 在 MULTIPLY 模式下可见性已经足够定位（同时仍能透过看到下面的文字），
+# 浓度大致与编辑器侧 begin/end_match (0.20) / section highlight (0.20)
+# 同一量级，符合「比行高亮浓厚一点点」的总体风格。若想再淡/再浓，
+# 改这个常量即可。
+_SYNCTEX_HIGHLIGHT_MAX_ALPHA = 0.30
+
+
 class PreviewPresenter(object):
 
     def __init__(self, preview, page_renderer, view):
@@ -320,7 +330,11 @@ class PreviewPresenter(object):
             # 原代码 color.alpha *= time_factor 会污染缓存，使后续取色（含本帧
             # 其它页与后续帧）拿到不断衰减的 alpha，高亮颜色越来越淡甚至归零。
             # 直接在 set_source_rgba 中计算乘积，零副作用。
-            ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue, synctex_color.alpha * self._current_time_factor)
+            #
+            # 降 alpha：accent 全不透明(1.0) + MULTIPLY 等于铺实色块，太浓重。
+            # 改为 _SYNCTEX_HIGHLIGHT_MAX_ALPHA 封顶，再乘 time_factor 做淡出。
+            ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue,
+                                _SYNCTEX_HIGHLIGHT_MAX_ALPHA * self._current_time_factor)
             ctx.set_operator(cairo.Operator.MULTIPLY)
             for rectangle in rectangles:
                 ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
