@@ -162,19 +162,20 @@ class DocumentSwitcherView(object):
         row.add_prefix(icon)
 
         modified_suffix = '*' if document.source_buffer.get_modified() else ''
-        basename = os.path.split(document.get_displayname())[1]
+        displayname = document.get_displayname()
+        basename = os.path.basename(displayname)
         # use-markup 让标题/副标题渲染 Pango markup，供模糊命中加粗使用。
         row.set_use_markup(True)
         # 搜索命中高亮：模糊匹配命中的字符加粗（标题=文件名，子标题=目录）。
         row.set_title(highlight_fuzzy(basename + modified_suffix, query))
 
         # 8.3：重名文件时 tooltip 显示完整路径，便于区分。
-        row.set_tooltip_text(document.get_filename() or document.get_displayname())
-        # 搜索过滤时显示所在目录，便于在仅显示 basename 时定位，并对命中字符加粗。
-        if query:
-            filename = document.get_filename()
-            if filename:
-                row.set_subtitle(highlight_fuzzy(os.path.dirname(filename), query))
+        row.set_tooltip_text(document.get_filename() or displayname)
+        # 始终显示所在目录：标题只有 basename，路径信息否则会完全丢失。
+        # 未保存文档没有路径，此时保持无副标题。
+        directory = os.path.dirname(document.get_filename() or displayname)
+        if directory:
+            row.set_subtitle(highlight_fuzzy(directory, query))
 
         if is_active:
             row.add_css_class('accent')
