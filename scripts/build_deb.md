@@ -30,6 +30,11 @@ sudo apt-get install -y meson ninja-build gettext
 > `gir1.2-webkit-6.0`），写 `Depends` 时按本机 `dpkg -l | grep gir1.2-webkit`
 > 实际结果填写。
 
+> **支持的发行版**：本包依赖 `gir1.2-webkit-6.0`（WebKitGTK 6.0），仅能在
+> **Ubuntu 24.04+**、**Debian 13 (trixie)+** 等提供了该 gir 的发行版上安装。
+> 更旧的发行版（Ubuntu 22.04、Debian 12）不存在此包，`dpkg -i` 会直接因依赖
+> 无法满足而失败——这是预期行为，非打包缺陷。这类机器应从源码构建。
+
 ---
 
 ## 2. 配置与编译安装
@@ -46,6 +51,12 @@ meson setup builddir --prefix=/usr
 # 注意：务必先清掉上一次 DESTDIR，否则会混入旧版 __pycache__（见下方"Stale .pyc 陷阱"）。
 rm -rf /tmp/setzer_deb_root
 DESTDIR=/tmp/setzer_deb_root meson install -C builddir
+
+# 剔除 .pyc / __pycache__，让目标机首次运行时自行按本机 Python 版本编译。
+# 否则打包进的是构建机的 cpython-3xx.pyc，跨 Python 小版本虽可自动重编，
+# 但会留下陈旧字节码隐患（见下方"Stale .pyc 陷阱"），且包体更臃肿。
+find /tmp/setzer_deb_root -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+find /tmp/setzer_deb_root -name "*.pyc" -delete 2>/dev/null || true
 ```
 
 > ### ⚠️ Stale `.pyc` 陷阱（实测踩过）

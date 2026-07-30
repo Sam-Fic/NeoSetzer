@@ -29,6 +29,8 @@ Warning: Building Setzer this way may take a long time.
 
 I develop Setzer on Ubuntu and that's what I tested it with.
 
+> **Supported distributions:** Setzer requires WebKitGTK 6.0 (gir1.2-webkit-6.0), which is available on **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) the `gir1.2-webkit-6.0` package does not exist and the `.deb` cannot be installed there. If you are on an older distribution, build from source as described below — the GTK4/WebKit bindings are resolved at runtime.
+
 1. Run the following command to install prerequisite packages:<br />
 `apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
 

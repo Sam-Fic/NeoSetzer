@@ -29,6 +29,8 @@ Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试�
 
 我在 Ubuntu 上开发 Setzer，并在此基础上进行了测试。
 
+> **支持的发行版：** Setzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
+
 1. 运行以下命令安装前置软件包：<br />
 `apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
 
