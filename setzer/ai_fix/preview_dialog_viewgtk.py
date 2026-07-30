@@ -83,18 +83,21 @@ class PreviewDialogView(DialogView):
         scrolled.set_hexpand(True)
         scrolled.set_vexpand(True)
         scrolled.set_min_content_height(280)
+        # 关键：裁剪 overshoot/undershoot 提示条到圆角矩形内，
+        # 避免滚动后上下浅灰条溢出外框。
+        scrolled.set_overflow(Gtk.Overflow.HIDDEN)
+        scrolled.add_css_class('ai-fix-scrolled')
 
         self.prompt_buffer = Gtk.TextBuffer()
         self.prompt_view = Gtk.TextView(buffer=self.prompt_buffer)
         self.prompt_view.set_monospace(True)
         self.prompt_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        # 让文字与 TextView 边框保持间距
-        self.prompt_view.set_left_margin(10)
-        self.prompt_view.set_right_margin(10)
-        self.prompt_view.set_top_margin(10)
-        self.prompt_view.set_bottom_margin(10)
-        # 用 CSS 给 prompt 区加细边框与背景，使其像编辑框
-        self.prompt_view.add_css_class('card')
+        # 让文字与 TextView 边框保持更大的间距,使文本输入区"内缩"到外框里
+        self.prompt_view.set_left_margin(16)
+        self.prompt_view.set_right_margin(16)
+        self.prompt_view.set_top_margin(16)
+        self.prompt_view.set_bottom_margin(16)
+        # 用 CSS 给 prompt 区加可见的灰色圆角矩形外框与背景
         self.prompt_view.add_css_class('ai-fix-prompt-view')
         scrolled.set_child(self.prompt_view)
         content_box.append(scrolled)
@@ -112,15 +115,31 @@ class PreviewDialogView(DialogView):
         self._load_css()
 
     def _load_css(self):
-        '''加载本弹窗专用的 CSS（prompt 区内边距等）。
+        '''加载本弹窗专用的 CSS（prompt 区外框与内边距等）。
 
         GTK4 应用级 CSS provider 范式：每个 provider 仅追加一次，重复 add_provider
         会被 GTK 检测 idempotent（相同 provider+priority 不重复添加）。
         '''
         provider = Gtk.CssProvider()
-        css = b'''
+        css = '''
+        textview.ai-fix-prompt-view {
+            background-color: @card_bg_color;
+            border: 1px solid @borders;
+            border-radius: 8px;
+        }
         textview.ai-fix-prompt-view text {
-            padding: 8px;
+            padding: 12px;
+        }
+        /* hide overshoot/undershoot indicators entirely: they paint on the
+           ScrolledWindow edge and are NOT clipped by widget overflow, so they
+           would bleed past the rounded frame. The rounded card already signals
+           a scrollable area. */
+        scrolledwindow.ai-fix-scrolled overshoot,
+        scrolledwindow.ai-fix-scrolled undershoot {
+            background-image: none;
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
         }
         '''
         provider.load_from_data(css)
