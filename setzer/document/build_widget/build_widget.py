@@ -50,7 +50,6 @@ _INTERPRETER_DISPLAY = {
     'tectonic': 'Tectonic',
 }
 
-
 class BuildWidget(Observable):
 
     def __init__(self, document):
@@ -72,6 +71,7 @@ class BuildWidget(Observable):
         self.document.connect('filename_change', self.on_filename_change)
         self.document.build_system.connect('build_state_change', self.on_build_state_change)
         self.document.build_system.connect('build_state', self.on_build_state)
+        self.document.build_system.connect('build_stage', self.on_build_stage)
         # 每文档/全局解释器变化时刷新“保存并构建”按钮的 tooltip（含引擎名，见项 15）。
         self.document.build_system.connect('latex_interpreter_changed', self.update_build_button_tooltip)
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
@@ -110,6 +110,7 @@ class BuildWidget(Observable):
                     # 防止用户在进程退出前重复点击。
                     self.view.build_button.set_sensitive(False)
                 else:
+                    self.view.clear_stage()
                     self.view.switch_to_building()
                     self.view.build_button.set_sensitive(True)
                     self.view.reset_timer()
@@ -120,6 +121,28 @@ class BuildWidget(Observable):
             self.update_build_button_tooltip()
             self.build_button_state = ('idle', int(time.time()*1000))
         self.set_clean_button_state()
+
+    def on_build_stage(self, build_system, stage):
+        # 仅在构建/building 态显示阶段；纯 forward/backward sync 模式按钮不在
+        # building 态，阶段事件应被忽略，避免误显示。
+        if self.build_button_state[0] != 'building':
+            return
+        job_name, index = stage
+        self.view.set_stage(self._stage_label(job_name), index)
+
+    def _stage_label(self, job_name):
+        # 懒求值：_() 在 gettext.install 之后才可用，不能在模块顶层调用
+        # （否则导入期 NameError）。首次调用（运行时）构建并缓存映射表。
+        if not hasattr(self, '_stage_labels'):
+            self._stage_labels = {
+                'build_latex': _('LaTeX'),
+                'build_bibtex': _('BibTeX'),
+                'build_biber': _('Biber'),
+                'build_makeindex': _('MakeIndex'),
+                'build_glossaries': _('Glossaries'),
+                'forward_sync': _('Sync'),
+            }
+        return self._stage_labels.get(job_name, job_name)
 
     def on_build_state(self, build_system, message):
         if message == '':

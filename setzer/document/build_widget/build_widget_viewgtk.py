@@ -44,9 +44,16 @@ class BuildWidgetView(Gtk.Box):
 
         self.active_icon = Gtk.Image(icon_name='process-stop-symbolic')
         self.timer_label = Gtk.Label(label='0:00')
+        # 按钮内只保留 [停止图标] + 计时器；构建阶段 “阶段名 · Pass N” 不放进
+        # 按钮（会把它撑长），改放按钮 tooltip（见 set_stage / clear_stage）。
         self.active_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.active_box.append(self.active_icon)
         self.active_box.append(self.timer_label)
+
+        # 构建态 tooltip 基文本；阶段信息经 set_stage 追加其后，clear_stage 复位。
+        # 放在 __init__（运行时 gettext 已安装）以便 clear_stage 在 switch_to_building
+        # 前调用也不会 AttributeError。
+        self._building_tooltip_base = _('Stop building')
 
         shortcut_tooltips.set_tooltip(self.build_button, _('Save and build .pdf-file from document'), 'save_and_build')
         self.build_button.add_css_class('suggested-action')
@@ -67,7 +74,7 @@ class BuildWidgetView(Gtk.Box):
     def switch_to_building(self):
         self.build_button.set_child(self.active_box)
         # 不带动作名注册：覆盖 idle 状态的条目，构建期间改键也不会误刷回旧文案
-        shortcut_tooltips.set_tooltip(self.build_button, _('Stop building'))
+        shortcut_tooltips.set_tooltip(self.build_button, self._building_tooltip_base)
         self.build_button.set_action_name(None)
         self.build_button.remove_css_class('suggested-action')
         self.build_button.add_css_class('destructive-action')
@@ -103,3 +110,13 @@ class BuildWidgetView(Gtk.Box):
     def reset_timer(self):
         self.timer = 0
         self.timer_label.set_text('0:00')
+
+    def set_stage(self, name, index):
+        # 阶段信息放 tooltip（N 递增，不写死 N/M；job 队列在构建中动态增长）。
+        # 形如 “Stop building — LaTeX · Pass 2”。
+        stage_text = '{} · {}'.format(name, _('Pass {}').format(index))
+        self.build_button.set_tooltip_text('{} — {}'.format(self._building_tooltip_base, stage_text))
+
+    def clear_stage(self):
+        # 构建结束/停止：tooltip 回到 “Stop building” 基文本，去掉阶段信息。
+        self.build_button.set_tooltip_text(self._building_tooltip_base)

@@ -330,10 +330,24 @@ class BuildSystem(Observable):
 
         self.change_build_state('building_in_progress')
 
+    def _emit_build_stage(self, job, index):
+        '''把构建阶段事件从 worker 线程经主线程循环派发（线程安全，与
+        _on_query_done 同范式）。回调返回 False 以便 GLib 只调度一次。'''
+        self.add_change_code('build_stage', (job, index))
+        return False
+
     def execute_query(self, query):
+        stage_index = 0
         while len(query.jobs) > 0:
             if not query.force_building_to_stop:
-                self.builders[query.jobs.pop(0)].run(query)
+                job = query.jobs.pop(0)
+                stage_index += 1
+                # 开始执行 job 前把阶段事件派发回主线程。job 名与序号作为参数
+                # 绑定在 idle_add 调用时（非闭包延迟取值），避免循环变量被后续
+                # 迭代覆盖。默认 use_latexmk 关闭下，job 队列是真实的多遍串行
+                # 构建（LaTeX / BibTeX / Biber ...），阶段信息对用户有意义。
+                GLib.idle_add(self._emit_build_stage, job, stage_index)
+                self.builders[job].run(query)
         # worker 线程结束：把结果处理调度到主线程，替代原「设 done 标志 +
         # 主线程 50ms 轮询 is_done()」的 poll-for-completion 模式。
         # GLib.idle_add 线程安全，回调在主线程执行（代码库已有 10+ 处同范式）。
