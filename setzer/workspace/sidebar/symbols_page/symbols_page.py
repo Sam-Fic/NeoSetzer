@@ -211,7 +211,7 @@ class SymbolsPage(ScrollAnimatorMixin):
         button = Gtk.Button(child=image)
         button.add_css_class('flat')
         button.set_tooltip_text(tooltip_text)
-        button.set_accessible_name(_('Insert') + ' ' + symbol[1])
+        button.update_property([Gtk.AccessibleProperty.LABEL], [_('Insert') + ' ' + symbol[1]])
         # 悬停时弹出放大预览（放大版符号 + LaTeX 命令 + 收藏切换按钮）。
         # Recent 与 Favorites 共用同一预览组件，仅 folder 与 favorite 回调不同。
         attach_symbol_hover_preview(button, symbol)
