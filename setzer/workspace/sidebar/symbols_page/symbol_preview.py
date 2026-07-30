@@ -160,9 +160,9 @@ def attach_symbol_context_menu(button, symbol, folder=None,
         menu.append(_('Insert'), 'symbol-context.insert')
         if favorite_state_func is not None and folder is not None:
             if favorite_state_func(folder, command):
-                menu.append(_('★ Remove from Favorites'), 'symbol-context.favorite')
+                menu.append(_('Remove from Favorites'), 'symbol-context.favorite')
             else:
-                menu.append(_('☆ Add to Favorites'), 'symbol-context.favorite')
+                menu.append(_('Add to Favorites'), 'symbol-context.favorite')
         menu.append(_('Copy LaTeX Command'), 'symbol-context.copy')
         return menu
 
