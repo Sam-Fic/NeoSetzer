@@ -91,7 +91,8 @@
 % Push the title block toward the vertical middle of the cover page.
 \pretitle{\begin{center}\vspace*{0.25\textheight}\Huge\bfseries}
 \posttitle{\end{center}}
-\postdate{\par\end{center}\vspace*{0.2\textheight}}
+\predate{\begin{center}\large}
+\postdate{\par\vspace*{0.2\textheight}\end{center}}
 
 \title{Example Document: A Tour of \LaTeX{} and Setzer Features}
 \author{Sam Fic}
