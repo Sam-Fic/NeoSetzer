@@ -50,11 +50,30 @@ class PreviewPresenter(object):
         self.preview.connect('pdf_load_failed', self.on_pdf_load_failed)
         self.page_renderer.connect('rendered_pages_changed', self.on_rendered_pages_changed)
 
+        # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
+        # view 的画布 overlay 里），点击 → 滚动到该页顶部。
+        self.view.set_page_indicator_click_handler(self._on_page_indicator_clicked)
+
         build_system = self.preview.document.build_system
         build_system.connect('build_state_change', self.on_build_state_change)
         build_system.connect('build_state', self.on_build_state)
 
         self.show_blank_slate()
+
+    def _on_page_indicator_clicked(self, page_number_1based):
+        '''用户点击页码徽章：把该页滚到视口顶部（保持当前 x 偏移）。
+
+        滚动到 page_y_starts[page-1]（per-page 几何，已含 vertical_padding）。
+        不调 set_synctex_rectangles / start_fade_loop 等额外动作——点击是
+        单纯的位置跳转，不涉及 synctex。'''
+        layout = self.preview.layout
+        if layout is None:
+            return
+        page_top = layout.get_page_top(page_number_1based - 1)
+        if page_top is None:
+            return
+        content = self.view.content
+        self.preview.scroll_to_position(content.scrolling_offset_x, page_top)
 
     def on_pdf_changed(self, preview):
         if self.preview.poppler_document != None:
@@ -65,6 +84,11 @@ class PreviewPresenter(object):
             # 回到空白状态（无旧 PDF 可回退）时也清除失败提示。
             self.view.hide_pdf_load_failed()
             self.show_blank_slate()
+        # 文档切换 / PDF 重置:徽章失去意义,取消挂起的 hide 定时器
+        # 并立即隐藏(下一帧 draw 不再画徽章)。
+        self.view.cancel_page_indicator_timer()
+        if self.view.is_page_indicator_visible():
+            self.view._hide_page_indicator()
 
     def on_pdf_load_failed(self, preview):
         # 新 PDF 加载失败，回退到旧 PDF：显示错误图标，弹出 toast 告知用户。
@@ -181,43 +205,44 @@ class PreviewPresenter(object):
         # 经 self.preview.layout.xxx 两级属性链查找（每级 __dict__ 哈希）。
         # 提到局部变量后走 LOAD_FAST，对 5+ 可见页 × 多次属性访问累积省可观。
         layout = self.preview.layout
-        page_height = layout.page_height
+        # 兼容旧 draw 路径：page_height / page_width 仍取单值（旧 draw_page_
+        # background_and_outline 用）；新 per-page 循环用 page_heights / page_y_starts。
         page_gap = layout.page_gap
-        # vertical_padding：第一页顶部在 canvas 中的 y 偏移。first_page /
-        # last_page 按页面局部坐标（去掉 padding）计算，transform 时再把
-        # padding 加回去，使页面绘制在 vertical_padding 处而非 canvas 顶。
-        vertical_padding = layout.vertical_padding
         # ``width``/``height`` are the full canvas size now; the visible
         # viewport size is read from the ScrolledWindow adjustments.
         visible_width = self.view.content.adjustment_x.get_page_size()
         visible_height = self.view.content.adjustment_y.get_page_size()
         margin = layout.get_horizontal_margin(visible_width)
-        scrolling_offset_x = self.view.content.scrolling_offset_x
         scrolling_offset_y = self.view.content.scrolling_offset_y
-        # 视口顶部在"页面局部坐标系"中的 y（减去 padding）。滚到最顶时
-        # scrolling_offset_y=0 → local_y=-padding（负值），max(0) clamp 到 0
-        # 即第 0 页，确保缓冲区显示空白而非漏画第一页。
-        local_y = max(scrolling_offset_y - vertical_padding, 0)
-        page_step = page_height + page_gap
-        first_page = int(local_y // page_step)
-        # +1 像素确保底部部分可见的最后一页也被渲染：visible_height 若恰好是
-        # page_step 的整数倍，整除会漏掉刚好露出一行的下一页；+1 让商越过
-        # 整数边界把该页纳入 range。min 限制不超过文档实际页数。
-        last_page = min(int((local_y + visible_height + 1) // page_step), self.preview.poppler_document.get_n_pages() - 1)
-        # The ScrolledWindow already translates the context by
-        # ``(-scrolling_offset_x, -scrolling_offset_y)``, so pages are drawn at
-        # their absolute canvas coordinates. transform 到第一页左上角：
-        # vertical_padding（canvas 顶缓冲）+ first_page * page_step。
-        ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, vertical_padding + first_page * page_step))
+        # per-page：直接用 layout.get_page_by_offset 找首页 0-based。
+        first_page = max(0, layout.get_page_by_offset(scrolling_offset_y) - 1)
+        # 末页：找"视口底"所在的页（clamp 到 n-1）。
+        last_offset = scrolling_offset_y + visible_height
+        n_pages = self.preview.poppler_document.get_n_pages()
+        last_page = min(layout.get_page_by_offset(last_offset) - 1, n_pages - 1)
+        if last_page < first_page:
+            last_page = first_page
+        # 第一页 transform 起点 = page_y_starts[first_page]。后续每页用
+        # ctx.transform(0, page_heights[i] + gap) 推进，而非 page_step。
+        first_page_top = layout.get_page_top(first_page)
+        if first_page_top is None:
+            return
+        ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page_top))
 
         rotation = self.preview.rotation
+        page_heights = layout.page_heights
         for page_number in range(first_page, last_page + 1):
-            self.draw_page_background_and_outline(ctx, layout, border_color, page_bg_color)
+            # per-page：取该页的宽 / 高（旋转后）传给 draw_page_background。
+            # 旧逻辑用单一 layout.page_width / page_height，假定等高。
+            page_w_px, page_h_px = layout.page_width, page_heights[page_number]
+            self.draw_page_background_and_outline(ctx, layout, border_color, page_bg_color,
+                                                  page_w_px, page_h_px)
             if rotation != 0:
                 # Draw the un-rotated texture (and synctex highlight) inside a
                 # rotation transform so it appears rotated within the page box.
                 ctx.save()
-                ctx.translate(layout.page_width / 2.0, layout.page_height / 2.0)
+                # 旋转中心用当前页的 displayed 中心（per-page h 已变化）。
+                ctx.translate(page_w_px / 2.0, page_h_px / 2.0)
                 ctx.rotate(math.radians(rotation))
                 ctx.translate(-layout.page_width_original / 2.0, -layout.page_height_original / 2.0)
                 self.draw_rendered_page(ctx, page_number, layout)
@@ -227,7 +252,8 @@ class PreviewPresenter(object):
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
 
-            ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_step))
+            # per-page advance：每页实际高 + gap（而非统一 page_step）。
+            ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_heights[page_number] + page_gap))
 
     def draw_background(self, ctx, drawing_area, bg_color):
         # 画布（"桌面"）背景始终跟随视图背景色（view_bg_color），与页面
@@ -238,12 +264,15 @@ class PreviewPresenter(object):
         ctx.fill()
 
     #@timer
-    def draw_page_background_and_outline(self, ctx, layout, border_color, bg_color):
+    def draw_page_background_and_outline(self, ctx, layout, border_color, bg_color,
+                                          page_w_px, page_h_px):
         # layout / 颜色由 draw 传入（已缓存为局部变量 / 一帧取色一次），
         # 避免每页 4+ 次 self.preview.layout.xxx 两级属性链查找 + 重复取色。
+        # 边距：每页实际尺寸（per-page）由 draw 传入；layout.page_width /
+        # page_height 仍保留作为单值兜底，但新路径优先用入参。
         border_width = layout.border_width
-        page_width = layout.page_width
-        page_height = layout.page_height
+        page_width = page_w_px
+        page_height = page_h_px
         ctx.set_source_rgba(border_color.red, border_color.green, border_color.blue, border_color.alpha)
         ctx.rectangle(- border_width, - border_width, page_width + 2 * border_width, page_height + 2 * border_width)
         ctx.fill()

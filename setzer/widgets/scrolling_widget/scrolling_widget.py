@@ -35,6 +35,12 @@ class ScrollingWidget(Observable):
     is attached to the (viewport-sized) ``view`` so that the tracked cursor
     stays viewport-relative, matching the expectations of the preview
     controller/zoom manager.
+
+    The drawing area is wrapped in a ``Gtk.Overlay`` (``self.canvas``) so that
+    canvas-positioned widgets (e.g. per-page page indicator buttons) can be
+    placed on top of the drawing area. These widgets use canvas coordinates
+    for ``set_margin_top``/``set_margin_end`` and scroll with the content
+    naturally, since they are children of the canvas-sized overlay.
     '''
 
     def __init__(self):
@@ -50,17 +56,27 @@ class ScrollingWidget(Observable):
 
         self.view = Gtk.ScrolledWindow()
         self.view.set_overlay_scrolling(True)
+        # 把 canvas-sized drawing area 包到 Gtk.Overlay 里。这样可以在画布
+        # 坐标系内放置额外的子 widget（如每页页码按钮），它们随滚动一起平移。
+        # Overlay 大小 = 主子（drawing area）大小，所以 ScrolledWindow 的可滚动
+        # 区域与原来一致。
+        self.canvas = Gtk.Overlay()
         self.content = Gtk.DrawingArea()
-        self.view.set_child(self.content)
+        self.canvas.set_child(self.content)
+        self.view.set_child(self.canvas)
 
         self.adjustment_x = self.view.get_hadjustment()
         self.adjustment_y = self.view.get_vadjustment()
 
+        # scroll controller 挂到 canvas overlay 而不是 drawing area：
+        # overlay 子（如按钮）位于 drawing area 上方。GTK 事件冒泡时，挂在
+        # drawing area 上的 controller 收不到按钮上发生的滚动；改挂到 canvas
+        # 后，按钮上的滚动事件通过冒泡被 canvas 上的 controller 捕获。
         self.scrolling_controller = Gtk.EventControllerScroll()
         self.scrolling_controller.set_flags(Gtk.EventControllerScrollFlags.BOTH_AXES | Gtk.EventControllerScrollFlags.KINETIC)
         self.scrolling_controller.connect('scroll', self.on_scroll)
         self.scrolling_controller.connect('decelerate', self.on_decelerate)
-        self.content.add_controller(self.scrolling_controller)
+        self.canvas.add_controller(self.scrolling_controller)
 
         self.adjustment_x.connect('changed', self.on_adjustment_changed)
         self.adjustment_x.connect('value-changed', self.on_adjustment_changed)
@@ -107,6 +123,14 @@ class ScrollingWidget(Observable):
 
     def queue_draw(self):
         self.content.queue_draw()
+
+    def add_overlay_widget(self, widget):
+        '''把 widget 放到画布坐标系的 overlay 层。
+
+        widget 的大小 / 位置由调用方通过 set_halign/set_valign + set_margin_*
+        设定（坐标以画布左上角为原点）。widget 会随画布一起随滚动平移，
+        不会停在视口固定位置。'''
+        self.canvas.add_overlay(widget)
 
     def scroll_to_position(self, position):
         yoffset = max(position[1], 0)

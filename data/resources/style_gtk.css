@@ -382,6 +382,31 @@ toolbarview > * > * > * {
 }
 
 /*
+ * 预览页码徽章按钮：每个可见页一个，放在画布 overlay 里的真正 Gtk.Button。
+ * 主题色 / hover / active 状态由 Gtk.Button 自动处理（不需要手动从
+ * ColorManager 取色），本规则只调整尺寸 / 圆角 / 字号。
+ *
+ * 设计要点:
+ * - 跟随主题：默认走 @button_bg_color / @button_fg_color，明暗自动切换。
+ * - 圆角 pill：min-height=28 + border-radius=14 让 1-2 位数字按钮是完美
+ *   椭圆;3+ 位数字时按钮变宽,圆角仍 14px,看起来像 pill。
+ * - 数字字号比正文略大、加粗,与一般按钮的次级强调接近。
+ * - 滚动时才显示(由 view 的 timeout 控制 set_visible),静止后自动隐藏。
+ */
+.page-indicator-button {
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 14px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+/* label 不要再加 padding,否则会把数字从按钮中心推开。 */
+.page-indicator-button label {
+    padding: 0;
+    margin: 0;
+}
+
+/*
  * 构建日志阶段分隔标题：Adw.PreferencesGroup 的 header 内插入 Gtk.Label
  * 作 stage header（stage: 'BibTeX' / 'LaTeX'）。样式要低调但可区分：
  * - 小字号 + dim-label 降低视觉重量；

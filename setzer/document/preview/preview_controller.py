@@ -66,6 +66,33 @@ class PreviewController(object):
     def on_scrolling_offset_change(self, *arguments):
         self.preview.update_position()
         self.update_cursor()
+        # 滚动时显示每页页码徽章（在 view 的画布 overlay 中摆真正按钮，
+        # 每页一个）。徽章画哪一页由 view 根据传入的 visible_pages 决定，
+        # controller 只算「哪些页在视口里」、把结果交给 view 去定位。
+        layout = self.preview.layout
+        poppler_doc = self.preview.poppler_document
+        if layout is not None and poppler_doc is not None:
+            visible_pages = self._compute_visible_pages(layout, poppler_doc)
+            self.view.show_page_indicator(visible_pages, layout)
+
+    def _compute_visible_pages(self, layout, poppler_doc):
+        '''计算当前视口内可见的页（1-based 页码列表）。
+
+        用 layout.get_page_by_offset 把视口顶 / 底各自映射到页号。
+        per-page 实现：bisect 在 page_y_starts 上定位,所以即便页面高度
+        不一致,「视口底落在哪页」也是准确的。'''
+        n_pages = poppler_doc.get_n_pages()
+        if n_pages == 0:
+            return []
+        content = self.view.content
+        offset_y = content.scrolling_offset_y
+        viewport_h = content.height
+        first_page = max(0, layout.get_page_by_offset(offset_y) - 1)
+        last_offset = offset_y + viewport_h
+        last_page = min(layout.get_page_by_offset(last_offset) - 1, n_pages - 1)
+        if last_page < first_page:
+            last_page = first_page
+        return [p + 1 for p in range(first_page, last_page + 1)]
 
     def on_zoom_request(self, content, amount):
         self.preview.update_position()
@@ -78,7 +105,8 @@ class PreviewController(object):
 
         factor = zoom_level / manager.zoom_level
         x = factor * self.view.content.scrolling_offset_x + (factor - 1) * self.view.content.cursor_x
-        prev_pages = self.view.content.scrolling_offset_y // (layout.page_height + layout.page_gap)
+        # per-page：用 layout 找当前页（0-based）。
+        prev_pages = max(0, layout.get_page_by_offset(self.view.content.scrolling_offset_y) - 1)
         y = (1 - factor) * prev_pages * layout.page_gap + factor * self.view.content.scrolling_offset_y + (factor - 1) * self.view.content.cursor_y
         # Ctrl+滚轮是手动缩放：脱离任何 fit 模式，保留用户设定的绝对级别。
         manager.zoom_mode = 'manual'
@@ -121,7 +149,8 @@ class PreviewController(object):
 
         x = factor * self.view.content.scrolling_offset_x + (factor - 1) * cx
         layout = self.preview.layout
-        prev_pages = self.view.content.scrolling_offset_y // (layout.page_height + layout.page_gap)
+        # per-page：用 layout 找当前页（0-based）。
+        prev_pages = max(0, layout.get_page_by_offset(self.view.content.scrolling_offset_y) - 1)
         y = (1 - factor) * prev_pages * layout.page_gap + factor * self.view.content.scrolling_offset_y + (factor - 1) * cy
 
         manager.set_zoom_level(target_zoom)
@@ -188,7 +217,16 @@ class PreviewController(object):
         cursor = self.cursor_default
         link_target = ''
         links = self.preview.links_parser.get_links_for_page(page_number)
-        y_offset = (self.preview.page_height - y_offset)
+        # per-page：y_offset 来自 layout 的是 un-rotated PDF 坐标的 top-down
+        # y（已用该页 height 反转），无需再次反转。layout 输出已经过
+        # invert_rotation_transform，y_offset 已是 PDF (y-up) 坐标系。
+        # 此处原来 "page_height - y_offset" 再次反转会错；仅当 y_offset
+        # 是 top-down canvas 局部坐标时才需反转。layout.get_page_number_
+        # and_offsets_by_document_offsets 已返回 PDF 原生坐标（见
+        # preview_layouter.py: 旋转路径返回 ox_css/oy_css，否则除 scale
+        # 之后 y_offset = top-down 局部 y），因此这里要做的是 top-down →
+        # y-up（与 page_height 求差）。
+        y_offset = (self.preview.get_page_height(page_number) - y_offset)
         for link in links:
             if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
                 cursor = self.cursor_pointer
@@ -224,7 +262,8 @@ class PreviewController(object):
 
             page_number, x_offset, y_offset = data
             links = self.preview.links_parser.get_links_for_page(page_number)
-            y_offset = self.preview.page_height - y_offset
+            # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
+            y_offset = self.preview.get_page_height(page_number) - y_offset
             for link in links:
                 if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
                     self.open_link(link)
@@ -341,7 +380,8 @@ class PreviewController(object):
         cur_y = content.scrolling_offset_y
         viewport_h = content.height
         layout = self.preview.layout
-        step = layout.page_height + layout.page_gap
+        # 快捷键 PageUp/PageDown/Home/End 是按视口比例滚动（0.9 * 视口高），
+        # 不依赖单页尺寸；per-page 不影响。
         total_h = layout.canvas_height
         max_y = max(total_h - viewport_h, 0)
 
@@ -390,10 +430,10 @@ class PreviewController(object):
         if layout == None:
             return
         content = self.view.content
-        step = layout.page_height + layout.page_gap
-        # page_number 是 1-based。第 N 页顶部在 canvas y = vertical_padding +
-        # (N-1) * step 处（page 0 顶部因 padding 不在 canvas y=0）。
-        y = layout.vertical_padding + (page_number - 1) * step
+        # per-page：第 N 页顶部在 page_y_starts[N-1]（已含 vertical_padding）。
+        y = layout.get_page_top(page_number - 1)
+        if y is None:
+            return
         self.preview.scroll_to_position(content.scrolling_offset_x, y)
 
 

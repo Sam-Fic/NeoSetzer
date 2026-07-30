@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import math
+from bisect import bisect_right
 from collections import namedtuple
 
 from setzer.helpers.observable import Observable
@@ -44,6 +45,11 @@ class PreviewLayouter(Observable):
             # Displayed (canvas) page dimensions honor the preview rotation:
             # for 90°/270° the page box is swapped. Rendered textures always use
             # the un-rotated page dimensions, so we keep both around.
+            #
+            # 历史：layout.page_width / page_height 是单一值（取自首页），假设
+            # 所有页等高。任何破坏等高的情形（\enlargethispage、A3 横排插图、
+            # paper size 变化）都会算错页号与滚动位置。改 per-page：
+            # page_heights / page_y_starts 是关键缓存，bisect 替换整除。
             pw = self.preview.page_width
             ph = self.preview.page_height
             rotation = self.preview.rotation
@@ -51,6 +57,9 @@ class PreviewLayouter(Observable):
                 disp_pw, disp_ph = ph, pw
             else:
                 disp_pw, disp_ph = pw, ph
+            # 兼容旧调用：page_width / page_height 仍设为首页值（旧代码 +
+            # 渐变路径共用）。新代码应优先用 layout.page_widths[i] /
+            # page_heights[i] / get_page_top / get_page_height 等 per-page API。
             layout.page_width = layout.scale_factor * disp_pw
             layout.page_height = layout.scale_factor * disp_ph
             layout.page_width_original = layout.scale_factor * pw
@@ -69,8 +78,34 @@ class PreviewLayouter(Observable):
             # 的"桌面"空白。滚到顶/底时纸张不再贴窗口边缘，与左右水平 margin
             # 形成四周呼吸空间。值取 page_gap 的 3 倍，与页间距视觉协调。
             layout.vertical_padding = layout.page_gap * 1
+
+            # ---- per-page 几何：从 poppler 读每页 size，按 rotation 换算
+            # 显示尺寸，乘 scale 得 canvas 像素高，再累加得 page_y_starts。
+            poppler_doc = self.preview.poppler_document
+            n_pages = poppler_doc.get_n_pages()
+            page_heights = []
+            page_y_starts = []
+            cumulative = layout.vertical_padding
+            for i in range(n_pages):
+                size = poppler_doc.get_page(i).get_size()
+                if rotation in (90, 270):
+                    page_disp_ph = size.width
+                else:
+                    page_disp_ph = size.height
+                ph_px = layout.scale_factor * page_disp_ph
+                page_heights.append(ph_px)
+                page_y_starts.append(cumulative)
+                cumulative += ph_px + layout.page_gap
+            # canvas 高度 = 最后一页底 + 底部 vertical_padding（与原公式
+            # "n * (h + gap) - gap + 2 * padding" 等价当 per-page 相同时）。
+            if n_pages > 0:
+                layout.canvas_height = page_y_starts[-1] + page_heights[-1] + layout.vertical_padding
+            else:
+                layout.canvas_height = 2 * layout.vertical_padding
+            layout.page_heights = page_heights
+            layout.page_y_starts = page_y_starts
+
             layout.canvas_width = layout.page_width + 2 * layout.get_horizontal_margin(window_width)
-            layout.canvas_height = self.preview.poppler_document.get_n_pages() * (layout.page_height + layout.page_gap) - layout.page_gap + 2 * layout.vertical_padding
             self.update_synctex_rectangles(layout)
             return layout
         else:
@@ -109,25 +144,84 @@ class PreviewLayout(object):
         self.scale_factor = None
         self.rotation = None
         self.visible_synctex_rectangles = dict()
+        # per-page 几何（create_layout 填充）。
+        # page_heights[i] 是第 i 页的 canvas 像素高（含 rotation 后的
+        # 显示尺寸）；page_y_starts[i] 是第 i 页顶部的 canvas y 坐标。
+        # 二者长度 = n_pages，索引 0-based。
+        self.page_heights = None
+        self.page_y_starts = None
 
     def get_horizontal_margin(self, window_width):
         return int(max((window_width - self.page_width) / 2, 0))
 
+    def get_page_count(self):
+        '''总页数。无 layout 时返回 0。'''
+        if self.page_y_starts is None:
+            return 0
+        return len(self.page_y_starts)
+
+    def get_page_height(self, page):
+        '''第 page 页的 canvas 像素高（0-based）。无 layout 或越界返回 None。'''
+        if self.page_heights is None or page < 0 or page >= len(self.page_heights):
+            return None
+        return self.page_heights[page]
+
+    def get_page_top(self, page):
+        '''第 page 页顶部的 canvas y 坐标（0-based）。无 layout 或越界返回 None。'''
+        if self.page_y_starts is None or page < 0 or page >= len(self.page_y_starts):
+            return None
+        return self.page_y_starts[page]
+
+    def get_page_by_offset(self, offset):
+        '''1-based page number at the given canvas y offset。被
+        preview_page_renderer.compute_visible_pages 用于确定当前页。
+
+        per-page 实现：用 bisect_right 在 page_y_starts 上定位。offset
+        落在顶部 vertical_padding 区时（滚到最顶）返回第 1 页而非 0 /
+        负数；落在最后一页之后 clamp 到最后一页。gap 区段内算前一页
+        （与原 // 行为一致：floor）。'''
+        n = self.get_page_count()
+        if n == 0:
+            return 1
+        # bisect_right 返回「offset 应插入的位置」；减 1 即为所在页 0-based。
+        # offset < page_y_starts[0] 时 bisect_right 返回 0 → -1；clamp 到 0
+        # 然后转 1-based。offset >= page_y_starts[-1] 时返回 n → n-1。
+        idx = bisect_right(self.page_y_starts, offset) - 1
+        if idx < 0:
+            return 1
+        if idx >= n:
+            return n
+        return idx + 1
+
     def get_page_number_and_offsets_by_document_offsets(self, x, y, window_width):
-        # 此方法在每次滚动/悬停时经 update_cursor 调用。原代码 3 次调用
-        # get_horizontal_margin（各做 int(max(...))），3 次计算
-        # page_height + page_gap。缓存到局部变量后各只算一次。
+        # 此方法在每次滚动/悬停时经 update_cursor 调用。per-page 实现：
+        # 用 bisect 在 page_y_starts 定位所在页，再以该页 height 判 gap。
         # vertical_padding：第一页顶部之前是画布缓冲区，点击该区域（y <
         # vertical_padding）应判为"不在任何页面上"，与页面间 gap 的处理一致。
-        if y < self.vertical_padding: return None
-        y_local = y - self.vertical_padding
-        page_height_plus_gap = self.page_height + self.page_gap
-        if y_local % page_height_plus_gap > self.page_height: return None
+        n = self.get_page_count()
+        if n == 0:
+            return None
+        if y < self.vertical_padding:
+            return None
+        # bisect_right 把 y 视作「应在哪个累积起点之后」。page_y_starts[i]
+        # 已含 vertical_padding，故直接对 y 搜。y < vertical_padding
+        # 已在前面早返挡掉。
+        idx = bisect_right(self.page_y_starts, y) - 1
+        if idx < 0:
+            idx = 0
+        if idx >= n:
+            idx = n - 1
+        page_h = self.page_heights[idx]
+        # gap 判定：y 在「page_y_starts[idx] + page_h」之后（落在页间 gap）
+        # 视为不在任何页面上。
+        if y - self.page_y_starts[idx] > page_h:
+            return None
         h_margin = self.get_horizontal_margin(window_width)
-        if x < h_margin or x > (h_margin + self.page_width): return None
+        if x < h_margin or x > (h_margin + self.page_width):
+            return None
 
-        page_number = int(y_local // page_height_plus_gap)
-        y_offset = y_local % page_height_plus_gap
+        page_number = idx  # 0-based，保留原 API 语义
+        y_offset = y - self.page_y_starts[idx]
         x_offset = x - h_margin
 
         rotation = self.rotation
@@ -157,11 +251,3 @@ class PreviewLayout(object):
             y_offset = y_offset / self.scale_factor
 
         return (page_number, x_offset, y_offset)
-
-    def get_page_by_offset(self, offset):
-        # 1-based page number at the given canvas y offset。被
-        # preview_page_renderer.compute_visible_pages 用于确定当前页。
-        # offset 落在顶部 vertical_padding 区时（滚到最顶）应返回第 1 页
-        # 而非 0/负数，故先 max(0, offset - vertical_padding) 再整除。
-        offset_local = max(0, offset - self.vertical_padding)
-        return int(1 + offset_local // (self.page_height + self.page_gap))

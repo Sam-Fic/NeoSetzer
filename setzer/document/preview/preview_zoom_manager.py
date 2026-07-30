@@ -248,7 +248,8 @@ class PreviewZoomManager(Observable):
         factor = zoom_level / self.zoom_level
 
         x = factor * self.view.content.scrolling_offset_x + (factor - 1) * self.view.content.width / 2
-        prev_pages = self.view.content.scrolling_offset_y // (layout.page_height + layout.page_gap)
+        # per-page：用 layout 找当前页（0-based），用于"已滚过的页数"项。
+        prev_pages = max(0, layout.get_page_by_offset(self.view.content.scrolling_offset_y) - 1)
         y = (1 - factor) * prev_pages * layout.page_gap + factor * self.view.content.scrolling_offset_y
 
         self.set_zoom_level(zoom_level)

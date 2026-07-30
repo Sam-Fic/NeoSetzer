@@ -143,6 +143,16 @@ class Preview(Observable):
             page_size = self.poppler_document.get_page(0).get_size()
             self.page_width = page_size.width
             self.page_height = page_size.height
+            # per-page PDF（未旋转）尺寸，用于：
+            # 1. PDF y-up ↔ 页面内 top-down y 转换（scroll_dest_on_screen
+            #    / _highlight_search / init_backward_sync 等需要 page_height
+            #    的转换点；不随 rotation 变化，仍是 un-rotated PDF height）
+            # 2. 为后续可能的 per-page 渲染与 hit testing 提供信息
+            # 兼容旧调用：page_width / page_height 仍设为首页值。
+            self.page_heights = [
+                self.poppler_document.get_page(i).get_size().height
+                for i in range(self.poppler_document.get_n_pages())
+            ]
             self.update_vertical_margin()
             self.layout = None
             self.add_change_code('pdf_changed')
@@ -164,11 +174,19 @@ class Preview(Observable):
         self.poppler_document = None
         self.page_width = None
         self.page_height = None
+        self.page_heights = None
         self.layout = None
         if self.pdf_is_stale:
             self.set_pdf_is_stale(False)
         self.add_change_code('pdf_changed')
         self.add_change_code('layout_changed')
+
+    def get_page_height(self, page):
+        '''第 page 页的 PDF（未旋转）高，0-based。无数据或越界返回 self.page_height
+        （首页值，保留旧 API 行为）。'''
+        if self.page_heights is None or page < 0 or page >= len(self.page_heights):
+            return self.page_height
+        return self.page_heights[page]
 
     def setup_layout_and_zoom_levels(self):
         self.layout = self.layouter.create_layout()
@@ -247,16 +265,24 @@ class Preview(Observable):
             # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
             width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
             x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
-            y = (self.layout.page_height + self.layout.page_gap) * (page_number) - top - self.layout.page_gap + self.layout.vertical_padding
+            # per-page 几何：y = page_y_starts[page] + (page_height_px - top - gap)
+            # 原公式 (h + gap) * page_number - top - gap + padding 等价于
+            # "页面顶 + 页面内 top-down 偏移"，但依赖等高。
+            page_top = self.layout.get_page_top(page_number)
+            page_h_px = self.layout.get_page_height(page_number)
+            if page_top is None or page_h_px is None:
+                return
+            y = page_top + (page_h_px - top - self.layout.page_gap)
             self.view.content.scroll_to_position([x, y])
         else:
             # dest coords are PDF (y-up). Convert the target to displayed canvas
             # coordinates via the rotation transform, then scroll there.
-            top_down_top = self.page_height - dest.top
+            page_h_pdf = self.get_page_height(page_number)
+            top_down_top = page_h_pdf - dest.top
             pos = self.original_to_canvas(page_number, dest.left, top_down_top)
             if pos is None: return
             x_canvas, y_canvas = pos
-            pos_r = self.original_to_canvas(page_number, dest.right, self.page_height - dest.bottom)
+            pos_r = self.original_to_canvas(page_number, dest.right, page_h_pdf - dest.bottom)
             width = max(abs(pos_r[0] - x_canvas), 0) if pos_r is not None else 0
             x = max(min(x_canvas, content.scrolling_offset_x), x_canvas + width - content.width + 18)
             self.view.content.scroll_to_position([x, y_canvas])
@@ -292,8 +318,11 @@ class Preview(Observable):
             by = cy + dx * sin_t + dy * cos_t
         margin = layout.get_horizontal_margin(self.view.get_allocated_width())
         x_canvas = margin + bx
-        # page 0 顶部位于 canvas 的 vertical_padding 处，故页面 y 坐标需加 padding。
-        y_canvas = page_number * (layout.page_height + layout.page_gap) + by + layout.vertical_padding
+        # per-page 几何：用 get_page_top 取代 "(page_height + gap) * page"。
+        page_top = layout.get_page_top(page_number)
+        if page_top is None:
+            return None
+        y_canvas = page_top + by
         return (x_canvas, y_canvas)
 
     def update_position(self):
@@ -327,11 +356,10 @@ class Preview(Observable):
             return (None, None)
         window_width = self.view.get_allocated_width()
         layout = self.layout
-        page_height_plus_gap = layout.page_height + layout.page_gap
         n_pages = self.poppler_document.get_n_pages()
-        # y_offset 减去 vertical_padding 转到"页面局部坐标系"再整除得 page_number。
-        # 点在顶部缓冲区（y < padding）时整除得负数，下方 clamp 到第 0 页。
-        page_number = int((y_offset - layout.vertical_padding) // page_height_plus_gap)
+        # per-page 几何：用 layout.get_page_by_offset 转 1-based，转回 0-based。
+        # offset 落在顶部 vertical_padding 时返回第 1 页 → 0；下方 clamp 到 n-1。
+        page_number = layout.get_page_by_offset(y_offset) - 1
         if page_number < 0: page_number = 0
         if page_number >= n_pages: page_number = n_pages - 1
 
@@ -339,12 +367,25 @@ class Preview(Observable):
         if data is not None:
             _, x_pt, y_pt = data
         else:
-            x_pt = (x_offset - layout.get_horizontal_margin(window_width)) / layout.scale_factor
-            y_pt = (y_offset - layout.vertical_padding - page_number * page_height_plus_gap) / layout.scale_factor
+            # 点击在 gap / padding 区：layout 方法返回 None，自己算。
+            # per-page：用 get_page_top 取代旧公式。
+            h_margin = layout.get_horizontal_margin(window_width)
+            page_top = layout.get_page_top(page_number)
+            page_h_px = layout.get_page_height(page_number)
+            if page_top is None or page_h_px is None:
+                x_pt = (x_offset - h_margin) / layout.scale_factor
+                y_pt = 0.0
+            else:
+                x_pt = (x_offset - h_margin) / layout.scale_factor
+                y_pt = max(0.0, min(y_offset - page_top, page_h_px)) / layout.scale_factor
 
         links = self.links_parser.get_links_for_page(page_number)
+        # per-page：x_pt / y_pt 是 un-rotated PDF coords；反转为左下原点
+        # (x, y) 需用 get_page_width / get_page_height（这里 width 仍
+        # 假设统一，per-page width 是未来工作）。
         x_off = self.page_width - x_pt
-        y_off = self.page_height - y_pt
+        page_h_pdf = self.get_page_height(page_number)
+        y_off = page_h_pdf - y_pt
         link = None
         for l in links:
             if x_off > l[0].x1 and x_off < l[0].x2 and y_off > l[0].y1 and y_off < l[0].y2:
@@ -400,7 +441,8 @@ class Preview(Observable):
 
     def _highlight_search(self, page, rect):
         h = rect.x1
-        top = self.page_height - rect.y2
+        # per-page：rect.y2 是 PDF y-up（从底），top-down y = page_height - y2
+        top = self.get_page_height(page) - rect.y2
         width = max(rect.x2 - rect.x1, 0)
         height = max(rect.y2 - rect.y1, 0)
         if width <= 0 or height <= 0:
@@ -427,7 +469,11 @@ class Preview(Observable):
             height = position['height'] * sf
 
             x = max(min(left - 18, content.scrolling_offset_x), left + width - content.width + 18)
-            y = (self.layout.page_height + self.layout.page_gap) * (page_number - 1) + max(0, top - height / 2 - content.height * 0.3) + self.layout.vertical_padding
+            # per-page：page 1-based → 0-based，用 get_page_top。
+            page_top = self.layout.get_page_top(page_number - 1)
+            if page_top is None:
+                return
+            y = page_top + max(0, top - height / 2 - content.height * 0.3)
 
             content.scroll_to_position([x, y])
             self.presenter.start_fade_loop()
@@ -442,13 +488,19 @@ class Preview(Observable):
         data = self.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
         if data is None:
             # Click in the gap between pages or outside the page margin: clamp to
-            # the nearest page and page-local offsets。先减 vertical_padding 转
-            # 到页面局部坐标系，再 clamp 到 [0, 总页高度]，与无 padding 时一致。
-            y_local = y_offset - self.layout.vertical_padding
-            y_total_pixels = min(max(y_local, 0), (self.layout.page_height + self.layout.page_gap) * self.poppler_document.get_n_pages() - self.layout.page_gap)
+            # the nearest page and page-local offsets。per-page 几何：找最近页
+            # 并把 y_offset clamp 到该页范围内。
+            n_pages = self.poppler_document.get_n_pages()
+            page_idx = self.layout.get_page_by_offset(y_offset) - 1
+            if page_idx < 0: page_idx = 0
+            if page_idx >= n_pages: page_idx = n_pages - 1
+            page_top = self.layout.get_page_top(page_idx)
+            page_h_px = self.layout.get_page_height(page_idx)
+            if page_top is None or page_h_px is None:
+                return False
+            y_pixels = min(max(y_offset - page_top, 0), page_h_px)
             x_pixels = min(max(x_offset - self.layout.get_horizontal_margin(window_width), 0), self.layout.page_width)
-            page = math.floor(y_total_pixels / (self.layout.page_height + self.layout.page_gap))
-            y_pixels = min(max(y_total_pixels - page * (self.layout.page_height + self.layout.page_gap), 0), self.layout.page_height)
+            page = page_idx
             x = x_pixels / self.layout.scale_factor
             y = y_pixels / self.layout.scale_factor
         else:
@@ -458,11 +510,13 @@ class Preview(Observable):
         if page < 0 or page >= n_pages: return False
 
         poppler_page = self.poppler_document.get_page(page)
+        # per-page：x / y 是 un-rotated PDF 坐标，clamp 用该页尺寸。
+        page_h_pdf = self.get_page_height(page)
         rect = Poppler.Rectangle()
         rect.x1 = max(min(x, self.page_width), 0)
-        rect.y1 = max(min(y, self.page_height), 0)
+        rect.y1 = max(min(y, page_h_pdf), 0)
         rect.x2 = max(min(x, self.page_width), 0)
-        rect.y2 = max(min(y, self.page_height), 0)
+        rect.y2 = max(min(y, page_h_pdf), 0)
         word = poppler_page.get_selected_text(Poppler.SelectionStyle.WORD, rect)
         context = poppler_page.get_selected_text(Poppler.SelectionStyle.LINE, rect)
 

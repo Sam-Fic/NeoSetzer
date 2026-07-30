@@ -269,8 +269,10 @@ class PreviewPanelPresenter(object):
         total = preview.poppler_document.get_n_pages()
         page_number = max(1, min(page_number, total))
         content = preview.view.content
-        step = preview.layout.page_height + preview.layout.page_gap
-        y = (page_number - 1) * step
+        # per-page：用 get_page_top 取第 N 页顶部（已含 vertical_padding）。
+        y = preview.layout.get_page_top(page_number - 1)
+        if y is None:
+            return
         preview.scroll_to_position(content.scrolling_offset_x, y)
 
     def _on_fit_width_clicked(self, button):
