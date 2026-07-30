@@ -1,5 +1,29 @@
 # Changelog
 
+## v74 — 2026-07-31
+
+### 主要改进
+
+- **重构构建系统与GTK4适配**：重构构建流程支持阶段追踪与UI展示，适配GTK4剪贴板API；修复构建误报成功、预览spinner卡死、子工具链错误未检测等问题
+- **新增编译诊断高亮与会话恢复**：在编辑器边栏与整行背景显示编译错误/警告，支持悬停查看详情；会话恢复时校验诊断行号新鲜度避免错位
+- **增强预览面板交互**：支持Ctrl+点击打开URI链接并添加悬停提示；新增逐页布局与页码徽章按钮，支持不等高页面精准跳转；修复深色模式页码徽章不可见、滚动条溢出圆角等问题
+- **重构高亮与样式系统**：优化begin/end语法高亮透明度处理，避免污染缓存颜色；调整高亮颜色透明度防止过度饱和
+- **新增撤销深度上限与构建日志按钮**：允许配置撤销步数上限避免撤销栈无界增长；新增标题栏构建日志副本按钮
+- **新增文档语法高亮**：支持LaTeX \begin/\end语法高亮
+- **修复符号页、侧边栏与编辑器问题**：移除收藏菜单项星号前缀；修复右键菜单与悬停预览冲突、侧边栏菜单无法点击、字体缩放锁死、文档切换样式残留等问题
+- **更新文档、示例与翻译**：更新README与打包文档；调整示例文档日期排版与字体配置；更新截图资源与翻译文件
+
+### Improvements
+
+- **feat**: Add build stage tracking/UI display, build diagnostics highlighting with hover details and session restore freshness, Ctrl+click URI opening with toast, per-page layout with page indicator buttons, undo depth limit preference, headerbar build log toggle button, and LaTeX begin/end syntax highlight
+- **fix**: Fix build false positive success, preview spinner stuck in building state, dark mode page badge invisible, scrollbar overflow rounded corners, symbol hover preview conflicting with context menu, sidebar context menu unclickable/open folder failed, font zoom percentage stuck, document switch style residue, and GTK4 API compatibility in multicursor/document controller
+- **refactor**: Restructure build system with thread pool + idle callbacks; adapt GTK4 clipboard, multicursor, and document controller APIs; optimize highlight alpha and cache color handling
+- **style**: Adjust highlight color alpha values to fix over-saturation
+- **docs**: Update README and deb build docs for webkitgtk dependency; update example document date layout and remove monospace font config; add highlight alpha constant comments
+- **chore**: Ignore .codebuddy directory; update translations; update screenshots
+
+---
+
 ## v73 — 2026-07-30
 
 ### 主要改进
