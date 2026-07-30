@@ -368,7 +368,7 @@ class PageBuildSystem(object):
         for d in dirs:
             row = Adw.ActionRow()
             row.set_title(d)
-            del_btn = Gtk.Button(icon_name='user-trash-symbolic')
+            del_btn = Gtk.Button(icon_name='edit-delete-symbolic')
             del_btn.set_has_frame(False)
             del_btn.set_valign(Gtk.Align.CENTER)
             del_btn.add_css_class('flat')
