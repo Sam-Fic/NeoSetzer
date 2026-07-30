@@ -43,6 +43,9 @@ class PreviewController(object):
         # 变化时设置，将 60 次/秒降为实际跨越链接边界时（典型 0-2 次/秒）。
         self._current_cursor = None
         self._current_link_target = None
+        # URI 链接的悬停 tooltip（仅在指向 uri 链接时设置，离开即清空）。
+        # 仅变化时设置，避免每帧重置 GTK 内部 tooltip 状态。
+        self._current_tooltip = None
 
         self.view.content.connect('size_changed', self.on_size_change)
         self.view.content.connect('scrolling_offset_changed', self.on_scrolling_offset_change)
@@ -202,6 +205,28 @@ class PreviewController(object):
     def on_hover_state_change(self, *arguments):
         self.update_cursor()
 
+    def _get_link_at(self, x_offset, y_offset):
+        '''返回鼠标位置命中的链接 [rect, target, type]，未命中返回 None。
+
+        坐标换算说明见 update_cursor。两个调用点（悬停高亮、点击命中）
+        复用同一套「文档偏移 → 页号 → 页内 y-up 坐标 → 命中测试」逻辑，
+        避免重复实现导致漂移。
+        '''
+        if self.preview.layout == None: return None
+
+        window_width = self.view.content.width
+        data = self.preview.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
+        if data == None: return None
+
+        page_number, x_offset, y_offset = data
+        links = self.preview.links_parser.get_links_for_page(page_number)
+        # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
+        y_offset = self.preview.get_page_height(page_number) - y_offset
+        for link in links:
+            if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
+                return link
+        return None
+
     def update_cursor(self):
         if self.preview.layout == None: return True
 
@@ -216,59 +241,76 @@ class PreviewController(object):
         page_number, x_offset, y_offset = data
         cursor = self.cursor_default
         link_target = ''
+        tooltip = ''
+        # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
+        y_offset = self.preview.get_page_height(page_number) - y_offset
         links = self.preview.links_parser.get_links_for_page(page_number)
-        # per-page：y_offset 来自 layout 的是 un-rotated PDF 坐标的 top-down
-        # y（已用该页 height 反转），无需再次反转。layout 输出已经过
-        # invert_rotation_transform，y_offset 已是 PDF (y-up) 坐标系。
-        # 此处原来 "page_height - y_offset" 再次反转会错；仅当 y_offset
-        # 是 top-down canvas 局部坐标时才需反转。layout.get_page_number_
-        # and_offsets_by_document_offsets 已返回 PDF 原生坐标（见
-        # preview_layouter.py: 旋转路径返回 ox_css/oy_css，否则除 scale
-        # 之后 y_offset = top-down 局部 y），因此这里要做的是 top-down →
-        # y-up（与 page_height 求差）。
-        y_offset = (self.preview.get_page_height(page_number) - y_offset)
         for link in links:
             if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
                 cursor = self.cursor_pointer
                 if link[2] == 'uri':
                     link_target = link[1]
+                    # URI 链接需按住 Ctrl 才打开，悬停时提醒用户，避免误触
+                    # 直接打开外部 / 本地链接。
+                    tooltip = _('Hold Ctrl and click to open this link')
                 elif link[2] == 'goto':
                     link_target = _('Go to page ') + str(link[1].page_num)
                 break
 
         # 仅在变化时设置：set_cursor 触发 GtkWidget cursor 属性流程，
-        # set_link_target_string 触发 Gtk.Revealer 动画。
-        # 鼠标在无链接区移动时两者恒定，避免每帧重复设置。
+        # set_link_target_string 触发 Gtk.Revealer 动画，set_tooltip_text
+        # 影响 GTK 内部 tooltip 状态。鼠标在无链接区移动时三者恒定，
+        # 避免每帧重复设置。
         if cursor is not self._current_cursor:
             self._current_cursor = cursor
             self.view.set_cursor(cursor)
         if link_target != self._current_link_target:
             self._current_link_target = link_target
             self.view.set_link_target_string(link_target)
+        if tooltip != self._current_tooltip:
+            self._current_tooltip = tooltip
+            self.view.drawing_area.set_tooltip_text(tooltip)
 
     def on_primary_button_press(self, content, data):
         if self.preview.layout == None: return True
 
         x_offset, y_offset, state = data
 
-        if state == Gdk.ModifierType.CONTROL_MASK:
+        ctrl = (state & Gdk.ModifierType.CONTROL_MASK) != 0
+
+        if ctrl:
+            # Ctrl+点击：若命中 URI 链接则打开（需用户主动按住 Ctrl，
+            # 防止误触）；否则保持原有的反向同步（点击 PDF 跳到源位置）。
+            link = self._get_link_at(x_offset, y_offset)
+            if link is not None and link[2] == 'uri':
+                self.open_link(link)
+                return True
             self.preview.init_backward_sync(x_offset, y_offset)
             return True
 
         if state == 0:
-            window_width = content.width
-            data = self.preview.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
-            if data == None: return True
-
-            page_number, x_offset, y_offset = data
-            links = self.preview.links_parser.get_links_for_page(page_number)
-            # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
-            y_offset = self.preview.get_page_height(page_number) - y_offset
-            for link in links:
-                if x_offset > link[0].x1 and x_offset < link[0].x2 and y_offset > link[0].y1 and y_offset < link[0].y2:
-                    self.open_link(link)
+            link = self._get_link_at(x_offset, y_offset)
+            if link is not None:
+                if link[2] == 'goto':
+                    self.preview.scroll_dest_on_screen(link[1])
+                    return True
+                elif link[2] == 'uri':
+                    # 普通点击不再直接打开 URI 链接，避免误触。提示用户
+                    # 按住 Ctrl 再点击。
+                    self._show_ctrl_hint_toast()
                     return True
             return True
+
+        return True
+
+    def _show_ctrl_hint_toast(self):
+        '''普通点击 URI 链接时，提醒用户需按住 Ctrl 才打开。'''
+        main_window = ServiceLocator.get_main_window()
+        if main_window and hasattr(main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(_('Hold Ctrl and click to open this link'))
+            toast.set_timeout(3)
+            main_window.toast_overlay.add_toast(toast)
+        return False
 
     def open_link(self, link):
         if link is None: return
