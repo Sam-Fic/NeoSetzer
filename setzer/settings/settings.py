@@ -158,6 +158,10 @@ class Settings(Observable):
         self.defaults['preferences']['recolor_pdf'] = False
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
+        # 撤销栈深度上限（GtkSource.Buffer 的 max-undo-levels）。0 = 不限。
+        # 默认 200 与 GtkSourceView 内置上限一致，避免超大文档撤销栈无限增长；
+        # 用户可在此调小以节省内存，或设为 0 关闭限制。
+        self.defaults['preferences']['max_undo_levels'] = 200
         self.defaults['preferences']['show_line_numbers'] = True
         self.defaults['preferences']['show_right_margin'] = True
         self.defaults['preferences']['right_margin_position'] = 80

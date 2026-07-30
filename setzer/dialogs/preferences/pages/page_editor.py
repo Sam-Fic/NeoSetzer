@@ -86,6 +86,9 @@ class PageEditor(object):
         self.view.tab_width_spinbutton.set_property('value', self.settings.get_value('preferences', 'tab_width'))
         self.view.tab_width_spinbutton.connect('notify::value', self.preferences.spin_button_changed, 'tab_width')
 
+        self.view.max_undo_levels_row.set_property('value', self.settings.get_value('preferences', 'max_undo_levels'))
+        self.view.max_undo_levels_row.connect('notify::value', self.preferences.spin_button_changed, 'max_undo_levels')
+
         self.view.option_show_line_numbers.set_active(self.settings.get_value('preferences', 'show_line_numbers'))
         self.view.option_show_line_numbers.connect('notify::active', self.on_switch_toggled, 'show_line_numbers')
 
@@ -370,6 +373,7 @@ class PageEditor(object):
         self.apply_preview_scheme()
         self.view.option_spaces_instead_of_tabs.set_active(defaults['spaces_instead_of_tabs'])
         self.view.tab_width_spinbutton.set_property('value', defaults['tab_width'])
+        self.view.max_undo_levels_row.set_property('value', defaults['max_undo_levels'])
         self.view.option_show_line_numbers.set_active(defaults['show_line_numbers'])
         self.view.option_show_right_margin.set_active(defaults['show_right_margin'])
         self.view.right_margin_position_row.set_value(defaults['right_margin_position'])
@@ -502,6 +506,23 @@ class PageEditorView(Adw.PreferencesPage):
             'when "Insert spaces instead of tabs" is enabled.'))
         group_tab_stops.add(self.tab_width_row)
         self.tab_width_spinbutton = self.tab_width_row
+
+        # 撤销栈深度：限制 GtkSource.Buffer 的 max-undo-levels，避免超大文档
+        # 撤销栈无界增长占用过多内存。0 = 不限制（沿用旧版行为）。
+        group_undo = Adw.PreferencesGroup()
+        group_undo.set_title(_('Undo'))
+        self.add(group_undo)
+
+        self.max_undo_levels_row = Adw.SpinRow()
+        self.max_undo_levels_row.set_title(_('Maximum undo depth'))
+        self.max_undo_levels_row.set_subtitle(_('Maximum number of undo steps. 0 = unlimited.'))
+        self.max_undo_levels_row.set_tooltip_text(_(
+            'Limit the number of undoable actions kept in memory. '
+            'Lower values save memory for very large documents. '
+            '0 keeps an unlimited history.'))
+        adjustment_undo = Gtk.Adjustment(value=200, lower=0, upper=10000, step_increment=10)
+        self.max_undo_levels_row.set_adjustment(adjustment_undo)
+        group_undo.add(self.max_undo_levels_row)
 
         group_line_numbers = Adw.PreferencesGroup()
         group_line_numbers.set_title(_('Line Numbers'))

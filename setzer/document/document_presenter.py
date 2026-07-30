@@ -48,6 +48,7 @@ class DocumentPresenter(object):
         self.view.source_view.set_right_margin_position(self.settings.get_value('preferences', 'right_margin_position'))
         self._apply_space_drawer_settings()
         self.document.source_buffer.set_highlight_matching_brackets(self.settings.get_value('preferences', 'highlight_matching_brackets'))
+        self.document.source_buffer.set_max_undo_levels(self.settings.get_value('preferences', 'max_undo_levels'))
         if self.settings.get_value('preferences', 'enable_line_wrapping'):
             self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         else:
@@ -105,6 +106,8 @@ class DocumentPresenter(object):
             self._apply_space_drawer_settings()
         if (section, item) == ('preferences', 'highlight_matching_brackets'):
             self.document.source_buffer.set_highlight_matching_brackets(value)
+        if (section, item) == ('preferences', 'max_undo_levels'):
+            self.document.source_buffer.set_max_undo_levels(value)
         if (section, item) == ('preferences', 'enable_line_wrapping'):
             if value == True:
                 self.view.source_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
