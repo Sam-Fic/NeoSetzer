@@ -4,6 +4,7 @@ builddir
 .flatpak-builder/
 flatpak/
 .trae/
+.codebuddy/
 .vscode/
 
 # Python
