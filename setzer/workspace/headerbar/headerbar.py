@@ -29,7 +29,7 @@ from setzer.popovers.popover_manager import PopoverManager
 
 
 class Headerbar(object):
-    
+
     def __init__(self, workspace):
         self.workspace = workspace
         self.view = ServiceLocator.get_main_window().headerbar
@@ -39,6 +39,10 @@ class Headerbar(object):
         self.workspace.connect('new_inactive_document', self.on_new_inactive_document)
         self.workspace.connect('update_recently_opened_documents', self.on_update_recently_opened_documents)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # Build log 标题栏副本：show_build_log 状态变化时同步 active 态。
+        self.workspace.connect('show_build_log_state_change', self.on_show_build_log_state_change)
+        # show_shortcuts_bar 设置变化时显隐 build_log_toggle。
+        self.workspace.settings.connect('settings_changed', self.on_settings_changed)
 
         # Initialize the correct Open button visibility now. The signal may
         # have been emitted before this controller was constructed, leaving
@@ -46,6 +50,14 @@ class Headerbar(object):
         self.on_update_recently_opened_documents(None, self.workspace.recently_opened_documents)
 
         self.activate_welcome_screen_mode()
+
+        # 标题栏 Build log 按钮的点击处理：转发到 workspace.set_show_build_log，
+        # 触发统一的 present/close 弹窗逻辑（见 workspace_presenter.update_build_log_visibility）。
+        self.view.build_log_toggle.connect('clicked', self.on_build_log_toggle_clicked)
+        # 初始 active 态同步为当前 workspace 状态。
+        self.view.build_log_toggle.set_active(self.workspace.get_show_build_log())
+        # 初始显隐根据 show_shortcuts_bar 设置决定。
+        self.update_build_log_toggle_visibility()
 
         # Compact 模式：窄窗（<700px breakpoint）时隐藏 save / help 按钮（有 Ctrl+S、
         # F1 兜底），缓解 headerbar 在 360px 下的按钮溢出。不能直接用
@@ -55,6 +67,19 @@ class Headerbar(object):
         # F1/F9 直接操作 toggle 的 set_active（见 shortcut_controller_app），不受
         # set_visible 影响，故隐藏 help_toggle 不会困住用户。
         self._compact = False
+        # 当前活动文档的 build_system 'build_state' 信号 handler id + 文档引用。
+        # 切换文档时重新挂接；_disconnect_build_state_signal 基于 _build_state_doc
+        # 安全断开（不能直接读 workspace.active_document，因为 on_new_active_document
+        # 触发时它已是新文档）。
+        self._build_state_handler_id = None
+        self._build_state_doc = None
+        # Headerbar 在 workspace 启动后才构造；此时若已有活动文档，
+        # 'new_active_document' 信号不会再次触发，需要手动挂 build_state 监听。
+        # 与 shortcutsbar.__init__ 的处理方式保持对称。
+        initial_doc = self.workspace.active_document
+        if initial_doc is not None and initial_doc.is_latex_document():
+            self._build_state_handler_id = initial_doc.build_system.connect('build_state', self.on_build_state)
+            self._build_state_doc = initial_doc
         main_window = ServiceLocator.get_main_window()
         main_window.connect('notify::current-breakpoint', self._on_breakpoint_change)
         # 同步初始状态（窗口启动时可能已在窄窗，breakpoint 已 apply）
@@ -64,6 +89,9 @@ class Headerbar(object):
         if self.workspace.active_document == None:
             self.set_build_button_state()
             self.activate_welcome_screen_mode()
+            # 当前文档已全部移除，断开 build_state 监听并清掉 build_log_toggle 错误样式。
+            self._disconnect_build_state_signal()
+            self._clear_build_log_toggle_error_style()
 
     def on_new_active_document(self, workspace, document):
         self.set_build_button_state()
@@ -75,10 +103,27 @@ class Headerbar(object):
         document.connect('displayname_change', self.on_name_change)
         document.connect('modified_changed', self.on_modified_changed)
 
+        # 切换活动文档：重新挂接 build_state 监听，使标题栏 build_log_toggle
+        # 错误样式跟随新文档的编译结果。shortcutsbar 也在同一文档上挂监听，
+        # 两份监听独立（各自操作自己的按钮），互不干扰。
+        # 注意：on_new_active_document 触发时 workspace.active_document 已是
+        # 新文档，必须基于先前存储的 _build_state_doc 断开旧监听，而不是
+        # 直接读 workspace.active_document（那是新文档）。
+        self._disconnect_build_state_signal()
+        if document.is_latex_document():
+            self._build_state_handler_id = document.build_system.connect('build_state', self.on_build_state)
+            self._build_state_doc = document
+        else:
+            self._build_state_doc = None
+
     def on_new_inactive_document(self, workspace, document):
         document.disconnect('filename_change', self.on_name_change)
         document.disconnect('displayname_change', self.on_name_change)
         document.disconnect('modified_changed', self.on_modified_changed)
+        # 注意：与 shortcutsbar 保持一致，不在这里清 build_log_toggle 错误样式。
+        # 错误样式只在「最后一个文档被移除」或「构建变为非 error」时清除——这样
+        # 切换文档时按钮仍维持红/非红状态，符合 shortcutsbar 的既有视觉行为。
+        # build_state 监听由 on_new_active_document 统一挂接新文档时断开旧文档。
 
     def on_root_state_change(self, workspace, state):
         self.set_build_button_state()
@@ -150,6 +195,13 @@ class Headerbar(object):
         else:
             self.hide_preview_help_toggles()
 
+        # 标题栏 build_log_toggle 显隐需要叠加在 update_toggles 调用链中：
+        # show_preview_help_toggles 已经基于「有 root/active latex 文档」判断，
+        # 而 build_log_toggle 的额外条件是「show_shortcuts_bar=False」。
+        # 在 update_toggles 末尾统一收敛，避免在 welcome 模式或非 latex 文档时
+        # 误显。
+        self.update_build_log_toggle_visibility()
+
     def hide_sidebar_toggles(self):
         self.view.sidebar_toggle.set_visible(False)
         self.view.sidebar_toggle.set_sensitive(False)
@@ -188,5 +240,66 @@ class Headerbar(object):
         bp = window.get_current_breakpoint()
         narrow = getattr(window, 'narrow_breakpoint', None)
         self.set_compact(bp is not None and bp is narrow)
+
+    # ---- Build log 标题栏副本（仅在 show_shortcuts_bar=False 时显示） ----
+
+    def on_build_log_toggle_clicked(self, toggle_button, parameter=None):
+        '''标题栏 build_log_toggle 点击：转发给 workspace.set_show_build_log。
+        弹窗 present/close 统一在 workspace_presenter.update_build_log_visibility
+        中处理（与 shortcutsbar 内同名按钮共享同一份逻辑）。'''
+        self.workspace.set_show_build_log(toggle_button.get_active())
+
+    def on_show_build_log_state_change(self, workspace, show_build_log):
+        '''workspace.show_build_log 改变时（来自任何触发源：shortcutsbar 按钮点击、
+        菜单、F9 快捷键、关弹窗等）同步标题栏 build_log_toggle 的 active 态。
+        在 toggle 已被用户点击后、信号回环前 set_active 会触发 'notify::active'
+        但不会再次 'clicked'，故不会形成回环。'''
+        if self.view.build_log_toggle.get_active() != show_build_log:
+            self.view.build_log_toggle.set_active(show_build_log)
+
+    def on_settings_changed(self, settings, parameter):
+        '''show_shortcuts_bar 偏好变化时，重新计算标题栏 build_log_toggle 显隐。
+        其他偏好变化无需本 presenter 关心，忽略。'''
+        section, item, value = parameter
+        if item == 'show_shortcuts_bar':
+            self.update_build_log_toggle_visibility()
+
+    def on_build_state(self, build_system, message):
+        '''active 文档的编译状态变化：error 时给 build_log_toggle 加红色样式，
+        其它状态清掉。与 shortcutsbar.on_build_state 行为完全对称。'''
+        if message == 'error':
+            self.view.build_log_toggle.add_css_class('build-log-error')
+        else:
+            self._clear_build_log_toggle_error_style()
+
+    def _clear_build_log_toggle_error_style(self):
+        self.view.build_log_toggle.remove_css_class('build-log-error')
+
+    def _disconnect_build_state_signal(self):
+        '''安全断开先前挂接的 build_state 监听（无 handler / 无 document 时
+        不报错）。仅在文档切换或全部文档移除时调用。'''
+        handler = self._build_state_handler_id
+        doc = self._build_state_doc
+        if handler is None or doc is None:
+            return
+        try:
+            doc.build_system.disconnect(handler)
+        except Exception:
+            # disconnect 可能因为 handler 已被其他代码断开而抛 TypeError；
+            # 此处吞掉是因为我们的意图是确保不再监听 build_state，与谁先
+            # 断开无关。
+            pass
+        self._build_state_handler_id = None
+        self._build_state_doc = None
+
+    def update_build_log_toggle_visibility(self):
+        '''收敛 build_log_toggle 显隐的最终条件：
+        - show_shortcuts_bar=False：用户主动关闭 Shortcuts Bar
+        - get_root_or_active_latex_document() != None：当前是 latex 文档
+          （非 latex 文档/欢迎页时，按钮不显示，避免误操作打开空日志）
+        两个条件都满足时显示，否则隐藏。'''
+        show = self.workspace.settings.get_value('preferences', 'show_shortcuts_bar')
+        has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
+        self.view.build_log_toggle.set_visible((not show) and has_latex_doc)
 
 

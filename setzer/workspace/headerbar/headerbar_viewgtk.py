@@ -111,15 +111,35 @@ class HeaderBar(object):
         self.preview_help_toggle.add_css_class('headerbar-plain')
         self.preview_help_toggle.add_css_class('headerbar-icon')
 
+        # Build log 按钮（标题栏副本）：仅在用户关闭 Shortcuts Bar
+        # （Preferences → Editor → Show Shortcuts Bar = False）时显示，
+        # 紧贴 preview_help_toggle 左侧。点击行为 / 变红错误提示与
+        # shortcutsbar 内的同名按钮完全一致，由 Headerbar presenter 同步。
+        self.build_log_toggle = Gtk.ToggleButton()
+        self.build_log_toggle.set_child(Gtk.Image(icon_name='build-log-symbolic'))
+        self.build_log_toggle.set_can_focus(False)
+        shortcut_tooltips.set_tooltip(self.build_log_toggle, _('Build log'), 'build_log')
+        self.build_log_toggle.add_css_class('headerbar-plain')
+        self.build_log_toggle.add_css_class('headerbar-icon')
+        # 默认隐藏；Headerbar presenter 根据 show_shortcuts_bar 显隐。
+        self.build_log_toggle.set_visible(False)
+
         # build button wrapper (contains Build / stop / clean / timer)
         self.build_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         # Pass-12: 预览/帮助按钮回到各自侧栏的内嵌工具栏（与左侧栏一致），
-        # 标题栏不再持有 panel_buttons_stack。pack_end 顺序恢复为原始布局：
-        # menu → build → toggles（从右到左）。
+        # 标题栏不再持有 panel_buttons_stack。pack_end 顺序（从右到左）：
+        # menu → preview/help toggle → build_log → build。
+        # 布局理由：build_wrapper 永远最左，作为整个右侧组靠近编辑器一侧的
+        # 锚点（视觉上与下方编辑器内容最近），build_log_toggle 紧贴其右
+        # 便于「build 出错看 build log、再点开 preview 看效果」的工作流，
+        # preview_help_toggle 夹在汉堡菜单与 build_log 之间。
+        # 这样 build_log_toggle 在快捷栏关闭/打开切换时,
+        # 其左侧的 build_wrapper 位置不变,布局更稳定。
         self.widget.pack_end(self.menu_button)
-        self.widget.pack_end(self.build_wrapper)
         self.widget.pack_end(self.preview_help_toggle)
+        self.widget.pack_end(self.build_log_toggle)
+        self.widget.pack_end(self.build_wrapper)
 
         # title / open documents popover
         self.open_docs_popover = PopoverManager.get_popover('document_switcher')
