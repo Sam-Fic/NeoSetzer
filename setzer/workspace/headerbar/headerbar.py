@@ -173,6 +173,7 @@ class Headerbar(object):
         self.view.center_button.set_sensitive(False)
         self.view.center_widget.set_visible_child_name('welcome')
         self.view.widget.add_css_class('welcome')
+        self.update_build_log_toggle_visibility()
 
     def activate_document_mode(self):
         self.view.new_document_button.set_visible(True)
@@ -180,6 +181,7 @@ class Headerbar(object):
         self.view.center_button.set_sensitive(True)
         self.view.center_widget.set_visible_child_name('button')
         self.view.widget.remove_css_class('welcome')
+        self.update_build_log_toggle_visibility()
 
     def show_document_name(self, document):
         mod_text = '*' if document.source_buffer.get_modified() else ''
