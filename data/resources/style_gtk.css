@@ -548,7 +548,6 @@ headerbar {
     border: 3px solid @theme_selected_bg_color;
     border-radius: 12px;
     background: alpha(@theme_selected_bg_color, 0.10);
-    margin: 12px;
 }
 .drop-highlight.drop-reject {
     border-color: @error_color;
@@ -557,6 +556,35 @@ headerbar {
 .drop-label {
     font-weight: 600;
     font-size: 1.1em;
+}
+
+/*
+ * 关闭 GTK/Adwaita/Yaru 自带的 drop(active) 默认高亮：DropTarget 激活时，挂它的控件
+ * 进入 :drop(active) 状态并会向祖先控件传播，Yaru 主题用 border-color / box-shadow
+ * (inset) / outline（直角矩形、无圆角）在每一个带状态的控件上画一圈提示，与圆角浮层
+ * 叠在一起。workspace_viewgtk.py 在拖放期间给拖放目标及其所有祖先临时加 .dnd-no-indicator
+ * 类（普通 CSS 类，USER 优先级高于主题，必定覆盖 Yaru 的 box-shadow/border/outline
+ * 默认描边）；leave/drop 后移除，故不影响正常状态下的聚焦 outline / 文本光标等。
+ * 注意：此处不能用 :drop(active) 伪类去覆盖——在 CAPTURE 阶段 + 主题组合下不稳定。
+ */
+.dnd-no-indicator {
+    border: none;
+    border-width: 0;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
+    outline-width: 0;
+    outline-style: none;
+}
+
+/*
+ * 拖放期间把欢迎页正文淡出为空白背景：拖入文件时给欢迎页根控件临时加 .dnd-blank，
+ * 仅隐藏内容（opacity:0）但不改变布局，使圆角浮层下的背景更干净、提示文字更醒目；
+ * leave/drop 后移除类即复原。用 opacity 而非 set_visible，避免整页塌陷。
+ */
+.dnd-blank {
+    opacity: 0;
+    transition: opacity 120ms ease;
 }
 
 /*

@@ -250,11 +250,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.drop_highlight.set_can_target(False)
         self.drop_highlight.add_css_class('drop-highlight')
         self.drop_highlight.set_visible(False)
+        # 让浮层铺满整个 content_overlay，描述边框覆盖整片区域；
+        # 标签则向四个方向撑开并居中，使提示语落在正中。
+        self.drop_highlight.set_halign(Gtk.Align.FILL)
+        self.drop_highlight.set_valign(Gtk.Align.FILL)
         self.drop_label = Gtk.Label()
         self.drop_label.add_css_class('drop-label')
+        self.drop_label.set_hexpand(True)
+        self.drop_label.set_vexpand(True)
         self.drop_label.set_valign(Gtk.Align.CENTER)
         self.drop_label.set_halign(Gtk.Align.CENTER)
-        self.drop_label.set_text('拖放以打开文件')
+        self.drop_label.set_text(_('Drop to open file'))
         self.drop_highlight.append(self.drop_label)
         self.content_overlay.add_overlay(self.drop_highlight)
 
@@ -341,6 +347,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.welcome_overlay.add_controller(drop_target)
         self.drop_target = drop_target
 
+        # 关闭 GTK/Adwaita/Yaru 自带的 drop(active) 默认高亮：该状态会向祖先控件传播，
+        # 每个带状态的祖先都会画一圈直角矩形提示（与圆角浮层叠在一起）。拖放期间给拖放
+        # 目标及其所有祖先临时加 .dnd-no-indicator 类（普通 CSS 类，USER 优先级高于主题，
+        # 可覆盖 Yaru 的 box-shadow/border/outline 默认描边）；leave/drop 后移除。
+        # 注意：此处不能用 :drop(active) 伪类去覆盖——在 CAPTURE 阶段 + 主题组合下不稳定。
+        self._dnd_chain = []
+        widget = self.welcome_overlay
+        while widget is not None:
+            self._dnd_chain.append(widget)
+            widget = widget.get_parent()
+
         # 全屏鼠标追踪：检测鼠标是否在窗口顶部边缘，以显示/隐藏 headerbar
         self._motion_controller = Gtk.EventControllerMotion()
         self._motion_controller.connect('motion', self._on_motion)
@@ -354,6 +371,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.shortcutsbar.connect('notify::visible', self._on_shortcutsbar_visibility_changed)
 
     # ---- 文件拖放（DnD）处理 ----
+
+    def _set_dnd_indicator(self, active):
+        # 拖放期间临时给目标及其所有祖先挂/摘 .dnd-no-indicator，
+        # 用普通类覆盖 Yaru 的默认 drop 高亮（圆角浮层由我们自己的 drop_highlight 负责）。
+        for w in self._dnd_chain:
+            if active:
+                w.add_css_class('dnd-no-indicator')
+            else:
+                w.remove_css_class('dnd-no-indicator')
 
     def _extract_drop_files(self, value):
         '''从拖放值中归一化出文件路径列表（兼容 Gdk.FileList 与单 Gio.File）。'''
@@ -371,51 +397,65 @@ class MainWindow(Adw.ApplicationWindow):
             return False
         return path.endswith(self._drop_exts)
 
+    def _layout_drop_highlight(self):
+        # 拖放浮层框左右下留 12px 边距，顶部直接使用标题栏高度（welcome 模式下
+        # headerbar 浮在 welcome_overlay 顶部），使框线正好停在标题栏下沿、不覆盖它。
+        # 全屏且标题栏隐藏时回落为 12px。每次 motion 都重算，覆盖拖放期间标题栏
+        # 显隐的动态变化。
+        top = 12
+        fullscreen_hidden = self._is_fullscreen and not self._headerbar_visible_in_fullscreen
+        if not fullscreen_hidden:
+            top = self.headerbar.widget.get_allocated_height()
+        self.drop_highlight.set_margin_top(top)
+        self.drop_highlight.set_margin_bottom(12)
+        self.drop_highlight.set_margin_start(12)
+        self.drop_highlight.set_margin_end(12)
+
     def _update_drop_feedback(self):
         '''根据当前拖放值刷新浮层标签与描边（文件计数 / 可接受性提示）。
         描边状态必须在这里同步，因为 enter/motion 时 preload 已读到文件列表，
         而 accept 可能在列表就绪前就跑过一次（那时 get_value() 为空）——若只在
         accept 里设描边，红框会卡住。'''
+        self._layout_drop_highlight()
         if not hasattr(self, 'drop_highlight') or not self.drop_highlight.get_visible():
             return
         files = self._extract_drop_files(self.drop_target.get_value())
         if not files:
             # preload 尚未拿到文件列表，保持中性提示，避免误闪「无法打开」
-            self.drop_label.set_text('拖放以打开文件')
+            self.drop_label.set_text(_('Drop to open file'))
             self.drop_highlight.remove_css_class('drop-reject')
             return
         count = sum(1 for f in files if self._is_acceptable_file(f))
         if count > 1:
-            self.drop_label.set_text(f'将打开 {count} 个文件')
+            self.drop_label.set_text(_('Will open {count} files').format(count=count))
         elif count == 1:
-            self.drop_label.set_text('拖放以打开文件')
+            self.drop_label.set_text(_('Drop to open file'))
         else:
-            self.drop_label.set_text('无法打开此文件类型')
+            self.drop_label.set_text(_('Cannot open this file type'))
         # 同步描边：有可接受文件→强调色；全不可接受→红色禁止样式
         if count > 0:
             self.drop_highlight.remove_css_class('drop-reject')
         else:
             self.drop_highlight.add_css_class('drop-reject')
 
-    def _dnd_debug(self, tag, *args):
-        try:
-            with open('/tmp/setzer_dnd.log', 'a', encoding='utf-8') as f:
-                f.write(tag + ': ' + ' | '.join(str(a) for a in args) + '\n')
-        except Exception:
-            pass
-
     def on_drag_enter(self, target, x, y):
-        self._dnd_debug('enter', 'value=', repr(target.get_value()))
+        self._set_dnd_indicator(True)
+        self.welcome_screen.add_css_class('dnd-blank')
         self.drop_highlight.set_visible(True)
         self._update_drop_feedback()
-        return False
+        # GTK4 中 enter/motion 信号返回的是 GdkDragAction；返回 False 会被当作
+        # GDK_ACTION_NONE（不接受该拖放），导致目标被立即否决、drop 永不触发。
+        # 必须返回一个有效动作（COPY）。是否真正可接受由 on_drag_accept 与视觉
+        # 反馈决定；这里始终接收以消费拖放（阻止文本视图插入路径）。
+        return Gdk.DragAction.COPY
 
     def on_drag_motion(self, target, x, y):
         self._update_drop_feedback()
-        return False
+        return Gdk.DragAction.COPY
 
     def on_drag_leave(self, target):
-        self._dnd_debug('leave')
+        self._set_dnd_indicator(False)
+        self.welcome_screen.remove_css_class('dnd-blank')
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
         return False
@@ -430,19 +470,15 @@ class MainWindow(Adw.ApplicationWindow):
 
     def on_drop(self, target, value, x, y):
         workspace = ServiceLocator.get_workspace()
+        self._set_dnd_indicator(False)
+        self.welcome_screen.remove_css_class('dnd-blank')
         self.drop_highlight.set_visible(False)
         self.drop_highlight.remove_css_class('drop-reject')
-        self._dnd_debug('drop', 'value_type=', type(value), 'value_repr=', repr(value),
-                        'get_value=', repr(target.get_value()),
-                        'drop_formats=', repr(target.get_drop().get_formats()) if target.get_drop() else 'no-drop')
-        # 某些 GTK 版本/构建中，drop 信号的 value 参数未被正确解包（仍是空或原始
-        # GValue），直接用会导致取不到文件。优先用参数，拿不到时回退到
-        # target.get_value()——拖拽过程中 _update_drop_feedback 正是靠它拿到文件
-        # 列表，是可靠的来源。
+        # drop 信号的 value 参数在某些构建中未被正确解包（为空），此时回退到
+        # target.get_value()——拖拽过程中 _update_drop_feedback 正是靠它拿到文件列表。
         files = self._extract_drop_files(value)
         if not files:
             files = self._extract_drop_files(target.get_value())
-        self._dnd_debug('drop_files', [ (type(f), f.get_path() if hasattr(f,'get_path') else None) for f in files])
         if not files:
             return False
         # 始终消费拖放（返回 True），避免文本视图接管并插入路径。
