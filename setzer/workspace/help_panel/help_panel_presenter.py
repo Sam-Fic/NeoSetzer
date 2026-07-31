@@ -28,7 +28,10 @@ class HelpPanelPresenter(object):
         self.help_panel.connect('search_query_changed', self.on_search_query_changed)
         self.help_panel.connect('uri_changed', self.on_uri_changed)
 
-        self.view.content.load_uri(self.help_panel.current_uri)
+        # 无 WebKit 时 content 为 Gtk.Label（无 load_uri），仅展示占位文案；
+        # 搜索结果由 controller 调 webbrowser.open 打开，无需在此加载。
+        if help_panel_view.HAS_WEBKIT:
+            self.view.content.load_uri(self.help_panel.current_uri)
 
     def on_search_query_changed(self, help_panel):
         # 空查询：始终显示初始提示，绝不展示残留的 search_results_blank 历史，
@@ -92,8 +95,10 @@ class HelpPanelPresenter(object):
                 row.set_visible(False)
 
     def on_uri_changed(self, help_panel, uri):
-        if self.view.content.get_uri() != uri:
-            self.view.content.load_uri(uri)
+        # 无 WebKit 时 content 为 Gtk.Label（无 get_uri/load_uri），跳过加载。
+        if help_panel_view.HAS_WEBKIT:
+            if self.view.content.get_uri() != uri:
+                self.view.content.load_uri(uri)
         self.view.search_button.set_active(False)
 
 

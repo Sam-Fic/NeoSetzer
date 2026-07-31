@@ -35,7 +35,7 @@ class LaTeXLogParser():
         self.other_line_number_regex = ServiceLocator.get_regex_object(r'(l\.| input line \n| input line )([0-9]+)( |\.)')
 
     def parse_build_log(self, tex_filename):
-        log_filename = os.path.dirname(tex_filename) + '/' + os.path.basename(tex_filename).rsplit('.tex', 1)[0] + '.log'
+        log_filename = os.path.join(os.path.dirname(tex_filename), os.path.splitext(os.path.basename(tex_filename))[0] + '.log')
         try: file = open(log_filename, 'rb')
         except FileNotFoundError as e: raise e
         else:
@@ -56,7 +56,7 @@ class LaTeXLogParser():
         # tex_basename 不含扩展名，原实现每条 log item 都重复 rsplit 两次
         # （rsplit('.',1)[0].rsplit('/',1)[1] 与 rsplit('/',1)[1][:-4] 各算
         # 多遍，二者结果相同）。提到循环外只算一次，N 条日志省 2N 次字符串切分。
-        tex_basename = query.tex_filename.rsplit('/', 1)[1][:-4]
+        tex_basename = os.path.splitext(os.path.basename(query.tex_filename))[0]
         for filename, items in log_items.items():
             for item in items['error'] + items['warning']:
 

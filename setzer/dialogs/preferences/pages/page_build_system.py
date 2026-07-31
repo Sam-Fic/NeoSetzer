@@ -22,6 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib
 
 import subprocess
+import sys
 import threading
 
 from setzer.app.service_locator import ServiceLocator
@@ -194,9 +195,13 @@ class PageBuildSystem(object):
         （init 只在首次打开执行一次），整个会话仅检测一次。
         '''
         latex_interpreters = []
+        # Windows 上设 CREATE_NO_WINDOW 避免弹出控制台窗口
+        popen_kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if sys.platform == 'win32':
+            popen_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         for interpreter in ['xelatex', 'pdflatex', 'lualatex', 'tectonic']:
             try:
-                process = subprocess.Popen([interpreter, '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                process = subprocess.Popen([interpreter, '--version'], **popen_kwargs)
             except FileNotFoundError:
                 pass
             else:
@@ -206,7 +211,7 @@ class PageBuildSystem(object):
 
         latexmk_available = False
         try:
-            process = subprocess.Popen(['latexmk', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            process = subprocess.Popen(['latexmk', '--version'], **popen_kwargs)
         except FileNotFoundError:
             pass
         else:

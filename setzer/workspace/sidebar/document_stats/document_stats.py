@@ -21,6 +21,7 @@ from gi.repository import GObject, GLib
 
 import os.path
 import subprocess
+import sys
 import threading
 
 import setzer.workspace.sidebar.document_stats.document_stats_viewgtk as document_stats_section_view
@@ -292,7 +293,10 @@ class DocumentStats(object):
     def run_query(self, arguments, filename):
         try:
             try:
-                process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                popen_kwargs = dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                if sys.platform == 'win32':
+                    popen_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+                process = subprocess.Popen(arguments, **popen_kwargs)
             except FileNotFoundError:
                 with self.values_lock:
                     self.texcount_missing = True

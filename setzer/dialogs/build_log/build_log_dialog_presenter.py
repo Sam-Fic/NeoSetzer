@@ -17,6 +17,7 @@
 
 
 import os.path
+import sys
 
 from gi.repository import GLib
 
@@ -296,8 +297,15 @@ class BuildLogDialogPresenter(object):
         self._updating_filters = True
         try:
             # 收集所有唯一文件名
-            filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
-                                key=lambda filename: GLib.utf8_collate_key_for_filename(filename, len(filename)))
+            # GLib.utf8_collate_key_for_filename(str, len) 在部分 MSYS2/Windows
+            # 的 PyGObject 构建中会段错误，无法 try/except 捕获；Windows 上退化为
+            # 纯 Python 大小写折叠排序。其它平台保留 GLib 区域感知文件名排序。
+            if sys.platform == 'win32':
+                filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
+                                    key=lambda filename: filename.casefold())
+            else:
+                filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
+                                    key=lambda filename: GLib.utf8_collate_key_for_filename(filename, len(filename)))
             filenames.insert(0, _('All'))
             self.view.update_file_filter(filenames)
 

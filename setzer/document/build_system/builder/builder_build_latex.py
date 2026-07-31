@@ -20,7 +20,10 @@ import os.path
 import sys
 import base64
 import shutil
-import pexpect
+import subprocess
+import shlex
+import threading
+import time
 from operator import itemgetter
 
 import setzer.document.build_system.builder.builder_build as builder_build
@@ -62,26 +65,13 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         build_command += query.tex_filename + '"'
 
         try:
-            self.process = pexpect.spawn(build_command, cwd=os.path.dirname(query.tex_filename))
-        except pexpect.exceptions.ExceptionPexpect:
+            self.process = self._spawn_process(build_command, os.path.dirname(query.tex_filename))
+        except (FileNotFoundError, OSError):
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_missing', latex_interpreter)
             return
 
-        while True:
-            try:
-                out = self.process.expect(['\r\n\r\n', pexpect.TIMEOUT, pexpect.EOF], timeout=20)
-            except AttributeError:
-                break
-            if out == 0:
-                pass
-            elif out == 1:
-                for line in self.process.before.split(b'\n'):
-                    if line.startswith(b'!'):
-                        self.process.sendcontrol('c')
-                        self.process.sendline('x')
-            else:
-                break
+        self._watch_process()
 
         # parse results
         try:
@@ -95,7 +85,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         query.can_sync = self.copy_synctex_file(query)
         self.cleanup_files(query)
 
-        pdf_filename = query.tex_filename.rsplit('.tex', 1)[0] + '.pdf'
+        pdf_filename = os.path.splitext(query.tex_filename)[0] + '.pdf'
         if query.error_count > 0:
             if os.path.isfile(pdf_filename):
                 os.remove(pdf_filename)
@@ -139,11 +129,95 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
                                   'error': None,
                                   'error_arg': None}
 
+    def _spawn_process(self, build_command, cwd):
+        '''跨平台启动 LaTeX 构建进程。
+
+        Unix 用 shlex.split 拆分为参数列表（避免 shell=True 的注入风险）；
+        Windows 用 shell=True（cmd.exe 能正确解析双引号包裹的路径）并设
+        CREATE_NO_WINDOW 避免弹出控制台窗口。
+        '''
+        if sys.platform == 'win32':
+            return subprocess.Popen(
+                build_command, cwd=cwd,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                shell=True, creationflags=subprocess.CREATE_NO_WINDOW,
+                bufsize=1, text=True, encoding='utf-8', errors='replace')
+        else:
+            return subprocess.Popen(
+                shlex.split(build_command), cwd=cwd,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                bufsize=1, text=True, encoding='utf-8', errors='replace')
+
+    def _watch_process(self):
+        '''监控构建进程输出，复刻原 pexpect 逻辑：
+        - 正常输出（逐行到达）→ 继续
+        - 20 秒无新输出且已出现 `!` 错误行 → 终止进程（LaTeX 卡死）
+        - 进程结束（EOF）→ 退出循环
+
+        用守护线程逐行读取 stdout，主线程轮询检测停滞。
+        '''
+        output_lines = []
+        error_detected = False
+
+        def reader():
+            try:
+                for line in self.process.stdout:
+                    output_lines.append(line)
+            except Exception:
+                pass
+
+        reader_thread = threading.Thread(target=reader, daemon=True)
+        reader_thread.start()
+
+        last_line_count = 0
+        last_change_time = time.time()
+        stall_timeout = 20  # 与原 pexpect timeout 一致
+
+        while True:
+            if self.process.poll() is not None:
+                reader_thread.join(timeout=2)
+                break
+
+            time.sleep(0.5)
+
+            current_count = len(output_lines)
+            if current_count > last_line_count:
+                last_line_count = current_count
+                last_change_time = time.time()
+                if not error_detected:
+                    for line in output_lines:
+                        if line.startswith('!'):
+                            error_detected = True
+                            break
+            elif time.time() - last_change_time > stall_timeout:
+                if error_detected:
+                    try:
+                        self.process.terminate()
+                        self.process.wait(timeout=5)
+                    except Exception:
+                        try: self.process.kill()
+                        except Exception: pass
+                    break
+                # 无错误但停滞：重置计时器继续等（大文档编译可能较慢）
+                last_change_time = time.time()
+
+        # 确保进程结束 + 管道关闭
+        try:
+            self.process.wait(timeout=5)
+        except Exception:
+            try: self.process.kill()
+            except Exception: pass
+        try: self.process.stdout.close()
+        except Exception: pass
+
     def stop_running(self):
         if self.process != None:
-            self.process.sendcontrol('c')
-            self.process.sendline('x')
-            self.process.terminate(True)
+            try:
+                self.process.terminate()
+                self.process.wait(timeout=3)
+            except Exception:
+                try: self.process.kill()
+                except Exception: pass
             self.process = None
 
     def parse_build_log(self, query):
@@ -169,8 +243,8 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
     def copy_synctex_file(self, query):
         move_from = os.path.splitext(query.tex_filename)[0] + '.synctex.gz'
-        folder = self.config_folder + '/' + base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode()
-        move_to = folder + '/' + os.path.splitext(os.path.basename(query.tex_filename))[0] + '.synctex.gz'
+        folder = os.path.join(self.config_folder, base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode())
+        move_to = os.path.join(folder, os.path.splitext(os.path.basename(query.tex_filename))[0] + '.synctex.gz')
 
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -211,7 +285,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         xelatex 的 xdvipdfmx 致命错误不会出现在 LaTeX 日志的 `!` 错误里，
         但会写进 .log 末尾（"xdvipdfmx:fatal: ..."）。在无 .log 或
         无匹配时回落到通用提示，避免用户面对一个空错误。'''
-        log_path = query.tex_filename.rsplit('.tex', 1)[0] + '.log'
+        log_path = os.path.splitext(query.tex_filename)[0] + '.log'
         try:
             with open(log_path, 'rb') as f:
                 # 只读末尾 8KB 避免大日志拖累

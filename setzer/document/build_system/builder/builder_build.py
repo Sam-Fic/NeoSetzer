@@ -18,6 +18,17 @@
 import os
 import os.path
 import shutil
+import sys
+import subprocess
+
+
+def popen_no_window(args, **kwargs):
+    '''跨平台 subprocess.Popen 包装：Windows 上设 CREATE_NO_WINDOW
+    避免每次调用 LaTeX 工具链时弹出控制台窗口；Unix 上透传。
+    '''
+    if sys.platform == 'win32':
+        kwargs.setdefault('creationflags', subprocess.CREATE_NO_WINDOW)
+    return subprocess.Popen(args, **kwargs)
 
 
 class BuilderBuild(object):

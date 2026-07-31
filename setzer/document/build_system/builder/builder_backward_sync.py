@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import base64
+import os.path
 import subprocess
 
 import setzer.document.build_system.builder.builder_build as builder_build
@@ -39,13 +40,13 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
             query.backward_sync_result = None
             return
 
-        synctex_folder = self.config_folder + '/' + base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode()
+        synctex_folder = os.path.join(self.config_folder, base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode())
         arguments = ['synctex', 'edit', '-o']
-        arguments.append(str(query.backward_sync_data['page']) + ':' + str(query.backward_sync_data['x']) + ':' + str(query.backward_sync_data['y']) + ':' + query.tex_filename[:-3] + 'pdf')
+        arguments.append(str(query.backward_sync_data['page']) + ':' + str(query.backward_sync_data['x']) + ':' + str(query.backward_sync_data['y']) + ':' + os.path.splitext(query.tex_filename)[0] + '.pdf')
         arguments.append('-d')
         arguments.append(synctex_folder)
         try:
-            self.process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'synctex missing')

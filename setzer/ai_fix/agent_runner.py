@@ -38,6 +38,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 
 from setzer.ai_fix.presets import PLACEHOLDER_PROMPT, PLACEHOLDER_FILE, PLACEHOLDER_CWD
 
@@ -110,6 +111,14 @@ TERMINAL_CHAIN = [
     ('terminology',      {'sep': '-e', 'workdir_arg': None}),
     ('sakura',           {'sep': '-e', 'workdir_arg': None}),
     ('cool-retro-term',  {'sep': '-e', 'workdir_arg': None}),
+
+    # === Windows 系 ===
+    # Windows Terminal: wt --cwd=<dir> -- <command...>
+    ('wt',               {'sep': '--', 'workdir_arg': '--cwd'}),
+    # PowerShell: powershell -Command "cd <dir>; <command>"
+    ('powershell',       {'sep': '-Command', 'workdir_arg': None}),
+    # cmd: cmd /c "<command>"（workdir 靠 Popen cwd 继承）
+    ('cmd',              {'sep': '/c', 'workdir_arg': None}),
 ]
 
 
@@ -162,10 +171,27 @@ def _which_on_host(name, timeout=3):
             pass
 
     # 兜底：按常见绝对路径猜（deb 系 /usr/bin 通常就在这些位置）
-    for prefix in ['/usr/bin', '/usr/local/bin', '/app/bin', '/bin']:
-        candidate = os.path.join(prefix, name)
-        if os.path.isfile(candidate):
-            return candidate
+    if sys.platform == 'win32':
+        # Windows 常见可执行文件目录
+        prefixes = []
+        program_files = os.environ.get('ProgramFiles', r'C:\Program Files')
+        program_files_x86 = os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')
+        local_app_data = os.environ.get('LOCALAPPDATA', '')
+        prefixes.append(os.path.join(program_files, name))
+        prefixes.append(os.path.join(program_files_x86, name))
+        if local_app_data:
+            prefixes.append(os.path.join(local_app_data, name))
+        # 也尝试带 .exe 后缀
+        for prefix in prefixes:
+            if os.path.isfile(prefix):
+                return prefix
+            if os.path.isfile(prefix + '.exe'):
+                return prefix + '.exe'
+    else:
+        for prefix in ['/usr/bin', '/usr/local/bin', '/app/bin', '/bin']:
+            candidate = os.path.join(prefix, name)
+            if os.path.isfile(candidate):
+                return candidate
     return None
 
 
@@ -323,13 +349,19 @@ def run_headed(tool_config, prompt, cwd, filename, terminal_cmd=None):
     final_cmd.extend(rendered)
 
     try:
-        # start_new_session=True：脱离 Setzer 进程组，Setzer 退出不杀终端
+        # Unix: start_new_session=True 脱离 Setzer 进程组，Setzer 退出不杀终端
+        # Windows: creationflags=CREATE_NEW_PROCESS_GROUP 达到类似效果
         # DEVNULL：避免管道死锁（终端不读 stdin/stdout 也无碍）
-        subprocess.Popen(
-            final_cmd, cwd=cwd or None,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=True,
+        popen_kwargs = dict(
+            cwd=cwd or None,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
+        if sys.platform == 'win32':
+            popen_kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs['start_new_session'] = True
+        subprocess.Popen(final_cmd, **popen_kwargs)
     except FileNotFoundError:
         return (False, _('Terminal executable not found: {}').format(terminal_path))
     except Exception as e:

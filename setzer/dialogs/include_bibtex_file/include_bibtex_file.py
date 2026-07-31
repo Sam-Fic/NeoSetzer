@@ -177,9 +177,9 @@ class IncludeBibTeXFile(object):
         self.current_values['style'] = style
 
     def get_display_filename(self):
-        file_arr = self.current_values['filename'].rsplit('/', 1)
-        if len(file_arr) > 1:
-            return file_arr[1].rsplit('.', 1)[0]
+        filename = self.current_values['filename']
+        if filename:
+            return os.path.splitext(os.path.basename(filename))[0]
         else:
             return ''
 

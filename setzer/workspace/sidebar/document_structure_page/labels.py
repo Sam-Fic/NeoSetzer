@@ -19,6 +19,8 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gdk, GLib
 
+import sys
+
 import setzer.workspace.sidebar.document_structure_page.labels_viewgtk as labels_section_view
 
 
@@ -56,7 +58,14 @@ class LabelsSection(object):
         for include_document in self.data_provider.integrated_includes:
             for label in include_document.parser.symbols['labels_with_offset']:
                 labels.append([label[0], label[1], include_document])
-        labels.sort(key=lambda label: GLib.utf8_collate_key(label[0].casefold(), len(label[0].casefold())))
+        # GLib.utf8_collate_key(str, len) 在部分 MSYS2/Windows 的 PyGObject
+        # 构建中会段错误（g_convert 断言失败 + SIGSEGV），无法 try/except 捕获。
+        # Windows 上退化为纯 Python 大小写折叠排序（locale-naive 但安全）；
+        # 其它平台保留 GLib 的区域感知排序行为。
+        if sys.platform == 'win32':
+            labels.sort(key=lambda label: label[0].casefold())
+        else:
+            labels.sort(key=lambda label: GLib.utf8_collate_key(label[0].casefold(), len(label[0].casefold())))
         self.labels = labels
 
         self.view.populate()
