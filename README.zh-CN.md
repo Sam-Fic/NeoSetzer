@@ -28,8 +28,9 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
 本 fork **未**发布在 Flathub 上。获取方式：
 
-1. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
+1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `mingw64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
 2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 中。请在那里查看最新构建版本。
+3. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
 
 ## 使用 Gnome Builder 运行 Setzer
 
@@ -92,6 +93,37 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 ## 在 Windows 上运行 Setzer
 
 Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Windows 上获取最新 GTK4 / libadwaita / GtkSourceView 5 / Poppler 二进制文件的唯一可靠来源）。
+
+有两种使用方式：
+
+- **便携 zip** —— 最省事，无需安装 MSYS2。见下文。
+- **从源码构建** —— 适合开发或需要修改 Setzer 的场景。见第 1 步及以后。
+
+### 使用便携 zip
+
+`setzer_<版本号>_windows_x64.zip` 是一个自包含的构建产物（约 128 MB，解压后约 349 MB），已打包 Python、GTK4 以及全部运行时依赖。无需安装任何东西，也不会写注册表。
+
+1. 从 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 页面下载 `setzer_<版本号>_windows_x64.zip`。
+
+2. 解压到**任意目录**——U 盘、`D:\Apps\Setzer`、桌面都可以，没有固定的安装路径要求。
+
+   > 在资源管理器里右键 →「全部解压缩」即可。也可以用 PowerShell：
+   >
+   > ```powershell
+   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\Setzer
+   > ```
+
+3. 运行解压目录下的 **`mingw64\bin\setzer.bat`**——在资源管理器里双击，或从 cmd / PowerShell 调用。
+
+   > **PowerShell 注意：** 运行时**不要加引号**，或者在前面加调用运算符（`& "…\setzer.bat"`）。只加引号的路径会被当作字符串回显，不会执行。
+
+4. 想固定到任务栏或开始菜单，给 `setzer.bat` 创建一个快捷方式即可（右键 →「发送到」→「桌面快捷方式」）。
+
+卸载时直接删除该文件夹即可。个人设置保存在 `%LOCALAPPDATA%\setzer`（即 `C:\Users\<你的用户名>\AppData\Local\setzer`），跨版本保留——想彻底清理的话把这个目录一并删掉。
+
+> **还需要装 MSYS2 吗？** 不需要，所有依赖都已打包。另外**不要**把解压出来的 `mingw64\bin` 加进系统 `PATH`——如果你机器上同时装了 MSYS2，两套 GTK4 运行时会互相遮蔽，引发很难排查的 DLL 报错。
+>
+> **LaTeX 仍需单独安装。** zip 里只有编辑器，不含 LaTeX 发行版，参见下文「在 Windows 上安装 LaTeX 发行版」。
 
 ### 第 1 步 — 安装 MSYS2
 

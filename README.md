@@ -28,8 +28,9 @@ Setzer runs on both **Linux** and **Windows** from a single codebase. No platfor
 
 This fork is **not** published on Flathub. Ways to get it:
 
-1. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
+1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Extract anywhere and run `mingw64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
 2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Check there for the latest build.
+3. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
 
 ## Running Setzer with Gnome Builder
 
@@ -92,6 +93,37 @@ I develop Setzer on Ubuntu and that's what I tested it with.
 ## Running Setzer on Windows
 
 Setzer supports Windows natively. The GTK4 runtime stack is provided by **MSYS2** (the only reliable source of up-to-date GTK4 / libadwaita / GtkSourceView 5 / Poppler binaries on Windows).
+
+There are two ways to get it running:
+
+- **Portable zip** — the easy way, no MSYS2 required. See directly below.
+- **Build from source** — for development or if you want to modify Setzer. See Step 1 onwards.
+
+### Using the portable zip
+
+`setzer_<version>_windows_x64.zip` is a self-contained build (~128 MB, ~349 MB extracted) that bundles Python, GTK4 and every other runtime dependency. Nothing needs to be installed and nothing is written to the registry.
+
+1. Download `setzer_<version>_windows_x64.zip` from the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) page.
+
+2. Extract it **anywhere you like** — a USB stick, `D:\Apps\Setzer`, your desktop. There is no fixed installation path.
+
+   > Right-click → "Extract All…" in File Explorer works. So does PowerShell:
+   >
+   > ```powershell
+   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\Setzer
+   > ```
+
+3. Run **`mingw64\bin\setzer.bat`** inside the extracted folder — double-click it in File Explorer, or call it from cmd / PowerShell.
+
+   > **PowerShell note:** run it *without* quotes, or prefix it with the call operator (`& "…\setzer.bat"`). A bare quoted path is treated as a string and only echoed, not executed.
+
+4. To pin it to the taskbar or Start menu, create a shortcut to `setzer.bat` (right-click → "Send to" → "Desktop (create shortcut)").
+
+To uninstall, just delete the folder. Your settings live in `%LOCALAPPDATA%\setzer` (i.e. `C:\Users\<you>\AppData\Local\setzer`) and are kept across versions — remove that folder too if you want a completely clean state.
+
+> **Do I still need MSYS2?** No. Everything is bundled. Do **not** add the extracted `mingw64\bin` to your system `PATH` — if you also have MSYS2 installed, the two GTK4 stacks can shadow each other and cause hard-to-diagnose DLL errors.
+>
+> **LaTeX is still a separate install.** The zip contains the editor, not a LaTeX distribution — see "Installing a LaTeX distribution on Windows" below.
 
 ### Step 1 — Install MSYS2
 
