@@ -54,3 +54,6 @@ AppDir/
 
 *.pdf
 scripts/fill_missing_translations.py
+
+# Local build helper script (contains machine-specific paths)
+_meson.sh
