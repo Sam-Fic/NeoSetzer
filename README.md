@@ -16,6 +16,9 @@ Simple yet full-featured LaTeX editor for Linux and Windows, written in Python w
 
 Setzer is a LaTeX editor written in Python with GTK. I'm happy if you give it a try and provide feedback via the issue tracker here on GitHub, be it about design, code architecture, bugs, feature requests, ...
 
+Based on the original project, a large number of components have been migrated to Libadwaita, which is modern and beautiful.  
+The UI/UX design has been thoroughly optimized; I hope you’ll appreciate the meticulous details I’ve crafted :)
+
 ## Platform Support
 
 Setzer runs on both **Linux** and **Windows** from a single codebase. No platform fork or separate build is required.
