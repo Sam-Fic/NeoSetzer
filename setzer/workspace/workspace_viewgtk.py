@@ -136,8 +136,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.preview_split.set_content(self.document_stack_overlay)
         self.preview_split.set_sidebar(self.preview_help_stack)
         self.preview_split.set_sidebar_position(Gtk.PackType.END)  # 预览在右侧
-        self.preview_split.set_min_sidebar_width(300)   # preview 自然宽 300；help 396 由子部件 min request 自动抬高
-        self.preview_split.set_max_sidebar_width(900)
+        self.preview_split.set_min_sidebar_width(1)      # 极端宽松：仅防止拖到 0
+        self.preview_split.set_max_sidebar_width(4000)  # 极端宽松：上限远高于常规屏宽
         self.preview_split.set_sidebar_width_fraction(0.5)
         self.preview_paned_overlay.set_child(self.preview_split)
 
@@ -148,8 +148,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.sidebar_split = Adw.OverlaySplitView()
         self.sidebar_split.set_sidebar(self.sidebar)
         self.sidebar_split.set_content(self.preview_paned_overlay)
-        self.sidebar_split.set_min_sidebar_width(120)
-        self.sidebar_split.set_max_sidebar_width(600)
+        self.sidebar_split.set_min_sidebar_width(1)      # 极端宽松：仅防止拖到 0
+        self.sidebar_split.set_max_sidebar_width(4000)  # 极端宽松：上限远高于常规屏宽
         # 初始值仅为占位：真正的宽度由 setup_paneds() 按持久化的
         # window_state/sidebar_width_fraction（默认 0.20）覆盖设定。
         self.sidebar_split.set_sidebar_width_fraction(0.20)
