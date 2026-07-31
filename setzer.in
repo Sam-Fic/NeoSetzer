@@ -21,6 +21,14 @@
 # 跳过，运行时 draw_func / page.render 偶发 "Couldn't find foreign struct
 # converter for 'cairo.Context'" 导致预览空白。提前 import cairo 让 PyGObject
 # 走 pycairo 直连的 fallback 编组路径，避免偶发失败。
+
+# Windows HiDPI：用户选择「真原生 1×」——清晰、组件与文字比例正确、但整体偏小。
+# GTK4 的 Win32 后端只做整数缩放（150% DPI 被 floor 成 1×），且忽略 GDK_SCALE，所以
+# 组件布局固定为 1×。默认情况下文字会按系统 144 DPI 渲染成 1.5×，造成「组件小、文字大」
+# 的错位。这里不缩放、不拉伸，仅把文字 DPI 强制降到 96（见下方 gtk-xft-dpi 设置），
+# 使文字也回到 1×，与组件对齐。进程保持 GTK 默认的 per-monitor 感知，无 DWM 拉伸、
+# 完全清晰。代价：在 150% 屏上整个应用会比桌面其它程序小一圈。
+
 import cairo
 import gi
 gi.require_version('Gtk', '4.0')
@@ -30,6 +38,15 @@ from gi.repository import Gio
 from gi.repository import Adw, GLib
 
 import sys, gettext, argparse, os.path, locale
+
+# Windows：把文字 DPI 强制设为 96（gtk-xft-dpi 的单位是 1/1024，故 96*1024），
+# 让文字回到 1×，与组件布局的 1× 对齐，消除「组件小、文字大」的错位。进程保持
+# GTK 默认 per-monitor 感知，无 DWM 拉伸、清晰；代价是 150% 屏上整体偏小。
+if sys.platform == 'win32':
+    try:
+        Gtk.Settings.get_default().set_property('gtk-xft-dpi', 96 * 1024)
+    except Exception:
+        pass
 
 from setzer.workspace.workspace import Workspace
 import setzer.workspace.workspace_viewgtk as view
@@ -113,8 +130,10 @@ class MainApplicationController(Adw.Application):
         try:
             trans = gettext.translation('setzer', localedir, languages=languages)
         except (FileNotFoundError, OSError, IOError):
-            localedir = '/usr/share/locale'
-            trans = gettext.translation('setzer', localedir, languages=languages, fallback=True)
+            # 回退到系统 locale 目录。Linux 用 /usr/share/locale；
+            # Windows 无此路径，gettext fallback=True 会直接回退到英文原文。
+            fallback_localedir = '/usr/share/locale' if sys.platform != 'win32' else localedir
+            trans = gettext.translation('setzer', fallback_localedir, languages=languages, fallback=True)
         import builtins
         builtins._ = trans.gettext
         builtins.ngettext = trans.ngettext

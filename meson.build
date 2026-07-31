@@ -18,13 +18,20 @@ mandir = get_option('mandir')
 
 config = configuration_data()
 config.set('setzer_version', meson.project_version())
-config.set('localedir_path', join_paths(prefix, localedir))
+localedir_path_full = join_paths(prefix, localedir)
+config.set('localedir_path', localedir_path_full)
 config.set('resources_path', join_paths(prefix, resourcesdir, 'resources'))
 config.set('app_icons_path', join_paths(prefix, datadir, 'icons'))
 config.set('python_path', python_bin)
 
 config_dev = config
-config_dev.set('localedir_path', '/tmp/usr/share/locale') # this is a workaround
+# 开发模式 locale 路径：Linux 用 /tmp/usr/share/locale workaround；
+# Windows 无此路径，复用安装时配置的 localedir_path（gettext 会 fallback 到英文）。
+if host_machine.system() == 'windows'
+  config_dev.set('localedir_path', localedir_path_full)
+else
+  config_dev.set('localedir_path', '/tmp/usr/share/locale') # this is a workaround
+endif
 config_dev.set('resources_path', join_paths(meson.source_root(), 'data', 'resources'))
 config_dev.set('app_icons_path', join_paths(meson.source_root(), 'data'))
 
@@ -54,6 +61,17 @@ configure_file(
   install: true,
   install_dir: bindir,
 )
+
+# Windows 上额外安装 .bat 启动器（Unix 的 setzer 脚本无扩展名，cmd/PowerShell 无法直接调用）
+if host_machine.system() == 'windows'
+  configure_file(
+    input: 'setzer.bat.in',
+    output: 'setzer.bat',
+    configuration: config,
+    install: true,
+    install_dir: bindir,
+  )
+endif
 
 # create devel binary
 configure_file(
