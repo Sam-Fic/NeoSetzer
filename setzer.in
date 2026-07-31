@@ -48,6 +48,26 @@ if sys.platform == 'win32':
     except Exception:
         pass
 
+
+def portable_path(configured_path, *relative_parts):
+    '''Windows 便携版路径解析。
+
+    resources_path / app_icons_path / localedir_path 这几个占位符是 meson 在
+    构建期按 prefix 写死的绝对路径（如 C:/msys64/mingw64/share/...）。
+    注意：注释里只写占位符的名字，不要写它们被 at 符号包裹的原形，
+    否则 configure_file 会连注释一起替换掉。便携 zip 被解压
+    到任意目录后这些路径并不存在，会导致 LaTeX 命令库、符号图标、翻译全部加载
+    失败。本脚本安装在 <root>/bin/ 下，而资源固定在 <root>/share/ 下，故按脚本
+    自身位置反推 <root>。推导结果不存在时（例如开发模式的 setzer_dev.py 位于
+    builddir/，资源在源码树里）回退到构建期路径。
+    '''
+    if sys.platform != 'win32':
+        return configured_path
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    candidate = os.path.join(root, *relative_parts)
+    return candidate if os.path.isdir(candidate) else configured_path
+
+
 from setzer.workspace.workspace import Workspace
 import setzer.workspace.workspace_viewgtk as view
 import setzer.keyboard_shortcuts.shortcuts as shortcuts
@@ -126,7 +146,7 @@ class MainApplicationController(Adw.Application):
         # 开发模式 localedir 为 /tmp/usr/share/locale；若该处无对应 mo（无论用户
         # 显式选了语言还是仅靠 LANGUAGE 环境变量），回退到系统 locale 路径，使
         # 开发版也能加载已安装的语言包。两种路径都失败再 fallback 到英文原文。
-        localedir = '@localedir_path@'
+        localedir = portable_path('@localedir_path@', 'share', 'locale')
         try:
             trans = gettext.translation('setzer', localedir, languages=languages)
         except (FileNotFoundError, OSError, IOError):
@@ -167,8 +187,8 @@ class MainApplicationController(Adw.Application):
 
         # init static variables
         ServiceLocator.set_setzer_version('@setzer_version@')
-        ServiceLocator.set_resources_path('@resources_path@')
-        ServiceLocator.set_app_icons_path('@app_icons_path@')
+        ServiceLocator.set_resources_path(portable_path('@resources_path@', 'share', 'Setzer', 'resources'))
+        ServiceLocator.set_app_icons_path(portable_path('@app_icons_path@', 'share', 'icons'))
         resources_path = ServiceLocator.get_resources_path()
         app_icons_path = ServiceLocator.get_app_icons_path()
 
