@@ -70,7 +70,7 @@ def _build_submenu_from_list(items, builder_fn):
 
 
 class ContextMenuView(Gtk.PopoverMenu):
-    '''Shortcutsbar "more" popover (the F12 context menu).
+    '''ShortcutsBar "more" popover (the F12 context menu).
 
     Built from a ``Gio.Menu`` model on a native ``Gtk.PopoverMenu`` — the same
     form as the hamburger menu — instead of the former hand-built

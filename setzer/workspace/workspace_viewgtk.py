@@ -285,7 +285,7 @@ class MainWindow(Adw.ApplicationWindow):
         # （notify::current-breakpoint 触发 compact 模式切换）。
         self.narrow_breakpoint = sidebar_breakpoint
         self.add_breakpoint(sidebar_breakpoint)
-        # 注意：shortcutsbar overflow 现在由 Shortcutsbar.do_size_allocate
+        # 注意：shortcutsbar overflow 现在由 ShortcutsBar.do_size_allocate
         # 连续测量后动态计算（每像素自适应），不再用 Adw.Breakpoint 阶梯。
 
         # 欢迎页快速操作按钮窄窗纵向堆叠：3 个按钮（New LaTeX / New BibTeX /
@@ -316,7 +316,7 @@ class MainWindow(Adw.ApplicationWindow):
                 self.get_display(), self.css_provider_app,
                 Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-        # shortcutsbar overflow reflow 安全网：Shortcutsbar.do_size_allocate
+        # shortcutsbar overflow reflow 安全网：ShortcutsBar.do_size_allocate
         # 是主触发路径（同步 reflow，零延迟）。这里每 250ms 轮询一次作为兜底，
         # 覆盖 do_size_allocate 可能漏掉的边缘情况。主路径可靠时此轮询不做实际工作。
         # 直接用 _last_allocated_width 判断，无需独立的 _last_sb_width 变量。

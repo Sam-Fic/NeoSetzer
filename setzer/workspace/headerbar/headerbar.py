@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -28,7 +28,7 @@ from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.popovers.popover_manager import PopoverManager
 
 
-class Headerbar(object):
+class HeaderBar(object):
 
     def __init__(self, workspace):
         self.workspace = workspace
@@ -73,7 +73,7 @@ class Headerbar(object):
         # 触发时它已是新文档）。
         self._build_state_handler_id = None
         self._build_state_doc = None
-        # Headerbar 在 workspace 启动后才构造；此时若已有活动文档，
+        # HeaderBar 在 workspace 启动后才构造；此时若已有活动文档，
         # 'new_active_document' 信号不会再次触发，需要手动挂 build_state 监听。
         # 与 shortcutsbar.__init__ 的处理方式保持对称。
         initial_doc = self.workspace.active_document
@@ -323,5 +323,3 @@ class Headerbar(object):
         show = self.workspace.settings.get_value('preferences', 'show_shortcuts_bar')
         has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
         self.view.build_log_toggle.set_visible((not show) and has_latex_doc)
-
-

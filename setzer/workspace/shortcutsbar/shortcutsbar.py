@@ -22,7 +22,7 @@ from gi.repository import Gtk
 from setzer.app.service_locator import ServiceLocator
 
 
-class Shortcutsbar(object):
+class ShortcutsBar(object):
 
     def __init__(self, workspace):
         self.workspace = workspace

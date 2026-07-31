@@ -114,14 +114,14 @@ class HeaderBar(object):
         # Build log 按钮（标题栏副本）：仅在用户关闭 Shortcuts Bar
         # （Preferences → Editor → Show Shortcuts Bar = False）时显示，
         # 紧贴 preview_help_toggle 左侧。点击行为 / 变红错误提示与
-        # shortcutsbar 内的同名按钮完全一致，由 Headerbar presenter 同步。
+        # shortcutsbar 内的同名按钮完全一致，由 HeaderBar presenter 同步。
         self.build_log_toggle = Gtk.ToggleButton()
         self.build_log_toggle.set_child(Gtk.Image(icon_name='build-log-symbolic'))
         self.build_log_toggle.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.build_log_toggle, _('Build log'), 'build_log')
         self.build_log_toggle.add_css_class('headerbar-plain')
         self.build_log_toggle.add_css_class('headerbar-icon')
-        # 默认隐藏；Headerbar presenter 根据 show_shortcuts_bar 显隐。
+        # 默认隐藏；HeaderBar presenter 根据 show_shortcuts_bar 显隐。
         self.build_log_toggle.set_visible(False)
 
         # build button wrapper (contains Build / stop / clean / timer)
