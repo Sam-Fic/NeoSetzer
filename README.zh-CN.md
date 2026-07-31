@@ -22,7 +22,7 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 | Windows 10/11（x86_64） | 通过 MSYS2 支持 | MSYS2 mingw-w64 GTK4 栈 |
 | WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
 
-> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 Windows 上较难获取。当其不可用时 Setzer 会自动降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
+> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 MSYS2 的 `mingw64` 中并未打包，因此无法在 Windows 上安装。当其不可用时 Setzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
 
 ## 安装
 
@@ -33,7 +33,7 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
 ## 使用 Gnome Builder 运行 Setzer
 
-要使用 Gnome Builder 运行 Setzer，只需在启动屏幕上点击"克隆.."按钮，粘贴 URL（ https://github.com/Sam-Fic/Setzer.git ），再次点击"克隆"，等待下载完成后按下运行按钮。它会构建 Setzer 及其依赖项，然后启动它。
+要使用 Gnome Builder 运行 Setzer，只需在启动屏幕上点击"克隆"按钮，粘贴 URL（ https://github.com/Sam-Fic/Setzer.git ），再次点击"克隆"，等待下载完成后按下运行按钮。它会构建 Setzer 及其依赖项，然后启动它。
 
 警告：这种方式构建 Setzer 可能需要很长时间。
 
@@ -43,18 +43,51 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
 > **支持的发行版：** Setzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
 
-1. 运行以下命令安装前置软件包：<br />
-`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
+1. 运行以下命令安装前置软件包：
 
-2. 从 GitHub 克隆 Setzer 仓库
+   ```bash
+   # 在 Linux 终端中执行
+   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0
+   ```
 
-3. 进入 Setzer 目录
+   > 注：`gir1.2-xdp-1.0` 仅用于 Linux/Flatpak 检测（即 libportal 的 GIR）。Windows 上不需要它（见下文说明）。
 
-4. 运行 meson：`meson setup builddir`<br />
-注意：某些发行版可能不包含未从发行版软件包安装的 Python 模块的系统级安装。在这种情况下，你需要将 Setzer 安装到主目录中，使用 `meson setup builddir --prefix=~/.local`。
+2. 从 GitHub 克隆 Setzer 仓库：
 
-5. 使用以下命令安装 Setzer：`ninja install -C builddir`<br />
-或本地运行：`./scripts/setzer.dev`
+   ```bash
+   # 在 Linux 终端中执行
+   git clone https://github.com/Sam-Fic/Setzer.git
+   ```
+
+3. 进入 Setzer 目录：
+
+   ```bash
+   # 在 Linux 终端中执行
+   cd Setzer
+   ```
+
+4. 运行 meson：
+
+   ```bash
+   # 在 Linux 终端中执行
+   meson setup builddir
+   ```
+
+   > 注意：某些发行版可能不包含未从发行版软件包安装的 Python 模块的系统级安装。在这种情况下，你需要将 Setzer 安装到主目录中，使用 `meson setup builddir --prefix=~/.local`。
+
+5. 使用以下命令安装 Setzer：
+
+   ```bash
+   # 在 Linux 终端中执行
+   ninja install -C builddir
+   ```
+
+   或本地运行：
+
+   ```bash
+   # 在 Linux 终端中执行
+   ./scripts/setzer.dev
+   ```
 
 ## 在 Windows 上运行 Setzer
 
@@ -69,27 +102,36 @@ Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Win
 在 MSYS2 MINGW64 终端中：
 
 ```bash
+# 在 MSYS2 MINGW64 终端中执行
 pacman -S --needed \
   mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
   mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
   mingw-w64-x86_64-gtksourceview5 \
   mingw-w64-x86_64-poppler \
-  mingw-w64-x86_64-libportal \
   mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
   mingw-w64-x86_64-python-gobject \
   mingw-w64-x86_64-python-pip \
+  mingw-w64-x86_64-python-numpy \
   gettext
 ```
 
-然后安装 pacman 未提供的 Python 库。MSYS2 的 Python 是 externally-managed（PEP 668），必须加 `--break-system-packages` 参数：
+> **不需要 `libportal`：** MSYS2 中**不存在** `mingw-w64-x86_64-libportal` 这个包——libportal 只在 `msys` 子系统中打包，不提供 `mingw64` 版本。Setzer 仅在 Flatpak 检测时用到它（`Xdp`），且已被 `try/except` 包裹，因此在 Windows 上直接省略即可。
+
+然后安装 pacman 未提供的 **纯 Python** 库。MSYS2 的 Python 是 externally-managed（PEP 668），必须加 `--break-system-packages` 参数：
 
 ```bash
-pip install --break-system-packages bibtexparser numpy
+# 在 MSYS2 MINGW64 终端中执行
+python -m pip install --break-system-packages bibtexparser
 ```
+
+> **`numpy` 要用 pacman 安装，而不是 pip。** MSYS2 的 MinGW Python 平台标签是 `mingw_x86_64_msvcrt_gnu`，与上游 `win_amd64` 的 wheel（包括 numpy 的）**不匹配**——`pip install numpy` 会回退到源码编译，要么失败、要么编译很久。凡是带 C 扩展的包（如 `numpy`、`scipy`、`pillow` 等）都应通过 pacman 以 `mingw-w64-x86_64-python-<name>` 安装。`bibtexparser` 是纯 Python，用 pip 即可。
+>
+> **务必使用 MinGW 的 Python，而不是 MSYS 的。** 请确认 `python` 解析到 `/mingw64/bin/python`（`python -c "import sys; print(sys.platform)"` 应输出 `win32`）。如果 `pip`/`python` 指向的是 `msys` 解释器，PyGObject 与通过 pacman 安装的 `numpy` 都会找不到。建议显式使用 `python -m pip …`。
 
 ### 第 3 步 — 克隆并配置
 
 ```bash
+# 在 MSYS2 MINGW64 终端中执行
 git clone https://github.com/Sam-Fic/Setzer.git
 cd Setzer
 meson setup builddir
@@ -98,6 +140,7 @@ meson setup builddir
 ### 第 4 步 — 运行（开发模式）
 
 ```bash
+# 在 cmd / PowerShell 中执行（无需 MSYS2）
 scripts\setzer.dev.bat
 ```
 
@@ -105,9 +148,10 @@ scripts\setzer.dev.bat
 
 > **PowerShell 注意：** 运行时**不要加引号**。加引号的路径（`"scripts\setzer.dev.bat"`）会被当成字符串只回显、不会执行。
 
-跨平台替代方式（在 MSYS2 MINGW64 终端里运行）：
+跨平台替代方式（在 MSYS2 MINGW64 终端里运行）——本 fork 正是用这一方式验证过构建：
 
 ```bash
+# 在 MSYS2 MINGW64 终端中执行
 python scripts/setzer.dev
 ```
 
@@ -116,6 +160,7 @@ python scripts/setzer.dev
 ### 第 5 步 — 安装（可选）
 
 ```bash
+# 在 MSYS2 MINGW64 终端中执行
 ninja install -C builddir
 ```
 

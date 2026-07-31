@@ -22,7 +22,7 @@ Setzer runs on both **Linux** and **Windows** from a single codebase. No platfor
 | Windows 10/11 (x86_64) | Supported via MSYS2 | MSYS2 mingw-w64 GTK4 stack |
 | WSL (Windows Subsystem for Linux) | Supported as Linux app | Linux distribution inside WSL |
 
-> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is hard to obtain on Windows. When it is unavailable Setzer automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
+> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not packaged for MSYS2 `mingw64`**, so it cannot be installed on Windows. Setzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
 
 ## Installation
 
@@ -33,9 +33,9 @@ This fork is **not** published on Flathub. Ways to get it:
 
 ## Running Setzer with Gnome Builder
 
-To run Setzer with Gnome Builder just click the "Clone.." button on the start screen, paste in the url (https://github.com/Sam-Fic/Setzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
+To run Setzer with Gnome Builder just click the "Clone" button on the start screen, paste in the url (https://github.com/Sam-Fic/Setzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
 
-Warning: Building Setzer this way may take a long time.
+> **Warning:** Building Setzer this way may take a long time.
 
 ## Running Setzer on Debian/Ubuntu
 
@@ -43,18 +43,51 @@ I develop Setzer on Ubuntu and that's what I tested it with.
 
 > **Supported distributions:** Setzer requires WebKitGTK 6.0 (gir1.2-webkit-6.0), which is available on **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) the `gir1.2-webkit-6.0` package does not exist and the `.deb` cannot be installed there. If you are on an older distribution, build from source as described below — the GTK4/WebKit bindings are resolved at runtime.
 
-1. Run the following command to install prerequisite packages:<br />
-`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
+1. Run the following command to install prerequisite packages:
 
-2. Clone Setzer repository from GitHub
+   ```bash
+   # Run in a Linux terminal
+   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0
+   ```
 
-3. cd to Setzer folder
+   > Note: `gir1.2-xdp-1.0` (the libportal GIR) is only used for Linux/Flatpak detection. It is not needed on Windows (see note below).
 
-4. Run meson: `meson setup builddir`<br />
-Note: Some distributions may not include systemwide installations of Python modules which aren't installed from distribution packages. In this case, you want to install Setzer in your home directory with `meson setup builddir --prefix=~/.local`.
+2. Clone the Setzer repository from GitHub:
 
-5. Install Setzer with: `ninja install -C builddir`<br />
-Or run it locally: `./scripts/setzer.dev`
+   ```bash
+   # Run in a Linux terminal
+   git clone https://github.com/Sam-Fic/Setzer.git
+   ```
+
+3. cd to the Setzer folder:
+
+   ```bash
+   # Run in a Linux terminal
+   cd Setzer
+   ```
+
+4. Run meson:
+
+   ```bash
+   # Run in a Linux terminal
+   meson setup builddir
+   ```
+
+   > Note: Some distributions may not include systemwide installations of Python modules which aren't installed from distribution packages. In this case, you want to install Setzer in your home directory with `meson setup builddir --prefix=~/.local`.
+
+5. Install Setzer with:
+
+   ```bash
+   # Run in a Linux terminal
+   ninja install -C builddir
+   ```
+
+   Or run it locally:
+
+   ```bash
+   # Run in a Linux terminal
+   ./scripts/setzer.dev
+   ```
 
 ## Running Setzer on Windows
 
@@ -69,27 +102,36 @@ Download and install MSYS2 from <https://www.msys2.org/>. Open the **MSYS2 MINGW
 In the MSYS2 MINGW64 shell:
 
 ```bash
+# Run in the MSYS2 MINGW64 shell
 pacman -S --needed \
   mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
   mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
   mingw-w64-x86_64-gtksourceview5 \
   mingw-w64-x86_64-poppler \
-  mingw-w64-x86_64-libportal \
   mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
   mingw-w64-x86_64-python-gobject \
   mingw-w64-x86_64-python-pip \
+  mingw-w64-x86_64-python-numpy \
   gettext
 ```
 
-Then install the Python libraries that are not packaged by pacman. MSYS2's Python is externally managed (PEP 668), so the `--break-system-packages` flag is required:
+> **No `libportal`:** the package `mingw-w64-x86_64-libportal` does **not** exist in MSYS2 — libportal is only packaged for the `msys` subsystem, not `mingw64`. Setzer only uses it (`Xdp`) for Flatpak detection, guarded by `try/except`, so it is simply omitted on Windows.
+
+Then install the **pure-Python** libraries that are not packaged by pacman. MSYS2's Python is externally managed (PEP 668), so the `--break-system-packages` flag is required:
 
 ```bash
-pip install --break-system-packages bibtexparser numpy
+# Run in the MSYS2 MINGW64 shell
+python -m pip install --break-system-packages bibtexparser
 ```
+
+> **`numpy` comes from pacman, not pip.** The MSYS2 MinGW Python reports the platform tag `mingw_x86_64_msvcrt_gnu`, so upstream `win_amd64` wheels (including numpy's) do **not** match — `pip install numpy` falls back to a source build and fails/succeeds only after a very long compile. Always install `numpy` (and any other C-extension package such as `scipy`, `pillow`, …) via pacman as `mingw-w64-x86_64-python-<name>` instead. `bibtexparser` is pure-Python, so it is fine via `pip`.
+>
+> **Use the MinGW Python, not the MSYS one.** Make sure `python` resolves to `/mingw64/bin/python` (`python -c "import sys; print(sys.platform)"` should print `win32`). If `pip`/`python` point at the `msys` interpreter instead, PyGObject and the pacman-installed `numpy` won't be found. Prefer `python -m pip …` to be explicit.
 
 ### Step 3 — Clone and configure
 
 ```bash
+# Run in the MSYS2 MINGW64 shell
 git clone https://github.com/Sam-Fic/Setzer.git
 cd Setzer
 meson setup builddir
@@ -98,6 +140,7 @@ meson setup builddir
 ### Step 4 — Run (development mode)
 
 ```bash
+# Run in cmd / PowerShell (no MSYS2 needed)
 scripts\setzer.dev.bat
 ```
 
@@ -105,9 +148,10 @@ scripts\setzer.dev.bat
 
 > **PowerShell note:** run it *without* quotes. A quoted path (`"scripts\setzer.dev.bat"`) is treated as a string and is only echoed, not executed.
 
-Cross-platform alternative (run from the MSYS2 MINGW64 shell):
+Cross-platform alternative (run from the MSYS2 MINGW64 shell) — this is the path used to validate the build in this fork:
 
 ```bash
+# Run in the MSYS2 MINGW64 shell
 python scripts/setzer.dev
 ```
 
@@ -116,6 +160,7 @@ python scripts/setzer.dev
 ### Step 5 — Install (optional)
 
 ```bash
+# Run in the MSYS2 MINGW64 shell
 ninja install -C builddir
 ```
 
