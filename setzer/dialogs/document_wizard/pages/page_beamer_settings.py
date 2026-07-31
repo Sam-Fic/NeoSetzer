@@ -18,10 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk
-from gi.repository import Adw
-from gi.repository import GLib
-from gi.repository import GdkPixbuf
+from gi.repository import Gtk, Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
 from setzer.app.service_locator import ServiceLocator
@@ -46,49 +43,38 @@ class BeamerSettingsPage(Page):
         def row_selected(box, row, user_data=None):
             child_name = row.get_title()
             self.current_values['beamer']['theme'] = child_name
-            for i in range(0, 2):
-                image_box = self.view.preview_image_boxes[child_name][i]
-                if image_box.get_center_widget() == None:
-                    image_box.set_center_widget(self.view.preview_images[child_name][i])
-            self.view.preview_stack.set_transition_type(Gtk.StackTransitionType.NONE)
-            self.view.preview_stack.set_visible_child_name(child_name + '_0')
-
-            button = self.view.preview_buttons[child_name][0]
-            button.set_child(self.view.preview_button_images[child_name][0])
-            button = self.view.preview_buttons[child_name][1]
-            button.set_child(self.view.preview_button_images[child_name][1])
-            self.view.preview_button_stack.set_visible_child_name(child_name)
+            self._update_preview(child_name)
 
         def option_toggled(row, pspec, option_name):
             self.current_values['beamer']['option_' + option_name] = row.get_active()
 
-        def preview_button_clicked(button, theme_name, number):
-            stack = self.view.preview_stack
-            if number == 0:
-                stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-            elif number == 1:
-                stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
-            stack.set_visible_child_name(theme_name + '_' + str(number))
-
         self.view.themes_list.connect('row-selected', row_selected)
         self.view.option_show_navigation.connect('notify::active', option_toggled, 'show_navigation')
         self.view.option_top_align.connect('notify::active', option_toggled, 'top_align')
-        for name in self.view.theme_names:
-            for i in range(0, 2):
-                button = self.view.preview_buttons[name][i]
-                button.set_can_focus(False)
-                button.connect('clicked', preview_button_clicked, name, i)
+
+        # Show initial preview
+        initial = self.current_values['beamer']['theme']
+        if initial in self.view.preview_images:
+            self._update_preview(initial)
+
+    def _update_preview(self, theme_name):
+        images = self.view.preview_images.get(theme_name, [])
+        child = self.view.preview_box.get_first_child()
+        while child:
+            self.view.preview_box.remove(child)
+            child = self.view.preview_box.get_first_child()
+        for img in images:
+            self.view.preview_box.append(img)
 
     def load_beamer_images(self):
         with self.image_loading_lock:
             for name in self.view.theme_names:
+                images = []
                 for i in range(0, 2):
                     image = Gtk.Picture.new_for_filename(os.path.join(ServiceLocator.get_resources_path(), 'document_wizard', 'beamerpreview_' + name + '_page_' + str(i) + '.png'))
-                    image.set_size_request(346, 260)
-                    self.view.preview_images[name].append(image)
-                    image = Gtk.Picture.new_for_filename(os.path.join(ServiceLocator.get_resources_path(), 'document_wizard', 'beamerpreview_' + name + '_page_' + str(i) + '.png'))
-                    image.set_size_request(100, 75)
-                    self.view.preview_button_images[name].append(image)
+                    image.set_size_request(208, 200)
+                    images.append(image)
+                self.view.preview_images[name] = images
 
     def load_presets(self, presets):
         try:
@@ -120,10 +106,7 @@ class BeamerSettingsPageView(PageView):
 
         self.theme_names = ['Warsaw', 'Malmoe', 'Luebeck', 'Copenhagen', 'Szeged', 'Singapore', 'Frankfurt', 'Darmstadt', 'Dresden', 'Ilmenau', 'Berlin', 'Hannover', 'Marburg', 'Goettingen', 'PaloAlto', 'Berkeley', 'Montpellier', 'JuanLesPins', 'Antibes', 'Rochester', 'Pittsburgh', 'EastLansing', 'CambridgeUS', 'AnnArbor', 'Madrid', 'Boadilla', 'Bergen', 'default']
 
-        self.themes_list_scrolled_window = Gtk.ScrolledWindow()
-        self.themes_list_scrolled_window.set_size_request(348, 230)
         self.themes_list = Gtk.ListBox()
-        self.themes_list.set_size_request(346, -1)
         self.themes_list.set_can_focus(False)
         self.themes_list.add_css_class('boxed-list')
         self.themes_list_rows = dict()
@@ -132,11 +115,6 @@ class BeamerSettingsPageView(PageView):
             row.set_title(name)
             self.themes_list_rows[name] = row
             self.themes_list.prepend(row)
-        self.themes_list.set_vexpand(False)
-        # 内嵌滚动窗口定高，列表滚到底时最后一项需底部留白，
-        # 否则紧贴 230px 窗口底边（与 page.py wrap_content 修复同因）。
-        self.themes_list.set_margin_bottom(18)
-        self.themes_list_scrolled_window.set_child(self.themes_list)
 
         self.group_options = Adw.PreferencesGroup()
         self.group_options.set_title(_('Options'))
@@ -149,46 +127,16 @@ class BeamerSettingsPageView(PageView):
         self.group_options.add(self.option_top_align)
 
         self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-        self.form.append(self.themes_list_scrolled_window)
+        self.form.append(self.themes_list)
         self.form.append(self.group_options)
 
-        self.preview = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.preview_stack_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.preview_stack = Gtk.Stack()
-        self.preview_button_stack = Gtk.Stack()
-        self.preview_button_stack.set_transition_type(Gtk.StackTransitionType.NONE)
+        self.preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.preview_box.set_halign(Gtk.Align.CENTER)
+
         self.preview_images = dict()
-        self.preview_image_boxes = dict()
-        self.preview_buttons = dict()
-        self.preview_button_widgets = dict()
-        self.preview_button_images = dict()
-        for name in self.theme_names:
-            self.preview_images[name] = list()
-            self.preview_image_boxes[name] = list()
-            self.preview_buttons[name] = list()
-            button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            self.preview_button_widgets[name] = button_box
-            self.preview_button_stack.add_named(button_box, name)
-            for i in range(0, 2):
-                image_box = Gtk.CenterBox()
-                image_box.set_orientation(Gtk.Orientation.HORIZONTAL)
-                self.preview_image_boxes[name].append(image_box)
-                self.preview_stack.add_named(image_box, name + '_' + str(i))
-                button = Gtk.Button()
-                button.set_margin_end(12)
-                button.set_margin_top(12)
-                self.preview_buttons[name].append(button)
-                self.preview_button_images[name] = list()
-                self.preview_button_widgets[name].append(button)
-        self.preview_stack_wrapper.append(self.preview_stack)
-        self.preview.append(self.preview_stack_wrapper)
-        self.preview.append(self.preview_button_stack)
-        self.preview.set_margin_top(18)
-        self.preview.set_margin_start(18)
-        self.preview.set_margin_end(18)
 
-        self.content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
-        self.content.append(self.wrap_content(self.form, maximum_size=420, tightening_threshold=360))
-        self.content.append(self.preview)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.content.append(self.form)
+        self.content.append(self.preview_box)
 
-        self.append(self.content)
+        self.append(self.wrap_content(self.content))
