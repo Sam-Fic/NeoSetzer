@@ -343,6 +343,18 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Alt>Down'
         self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
 
+        # Experimental features (multi-cursor toggles)
+        self.defaults['preferences']['experimental_features'] = True
+        self.defaults['preferences']['experimental_multicursor'] = True
+        self.defaults['preferences']['experimental_alt_click'] = True
+        self.defaults['preferences']['experimental_alt_drag'] = True
+        self.defaults['preferences']['experimental_select_next'] = True
+        self.defaults['preferences']['experimental_select_all'] = True
+        self.defaults['preferences']['experimental_add_above'] = True
+        self.defaults['preferences']['experimental_add_below'] = True
+        self.defaults['preferences']['experimental_escape_clear'] = True
+        self.defaults['preferences']['experimental_multiedit'] = True
+
     def _migrate_conflicting_shortcut_defaults(self):
         '''把已持久化配置中仍等于"旧冲突默认值"的快捷键迁到新默认值。
 

@@ -1010,32 +1010,49 @@ class Actions(object):
         mc = getattr(document, 'multicursor', None)
         return mc
 
+    def _mc_feature_enabled(self, feature_name):
+        """Check if a specific experimental multi-cursor feature is enabled."""
+        settings = self.settings
+        if not settings.get_value('preferences', 'experimental_features'):
+            return False
+        return settings.get_value('preferences', feature_name)
+
     def select_next_occurrence(self, action=None, parameter=None):
         """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。"""
+        if not self._mc_feature_enabled('experimental_select_next'):
+            return
         mc = self._get_active_multicursor()
         if mc is not None:
             mc.select_next_occurrence()
 
     def select_all_occurrences(self, action=None, parameter=None):
         """选中所有相同词/匹配（Ctrl+Shift+L）。"""
+        if not self._mc_feature_enabled('experimental_select_all'):
+            return
         mc = self._get_active_multicursor()
         if mc is not None:
             mc.select_all_occurrences()
 
     def add_cursor_above(self, action=None, parameter=None):
         """在当前光标所在位置上方行添加光标（Ctrl+Alt+Up）。"""
+        if not self._mc_feature_enabled('experimental_add_above'):
+            return
         mc = self._get_active_multicursor()
         if mc is not None:
             mc.add_cursor_above()
 
     def add_cursor_below(self, action=None, parameter=None):
         """在当前光标所在位置下方行添加光标（Ctrl+Alt+Down）。"""
+        if not self._mc_feature_enabled('experimental_add_below'):
+            return
         mc = self._get_active_multicursor()
         if mc is not None:
             mc.add_cursor_below()
 
     def clear_multi_cursor(self, action=None, parameter=None):
         """清除所有附加光标（Escape）。"""
+        if not self._mc_feature_enabled('experimental_escape_clear'):
+            return
         mc = self._get_active_multicursor()
         if mc is not None:
             mc.clear_all()

@@ -169,9 +169,10 @@ class DocumentController(object):
         if n_press == 1:
             # Alt+Click: 添加/移除额外光标（多光标模式）
             if state & Gdk.ModifierType.ALT_MASK:
-                success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
-                if success:
-                    self._handle_alt_click(iter_at_click, x, y)
+                if self._is_mc_feature_enabled('experimental_alt_click'):
+                    success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
+                    if success:
+                        self._handle_alt_click(iter_at_click, x, y)
                 return
 
             if state & modifiers == Gdk.ModifierType.CONTROL_MASK:
@@ -220,6 +221,8 @@ class DocumentController(object):
 
     def _handle_alt_click(self, iter_at_click, x, y):
         """处理 Alt+Click 添加/移除额外光标。"""
+        if not self._is_multicursor_enabled():
+            return
         mc = self.document.multicursor
         # 检查点击位置是否靠近已有额外光标（移除）
         if mc.has_multiple_cursors():
@@ -243,6 +246,21 @@ class DocumentController(object):
             toast = Adw.Toast.new(_('No PDF available for forward sync. Build the document first.'))
             toast.set_timeout(3)
             main_window.toast_overlay.add_toast(toast)
+
+    def _is_mc_feature_enabled(self, feature_name):
+        """Check if a specific experimental multi-cursor feature is enabled.
+
+        Returns False if experimental features are disabled globally,
+        or if the specific feature toggle is off.
+        """
+        settings = ServiceLocator.get_settings()
+        if not settings.get_value('preferences', 'experimental_features'):
+            return False
+        return settings.get_value('preferences', feature_name)
+
+    def _is_multicursor_enabled(self):
+        """Check if the core multi-cursor mode is enabled."""
+        return self._is_mc_feature_enabled('experimental_multicursor')
 
     def _on_motion_enter(self, controller, x, y):
         self._update_ctrl_cursor(controller)
@@ -275,6 +293,10 @@ class DocumentController(object):
         state = controller.get_current_event_state()
         if not (state & Gdk.ModifierType.ALT_MASK):
             return  # 非 Alt+Drag，忽略
+        if not self._is_mc_feature_enabled('experimental_alt_drag'):
+            return
+        if not self._is_multicursor_enabled():
+            return
 
         # Ctrl+Alt+Drag: 添加新的列选区到现有光标
         if state & Gdk.ModifierType.CONTROL_MASK:
@@ -345,49 +367,55 @@ class DocumentController(object):
             self.document._close_undo_group()
 
         mc = self.document.multicursor
-        has_multi = mc.has_multiple_cursors() or mc.is_column_mode()
+        has_multi = (mc.has_multiple_cursors() or mc.is_column_mode()) and self._is_multicursor_enabled()
 
         # --- Multi-cursor specific shortcuts ---
 
         # Escape: 清除多光标
-        if keyval == _KEYVAL_ESCAPE and has_multi:
+        if keyval == _KEYVAL_ESCAPE and has_multi and self._is_mc_feature_enabled('experimental_escape_clear'):
             mc.clear_all()
             return True
 
         # Ctrl+D: 选中下一个相同词/匹配
         if keyval == Gdk.keyval_from_name('d') and state & modifiers == Gdk.ModifierType.CONTROL_MASK:
-            mc.select_next_occurrence()
-            return True
+            if self._is_mc_feature_enabled('experimental_select_next'):
+                mc.select_next_occurrence()
+                return True
 
         # Ctrl+Shift+L: 选中所有相同词/匹配
         if keyval == Gdk.keyval_from_name('l') and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
-            mc.select_all_occurrences()
-            return True
+            if self._is_mc_feature_enabled('experimental_select_all'):
+                mc.select_all_occurrences()
+                return True
 
         # Ctrl+Alt+Up: 每行上方添加光标
         if keyval == _KEYVAL_UP and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
-            mc.add_cursor_above()
-            return True
+            if self._is_mc_feature_enabled('experimental_add_above'):
+                mc.add_cursor_above()
+                return True
 
         # Ctrl+Alt+Down: 每行下方添加光标
         if keyval == _KEYVAL_DOWN and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
-            mc.add_cursor_below()
-            return True
+            if self._is_mc_feature_enabled('experimental_add_below'):
+                mc.add_cursor_below()
+                return True
 
         # --- Multi-cursor edit handling ---
 
+        edit_enabled = self._is_mc_feature_enabled('experimental_multiedit')
+
         # Backspace: 多光标删除前一个字符
-        if keyval == _KEYVAL_BACKSPACE and has_multi:
+        if keyval == _KEYVAL_BACKSPACE and has_multi and edit_enabled:
             if mc.handle_delete('backspace'):
                 return True
 
         # Delete: 多光标删除后一个字符
-        if keyval == _KEYVAL_DELETE and has_multi:
+        if keyval == _KEYVAL_DELETE and has_multi and edit_enabled:
             if mc.handle_delete('delete'):
                 return True
 
         # Tab / Shift+Tab: 多光标缩进/反缩进
-        if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB] and has_multi:
+        if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB] and has_multi and edit_enabled:
             # 对所有光标位置应用相同的缩进操作
             if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
                 self._multi_cursor_indent(outdent=True)
@@ -396,7 +424,7 @@ class DocumentController(object):
             return True
 
         # Printable characters: 在所有光标位置插入
-        if has_multi:
+        if has_multi and edit_enabled:
             # Gdk.keyval_to_unicode 返回 keyval 对应的 Unicode 码点（int），非字符返回 0。
             # GTK4 无 keyval_is_char；keyval_to_unicode 同时覆盖大小写与 Shift 修饰。
             unichar = Gdk.keyval_to_unicode(keyval)
@@ -406,7 +434,7 @@ class DocumentController(object):
                     return True
 
         # Enter: 在所有光标位置换行（处理较复杂，先清除多光标让默认处理器处理）
-        if keyval in [_KEYVAL_RETURN, _KEYVAL_KP_ENTER] and has_multi:
+        if keyval in [_KEYVAL_RETURN, _KEYVAL_KP_ENTER] and has_multi and edit_enabled:
             # 简化处理：清除多光标，让 Enter 正常插入换行
             mc.clear_all()
             return False
