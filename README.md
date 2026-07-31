@@ -1,5 +1,9 @@
 # Setzer
 
+<div align="center">
+  <img src="data/org.cvfosammmm.Setzer.svg" alt="FileCollector" width="128" height="128">
+</div>
+
 [简体中文](README.zh-CN.md)
 
 Simple yet full-featured LaTeX editor for Linux and Windows, written in Python with GTK.
