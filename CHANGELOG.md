@@ -1,5 +1,24 @@
 # Changelog
 
+## v75 — 2026-07-31
+
+### 主要改进
+
+- **新增 Windows 平台原生支持**：移除 `pexpect` 依赖（Unix PTY 专用），改用跨平台 `subprocess` + 线程监控实现 LaTeX 构建进程管理；Windows 上自动设 `CREATE_NO_WINDOW` 避免弹出控制台窗口
+- **修复路径解析跨平台兼容性**：将 6 处 `rsplit('/', 1)` 路径切分改为 `os.path.splitext(os.path.basename(...))`，修复 Windows 反斜杠路径下文件名提取失败；将 `+ '/' +` 字符串拼接改为 `os.path.join`；将 `BIBINPUTS` 环境变量分隔符从硬编码 `:` 改为 `os.pathsep`（Windows 用 `;`）
+- **修复构建系统 GNOME 桌面集成的平台条件化**：`meson.build` 在 Windows 上跳过 `.desktop`/mime/metainfo/man 安装；新增 `setzer.bat.in` 启动器模板和 `scripts/setzer.dev.bat` 开发启动脚本
+- **修复硬编码 Unix 路径**：`setzer.in` 中 `/usr/share/locale` 回退改为平台感知；`ai_fix/agent_runner.py` 中 `_which_on_host` 新增 Windows `Program Files` 路径探测，`TERMINAL_CHAIN` 新增 `wt`/`powershell`/`cmd` 终端支持
+- **更新文档**：README（中英文）新增 Windows 安装/运行/打包章节、平台支持矩阵；移除已不再需要的 `python3-pexpect` 依赖声明
+
+### Improvements
+
+- **feat**: Add native Windows support — replace pexpect with cross-platform subprocess + thread-based process monitoring, add CREATE_NO_WINDOW flag on Windows to suppress console popups, add setzer.bat launcher and setzer.dev.bat dev script
+- **fix**: Replace 6 `rsplit('/', 1)` path splits with `os.path.splitext(os.path.basename(...))` for Windows backslash path compatibility; replace `+ '/' +` string concatenation with `os.path.join`; replace hardcoded `:` BIBINPUTS separator with `os.pathsep`; make GNOME desktop integration (.desktop/mime/metainfo/man) conditional on non-Windows in meson.build; make hardcoded `/usr/share/locale` fallback platform-aware in setzer.in
+- **feat**: Add Windows terminal support (wt/powershell/cmd) to TERMINAL_CHAIN in agent_runner.py; add Windows Program Files path probing in `_which_on_host`; replace `start_new_session=True` with `CREATE_NEW_PROCESS_GROUP` on Windows
+- **docs**: Update README.md and README.zh-CN.md with Windows installation (MSYS2), running, and packaging sections; add platform support matrix; remove `python3-pexpect` from dependency list (no longer used)
+
+---
+
 ## v74 — 2026-07-31
 
 ### 主要改进

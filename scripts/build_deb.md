@@ -21,7 +21,7 @@ sudo apt-get install -y meson ninja-build gettext
 
 运行时（打进 `Depends`，目标机安装 deb 时由 apt 自动解决）：
 
-- `python3`、`python3-gi`、`python3-cairo`、`python3-gi-cairo`、`python3-pexpect`、`python3-numpy`、`python3-bibtexparser`
+- `python3`、`python3-gi`、`python3-cairo`、`python3-gi-cairo`、`python3-numpy`、`python3-bibtexparser`
 - `gir1.2-gtk-4.0`、`gir1.2-adw-1`、`gir1.2-gtksource-5`、`gir1.2-pango-1.0`
 - `gir1.2-poppler-0.18`、`gir1.2-webkit-6.0`、`gir1.2-xdp-1.0`
 - `Recommends: texlive`（实际编译 LaTeX 文档所需，非编辑器运行必需）
@@ -111,7 +111,7 @@ Version: 67
 Section: editors
 Priority: optional
 Architecture: amd64
-Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-pexpect, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
+Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
 Recommends: texlive
 Maintainer: Setzer Packaging <local@build>
 Description: LaTeX editor for the GNOME desktop
@@ -125,6 +125,7 @@ EOF
 - `Version` 取自 `meson.build` 顶部的 `version:` 字段。
 - `Architecture` 用 `dpkg --print-architecture` 取得（通常为 `amd64`）。
 - 升级版本时同步修改 `Version` 与 `meson.build`。
+- `python3-pexpect` 已在 v75 移除——构建系统改用标准库 `subprocess`，跨平台兼容。
 
 ---
 
@@ -247,7 +248,7 @@ Version: ${NEWVER}
 Section: editors
 Priority: optional
 Architecture: \$(dpkg --print-architecture)
-Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-pexpect, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
+Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
 Recommends: texlive
 Maintainer: Setzer Packaging <local@build>
 Description: LaTeX editor for the GNOME desktop
@@ -325,3 +326,5 @@ setzer
   默认不在其搜索路径内。
 - **PDF 预览空白 / cairo 报错** → 入口脚本已 `import cairo` 在 `import gi`
   之前，属运行时环境缺失（缺 `python3-cairo` / `gir1.2-poppler`），非打包问题。
+
+> Windows 平台相关的打包流程与排错，见 [build_win.md](build_win.md)。

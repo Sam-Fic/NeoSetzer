@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-一款简单但功能完整的 LaTeX 编辑器，专为 GNU/Linux 桌面端编写，基于 Python 和 GTK。
+一款简单但功能完整的 LaTeX 编辑器，支持 Linux 和 Windows，基于 Python 和 GTK 编写。
 
 > 这是 [Setzer](https://github.com/cvfosammmm/Setzer) 的一个 fork，原作者为 cvfosammmm。
 > 原项目官网 <https://www.cvfosammmm.org/setzer/>，基于 GPL-3.0-or-later 许可证。
@@ -12,11 +12,23 @@
 
 Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试并提供反馈，我很开心——通过 GitHub 上的 issue 即可，无论是关于设计、代码架构、错误报告、功能请求等等。
 
+## 平台支持
+
+Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平台分支或单独构建。
+
+| 平台 | 状态 | 运行时栈 |
+|------|------|----------|
+| Linux（Debian/Ubuntu 24.04+、Fedora、Arch 等） | 完全支持 | 系统 GTK4 + libadwaita |
+| Windows 10/11（x86_64） | 通过 MSYS2 支持 | MSYS2 mingw-w64 GTK4 栈 |
+| WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
+
+> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 Windows 上较难获取。当其不可用时 Setzer 会自动降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
+
 ## 安装
 
-本 fork **未**发布在 Flathub 上。有两种获取方式：
+本 fork **未**发布在 Flathub 上。获取方式：
 
-1. **从源码构建**（见下文）——适用于任何 GNU/Linux 发行版，只要依赖可用。
+1. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
 2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 中。请在那里查看最新构建版本。
 
 ## 使用 Gnome Builder 运行 Setzer
@@ -32,7 +44,7 @@ Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试�
 > **支持的发行版：** Setzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
 
 1. 运行以下命令安装前置软件包：<br />
-`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo python3-pexpect gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
+`apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0`
 
 2. 从 GitHub 克隆 Setzer 仓库
 
@@ -44,12 +56,97 @@ Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试�
 5. 使用以下命令安装 Setzer：`ninja install -C builddir`<br />
 或本地运行：`./scripts/setzer.dev`
 
+## 在 Windows 上运行 Setzer
+
+Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Windows 上获取最新 GTK4 / libadwaita / GtkSourceView 5 / Poppler 二进制文件的唯一可靠来源）。
+
+### 第 1 步 — 安装 MSYS2
+
+从 <https://www.msys2.org/> 下载并安装 MSYS2。打开 **MSYS2 MINGW64** 终端（不是默认的 `ucrt64`/`clang64` 终端，除非你知道自己在做什么——`mingw64` 是经过测试的配置）。
+
+### 第 2 步 — 安装依赖
+
+在 MSYS2 MINGW64 终端中：
+
+```bash
+pacman -S --needed \
+  mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
+  mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
+  mingw-w64-x86_64-gtksourceview5 \
+  mingw-w64-x86_64-poppler \
+  mingw-w64-x86_64-libportal \
+  mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
+  mingw-w64-x86_64-python-gobject \
+  mingw-w64-x86_64-python-pip \
+  gettext
+```
+
+然后安装 pacman 未提供的 Python 库。MSYS2 的 Python 是 externally-managed（PEP 668），必须加 `--break-system-packages` 参数：
+
+```bash
+pip install --break-system-packages bibtexparser numpy
+```
+
+### 第 3 步 — 克隆并配置
+
+```bash
+git clone https://github.com/Sam-Fic/Setzer.git
+cd Setzer
+meson setup builddir
+```
+
+### 第 4 步 — 运行（开发模式）
+
+```bash
+scripts\setzer.dev.bat
+```
+
+`scripts\setzer.dev.bat` 是推荐的 Windows 启动方式——它是一个轻量包装脚本：把源码根目录加入 `PYTHONPATH`（`setzer` 包并未安装到 `site-packages`），并把 `mingw64\bin` 加到 `PATH` 前面以便找到正确的 Python 与 GTK4 / libadwaita 的 DLL，然后运行 meson 生成的 `builddir\setzer_dev.py`。它可以从 cmd、PowerShell，或在资源管理器里双击运行，**无需 MSYS2 终端**。
+
+> **PowerShell 注意：** 运行时**不要加引号**。加引号的路径（`"scripts\setzer.dev.bat"`）会被当成字符串只回显、不会执行。
+
+跨平台替代方式（在 MSYS2 MINGW64 终端里运行）：
+
+```bash
+python scripts/setzer.dev
+```
+
+> 直接 `python builddir\setzer_dev.py` 在没有设置 `PYTHONPATH` 时会报 `ModuleNotFoundError: No module named 'setzer'`，请优先使用上面的 `.bat` 或 `python scripts/setzer.dev`。
+
+### 第 5 步 — 安装（可选）
+
+```bash
+ninja install -C builddir
+```
+
+这会将 `setzer.bat`（和 Python `setzer` 脚本）安装到 MSYS2 的 `bin/` 目录。安装后，你可以从任何 MSYS2 终端运行 `setzer` 启动，或将 `<MSYS2>\mingw64\bin` 加入系统 `PATH` 后从 cmd / PowerShell / Windows Terminal 运行 `setzer.bat`。
+
+### 在 Windows 上安装 LaTeX 发行版
+
+要在应用内构建文档，请安装以下之一：
+
+- [MiKTeX](https://miktex.org/)（Windows 原生，推荐）
+- [TeX Live](https://www.tug.org/texlive/)（跨平台）
+- [Tectonic](https://tectonic-typesetting.github.io/)（单文件，自动下载依赖）
+
+确保你选择的 LaTeX 引擎（`pdflatex`、`xelatex`、`lualatex` 或 `tectonic`）在 `PATH` 中，然后在"偏好设置"对话框的"LaTeX 解释器"下选择它。
+
 ## 在应用内构建文档
 
 要使用应用内构建功能，你需要安装 LaTeX 解释器。例如，如果你想使用 XeLaTeX 构建，在 Ubuntu 上可以这样安装：
 `apt-get install texlive-xetex`
 
 要指定构建命令，请打开"偏好设置"对话框，在"LaTeX 解释器"下选择你想要的命令。
+
+## 打包
+
+### Debian/Ubuntu（`.deb`）
+
+完整 Debian 打包流程（版本号更新、CHANGELOG、构建、发布）见 [scripts/build_deb.md](scripts/build_deb.md)。
+
+### Windows（便携 zip / 安装程序）
+
+完整 Windows 打包流程（依赖安装、DESTDIR 安装、运行时 DLL 打包、zip / Inno Setup 安装程序、发布）见 [scripts/build_win.md](scripts/build_win.md)。
 
 ## 联系方式
 
