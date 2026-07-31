@@ -120,9 +120,15 @@ class BeamerSettingsPageView(PageView):
         self.group_options.set_title(_('Options'))
         self.option_show_navigation = Adw.SwitchRow()
         self.option_show_navigation.set_title(_('Show navigation buttons'))
+        self.option_show_navigation.set_tooltip_text(_(
+            'Show or hide the Beamer navigation bar at the bottom of slides. '
+            'Disabling gives a cleaner look for presentations.'))
         self.option_top_align = Adw.SwitchRow()
         self.option_top_align.set_title(_('Align content to the top of pages'))
         self.option_top_align.set_subtitle(_('("t" option, it\'s centered by default)'))
+        self.option_top_align.set_tooltip_text(_(
+            'When enabled, slide content is top-aligned (the [t] option). '
+            'When disabled, content is vertically centered — the Beamer default.'))
         self.group_options.add(self.option_show_navigation)
         self.group_options.add(self.option_top_align)
 

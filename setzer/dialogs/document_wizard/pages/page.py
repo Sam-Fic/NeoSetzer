@@ -102,6 +102,9 @@ class PageView(Gtk.Box):
         # Page format -------------------------------------------------------
         self.page_format_combo = Adw.ComboRow()
         self.page_format_combo.set_title(_('Page format'))
+        self.page_format_combo.set_tooltip_text(_(
+            'Select the paper size for the document. '
+            'US Letter for North America, A4 for most other regions.'))
         page_format_model = Gtk.StringList()
         for name in self.page_format_names:
             group, dims = self.page_format_info[name]
@@ -113,9 +116,15 @@ class PageView(Gtk.Box):
         # Options -----------------------------------------------------------
         self.option_landscape = Adw.SwitchRow()
         self.option_landscape.set_title(_('Landscape format'))
+        self.option_landscape.set_tooltip_text(_(
+            'Switch to landscape orientation (wider than tall). '
+            'Useful for wide tables or figures.'))
 
         self.option_twocolumn = Adw.SwitchRow()
         self.option_twocolumn.set_title(_('Two-column layout'))
+        self.option_twocolumn.set_tooltip_text(_(
+            'Arrange text in two columns per page. '
+            'Common for scientific articles and magazines.'))
 
         # Font size ---------------------------------------------------------
         # A standard Adw.SpinRow, consistent with the margin rows below.
@@ -125,12 +134,16 @@ class PageView(Gtk.Box):
         self.font_size_entry.set_title(_('Font size'))
         self.font_size_entry.set_adjustment(Gtk.Adjustment(value=10, lower=6, upper=18, step_increment=1))
         self.font_size_entry.set_digits(0)
-        self.font_size_entry.set_tooltip_text(_('LaTeX standard default is 10pt; 12pt is common for book and letter.'))
+        self.font_size_entry.set_tooltip_text(_('LaTeX standard default is 10pt; 12pt is common for book and letter. '
+                                                 'Values outside 10-12pt require the extsizes package.'))
 
         # Page margins ------------------------------------------------------
         self.option_default_margins = Adw.SwitchRow()
         self.option_default_margins.set_title(_('Use default margins'))
         self.option_default_margins.set_subtitle(_('On: use LaTeX default margins. Off: set custom margins below.'))
+        self.option_default_margins.set_tooltip_text(_(
+            'When enabled, LaTeX\'s default margins (about 1 inch / 2.54 cm) are used. '
+            'Disable to set custom values for each side.'))
 
         self.margins_button_left = self._create_margin_row(_('Left'))
         self.margins_button_right = self._create_margin_row(_('Right'))
@@ -142,4 +155,6 @@ class PageView(Gtk.Box):
         row.set_title(title)
         row.set_adjustment(Gtk.Adjustment(value=3.5, lower=0.0, upper=5.0, step_increment=0.1))
         row.set_digits(1)
+        row.set_tooltip_text(_('Set the ' + title.lower() + ' margin in centimeters. '
+                                'LaTeX default is approximately 2.54 cm (1 inch).'))
         return row

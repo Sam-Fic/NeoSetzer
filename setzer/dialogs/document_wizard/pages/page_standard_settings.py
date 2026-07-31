@@ -23,12 +23,24 @@ from gi.repository import Gtk, Adw
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
 
 
-class DocumentSettingsPage(Page):
+# KOMA-Script 类 → 标准类 settings_key 映射
+_KOMA_TO_STANDARD = {
+    'scrartcl': 'article',
+    'scrreprt': 'report',
+    'scrbook': 'book',
+}
 
-    def __init__(self, current_values, settings_key, view):
+
+class StandardSettingsPage(Page):
+
+    def __init__(self, current_values):
         self.current_values = current_values
-        self.settings_key = settings_key
-        self.view = view
+        self.view = StandardSettingsPageView()
+
+    @property
+    def settings_key(self):
+        doc_class = self.current_values['document_class']
+        return _KOMA_TO_STANDARD.get(doc_class, doc_class)
 
     def observe_view(self):
         def format_changed(combo, pspec):
@@ -45,6 +57,11 @@ class DocumentSettingsPage(Page):
         def margin_changed(row, pspec, side):
             self.current_values[self.settings_key]['margin_' + side] = row.get_value()
 
+        def sectioning_changed(combo, pspec):
+            selected = combo.get_selected()
+            if selected != Gtk.INVALID_LIST_POSITION:
+                self.current_values['sectioning'] = self.view.sectioning_names[selected]
+
         self.view.page_format_combo.connect('notify::selected', format_changed)
         self.view.font_size_entry.connect('notify::value', font_size_changed)
         self.view.option_twocolumn.connect('notify::active', option_toggled, 'option_twocolumn')
@@ -54,6 +71,7 @@ class DocumentSettingsPage(Page):
         self.view.margins_button_right.connect('notify::value', margin_changed, 'right')
         self.view.margins_button_top.connect('notify::value', margin_changed, 'top')
         self.view.margins_button_bottom.connect('notify::value', margin_changed, 'bottom')
+        self.view.sectioning_combo.connect('notify::selected', sectioning_changed)
 
     def option_default_margins_toggled(self, row, pspec=None, option_name=None):
         for spinrow in [self.view.margins_button_left, self.view.margins_button_right, self.view.margins_button_top, self.view.margins_button_bottom]:
@@ -86,19 +104,51 @@ class DocumentSettingsPage(Page):
             value = self.current_values[self.settings_key]['page_format']
         self.view.page_format_combo.set_selected(self.view.page_format_names.index(value))
 
+        # 章节层级
+        try:
+            sectioning = presets['sectioning']
+        except (TypeError, KeyError):
+            sectioning = self.current_values.get('sectioning', 'section')
+        if sectioning in self.view.sectioning_names:
+            self.view.sectioning_combo.set_selected(self.view.sectioning_names.index(sectioning))
+
         self.option_default_margins_toggled(self.view.option_default_margins)
 
     def on_activation(self):
         pass
 
 
-class DocumentSettingsPageView(PageView):
+class StandardSettingsPageView(PageView):
 
-    def __init__(self, subtitle):
+    sectioning_names = ['section', 'chapter', 'none']
+
+    def __init__(self):
         PageView.__init__(self)
+
+        self.headerbar_subtitle = _('Step') + ' 2: ' + _('Standard document settings')
+
         self.set_document_settings_page()
 
-        self.headerbar_subtitle = _('Step') + ' 2: ' + subtitle
+        # Sectioning level ----------------------------------------------------
+        self.group_sectioning = Adw.PreferencesGroup()
+        self.group_sectioning.set_title(_('Sectioning'))
+        self.sectioning_combo = Adw.ComboRow()
+        self.sectioning_combo.set_title(_('Sectioning level'))
+        self.sectioning_combo.set_tooltip_text(_(
+            'Choose the highest sectioning command. '
+            '"section" for articles (\\section{}), '
+            '"chapter" for reports and books (\\chapter{}), '
+            '"none" for no sectioning commands.'))
+        sectioning_model = Gtk.StringList()
+        sectioning_labels = {
+            'section': _('Section (\\section{})'),
+            'chapter': _('Chapter (\\chapter{})'),
+            'none': _('None'),
+        }
+        for name in self.sectioning_names:
+            sectioning_model.append(sectioning_labels[name])
+        self.sectioning_combo.set_model(sectioning_model)
+        self.group_sectioning.add(self.sectioning_combo)
 
         self.group_page_format = Adw.PreferencesGroup()
         self.group_page_format.set_title(_('Page format'))
@@ -123,6 +173,7 @@ class DocumentSettingsPageView(PageView):
         self.group_margins.add(self.margins_button_bottom)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.content.append(self.group_sectioning)
         self.content.append(self.group_page_format)
         self.content.append(self.group_options)
         self.content.append(self.group_font_size)

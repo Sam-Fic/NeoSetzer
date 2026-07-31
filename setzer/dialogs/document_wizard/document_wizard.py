@@ -24,9 +24,7 @@ import copy
 
 import setzer.dialogs.document_wizard.document_wizard_viewgtk as view
 from setzer.dialogs.document_wizard.pages.page_document_class import DocumentClassPage
-from setzer.dialogs.document_wizard.pages.page_article_settings import ArticleSettingsPage
-from setzer.dialogs.document_wizard.pages.page_report_settings import ReportSettingsPage
-from setzer.dialogs.document_wizard.pages.page_book_settings import BookSettingsPage
+from setzer.dialogs.document_wizard.pages.page_standard_settings import StandardSettingsPage
 from setzer.dialogs.document_wizard.pages.page_letter_settings import LetterSettingsPage
 from setzer.dialogs.document_wizard.pages.page_beamer_settings import BeamerSettingsPage
 from setzer.dialogs.document_wizard.pages.page_general_settings import GeneralSettingsPage
@@ -35,12 +33,13 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.app.latex_db import LaTeXDB
 
 # KOMA-Script 文档类复用对应标准类的设置页与 current_values 键
-# （scrartcl/article、scrreprt/report、scrbook/book）。键用于查设置，
+# （scrartcl/article、scrreprt/report、scrbook/book、scrlttr2/letter）。键用于查设置，
 # 实际类名（用于生成 \documentclass{...}）仍是 KOMA 名。
 KOMA_CLASS_TO_STANDARD = {
     'scrartcl': 'article',
     'scrreprt': 'report',
     'scrbook': 'book',
+    'scrlttr2': 'letter',
 }
 
 # pickle 仅用于 load_presets 中兼容旧 settings 数据（迁移期：旧版用
@@ -118,6 +117,8 @@ class DocumentWizard(object):
         self.current_values['date'] = '\\today'
         self.current_values['custom_packages'] = ''
         self.current_values['languages'] = LaTeXDB.get_languages_dict()
+        # 章节层级：section（\\section{}）/ chapter（\\chapter{}）/ none
+        self.current_values['sectioning'] = 'section'
         # Problem 5: 字体包选择。lmodern（默认，pdfLaTeX 推荐）、
         # fontspec（XeLaTeX/LuaLaTeX）、none（用户自行处理）。
         self.current_values['font_package'] = 'lmodern'
@@ -173,6 +174,15 @@ class DocumentWizard(object):
         self.current_values['letter']['margin_right'] = 3.5
         self.current_values['letter']['margin_top'] = 3.5
         self.current_values['letter']['margin_bottom'] = 3.5
+        self.current_values['letter']['sender_name'] = ''
+        self.current_values['letter']['sender_address'] = ''
+        self.current_values['letter']['sender_phone'] = ''
+        self.current_values['letter']['recipient_name'] = ''
+        self.current_values['letter']['recipient_address'] = ''
+        self.current_values['letter']['recipient_phone'] = ''
+        self.current_values['letter']['signature'] = ''
+        self.current_values['letter']['opening'] = ''
+        self.current_values['letter']['closing'] = ''
         self.current_values['beamer'] = dict()
         self.current_values['beamer']['theme'] = 'default'
         self.current_values['beamer']['option_show_navigation'] = True
@@ -191,15 +201,13 @@ class DocumentWizard(object):
     def setup(self):
         self.view = view.DocumentWizardView(self.main_window)
 
-        # 懒构造：首屏只建第 0 页（文档类选择页）。5 个文档类设置页（article/
-        # report/book/letter/beamer）每次会话只访问其中 1 个（由 document_class
+        # 懒构造：首屏只建第 0 页（文档类选择页）。3 个文档类设置页
+        # （standard/letter/beamer）每次会话只访问其中 1 个（由 document_class
         # 决定），其余必然白建；General 页也只在最后才访问。启动时只付 1 页的
         # 代价，其余页在 goto_page 首次进入时由 _ensure_page_built 按需构造。
         self._page_factories = [
             lambda: DocumentClassPage(self.current_values),
-            lambda: ArticleSettingsPage(self.current_values),
-            lambda: ReportSettingsPage(self.current_values),
-            lambda: BookSettingsPage(self.current_values),
+            lambda: StandardSettingsPage(self.current_values),
             lambda: LetterSettingsPage(self.current_values),
             lambda: BeamerSettingsPage(self.current_values),
             lambda: GeneralSettingsPage(self.current_values),
@@ -474,11 +482,13 @@ class DocumentWizard(object):
             return '\\usepackage[' + str(size) + 'pt]{extsizes}\n'
         return ''
 
-    def _get_standard_document(self, settings_key, section_cmd, include_abstract, class_name=None):
+    def _get_standard_document(self, settings_key, class_name=None):
         '''article / report / book 及对应 KOMA 类共享模板。
         settings_key 用于查 current_values；class_name 为实际输出类名
-        （KOMA 类如 scrartcl 与标准类 article 共享设置但类名不同）。'''
+        （KOMA 类如 scrartcl 与标准类 article 共享设置但类名不同）。
+        章节层级由 current_values['sectioning'] 控制。'''
         class_name = class_name or settings_key
+        sectioning = self.current_values.get('sectioning', 'section')
         options = self._build_class_options(settings_key)
         preamble = (
             '\\documentclass[' + options + ']{' + class_name + '}\n'
@@ -494,58 +504,98 @@ class DocumentWizard(object):
             '\\maketitle\n'
             '\\tableofcontents\n\n'
         )
-        if include_abstract:
+        # 章节层级：section 带 abstract；chapter 和 none 不带
+        if sectioning == 'section':
             body += '\\begin{abstract}\n\\end{abstract}\n\n'
-        body += '\\' + section_cmd + '{}\n\n'
+        if sectioning != 'none':
+            body += '\\' + sectioning + '{}\n\n'
         return (preamble + body, '\n\n\\end{document}')
 
     # ---- templates ----
 
     def get_insert_text_article(self):
-        return self._get_standard_document('article', 'section', include_abstract=True)
+        return self._get_standard_document('article')
 
     def get_insert_text_report(self):
-        return self._get_standard_document('report', 'chapter', include_abstract=True)
+        return self._get_standard_document('report')
 
     def get_insert_text_book(self):
-        return self._get_standard_document('book', 'chapter', include_abstract=False)
+        return self._get_standard_document('book')
 
     # KOMA-Script 类：复用 article/report/book 的设置，但输出类名不同（#4）。
     def get_insert_text_scrartcl(self):
-        return self._get_standard_document('article', 'section', True, class_name='scrartcl')
+        return self._get_standard_document('article', class_name='scrartcl')
 
     def get_insert_text_scrreprt(self):
-        return self._get_standard_document('report', 'chapter', True, class_name='scrreprt')
+        return self._get_standard_document('report', class_name='scrreprt')
 
     def get_insert_text_scrbook(self):
-        return self._get_standard_document('book', 'chapter', False, class_name='scrbook')
+        return self._get_standard_document('book', class_name='scrbook')
 
     def get_insert_text_letter(self):
+        return self._get_insert_text_letter('letter')
+
+    def get_insert_text_scrlttr2(self):
+        return self._get_insert_text_letter('scrlttr2')
+
+    def _get_insert_text_letter(self, class_name):
         options = self._build_class_options('letter')
+        letter = self.current_values['letter']
+        sender_name = letter.get('sender_name', '') or _('Your name')
+        sender_address = letter.get('sender_address', '') or _('Your address')
+        sender_phone = letter.get('sender_phone', '') or _('Your phone number')
+        recipient_name = letter.get('recipient_name', '') or _('Destination')
+        recipient_address = letter.get('recipient_address', '') or _('Address of the destination')
+        recipient_phone = letter.get('recipient_phone', '') or _('Phone number of the destination')
+        signature = letter.get('signature', '') or self.current_values['author'] or _('Your name')
+        opening = letter.get('opening', '') or _('Dear addressee,')
+        closing = letter.get('closing', '') or _('Yours sincerely,')
+
+        # KOMA scrlttr2 使用不同的命令名
+        if class_name == 'scrlttr2':
+            address_cmd = 'setaddress'
+            date_cmd = 'setdate'
+            signature_cmd = 'setsignature'
+            opening_cmd = 'setkomavar{opening}'
+            closing_cmd = 'setkomavar{closing}'
+            letter_env = 'letter'
+            address_sep = '\n\t'
+            recipient_arg = recipient_name
+        else:
+            address_cmd = 'address'
+            date_cmd = 'date'
+            signature_cmd = 'signature'
+            opening_cmd = 'opening'
+            closing_cmd = 'closing'
+            letter_env = 'letter'
+            address_sep = '\\\\'
+            recipient_arg = (recipient_name + '\\\\' + recipient_address + '\\\\' + recipient_phone
+                             if recipient_address or recipient_phone else recipient_name)
+
         preamble = (
-            '\\documentclass[' + options + ']{letter}\n'
+            '\\documentclass[' + options + ']{' + class_name + '}\n'
             + self._get_extsizes_line('letter')
             + self._get_geometry_line('letter')
             + self._get_preamble_packages()
         )
+
         # Letter body 结构独特：address / date / signature + letter 环境
         title_line = ('\\\\~\\\\\\textbf{' + self.current_values['title'] + '}'
                       if len(self.current_values['title']) > 0 else '')
         body = (
-            '\n\\address{' + _('Your name') + '\\\\' + _('Your address') + '\\\\' + _('Your phone number') + '}\n'
-            '\\date{' + self.current_values['date'] + '}\n'
-            '\\signature{' + self.current_values['author'] + '}\n\n'
+            '\n\\' + address_cmd + '{' + sender_name + address_sep + sender_address + address_sep + sender_phone + '}\n'
+            '\\' + date_cmd + '{' + self.current_values['date'] + '}\n'
+            '\\' + signature_cmd + '{' + signature + '}\n\n'
             '\\begin{document}\n\n'
-            '\\begin{letter}{' + _('Destination') + '\\\\' + _('Address of the destination') + '\\\\'
-            + _('Phone number of the destination') + title_line + '}\n\n'
-            '\\opening{' + _('Dear addressee,') + '}\n\n'
+            '\\begin{' + letter_env + '}{' + recipient_arg + title_line + '}\n\n'
+            '\\' + opening_cmd + '{' + opening + '}\n\n'
         )
         end = (
-            '\n\n\\closing{' + _('Yours sincerely,') + '}\n\n'
+            '\n\n\\' + closing_cmd + '{' + closing + '}\n\n'
             '%\\cc{' + _('Other destination') + '}\n'
             '%\\ps{' + _('PS: PostScriptum') + '}\n'
             '%\\encl{' + _('Enclosures') + '}\n\n'
-            '\\end{letter}\n'
+            '\\end{' + letter_env + '}\n'
             '\\end{document}'
         )
         return (preamble + body, end)
@@ -573,14 +623,23 @@ class DocumentWizard(object):
 
     def get_insert_packages(self):
         text = ''
-        if self.current_values['packages']['ams']:
+        # 类型感知包过滤：beamer 内置图形支持，无需 graphicx；letter 通常不需要 amsmath
+        doc_class = self.current_values.get('document_class', 'article')
+        skip_ams = doc_class in ('letter', 'scrlttr2')
+        skip_graphicx = doc_class in ('beamer',)
+
+        if self.current_values['packages']['ams'] and not skip_ams:
             text += '''\\usepackage{amsmath}
 \\usepackage{amsfonts}
 \\usepackage{amssymb}
 \\usepackage{amsthm}
 '''
         for package_name, do_insert in self.current_values['packages'].items():
-            if package_name != 'ams' and do_insert:
+            if package_name == 'ams':
+                continue
+            if package_name == 'graphicx' and skip_graphicx:
+                continue
+            if do_insert:
                 text += '\\usepackage{' + package_name + '}\n'
         # 用户自定义包（报告 #2）：逗号分隔，逐个插入。
         for name in self.current_values.get('custom_packages', '').split(','):
@@ -597,8 +656,13 @@ class DocumentWizard(object):
     def get_documentclass_preview(self):
         '''实时预览将生成的 \\documentclass 行（报告 #3）。'''
         doc_class = self.current_values['document_class']
-        if doc_class == 'beamer':
-            return '\\documentclass{beamer}'
+        if doc_class in ('beamer',):
+            return '\\documentclass{' + doc_class + '}'
+        if doc_class == 'letter':
+            options = self._build_class_options('letter')
+            return '\\documentclass[' + options + ']{letter}'
+        if doc_class == 'scrlttr2':
+            return '\\documentclass{' + doc_class + '}'
         options = self._build_class_options(self._settings_key(doc_class))
         return '\\documentclass[' + options + ']{' + doc_class + '}'
 

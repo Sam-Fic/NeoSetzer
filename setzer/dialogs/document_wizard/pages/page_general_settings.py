@@ -117,8 +117,30 @@ class GeneralSettingsPage(Page):
         self.current_values['custom_packages'] = custom
         self.view.custom_packages_entry.set_text(custom)
 
+        self._update_package_visibility()
+
     def on_activation(self):
         self.view.title_entry.grab_focus()
+        self._update_package_visibility()
+
+    def _update_package_visibility(self):
+        '''根据文档类型显示/隐藏不相关的包选项。'''
+        doc_class = self.current_values.get('document_class', 'article')
+        # beamer 内置图形支持，无需 graphicx；letter 通常不需要 AMS
+        skip_ams = doc_class in ('letter', 'scrlttr2')
+        skip_graphicx = doc_class in ('beamer',)
+
+        self.view.option_packages['ams'].set_visible(not skip_ams)
+        self.view.option_packages['graphicx'].set_visible(not skip_graphicx)
+
+        # 更新分组可见性
+        for group_name, group in self.view._package_groups.items():
+            any_visible = any(
+                child.get_visible()
+                for child in group
+                if isinstance(child, Adw.SwitchRow)
+            )
+            group.set_visible(any_visible)
 
     def add_languages_list(self, langs):
         model = Gtk.StringList()
@@ -168,10 +190,14 @@ class GeneralSettingsPageView(PageView):
 
         self.title_entry = Adw.EntryRow()
         self.title_entry.set_title(_('Title'))
+        self.title_entry.set_tooltip_text(_('The document title, used in the \\title{} command.'))
         self.author_entry = Adw.EntryRow()
         self.author_entry.set_title(_('Author'))
+        self.author_entry.set_tooltip_text(_('The document author, used in the \\author{} command.'))
         self.date_entry = Adw.EntryRow()
         self.date_entry.set_title(_('Date'))
+        self.date_entry.set_tooltip_text(_('The document date, used in the \\date{} command. '
+                                            'Use \\\\today for the current date.'))
         self.group_document_properties.add(self.title_entry)
         self.group_document_properties.add(self.author_entry)
         self.group_document_properties.add(self.date_entry)
@@ -184,6 +210,8 @@ class GeneralSettingsPageView(PageView):
         # 长，在支持的 libadwaita 版本上启用弹窗内搜索。
         self.language_combo = Adw.ComboRow()
         self.language_combo.set_title(_('Language'))
+        self.language_combo.set_tooltip_text(_('The main language for hyphenation patterns and automatic labels '
+                                                '(e.g. "Abstract" vs "Zusammenfassung").'))
         self.language_combo.set_model(Gtk.StringList())
         if hasattr(self.language_combo, 'set_enable_search'):
             self.language_combo.set_enable_search(True)
@@ -203,6 +231,9 @@ class GeneralSettingsPageView(PageView):
         self.group_font.set_description(_('Select the font package to include in the preamble. lmodern is recommended for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX.'))
         self.font_package_combo = Adw.ComboRow()
         self.font_package_combo.set_title(_('Font package'))
+        self.font_package_combo.set_tooltip_text(_(
+            'Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX. '
+            'fontspec enables system fonts with XeLaTeX/LuaLaTeX.'))
         font_package_model = Gtk.StringList()
         self.font_package_codes = ['lmodern', 'fontspec', 'none']
         font_package_labels = {

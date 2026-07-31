@@ -21,34 +21,34 @@
 确定，索引与名称对应关系如下：
 
     0: DocumentClass
-    1: ArticleSettings
-    2: ReportSettings
-    3: BookSettings
-    4: LetterSettings
-    5: BeamerSettings
-    6: GeneralSettings
+    1: StandardSettings (article/report/book + KOMA 变体)
+    2: LetterSettings (letter + scrlttr2)
+    3: BeamerSettings
+    4: GeneralSettings
 
 任何新增/删除页面须同步更新本表与 setup() 中的 self.pages.append 顺序。
 '''
 
 
 DOCUMENT_CLASS_PAGE_INDEX = 0
-GENERAL_PAGE_INDEX = 6
+GENERAL_PAGE_INDEX = 4
 FIRST_CLASS_PAGE_INDEX = 1
-LAST_CLASS_PAGE_INDEX = 5
+LAST_CLASS_PAGE_INDEX = 3
 
 
 # document_class 字符串 → 该类的设置页索引
+# article/report/book 及其 KOMA 变体合并到同一页
 CLASS_TO_SETTINGS_PAGE = {
     'article': 1,
-    'report': 2,
-    'book': 3,
-    'letter': 4,
-    'beamer': 5,
+    'report': 1,
+    'book': 1,
+    'letter': 2,
+    'beamer': 3,
     # KOMA-Script 类复用对应标准类的设置页（报告 #4）。
     'scrartcl': 1,
-    'scrreprt': 2,
-    'scrbook': 3,
+    'scrreprt': 1,
+    'scrbook': 1,
+    'scrlttr2': 2,
 }
 
 
@@ -76,7 +76,7 @@ def prev_page(current_page, document_class):
 
 
 def is_settings_page(page_index):
-    '''page_index 是否为某个文档类的设置页（1-5）。'''
+    '''page_index 是否为某个文档类的设置页（1-3）。'''
     return FIRST_CLASS_PAGE_INDEX <= page_index <= LAST_CLASS_PAGE_INDEX
 
 

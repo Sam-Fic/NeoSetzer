@@ -82,7 +82,7 @@ class DocumentClassPageView(PageView):
         self.list.add_css_class('boxed-list')
         self.list_rows = dict()
         for document_class in ['beamer', 'letter', 'book', 'report', 'article',
-                               'scrbook', 'scrreprt', 'scrartcl']:
+                               'scrbook', 'scrreprt', 'scrartcl', 'scrlttr2']:
             row = Adw.ActionRow()
             row.set_title(document_class.title())
             self.list_rows[row.get_title().lower()] = row
@@ -102,6 +102,7 @@ class DocumentClassPageView(PageView):
         self.preview_data.append({'name': 'scrartcl', 'image': 'article1.svg', 'text': _('<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many customizations and sensible defaults.')})
         self.preview_data.append({'name': 'scrreprt', 'image': 'report1.svg', 'text': _('<b>Scrreprt:</b>  KOMA-Script replacement for the report class.')})
         self.preview_data.append({'name': 'scrbook', 'image': 'book1.svg', 'text': _('<b>Scrbook:</b>  KOMA-Script replacement for the book class.')})
+        self.preview_data.append({'name': 'scrlttr2', 'image': 'letter1.svg', 'text': _('<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for address, date, and subject layout.')})
         for item in self.preview_data:
             image = async_svg.AsyncSvg(os.path.join(ServiceLocator.get_resources_path(), 'document_wizard', item['image']), 374, 262)
             image.set_margin_bottom(6)
