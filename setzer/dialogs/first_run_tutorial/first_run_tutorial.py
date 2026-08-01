@@ -136,7 +136,7 @@ class FirstRunTutorialDialog(object):
         if os.path.isfile(example_path):
             workspace = ServiceLocator.get_workspace()
             if workspace is not None:
-                workspace.open_document_by_filename(example_path)
+                workspace.open_document_by_filename_with_spinner(example_path)
         self.view.close()
 
     def run(self):

@@ -45,8 +45,25 @@ class WorkspaceController(object):
         on_startup = self.workspace.settings.get_value('preferences', 'on_startup')
         if on_startup == 'empty':
             self.workspace.populated = True
+            GLib.idle_add(self._restore_document_states)
         else:
-            self.workspace.populate_from_disk()
+            # 会话恢复：先显示 spinner，再延迟到 idle 执行 populate_from_disk。
+            # 这样 spinner 在首帧渲染出来（覆盖窗口 present 后到文档加载完成
+            # 之间的空白/卡顿期），而非在同步调用栈中 show→hide 导致从不渲染。
+            # populate_from_disk 内部的 _loading_start/_loading_finish 会再次
+            # show/hide，但 hide 被 deferred-hide 机制推迟到 idle，确保至少
+            # 渲染一帧。set_active_document 触发的 on_new_active_document 会
+            # 重新 show（取消 pending hide），文档激活完成后才真正 hide。
+            self.main_window.show_loading_spinner()
+            GLib.idle_add(self._deferred_populate_from_disk)
+
+    def _deferred_populate_from_disk(self):
+        '''idle 回调：执行会话恢复的文档加载与激活。
+
+        延迟到 idle 确保 spinner 已渲染：__init__ 中先 show_loading_spinner，
+        本回调在主循环下次 idle 时执行，此时 spinner 已绘制到屏幕。
+        '''
+        self.workspace.populate_from_disk()
         open_documents = self.workspace.open_documents
         if len(open_documents) > 0:
             active_filename = getattr(self.workspace, '_restore_active_filename', None)
@@ -64,7 +81,13 @@ class WorkspaceController(object):
             else:
                 self.workspace.set_active_document(open_documents[-1])
             self.workspace._restore_active_filename = None
+        else:
+            # 无文档可恢复（首次启动 / workspace.json 为空 / 文件全被移动）：
+            # populate_from_disk 可能未触发 _loading_start/finish（data 为 None
+            # 时提前返回），显式 hide 兜底，避免 spinner 永久停留。
+            self.main_window.hide_loading_spinner()
         GLib.idle_add(self._restore_document_states)
+        return False
 
     def _restore_document_states(self):
         for document in self.workspace.get_all_documents():

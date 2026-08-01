@@ -66,6 +66,9 @@ class MainWindow(Adw.ApplicationWindow):
         # 鼠标是否在主窗口内、最近一次纵向位置：供隐藏判定使用。
         self._pointer_inside = True
         self._last_pointer_y = 0
+        # loading spinner 的 hide 是否已调度到 idle（去重 + show 取消）。
+        # 详见 hide_loading_spinner / _do_hide_loading_spinner。
+        self._spinner_hide_pending = False
 
     def create_widgets(self):
         self.shortcutsbar = shortcutsbar_view.ShortcutsBar()
@@ -231,15 +234,35 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.content_overlay = Gtk.Overlay()
         self.content_overlay.set_child(self.mode_stack)
-        self.popoverlay.set_child(self.content_overlay)
 
-        # 加载指示器：覆盖整个内容区，在打开文档/启动恢复时显示
+        # 加载指示器：全屏白色背景 + 居中 spinner，覆盖整个应用。
+        # 在打开文档/新建文档时显示，让用户知道应用正在加载。
+        # 使用 Gtk.Stack 层叠在 content_overlay 之上，切换到 loading 页时
+        # 完全遮盖下方内容，包括 headerbar 和所有侧栏。
+        self._loading_overlay = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._loading_overlay.set_halign(Gtk.Align.FILL)
+        self._loading_overlay.set_valign(Gtk.Align.FILL)
+        self._loading_overlay.set_hexpand(True)
+        self._loading_overlay.set_vexpand(True)
+        self._loading_overlay.add_css_class('loading-overlay')
+        self._loading_overlay.set_can_target(False)
+
         self._loading_spinner = Gtk.Spinner()
         self._loading_spinner.set_size_request(48, 48)
         self._loading_spinner.set_halign(Gtk.Align.CENTER)
         self._loading_spinner.set_valign(Gtk.Align.CENTER)
-        self._loading_spinner.set_visible(False)
-        self.content_overlay.add_overlay(self._loading_spinner)
+        # vexpand 让 spinner 撑满垂直空间，配合 valign=CENTER 实现垂直居中。
+        # 否则 VERTICAL Box 仅分配 48px 自然高度，无居中效果。
+        self._loading_spinner.set_vexpand(True)
+
+        self._loading_overlay.append(self._loading_spinner)
+
+        self._content_stack = Gtk.Stack()
+        self._content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self._content_stack.set_transition_duration(200)
+        self._content_stack.add_named(self.content_overlay, 'content')
+        self._content_stack.add_named(self._loading_overlay, 'loading')
+        self.popoverlay.set_child(self._content_stack)
 
         # 文件拖放视觉反馈浮层：圆角描边 + 居中计数标签。
         # can_target=False 让拖放事件穿透到挂在同一 overlay 上的 DropTarget（不被此浮层拦截），
@@ -596,12 +619,26 @@ class MainWindow(Adw.ApplicationWindow):
             return False
         # 始终消费拖放（返回 True），避免文本视图接管并插入路径。
         # 仅打开白名单内的文件，其余静默忽略。
+        # 收集可接受路径，显示 spinner 后延迟 200ms 批量打开，让 spinner 先渲染。
         if workspace is not None:
+            paths = []
             for file in files:
                 path = file.get_path()
                 if path and self._is_acceptable_file(file):
-                    workspace.open_document_by_filename(path)
+                    paths.append(path)
+            if paths:
+                self.show_loading_spinner()
+                GLib.timeout_add(200, self._do_open_dropped_files, workspace, paths)
         return True
+
+    def _do_open_dropped_files(self, workspace, paths):
+        '''timeout 回调：spinner 渲染后批量打开拖放的文件。'''
+        for path in paths:
+            try:
+                workspace.open_document_by_filename(path)
+            except Exception:
+                pass
+        return False
 
 
     def do_size_allocate(self, width, height, baseline):
@@ -838,14 +875,40 @@ class MainWindow(Adw.ApplicationWindow):
         self._cancel_hide_headerbar()
 
     def show_loading_spinner(self):
-        '''显示加载中 spinner。'''
-        self._loading_spinner.set_visible(True)
+        '''显示全屏 loading overlay。
+
+        立即切换到 loading 页并启动 spinner 动画。取消任何待执行的
+        hide（show 优先级高于 hide：若 show 在 deferred hide 之前到达，
+        hide 应被取消，否则会错误地隐藏刚显示的 spinner）。
+        '''
+        self._spinner_hide_pending = False
+        self._content_stack.set_visible_child_name('loading')
         self._loading_spinner.start()
 
     def hide_loading_spinner(self):
-        '''隐藏加载中 spinner。'''
-        self._loading_spinner.stop()
-        self._loading_spinner.set_visible(False)
+        '''隐藏全屏 loading overlay（延迟到 idle 执行）。
+
+        关键：hide 必须延迟到下一个 idle 周期，确保 spinner 至少渲染一帧。
+        这解决了会话恢复路径中 show→hide 同步执行导致 spinner 从不渲染
+        的问题：show 在同步调用栈中切换 stack，hide 在此处仅标记待隐藏，
+        真正的隐藏在主循环下次 idle 时执行——此时 spinner 已渲染。
+        若 show 在 idle 触发前再次到达（_spinner_hide_pending 被置 False），
+        则取消隐藏，避免误藏。
+        '''
+        if self._content_stack.get_visible_child_name() != 'loading':
+            return
+        if self._spinner_hide_pending:
+            return
+        self._spinner_hide_pending = True
+        GLib.idle_add(self._do_hide_loading_spinner)
+
+    def _do_hide_loading_spinner(self):
+        '''idle 回调：真正执行隐藏。若期间有新的 show 到达则跳过。'''
+        self._spinner_hide_pending = False
+        if self._content_stack.get_visible_child_name() == 'loading':
+            self._loading_spinner.stop()
+            self._content_stack.set_visible_child_name('content')
+        return False
 
     def _on_split_button_activate(self, button):
         '''Adw.SplitButton 的下拉箭头只发 activate、不发 clicked；点击箭头

@@ -106,7 +106,7 @@ class WelcomeScreen(object):
     def on_example_clicked(self, button):
         example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')
         if os.path.isfile(example_path):
-            self.workspace.open_document_by_filename(example_path)
+            self.workspace.open_document_by_filename_with_spinner(example_path)
 
     # --- recent documents ---
 
@@ -120,7 +120,7 @@ class WelcomeScreen(object):
             if not os.path.isfile(filename):
                 self.workspace.remove_recently_opened_document(filename, notify=True)
                 return
-            self.workspace.open_document_by_filename(filename)
+            self.workspace.open_document_by_filename_with_spinner(filename)
 
     def refresh_recent_documents(self):
         listbox = self.view.recent_listbox

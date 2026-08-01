@@ -600,3 +600,12 @@ headerbar {
 .sticky-scroll {
     border-radius: 4px 4px 0 0;
 }
+
+/*
+ * 全屏加载指示器：纯色背景 + 居中 spinner，覆盖整个应用。
+ * 背景使用 @theme_bg_color 跟随系统明暗主题。
+ * set_can_target(False) 让点击穿透，不拦截用户操作。
+ */
+.loading-overlay {
+    background: @theme_bg_color;
+}

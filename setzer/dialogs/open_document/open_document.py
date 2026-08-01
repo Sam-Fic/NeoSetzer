@@ -64,11 +64,31 @@ class OpenDocumentDialog(object):
         if files is None:
             return
 
-        # 逐个文件独立 try/except:单个文件打开失败(损坏、权限等)
-        # 不应中断其余文件的打开。收集失败列表，操作完成后统一提示。
-        failed_files = []
+        # 收集所有路径，显示 spinner 后延迟 200ms 批量打开，
+        # 让 spinner 先渲染再执行重操作（读盘 + 创建 GTK 组件）。
+        paths = []
         for file in files:
             path = file.get_path()
+            if path:
+                paths.append(path)
+
+        if not paths:
+            return
+
+        if hasattr(self.main_window, 'show_loading_spinner'):
+            self.main_window.show_loading_spinner()
+            GLib.timeout_add(200, self._do_open_files, paths)
+        else:
+            self._do_open_files(paths)
+
+    def _do_open_files(self, paths):
+        '''timeout 回调：spinner 渲染后批量打开文件。
+
+        逐个文件独立 try/except：单个文件打开失败（损坏、权限等）不应中断
+        其余文件的打开。收集失败列表，操作完成后统一提示。
+        '''
+        failed_files = []
+        for path in paths:
             try:
                 self.workspace.open_document_by_filename(path)
             except Exception:
@@ -76,6 +96,7 @@ class OpenDocumentDialog(object):
 
         if failed_files:
             self._show_open_errors(failed_files)
+        return False
 
     def _show_open_errors(self, failed_files):
         '''批量打开失败时弹出 toast 提示用户哪些文件未能打开。'''
