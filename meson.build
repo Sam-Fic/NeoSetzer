@@ -60,6 +60,7 @@ configure_file(
   configuration: config,
   install: true,
   install_dir: bindir,
+  install_mode: 'rwxr-xr-x',
 )
 
 # Windows 上额外安装 .bat 启动器（Unix 的 setzer 脚本无扩展名，cmd/PowerShell 无法直接调用）
