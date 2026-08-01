@@ -131,6 +131,29 @@ class Workspace(Observable):
         self.auto_save = auto_save.AutoSave(self)
         self.controller = workspace_controller.WorkspaceController(self)
 
+    def open_document_by_filename_with_spinner(self, filename):
+        '''用户触发的打开文档：先显示 spinner，延迟 200ms 再执行实际打开。
+
+        与直接调用 open_document_by_filename 的区别：
+        - 显示 spinner 后用 timeout 延迟，确保 spinner 渲染出来再执行重操作
+          （create_document_from_filename 会读盘 + 创建 GTK 组件，阻塞主线程）。
+        - fire-and-forget：不返回 document（用户交互场景无需同步拿返回值）。
+        供对话框、最近文档、拖放、欢迎页等用户入口调用。编程式打开
+        （sidebar include 跳转、build log 反向同步等）仍用同步的
+        open_document_by_filename，因为它们需要立即拿到 document 引用。
+        '''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
+            main_window.show_loading_spinner()
+            GLib.timeout_add(200, self._do_open_document_by_filename, filename)
+        else:
+            self.open_document_by_filename(filename)
+
+    def _do_open_document_by_filename(self, filename):
+        '''timeout 回调：spinner 已渲染后执行实际的文档打开。'''
+        self.open_document_by_filename(filename)
+        return False
+
     def open_document_by_filename(self, filename):
         if filename == None: return None
 
@@ -575,6 +598,27 @@ class Workspace(Observable):
                     os.remove(path)
             except Exception as e:
                 print(f'Warning: could not remove untitled content: {e}')
+
+    def load_documents_from_session_file_with_spinner(self, filename):
+        '''用户触发的 .stzs 会话文件打开：先显示 spinner，延迟执行实际加载。'''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
+            main_window.show_loading_spinner()
+            GLib.timeout_add(200, self._do_load_documents_from_session_file, filename)
+        else:
+            self.load_documents_from_session_file(filename)
+
+    def _do_load_documents_from_session_file(self, filename):
+        '''timeout 回调：spinner 已渲染后执行实际的会话文件加载。'''
+        success = self.load_documents_from_session_file(filename)
+        if not success:
+            # 加载失败（文件损坏/无可信结构）：load_documents_from_session_file
+            # 未触发 _loading_start/finish，也不会 set_active_document，故
+            # 显式 hide 兜底，避免 spinner 永久停留。
+            main_window = ServiceLocator.get_main_window()
+            if main_window is not None and hasattr(main_window, 'hide_loading_spinner'):
+                main_window.hide_loading_spinner()
+        return False
 
     def load_documents_from_session_file(self, filename):
         # .stzs 是用户交换文件，可能不可信：先试 JSON（新格式），失败回退到

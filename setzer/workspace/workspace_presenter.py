@@ -39,6 +39,9 @@ class WorkspacePresenter(object):
         # _deferred_post_activate 的 50ms timeout id。快速切换文档时取消
         # 旧 timeout，避免对已非 active 的文档状态做 sidebar/preview 显隐。
         self._dpa_timeout_id = None
+        # 延迟文档视图激活：set_visible_child 和 focus 延后到 _deferred_post_activate
+        # 执行，让 mode_stack 切换和 OverlaySplitView 首轮布局先完成。
+        self._pending_document_view = None
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -72,7 +75,9 @@ class WorkspacePresenter(object):
             self.update_shortcuts_bar_visibility()
 
     def on_new_document(self, workspace, document):
-        self.main_window.document_stack.add_child(document.view)
+        # 文档视图的 add_child 延迟到 _deferred_post_activate 执行，避免
+        # 在初始布局阶段将 GtkSource.View 加入已 realize 的 widget tree，
+        # 触发其 realize（~2.2s 语言定义/样式方案加载）阻塞主循环。
         # 挂钩 build 完成事件：首次编译成功后，若用户已开启预览
         # （show_preview=True），之前因「从未编译」而被抑制的预览侧栏
         # 需要重新评估显隐——此时文档已有 PDF，预览有内容可展示。
@@ -86,7 +91,10 @@ class WorkspacePresenter(object):
             GLib.idle_add(self.update_preview_help_visibility)
 
     def on_document_removed(self, workspace, document):
-        self.main_window.document_stack.remove(document.view)
+        # 文档视图可能因延迟添加而尚未加入 document_stack（从未激活过）。
+        # 仅当视图已有父容器时执行 remove，避免非 child 移除告警。
+        if document.view.get_parent() is not None:
+            self.main_window.document_stack.remove(document.view)
 
         if self.workspace.active_document == None:
             self.main_window.mode_stack.set_visible_child_name('welcome_screen')
@@ -99,52 +107,64 @@ class WorkspacePresenter(object):
         if self._dpa_timeout_id is not None:
             GLib.Source.remove(self._dpa_timeout_id)
             self._dpa_timeout_id = None
+
+        # 切换文档时显示 spinner，让用户知道应用正在加载。延迟模式切换和
+        # 文档视图添加到 idle/timeout 回调，让 spinner 在首帧渲染出来。
+        current_mode = self.main_window.mode_stack.get_visible_child_name()
+        self.main_window.show_loading_spinner()
+        if current_mode == 'welcome_screen':
+            self._pending_document_view = document.view
+            GLib.idle_add(self._do_activate_from_welcome)
+        else:
+            self._pending_document_view = document.view
+            self._dpa_timeout_id = GLib.timeout_add(50, self._deferred_post_activate)
+
+    def _do_activate_from_welcome(self):
+        '''首次从欢迎页切换到文档模式的延迟执行。
+        由 on_new_active_document 通过 idle_add 调度，确保 spinner 已在首帧渲染。'''
         self.main_window.mode_stack.set_visible_child_name('documents')
         self.main_window.reparent_headerbar(to_welcome=False)
-        self.main_window.document_stack.set_visible_child(document.view)
-        self.focus_active_document()
-
-        if document.is_latex_document():
-            # autocomplete 延迟到 idle 构造（_init_latex_features），首次
-            # 激活时 document.autocomplete 属性尚不存在（__init__ 未设默认值）。
-            # 用 getattr 显式取默认 None，替代原 try/except AttributeError: pass——
-            # 后者会静默吞掉 widget / view 意外为 None 等其他 AttributeError，
-            # 让自动补全失效时无任何线索（用户直到按键才察觉）。getattr + None
-            # 检查把「lazy 未就绪」与「异常状态」区分开：未就绪跳过等 idle 补做
-            # （_init_latex_features 检查 is_active 后挂载），异常状态则正常冒泡。
-            autocomplete = getattr(document, 'autocomplete', None)
-            if autocomplete is not None and autocomplete.widget is not None:
-                self.main_window.preview_paned_overlay.add_overlay(autocomplete.widget.view)
-
-        # sidebar/preview 可见性更新延迟到首轮 size_allocate 之后：mode_stack
-        # 切换使 sidebar_split / preview_split（Adw.OverlaySplitView）从不可见
-        # 变为可见，首次分配尚未完成。此时同步调 set_show_sidebar(True) 会让
-        # OverlaySplitView 在总宽度=0/未确定的状态下分配 sidebar + content，
-        # 内部计算可能产生负宽度（GTK 警告：AdwBin width=-2147482112），导致
-        # 界面错乱一会才恢复。
-        #
-        # 调度方式选择（经运行时证据验证）：
-        # - GLib.idle_add 默认优先级 PRIORITY_DEFAULT_IDLE (200) 低于
-        #   GDK_PRIORITY_REDRAW (120)，首轮 GtkSource.View 渲染产生的 ~1.5s
-        #   连续帧会持续抢占 idle → sidebar/preview 延迟 1.5s 出现。
-        # - GLib.idle_add PRIORITY_HIGH_IDLE (100) 高于 REDRAW，在首轮
-        #   size_allocate 之前就执行 → 负宽度 bug 复发 + 掉帧。
-        # - GLib.timeout_add(50, ...) 在 50ms 后以 PRIORITY_DEFAULT (0) 触发，
-        #   高于 REDRAW 故不被帧抢占；50ms 足够首轮 layout（~16ms/帧 × 3 帧）
-        #   完成，又远小于 1.5s。经实测 _deferred_post_activate 在 ~50ms 触发，
-        #   sidebar/preview 与文档视图几乎同时出现。30ms 经用户验证偏早
-        #   （首轮分配未完全稳定），50ms 为最佳平衡点。
-        # build_log 刷新也一并合并（不涉及布局）。
         self._dpa_timeout_id = GLib.timeout_add(50, self._deferred_post_activate)
+        return False
 
     def _deferred_post_activate(self):
         '''on_new_active_document 中延迟到首轮 size_allocate 之后的后续更新。
         由 GLib.timeout_add(50, ...) 触发，避免在 OverlaySplitView 首次分配
         期间调 set_show_sidebar 导致负尺寸分配。'''
         self._dpa_timeout_id = None
+        # 延迟激活文档视图：此时 mode_stack 和 OverlaySplitView 的首轮布局
+        # 已完成，GtkSource.View 渲染不再与它们竞争资源。
+        if self._pending_document_view is not None:
+            view = self._pending_document_view
+            self._pending_document_view = None
+            # 延迟添加文档视图到 widget tree：on_new_document 已跳过 add_child，
+            # 此处首次激活时补上，避开初始布局阶段触发 GtkSource.View realize。
+            if view.get_parent() is None:
+                self.main_window.document_stack.add_child(view)
+            self.main_window.document_stack.set_visible_child(view)
+            # 激活文档后，若 autocomplete 已就绪（如切换回已有文档），挂载 overlay。
+            # 首次新建文档时 autocomplete 由 _init_latex_features 的 idle 回调处理。
+            document = self.workspace.get_active_document()
+            if document is not None and document.is_latex_document():
+                autocomplete = getattr(document, 'autocomplete', None)
+                if autocomplete is not None and autocomplete.widget is not None:
+                    self.main_window.preview_paned_overlay.add_overlay(autocomplete.widget.view)
+            # 用 idle 延迟聚焦，确保 set_visible_child 后 GtkSource.View
+            # 已完成 realize 可接受焦点。
+            GLib.idle_add(self._deferred_focus)
         self.update_sidebar_visibility(False)
         self.refresh_build_log_if_open()
         self.update_preview_help_visibility(False)
+        # 首次激活完成后隐藏 loading spinner
+        self.main_window.hide_loading_spinner()
+        return False
+
+    def _deferred_focus(self):
+        '''在 _deferred_post_activate 之后延迟聚焦文档视图，确保
+        GtkSource.View 已完成 realize 可接受焦点。'''
+        active_document = self.workspace.get_active_document()
+        if active_document is not None:
+            active_document.view.source_view.grab_focus()
         return False
 
     def on_root_state_change(self, workspace, state):

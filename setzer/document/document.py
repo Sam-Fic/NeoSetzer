@@ -633,7 +633,7 @@ class Document(Observable):
             return (False, False)
         if not stat.S_ISREG(st.st_mode):
             return (True, False)
-        return (False, self.save_date <= st.st_mtime - 0.001)
+        return (False, self.save_date is not None and self.save_date <= st.st_mtime - 0.001)
 
     def set_root_state(self, is_root, root_is_set):
         self.is_root = is_root

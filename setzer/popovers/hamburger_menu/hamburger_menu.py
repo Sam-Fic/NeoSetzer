@@ -168,7 +168,7 @@ class HamburgerMenu(object):
             if not os.path.isfile(filename):
                 self.workspace.remove_recently_opened_document(filename, notify=True)
                 return
-            self.workspace.open_document_by_filename(filename)
+            self.workspace.open_document_by_filename_with_spinner(filename)
 
     def on_update_recently_opened_session_files(self, workspace, recently_opened_session_files):
         items = list(recently_opened_session_files.values())
@@ -219,13 +219,28 @@ class HamburgerMenu(object):
             # 先尝试加载；仅当加载成功才关闭旧文档，避免坏 session 文件导致
             # 旧文档被关、用户两手空空。加载失败（load 已弹 toast）则回滚加载
             # 过程中可能已部分添加的文档，保持旧文档不变。
-            old_documents = set(self.workspace.get_all_documents())
-            if self.workspace.load_documents_from_session_file(filename):
-                for document in old_documents:
-                    self.workspace.remove_document(document)
+            # 显示 spinner 并延迟 200ms 执行重操作，让 spinner 先渲染。
+            main_window = ServiceLocator_get_main_window()
+            if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
+                main_window.show_loading_spinner()
+                GLib.timeout_add(200, self._do_restore_session, filename)
             else:
-                for document in set(self.workspace.get_all_documents()) - old_documents:
-                    self.workspace.remove_document(document)
+                self._do_restore_session(filename)
+
+    def _do_restore_session(self, filename):
+        '''timeout 回调：spinner 渲染后执行会话加载 + 旧文档清理。'''
+        old_documents = set(self.workspace.get_all_documents())
+        if self.workspace.load_documents_from_session_file(filename):
+            for document in old_documents:
+                self.workspace.remove_document(document)
+        else:
+            for document in set(self.workspace.get_all_documents()) - old_documents:
+                self.workspace.remove_document(document)
+            # 加载失败：未触发 set_active_document，显式 hide 兜底。
+            main_window = ServiceLocator_get_main_window()
+            if main_window is not None and hasattr(main_window, 'hide_loading_spinner'):
+                main_window.hide_loading_spinner()
+        return False
 
     def close_confirmation_cb(self, parameters):
         from setzer.dialogs.dialog_locator import DialogLocator

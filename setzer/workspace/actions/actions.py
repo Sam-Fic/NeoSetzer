@@ -347,14 +347,27 @@ class Actions(object):
         action.set_state(parameter)
 
     def new_latex_document(self, action=None, parameter=None):
+        main_window = ServiceLocator.get_main_window()
+        main_window.show_loading_spinner()
+        # 延迟 200ms 再创建文档，让 spinner 先渲染并动画几帧，避免立即卡顿
+        GLib.timeout_add(200, self._do_new_latex_document)
+
+    def _do_new_latex_document(self):
         document = self.workspace.create_latex_document()
         self.workspace.add_document(document)
         self.workspace.set_active_document(document)
+        return False
 
     def new_bibtex_document(self, action=None, parameter=None):
+        main_window = ServiceLocator.get_main_window()
+        main_window.show_loading_spinner()
+        GLib.timeout_add(200, self._do_new_bibtex_document)
+
+    def _do_new_bibtex_document(self):
         document = self.workspace.create_bibtex_document()
         self.workspace.add_document(document)
         self.workspace.set_active_document(document)
+        return False
 
     def open_document_dialog(self, action=None, parameter=None):
         DialogLocator.get_dialog('open_document').run()
@@ -578,7 +591,7 @@ class Actions(object):
         if not os.path.isfile(filename):
             self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
             return
-        self.workspace.open_document_by_filename(filename)
+        self.workspace.open_document_by_filename_with_spinner(filename)
         self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
 
     def close_active_document(self, action=None, parameter=None):
@@ -609,7 +622,7 @@ class Actions(object):
             self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
             return
 
-        self.workspace.open_document_by_filename(filename)
+        self.workspace.open_document_by_filename_with_spinner(filename)
         self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
 
     def go_to_line(self, action=None, parameter=None):

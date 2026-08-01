@@ -53,7 +53,7 @@ class DocumentChooser(object):
         folder = row.folder
         filename = row.filename
         self.view.dialog.close()
-        self.workspace.open_document_by_filename(os.path.join(folder, filename))
+        self.workspace.open_document_by_filename_with_spinner(os.path.join(folder, filename))
 
     def on_update_recently_opened_documents(self, workspace, recently_opened_documents):
         items = list()
