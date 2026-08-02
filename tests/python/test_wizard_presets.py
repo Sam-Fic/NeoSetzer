@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026-present Sam-Fic
+
 # coding: utf-8
 
 # 单元测试：document_wizard / include_bibtex_file / include_latex_file 的

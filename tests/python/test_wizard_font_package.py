@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026-present Sam-Fic
+
 # coding: utf-8
 
 # 单元测试：document_wizard 的字体包选择 (Problem 5) 与 preamble 完整性

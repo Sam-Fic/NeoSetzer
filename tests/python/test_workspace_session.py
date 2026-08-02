@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026-present Sam-Fic
+
 # coding: utf-8
 
 # 单元测试：.stzs 会话文件读取（双路径 + 受限反序列化）
