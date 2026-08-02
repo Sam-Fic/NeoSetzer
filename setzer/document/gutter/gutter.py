@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -719,9 +719,9 @@ class Gutter(object):
         # 数字通过 RIGHT 对齐绘制在 (line_numbers_width - char_width) 宽度的
         # layout 上，故其右边缘实际落在 line_numbers_width - char_width 处。
         # 符号右边缘需减去同样的 char_width，才能与数字右边缘真正对齐。
-        # 再额外留出半个字符间距，让符号与数字不那么贴边。
-        x = round(self.line_numbers_width - self.char_width - size - self.char_width)
-        y = round(offset + (line_height - size) / 2)
+        # 留出半个字符间距，让符号与数字不那么贴边。
+        x = round(self.line_numbers_width - self.char_width - size)
+        y = round(offset + (line_height - size) / 3)
         ctx.save()
         ctx.translate(x, y)
         node.draw(ctx)
@@ -823,5 +823,3 @@ class Gutter(object):
         if self.cursor_x <= offset: return 'bookmarks'
 
         return None
-
-
