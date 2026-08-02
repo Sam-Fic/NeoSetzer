@@ -396,9 +396,12 @@ class Gutter(object):
         if total_width != self.total_width or line_numbers_width != self.line_numbers_width:
             self.total_width = total_width
             self.line_numbers_width = line_numbers_width
-            self.layout.set_width((line_numbers_width - self.char_width) * Pango.SCALE)
-            self.layout_current.set_width((line_numbers_width - self.char_width) * Pango.SCALE)
-            self.drawing_area.set_size_request(total_width, -1)
+            self.layout.set_width(line_numbers_width * Pango.SCALE)
+            self.layout_current.set_width(line_numbers_width * Pango.SCALE)
+            # drawing_area 额外覆盖文本区 left_margin，使行高亮延伸到文本区内
+            # 在 realize 前 get_left_margin() 可能返回 0，使用 document_view 中的硬编码值
+            left_margin = self.source_view.get_left_margin() or 12
+            self.drawing_area.set_size_request(total_width + left_margin, -1)
             self.document_view.margin.set_size_request(total_width, -1)
 
     def presize_for_line_count(self, line_count):
@@ -481,7 +484,7 @@ class Gutter(object):
                     break
                 if drawing_offset + row_height >= 0:
                     if first:
-                        self.draw_line(ctx, line, is_current, drawing_offset, row_height)
+                        self.draw_line(ctx, line, is_current, drawing_offset, row_height, width)
                     elif self.line_numbers_visible:
                         # 自动换行产生的视觉续行：在续行首位置画换行符号，
                         # 而非重复行号。
@@ -500,13 +503,28 @@ class Gutter(object):
             line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
 
         self.draw_hovered_folding_region(ctx)
+        # 行号关闭时，GtkSourceView 的行高亮不覆盖 left_margin，
+        # 在此补充绘制当前行高亮，延伸到文本区左边缘。
+        if not self.line_numbers_visible and self.highlight_current_line and not self.source_buffer.get_has_selection():
+            self._draw_current_line_highlight_full(ctx, width)
 
         ctx.restore()
 
     def draw_background_and_border(self, ctx, width, height):
         fg, bg = self._get_scheme_colors()
         Gdk.cairo_set_source_rgba(ctx, bg)
-        ctx.rectangle(0, 0, self.total_width, height)
+        ctx.rectangle(0, 0, width, height)
+        ctx.fill()
+
+    def _draw_current_line_highlight_full(self, ctx, width):
+        """行号关闭时，绘制覆盖 gutter + left_margin 的当前行高亮。"""
+        current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
+        line_start_iter = self.source_buffer.get_iter_at_line(current_line)[1]
+        yrange = self.source_view.get_line_yrange(line_start_iter)
+        slot_top = yrange.y - self.adjustment.get_value()
+        cl_bg = self._get_current_line_bg()
+        Gdk.cairo_set_source_rgba(ctx, cl_bg)
+        ctx.rectangle(0, slot_top, width, yrange.height)
         ctx.fill()
 
     def _get_scheme_colors(self):
@@ -560,9 +578,9 @@ class Gutter(object):
             cl_bg = ColorManager.get_ui_color('line_highlighting_color')
         return cl_bg
 
-    def draw_line(self, ctx, line, is_current, offset, line_height):
+    def draw_line(self, ctx, line, is_current, offset, line_height, width):
         if self.line_numbers_visible:
-            self.draw_line_number(ctx, line, is_current, offset, line_height)
+            self.draw_line_number(ctx, line, is_current, offset, line_height, width)
 
         if self.code_folding_visible:
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
@@ -592,7 +610,7 @@ class Gutter(object):
         Gdk.cairo_set_source_rgba(ctx, color)
         ctx.fill()
 
-    def draw_line_number(self, ctx, line, is_current, offset, line_height):
+    def draw_line_number(self, ctx, line, is_current, offset, line_height, width):
         fg, bg = self._get_scheme_colors()
 
         if is_current:
@@ -619,9 +637,7 @@ class Gutter(object):
             line_start_iter = self.source_buffer.get_iter_at_line(line)[1]
             yrange = self.source_view.get_line_yrange(line_start_iter)
             slot_top = yrange.y - self.adjustment.get_value()
-            ctx.rectangle(0, slot_top, self.total_width, yrange.height)
-            ctx.fill()
-            ctx.rectangle(self.total_width + 1, slot_top, self.char_width, yrange.height)
+            ctx.rectangle(0, slot_top, width, yrange.height)
             ctx.fill()
             Gdk.cairo_set_source_rgba(ctx, fg)
 
