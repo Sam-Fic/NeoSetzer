@@ -91,6 +91,11 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self._last_items_signature = None
         # 计数器行的 label 引用，选中项变化时就地刷新文本，无需重建整卡。
         self._counter_label = None
+        # 补全弹窗四周的 padding，让内容有呼吸感
+        self.set_margin_top(4)
+        self.set_margin_bottom(4)
+        self.set_margin_start(4)
+        self.set_margin_end(4)
 
     def _apply_background_css(self):
         '''延迟应用背景色 CSS（widget realize 后调用）。
@@ -227,7 +232,8 @@ class AutocompleteWidgetView(Gtk.ListBox):
             content.attach(detail_label, 2, 0, 1, 1)
             content.set_margin_top(2)
             content.set_margin_bottom(2)
-            content.set_margin_start(4)
+            content.set_margin_start(6)
+            content.set_margin_end(6)
 
             row = Gtk.ListBoxRow()
             row.set_child(content)
