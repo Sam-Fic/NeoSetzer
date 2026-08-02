@@ -95,6 +95,7 @@ class BuildLogDialogPresenter(object):
         self.type_filter = None
         self.line_min = 0
         self.line_max = 999999
+        self.visible_types_filter = {'Error', 'Warning', 'Badbox'}  # 用户选择显示的类型
         self._updating_filters = False
 
         # 初始化 group 折叠/展开状态（从 settings 读取）
@@ -105,7 +106,7 @@ class BuildLogDialogPresenter(object):
         self._last_signature = None
         self.populate()
 
-    def set_filter_values(self, file_filter, type_filter, line_min, line_max):
+    def set_filter_values(self, file_filter, type_filter, line_min, line_max, visible_types=None):
         '''设置过滤器值并触发重建。'''
         if self._updating_filters:
             return
@@ -113,6 +114,8 @@ class BuildLogDialogPresenter(object):
         self.type_filter = type_filter
         self.line_min = line_min
         self.line_max = line_max if line_max > 0 else 999999
+        if visible_types is not None:
+            self.visible_types_filter = visible_types
         self._last_signature = None
         self.populate()
 
@@ -146,12 +149,12 @@ class BuildLogDialogPresenter(object):
         self.populate()
 
     def _get_visible_types(self):
-        '''弹窗始终展示全部类型；具体筛选由窗口内的筛选控件决定。
+        '''返回用户选择显示的日志类型。
 
-        `autoshow_build_log` 设置项只控制「何时自动弹出」弹窗，不用于
-        过滤弹窗内显示的内容（见 build_log.py 的 update_items/has_items）。
+        用户可以通过复选框选择是否显示 Error、Warning、Badbox 三种类型。
+        默认情况下显示所有类型。
         '''
-        return self.ALL_TYPES
+        return self.visible_types_filter
 
     def _matches_search(self, it):
         '''检查日志项是否匹配当前搜索文本。'''
@@ -166,7 +169,7 @@ class BuildLogDialogPresenter(object):
 
     def _matches_filters(self, it):
         '''检查日志项是否匹配当前文件/类型/行号筛选器。'''
-        # 文件过滤
+        # 文件过滤：如果 self.file_filter 为 None，或者等于 'All'（已翻译），则不应用过滤
         if self.file_filter and self.file_filter != _('All'):
             if it[2] is None or os.path.basename(it[2]) != self.file_filter:
                 return False
@@ -226,10 +229,11 @@ class BuildLogDialogPresenter(object):
         build_time = getattr(build_system, 'build_time', None) if build_system is not None else None
 
         # 签名覆盖影响展示的全部输入：文档、构建状态、耗时、搜索文本、过滤器、
-        # 被忽略的类型、可见 items 元组。忽略列表变化时务必触发重建，否则用户
+        # 被忽略的类型、可见类型、可见 items 元组。忽略列表变化时务必触发重建，否则用户
         # 点「忽略」后日志不会刷新。
         ignored_keys = tuple(sorted(
             self.build_log.settings.get_value('preferences', 'ignored_warning_types') or []))
+        visible_types_tuple = tuple(sorted(self.visible_types_filter))
         visible_items = tuple((it[0], it[2], it[3], it[4]) for it in self.build_log.items
                               if it[0] in visible_types
                               and self._matches_search(it)
@@ -237,7 +241,7 @@ class BuildLogDialogPresenter(object):
                               and not self._is_ignored(it))
         signature = (id(document), has_been_built, build_time, self.search_text,
                      self.file_filter, self.type_filter, self.line_min, self.line_max,
-                     ignored_keys, visible_items)
+                     visible_types_tuple, ignored_keys, visible_items)
         if signature == self._last_signature:
             self._dirty = False
             return
@@ -293,13 +297,15 @@ class BuildLogDialogPresenter(object):
         self._update_header_title(has_been_built_implicit=True)
 
     def _update_filter_dropdowns(self):
-        '''更新过滤器下拉框的选项列表。'''
+        '''更新过滤器下拉框的选项列表，并尽量保持用户的选择。'''
+        # 保存当前的过滤器选择（在更新下拉框之前）
+        saved_file_filter = self.file_filter
+        saved_type_filter = self.type_filter
+        saved_visible_types = self.visible_types_filter.copy()
+        
         self._updating_filters = True
         try:
             # 收集所有唯一文件名
-            # GLib.utf8_collate_key_for_filename(str, len) 在部分 MSYS2/Windows
-            # 的 PyGObject 构建中会段错误，无法 try/except 捕获；Windows 上退化为
-            # 纯 Python 大小写折叠排序。其它平台保留 GLib 区域感知文件名排序。
             if sys.platform == 'win32':
                 filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
                                     key=lambda filename: filename.casefold())
@@ -312,6 +318,64 @@ class BuildLogDialogPresenter(object):
             # 收集错误类型选项
             type_options = [_('All'), _('Undefined reference'), _('Missing package'), _('Syntax error')]
             self.view.update_type_filter(type_options)
+            
+            # 更新类型复选框的状态（确保与 visible_types_filter 同步）
+            self.view.set_selected_types(self.visible_types_filter)
+        finally:
+            self._updating_filters = False
+        
+        # 尝试恢复用户的过滤器选择（如果可能的话）
+        self._restore_filter_selection(saved_file_filter, saved_type_filter, saved_visible_types)
+    
+    def _find_combo_index(self, combo, target_text):
+        '''在 Gtk.ComboBoxText 中查找指定文本的索引位置。
+        
+        GTK4 的 Gtk.ComboBoxText 没有 find_text 方法，需要手动遍历。
+        '''
+        model = combo.get_model()
+        if model is None:
+            return -1
+        for i in range(model.get_n_items()):
+            if model[i][0] == target_text:
+                return i
+        return -1
+
+    def _restore_filter_selection(self, saved_file_filter, saved_type_filter, saved_visible_types=None):
+        '''尝试恢复用户之前选择的过滤器。'''
+        self._updating_filters = True
+        try:
+            # 恢复文件过滤器
+            if saved_file_filter and saved_file_filter != _('All'):
+                # 尝试找到之前选择的文件
+                found_index = self._find_combo_index(self.view.file_filter_combo, saved_file_filter)
+                if found_index >= 0:
+                    self.view.file_filter_combo.set_active(found_index)
+                else:
+                    # 如果找不到，重置为 All
+                    self.view.file_filter_combo.set_active(0)
+                    self.file_filter = _('All')
+            else:
+                self.view.file_filter_combo.set_active(0)
+                self.file_filter = _('All')
+            
+            # 恢复类型过滤器（下拉框）
+            if saved_type_filter and saved_type_filter != _('All'):
+                # 尝试找到之前选择的类型
+                found_index = self._find_combo_index(self.view.type_filter_combo, saved_type_filter)
+                if found_index >= 0:
+                    self.view.type_filter_combo.set_active(found_index)
+                else:
+                    # 如果找不到，重置为 All
+                    self.view.type_filter_combo.set_active(0)
+                    self.type_filter = _('All')
+            else:
+                self.view.type_filter_combo.set_active(0)
+                self.type_filter = _('All')
+            
+            # 恢复可见类型过滤器（复选框）
+            if saved_visible_types is not None:
+                self.visible_types_filter = saved_visible_types
+                self.view.set_selected_types(self.visible_types_filter)
         finally:
             self._updating_filters = False
 

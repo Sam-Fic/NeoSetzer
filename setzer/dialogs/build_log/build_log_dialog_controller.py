@@ -53,6 +53,11 @@ class BuildLogDialogController(object):
         self.view._type_filter_handler_id = self.view.type_filter_combo.connect('changed', self.on_filter_changed)
         self.view.line_min_spin.connect('value-changed', self.on_filter_changed)
         self.view.line_max_spin.connect('value-changed', self.on_filter_changed)
+        
+        # 类型过滤复选框信号
+        self.view.error_checkbox.connect('toggled', self.on_filter_changed)
+        self.view.warning_checkbox.connect('toggled', self.on_filter_changed)
+        self.view.badbox_checkbox.connect('toggled', self.on_filter_changed)
 
         # 每个 list 的 row-activated：单击跳转报错行（与原 BuildLogController 一致）。
         # 弹窗内有 3 个 list（Errors / Warnings / Badboxes），全部连同一个回调。
@@ -240,7 +245,8 @@ class BuildLogDialogController(object):
                 self._get_file_filter_value(),
                 self._get_type_filter_value(),
                 int(self.view.line_min_spin.get_value()),
-                int(self.view.line_max_spin.get_value()))
+                int(self.view.line_max_spin.get_value()),
+                self.view.get_selected_types())
 
     def _get_file_filter_value(self):
         return self.view.file_filter_combo.get_active_text()

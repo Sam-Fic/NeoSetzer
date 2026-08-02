@@ -150,6 +150,28 @@ class BuildLogDialogView(DialogView):
         line_box.append(self.line_max_spin)
         filter_box.append(line_box)
 
+        # 类型过滤（复选框：控制显示哪些类型的日志）
+        type_filter_label = Gtk.Label(label=_('Show types:'))
+        type_filter_label.set_halign(Gtk.Align.START)
+        filter_box.append(type_filter_label)
+        
+        type_checkbox_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        type_checkbox_box.set_margin_start(8)
+        
+        self.error_checkbox = Gtk.CheckButton(label=_('Errors'))
+        self.error_checkbox.set_active(True)
+        type_checkbox_box.append(self.error_checkbox)
+        
+        self.warning_checkbox = Gtk.CheckButton(label=_('Warnings'))
+        self.warning_checkbox.set_active(True)
+        type_checkbox_box.append(self.warning_checkbox)
+        
+        self.badbox_checkbox = Gtk.CheckButton(label=_('Badboxes'))
+        self.badbox_checkbox.set_active(True)
+        type_checkbox_box.append(self.badbox_checkbox)
+        
+        filter_box.append(type_checkbox_box)
+
         self.filter_popover.set_child(filter_box)
 
         # 搜索按钮（toggle 控制搜索栏显隐）
@@ -343,6 +365,23 @@ class BuildLogDialogView(DialogView):
         self.type_filter_combo.set_active(0)
         if hasattr(self, '_type_filter_handler_id'):
             self.type_filter_combo.handler_unblock(self._type_filter_handler_id)
+
+    def get_selected_types(self):
+        '''获取当前选中的日志类型集合。'''
+        selected = set()
+        if self.error_checkbox.get_active():
+            selected.add('Error')
+        if self.warning_checkbox.get_active():
+            selected.add('Warning')
+        if self.badbox_checkbox.get_active():
+            selected.add('Badbox')
+        return selected
+
+    def set_selected_types(self, selected_types):
+        '''设置选中的日志类型（用于恢复过滤器状态）。'''
+        self.error_checkbox.set_active('Error' in selected_types)
+        self.warning_checkbox.set_active('Warning' in selected_types)
+        self.badbox_checkbox.set_active('Badbox' in selected_types)
 
 
 class BuildLogList(Gtk.ListBox):
