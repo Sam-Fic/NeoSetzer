@@ -43,7 +43,7 @@ msgstr ""
 "<li>改进了键盘快捷键</li>\n"
 "<li>新增打印功能</li>\n"
 "<li>增强了预览键盘导航</li>\n"
-"<li>改进了文件操作的错误处理</li>\n"
+"<li>Better error handling for file operations</li>\n"
 "</ul>"
 
 #: setzer/dialogs/about/about.py:70
@@ -263,55 +263,23 @@ msgstr[1] "{amount} 个警告或 排版溢出（Badbox）"
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:66
 msgid "Copy all log entries"
 msgstr "复制所有日志条目"
+
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:73
 msgid "Save log to file"
 msgstr "保存日志到文件"
+
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:84
 msgid "Filter log entries"
 msgstr "筛选日志条目"
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:102
-msgid "File:"
-msgstr "文件："
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:111
-msgid "Type:"
-msgstr "类型："
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:120
-msgid "Lines:"
-msgstr "行数："
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:123
-msgid "–"
-msgstr "–"
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:133
-msgid "Search build log"
-msgstr "搜索构建日志"
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:169
-msgid "Errors"
-msgstr "错误"
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:170
-msgid "Warnings"
-msgstr "警告"
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:171
-msgid "Badboxes"
-msgstr "排版溢出（Badbox）"
-
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:189
-msgid "No build log items to show."
-msgstr "没有可显示的构建日志条目"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:290
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
+
 #: setzer/dialogs/build_save/build_save.py:35
 #, python-brace-format
 msgid "Document \"{document}\" has no filename."
-msgstr "文档{{document}}没有文件名"
+msgstr "文档{document}没有文件名"
 
 #: setzer/dialogs/build_save/build_save.py:36
 msgid ""
@@ -329,7 +297,7 @@ msgstr "立即保存文档"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:52
 #, python-brace-format
 msgid "Document \"{document}\" has unsaved changes."
-msgstr "文档{{document}}有未保存的修改"
+msgstr "文档{document}有未保存的修改"
 
 #: setzer/dialogs/close_confirmation/close_confirmation.py:53
 msgid "If you close without saving, these changes will be lost."
@@ -366,7 +334,7 @@ msgstr "全部保存"
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:42
 #, python-brace-format
 msgid "Document \"{document}\" has changed on disk."
-msgstr "文档{{document}}在磁盘上有变化"
+msgstr "文档{document}在磁盘上有变化"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
 msgid "Should Setzer reload it now? Reloading will discard your unsaved changes."
@@ -383,7 +351,7 @@ msgstr "从磁盘重新加载"
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:40
 #, python-brace-format
 msgid "Document \"{document}\" was deleted from disk or moved."
-msgstr "文档{{document}}已从磁盘删除或移走"
+msgstr "文档{document}已从磁盘删除或移走"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
@@ -401,6 +369,7 @@ msgstr "保持打开"
 #: setzer/dialogs/document_wizard/document_wizard.py:269
 msgid "Save as template"
 msgstr "另存为模板"
+
 #: setzer/dialogs/document_wizard/document_wizard.py:270
 msgid "Enter a name for the new template."
 msgstr "为新模板输入一个名称。"
@@ -418,6 +387,7 @@ msgstr "无法继续"
 #: setzer/dialogs/document_wizard/document_wizard.py:322
 msgid "OK"
 msgstr "确定"
+
 #: setzer/dialogs/document_wizard/document_wizard.py:492
 msgid "Your name"
 msgstr "您的姓名"
@@ -635,9 +605,11 @@ msgstr "<b>Scrbook：</b> book 类的 KOMA-Script 替代。"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:123
 msgid "Templates"
 msgstr "模板"
+
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:125
 msgid "Load template"
 msgstr "加载模板"
+
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:143
 msgid "— None —"
 msgstr "— 无 —"
@@ -777,12 +749,15 @@ msgstr "宏包"
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:249
 msgid "Search packages"
 msgstr "搜索宏包"
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:252
 msgid "Filter"
 msgstr "筛选"
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:263
 msgid "Other packages"
 msgstr "其他宏包"
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:265
 msgid "Comma-separated package names to include additionally."
 msgstr "额外包含的包名，以逗号分隔。"
@@ -959,7 +934,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer 配置使用的解释器 {{interpreter}} 似乎未安装在系统中。\n"
+"Setzer 配置使用的解释器 {interpreter} 似乎未安装在系统中。\n"
 "\n"
 "你可以通过以下方式安装：\n"
 "• Ubuntu/Debian：sudo apt install texlive-latex-base\n"
@@ -1700,13 +1675,16 @@ msgstr "启动时"
 #: setzer/dialogs/preferences/pages/page_build_system.py:366
 msgid ""
 "Whether to restore the previous session or start with an empty workspace."
-msgstr "是否恢复上次会话或从空工作区开始。"
+msgstr "是否恢复上一次会话或启动空白工作区。"
+
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
 msgid "Last session"
-msgstr "上次会话"
+msgstr "上一次会话"
+
 #: setzer/dialogs/preferences/pages/page_build_system.py:369
 msgid "Empty workspace"
-msgstr "空工作区"
+msgstr "空白工作区"
+
 #: setzer/dialogs/preferences/pages/page_editor.py:257
 msgid "Editor"
 msgstr "编辑器"
@@ -2300,7 +2278,7 @@ msgstr "第 {page} 页，共 {total} 页"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:46
 #, python-brace-format
 msgid "Replace all matches of \"{original}\" with \"{replacement}\"?"
-msgstr "将 {{original}} 的所有匹配替换为 {{replacement}}？"
+msgstr "将 {original} 的所有匹配替换为 {replacement}？"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 msgid "Counting matches… The number of occurrences is still being calculated."
@@ -2311,8 +2289,8 @@ msgstr "正在统计匹配数……匹配数量仍在计算中"
 msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
 "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
-msgstr[0] "正在将 {amount} 处 {{original}} 替换为 {{replacement}}"
-msgstr[1] "正在将 {amount} 处 {{original}} 替换为 {{replacement}}"
+msgstr[0] "正在将 {amount} 处 {original} 替换为 {replacement}"
+msgstr[1] "正在将 {amount} 处 {original} 替换为 {replacement}"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:51
 msgid "Do you really want to do this?"
@@ -2422,10 +2400,12 @@ msgstr "无法打开链接"
 
 #: setzer/document/preview/preview_controller.py:231
 msgid "Link blocked: this link type is unsafe"
-msgstr "链接被阻止：此链接类型不安全"
+msgstr "链接已阻止：此链接类型不安全"
+
 #: setzer/document/preview/preview_controller.py:239
 msgid "Open local file from this PDF?"
-msgstr "从该 PDF 打开本地文件？"
+msgstr "从此 PDF 打开本地文件？"
+
 #: setzer/document/preview/preview_controller.py:240
 #, python-brace-format
 msgid ""
@@ -2477,12 +2457,6 @@ msgid "{total} match"
 msgid_plural "{total} matches"
 msgstr[0] "{total} 个匹配"
 msgstr[1] "{total} 个匹配"
-#: setzer/document/search/search.py:539
-#, python-brace-format
-msgid "Replace all {amount} match"
-msgid_plural "Replace all {amount} matches"
-msgstr[0] "替换全部 {amount} 个匹配"
-msgstr[1] "替换全部 {amount} 个匹配"
 
 #: setzer/document/search/search_viewgtk.py:63
 msgid "Search and replace"
@@ -3186,8 +3160,8 @@ msgstr[0] "{n} 个结果"
 msgstr[1] "{n} 个结果"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Help home"
-msgstr "帮助主页"
+msgid "Home"
+msgstr "主页"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:70
 msgid "Scroll to top"
@@ -3253,7 +3227,8 @@ msgstr "已达到最大缩放级别"
 msgid "Minimum zoom level reached"
 msgstr "已达到最小缩放级别"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:188
-msgid "Tip: hold Ctrl and click the preview to jump to the matching source"
+msgid ""
+"Tip: hold Ctrl and click the preview to jump to the matching source"
 msgstr "提示：按住 Ctrl 并点击预览可跳转到匹配的源代码"
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:222
 msgid "of "
@@ -3555,53 +3530,49 @@ msgstr "所有文档将从最近列表中移除。这不会删除文件本身"
 msgid "Clear"
 msgstr "清空"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:60
-msgid "Write beautiful LaTeX documents with ease!"
-msgstr "轻松编写精美的 LaTeX 文档！"
-
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:61
+#: setzer/workspace/welcome_screen/welcome_screen.py:291
 msgid ""
 "Start a new document below, pick a template, or jump back into one of your "
 "recent files."
 msgstr "在下方新建文档、选择模板，或回到你最近的某个文件"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:81
+#: setzer/workspace/welcome_screen/welcome_screen.py:305
 msgid "Open a Document…"
 msgstr "打开文档…"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:87
+#: setzer/workspace/welcome_screen/welcome_screen.py:311
 msgid "Create a new document"
 msgstr "创建新文档"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:103
+#: setzer/workspace/welcome_screen/welcome_screen.py:327
 msgid "New BibTeX File"
 msgstr "新建 BibTeX 文件"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:108
+#: setzer/workspace/welcome_screen/welcome_screen.py:332
 msgid "Use a Template…"
 msgstr "使用模板…"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:120
+#: setzer/workspace/welcome_screen/welcome_screen.py:344
 msgid "Recent documents"
 msgstr "最近文档"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:126
+#: setzer/workspace/welcome_screen/welcome_screen.py:350
 msgid "Clear All"
 msgstr "全部清空"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:129
+#: setzer/workspace/welcome_screen/welcome_screen.py:353
 msgid "Remove all documents from the recent list"
 msgstr "从最近列表中移除所有文档"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:142
+#: setzer/workspace/welcome_screen/welcome_screen.py:366
 msgid "No recent documents"
 msgstr "无最近文档"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:143
+#: setzer/workspace/welcome_screen/welcome_screen.py:367
 msgid "Documents you open will appear here for quick access."
 msgstr "你打开的文档会显示在此处以便快速访问"
 
-#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:152
+#: setzer/workspace/welcome_screen/welcome_screen.py:376
 msgid "Recently closed"
 msgstr "最近关闭"
 
@@ -3645,10 +3616,6 @@ msgstr "使用 Latexmk"
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr "无法保存文档：{error}"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:64
-msgid "Home"
-msgstr "主页"
 
 #~ msgid "Copy All"
 #~ msgstr "复制全部"
@@ -3859,7 +3826,7 @@ msgstr "主页"
 #~ "also supported by the entry type @book. However, it is advisable to make "
 #~ "use of the dedicated entry type @mvbook."
 #~ msgstr ""
-#~ "多卷本 @book。为向后兼容，多卷本也受 @book 条目类型支持。不过，建议使用专"
+#~ "多卷本 @book。为向后兼容，多卷本书籍也受 @book 条目类型支持。不过，建议使用专"
 #~ "用的 @mvbook 条目类型。"
 
 #~ msgid "Part of a Book With Its Own Title"
@@ -3983,7 +3950,7 @@ msgstr "主页"
 #~ "format, if applicable. The field type may be useful as well. <tt>author</"
 #~ "tt>, <tt>editor</tt>, and <tt>year</tt> are omissible under certain terms."
 #~ msgstr ""
-#~ "用于归入其他任何类别之外的条目的兜底类型。如适用，可使用 "
+#~ "用于归入其他任何类别之外的条目。如适用，可使用 "
 #~ "<tt>howpublished</tt> 字段以自由格式提供出版信息。<tt>type</tt> 字段也可能"
 #~ "有用。在某些条件下 <tt>author</tt>、<tt>editor</tt> 和 <tt>year</tt> 可省"
 #~ "略。"
