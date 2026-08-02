@@ -1,21 +1,21 @@
 {
-    "id": "org.cvfosammmm.Setzer",
-    "runtime": "org.gnome.Platform",
-    "runtime-version": "48",
-    "sdk": "org.gnome.Sdk",
-    "sdk-extensions": [
+    "id" : "org.cvfosammmm.Setzer",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "48",
+    "sdk" : "org.gnome.Sdk",
+    "sdk-extensions" : [
         "org.freedesktop.Sdk.Extension.texlive"
     ],
-    "add-extensions": {
-        "org.freedesktop.Sdk.Extension.texlive": {
-            "directory": "texlive",
-            "subdirectories": true,
-            "autodelete": true,
-            "version": "24.08"
+    "add-extensions" : {
+        "org.freedesktop.Sdk.Extension.texlive" : {
+            "directory" : "texlive",
+            "subdirectories" : true,
+            "autodelete" : true,
+            "version" : "24.08"
         }
     },
-    "command": "setzer",
-    "finish-args": [
+    "command" : "setzer",
+    "finish-args" : [
         "--share=ipc",
         "--socket=fallback-x11",
         "--socket=wayland",
@@ -26,118 +26,118 @@
         "--env=TEXMFCACHE=$XDG_CACHE_HOME",
         "--env=TEXINPUTS=.:~/texmf/:"
     ],
-    "modules": [
+    "modules" : [
         {
-            "name": "texlive",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "texlive",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "install -d /app/texlive"
             ]
         },
         {
-            "name": "boost",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "boost",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "mkdir -p ${FLATPAK_DEST}/include",
                 "mv boost ${FLATPAK_DEST}/include"
             ],
-            "cleanup": [
+            "cleanup" : [
                 "/include"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "archive",
-                    "url": "https://boostorg.jfrog.io/artifactory/main/release/1.83.0/source/boost_1_83_0.tar.bz2",
-                    "sha256": "6478edfe2c1a71e570b10b2336abdf7915b31f72d28e772e377e4e0851ce40fa"
+                    "type" : "archive",
+                    "url" : "https://boostorg.jfrog.io/artifactory/main/release/1.83.0/source/boost_1_83_0.tar.bz2",
+                    "sha256" : "6478edfe2c1a71e570b10b2336abdf7915b31f72d28e772e377e4e0851ce40fa"
                 }
             ]
         },
         {
-            "name": "popplerdata",
-            "buildsystem": "cmake-ninja",
-            "builddir": true,
-            "sources": [
+            "name" : "popplerdata",
+            "buildsystem" : "cmake-ninja",
+            "builddir" : true,
+            "sources" : [
                 {
-                    "type": "archive",
-                    "url": "https://poppler.freedesktop.org/poppler-data-0.4.12.tar.gz",
-                    "sha256": "c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74"
+                    "type" : "archive",
+                    "url" : "https://poppler.freedesktop.org/poppler-data-0.4.12.tar.gz",
+                    "sha256" : "c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74"
                 }
             ]
         },
         {
-            "name": "poppler",
-            "buildsystem": "cmake-ninja",
-            "config-opts": [
+            "name" : "poppler",
+            "buildsystem" : "cmake-ninja",
+            "config-opts" : [
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DENABLE_QT5:BOOL=true"
             ],
-            "cleanup": [
+            "cleanup" : [
                 "/include"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "archive",
-                    "url": "https://poppler.freedesktop.org/poppler-24.08.0.tar.xz",
-                    "sha256": "d867ef9c1080687d6a4236d9d1f4a7e5a3a0e85899c25e28c62e3e95a9f16f7e"
+                    "type" : "archive",
+                    "url" : "https://poppler.freedesktop.org/poppler-24.08.0.tar.xz",
+                    "sha256" : "d867ef9c1080687d6a4236d9d1f4a7e5a3a0e85899c25e28c62e3e95a9f16f7e"
                 }
             ]
         },
         {
-            "name": "python3-pexpect",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "python3-pexpect",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pexpect\" --no-build-isolation"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/39/7b/88dbb785881c28a102619d46423cb853b46dbccc70d3ac362d99773a78ce/pexpect-4.9.0-py2.py3-none-any.whl",
-                    "sha256": "c63482e6656f21d4f358b3801fb76a2754dbf28f6d5188c68b28c16b62831831"
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/39/7b/88dbb785881c28a102619d46423cb853b46dbccc70d3ac362d99773a78ce/pexpect-4.9.0-py2.py3-none-any.whl",
+                    "sha256" : "c63482e6656f21d4f358b3801fb76a2754dbf28f6d5188c68b28c16b62831831"
                 },
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl",
-                    "sha256": "4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl",
+                    "sha256" : "4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"
                 }
             ]
         },
         {
-            "name": "python3-bibtexparser",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "python3-bibtexparser",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"bibtexparser\" --no-build-isolation"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/82/60/e4315ce9801daa4c95d4ae66cc684a1780cc041ba3c4eab67265ab08a038/bibtexparser-1.4.0.tar.gz",
-                    "sha256": "ca7ce2bc34e7c48a678dd49416429bb567441f26dbb13b3609082d8cd109ace6"
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/82/60/e4315ce9801daa4c95d4ae66cc684a1780cc041ba3c4eab67265ab08a038/bibtexparser-1.4.0.tar.gz",
+                    "sha256" : "ca7ce2bc34e7c48a678dd49416429bb567441f26dbb13b3609082d8cd109ace6"
                 },
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/6c/10/a7d0fa5baea8fe7b50f448ab742f26f52b80bfca85ac2be9d35cdd9a3246/pyparsing-3.0.9-py3-none-any.whl",
-                    "sha256": "5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/6c/10/a7d0fa5baea8fe7b50f448ab742f26f52b80bfca85ac2be9d35cdd9a3246/pyparsing-3.0.9-py3-none-any.whl",
+                    "sha256" : "5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"
                 }
             ]
         },
         {
-            "name": "numpy",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "numpy",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "pip3 install --no-build-isolation --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} numpy"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/64/11/07b9c5ee4c2106bf32f70c529708b3e40beb96d5e40f45c4e97f530f1289/numpy-1.26.4.tar.gz",
-                    "sha256": "2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010",
-                    "x-checker-data": {
-                        "type": "pypi",
-                        "name": "numpy"
-                   }
-               }
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/64/11/07b9c5ee4c2106bf32f70c529708b3e40beb96d5e40f45c4e97f530f1289/numpy-1.26.4.tar.gz",
+                    "sha256" : "2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010",
+                    "x-checker-data" : {
+                        "type" : "pypi",
+                        "name" : "numpy"
+                    }
+                }
             ],
-            "cleanup": [
+            "cleanup" : [
                 "/bin",
                 "/lib/python3.*/site-packages/numpy/core/include",
                 "/lib/python3.*/site-packages/numpy/core/lib/libnpymath.a",
@@ -146,47 +146,51 @@
             ]
         },
         {
-            "name": "python3-Pillow",
-            "buildsystem": "simple",
-            "build-commands": [
+            "name" : "python3-Pillow",
+            "buildsystem" : "simple",
+            "build-commands" : [
                 "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"Pillow\" --no-build-isolation"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/34/09/c357538e77d0e76eeb05d83e7c25e5e3b8e8c5b5e2e7d3c0e7c9f3e3f3f3/Pillow-10.4.0.tar.gz",
-                    "sha256": "12f76a0e0b3af06dbb81e5e22cb4e5e37b5e8e0f4e0a2f8a65f3c3e3f3f3f3f3"
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/34/09/c357538e77d0e76eeb05d83e7c25e5e3b8e8c5b5e2e7d3c0e7c9f3e3f3f3/Pillow-10.4.0.tar.gz",
+                    "sha256" : "12f76a0e0b3af06dbb81e5e22cb4e5e37b5e8e0f4e0a2f8a65f3c3e3f3f3f3f3"
                 }
             ]
         },
         {
-            "name": "libportal",
-            "buildsystem": "meson",
-            "config-opts": [
+            "name" : "libportal",
+            "buildsystem" : "meson",
+            "config-opts" : [
                 "-Ddocs=false",
                 "-Dvapi=false",
                 "-Dbackends=gtk4"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "git",
-                    "url": "https://github.com/flatpak/libportal.git",
-                    "tag": "0.7.1"
+                    "type" : "git",
+                    "url" : "https://github.com/flatpak/libportal.git",
+                    "tag" : "0.7.1"
                 }
             ]
         },
         {
-            "name": "setzer",
-            "buildsystem": "meson",
-            "config-opts": [
-                "--buildtype=release"
+            "name" : "setzer",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "--buildtype=release",
+                "--libdir=lib"
             ],
-            "sources": [
+            "sources" : [
                 {
-                    "type": "dir",
-                    "path": "."
+                    "type" : "dir",
+                    "path" : "."
                 }
             ]
         }
-    ]
+    ],
+    "build-options" : {
+        "env" : {        }
+    }
 }

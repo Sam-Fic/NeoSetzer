@@ -313,7 +313,11 @@ class PageEditor(object):
         self._end_capture()
 
     def _apply_preview_space_drawer(self):
-        '''将 show_line_endings / show_whitespace 设置同步到预览 SourceView。'''
+        '''将 show_line_endings / show_whitespace 设置同步到预览 SourceView。
+
+        与 document_presenter._apply_space_drawer_settings 保持一致：
+        必须调用 set_enable_matrix(True) 才会实际绘制。
+        '''
         sd = self.view.preview_source_view.get_space_drawer()
         show_le = self.settings.get_value('preferences', 'show_line_endings')
         show_ws = self.settings.get_value('preferences', 'show_whitespace')
@@ -322,6 +326,7 @@ class PageEditor(object):
             types |= GtkSource.SpaceTypeFlags.NEWLINE
         if show_ws:
             types |= GtkSource.SpaceTypeFlags.SPACE | GtkSource.SpaceTypeFlags.TAB
+        sd.set_enable_matrix(types != 0)
         sd.set_types_for_locations(GtkSource.SpaceLocationFlags.ALL, types)
 
     # ---- 字体（实时预览于 Appearance 组的预览 SourceView）----

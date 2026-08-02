@@ -79,6 +79,10 @@ class DocumentPresenter(object):
         - SpaceTypeFlags.TAB (2): Tab 显示为 →
         - SpaceTypeFlags.NEWLINE (4): 行尾显示为 ¶
         SpaceLocationFlags.ALL (7) = LEADING | INSIDE_TEXT | TRAILING。
+
+        注意：必须调用 set_enable_matrix(True) 才会实际绘制。仅设置
+        types_for_locations 而 enable_matrix 保持默认 False 时不生效
+        （参考 gnome-builder 的 on_draw_spaces_changed 实现）。
         '''
         sd = self.view.source_view.get_space_drawer()
         show_line_endings = self.settings.get_value('preferences', 'show_line_endings')
@@ -88,6 +92,7 @@ class DocumentPresenter(object):
             types |= GtkSource.SpaceTypeFlags.NEWLINE
         if show_whitespace:
             types |= GtkSource.SpaceTypeFlags.SPACE | GtkSource.SpaceTypeFlags.TAB
+        sd.set_enable_matrix(types != 0)
         sd.set_types_for_locations(GtkSource.SpaceLocationFlags.ALL, types)
 
     def on_settings_changed(self, settings, parameter):
