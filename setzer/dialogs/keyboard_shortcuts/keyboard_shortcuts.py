@@ -166,6 +166,6 @@ class KeyboardShortcutsDialog(object):
             sec = Adw.ShortcutsSection(title=section['title'])
             for item in section['items']:
                 shortcut = Adw.ShortcutsItem(title=item['title'], accelerator=item['shortcut'])
-                sec.add_shortcut(shortcut)
-            dialog.add_section(sec)
+                sec.add(shortcut)
+            dialog.add(sec)
         self.view = dialog

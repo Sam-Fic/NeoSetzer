@@ -45,7 +45,7 @@ class DocumentChooser(object):
 
         self.view.dialog.connect('closed', self.on_dialog_closed)
 
-    def show(self):
+    def open(self):
         self.view.dialog.present(self.main_window)
 
     def on_row_activated(self, row):

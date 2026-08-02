@@ -89,7 +89,7 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('build_log', shortcuts.get('build_log', 'F4'), self.shortcut_build_log)
         self._register_configurable('preview', shortcuts.get('preview', '<Control><Shift>p'), self.shortcut_preview)
         self._register_configurable('hamburger_menu', shortcuts.get('hamburger_menu', 'F10'), self.shortcut_show_hamburger)
-        self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.toggle_fullscreen)
+        self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.actions['toggle-fullscreen'].activate)
         self._register_configurable('show_preferences_dialog', shortcuts.get('show_preferences_dialog', '<Control>comma'), self.actions.show_preferences_dialog)
         self._register_configurable('show_about_dialog', shortcuts.get('show_about_dialog', ''), self.actions.show_about_dialog)
         self._register_configurable('close_all_documents', shortcuts.get('close_all_documents', '<Control><Shift>w'), self.actions.close_all)
@@ -140,11 +140,11 @@ class ShortcutControllerApp(ShortcutController):
 
     def shortcut_show_document_chooser(self):
         if self.main_window.headerbar.open_document_button.get_visible():
-            PopoverManager.get_popover('open_document').show()
+            PopoverManager.get_popover('open_document').open()
 
     def shortcut_show_open_docs(self):
         if self.main_window.headerbar.center_button.get_sensitive():
-            PopoverManager.get_popover('document_switcher').show()
+            PopoverManager.get_popover('document_switcher').open()
 
     def shortcut_switch_document(self):
         self.workspace.switch_to_earliest_open_document()

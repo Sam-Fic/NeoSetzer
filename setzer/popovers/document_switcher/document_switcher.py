@@ -221,7 +221,7 @@ class DocumentSwitcher(Observable):
         # 弹出后 reset，结束当前手势序列，避免手势持续 claim 后续事件。
         gesture.reset()
 
-    def show(self):
+    def open(self):
         self._is_visible = True
         # 打开时清空上次残留的搜索词，避免带着旧过滤条件弹出。
         self.view.query = ''

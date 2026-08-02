@@ -211,10 +211,14 @@ class MainApplicationController(Adw.Application):
         self.main_window = view.MainWindow(self)
 
         icon_theme = Gtk.IconTheme.get_for_display(self.main_window.get_display())
-        icon_theme.add_search_path(os.path.join(resources_path, 'icons'))
-        icon_theme.add_search_path(app_icons_path)
+        search_paths = [
+            os.path.join(resources_path, 'icons'),
+            app_icons_path,
+        ]
         for folder in ['arrows', 'greek_letters', 'misc_math', 'misc_text', 'operators', 'relations']:
-            icon_theme.add_search_path(os.path.join(resources_path, 'symbols', folder))
+            search_paths.append(os.path.join(resources_path, 'symbols', folder))
+        for path in dict.fromkeys(search_paths):
+            icon_theme.add_search_path(path)
 
         ServiceLocator.set_main_window(self.main_window)
         ColorManager.init(self.main_window)
@@ -235,12 +239,6 @@ class MainApplicationController(Adw.Application):
             self.main_window.unmaximize()
         self.main_window.set_default_size(self.settings.get_value('window_state', 'width'),
                                           self.settings.get_value('window_state', 'height'))
-        # 恢复上次关闭时的窗口位置（X11 下有效；Wayland 由合成器决定）。
-        # x/y 默认 -1 表示从未持久化，此时用窗口管理器默认位置。
-        pos_x = self.settings.get_value('window_state', 'x')
-        pos_y = self.settings.get_value('window_state', 'y')
-        if pos_x >= 0 and pos_y >= 0:
-            self.main_window.move(pos_x, pos_y)
         self.main_window.present()
 
         # 首次启动引导：应用真正首次启动时弹一次（由 settings 标志保证只弹一次）。
@@ -271,16 +269,6 @@ class MainApplicationController(Adw.Application):
         self.settings.set_value('window_state', 'show_help', self.workspace.show_help)
         self.settings.set_value('window_state', 'show_preview', self.workspace.show_preview)
         self.settings.set_value('window_state', 'show_build_log', self.workspace.show_build_log)
-        # 窗口位置：preview/sidebar 的宽度 fraction 已由 presenter 的
-        # notify::sidebar-width-fraction 回调持续写入 settings，此处无需再存。
-        # 保存左上角坐标。X11 下 GdkSurface 有 get_position()；Wayland 下
-        # GdkWaylandToplevel 没有该方法（客户端无法获取/设置位置），直接
-        # 调用会抛 AttributeError。用 getattr 探测，缺失则跳过位置保存
-        # （属环境限制，下次启动用窗口管理器默认位置）。
-        if surface is not None and hasattr(surface, 'get_position'):
-            x, y = surface.get_position()
-            self.settings.set_value('window_state', 'x', x)
-            self.settings.set_value('window_state', 'y', y)
         self.settings.set_value('window_state', 'show_symbols', self.workspace.show_symbols)
         self.settings.set_value('window_state', 'show_document_structure', self.workspace.show_document_structure)
         self.settings.set_value('window_state', 'sidebar_width_fraction', main_window.sidebar_split.get_sidebar_width_fraction())

@@ -24,8 +24,7 @@
         "--filesystem=host",
         "--env=PATH=/app/bin:/usr/bin:/app/texlive/bin:/app/texlive/bin/x86_64-linux:/app/texlive/bin/aarch64-linux",
         "--env=TEXMFCACHE=$XDG_CACHE_HOME",
-        "--env=TEXINPUTS=.:~/texmf/:",
-        "--metadata=X-DConf=migrate-path=/org/cvfosammmm/Setzer/"
+        "--env=TEXINPUTS=.:~/texmf/:"
     ],
     "modules": [
         {
