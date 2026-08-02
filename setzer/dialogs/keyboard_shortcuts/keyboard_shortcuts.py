@@ -21,8 +21,6 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
-import html
-
 from setzer.app.service_locator import ServiceLocator
 
 
@@ -163,34 +161,11 @@ class KeyboardShortcutsDialog(object):
         self.view.present(self.main_window)
 
     def setup(self):
-        builder_string = '''<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-
-  <object class="AdwShortcutsDialog" id="shortcuts-dialog">
-'''
-
+        dialog = Adw.ShortcutsDialog()
         for section in self.data:
-            builder_string += '''    <child>
-      <object class="AdwShortcutsSection">
-        <property name="title" translatable="no">''' + html.escape(section['title']) + '''</property>
-'''
-
+            sec = Adw.ShortcutsSection(title=section['title'])
             for item in section['items']:
-                builder_string += '''        <child>
-          <object class="AdwShortcutsItem">
-            <property name="title" translatable="no">''' + html.escape(item['title']) + '''</property>
-            <property name="accelerator">''' + html.escape(item['shortcut']) + '''</property>
-          </object>
-        </child>
-'''
-
-            builder_string += '''      </object>
-    </child>
-'''
-
-        builder_string += '''  </object>
-
-</interface>'''
-
-        builder = Gtk.Builder.new_from_string(builder_string, -1)
-        self.view = builder.get_object('shortcuts-dialog')
+                shortcut = Adw.ShortcutsItem(title=item['title'], accelerator=item['shortcut'])
+                sec.add_shortcut(shortcut)
+            dialog.add_section(sec)
+        self.view = dialog
