@@ -96,34 +96,52 @@ class BuildLogDialogController(object):
     def on_row_activated(self, listbox, row):
         '''单击行：打开对应源文件并定位到报错行。
 
-        逻辑与原 BuildLogController.on_row_activated 完全一致，迁移至此。
-        增加：跳转后高亮目标行，\\input 文件自动打开，跳转失败时 toast 提示。
+        优化：根据目标文档的状态采用不同策略：
+        1. 若目标文档已是当前活动文档，直接定位到行（无延迟、无 spinnner、无 toast）
+        2. 若目标文档已打开但非活动文档，调用 set_active_document（无 toast）
+        3. 仅当目标文档未打开时，才调用 open_document_by_filename
+
+        成功跳转后关闭 Build Log 对话框，使用户直接进入编辑器。
         '''
         if self.build_log.document is None:
             return
         if row is None or row.filename is None:
             return
 
-        document = self.build_log.workspace.open_document_by_filename(row.filename)
-        if document is None:
-            self.view.toast_overlay.add_toast(Adw.Toast.new(_('Could not open file')))
-            return
+        workspace = self.build_log.workspace
+        active_document = workspace.get_active_document()
+        target_document = workspace.get_document_by_filename(row.filename)
+
+        if target_document is None:
+            # 目标文档未打开，需要打开它
+            target_document = workspace.open_document_by_filename(row.filename)
+            if target_document is None:
+                self.view.toast_overlay.add_toast(Adw.Toast.new(_('Could not open file')))
+                return
+        elif target_document is not active_document:
+            # 目标文档已打开但非活动文档，直接切换（避免 toast）
+            workspace.set_active_document(target_document)
+        # 如果目标文档已是活动文档，无需任何文档切换操作
+
         line_number = row.line_number - 1
         if line_number < 0:
             return
 
         # 错误行若落在折叠区内会不可见，跳转前先展开包含它的所有折叠区域。
-        document.code_folding.unfold_region_containing_line(line_number)
-        document.place_cursor(line_number)
-        document.scroll_cursor_onscreen()
-        document.source_view.grab_focus()
+        target_document.code_folding.unfold_region_containing_line(line_number)
+        target_document.place_cursor(line_number)
+        target_document.scroll_cursor_onscreen()
+        target_document.source_view.grab_focus()
 
-        start, end = document.source_buffer.get_iter_at_line(line_number)[1], None
+        start, end = target_document.source_buffer.get_iter_at_line(line_number)[1], None
         if start is not None:
             end = start.copy()
             if not start.ends_line():
                 end.forward_to_line_end()
-            document.highlight_section(start, end)
+            target_document.highlight_section(start, end)
+
+        # 关闭 Build Log 对话框，使用户直接进入编辑器
+        self.build_log.view.close()
 
     def on_copy_all_clicked(self, button):
         '''Copy 所有当前显示的 items（按设置项过滤后），格式 file:line: description per line。'''
