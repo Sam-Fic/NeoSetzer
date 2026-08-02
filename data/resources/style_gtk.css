@@ -621,11 +621,12 @@ headerbar {
     border: none;
 }
 .autocomplete-widget {
-    border-radius: 8px;
+    border-radius: 14px;
     border: 1px solid @borders !important;
     padding: 6px;
 }
 .autocomplete-widget row:selected {
     background-color: alpha(@theme_selected_bg_color, 0.25) !important;
     background: alpha(@theme_selected_bg_color, 0.25) !important;
+    border-radius: 8px;
 }
