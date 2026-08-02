@@ -310,8 +310,9 @@ class BuildLogDialogPresenter(object):
                 filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
                                     key=lambda filename: filename.casefold())
             else:
-                filenames = sorted(set(os.path.basename(it[2]) for it in self.build_log.items if it[2]),
-                                    key=lambda filename: GLib.utf8_collate_key_for_filename(filename, len(filename)))
+                raw_filenames = set(os.path.basename(it[2]) for it in self.build_log.items if it[2])
+                # 使用 Python 内置排序替代 GLib  collation，避免触发 GLib 断言警告
+                filenames = sorted(raw_filenames, key=lambda f: GLib.utf8_make_valid(f, -1).casefold())
             filenames.insert(0, _('All'))
             self.view.update_file_filter(filenames)
 
