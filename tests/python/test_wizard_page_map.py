@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026-present Sam-Fic
+
 # coding: utf-8
 
 # 单元测试：setzer.dialogs.document_wizard.page_map

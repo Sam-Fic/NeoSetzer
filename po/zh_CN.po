@@ -1,6 +1,5 @@
 # Setzer 简体中文翻译.
 # Copyright (C) 2023 Setzer contributors
-# Copyright (C) 2026 Sam-Fic
 # This file is distributed under the same license as the Setzer package.
 # Setzer contributors.
 #
