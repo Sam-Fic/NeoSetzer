@@ -609,3 +609,23 @@ headerbar {
 .loading-overlay {
     background: @theme_bg_color;
 }
+
+/*
+ * Autocomplete widget 补全列表卡片（替代 libadwaita 的 boxed-list）。
+ * 使用 !important 确保背景色不被 libadwaita 默认样式覆盖。
+ */
+.autocomplete-widget,
+.autocomplete-widget row {
+    background-color: @card_bg_color !important;
+    background: @card_bg_color !important;
+    border: none;
+}
+.autocomplete-widget {
+    border-radius: 8px;
+    border: 1px solid @borders !important;
+    padding: 0;
+}
+.autocomplete-widget row:selected {
+    background-color: alpha(@theme_selected_bg_color, 0.25) !important;
+    background: alpha(@theme_selected_bg_color, 0.25) !important;
+}

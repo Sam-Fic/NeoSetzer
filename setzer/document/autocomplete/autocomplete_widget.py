@@ -96,7 +96,10 @@ class AutocompleteWidget(object):
             if len(self.model.items) > 5:
                 row_count += 1
             self.height = row_count * self.line_height
-            self.width = (5 + min(max(self.get_max_chars(), 25), 45)) * self.char_width
+            # 宽度 = 命令渲染宽度（含详情列参数名） + 图标列字符等价物 + 边距。
+            # get_max_chars 已把最长行的总字符数算出；clamp 上限放宽到 60 以容纳
+            # \begin{alignat}[•]{•} 这类长命令 + 详情列。
+            self.width = (5 + min(max(self.get_max_chars(), 25), 60)) * self.char_width
             self.view.set_size_request(self.width, self.height)
 
     def get_max_chars(self):
@@ -109,7 +112,15 @@ class AutocompleteWidget(object):
         if items is self._max_chars_items:
             return self._max_chars_cache
         self._max_chars_items = items
-        self._max_chars_cache = max(len(item['command']) + len(item['dotlabels']) - 4 * item['dotlabels'].count('###') for item in items)
+        # 每行字符数 = 命令渲染宽度（•→dotlabel 占位替换）+ 详情列参数名
+        # （caption 小字号，近似按一半宽计）+ 图标列字符等价物（16px 图标
+        # + 间距 ≈ 4 个等宽字符）。
+        max_chars = 0
+        for item in items:
+            cmd_chars = len(item['command']) + len(item['dotlabels']) - 4 * item['dotlabels'].count('###')
+            detail_chars = len(autocomplete_view._get_detail_text(item)) // 2
+            max_chars = max(max_chars, cmd_chars + detail_chars)
+        self._max_chars_cache = max_chars + 4
         return self._max_chars_cache
 
     def update_position(self):
