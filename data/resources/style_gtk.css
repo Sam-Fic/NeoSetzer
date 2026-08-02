@@ -623,7 +623,7 @@ headerbar {
 .autocomplete-widget {
     border-radius: 8px;
     border: 1px solid @borders !important;
-    padding: 0;
+    padding: 6px;
 }
 .autocomplete-widget row:selected {
     background-color: alpha(@theme_selected_bg_color, 0.25) !important;
