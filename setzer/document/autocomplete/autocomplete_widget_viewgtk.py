@@ -20,6 +20,38 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, GLib
 
 
+_REF_COMMANDS = ('\\ref', '\\pageref', '\\eqref')
+_CITE_COMMANDS = ('\\cite', '\\citep', '\\citet', '\\parencite', '\\autocite', '\\textcite')
+
+
+def _get_icon_name(item):
+    '''根据补全项类型返回主题图标名（复刻 gnome-builder 补全行的图标列）。
+
+    - \\begin{...}/\\end{...} 环境 → 有序列表图标
+    - \\ref/\\cite 等交叉引用 → 标签图标
+    - onlymath 命令（希腊字母等）→ 数学符号图标
+    - 其他 → 通用文本图标
+    '''
+    command = item['command']
+    if command.startswith(('\\begin{', '\\end{')):
+        return 'view-list-ordered-symbolic'
+    if command.startswith(_REF_COMMANDS) or command.startswith(_CITE_COMMANDS):
+        return 'tag-symbolic'
+    if item.get('onlymath'):
+        return 'own-symbols-misc-math-symbolic'
+    return 'text-symbolic'
+
+
+def _get_detail_text(item):
+    '''提取补全项的右侧详情列文本（复刻 gnome-builder 的 details 列）。
+
+    目前来源为 dotlabels 参数名：\\dfrac{•}{•} + "num###den###" →
+    "num, den"。无参数名（如 \\section、\\ref{sec:intro}）返回空串。
+    '''
+    dotlabels = [d for d in item['dotlabels'].split('###') if d]
+    return ', '.join(dotlabels)
+
+
 class AutocompleteWidgetView(Gtk.ListBox):
     '''Autocomplete popup listing up to 5 matching commands.
 
@@ -46,11 +78,12 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self.set_can_target(False)
         # monospace: FontManager 的 CSS 选择器 listbox.monospace row label
         # 据此应用用户配置的字体/字号，跟随设置变化。
-        # boxed-list: libadwaita 原生列表卡片样式（圆角+边框+卡片背景），
-        # 自带明暗主题适配，无需自定义 CSS（自定义 CSS 被 libadwaita 高优先级
-        # 覆盖不生效，boxed-list 是 libadwaita 原生支持的 class）。
+        # 注意：不使用 libadwaita 的 boxed-list 类，因其样式可能与自定义背景色冲突。
+        # 改用自定义 CSS（.autocomplete-card）实现卡片外观，确保背景色正确渲染。
         self.add_css_class('monospace')
-        self.add_css_class('boxed-list')
+        self.add_css_class('autocomplete-widget')
+        # 延迟添加背景色 CSS 类，确保 widget 已经 realize
+        GLib.idle_add(self._apply_background_css)
 
         # 签名缓存：populate 在 select_next/select_previous/page_down/page_up
         # 以及滚动/焦点变化时都被调用，但此时 items 切片未变，仅选中项或位置
@@ -58,6 +91,44 @@ class AutocompleteWidgetView(Gtk.ListBox):
         self._last_items_signature = None
         # 计数器行的 label 引用，选中项变化时就地刷新文本，无需重建整卡。
         self._counter_label = None
+
+    def _apply_background_css(self):
+        '''延迟应用背景色 CSS（widget realize 后调用）。
+        
+        通过 add_overlay 添加到 Overlay 的 widget 可能在 realize 前
+        就已经添加了 CSS 类，导致样式未生效。此方法在 idle 中调用，
+        确保 widget 已经 realize。
+        '''
+        if self.get_realized():
+            self.get_style_context().add_class('autocomplete-widget')
+            # 直接设置 ListBox 本身的背景色（使用主题的卡片背景）
+            self._set_bg_color()
+
+    def _set_bg_color(self):
+        '''直接为 widget 和其所有 row 设置背景色。'''
+        from setzer.app.color_manager import ColorManager
+        bg_color = ColorManager.get_ui_color('card_bg_color')
+        if bg_color:
+            # 为每个 row 设置背景色 CSS provider
+            css_provider = Gtk.CssProvider()
+            css = f'''
+            .autocomplete-widget {{
+                background-color: {bg_color.to_string()};
+                border-radius: 8px;
+                border: 1px solid @borders;
+            }}
+            .autocomplete-widget row {{
+                background-color: {bg_color.to_string()};
+            }}
+            .autocomplete-widget row:selected {{
+                background-color: alpha(@theme_selected_bg_color, 0.25);
+            }}
+            '''
+            css_provider.load_from_data(css.encode())
+            self.get_style_context().add_provider(
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_USER
+            )
 
     def populate(self):
         r'''Rebuild the visible rows from the model's current state.
@@ -119,19 +190,51 @@ class AutocompleteWidgetView(Gtk.ListBox):
             for dotlabel in dotlabels:
                 command_text = command_text.replace('•', '<span alpha="60%">' + GLib.markup_escape_text(dotlabel) + '</span>', 1)
 
+            # 复刻 gnome-builder 补全行的三列布局：图标 | 命令文本 | 详情（参数名）。
+            # - 图标列：_get_icon_name 按 \begin{}/\ref/\cite/onlymath 类型选取，
+            #   使用主题 symbolic 图标，set_pixel_size(16) 固定尺寸避免行高被撑大。
+            # - 详情列：从 dotlabels 提取参数名（如 \dfrac 的 "num, den"），
+            #   右对齐 + dim-label + caption 降级视觉权重，与查找/文件行的副标题风格一致。
+            # 使用 Gtk.Grid 替代 Gtk.Box：Grid 默认透明，不会阻断 ListBoxRow 的背景色
+            # 渲染（Box 在某些主题下会绘制自己的背景，导致 boxed-list 背景色丢失）。
+            icon = Gtk.Image()
+            icon.set_from_icon_name(_get_icon_name(item))
+            icon.set_pixel_size(16)
+
             label = Gtk.Label()
             label.set_markup(command_text)
             label.set_halign(Gtk.Align.START)
             label.set_xalign(0.0)
+            label.set_hexpand(True)
             label.set_margin_start(6)
-            label.set_margin_end(6)
-            label.set_margin_top(2)
-            label.set_margin_bottom(2)
+
+            detail = _get_detail_text(item)
+            detail_label = Gtk.Label()
+            detail_label.set_text(detail)
+            detail_label.set_halign(Gtk.Align.END)
+            detail_label.set_xalign(1.0)
+            detail_label.set_margin_start(12)
+            detail_label.set_margin_end(6)
+            detail_label.add_css_class('dim-label')
+            detail_label.add_css_class('caption')
+            detail_label.set_visible(bool(detail))
+
+            content = Gtk.Grid()
+            content.set_hexpand(True)
+            content.set_column_spacing(4)
+            content.attach(icon, 0, 0, 1, 1)
+            content.attach(label, 1, 0, 1, 1)
+            content.attach(detail_label, 2, 0, 1, 1)
+            content.set_margin_top(2)
+            content.set_margin_bottom(2)
+            content.set_margin_start(4)
 
             row = Gtk.ListBoxRow()
-            row.set_child(label)
+            row.set_child(content)
             row.set_activatable(False)
             row.set_selectable(True)
+            # 直接设置行背景色（绕过 libadwaita 样式优先级问题）
+            row.get_style_context().add_class('autocomplete-widget')
             self.append(row)
 
             if i == si - fi:
