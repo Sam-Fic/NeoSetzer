@@ -1,5 +1,27 @@
 # Changelog
 
+## v76 — 2026-08-03
+
+### 主要改进
+
+- **重构构建日志对话框**：替换 GLib 排序为 Python 内置排序，添加错误/警告/badbox 类型过滤器，优化行激活跳转逻辑
+- **新增主题快速切换器**：在汉堡菜单顶部添加主题切换控件，支持跟随系统/浅色/深色三种主题
+- **重构自动补全弹窗**：替换 libadwaita boxed-list 为自定义样式，新增图标列与详情列，优化内边距与圆角
+- **优化 gutter 绘制**：修复空白字符显示不生效、行号偏移与图标对齐问题，滚动时立即重绘消除帧滞后
+- **重构弹窗与全屏逻辑**：统一弹窗调用方法，移除冗余轮询，新增全屏加载指示器，优化长操作用户体验
+- **修复 Flatpak 配置**：修正 JSON 格式与安装路径配置
+- **更新构建脚本**：规范 setzer.in 换行符，为安装脚本添加权限设置
+
+### Improvements
+
+- **refactor**: Replace GLib sorting with Python built-in sorting in build log dialog; add error/warning/badbox type filter checkboxes; optimize row activation jump logic
+- **feat**: Add theme quick switcher to hamburger menu with system/light/dark modes
+- **refactor**: Replace libadwaita boxed-list with custom CSS in autocomplete popup; add icon and detail columns; optimize padding and corner radius
+- **fix**: Fix whitespace rendering not working, line number offset and icon alignment in gutter; immediate redraw during scroll to eliminate frame lag
+- **refactor**: Unify popover call methods; remove redundant polling logic; add fullscreen loading indicator for long operations
+- **fix**: Fix Flatpak manifest JSON formatting and libdir installation path
+- **chore**: Normalize line endings in setzer.in; add install_mode permissions to setzer script
+
 ## v75 — 2026-07-31
 
 ### 主要改进
