@@ -2,6 +2,7 @@
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
     <mime-type type="application/vdn.setzer.session.stzs">
         <comment>Setzer Session</comment>
+        <comment xml:lang="zh_CN">Setzer 会话</comment>
         <glob pattern="*.stzs" weight="5"/>
         <icon name="org.cvfosammmm.Setzer"/>
     </mime-type>
