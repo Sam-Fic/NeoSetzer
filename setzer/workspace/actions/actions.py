@@ -160,7 +160,11 @@ class Actions(object):
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
-        self.add_action('toggle-fullscreen', self.toggle_fullscreen)
+        # toggle-fullscreen 使用 PropertyAction 绑定 MainWindow.fullscreened 属性，
+        # 无需手工 set_state / 回调——GTK 自动翻转布尔属性并同步 UI。
+        fullscreen_action = Gio.PropertyAction.new('toggle-fullscreen', self.main_window, 'fullscreened')
+        self.main_window.add_action(fullscreen_action)
+        self.actions['toggle-fullscreen'] = fullscreen_action
 
         # 每文档 LaTeX 解释器覆盖（优先于全局 preferences['latex_interpreter']）。
         # 用 stateful action（字符串状态）使菜单项自动以勾选态反映当前选中值。
@@ -373,7 +377,7 @@ class Actions(object):
         DialogLocator.get_dialog('open_document').run()
 
     def open_recent_documents(self, action=None, parameter=None):
-        PopoverManager.get_popover('open_document').show()
+        PopoverManager.get_popover('open_document').open()
 
     def save_and_build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
@@ -1287,8 +1291,6 @@ class Actions(object):
     def show_context_menu(self, action=None, parameter=''):
         PopoverManager.create_popover('context_menu').view.popup()
 
-    def toggle_fullscreen(self, action=None, parameter=None):
-        self.main_window.toggle_fullscreen()
 
     # --- Label context menu actions ------------------------------------------
 

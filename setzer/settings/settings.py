@@ -87,9 +87,6 @@ class Settings(Observable):
         self.defaults['window_state']['width'] = 1020
         self.defaults['window_state']['height'] = 550
         self.defaults['window_state']['is_maximized'] = False
-        # 窗口左上角坐标；-1 表示未持久化过，启动时由窗口管理器决定位置。
-        self.defaults['window_state']['x'] = -1
-        self.defaults['window_state']['y'] = -1
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
         # 侧栏当前选中的面板（symbols / document_structure），隐藏后再次显示时恢复，

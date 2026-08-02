@@ -182,4 +182,4 @@ class HeaderBar(object):
         self.widget.set_title_widget(self.center_widget)
 
     def _on_center_button_clicked(self, button):
-        self.open_docs_popover.show()
+        self.open_docs_popover.open()

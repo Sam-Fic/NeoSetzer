@@ -396,7 +396,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_controller(self._motion_controller)
 
         # 全屏状态变化监听
-        self.connect('notify::fullscreened', self._on_fullscreened_changed)
 
         # 监听 shortcut 栏可见性变化，与全屏状态联动更新编辑器卡片边距
         self.shortcutsbar.connect('notify::visible', self._on_shortcutsbar_visibility_changed)
@@ -701,13 +700,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.welcome_overlay.remove_overlay(self.drop_highlight)
             self.document_stack_overlay.add_overlay(self.drop_highlight)
         self._drop_highlight_in_welcome = to_welcome
-
-    def toggle_fullscreen(self):
-        '''切换全屏模式。F11 快捷键入口。'''
-        if self.is_fullscreen():
-            self.unfullscreen()
-        else:
-            self.fullscreen()
 
     def _on_fullscreened_changed(self, window, param):
         '''全屏状态变化回调：保存/恢复 UI 状态。'''
