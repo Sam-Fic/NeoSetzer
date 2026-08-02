@@ -18,13 +18,16 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, GLib
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
 from setzer.app.service_locator import ServiceLocator
 
 import os
-import threading
+
+
+# 每批加载图片数量：8 是经验值；56 张图仅 7 批，首屏前完成且不阻塞 UI。
+_LOAD_BATCH_SIZE = 8
 
 
 class BeamerSettingsPage(Page):
@@ -33,13 +36,14 @@ class BeamerSettingsPage(Page):
         self.current_values = current_values
         self.view = BeamerSettingsPageView()
 
-        self.image_loading_lock = threading.Lock()
-        threading.Thread(target=self.load_beamer_images, daemon=True).start()
+        self._loading_queue = [
+            (name, i)
+            for name in self.view.theme_names
+            for i in range(0, 2)
+        ]
+        GLib.idle_add(self._load_images_batch)
 
     def observe_view(self):
-        self.image_loading_lock.acquire()
-        self.image_loading_lock.release()
-
         def row_selected(box, row, user_data=None):
             child_name = row.get_title()
             self.current_values['beamer']['theme'] = child_name
@@ -52,7 +56,7 @@ class BeamerSettingsPage(Page):
         self.view.option_show_navigation.connect('notify::active', option_toggled, 'show_navigation')
         self.view.option_top_align.connect('notify::active', option_toggled, 'top_align')
 
-        # Show initial preview
+        # Show initial preview（与 batch loader 共用同一把锁，避免竞态）
         initial = self.current_values['beamer']['theme']
         if initial in self.view.preview_images:
             self._update_preview(initial)
@@ -66,15 +70,37 @@ class BeamerSettingsPage(Page):
         for img in images:
             self.view.preview_box.append(img)
 
-    def load_beamer_images(self):
-        with self.image_loading_lock:
-            for name in self.view.theme_names:
-                images = []
-                for i in range(0, 2):
-                    image = Gtk.Picture.new_for_filename(os.path.join(ServiceLocator.get_resources_path(), 'document_wizard', 'beamerpreview_' + name + '_page_' + str(i) + '.png'))
-                    image.set_size_request(208, 200)
-                    images.append(image)
-                self.view.preview_images[name] = images
+    def _load_images_batch(self):
+        '''GLib.idle_add 回调：每次处理一批图片，返回 True 表示继续调度。
+
+        idle 回调必须在某次返回 False 结束，否则在部分 PyGObject 版本中
+        None 会被当作“继续调用”，导致该回调被无限重复触发、CPU 占满。
+        '''
+        queue = self._loading_queue
+        if not queue:
+            return False
+
+        resources_path = ServiceLocator.get_resources_path()
+        for _ in range(_LOAD_BATCH_SIZE):
+            if not queue:
+                break
+            name, index = queue.pop(0)
+            image = Gtk.Picture.new_for_filename(
+                os.path.join(resources_path, 'document_wizard',
+                             'beamerpreview_' + name + '_page_' + str(index) + '.png')
+            )
+            image.set_size_request(208, 200)
+            self.view.preview_images.setdefault(name, []).append(image)
+
+        if queue:
+            return True
+
+        # 全部加载完成：若当前选中主题的预览图已就绪，展示默认预览。
+        # 这解决了“默认主题为 default，但初始预览因图片未就绪而未显示”的问题。
+        theme = self.current_values['beamer']['theme']
+        if self.view.preview_images.get(theme):
+            self._update_preview(theme)
+        return False
 
     def load_presets(self, presets):
         try:
@@ -132,17 +158,17 @@ class BeamerSettingsPageView(PageView):
         self.group_options.add(self.option_show_navigation)
         self.group_options.add(self.option_top_align)
 
-        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-        self.form.append(self.themes_list)
-        self.form.append(self.group_options)
-
         self.preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.preview_box.set_halign(Gtk.Align.CENTER)
 
         self.preview_images = dict()
 
+        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.form.append(self.themes_list)
+        self.form.append(self.group_options)
+
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-        self.content.append(self.form)
         self.content.append(self.preview_box)
+        self.content.append(self.form)
 
         self.append(self.wrap_content(self.content))
