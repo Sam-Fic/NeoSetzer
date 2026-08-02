@@ -136,6 +136,21 @@ class MainApplicationController(Adw.Application):
             self.activate()
             self.is_active = True
 
+    def do_shutdown(self):
+        '''SIGTERM / SIGINT / session manager 退出时的无副作用持久化。
+
+        与用户主动关闭窗口（close-request → save_quit）不同：这里不弹任何对话框，
+        静默保存窗口状态和工作区状态，避免退出时阻塞。'''
+        try:
+            if hasattr(self, 'workspace') and hasattr(self, 'main_window'):
+                for document in self.workspace.open_documents:
+                    DocumentSettings.save_document_state(document)
+                self.workspace.save_to_disk()
+                self.save_window_state()
+        except Exception:
+            pass
+        Adw.Application.do_shutdown(self)
+
     def activate(self):
         # 先读取用户语言偏好，再初始化 gettext，使界面语言选择生效
         self.settings = ServiceLocator.get_settings()

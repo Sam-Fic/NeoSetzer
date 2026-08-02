@@ -339,17 +339,9 @@ class MainWindow(Adw.ApplicationWindow):
                 self.get_display(), self.css_provider_app,
                 Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-        # shortcutsbar overflow reflow 安全网：ShortcutsBar.do_size_allocate
-        # 是主触发路径（同步 reflow，零延迟）。这里每 250ms 轮询一次作为兜底，
-        # 覆盖 do_size_allocate 可能漏掉的边缘情况。主路径可靠时此轮询不做实际工作。
-        # 直接用 _last_allocated_width 判断，无需独立的 _last_sb_width 变量。
-        def _poll_sb_width():
-            width = self.shortcutsbar.get_allocated_width()
-            if width > 1 and width != self.shortcutsbar._last_allocated_width:
-                self.shortcutsbar.reflow_for_width(width)
-                self.shortcutsbar._last_allocated_width = width
-            return True
-        GLib.timeout_add(250, _poll_sb_width)
+        # shortcutsbar overflow reflow 安全网已移除：ShortcutsBar.do_size_allocate
+        # 是可靠主路径（同步 reflow，零延迟），request_reflow() 覆盖内容变化场景。
+        # 删除永久 250ms 轮询，避免全生命周期每秒唤醒 4 次及窗口销毁后仍调度。
 
         # 文件拖放：欢迎页（welcome_overlay）与编辑器列（document_stack_overlay）各挂一个
         # 同配置的 DropTarget，共用同一套 on_drag_* 处理函数。两 overlay 分别只在对应模式下
