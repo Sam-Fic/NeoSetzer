@@ -223,7 +223,14 @@ class Gutter(object):
         self._schedule_refresh()
 
     def on_adjustment_value_changed(self, adjustment):
-        self._schedule_refresh()
+        '''滚动时必须立即重绘 gutter，否则行号/高亮会滞后 source_view 一帧。
+
+        滚动信号频率高且不需要去抖：每次 value-changed 都直接 queue_draw，
+        与 source_view 的滚动完全同步。其余信号（文档变化、光标移动等）
+        仍走 _schedule_refresh() 的 idle 去抖路径。
+        '''
+        self.update_hovered_folding_region()
+        self.drawing_area.queue_draw()
 
     def on_adjustment_changed(self, adjustment):
         self._schedule_refresh()
