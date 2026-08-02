@@ -23,6 +23,7 @@ from gi.repository import Gtk, Gdk, GLib, Gio
 import os.path
 
 from setzer.keyboard_shortcuts import shortcut_tooltips
+from setzer.popovers.theme_selector.theme_selector import ThemeSelector
 
 
 class HamburgerMenu(object):
@@ -65,6 +66,17 @@ class HamburgerMenu(object):
         main_window.add_action(action_open_recent)
 
     def build_static_items(self):
+
+        # 移植自 GNOME Builder：在菜单最顶部放置主题快速切换器。
+        # GTK4 的做法是在菜单模型里占一个带 custom 属性的空项，
+        # 之后用 popover.add_child(widget, name) 把真实 widget 渲染进去。
+        # 单独用一个 section 包裹，使其与下方菜单项之间自动出现分隔线。
+        section_theme = Gio.Menu()
+        theme_item = Gio.MenuItem.new(None, None)
+        theme_item.set_attribute_value('custom', GLib.Variant('s', 'theme_selector'))
+        section_theme.append_item(theme_item)
+        self.menu_model.append_section(None, section_theme)
+
         # GMenu 的分隔线由 section 自动渲染：每个 append_section 之间出一条标准分隔线，
         # 不要用自定义 role=separator 的 MenuItem（会被 Gtk 渲染成空白行=空白项 bug）。
         section_save = Gio.Menu()
@@ -195,6 +207,13 @@ class HamburgerMenu(object):
         popover = button.get_popover()
         if popover is not None:
             popover.add_css_class('menu')
+            # 仿 GNOME Builder：在 popover 顶部注入 ThemeSelector 自定义 widget
+            # 使用 add_child() 将 widget 绑定到菜单模型的 custom 属性
+            self.theme_selector = ThemeSelector()
+            popover.add_child(self.theme_selector, 'theme_selector')
+            # 监听设置变化，更新 ThemeSelector 选中状态
+            settings = ServiceLocator_get_settings()
+            settings.connect('settings_changed', self.theme_selector.update_from_settings)
         return button
 
     def on_restore_session_click(self, action, parameter):
@@ -302,3 +321,8 @@ class HamburgerMenu(object):
 def ServiceLocator_get_main_window():
     from setzer.app.service_locator import ServiceLocator
     return ServiceLocator.get_main_window()
+
+
+def ServiceLocator_get_settings():
+    from setzer.app.service_locator import ServiceLocator
+    return ServiceLocator.get_settings()

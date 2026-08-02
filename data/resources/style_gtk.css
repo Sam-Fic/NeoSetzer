@@ -612,21 +612,81 @@ headerbar {
 
 /*
  * Autocomplete widget 补全列表卡片（替代 libadwaita 的 boxed-list）。
- * 使用 !important 确保背景色不被 libadwaita 默认样式覆盖。
+ * 注意：GTK 的 CSS 解析器不支持 !important（会报 "Junk at end of value"
+ * 并丢弃整条声明），因此这里靠选择器特异性来压过 libadwaita 默认样式。
  */
 .autocomplete-widget,
 .autocomplete-widget row {
-    background-color: @card_bg_color !important;
-    background: @card_bg_color !important;
+    background-color: @card_bg_color;
+    background: @card_bg_color;
     border: none;
 }
 .autocomplete-widget {
     border-radius: 14px;
-    border: 1px solid @borders !important;
+    border: 1px solid @borders;
     padding: 6px;
 }
 .autocomplete-widget row:selected {
-    background-color: alpha(@theme_selected_bg_color, 0.25) !important;
-    background: alpha(@theme_selected_bg_color, 0.25) !important;
+    background-color: alpha(@theme_selected_bg_color, 0.25);
+    background: alpha(@theme_selected_bg_color, 0.25);
     border-radius: 8px;
+}
+
+/*
+ * 汉堡菜单顶部主题快速切换器。
+ * 移植自 GNOME Builder / GNOME Text Editor 的 themeselector 控件：
+ * 三个圆形色块（跟随系统 / 浅色 / 深色）完全由 CSS 绘制，不依赖图片素材。
+ * 选中项用 accent 色描边，并在右下角显示 object-select-symbolic 勾选角标。
+ *
+ * 注意：Python 端使用 add_css_class('themeselector') 而非 set_css_name()，
+ * 因为 GTK4 Python 中 set_css_name 替换类型名后 CSS 后代选择器不会匹配子 widget。
+ * 因此这里必须用 .themeselector（类选择器）而非 themeselector（类型名选择器）。
+ */
+.themeselector {
+    margin: 9px;
+}
+
+.themeselector checkbutton {
+    padding: 1px;
+    min-height: 44px;
+    min-width: 44px;
+    background-clip: content-box;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px @borders;
+}
+
+.themeselector checkbutton.follow:checked,
+.themeselector checkbutton.light:checked,
+.themeselector checkbutton.dark:checked {
+    box-shadow: inset 0 0 0 2px @theme_selected_bg_color;
+}
+
+.themeselector checkbutton.follow {
+    background-image: linear-gradient(to bottom right, #fff 49.99%, #202020 50.01%);
+}
+
+.themeselector checkbutton.light {
+    background-color: #fff;
+}
+
+.themeselector checkbutton.dark {
+    background-color: #202020;
+}
+
+/* 内部 radio 指示器改造成右下角的勾选角标 */
+.themeselector checkbutton radio {
+    -gtk-icon-source: none;
+    border: none;
+    background: none;
+    box-shadow: none;
+    min-width: 12px;
+    min-height: 12px;
+    transform: translate(27px, 14px);
+    padding: 2px;
+}
+
+.themeselector checkbutton radio:checked {
+    -gtk-icon-source: -gtk-icontheme("object-select-symbolic");
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
 }
