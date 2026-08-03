@@ -1,15 +1,15 @@
-# Setzer 简体中文翻译.
-# Copyright (C) 2023 Setzer contributors
-# This file is distributed under the same license as the Setzer package.
-# Setzer contributors.
+# NeoSetzer 简体中文翻译.
+# Copyright (C) 2023 NeoSetzer contributors
+# This file is distributed under the same license as the NeoSetzer package.
+# NeoSetzer contributors.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Setzer\n"
+"Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-28 01:03+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
-"Last-Translator: Setzer contributors\n"
+"Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -19,8 +19,8 @@ msgstr ""
 "X-Generator: CodeBuddy\n"
 
 #: setzer/dialogs/about/about.py:44
-msgid "Setzer is a LaTeX editor."
-msgstr "Setzer 是一个 LaTeX 编辑器"
+msgid "NeoSetzer is a LaTeX editor."
+msgstr "NeoSetzer 是一个 LaTeX 编辑器"
 
 #: setzer/dialogs/about/about.py:49
 msgid "Fork Repository"
@@ -90,9 +90,9 @@ msgstr "崩溃恢复"
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:68
 #, python-brace-format
 msgid ""
-"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"NeoSetzer did not exit cleanly last time. {n} unsaved document(s) were "
 "recovered:"
-msgstr "Setzer 上次未正常退出，已恢复 {n} 个未保存的文档："
+msgstr "NeoSetzer 上次未正常退出，已恢复 {n} 个未保存的文档："
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:80
 #: setzer/dialogs/close_confirmation/close_confirmation.py:76
@@ -337,8 +337,8 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "文档{document}在磁盘上有变化"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
-msgid "Should Setzer reload it now? Reloading will discard your unsaved changes."
-msgstr "是否立即让 Setzer 重载它？重载将丢弃您未保存的修改。"
+msgid "Should NeoSetzer reload it now? Reloading will discard your unsaved changes."
+msgstr "是否立即让 NeoSetzer 重载它？重载将丢弃您未保存的修改。"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
 msgid "Keep the current Version"
@@ -355,8 +355,8 @@ msgstr "文档{document}已从磁盘删除或移走"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
-"If you close it or close Setzer without saving, this document will be lost."
-msgstr "如果您关闭它或不保存关闭 Setzer，该文档将会丢失"
+"If you close it or close NeoSetzer without saving, this document will be lost."
+msgstr "如果您关闭它或不保存关闭 NeoSetzer，该文档将会丢失"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
 msgid "Save As…"
@@ -924,7 +924,7 @@ msgstr "LaTeX 解释器缺失"
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
+"NeoSetzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -934,7 +934,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer 配置使用的解释器 {interpreter} 似乎未安装在系统中。\n"
+"NeoSetzer 配置使用的解释器 {interpreter} 似乎未安装在系统中。\n"
 "\n"
 "你可以通过以下方式安装：\n"
 "• Ubuntu/Debian：sudo apt install texlive-latex-base\n"
@@ -1275,8 +1275,8 @@ msgstr "加载会话"
 
 #: setzer/dialogs/open_session/open_session.py:45
 #: setzer/dialogs/save_session/save_session.py:48
-msgid "Setzer Session"
-msgstr "Setzer 会话"
+msgid "NeoSetzer Session"
+msgstr "NeoSetzer 会话"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:121
 msgid "Restart Required"
@@ -3149,8 +3149,8 @@ msgstr "打开最近文档"
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "切换预览面板（PDF 预览 / 帮助）"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
-msgid "Welcome to Setzer"
-msgstr "欢迎使用 Setzer"
+msgid "Welcome to NeoSetzer"
+msgstr "欢迎使用 NeoSetzer"
 
 #: setzer/workspace/help_panel/help_panel_presenter.py:44
 #, python-brace-format
@@ -3601,7 +3601,7 @@ msgid "Close without Saving"
 msgstr "不保存关闭"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk_viewgtk.py:43
-msgid "Should Setzer reload it now?"
+msgid "Should NeoSetzer reload it now?"
 msgstr "是否立即重新加载？"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing_viewgtk.py:35
@@ -3656,9 +3656,9 @@ msgstr "无法保存文档：{error}"
 #~ msgstr "简约但全功能的 LaTeX 编辑器"
 
 #~ msgid ""
-#~ "Setzer lets you Write LaTeX documents with an easy to use yet full-"
+#~ "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
 #~ "featured editor."
-#~ msgstr "Setzer 可让您使用易用且全功能的编辑器来编写 LaTeX 文档。"
+#~ msgstr "NeoSetzer 可让您使用易用且全功能的编辑器来编写 LaTeX 文档。"
 
 #~ msgid "Features include:"
 #~ msgstr "特性包括："
@@ -4177,7 +4177,7 @@ msgstr "无法保存文档：{error}"
 
 #, python-brace-format
 #~ msgid ""
-#~ "Setzer is configured to use {{interpreter}} which seems to be missing on "
+#~ "NeoSetzer is configured to use {{interpreter}} which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4187,13 +4187,13 @@ msgstr "无法保存文档：{error}"
 #~ "\n"
 #~ "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 #~ msgstr ""
-#~ "Setzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
+#~ "NeoSetzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
 #~ "释器，请前往首选项。若要在 Flatpak 中安装解释器，请打开终端并运行以下命"
 #~ "令：    flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #, python-brace-format
 #~ msgid ""
-#~ "Setzer is configured to use {{interpreter}} which seems to be missing on "
+#~ "NeoSetzer is configured to use {{interpreter}} which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4202,7 +4202,7 @@ msgstr "无法保存文档：{error}"
 #~ "en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/"
 #~ "LaTeX/Installation</a>"
 #~ msgstr ""
-#~ "Setzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
+#~ "NeoSetzer 已配置使用 {{interpreter}}，但系统中似乎缺失该解释器。要选择其他解"
 #~ "释器，请前往首选项。"
 
 #~ msgid "Show symbols panel"

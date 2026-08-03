@@ -1,15 +1,15 @@
-# Setzer 繁體中文翻譯.
-# Copyright (C) 2023 Setzer contributors
-# This file is distributed under the same license as the Setzer package.
-# Setzer contributors.
+# NeoSetzer 繁體中文翻譯.
+# Copyright (C) 2023 NeoSetzer contributors
+# This file is distributed under the same license as the NeoSetzer package.
+# NeoSetzer contributors.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Setzer\n"
+"Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-28 01:03+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
-"Last-Translator: Setzer contributors\n"
+"Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Traditional)\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
@@ -19,8 +19,8 @@ msgstr ""
 "X-Generator: CodeBuddy\n"
 
 #: setzer/dialogs/about/about.py:44
-msgid "Setzer is a LaTeX editor."
-msgstr "Setzer 是一個 LaTeX 編輯器。"
+msgid "NeoSetzer is a LaTeX editor."
+msgstr "NeoSetzer 是一個 LaTeX 編輯器。"
 
 #: setzer/dialogs/about/about.py:49
 msgid "Fork Repository"
@@ -52,7 +52,7 @@ msgstr "派生維護者"
 
 #: setzer/dialogs/about/about.py:72
 msgid "translator-credits"
-msgstr "繁體中文翻譯：Setzer 貢獻者"
+msgstr "繁體中文翻譯：NeoSetzer 貢獻者"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:33
 #: setzer/popovers/shortcutsbar/document_menu.py:31
@@ -90,9 +90,9 @@ msgstr "當機復原"
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:68
 #, python-brace-format
 msgid ""
-"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"NeoSetzer did not exit cleanly last time. {n} unsaved document(s) were "
 "recovered:"
-msgstr "Setzer 上一次並未正常結束。已復原 {n} 個未儲存的文件："
+msgstr "NeoSetzer 上一次並未正常結束。已復原 {n} 個未儲存的文件："
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:80
 #: setzer/dialogs/close_confirmation/close_confirmation.py:76
@@ -368,8 +368,8 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "文件 「{document}」 在磁碟上已變更。"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
-msgid "Should Setzer reload it now?"
-msgstr "要讓 Setzer 立即重新載入嗎？"
+msgid "Should NeoSetzer reload it now?"
+msgstr "要讓 NeoSetzer 立即重新載入嗎？"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
 msgid "Keep the current Version"
@@ -386,8 +386,8 @@ msgstr "文件 「{document}」 已從磁碟刪除或移動。"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
-"If you close it or close Setzer without saving, this document will be lost."
-msgstr "如果關閉它，或關閉 Setzer 而不儲存，這份文件將會遺失。"
+"If you close it or close NeoSetzer without saving, this document will be lost."
+msgstr "如果關閉它，或關閉 NeoSetzer 而不儲存，這份文件將會遺失。"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
 msgid "Save As…"
@@ -951,7 +951,7 @@ msgstr "缺少 LaTeX 直譯器。"
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
+"NeoSetzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -961,7 +961,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer 設定為使用 「{interpreter}」，但此系統似乎未安裝。\n"
+"NeoSetzer 設定為使用 「{interpreter}」，但此系統似乎未安裝。\n"
 "\n"
 "您可以透過以下方式安裝：\n"
 "• Ubuntu/Debian：sudo apt install texlive-latex-base\n"
@@ -1302,8 +1302,8 @@ msgstr "載入工作階段"
 
 #: setzer/dialogs/open_session/open_session.py:45
 #: setzer/dialogs/save_session/save_session.py:48
-msgid "Setzer Session"
-msgstr "Setzer 工作階段"
+msgid "NeoSetzer Session"
+msgstr "NeoSetzer 工作階段"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:121
 msgid "Restart Required"
@@ -3062,8 +3062,8 @@ msgstr "開啟最近的文件"
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "切換預覽面板（PDF 預覽 / 說明）"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
-msgid "Welcome to Setzer"
-msgstr "歡迎使用 Setzer"
+msgid "Welcome to NeoSetzer"
+msgstr "歡迎使用 NeoSetzer"
 
 #: setzer/workspace/help_panel/help_panel_presenter.py:44
 #, python-brace-format

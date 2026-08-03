@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Setzer\n"
+"Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-28 01:03+0800\n"
 "PO-Revision-Date: 2023-06-28 06:49+0000\n"
@@ -21,8 +21,8 @@ msgstr ""
 "X-Generator: Weblate 4.18.1\n"
 
 #: setzer/dialogs/about/about.py:44
-msgid "Setzer is a LaTeX editor."
-msgstr "Setzer es un editor de LaTeX."
+msgid "NeoSetzer is a LaTeX editor."
+msgstr "NeoSetzer es un editor de LaTeX."
 
 #: setzer/dialogs/about/about.py:49
 msgid "Fork Repository"
@@ -94,10 +94,10 @@ msgstr "Recuperación ante fallos"
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:68
 #, python-brace-format
 msgid ""
-"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"NeoSetzer did not exit cleanly last time. {n} unsaved document(s) were "
 "recovered:"
 msgstr ""
-"Setzer no se cerró correctamente la última vez. {n} documento(s) sin guardar "
+"NeoSetzer no se cerró correctamente la última vez. {n} documento(s) sin guardar "
 "se recuperaron:"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:80
@@ -377,8 +377,8 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "El documento «{document}» ha cambiado en el disco."
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
-msgid "Should Setzer reload it now?"
-msgstr "¿Debería Setzer recargarlo ahora?"
+msgid "Should NeoSetzer reload it now?"
+msgstr "¿Debería NeoSetzer recargarlo ahora?"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
 msgid "Keep the current Version"
@@ -395,8 +395,8 @@ msgstr "El documento «{document}» ha sido borrado del disco o movido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
-"If you close it or close Setzer without saving, this document will be lost."
-msgstr "Si lo cierra o cierra Setzer sin guardar, este documento se perderá."
+"If you close it or close NeoSetzer without saving, this document will be lost."
+msgstr "Si lo cierra o cierra NeoSetzer sin guardar, este documento se perderá."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
 msgid "Save As…"
@@ -981,7 +981,7 @@ msgstr "Falta el intérprete de LaTeX."
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
+"NeoSetzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -991,7 +991,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"Setzer está configurado para usar «{interpreter}», que parece faltar en este "
+"NeoSetzer está configurado para usar «{interpreter}», que parece faltar en este "
 "sistema.\n"
 "\n"
 "Puede instalarlo con:\n"
@@ -1333,8 +1333,8 @@ msgstr "Cargar sesión"
 
 #: setzer/dialogs/open_session/open_session.py:45
 #: setzer/dialogs/save_session/save_session.py:48
-msgid "Setzer Session"
-msgstr "Sesión de Setzer"
+msgid "NeoSetzer Session"
+msgstr "Sesión de NeoSetzer"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:121
 msgid "Restart Required"
@@ -3126,8 +3126,8 @@ msgstr "Abrir documentos recientes"
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Alternar panel de vista previa (Vista previa PDF / Ayuda)"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
-msgid "Welcome to Setzer"
-msgstr "Le damos la bienvenida a Setzer"
+msgid "Welcome to NeoSetzer"
+msgstr "Le damos la bienvenida a NeoSetzer"
 
 #: setzer/workspace/help_panel/help_panel_presenter.py:44
 #, python-brace-format
@@ -3709,10 +3709,10 @@ msgstr "No se pudo guardar el documento: {error}"
 #~ msgid "Simple yet full-featured LaTeX editor"
 #~ msgstr "Editor de LaTeX simple pero completo"
 #~ msgid ""
-#~ "Setzer lets you Write LaTeX documents with an easy to use yet full-"
+#~ "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
 #~ "featured editor."
 #~ msgstr ""
-#~ "Setzer le permite escribir documentos de LaTeX con un editor completo "
+#~ "NeoSetzer le permite escribir documentos de LaTeX con un editor completo "
 #~ "pero sencillo de usar."
 #~ msgid "Features include:"
 #~ msgstr "Características que incluye:"
@@ -4158,7 +4158,7 @@ msgstr "No se pudo guardar el documento: {error}"
 #~ msgid "Portrait"
 #~ msgstr "Vertical"
 #~ msgid ""
-#~ "Setzer is configured to use «{interpreter}» which seems to be missing on "
+#~ "NeoSetzer is configured to use «{interpreter}» which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4168,7 +4168,7 @@ msgstr "No se pudo guardar el documento: {error}"
 #~ "\n"
 #~ "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 #~ msgstr ""
-#~ "Setzer está configurado para usar «{interpreter}», el cual parece no "
+#~ "NeoSetzer está configurado para usar «{interpreter}», el cual parece no "
 #~ "estar instalado.\n"
 #~ "\n"
 #~ "Para elegir un intérprete diferente vaya a preferencias.\n"
@@ -4178,7 +4178,7 @@ msgstr "No se pudo guardar el documento: {error}"
 #~ "\n"
 #~ "    flatpak install org.freedesktop.Sdk.Extension.texlive"
 #~ msgid ""
-#~ "Setzer is configured to use «{interpreter}» which seems to be missing on "
+#~ "NeoSetzer is configured to use «{interpreter}» which seems to be missing on "
 #~ "this system.\n"
 #~ "\n"
 #~ "To choose a different interpreter go to Preferences.\n"
@@ -4187,7 +4187,7 @@ msgstr "No se pudo guardar el documento: {error}"
 #~ "en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/"
 #~ "LaTeX/Installation</a>"
 #~ msgstr ""
-#~ "Setzer está configurado para usar «{interpreter}», el cual parece no "
+#~ "NeoSetzer está configurado para usar «{interpreter}», el cual parece no "
 #~ "estar instalado.\n"
 #~ "\n"
 #~ "Para seleccionar un intérprete distinto vaya a preferencias.\n"
