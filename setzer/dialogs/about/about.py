@@ -45,9 +45,9 @@ class AboutDialog(object):
         self.view.set_comments(_('NeoSetzer is a LaTeX editor.'))
         self.view.set_license_type(Gtk.License.GPL_3_0)
         self.view.set_website('https://www.cvfosammmm.org/setzer/')
-        self.view.set_support_url('https://github.com/Sam-Fic/Setzer/discussions')
-        self.view.set_issue_url('https://github.com/Sam-Fic/Setzer/issues')
-        self.view.add_link(_('Fork Repository'), 'https://github.com/Sam-Fic/Setzer')
+        self.view.set_support_url('https://github.com/Sam-Fic/NeoSetzer/discussions')
+        self.view.set_issue_url('https://github.com/Sam-Fic/NeoSetzer/issues')
+        self.view.add_link(_('Fork Repository'), 'https://github.com/Sam-Fic/NeoSetzer')
         # libadwaita 的 set_release_notes() 要求内容是合法 XML（含根元素）
         # 的 HTML 子集，裸纯文本无 <p>/<ul> 根会被解析器拒绝
         # （"Document must begin with an element"）。用 <ul><li> 包裹成列表。

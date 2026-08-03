@@ -10,7 +10,7 @@ Simple yet full-featured LaTeX editor for Linux and Windows, written in Python w
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
 > The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
-> This fork is maintained at <https://github.com/Sam-Fic/Setzer>.
+> This fork is maintained at <https://github.com/Sam-Fic/NeoSetzer>.
 
 ![Screenshot](data/screenshot.png)
 
@@ -36,13 +36,13 @@ Setzer runs on both **Linux** and **Windows** from a single codebase. No platfor
 
 This fork is **not** published on Flathub. Ways to get it:
 
-1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Extract anywhere and run `mingw64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
-2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) of this fork. Check there for the latest build.
+1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Extract anywhere and run `mingw64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
+2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Check there for the latest build.
 3. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
 
 ## Running Setzer with Gnome Builder
 
-To run Setzer with Gnome Builder just click the "Clone" button on the start screen, paste in the url (https://github.com/Sam-Fic/Setzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
+To run Setzer with Gnome Builder just click the "Clone" button on the start screen, paste in the url (https://github.com/Sam-Fic/NeoSetzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
 
 > **Warning:** Building Setzer this way may take a long time.
 
@@ -65,7 +65,7 @@ I develop Setzer on Ubuntu and that's what I tested it with.
 
    ```bash
    # Run in a Linux terminal
-   git clone https://github.com/Sam-Fic/Setzer.git
+   git clone https://github.com/Sam-Fic/NeoSetzer.git
    ```
 
 3. cd to the Setzer folder:
@@ -111,7 +111,7 @@ There are two ways to get it running:
 
 `setzer_<version>_windows_x64.zip` is a self-contained build (~128 MB, ~349 MB extracted) that bundles Python, GTK4 and every other runtime dependency. Nothing needs to be installed and nothing is written to the registry.
 
-1. Download `setzer_<version>_windows_x64.zip` from the [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) page.
+1. Download `setzer_<version>_windows_x64.zip` from the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) page.
 
 2. Extract it **anywhere you like** — a USB stick, `D:\Apps\Setzer`, your desktop. There is no fixed installation path.
 
@@ -172,7 +172,7 @@ python -m pip install --break-system-packages bibtexparser
 
 ```bash
 # Run in the MSYS2 MINGW64 shell
-git clone https://github.com/Sam-Fic/Setzer.git
+git clone https://github.com/Sam-Fic/NeoSetzer.git
 cd Setzer
 meson setup builddir
 ```
@@ -235,7 +235,7 @@ See [scripts/build_win.md](scripts/build_win.md) for the full Windows packaging 
 
 ## Getting in touch
 
-Development and discussion for this fork take place on GitHub at [https://github.com/Sam-Fic/Setzer](https://github.com/Sam-Fic/Setzer "project url").
+Development and discussion for this fork take place on GitHub at [https://github.com/Sam-Fic/NeoSetzer](https://github.com/Sam-Fic/NeoSetzer "project url").
 For the original upstream project, see [https://github.com/cvfosammmm/setzer](https://github.com/cvfosammmm/setzer).
 
 ## Acknowledgements
