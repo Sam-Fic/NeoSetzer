@@ -10,7 +10,7 @@
 
 > 这是 [Setzer](https://github.com/cvfosammmm/Setzer) 的一个 fork，原作者为 cvfosammmm。
 > 原项目官网 <https://www.cvfosammmm.org/setzer/>，基于 GPL-3.0-or-later 许可证。
-> 本 fork 维护于 <https://github.com/Sam-Fic/Setzer>。
+> 本 fork 维护于 <https://github.com/Sam-Fic/NeoSetzer>。
 
 ![截图](data/screenshot.png)
 
@@ -36,13 +36,13 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
 本 fork **未**发布在 Flathub 上。获取方式：
 
-1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `mingw64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
-2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 中。请在那里查看最新构建版本。
+1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `mingw64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
+2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中。请在那里查看最新构建版本。
 3. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
 
 ## 使用 Gnome Builder 运行 Setzer
 
-要使用 Gnome Builder 运行 Setzer，只需在启动屏幕上点击"克隆"按钮，粘贴 URL（ https://github.com/Sam-Fic/Setzer.git ），再次点击"克隆"，等待下载完成后按下运行按钮。它会构建 Setzer 及其依赖项，然后启动它。
+要使用 Gnome Builder 运行 Setzer，只需在启动屏幕上点击"克隆"按钮，粘贴 URL（ https://github.com/Sam-Fic/NeoSetzer.git ），再次点击"克隆"，等待下载完成后按下运行按钮。它会构建 Setzer 及其依赖项，然后启动它。
 
 警告：这种方式构建 Setzer 可能需要很长时间。
 
@@ -65,7 +65,7 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
    ```bash
    # 在 Linux 终端中执行
-   git clone https://github.com/Sam-Fic/Setzer.git
+   git clone https://github.com/Sam-Fic/NeoSetzer.git
    ```
 
 3. 进入 Setzer 目录：
@@ -111,7 +111,7 @@ Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Win
 
 `setzer_<版本号>_windows_x64.zip` 是一个自包含的构建产物（约 128 MB，解压后约 349 MB），已打包 Python、GTK4 以及全部运行时依赖。无需安装任何东西，也不会写注册表。
 
-1. 从 [GitHub Releases](https://github.com/Sam-Fic/Setzer/releases) 页面下载 `setzer_<版本号>_windows_x64.zip`。
+1. 从 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 页面下载 `setzer_<版本号>_windows_x64.zip`。
 
 2. 解压到**任意目录**——U 盘、`D:\Apps\Setzer`、桌面都可以，没有固定的安装路径要求。
 
@@ -172,7 +172,7 @@ python -m pip install --break-system-packages bibtexparser
 
 ```bash
 # 在 MSYS2 MINGW64 终端中执行
-git clone https://github.com/Sam-Fic/Setzer.git
+git clone https://github.com/Sam-Fic/NeoSetzer.git
 cd Setzer
 meson setup builddir
 ```
@@ -235,7 +235,7 @@ ninja install -C builddir
 
 ## 联系方式
 
-本 fork 的开发和讨论在 GitHub 上进行，地址为 [https://github.com/Sam-Fic/Setzer](https://github.com/Sam-Fic/Setzer "项目地址")。
+本 fork 的开发和讨论在 GitHub 上进行，地址为 [https://github.com/Sam-Fic/NeoSetzer](https://github.com/Sam-Fic/NeoSetzer "项目地址")。
 关于原上游项目，请参见 [https://github.com/cvfosammmm/setzer](https://github.com/cvfosammmm/setzer)。
 
 ## 致谢
