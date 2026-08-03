@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Setzer 70\n"
+"Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-28 01:03+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
@@ -20,8 +20,8 @@ msgstr ""
 "X-Generator: Weblate 4.18.1-dev\n"
 
 #: setzer/dialogs/about/about.py:44
-msgid "Setzer is a LaTeX editor."
-msgstr "Setzer é um editor LaTeX."
+msgid "NeoSetzer is a LaTeX editor."
+msgstr "NeoSetzer é um editor LaTeX."
 
 #: setzer/dialogs/about/about.py:49
 msgid "Fork Repository"
@@ -91,10 +91,10 @@ msgstr "Recuperação após falha"
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:68
 #, python-brace-format
 msgid ""
-"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"NeoSetzer did not exit cleanly last time. {n} unsaved document(s) were "
 "recovered:"
 msgstr ""
-"O Setzer não foi encerrado corretamente da última vez. {n} documento(s) não "
+"O NeoSetzer não foi encerrado corretamente da última vez. {n} documento(s) não "
 "salvo(s) foram recuperados:"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:80
@@ -374,8 +374,8 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "Documento «{document}» mudou no disco."
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:43
-msgid "Should Setzer reload it now?"
-msgstr "Setzer deve recarregá-lo agora?"
+msgid "Should NeoSetzer reload it now?"
+msgstr "NeoSetzer deve recarregá-lo agora?"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
 msgid "Keep the current Version"
@@ -392,9 +392,9 @@ msgstr "Documento «{document}» foi excluído do disco ou movido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:41
 msgid ""
-"If you close it or close Setzer without saving, this document will be lost."
+"If you close it or close NeoSetzer without saving, this document will be lost."
 msgstr ""
-"Se você fechá-lo ou fechar o Setzer sem salvar, este documento será perdido."
+"Se você fechá-lo ou fechar o NeoSetzer sem salvar, este documento será perdido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
 msgid "Save As…"
@@ -974,7 +974,7 @@ msgstr "O interpretador LaTeX está ausente."
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
 #, python-brace-format
 msgid ""
-"Setzer is configured to use \"{interpreter}\" which seems to be missing on "
+"NeoSetzer is configured to use \"{interpreter}\" which seems to be missing on "
 "this system.\n"
 "\n"
 "You can install it with:\n"
@@ -984,7 +984,7 @@ msgid ""
 "\n"
 "Or choose a different interpreter in Preferences."
 msgstr ""
-"O Setzer está configurado para usar «{interpreter}» que parece estar ausente "
+"O NeoSetzer está configurado para usar «{interpreter}» que parece estar ausente "
 "neste sistema.\n"
 "\n"
 "Você pode instalá-lo com:\n"
@@ -1326,8 +1326,8 @@ msgstr "Carregar Sessão"
 
 #: setzer/dialogs/open_session/open_session.py:45
 #: setzer/dialogs/save_session/save_session.py:48
-msgid "Setzer Session"
-msgstr "Sessão Setzer"
+msgid "NeoSetzer Session"
+msgstr "Sessão NeoSetzer"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:121
 msgid "Restart Required"
@@ -3113,8 +3113,8 @@ msgstr "Abrir documentos recentes"
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Alternar painel de pré-visualização (Pré-visualização PDF / Ajuda)"
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:154
-msgid "Welcome to Setzer"
-msgstr "Bem-vindo ao Setzer"
+msgid "Welcome to NeoSetzer"
+msgstr "Bem-vindo ao NeoSetzer"
 
 #: setzer/workspace/help_panel/help_panel_presenter.py:44
 #, python-brace-format
