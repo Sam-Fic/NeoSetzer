@@ -4,15 +4,15 @@
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0-or-later</project_license>
     <content_rating type="oars-1.1" />
-    <name translate="no">Setzer</name>
-    <summary>Simple yet full-featured LaTeX editor</summary>
+    <name translate="no">NeoSetzer</name>
+    <summary>Simple yet full-featured LaTeX editor (fork of Setzer)</summary>
     <developer_name translate="no">Cvfosammmm</developer_name>
     <developer id="org.cvfosammmm">
         <name translate="no">Cvfosammmm</name>
     </developer>
 
     <description>
-        <p>Setzer lets you Write LaTeX documents with an easy to use yet full-featured editor.</p>
+        <p>NeoSetzer lets you Write LaTeX documents with an easy to use yet full-featured editor. It is a fork of the Setzer project.</p>
         <p>Features include:</p>
         <ul>
             <li>Buttons and shortcuts for many LaTeX elements and special characters</li>
