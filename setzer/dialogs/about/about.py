@@ -37,12 +37,12 @@ class AboutDialog(object):
 
     def setup(self):
         self.view = Adw.AboutDialog()
-        self.view.set_application_name('Setzer')
+        self.view.set_application_name('NeoSetzer')
         self.view.set_application_icon('org.cvfosammmm.Setzer')
         self.view.set_version(ServiceLocator.get_setzer_version())
         self.view.set_developer_name('Robert Griesel')
         self.view.set_copyright('© 2017-present Robert Griesel, Sam-Fic')
-        self.view.set_comments(_('Setzer is a LaTeX editor.'))
+        self.view.set_comments(_('NeoSetzer is a LaTeX editor.'))
         self.view.set_license_type(Gtk.License.GPL_3_0)
         self.view.set_website('https://www.cvfosammmm.org/setzer/')
         self.view.set_support_url('https://github.com/Sam-Fic/Setzer/discussions')

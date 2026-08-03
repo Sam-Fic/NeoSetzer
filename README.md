@@ -1,4 +1,4 @@
-# Setzer
+# NeoSetzer
 
 <div align="center">
   <img src="data/org.cvfosammmm.Setzer.svg" alt="FileCollector" width="128" height="128">
@@ -6,7 +6,7 @@
 
 [简体中文](README.zh-CN.md)
 
-Simple yet full-featured LaTeX editor for Linux and Windows, written in Python with GTK.
+Simple yet full-featured LaTeX editor for Linux and Windows, written in Python with GTK. (A fork of Setzer.)
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
 > The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
