@@ -31,6 +31,7 @@ import setzer.document.document_presenter as document_presenter
 import setzer.document.document_viewgtk as document_view
 import setzer.document.search.search as search
 import setzer.document.gutter.gutter as gutter
+import setzer.document.sticky_scroll.sticky_scroll as sticky_scroll
 import setzer.document.statusbar.statusbar as statusbar
 import setzer.document.parser.parser_latex as parser_latex
 import setzer.document.parser.parser_bibtex as parser_bibtex
@@ -120,6 +121,11 @@ class Document(Observable):
         self.bookmarks = bookmarks.Bookmarks(self)
         self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
         self.gutter = gutter.Gutter(self, self.view)
+        # 粘性滚动（顶部常驻当前章节标题条）：此前 StickyScroll 类已存在但
+        # 从未被实例化/挂接到任何文档，导致该功能完全不生效。这里在文档构造
+        # 时按文档创建，drawing_area 加进编辑器的 overlay（见 sticky_scroll.py），
+        # 生命周期随文档——shutdown 时由 sticky.shutdown() 从 overlay 移除。
+        self.sticky_scroll = sticky_scroll.StickyScroll(self)
         self.search = search.Search(self, self.view)
         self.multicursor = multicursor.MultiCursor(self)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
@@ -236,6 +242,17 @@ class Document(Observable):
         if gutter is not None:
             try:
                 gutter.shutdown()
+            except Exception:
+                pass
+
+        # sticky scroll 的 drawing_area 挂在编辑器 overlay 上、并连接了 parser
+        # 的 finished_parsing / settings 单例信号，需显式移除 overlay + 断开连接，
+        # 否则 settings 单例持有文档引用导致无法 GC、且切换主题/设置时回调访问
+        # 已失效的 drawing_area。
+        sticky = getattr(self, 'sticky_scroll', None)
+        if sticky is not None:
+            try:
+                sticky.shutdown()
             except Exception:
                 pass
 
@@ -490,6 +507,15 @@ class Document(Observable):
             self.source_buffer.set_text(text)
             self.source_buffer.end_irreversible_action()
             self.source_buffer.set_modified(False)
+
+            # 文档通过 set_text 加载时不会逐段发射 insert-text，而 parser 的
+            # on_insert_text/on_text_deleted 是 blocks/符号的唯一增量解析入口，
+            # 导致打开后、首次编辑前 symbols['blocks'] 始终为空，使 sticky scroll、
+            # 文档结构侧边栏、代码折叠在“刚打开还没改过字”的文档上完全不生效。
+            # 这里触发一次全量解析（仅 LaTeX parser 实现该方法，其他类型忽略）。
+            initial_parse = getattr(self.parser, 'initial_parse', None)
+            if callable(initial_parse):
+                initial_parse(text)
         finally:
             self._loading_from_disk = False
         self.place_cursor(0, 0)

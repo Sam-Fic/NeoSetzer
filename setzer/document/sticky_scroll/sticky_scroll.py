@@ -48,6 +48,7 @@ class StickyScroll(Observable):
 
         self.visible = self.settings.get_value('preferences', 'enable_sticky_scroll')
         self.current_sections = list()
+        self._last_first_line = None
         self._next_section = None
         self._section_height = 28
         self._offset = 0
@@ -108,6 +109,8 @@ class StickyScroll(Observable):
                 self._update_height()
 
     def on_parser_update(self, parser):
+        # symbols 结构变化：首行虽可能未变，但章节链已变，强制重算。
+        self._last_first_line = None
         self._update()
 
     def on_cursor_change(self, document):
@@ -120,6 +123,8 @@ class StickyScroll(Observable):
         self._schedule_refresh()
 
     def on_folding_state_changed(self, code_folding):
+        # 折叠状态变化：可见章节集合会变，强制重算。
+        self._last_first_line = None
         self._schedule_refresh()
 
     def _schedule_refresh(self):
@@ -136,7 +141,22 @@ class StickyScroll(Observable):
     def _update(self):
         if not self.visible:
             return
+
+        # 早退：滚动时绝大多数帧的"可见首行"并未改变，而 _find_current_sections
+        # 对 symbols.blocks 是 O(n) 遍历、且 _is_section_visible 对每个 block 又是
+        # O(n) 向上回溯父节点 → 大文档下每帧 O(n^2)。首行未变意味着当前章节链
+        # 与下一章节都不会变，直接复用上次结果，只重算粘性偏移（动画依赖它）
+        # 并重绘即可。parser/folding 变化时会把 _last_first_line 置 None 强制重算。
+        first_line = self._get_first_visible_line()
+        if (first_line is not None and first_line == self._last_first_line
+                and self.current_sections is not None):
+            self._compute_offset(self._next_section)
+            self._update_height()
+            self.drawing_area.queue_draw()
+            return
+
         sections, next_section = self._find_current_sections()
+        self._last_first_line = first_line
         self._compute_offset(next_section)
         self.current_sections = sections
         self._next_section = next_section

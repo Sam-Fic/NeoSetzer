@@ -370,4 +370,24 @@ class ParserLaTeX(Observable):
         self.symbols['packages'] = packages
         self.symbols['packages_detailed'] = packages_detailed
 
+    def initial_parse(self, text):
+        '''文档初次加载（set_text）后一次性全量解析。
+
+        文档通过 Gtk.TextBuffer.set_text() 加载时不会逐段发射 insert-text 信号，
+        而 on_insert_text/on_text_deleted 是 blocks/符号的唯一增量解析入口，导致
+        打开后、首次编辑前 symbols['blocks'] 始终为空。这会让 sticky scroll、文档
+        结构侧边栏、代码折叠在"刚打开还没改过字"的文档上完全不显示内容。
+
+        此方法对全文跑一次完整解析路径（与编辑触发的增量解析一致），并触发
+        finished_parsing，使所有依赖 symbols 的功能在文档打开后即可用。
+        幂等：重复调用只会基于当前文本重新计算，不会重复叠加。
+        '''
+        matches = self.parse_for_blocks(text, 0, 0)
+        self.block_symbol_matches = matches
+        self.text_length = len(text)
+        self.number_of_lines = text.count('\n') + 1
+        self.parse_blocks()
+        self.parse_symbols()
+        self.add_change_code('finished_parsing')
+
 
