@@ -215,7 +215,7 @@ class SearchBar(Gtk.SearchBar):
 
     def _on_replace_mode_active_notify(self, button, gparam):
         '''切换按钮图标：未展开时显示向右箭头，展开后显示向下箭头。'''
-        icon_name = 'document-open-recent-symbolic' if button.get_active() else 'go-next-symbolic'
+        icon_name = 'go-down-symbolic' if button.get_active() else 'go-next-symbolic'
         button.get_child().set_from_icon_name(icon_name)
 
     def _update_counter_margin(self, *args):
