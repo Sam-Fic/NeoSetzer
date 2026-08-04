@@ -438,11 +438,20 @@ class Gutter(object):
         return line0_doc_y
 
     def _draw_cached_gutter(self, ctx, width, height, scroll_top):
-        '''离屏缓存绘制。核心：scroll_top 不在缓冲带内时平移旧 surface + 补绘
-        露出带；向上/向下滚动都基于「带顶行」基准，保证 delta 跨带时不为 0，
-        旧内容平移后正确填满整高，露出带行号数字对齐正确，绝不空白。'''
+        '''离屏缓存绘制（HiDPI 适配）。
+
+        主 draw 上下文已由 GTK4 自动施加 scale_factor 变换（1 逻辑像素 =
+        scale 物理像素）。离屏 surface 必须按物理像素（×scale）创建并在其
+        内部 ctx 上 scale(scale,scale)，使 Pango 按物理分辨率排版行号；
+        paint 时主 ctx 把物理像素 surface 1:1 映射到设备像素 → 清晰。
+        缓存 tuple 含 scale 字段，跨不同 DPI 显示器拖动时自动失效重建。
+
+        缓存 tuple 语义：(band_line, 视口逻辑高, surface顶文档y, surface,
+        scale, surface逻辑高)。'''
         if width <= 0 or height <= 0:
             return
+
+        scale = self.source_view.get_scale_factor() or 1
 
         cache = self._gutter_cache
         # 计算缓冲带顶所在行（scroll_top 上移 MARGIN 行），作为 surface 顶基准。
@@ -459,72 +468,96 @@ class Gutter(object):
 
         if line0_doc_y is None:
             # buffer 正被并发修改，取不到带顶：直接逐行降级绘制当前可见区，
-            # 不依赖缓存，保证不空白。
+            # 不依赖缓存，保证不空白（主 ctx 已 scale，文本仍物理分辨率清晰）。
             self._paint_line_region(ctx, width, None, scroll_top, height, scroll_top)
             return
 
         new_surf_top = line0_doc_y
-        surface_h = height + 2 * margin
+        surface_h = height + 2 * margin  # 逻辑高度
 
-        if cache is not None and cache[1] == height:
+        if cache is not None and cache[1] == height and cache[4] == scale:
             surf_top = cache[2]
-            surf_h = cache[3].get_height()
-            # 命中：可见区完全落在 surface 内 → 直接平移 paint，O(0.01ms)。
-            if scroll_top >= surf_top and scroll_top + height <= surf_top + surf_h:
-                ctx.set_source_surface(cache[3], 0, surf_top - scroll_top)
+            surf_h_logical = cache[5]
+            # 命中：可见区完全落在 surface 内 → 直接平移 paint（逻辑偏移，
+            # 主 ctx 已 scale，物理像素 1:1 映射），O(0.01ms。
+            if scroll_top >= surf_top and scroll_top + height <= surf_top + surf_h_logical:
+                # surface 是物理像素（width*scale × surf_h*scale），主 ctx 的
+                # surface 带 device_scale=scale（GTK4 机制：draw_func 的 CTM 是
+                # identity，放大由 device_scale 完成）。若直接 paint，源物理像素
+                # 会被 device_scale 再放大 scale 倍→行号放大 scale 倍。
+                # 解法：用逻辑偏移定位 + scale(1/scale) 抵消 device_scale，使源
+                # 物理像素 1:1 落到设备像素，保持清晰且不被放大。
+                ctx.save()
+                ctx.translate(0, surf_top - scroll_top)
+                ctx.scale(1.0 / scale, 1.0 / scale)
+                ctx.set_source_surface(cache[3], 0, 0)
                 ctx.paint()
+                ctx.restore()
                 return
 
             # 跨出缓冲带：增量补绘。new_surf_top 随 scroll_top 单调，跨带时
             # delta = new_surf_top - surf_top 必不为 0（旧版用 first_line 基准，
             # 向上小幅滚动 first_line 不变导致 delta==0、顶部带没补绘 → 空白）。
-            delta = new_surf_top - surf_top
-            if abs(delta) <= surf_h:
+            delta = new_surf_top - surf_top  # 逻辑坐标差
+            if abs(delta) <= surf_h_logical:
                 try:
-                    tmp = cairo.ImageSurface(cairo.Format.ARGB32, int(width), int(surf_h))
-                    tctx = cairo.Context(tmp)
+                    pw = int(width * scale)
+                    ph = int(surf_h_logical * scale)
+                    tmp = cairo.ImageSurface(cairo.Format.ARGB32, pw, ph)
+                    tctx = cairo.Context(tmp)  # 物理坐标系（不 scale）
                     # 1) 平移旧内容到新位置（保留已画且行号正确的内容）。
-                    tctx.set_source_surface(cache[3], 0, delta)
+                    #    旧 surface 是物理像素，故偏移用 delta*scale（物理）。
+                    tctx.set_source_surface(cache[3], 0, delta * scale)
                     tctx.paint()
-                    # 2) 补绘露出带。无论向上(delta<0)还是向下(delta>0)，旧内容
-                    #    平移后填满整高，但露出带（视口顶超出旧 surface 的部分）
-                    #    必须重绘以刷新当前行高亮/诊断色条等随光标变化的状态。
-                    #    露出带 = [min(surf_top,new_surf_top), max(surf_top,new_surf_top)]
-                    #    即高度 abs(delta) 的条带，位于 new_surf_top 侧（向上滚动）
-                    #    或 surf_top 侧（向下滚动）。
+                    # 2) 补绘露出带（物理矩形）。无论向上(delta<0)还是向下
+                    #    (delta>0)，旧内容平移后填满整高，露出带必须重绘以刷新
+                    #    当前行高亮/诊断色条等随光标变化的状态。
                     tctx.save()
                     if delta >= 0:
-                        # 向下滚动 delta>0：旧内容上移（平移 +delta），顶部旧内容被裁，
-                        # 底部 [surf_top+surf_h, new_surf_top+surf_h] 露出，
-                        # 相对 tmp 顶 = surf_h - delta，高度 delta。
-                        tctx.rectangle(0, int(surf_h - delta), int(width), int(delta))
+                        # 向下滚动：底部 [surf_top+surf_h, new_surf_top+surf_h] 露出。
+                        tctx.rectangle(0, int(ph - delta * scale), pw, int(delta * scale))
                     else:
-                        # 向上滚动 delta<0：旧内容下移（平移 delta），底部旧内容被裁，
-                        # 顶部 [new_surf_top, surf_top] 露出，相对 tmp 顶 = 0，高度 -delta。
-                        tctx.rectangle(0, 0, int(width), int(-delta))
+                        # 向上滚动：顶部 [new_surf_top, surf_top] 露出。
+                        tctx.rectangle(0, 0, pw, int(-delta * scale))
                     tctx.clip()
-                    # 从露出带首行起，相对 surface 顶 new_surf_top 绘制，
-                    # region 高度传 surf_h 使循环扫到带底（只可见区那几行重绘）。
-                    self._paint_line_region(tctx, width, band_line, new_surf_top, surf_h, scroll_top - margin)
+                    # 3) 切回逻辑坐标补绘露出带行号（clip 已固化为设备空间，
+                    #    不受后续 scale 影响）。surface 顶文档 y 必须为 new_surf_top
+                    #    （已对齐到行边界），与整块重建分支保持一致；若误传
+                    #    scroll_top - margin 会让行号按错误基准重绘、位置错乱。
+                    tctx.scale(scale, scale)
+                    self._paint_line_region(tctx, width, band_line, new_surf_top, surf_h_logical, new_surf_top)
                     tctx.restore()
-                    self._gutter_cache = (band_line, height, new_surf_top, tmp)
-                    ctx.set_source_surface(tmp, 0, new_surf_top - scroll_top)
+                    self._gutter_cache = (band_line, height, new_surf_top, tmp, scale, surf_h_logical)
+                    # 同命中分支：逻辑偏移 + scale(1/scale) 抵消 device_scale。
+                    ctx.save()
+                    ctx.translate(0, new_surf_top - scroll_top)
+                    ctx.scale(1.0 / scale, 1.0 / scale)
+                    ctx.set_source_surface(tmp, 0, 0)
                     ctx.paint()
+                    ctx.restore()
                     return
                 except Exception:
                     # 增量异常：落整块重建兜底。
                     pass
 
-        # 整块重建（缓存为空 / 尺寸变化 / 跨太多带 / 增量异常）。
+        # 整块重建（缓存为空 / 尺寸变化 / scale 变化 / 跨太多带 / 增量异常）。
         try:
-            surface = cairo.ImageSurface(cairo.Format.ARGB32, int(width), int(max(surface_h, 1)))
+            pw = int(width * scale)
+            ph = int(max(surface_h * scale, 1))
+            surface = cairo.ImageSurface(cairo.Format.ARGB32, pw, ph)
             # 先存缓存，确保即使绘制中途因 buffer 并发修改抛异常，surface 也已
             # 可用，下一帧平移命中而非无限重建。
-            self._gutter_cache = (band_line, height, new_surf_top, surface)
+            self._gutter_cache = (band_line, height, new_surf_top, surface, scale, surface_h)
             sctx = cairo.Context(surface)
-            self._paint_line_region(sctx, width, band_line, new_surf_top, surface_h, scroll_top - margin)
-            ctx.set_source_surface(surface, 0, new_surf_top - scroll_top)
+            sctx.scale(scale, scale)  # 逻辑坐标系：_paint_line_region 内全用逻辑坐标
+            self._paint_line_region(sctx, width, band_line, new_surf_top, surface_h, new_surf_top)
+            # 逻辑偏移 + scale(1/scale) 抵消 device_scale，物理像素 1:1 落位。
+            ctx.save()
+            ctx.translate(0, new_surf_top - scroll_top)
+            ctx.scale(1.0 / scale, 1.0 / scale)
+            ctx.set_source_surface(surface, 0, 0)
             ctx.paint()
+            ctx.restore()
         except Exception:
             # 绘制彻底失败：清空缓存，下次重建，避免缓存到半截 surface。
             self._gutter_cache = None
@@ -772,16 +805,23 @@ class Gutter(object):
 
     def _get_folding_icon_node(self, icon_name, size):
         # 把系统图标（symbolic）渲染成 Gsk.RenderNode 并缓存，避免每帧重复
-        # lookup + snapshot。size 跟随字符宽度变化，按 (名称, 尺寸) 缓存即可。
-        key = (icon_name, size)
+        # lookup + snapshot。纹理按设备物理像素（size*scale）渲染，绘制时
+        # cairo 上下文已含 scale，1:1 映射即对齐设备像素，HiDPI/分数缩放不发虚
+        # （与 _get_newline_icon_node 一致）。缓存 key 含 scale，避免不同缩放
+        # 复用错误纹理。
+        scale = self.source_view.get_scale_factor() or 1
+        key = (icon_name, size, scale)
         node = self._folding_icon_nodes.get(key)
         if node is not None:
             return node
         theme = Gtk.IconTheme.get_for_display(self.source_view.get_display())
-        paintable = theme.lookup_icon(icon_name, None, size, 1,
+        paintable = theme.lookup_icon(icon_name, None, size, scale,
                                       Gtk.TextDirection.NONE, Gtk.IconLookupFlags(0))
+        if paintable is None:
+            return None
+        pixel_size = size * scale
         snapshot = Gtk.Snapshot()
-        paintable.snapshot(snapshot, size, size)
+        paintable.snapshot(snapshot, pixel_size, pixel_size)
         node = snapshot.to_node()
         self._folding_icon_nodes[key] = node
         return node
@@ -886,18 +926,23 @@ class Gutter(object):
             ctx.restore()
 
     def _get_bookmark_icon_node(self, icon_name, size):
-        """Render a bookmark icon as a cached Gsk.RenderNode."""
-        key = (icon_name, size)
+        """Render a bookmark icon as a cached Gsk.RenderNode.
+
+        纹理按设备物理像素（size*scale）渲染，缓存 key 含 scale，与折叠图标
+        保持一致，确保 HiDPI/分数缩放下图标清晰。"""
+        scale = self.source_view.get_scale_factor() or 1
+        key = (icon_name, size, scale)
         node = self._bookmark_icon_nodes.get(key)
         if node is not None:
             return node
         theme = Gtk.IconTheme.get_for_display(self.source_view.get_display())
-        paintable = theme.lookup_icon(icon_name, None, size, 1,
+        paintable = theme.lookup_icon(icon_name, None, size, scale,
                                       Gtk.TextDirection.NONE, Gtk.IconLookupFlags(0))
         if paintable is None:
             return None
+        pixel_size = size * scale
         snapshot = Gtk.Snapshot()
-        paintable.snapshot(snapshot, size, size)
+        paintable.snapshot(snapshot, pixel_size, pixel_size)
         node = snapshot.to_node()
         self._bookmark_icon_nodes[key] = node
         return node
