@@ -278,8 +278,10 @@ class StickyScroll(Observable):
             self._offset = 0
 
     def _update_height(self):
+        # 行高与编辑区保持一致：直接用编辑器单行实际高度，不再额外放大
+        # （原实现用 1.4 倍，导致 sticky 每行比编辑器高、错位）。
         char_height = FontManager.get_line_height(self.source_view)
-        self._section_height = max(char_height * 1.4, 24)
+        self._section_height = char_height
         count = len(self.current_sections)
         if self._next_section is not None and self._offset > 0:
             count += 1
@@ -327,25 +329,29 @@ class StickyScroll(Observable):
             if entry_height > 0:
                 self._draw_section(ctx, self._next_section, 0, y_cursor, width, entry_height, fg, bg, alpha, len(self.current_sections) > 0)
 
+        # 最底部一条分割线：仅整体底边绘制，用于与下方编辑区内容分隔，
+        # 行间不画（已在 _draw_section 中移除）。用前景色做柔和细分隔。
+        if height > 0:
+            border_color = Gdk.RGBA()
+            if fg is not None:
+                border_color = Gdk.RGBA(red=fg.red, green=fg.green, blue=fg.blue, alpha=fg.alpha)
+            border_color.alpha = 0.3
+            Gdk.cairo_set_source_rgba(ctx, border_color)
+            ctx.rectangle(0, height - 1, width, 1)
+            ctx.fill()
+
         ctx.restore()
 
     def _draw_section(self, ctx, section, x, y, width, height, fg, bg, alpha, is_parent):
         section_type, title, _, _, level = section
 
+        # 不透明背景：直接用编辑区背景色填满，不透明度恒为 1.0，
+        # 不再区分父/子级做 0.85 半透明，也不再随滚动淡出而透明。
         bg_color = Gdk.RGBA()
         if bg is not None:
-            bg_color = Gdk.RGBA(red=bg.red, green=bg.green, blue=bg.blue, alpha=bg.alpha)
-        bg_color.alpha = (0.85 if is_parent else 1.0) * alpha
+            bg_color = Gdk.RGBA(red=bg.red, green=bg.green, blue=bg.blue, alpha=1.0)
         Gdk.cairo_set_source_rgba(ctx, bg_color)
         ctx.rectangle(x, y, width, height)
-        ctx.fill()
-
-        border_color = Gdk.RGBA()
-        if fg is not None:
-            border_color = Gdk.RGBA(red=fg.red, green=fg.green, blue=fg.blue, alpha=fg.alpha)
-        border_color.alpha = 0.15 * alpha
-        Gdk.cairo_set_source_rgba(ctx, border_color)
-        ctx.rectangle(x, y + height - 1, width, 1)
         ctx.fill()
 
         font_desc = self.source_view.get_pango_context().get_font_description()
