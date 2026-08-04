@@ -6,6 +6,8 @@
 
 [English](README.md)
 
+---
+
 一款简单但功能完整的 LaTeX 编辑器，支持 Linux 和 Windows，基于 Python 和 GTK 编写。（Setzer 的一个 fork。）
 
 > 这是 [Setzer](https://github.com/cvfosammmm/Setzer) 的一个 fork，原作者为 cvfosammmm。
