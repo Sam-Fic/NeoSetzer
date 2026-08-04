@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+from gi.repository import GLib
+
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
@@ -57,6 +59,15 @@ class ParserLaTeX(Observable):
 
         self.last_edit = None
 
+        # 解析防抖：连续输入期间不跑增量解析，停止输入 ~DEBOUNCE_MS 后再刷新。
+        # 打字流畅性的主要瓶颈不是增量解析本身（它只算修改区），而是每次按键
+        # 都 emit 'finished_parsing' 触发的下游连锁——尤其 sticky_scroll 的 O(n²)
+        # 重算（见 sticky_scroll.py 注释）。防抖把「每键一次」降到「每停一次」。
+        self._parse_timer = None
+        # 防抖窗口内最早编辑起点（行/偏移最小），_flush 时以它为界重算其后整段。
+        self._pending_first = None
+        self._DEBOUNCE_MS = 200
+
         # 模块加载时一次性解析的正则对象，避免热路径里每次 finditer 都查表。
         self._other_symbols_regex = ServiceLocator.get_regex_object(_OTHER_SYMBOLS_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
@@ -67,155 +78,47 @@ class ParserLaTeX(Observable):
     #@timer
     def on_text_deleted(self, buffer, start_iter, end_iter):
         self.last_edit = ('delete', start_iter, end_iter)
-
-        offset_start = start_iter.get_offset()
-        offset_end = end_iter.get_offset()
-        line_start = start_iter.get_line()
-        line_end = end_iter.get_line()
-        char_count = buffer.get_char_count()
-        _, before_iter = buffer.get_iter_at_line(line_start)
-        _, after_iter = buffer.get_iter_at_line(line_end + 1)
-        if not after_iter.get_offset() == char_count:
-            after_iter.backward_char()
-
-        text_length = offset_end - offset_start
-        deleted_text = buffer.get_text(start_iter, end_iter, True)
-        deleted_line_count = deleted_text.count('\n')
-        text_before = buffer.get_text(before_iter, start_iter, True)
-        text_after = buffer.get_text(end_iter, after_iter, True)
-        offset_line_start = before_iter.get_offset()
-        offset_line_end = offset_end + len(text_after)
-        self.text_length = char_count - text_length
-        modified_text = text_before + text_after
-
-        # 删除后修改区为 [line_start, line_start]（删除区域塌缩到一行），
-        # 故 shift 阈值取 line_end：行号 > line_end 的匹配才需要平移。
-        block_symbol_matches, other_symbols = self._rebuild_matches(
-            modified_text, line_start, offset_line_start,
-            shift_line_threshold=line_end,
-            shift_offset_threshold=offset_line_end,
-            line_delta=-deleted_line_count,
-            offset_delta=-text_length,
-        )
-
-        self.block_symbol_matches = block_symbol_matches
-        self.number_of_lines = self.number_of_lines - deleted_line_count
-        self.parse_blocks()
-
-        self.other_symbols = other_symbols
-        self.parse_symbols()
-
-        self.add_change_code('finished_parsing')
+        self._schedule_parsing(start_iter.get_line(), start_iter.get_offset())
 
     #@timer
     def on_insert_text(self, buffer, location_iter, text, text_length):
         self.last_edit = ('insert', location_iter, text, text_length)
+        self._schedule_parsing(location_iter.get_line(), location_iter.get_offset())
 
-        text_length = len(text)
-        offset = location_iter.get_offset()
-        new_line_count = text.count('\n')
-        line_start = location_iter.get_line()
-        char_count = buffer.get_char_count()
-        _, before_iter = buffer.get_iter_at_line(line_start)
-        _, after_iter = buffer.get_iter_at_line(line_start + 1)
-        if not after_iter.get_offset() == char_count:
-            after_iter.backward_char()
+    def stop(self):
+        '''文档关闭时取消挂起的防抖定时器，避免对已销毁的 buffer 触发解析。'''
+        if self._parse_timer is not None:
+            GLib.source_remove(self._parse_timer)
+            self._parse_timer = None
+        self._pending_first = None
 
-        text_before = buffer.get_text(before_iter, location_iter, True)
-        offset_line_start = before_iter.get_offset()
-        text_after = buffer.get_text(location_iter, after_iter, True)
-        offset_line_end = offset + len(text_after)
-        self.text_length = char_count + text_length
-        modified_text = text_before + text + text_after
+    def _schedule_parsing(self, line_start, offset_start):
+        '''防抖：记录窗口内最早编辑起点，重启动时器。连续输入（间隔 <
+        _DEBOUNCE_MS）只保留最后一次定时器，停止输入后才真正解析一次。'''
 
-        # 插入只发生在 line_start 一行，无「塌缩」概念，故 shift 阈值取
-        # line_start：行号 > line_start 的匹配需要平移（行号 == line_start
-        # 的匹配落入修改区，由 _rebuild_matches 重新解析覆盖）。
-        block_symbol_matches, other_symbols = self._rebuild_matches(
-            modified_text, line_start, offset_line_start,
-            shift_line_threshold=line_start,
-            shift_offset_threshold=offset_line_end,
-            line_delta=new_line_count,
-            offset_delta=text_length,
-        )
+        if self._pending_first is None or (line_start, offset_start) < self._pending_first:
+            self._pending_first = (line_start, offset_start)
+        if self._parse_timer is not None:
+            GLib.source_remove(self._parse_timer)
+        self._parse_timer = GLib.timeout_add(self._DEBOUNCE_MS, self._flush_parsing)
 
-        self.block_symbol_matches = block_symbol_matches
-        self.number_of_lines = self.number_of_lines + new_line_count
-        self.parse_blocks()
+    def _flush_parsing(self):
+        '''防抖到期：对当前 buffer 全文重算一次并统一 emit 一次
+        'finished_parsing'。连续输入期间不发通知，停止输入后才跑一次全量
+        解析——把「每键一次 O(全文档) 解析 + 下游 O(n²) 刷新」降到「每停一次」，
+        这正是 GNOME Text Editor 等主流编辑器采用的策略。全量重算保证与
+        initial_parse 完全一致的正确性，不依赖旧状态做增量合并（后者在多
+        次编辑下坐标系易漂移出错）。'''
 
-        self.other_symbols = other_symbols
-        self.parse_symbols()
+        self._parse_timer = None
+        if self._pending_first is None:
+            return
+        self._pending_first = None
 
-        self.add_change_code('finished_parsing')
+        buffer = self.document.source_buffer
+        text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
+        self.initial_parse(text)
 
-    def _rebuild_matches(self, modified_text, line_start, offset_line_start,
-                         shift_line_threshold, shift_offset_threshold,
-                         line_delta, offset_delta):
-        '''重建 block_symbol_matches 与 other_symbols，逻辑由
-        on_insert_text / on_text_deleted 共享，避免两处维护 6 个对称循环。
-
-        三步：
-        1. 保留修改区之前的匹配（行号 < line_start，offset < offset_line_start）。
-        2. 重新解析修改区文本，得到修改行内的全新匹配。
-        3. 平移修改区之后的匹配：行号 > shift_line_threshold 的块级匹配
-           按 (line_delta, offset_delta) 平移；offset > shift_offset_threshold
-           的文档级匹配按 offset_delta 平移。
-
-        两个调用方的差异仅在阈值与 delta 符号：
-        - on_insert_text: shift_line_threshold = line_start, delta 为正
-          （行号 == line_start 的匹配落入修改区被重解析覆盖，> line_start
-          的需要平移）。
-        - on_text_deleted: shift_line_threshold = line_end, delta 为负
-          （删除区域 [line_start, line_end] 内的匹配被丢弃，> line_end
-          的需要平移）。
-
-        Args:
-            modified_text: 修改区文本（修改后的整行内容），供重解析。
-            line_start, offset_line_start: 修改区起点的行号与字节偏移。
-            shift_line_threshold: 块级匹配平移的行号下界（exclusive）。
-            shift_offset_threshold: 文档级匹配平移的偏移下界（exclusive）。
-            line_delta, offset_delta: 平移量（insert 为正，delete 为负）。
-
-        Returns:
-            (block_symbol_matches_dict, other_symbols_list)
-        '''
-        # 缓存旧匹配列表引用：原代码在 6 个循环中各做一次
-        # self.block_symbol_matches['xxx'] / self.other_symbols 属性链查找
-        # （self.__dict__ → dict → key）。提到局部变量后走 LOAD_FAST。
-        old_begin_or_end = self.block_symbol_matches['begin_or_end']
-        old_others = self.block_symbol_matches['others']
-        old_other_symbols = self.other_symbols
-
-        # 1. 保留修改区之前的匹配（不变）
-        new_begin_or_end = [match for match in old_begin_or_end if match[1] < line_start]
-        new_others = [match for match in old_others if match[1] < line_start]
-        # other_symbols 存储为 2-tuple (match, offset)；重建以剥离可能的
-        # 历史结构（防御性，与原实现一致）。
-        new_other_symbols = [(match[0], match[1]) for match in old_other_symbols
-                             if match[1] < offset_line_start]
-
-        # 2. 重新解析修改区
-        additional_matches = self.parse_for_blocks(modified_text, line_start, offset_line_start)
-        new_begin_or_end += additional_matches['begin_or_end']
-        new_others += additional_matches['others']
-        for match in self._other_symbols_regex.finditer(modified_text):
-            new_other_symbols.append((match, match.start() + offset_line_start))
-
-        # 3. 平移修改区之后的匹配
-        for match in old_begin_or_end:
-            if match[1] > shift_line_threshold:
-                new_begin_or_end.append((match[0], match[1] + line_delta, match[2] + offset_delta))
-        for match in old_others:
-            if match[1] > shift_line_threshold:
-                new_others.append((match[0], match[1] + line_delta, match[2] + offset_delta))
-        # other_symbols 只有 offset（无行号计数器），只平移 offset。
-        for match in old_other_symbols:
-            if match[1] > shift_offset_threshold:
-                new_other_symbols.append((match[0], match[1] + offset_delta))
-
-        return {'begin_or_end': new_begin_or_end, 'others': new_others}, new_other_symbols
-
-    #@timer
     def parse_for_blocks(self, text, line_start, offset_line_start):
         block_symbol_matches = {'begin_or_end': list(), 'others': list()}
         counter = line_start

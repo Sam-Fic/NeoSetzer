@@ -21,7 +21,8 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo, GtkSource
 
-import math, time, os
+import math
+import cairo
 
 from setzer.helpers.timer import timer
 from setzer.app.service_locator import ServiceLocator
@@ -147,6 +148,15 @@ class Gutter(object):
         self.source_view.set_has_tooltip(True)
         self.source_view.connect('query-tooltip', self.on_query_tooltip)
 
+        # 离屏缓存：把整个 gutter（背景+行号+折叠+书签+诊断色条）绘到
+        # cairo.ImageSurface，覆盖 [surf_top_doc_y, surf_top_doc_y + surf_h]，
+        # surf_h = 视口高 + 2*MARGIN 行缓冲。滚动时优先平移旧 surface（命中）或
+        # 增量补绘露出带（patch），避免每帧逐行 Pango 重绘。MARGIN 缓冲带保证
+        # 小幅滚动不跨带、不重建；跨带时基于「带顶行」基准平移，向上/向下滚动
+        # 均正确覆盖，绝不空白（修复旧版 delta==0 顶部空白 bug）。
+        self._gutter_cache = None  # (first_line, height, surface_top_doc_y, surface)
+        self._GUTTER_MARGIN = 15
+
     def on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         '''鼠标悬停诊断行时返回该行的错误/警告描述文本。'''
         # gutter 上的 (x, y) 落在左侧窄条，x 对定位行无用：用 source_view
@@ -200,6 +210,10 @@ class Gutter(object):
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
+        # 行号显隐/当前行高亮/折叠 改变 gutter 静态内容，离屏缓存需失效。
+        if item in ('show_line_numbers', 'highlight_current_line', 'enable_code_folding'):
+            self._gutter_cache = None
+
         if item == 'show_line_numbers':
             self.line_numbers_visible = self.settings.get_value('preferences', 'show_line_numbers')
             self.update_hovered_folding_region()
@@ -221,6 +235,7 @@ class Gutter(object):
 
     def on_scheme_changed(self, buffer, pspec):
         self._scheme_colors_cache = None
+        self._gutter_cache = None
         self.drawing_area.queue_draw()
 
     def on_cursor_change(self, document):
@@ -256,6 +271,8 @@ class Gutter(object):
 
     def _refresh_idle(self):
         self._refresh_idle_id = None
+        # 文档/光标/折叠/书签/诊断变化都使离屏缓存内容过期，必须重建。
+        self._gutter_cache = None
         self.update_hovered_folding_region()
         self.update_size()
         self.drawing_area.queue_draw()
@@ -339,6 +356,9 @@ class Gutter(object):
             self._folding_icon_nodes.clear()
             self._newline_icon_nodes.clear()
             self._bookmark_icon_nodes.clear()
+            # 离屏缓存的 surface 像素基于旧行高，字体变化必须失效重建，
+            # 否则行号/图标按旧行高渲染错位一帧。
+            self._gutter_cache = None
 
     def update_size(self, line_count=None):
         self._refresh_font_metrics_if_changed()
@@ -397,85 +417,190 @@ class Gutter(object):
         ctx.rectangle(0, 0, width, height)
         ctx.clip()
 
-        self.draw_background_and_border(ctx, width, height)
+        viewport_h = self.source_view.get_allocated_height()
+        if not viewport_h or viewport_h <= 0:
+            viewport_h = height if (height and height > 0) else 600
+        scroll_top = self.adjustment.get_value()
+
+        # 用离屏缓存绘制静态内容（背景+行号+折叠+书签+诊断）。命中/增量补绘
+        # 避免逐行 Pango 重绘；向上/向下滚动均正确覆盖，绝不空白。
+        self._draw_cached_gutter(ctx, int(width), int(viewport_h), scroll_top)
+
+        # 叠加层（不缓存，便宜且频繁变化）：悬停折叠区 + 行号关闭时的当前行高亮。
+        self.draw_hovered_folding_region(ctx)
+        if not self.line_numbers_visible and self.highlight_current_line and not self.source_buffer.get_has_selection():
+            self._draw_current_line_highlight_full(ctx, width)
+
+        ctx.restore()
+
+    def _gutter_surface_top(self, line0_doc_y):
+        '''surface 顶文档 y：缓冲带首行的文档 y（已在调用处对齐到行边界）。'''
+        return line0_doc_y
+
+    def _draw_cached_gutter(self, ctx, width, height, scroll_top):
+        '''离屏缓存绘制。核心：scroll_top 不在缓冲带内时平移旧 surface + 补绘
+        露出带；向上/向下滚动都基于「带顶行」基准，保证 delta 跨带时不为 0，
+        旧内容平移后正确填满整高，露出带行号数字对齐正确，绝不空白。'''
+        if width <= 0 or height <= 0:
+            return
+
+        cache = self._gutter_cache
+        # 计算缓冲带顶所在行（scroll_top 上移 MARGIN 行），作为 surface 顶基准。
+        # 用 get_line_at_y 对齐到显示行边界，确保 surface 顶与行号不出现亚像素错位。
+        try:
+            margin = self._GUTTER_MARGIN * (self.line_height or 18)
+            band_top_iter, _ = self.source_view.get_line_at_y(scroll_top - margin)
+            band_line = band_top_iter.get_line()
+            # 取该逻辑行首显示行的文档 y 作 surface 顶。
+            loc0 = self.source_view.get_iter_location(band_top_iter)
+            line0_doc_y = loc0.y
+        except Exception:
+            line0_doc_y = None
+
+        if line0_doc_y is None:
+            # buffer 正被并发修改，取不到带顶：直接逐行降级绘制当前可见区，
+            # 不依赖缓存，保证不空白。
+            self._paint_line_region(ctx, width, None, scroll_top, height, scroll_top)
+            return
+
+        new_surf_top = line0_doc_y
+        surface_h = height + 2 * margin
+
+        if cache is not None and cache[1] == height:
+            surf_top = cache[2]
+            surf_h = cache[3].get_height()
+            # 命中：可见区完全落在 surface 内 → 直接平移 paint，O(0.01ms)。
+            if scroll_top >= surf_top and scroll_top + height <= surf_top + surf_h:
+                ctx.set_source_surface(cache[3], 0, surf_top - scroll_top)
+                ctx.paint()
+                return
+
+            # 跨出缓冲带：增量补绘。new_surf_top 随 scroll_top 单调，跨带时
+            # delta = new_surf_top - surf_top 必不为 0（旧版用 first_line 基准，
+            # 向上小幅滚动 first_line 不变导致 delta==0、顶部带没补绘 → 空白）。
+            delta = new_surf_top - surf_top
+            if abs(delta) <= surf_h:
+                try:
+                    tmp = cairo.ImageSurface(cairo.Format.ARGB32, int(width), int(surf_h))
+                    tctx = cairo.Context(tmp)
+                    # 1) 平移旧内容到新位置（保留已画且行号正确的内容）。
+                    tctx.set_source_surface(cache[3], 0, delta)
+                    tctx.paint()
+                    # 2) 补绘露出带。无论向上(delta<0)还是向下(delta>0)，旧内容
+                    #    平移后填满整高，但露出带（视口顶超出旧 surface 的部分）
+                    #    必须重绘以刷新当前行高亮/诊断色条等随光标变化的状态。
+                    #    露出带 = [min(surf_top,new_surf_top), max(surf_top,new_surf_top)]
+                    #    即高度 abs(delta) 的条带，位于 new_surf_top 侧（向上滚动）
+                    #    或 surf_top 侧（向下滚动）。
+                    tctx.save()
+                    if delta >= 0:
+                        # 向下滚动 delta>0：旧内容上移（平移 +delta），顶部旧内容被裁，
+                        # 底部 [surf_top+surf_h, new_surf_top+surf_h] 露出，
+                        # 相对 tmp 顶 = surf_h - delta，高度 delta。
+                        tctx.rectangle(0, int(surf_h - delta), int(width), int(delta))
+                    else:
+                        # 向上滚动 delta<0：旧内容下移（平移 delta），底部旧内容被裁，
+                        # 顶部 [new_surf_top, surf_top] 露出，相对 tmp 顶 = 0，高度 -delta。
+                        tctx.rectangle(0, 0, int(width), int(-delta))
+                    tctx.clip()
+                    # 从露出带首行起，相对 surface 顶 new_surf_top 绘制，
+                    # region 高度传 surf_h 使循环扫到带底（只可见区那几行重绘）。
+                    self._paint_line_region(tctx, width, band_line, new_surf_top, surf_h, scroll_top - margin)
+                    tctx.restore()
+                    self._gutter_cache = (band_line, height, new_surf_top, tmp)
+                    ctx.set_source_surface(tmp, 0, new_surf_top - scroll_top)
+                    ctx.paint()
+                    return
+                except Exception:
+                    # 增量异常：落整块重建兜底。
+                    pass
+
+        # 整块重建（缓存为空 / 尺寸变化 / 跨太多带 / 增量异常）。
+        try:
+            surface = cairo.ImageSurface(cairo.Format.ARGB32, int(width), int(max(surface_h, 1)))
+            # 先存缓存，确保即使绘制中途因 buffer 并发修改抛异常，surface 也已
+            # 可用，下一帧平移命中而非无限重建。
+            self._gutter_cache = (band_line, height, new_surf_top, surface)
+            sctx = cairo.Context(surface)
+            self._paint_line_region(sctx, width, band_line, new_surf_top, surface_h, scroll_top - margin)
+            ctx.set_source_surface(surface, 0, new_surf_top - scroll_top)
+            ctx.paint()
+        except Exception:
+            # 绘制彻底失败：清空缓存，下次重建，避免缓存到半截 surface。
+            self._gutter_cache = None
+
+    def _paint_line_region(self, ctx, width, start_line, surface_top, region_height, scroll_top_hint):
+        '''在 ctx（离屏 surface 或主 ctx）上，相对 surface_top 绘制从 start_line
+        起的行号/折叠/书签/诊断。surface_top 为该 surface 顶对应的文档 y，
+        绘制偏移 = loc.y - surface_top。scroll_top_hint 仅用于跳过视口外的折叠判定，
+        保证命中/补绘时行号与当前可见区一致（向上滚动也正确）。'''
+        self.draw_background_and_border(ctx, width, int(region_height))
         fg, _ = self._get_scheme_colors()
         Gdk.cairo_set_source_rgba(ctx, fg)
 
-        # 缓存 source_view 到局部变量：循环内每轮访问 2 次（get_line_yrange +
-        # get_line_at_y），每次 self.source_view 经 __dict__ 哈希。50 可见行
-        # × 60fps = 6000 次/秒无谓查找。
         source_view = self.source_view
-        # 光标所在行始终作为“当前行”加粗，无论是否有文本选区。
-        # get_insert() 返回单一光标位置，get_line() 返回单一行号，
-        # current_line == line 只会匹配一行，不会因选区而多行加粗。
-        # 之前曾误以为选区会导致多行误判而加 has_selection 短路，反而
-        # 让加粗在选区时全部消失——点击/选中/取消选区时加粗时有时无，
-        # 行为不可预测。恢复为始终加粗光标行，规则清晰一致。
         current_line = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert()).get_line()
-        # 提前计算循环上界，避免每次循环都调用 adjustment getter（C 调用）。
-        scroll_top = self.adjustment.get_value()
-        scroll_bottom = scroll_top + height
-        # 起始可见行：从滚动顶部对应的逻辑行开始绘制。
-        line_iter, _ = source_view.get_line_at_y(scroll_top)
-        total_lines = self.source_buffer.get_end_iter().get_line()
-        # 逐逻辑行遍历；每个逻辑行内再按“显示行”（display line，即自动换行
-        # 产生的视觉续行）细分。Gtk.TextView.get_line_yrange 返回的是整个逻辑
-        # 行的高度（含所有续行），不能用于单显示行定位，因此这里用
-        # forward_display_line 遍历每个显示行，并用 get_iter_location 取得该
-        # 显示行真实的 y 与高度——这正是 Gtk 自身绘制文字所用的位置，图标
-        # 与行号据此居中能与文字精确对齐，也不会出现均匀划分的累积偏差。
+        try:
+            total_lines = self.source_buffer.get_end_iter().get_line()
+        except Exception:
+            return
+
+        if start_line is None:
+            line_iter, _ = source_view.get_line_at_y(scroll_top_hint)
+        else:
+            try:
+                line_iter = self.source_buffer.get_iter_at_line(start_line)[1]
+            except Exception:
+                return
+
+        bottom = surface_top + region_height
         while True:
-            line = line_iter.get_line()
+            try:
+                line = line_iter.get_line()
+            except Exception:
+                break
             if line > total_lines:
                 break
 
-            # 跳过被代码折叠隐藏的逻辑行。折叠区域通过 invisible_region tag
-            # 标记（从起始行行末到结束行之后），这些行在文本视图中不占空间，
-            # 但其行号仍会被 gutter 循环访问到，导致所有被折叠行的行号堆叠在
-            # 折叠边界处、糊成一片。
-            if line_iter.has_tag(self.document.code_folding.tag):
-                if line >= total_lines:
-                    break
-                line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
-                continue
+            # 跳过被代码折叠隐藏的逻辑行，避免行号堆叠糊成一片。
+            try:
+                if line_iter.has_tag(self.document.code_folding.tag):
+                    if line >= total_lines:
+                        break
+                    line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
+                    continue
+            except Exception:
+                break
 
             is_current = (current_line == line)
             cur = line_iter.copy()
             first = True
             while True:
-                loc = source_view.get_iter_location(cur)
-                drawing_offset = loc.y - scroll_top
+                try:
+                    loc = source_view.get_iter_location(cur)
+                except Exception:
+                    break
+                drawing_offset = loc.y - surface_top
                 row_height = loc.height
-                if drawing_offset > scroll_bottom:
-                    # 该逻辑行已完全位于视口下方，停止本逻辑行后续显示行。
+                if drawing_offset > bottom:
                     break
                 if drawing_offset + row_height >= 0:
                     if first:
-                        self.draw_line(ctx, line, is_current, drawing_offset, row_height, width)
+                        self.draw_line(ctx, line, is_current, drawing_offset, row_height, width, surface_top)
                     elif self.line_numbers_visible:
-                        # 自动换行产生的视觉续行：在续行首位置画换行符号，
-                        # 而非重复行号。
                         self.draw_newline_symbol(ctx, drawing_offset, row_height)
                 first = False
                 if not source_view.forward_display_line(cur):
                     break
-                # forward_display_line 会跨到下一逻辑行；必须限制在本逻辑行内，
-                # 否则会把后续行的显示行误判为续行而画上图标（如“每行都有图标”）。
                 if cur.get_line() != line:
                     break
 
-            # 跳到下一个逻辑行。
             if line >= total_lines:
                 break
-            line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
-
-        self.draw_hovered_folding_region(ctx)
-        # 行号关闭时，GtkSourceView 的行高亮不覆盖 left_margin，
-        # 在此补充绘制当前行高亮，延伸到文本区左边缘。
-        if not self.line_numbers_visible and self.highlight_current_line and not self.source_buffer.get_has_selection():
-            self._draw_current_line_highlight_full(ctx, width)
-
-        ctx.restore()
+            try:
+                line_iter = self.source_buffer.get_iter_at_line(line + 1)[1]
+            except Exception:
+                break
 
     def draw_background_and_border(self, ctx, width, height):
         fg, bg = self._get_scheme_colors()
@@ -552,9 +677,9 @@ class Gutter(object):
             cl_bg = ColorManager.get_ui_color('line_highlighting_color')
         return cl_bg
 
-    def draw_line(self, ctx, line, is_current, offset, line_height, width):
+    def draw_line(self, ctx, line, is_current, offset, line_height, width, scroll_base=None):
         if self.line_numbers_visible:
-            self.draw_line_number(ctx, line, is_current, offset, line_height, width)
+            self.draw_line_number(ctx, line, is_current, offset, line_height, width, scroll_base)
 
         if self.code_folding_visible:
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
@@ -568,9 +693,9 @@ class Gutter(object):
         # 真有诊断，没有就跳过整段（如同编辑 LaTeX 源码时没有红色边条）。
         diag = self.document.build_diagnostics
         if (line + 1) in diag.error_lines or (line + 1) in diag.warning_lines:
-            self.draw_build_diagnostics(ctx, line)
+            self.draw_build_diagnostics(ctx, line, scroll_base)
 
-    def draw_build_diagnostics(self, ctx, line):
+    def draw_build_diagnostics(self, ctx, line, scroll_base=None):
         error_lines = self.document.build_diagnostics.error_lines
         warning_lines = self.document.build_diagnostics.warning_lines
         if (line + 1) in error_lines:
@@ -583,13 +708,14 @@ class Gutter(object):
         # 用整条逻辑行的 slot 高度（与 current-line 高亮一致），覆盖自动换行的续行。
         found, line_start_iter = self.source_buffer.get_iter_at_line(line)
         yrange = self.source_view.get_line_yrange(line_start_iter)
-        slot_top = yrange.y - self.adjustment.get_value()
+        base = scroll_base if scroll_base is not None else self.adjustment.get_value()
+        slot_top = yrange.y - base
         bar_height = yrange.height
         ctx.rectangle(0, slot_top, 3, bar_height)
         Gdk.cairo_set_source_rgba(ctx, color)
         ctx.fill()
 
-    def draw_line_number(self, ctx, line, is_current, offset, line_height, width):
+    def draw_line_number(self, ctx, line, is_current, offset, line_height, width, scroll_base=None):
         fg, bg = self._get_scheme_colors()
 
         if is_current:
@@ -615,7 +741,8 @@ class Gutter(object):
             # 行的 yrange 跨所有视觉续行，高亮随之覆盖整条逻辑行。
             line_start_iter = self.source_buffer.get_iter_at_line(line)[1]
             yrange = self.source_view.get_line_yrange(line_start_iter)
-            slot_top = yrange.y - self.adjustment.get_value()
+            base = scroll_base if scroll_base is not None else self.adjustment.get_value()
+            slot_top = yrange.y - base
             ctx.rectangle(0, slot_top, width, yrange.height)
             ctx.fill()
             Gdk.cairo_set_source_rgba(ctx, fg)
