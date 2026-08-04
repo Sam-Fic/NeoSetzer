@@ -17,6 +17,18 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 
+import os
+import sys
+import time
+import traceback
+
+# 通知热路径里原本每次分发都要 `import time, sys, os, traceback` 并查一次
+# os.environ（每秒数百次按键 + 信号通知下纯属浪费）。提到模块级：import 是
+# 解释器级缓存命中，但仍要解析字节码；环境变量只在模块加载时查一次。
+_PROFILE_CODES = ('new_active_document', 'new_document', 'new_inactive_document')
+_TIMING = set(_PROFILE_CODES) if os.environ.get('SETZER_PROFILE') else frozenset()
+
+
 class Observable(object):
     ''' Can send observers messages if the inheriting class has
         changed. Observers can register with the classes and
@@ -38,8 +50,7 @@ class Observable(object):
         # set，回调内一旦改集合就抛 RuntimeError: Set changed size during
         # iteration，导致后续回调被吞掉且整个通知链中断。tuple() 拷贝 O(k)
         # 仅与已注册观察者数量相关，远小于一次回调本身的代价；不可变更快于 list。
-        import time as _t, sys as _sys, os as _os, traceback as _tb
-        _timing = _os.environ.get('SETZER_PROFILE') and change_code in ('new_active_document', 'new_document', 'new_inactive_document')
+        _timing = change_code in _TIMING
         for callback in tuple(callbacks):
             # 单个回调异常不能中断通知链：例如 10 个观察者监听 settings_changed，
             # 第 3 个因 KeyError 崩溃不应让第 4-10 个收不到通知——否则会导致
@@ -48,15 +59,15 @@ class Observable(object):
             # 不应假设有 UI 可交互，且 notify 可能发生在窗口构造早期。
             try:
                 if _timing:
-                    _s = _t.perf_counter()
+                    _s = time.perf_counter()
                 if parameter is not None:
                     callback(self, parameter)
                 else:
                     callback(self)
                 if _timing:
-                    _d = (_t.perf_counter() - _s) * 1000
+                    _d = (time.perf_counter() - _s) * 1000
                     if _d > 1:
-                        print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=_sys.stderr)
+                        print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=sys.stderr)
             except Exception:
                 print(f'[Observable] callback {getattr(callback, "__qualname__", callback)!r} for {change_code!r} raised:', file=_sys.stderr)
                 _tb.print_exc(file=_sys.stderr)

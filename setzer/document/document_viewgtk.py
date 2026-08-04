@@ -55,13 +55,20 @@ class DocumentView(Gtk.Box):
         self.source_view.set_left_margin(12)
         self.source_view.set_right_margin(12)
 
+        # 行号交给 GtkSourceView 原生绘制（C 层，零 Python 开销，永不空白/卡顿）。
+        # 由 Gutter 在初始化时根据 show_line_numbers 设置启用，见 gutter.py。
+        self.source_view.set_show_line_numbers(
+            self.document.settings.get_value('preferences', 'show_line_numbers'))
+
         self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_child(self.source_view)
         self.scrolled_window.set_hexpand(True)
 
-        # margin: 左侧空白容器，gutter（行号等）通过 set_size_request 调整宽度
+        # margin：左侧占位框。原生行号已在 source_view 内部绘制，故不再为自绘
+        # 行号预留宽度；此处保留极窄占位仅作兼容（宽度由 Gutter 动态设为 0）。
         self.margin = Gtk.Box()
         self.margin.set_hexpand(False)
+        self.margin.set_size_request(0, -1)
 
         self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.hbox.append(self.margin)

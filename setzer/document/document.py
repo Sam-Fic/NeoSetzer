@@ -296,6 +296,15 @@ class Document(Observable):
             except (TypeError, KeyError, AttributeError):
                 pass
         # LaTeX 专属模块,可能尚未构造。
+        # parser 挂有防抖定时器(GLib.timeout_add),需取消以免对已关闭文档
+        # 的 buffer 触发解析回调。
+        parser = getattr(self, 'parser', None)
+        if parser is not None and hasattr(parser, 'stop'):
+            try:
+                parser.stop()
+            except Exception:
+                pass
+
         # update_matching_blocks 仅连接 settings,断开即可。
         umb = getattr(self, 'update_matching_blocks', None)
         if umb is not None:
