@@ -18,9 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GLib, GObject, Gdk, Gtk
-
-import time
+from gi.repository import GLib, Gdk, Gtk
 
 from setzer.helpers.observable import Observable
 
@@ -51,9 +49,12 @@ class ScrollingWidget(Observable):
         self.width, self.height = 0, 0
         self.cursor_x, self.cursor_y = None, None
         self.scrolling_multiplier = 2.5
-        # 跟踪当前减速动画的 timeout 源 ID,以便在 widget 销毁或发起新的
+        # 跟踪当前减速动画的 tick 回调 ID,以便在 widget 销毁或发起新的
         # 滚动时取消它,避免回调访问已释放的对象或在后台反复触发。
+        # 改用 add_tick_callback + FrameClock 驱动(对齐显示器刷新率),
+        # 取代原先 GObject.timeout_add(15ms) 的固定 66fps 上限及帧抖动。
         self._deceleration_id = None
+        self._decel_data = None
 
         self.view = Gtk.ScrolledWindow()
         self.view.set_overlay_scrolling(True)
@@ -158,6 +159,8 @@ class ScrollingWidget(Observable):
                 dy *= self.scrolling_multiplier
                 dx *= self.scrolling_multiplier
 
+            # 用户主动滚动时取消正在进行的惯性减速,避免两套位移叠加。
+            self.cancel_deceleration()
             self.adjustment_x.set_value(self.adjustment_x.get_value() + dx)
             self.adjustment_y.set_value(self.adjustment_y.get_value() + dy)
             # 已手动处理滚动,消费事件避免 ScrolledWindow 再次平移。
@@ -176,41 +179,66 @@ class ScrollingWidget(Observable):
 
     def on_decelerate(self, controller, vel_x, vel_y):
         if abs(vel_x) > 0 and abs(vel_y / vel_x) > 1: vel_x = 0
-
-        # 取消任何正在进行的减速动画,避免多个 timeout 同时驱动滚动
+        # 取消任何正在进行的减速动画,避免多个 tick 回调同时驱动滚动
         # (用户在减速期间再次滑动时会出现这种情况)。
         self.cancel_deceleration()
-        data = {'starting_time': time.time(), 'initial_position': self.scrolling_offset_y, 'position': self.scrolling_offset_y, 'vel_y': vel_y * self.scrolling_multiplier}
-        self.deceleration(data)
+        # 用 FrameClock 帧时间驱动,而非 wall-clock。记录起始帧时间用于
+        # 计算真实经过的帧数,使惯性速度与显示器刷新率无关(60/120/144Hz 一致)。
+        self._decel_data = {
+            'initial_position': self.scrolling_offset_y,
+            'position': self.scrolling_offset_y,
+            'vel_y': vel_y * self.scrolling_multiplier,
+            'last_frame_time': 0,
+        }
+        self._deceleration_id = self.content.add_tick_callback(self._decel_tick)
 
     def cancel_deceleration(self):
-        '''取消当前正在运行的减速动画 timeout。应在 widget 销毁时调用,
+        '''取消当前正在运行的减速动画 tick 回调。应在 widget 销毁时调用,
         以免回调继续访问已释放的 Gtk 对象。'''
         if self._deceleration_id is not None:
-            GLib.source_remove(self._deceleration_id)
+            self.content.remove_tick_callback(self._deceleration_id)
             self._deceleration_id = None
+        self._decel_data = None
 
-    def deceleration(self, data):
-        # 若已被取消(新滑动开始或 widget 销毁),立即停止。
-        if data['position'] != self.scrolling_offset_y: return False
+    def _decel_tick(self, widget, frame_clock):
+        '''由 FrameClock 每帧调用,驱动减速惯性滚动。
 
-        time_elapsed = time.time() - data['starting_time']
+        返回 True 继续下一帧,返回 False 停止并清理。使用 frame_clock 的
+        真实帧间隔计算位移,确保动画与显示器刷新率严格同步,消除
+        timeout_add 的帧率上限与抖动。'''
+        data = self._decel_data
+        if data is None:
+            self._deceleration_id = None
+            return False
+        # 首帧仅记录基准帧时间,不做位移(避免用异常的 dt)。
+        frame_time = frame_clock.get_frame_time()
+        if data['last_frame_time'] == 0:
+            data['last_frame_time'] = frame_time
+            return True
+        # 帧间隔(微秒)-> 秒。夹在合理区间,防止后台标签页恢复时
+        # 出现巨大 dt 导致单帧跳变。
+        dt = (frame_time - data['last_frame_time']) / 1_000_000.0
+        data['last_frame_time'] = frame_time
+        dt = min(max(dt, 0.0), 0.05)
 
-        exponential_factor = 2.71828 ** (-4 * time_elapsed)
-        position = data['initial_position'] + (1 - exponential_factor) * (data['vel_y'] / 4)
-        velocity = data['vel_y'] * exponential_factor
+        # 指数衰减惯性模型:每帧按真实 dt 推进,与帧率解耦。
+        # vel_y 单位 px/s;衰减常数 4 (1/s)。
+        decay = 2.71828 ** (-4 * dt)
+        dy = data['vel_y'] * dt
+        position = data['position'] + dy
+        velocity = data['vel_y'] * decay
 
         if abs(velocity) < 0.1:
             self._deceleration_id = None
+            self._decel_data = None
             return False
 
         x = self.scrolling_offset_x
-        y = position
-        self.scroll_now([x, y])
-        data['position'] = y
-        self._deceleration_id = GObject.timeout_add(15, self.deceleration, data)
+        self.scroll_now([x, position])
+        data['position'] = position
+        data['vel_y'] = velocity
 
-        return False
+        return True
 
     def on_resize(self, drawing_area, width, height):
         self.content.queue_draw()
@@ -229,7 +257,13 @@ class ScrollingWidget(Observable):
             self.width, self.height = visible_width, visible_height
             self.add_change_code('size_changed')
 
-        self.content.queue_draw()
+        # 关键性能优化(流畅滚动):
+        # 滚动偏移变化时不再调用 content.queue_draw()。DrawingArea 是 canvas 尺寸,
+        # ScrolledWindow 通过移动该子控件实现滚动,GSK 会平移已渲染的纹理(由
+        # set_draw_func 产生的 surface)而 *不* 重新调用 draw —— 这是纯 GPU 合成,
+        # 每帧零 cairo 重绘,从而达成与显示器刷新率对齐的高帧率连续滚动。
+        # 真正的内容变化(缩放/布局/hover/点击/页面纹理就绪)由各自的调用方
+        # 显式 queue_draw,无需在此冗余重绘。
 
     def on_primary_button_press(self, controller, n_press, x, y):
         if n_press != 1: return
