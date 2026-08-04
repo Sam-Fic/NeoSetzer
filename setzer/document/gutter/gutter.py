@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, Gdk, GObject, GLib, Pango, PangoCairo, GtkSource
+from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo, GtkSource
 
 import math, time, os
 
@@ -63,6 +63,11 @@ class Gutter(object):
         self._folding_icon_nodes = dict()
         self._newline_icon_nodes = dict()
 
+        # 配色缓存：_get_scheme_colors 原实现每帧（draw）对每个可见行都重新
+        # 取 style-scheme 并解析一堆 hex 字符串构造 RGBA，纯属浪费。缓存后在
+        # notify::style-scheme 时失效（见 on_scheme_changed）。
+        self._scheme_colors_cache = None
+
         # 字体度量缓存：char_width / line_height 仅在字体实际变化时重算。
         # 原实现每次 update_size 都重建 Pango.Layout 并遍历显示行，而
         # update_size 在每次文本/光标/滚动变化时都被调用——是打字期间
@@ -97,9 +102,6 @@ class Gutter(object):
         # idle 刷新，避免单次按键触发 on_document_change + on_cursor_change
         # 两路各跑一遍 update_hovered_folding_region + update_size + queue_draw。
         self._refresh_idle_id = None
-        # 跟踪减速动画 timeout 源 ID，以便在文档关闭时取消，避免回调访问
-        # 已销毁的 adjustment。
-        self._deceleration_id = None
 
         self.update_size()
 
@@ -118,11 +120,13 @@ class Gutter(object):
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
         self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
 
-        scrolling_controller = Gtk.EventControllerScroll()
-        scrolling_controller.set_flags(Gtk.EventControllerScrollFlags.BOTH_AXES | Gtk.EventControllerScrollFlags.KINETIC)
-        scrolling_controller.connect('scroll', self.on_scroll)
-        scrolling_controller.connect('decelerate', self.on_decelerate)
-        self.drawing_area.add_controller(scrolling_controller)
+        # 注意：gutter 不再挂自己的 EventControllerScroll。编辑器滚动完全由
+        # document_controller 的滚动控制器（挂在 scrolled_window 上，CAPTURE
+        # 阶段）与 Gtk.ScrolledWindow 原生 kinetic 惯性驱动。gutter 此前额外在
+        # overlay 的 drawing_area 上挂第二套滚动控制器，其 on_scroll 里
+        # set_kinetic_scrolling(False)+set_value 会打断编辑器的原生惯性，造成
+        # 滚动抖动/不跟手。现在改为只跟随 vadjustment 的 value-changed 重绘，
+        # 行号栏始终与编辑器同步，滚动交给单一、流畅的原生路径。
 
         event_controller = Gtk.GestureClick()
         event_controller.connect('pressed', self.on_button_press)
@@ -193,8 +197,6 @@ class Gutter(object):
             GLib.source_remove(self._refresh_idle_id)
             self._refresh_idle_id = None
 
-        self.cancel_deceleration()
-
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
@@ -218,6 +220,7 @@ class Gutter(object):
         self._schedule_refresh()
 
     def on_scheme_changed(self, buffer, pspec):
+        self._scheme_colors_cache = None
         self.drawing_area.queue_draw()
 
     def on_cursor_change(self, document):
@@ -281,50 +284,6 @@ class Gutter(object):
                 line_end = self.source_buffer.get_iter_at_line(line_number + 1)[1]
             self.source_buffer.select_range(line_start, line_end)
         return True
-
-    def on_scroll(self, controller, dx, dy):
-        modifiers = Gtk.accelerator_get_default_mod_mask()
-        event_state = controller.get_current_event_state()
-
-        if event_state & modifiers == 0:
-            if controller.get_unit() == Gdk.ScrollUnit.WHEEL:
-                dy *= self.adjustment.get_page_size() ** (2/3)
-            else:
-                dy *= 2.5
-            self.document_view.scrolled_window.set_kinetic_scrolling(False)
-            self.adjustment.set_value(self.adjustment.get_value() + dy)
-            self.document_view.scrolled_window.set_kinetic_scrolling(True)
-
-    def on_decelerate(self, controller, vel_x, vel_y):
-        # 取消任何正在进行的减速动画，避免多个 timeout 同时驱动滚动。
-        self.cancel_deceleration()
-        data = {'starting_time': time.time(), 'initial_position': self.adjustment.get_value(), 'position': self.adjustment.get_value(), 'vel_y': vel_y * 2.5}
-        self.deceleration(data)
-
-    def cancel_deceleration(self):
-        '''取消当前正在运行的减速动画 timeout。'''
-        if self._deceleration_id is not None:
-            GLib.source_remove(self._deceleration_id)
-            self._deceleration_id = None
-
-    def deceleration(self, data):
-        # 若已被取消（新滑动开始或文档关闭），立即停止。
-        if data['position'] != self.adjustment.get_value():
-            self._deceleration_id = None
-            return False
-
-        time_elapsed = time.time() - data['starting_time']
-        exponential_factor = 2.71828 ** (-4 * time_elapsed)
-        position = data['initial_position'] + (1 - exponential_factor) * (data['vel_y'] / 4)
-        velocity = data['vel_y'] * exponential_factor
-        if abs(velocity) >= 0.1:
-            self.adjustment.set_value(position)
-            data['position'] = position
-            self._deceleration_id = GObject.timeout_add(15, self.deceleration, data)
-        else:
-            self._deceleration_id = None
-
-        return False
 
     def on_enter(self, controller, x, y):
         self.set_cursor_position(x, y)
@@ -536,6 +495,12 @@ class Gutter(object):
         ctx.fill()
 
     def _get_scheme_colors(self):
+        # 缓存：原实现每帧（draw）每个可见行都重新取 style-scheme 并解析 hex，
+        # 纯属浪费。style-scheme 仅在 notify::style-scheme 时变化，届时在
+        # on_scheme_changed 将缓存置 None 失效。
+        if self._scheme_colors_cache is not None:
+            return self._scheme_colors_cache
+
         scheme = self.source_buffer.get_style_scheme()
         style = scheme.get_style('text') if scheme else None
 
@@ -560,6 +525,7 @@ class Gutter(object):
             fg = ColorManager.get_ui_color('view_fg_color')
         if bg is None:
             bg = ColorManager.get_ui_color('view_bg_color')
+        self._scheme_colors_cache = (fg, bg)
         return fg, bg
 
     def _get_current_line_bg(self):
@@ -597,7 +563,12 @@ class Gutter(object):
 
         # 编译诊断色条（错误强制红、警告琥珀色）绘制在最上层、行号左缘，
         # 不跟随强调色。放在最后以避免被 current-line 背景填充覆盖。
-        self.draw_build_diagnostics(ctx, line)
+        # 提前短路：绝大多数文档无诊断错误，每帧每可见行都白跑一次
+        # get_iter_at_line + get_line_yrange 是浪费。先 O(1) 判断该行是否
+        # 真有诊断，没有就跳过整段（如同编辑 LaTeX 源码时没有红色边条）。
+        diag = self.document.build_diagnostics
+        if (line + 1) in diag.error_lines or (line + 1) in diag.warning_lines:
+            self.draw_build_diagnostics(ctx, line)
 
     def draw_build_diagnostics(self, ctx, line):
         error_lines = self.document.build_diagnostics.error_lines
