@@ -873,6 +873,15 @@ class Document(Observable):
         else:
             self.source_buffer.insert_at_cursor(text)
 
+    def insert_symbol_at_cursor(self, text):
+        '''在光标处插入一段文本，保持与 insert_symbol 动作一致的缩进/制表符处理。'''
+        text = self.replace_tabs_with_spaces_if_set(text)
+        insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        text = self.indent_text_with_whitespace_at_iter(text, insert_iter)
+        self.source_buffer.begin_user_action()
+        self.source_buffer.insert_at_cursor(text)
+        self.source_buffer.end_user_action()
+
     def replace_tabs_with_spaces_if_set(self, text):
         if self.settings.get_value('preferences', 'spaces_instead_of_tabs'):
             number_of_spaces = self.settings.get_value('preferences', 'tab_width')
