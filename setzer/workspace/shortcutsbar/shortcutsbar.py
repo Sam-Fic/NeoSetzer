@@ -44,7 +44,8 @@ class ShortcutsBar(object):
         self.document = self.workspace.active_document
         if self.document != None:
             self.document.search.connect('mode_changed', self.update_buttons)
-            self.document.build_system.connect('build_state', self.on_build_state)
+            if self.document.is_latex_document():
+                self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
             # 启动时按当前编译结果初始化错误样式（如会话恢复了一个上次报错的文档）。
             self._refresh_build_log_error_style(self.document)
@@ -53,7 +54,8 @@ class ShortcutsBar(object):
         if self.workspace.active_document == None:
             if self.document != None:
                 self.document.search.disconnect('mode_changed', self.update_buttons)
-                self.document.build_system.disconnect('build_state', self.on_build_state)
+                if self.document.is_latex_document():
+                    self.document.build_system.disconnect('build_state', self.on_build_state)
                 self._clear_build_log_error_style()
             self.document = None
 
@@ -62,12 +64,14 @@ class ShortcutsBar(object):
     def on_new_active_document(self, workspace=None, parameter=None):
         if self.document != None:
             self.document.search.disconnect('mode_changed', self.update_buttons)
-            self.document.build_system.disconnect('build_state', self.on_build_state)
+            if self.document.is_latex_document():
+                self.document.build_system.disconnect('build_state', self.on_build_state)
 
         self.document = self.workspace.active_document
         if self.document != None:
             self.document.search.connect('mode_changed', self.update_buttons)
-            self.document.build_system.connect('build_state', self.on_build_state)
+            if self.document.is_latex_document():
+                self.document.build_system.connect('build_state', self.on_build_state)
             self.update_wizard_button()
             # 切换文档后立刻按新文档当前的编译结果刷新错误样式。
             # 关键修复：切换到无 error 的文档时，按钮必须退出红色状态，

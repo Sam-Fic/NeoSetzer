@@ -151,13 +151,14 @@ class DocumentSettings():
             tex_mtime = None
         if (build_log_mtime is not None and tex_mtime is not None
                 and abs(build_log_mtime - tex_mtime) <= 0.001):
-            document.build_system.build_log_data = document_data['build_log_data']
-            document.build_system.document_has_been_built = document_data['has_been_built']
-            document.build_system.build_time = document_data['build_time']
-            document.build_system.latex_interpreter = document_data.get('latex_interpreter')
-            document.build_system.has_synctex_file = document_data['has_synctex_file']
-            document.build_system.build_log_mtime = build_log_mtime
-            document.build_system.update_can_sync()
+            if document.is_latex_document():
+                document.build_system.build_log_data = document_data['build_log_data']
+                document.build_system.document_has_been_built = document_data['has_been_built']
+                document.build_system.build_time = document_data['build_time']
+                document.build_system.latex_interpreter = document_data.get('latex_interpreter')
+                document.build_system.has_synctex_file = document_data['has_synctex_file']
+                document.build_system.build_log_mtime = build_log_mtime
+                document.build_system.update_can_sync()
 
         # save_date 守卫：文件自状态保存后被改动则跳过位置相关状态（折叠/预览）。
         if document_data.get('save_date') is not None:
@@ -189,32 +190,33 @@ class DocumentSettings():
         # 旧版本无 zoom_mode，则沿用旧行为直接恢复保存的精确级别（记为 manual）。
         # 横向居中（fit_to_text_width）因此可在重启后复现，且重编译/缩放窗口后
         # 也始终正确。
-        document.preview.set_pdf_filename(pdf_filename)
+        if document.is_latex_document():
+            document.preview.set_pdf_filename(pdf_filename)
 
-        manager = document.preview.zoom_manager
-        zoom_mode = document_data.get('zoom_mode')
-        valid_modes = ('fit_to_width', 'fit_to_text_width', 'fit_to_height', 'manual')
-        if zoom_mode in valid_modes:
-            manager.zoom_mode = zoom_mode
-            if zoom_mode == 'manual':
+            manager = document.preview.zoom_manager
+            zoom_mode = document_data.get('zoom_mode')
+            valid_modes = ('fit_to_width', 'fit_to_text_width', 'fit_to_height', 'manual')
+            if zoom_mode in valid_modes:
+                manager.zoom_mode = zoom_mode
+                if zoom_mode == 'manual':
+                    manager.set_zoom_level(zoom_level)
+            else:
+                manager.zoom_mode = 'manual'
                 manager.set_zoom_level(zoom_level)
-        else:
-            manager.zoom_mode = 'manual'
-            manager.set_zoom_level(zoom_level)
 
-        # 仅当磁盘上的 PDF 与状态保存时是同一个文件（mtime 在 1 秒容差内匹配）
-        # 才恢复滚动位置。PDF 重建后页数/尺寸可能变化，旧 (xoffset, yoffset)
-        # 会指到错位的地方。滚动位置暂存到 _restore_pending，待首帧布局就绪后
-        # 在 on_layout_changed 中应用（fit_to_text_width 仅恢复垂直位置，水平由居中
-        # 决定），避免恢复一个依赖旧视口宽度的绝对水平偏移。
-        if pdf_date is not None and abs(pdf_st.st_mtime - pdf_date) <= 1:
-            manager._restore_pending = (xoffset, yoffset, manager.zoom_mode)
-            # 若布局此刻已就绪（如内存中已有该文档），先用 update_dynamic_zoom_levels
-            # 按恢复的 zoom_mode 重新推导级别并（fit_to_text_width 时）居中，再
-            # on_layout_changed 应用暂存的滚动位置；否则交给首帧 layout_changed。
-            if document.preview.layout is not None:
-                manager.update_dynamic_zoom_levels()
-                manager.on_layout_changed()
+            # 仅当磁盘上的 PDF 与状态保存时是同一个文件（mtime 在 1 秒容差内匹配）
+            # 才恢复滚动位置。PDF 重建后页数/尺寸可能变化，旧 (xoffset, yoffset)
+            # 会指到错位的地方。滚动位置暂存到 _restore_pending，待首帧布局就绪后
+            # 在 on_layout_changed 中应用（fit_to_text_width 仅恢复垂直位置，水平由居中
+            # 决定），避免恢复一个依赖旧视口宽度的绝对水平偏移。
+            if pdf_date is not None and abs(pdf_st.st_mtime - pdf_date) <= 1:
+                manager._restore_pending = (xoffset, yoffset, manager.zoom_mode)
+                # 若布局此刻已就绪（如内存中已有该文档），先用 update_dynamic_zoom_levels
+                # 按恢复的 zoom_mode 重新推导级别并（fit_to_text_width 时）居中，再
+                # on_layout_changed 应用暂存的滚动位置；否则交给首帧 layout_changed。
+                if document.preview.layout is not None:
+                    manager.update_dynamic_zoom_levels()
+                    manager.on_layout_changed()
 
     def save_document_state(document):
         if document.filename == None: return
