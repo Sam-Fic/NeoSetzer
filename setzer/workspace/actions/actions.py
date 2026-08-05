@@ -81,6 +81,7 @@ class Actions(object):
         self.add_action('include-bibtex-file', self.start_include_bibtex_file_dialog, None)
         self.add_action('include-latex-file', self.start_include_latex_file_dialog, None)
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
+        self.add_action('insert-image-dialog', self.start_insert_image_dialog, None)
         self.add_action('toggle-comment', self.toggle_comment)
         self.add_action('fold-all', self.fold_all)
         self.add_action('unfold-all', self.unfold_all)
@@ -1093,7 +1094,27 @@ class Actions(object):
     def paste(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
-        self.workspace.get_active_document().source_view.emit('paste-clipboard')
+        document = self.workspace.get_active_document()
+        clipboard = document.source_view.get_clipboard()
+        # 异步探测剪贴板是否含图片纹理；含图片则进入插入对话框，
+        # 否则维持原有纯文本粘贴路径（零回归）。
+        clipboard.read_value_async(Gdk.Texture, GLib.PRIORITY_DEFAULT, None, self._paste_clipboard_read, document)
+
+    def _paste_clipboard_read(self, clipboard, result, document):
+        try:
+            texture = clipboard.read_value_finish(result)
+        except Exception:
+            texture = None
+        if texture is not None:
+            # 直接粘贴图片：弹出对话框，图片来源已就绪（剪贴板）
+            DialogLocator.get_dialog('insert_image').open(document, texture=texture)
+        else:
+            document.source_view.emit('paste-clipboard')
+
+    def start_insert_image_dialog(self, action=None, parameter=None):
+        if self.workspace.get_active_document() == None: return
+        document = self.workspace.get_active_document()
+        DialogLocator.get_dialog('insert_image').open(document, texture=None)
 
     def delete_selection(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

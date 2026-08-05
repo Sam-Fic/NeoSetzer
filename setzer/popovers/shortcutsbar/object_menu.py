@@ -28,7 +28,7 @@ class ObjectMenu(GioMenuBuilder):
     def __init__(self, popover_manager=None):
         GioMenuBuilder.__init__(self)
 
-        self.add_insert_symbol_item('main', _('Figure (image inside freestanding block)'), ['\\begin{figure}\n\t\\begin{center}\n\t\t\\includegraphics[scale=1]{•}\n\t\t\\caption{•}\n\t\\end{center}\n\\end{figure}'])
+        self.add_action_button('main', _('Figure (image inside freestanding block)'), 'win.insert-image-dialog')
         self.add_insert_symbol_item('main', _('Inline Image'), ['\\includegraphics[scale=1]{•}'])
         self.add_menu_button(_('Code Listing'), 'code_listing')
         self.add_separator()

@@ -1,0 +1,217 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+# Copyright (C) 2026-present Sam-Fic
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program at <http://www.gnu.org/licenses/>
+
+import gi
+gi.require_version('Gtk', '4.0')
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Adw, Gdk, Gio, Pango
+
+from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+
+
+class InsertImageView(DialogView):
+
+    # 浮动位置参数预设（含 float 包提供的 [H] 选项说明）
+    # (key, msgid) — labels are translated at runtime in __init__,
+    # because module-level _() calls are not allowed before gettext.install.
+    PLACEMENT_OPTIONS = [
+        ('htbp', 'htbp (here, top, bottom, page) — most flexible, default'),
+        ('ht',   'ht (here, top) — common default'),
+        ('h',    'h (here only)'),
+        ('t',    't (top)'),
+        ('b',    'b (bottom)'),
+        ('p',    'p (separate float page)'),
+        ('H',    'H (HERE, forced in place by float package)'),
+        ('h!',   'h! (here, override restrictions with !)'),
+    ]
+
+    def __init__(self, main_window):
+        DialogView.__init__(self, main_window)
+        self.set_content_width(560)
+        self.set_content_height(680)
+
+        # 工具栏
+        self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Image')))
+
+        self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
+        self.headerbar.pack_start(self.cancel_button)
+
+        self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
+        self.insert_button.add_css_class('suggested-action')
+        self.insert_button.set_sensitive(False)
+        self.headerbar.pack_end(self.insert_button)
+
+        # 滚动内容
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content.set_margin_top(14)
+        content.set_margin_bottom(14)
+        content.set_margin_start(14)
+        content.set_margin_end(14)
+        scrolled.set_child(content)
+        self.topbox.append(scrolled)
+
+        # ---- 来源组 ----
+        src_group = Adw.PreferencesGroup()
+        src_group.set_title(_('Image Source'))
+
+        self.source_row = Adw.ComboRow()
+        self.source_row.set_title(_('Source'))
+        self.source_row.set_subtitle(_('Where the image comes from'))
+        self.source_model = Gtk.StringList.new([_('From file…'), _('From clipboard (pasted)')])
+        self.source_row.set_model(self.source_model)
+        src_group.add(self.source_row)
+
+        self.choose_row = Adw.ActionRow()
+        self.choose_row.set_title(_('Image File'))
+        self.choose_row.set_subtitle(_('No file chosen'))
+        self.choose_button = Gtk.Button.new_with_mnemonic(_('_Choose…'))
+        self.choose_button.set_valign(Gtk.Align.CENTER)
+        self.choose_row.add_suffix(self.choose_button)
+        src_group.add(self.choose_row)
+
+        # 预览（仅在有图片时显示）
+        self.preview = Gtk.Picture()
+        self.preview.set_size_request(240, 160)
+        self.preview.set_content_fit(Gtk.ContentFit.CONTAIN)
+        self.preview.add_css_class('card')
+        self.preview.set_margin_top(6)
+        self.preview.set_visible(False)
+        preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        preview_box.set_halign(Gtk.Align.CENTER)
+        preview_box.append(self.preview)
+        src_group.add(preview_box)
+
+        content.append(src_group)
+
+        # ---- 文件保存组 ----
+        save_group = Adw.PreferencesGroup()
+        save_group.set_title(_('Save Location'))
+
+        self.filename_row = Adw.EntryRow()
+        self.filename_row.set_title(_('File name (without extension)'))
+        save_group.add(self.filename_row)
+
+        self.subdir_row = Adw.EntryRow()
+        self.subdir_row.set_title(_('Subfolder'))
+        self.subdir_row.set_text('images')
+        save_group.add(self.subdir_row)
+
+        save_group.add(self._note(_('Image will be saved as PNG into "<document folder>/<subfolder>/<file name>.png".')))
+
+        content.append(save_group)
+
+        # ---- 排版组 ----
+        layout_group = Adw.PreferencesGroup()
+        layout_group.set_title(_('Layout'))
+
+        self.placement_row = Adw.ComboRow()
+        self.placement_row.set_title(_('Float placement'))
+        self.placement_row.set_subtitle(_('e.g. [ht] — use "H" for forced in-place (needs float package)'))
+        placement_labels = [_('htbp (here, top, bottom, page) — most flexible, default'),
+                             _('ht (here, top) — common default'),
+                             _('h (here only)'),
+                             _('t (top)'),
+                             _('b (bottom)'),
+                             _('p (separate float page)'),
+                             _('H (HERE, forced in place by float package)'),
+                             _('h! (here, override restrictions with !)')]
+        self.placement_row.set_model(Gtk.StringList.new(placement_labels))
+        self.placement_row.set_selected(1)  # 默认 ht
+        layout_group.add(self.placement_row)
+
+        self.scale_row = Adw.SpinRow()
+        self.scale_row.set_title(_('Scale'))
+        self.scale_row.set_subtitle(_('Relative size, 1.0 = original'))
+        self.scale_row.set_digits(2)
+        adjustment_scale = Gtk.Adjustment(value=1.0, lower=0.05, upper=5.0, step_increment=0.05, page_increment=0.25)
+        self.scale_row.set_adjustment(adjustment_scale)
+        layout_group.add(self.scale_row)
+
+        self.width_row = Adw.EntryRow()
+        self.width_row.set_title(_('Width (optional, e.g. 0.8\\textwidth)'))
+        layout_group.add(self.width_row)
+
+        self.centered_switch = Adw.SwitchRow()
+        self.centered_switch.set_title(_('Center the image'))
+        self.centered_switch.set_subtitle(_('Wrap in \\begin{center}…\\end{center}'))
+        self.centered_switch.set_active(True)
+        layout_group.add(self.centered_switch)
+
+        self.figure_switch = Adw.SwitchRow()
+        self.figure_switch.set_title(_('Use figure environment'))
+        self.figure_switch.set_subtitle(_('Floating wrapper with caption & label'))
+        self.figure_switch.set_active(True)
+        layout_group.add(self.figure_switch)
+
+        content.append(layout_group)
+
+        # ---- 文本组 ----
+        text_group = Adw.PreferencesGroup()
+        text_group.set_title(_('Caption & Label'))
+
+        self.caption_row = Adw.EntryRow()
+        self.caption_row.set_title(_('Caption'))
+        self.caption_row.set_text(_('Caption'))
+        text_group.add(self.caption_row)
+
+        self.label_row = Adw.EntryRow()
+        self.label_row.set_title(_('Label (for \\ref)'))
+        self.label_row.set_text('fig:')
+        text_group.add(self.label_row)
+
+        text_group.add(self._note(_('Label is referenced with \\ref{label}. Leave "fig:" prefix or customize.')))
+
+        content.append(text_group)
+
+        # 内容已挂到 self.topbox（DialogView 的 ToolbarView 内容区）
+
+    def _note(self, text):
+        label = Gtk.Label(label=text)
+        label.set_wrap(True)
+        label.set_xalign(0)
+        label.add_css_class('dim-label')
+        label.set_margin_top(4)
+        label.set_margin_bottom(8)
+        return label
+
+    # 工具属性
+    @property
+    def source_is_clipboard(self):
+        return self.source_row.get_selected() == 1
+
+    def set_preview_texture(self, texture):
+        if texture is not None:
+            self.preview.set_paintable(texture)
+            self.preview.set_visible(True)
+            self.insert_button.set_sensitive(self._has_image())
+        else:
+            self.preview.set_paintable(None)
+
+    def set_source_file(self, file_path):
+        self.choose_row.set_subtitle(file_path)
+        self.choose_button.set_label(_('Change…'))
+        self.insert_button.set_sensitive(self._has_image())
+
+    def set_filename(self, name):
+        self.filename_row.set_text(name)
+
+    def _has_image(self):
+        # 有文件名即可插入；图片本身要么是文件要么是剪贴板纹理
+        return len(self.filename_row.get_text().strip()) > 0
