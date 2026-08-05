@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-05 23:25+0800\n"
+"POT-Creation-Date: 2026-08-05 23:45+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz "
 "<oscfdezdz@users.noreply.hosted.weblate.org>\n"
@@ -762,6 +762,10 @@ msgstr "Crea un documento modello"
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
 #: setzer/dialogs/insert_image/insert_image_controller.py:108
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:49
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:50
+#: setzer/dialogs/insert_image/insert_image_controller.py:115
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
+#: setzer/dialogs/insert_image/insert_image_controller.py:119
 msgid "_Cancel"
 msgstr "_Annulla"
 
@@ -1174,6 +1178,9 @@ msgstr "Riferimento"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:297
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:120
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:134
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:135
 msgid "Layout"
 msgstr ""
 
@@ -5452,6 +5459,11 @@ msgstr "Rimuovi dall'elenco recenti"
 #: setzer/dialogs/insert_image/insert_image_controller.py:56
 #: setzer/dialogs/insert_image/insert_image_controller.py:97
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:82
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
+#: setzer/dialogs/insert_image/insert_image_controller.py:61
+#: setzer/dialogs/insert_image/insert_image_controller.py:104
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:92
+#: setzer/dialogs/insert_image/insert_image_controller.py:108
 #, fuzzy
 msgid "No file chosen"
 msgstr "Nessun file"
@@ -5459,175 +5471,387 @@ msgstr "Nessun file"
 #: setzer/dialogs/insert_image/insert_image_controller.py:57
 #: setzer/dialogs/insert_image/insert_image_controller.py:91
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:87
+#: setzer/dialogs/insert_image/insert_image_controller.py:62
+#: setzer/dialogs/insert_image/insert_image_controller.py:98
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:93
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:94
+#: setzer/dialogs/insert_image/insert_image_controller.py:102
 msgid "_Choose…"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:61
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:181
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:183
+#: setzer/dialogs/insert_image/insert_image_controller.py:66
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:187
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:189
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:190
 #, fuzzy
 msgid "Caption"
 msgstr "Citazione"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:104
+#: setzer/dialogs/insert_image/insert_image_controller.py:111
+#: setzer/dialogs/insert_image/insert_image_controller.py:115
 #, fuzzy
 msgid "Select Image"
 msgstr "Seleziona tutto il testo"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:109
+#: setzer/dialogs/insert_image/insert_image_controller.py:116
+#: setzer/dialogs/insert_image/insert_image_controller.py:120
 msgid "_Open"
 msgstr "_Apri"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:111
+#: setzer/dialogs/insert_image/insert_image_controller.py:118
+#: setzer/dialogs/insert_image/insert_image_controller.py:122
 msgid "Images"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:47
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:48
 #, fuzzy
 msgid "Insert Image"
 msgstr "Immagine in linea"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:53
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:54
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:60
 #, fuzzy
 msgid "_Insert"
 msgstr "Inserisci"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:71
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:74
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
 #, fuzzy
 msgid "Image Source"
 msgstr "Mostra sorgente"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:74
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:77
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
 #, fuzzy
 msgid "Source"
 msgstr "Mostra sorgente"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:75
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:78
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:84
 msgid "Where the image comes from"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:76
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
 #, fuzzy
 msgid "From file…"
 msgstr "Aggiungi da file…"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:76
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
 #, fuzzy
 msgid "From clipboard (pasted)"
 msgstr "Incolla dagli appunti"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:81
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:85
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:91
 #, fuzzy
 msgid "Image File"
 msgstr "File LaTeX"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:103
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:109
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:115
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:116
 #, fuzzy
 msgid "Save Location"
 msgstr "Sezione"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:106
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:112
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:118
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
 msgid "File name (without extension)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:110
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:117
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:123
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:124
 msgid "Subfolder"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:114
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:122
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:129
 msgid ""
 "Image will be saved as PNG into \"<document folder>/<subfolder>/<file "
 "name>.png\"."
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:123
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:137
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
 msgid "Float placement"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:124
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:132
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
 msgid "e.g. [ht] — use \"H\" for forced in-place (needs float package)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:125
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:134
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
 msgid "htbp (here, top, bottom, page) — most flexible, default"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:126
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:135
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
 msgid "ht (here, top) — common default"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:127
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:136
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:143
 msgid "h (here only)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:137
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:143
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:144
 msgid "t (top)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:129
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:144
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:145
 #, fuzzy
 msgid "b (bottom)"
 msgstr "Basso"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:130
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:145
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
 msgid "p (separate float page)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
 msgid "H (HERE, forced in place by float package)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:132
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:148
 msgid "h! (here, override restrictions with !)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:153
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:154
 msgid "Scale"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:148
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:154
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:155
 msgid "Relative size, 1.0 = original"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
 msgid "Width (optional, e.g. 0.8\\textwidth)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:150
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:161
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:167
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
 msgid "Center the image"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:151
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
 #, python-brace-format
 msgid "Wrap in \\begin{center}…\\end{center}"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:174
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:175
 #, fuzzy
 msgid "Use figure environment"
 msgstr "Inserisci ambiente"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:157
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:175
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
 msgid "Floating wrapper with caption & label"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:165
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:178
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:184
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
 msgid "Caption & Label"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:173
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:187
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:193
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:194
 msgid "Label (for \\ref)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:177
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:192
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:198
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:199
 #, python-brace-format
 msgid ""
 "Label is referenced with \\ref{label}. Leave \"fig:\" prefix or customize."
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:210
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:222
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:228
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:244
 msgid "Change…"
 msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:51
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:53
+msgid "Close the dialog without inserting anything"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:57
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:63
+msgid "Generate the LaTeX code and insert it at the cursor"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:79
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:85
+msgid "Pick an image file or use the picture currently on the clipboard"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:89
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:95
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:96
+msgid "Open a file chooser to select an image"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:113
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:120
+msgid "Base name used when saving the image, without .png"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:125
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:126
+msgid "Subfolder inside the document folder where the image is stored"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:133
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+msgid "LaTeX float specifier controlling where the figure may be placed"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:149
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:155
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+msgid "Multiplies the image size; 1.0 keeps the original dimensions"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:157
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164
+msgid "Override scaling with an explicit width such as 0.8\\textwidth"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:170
+msgid "Center the image horizontally on the page"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:170
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:177
+msgid "Wrap the image in a figure float with a caption and label"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:182
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:189
+msgid "Text shown below the image; leave empty for no caption"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:194
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:195
+msgid "Identifier used with \\ref to cross-reference this figure"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_controller.py:155
+#: setzer/dialogs/insert_image/insert_image_controller.py:159
+#, fuzzy
+msgid "Saved"
+msgstr "Salva"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:56
+#, fuzzy
+msgid "Save as _Default"
+msgstr "Salva come _modello"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:57
+msgid "Store the current options to be used next time"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:93
+msgid "The selected image file, or \"No file chosen\" before selection"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
+msgid "Floating wrapper with caption &amp; label"
+msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
+#, fuzzy
+msgid "Caption &amp; Label"
+msgstr "Etichetta"
 
 #~ msgid "Something went wrong."
 #~ msgstr "Qualcosa è andato storto."
