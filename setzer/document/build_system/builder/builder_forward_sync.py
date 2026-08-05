@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import base64
 import os.path
 import subprocess
 
 import setzer.document.build_system.builder.builder_build as builder_build
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.synctex_folder import synctex_folder
 
 
 class BuilderForwardSync(builder_build.BuilderBuild):
@@ -41,7 +41,7 @@ class BuilderForwardSync(builder_build.BuilderBuild):
             query.forward_sync_result = None
             return
 
-        synctex_folder = os.path.join(self.config_folder, base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode())
+        synctex_folder = synctex_folder(self.config_folder, query.tex_filename)
         arguments = ['synctex', 'view', '-i']
         arguments.append(str(query.forward_sync_data['line']) + ':' + str(query.forward_sync_data['line_offset']) + ':' + query.forward_sync_data['filename'])
         arguments.append('-o')

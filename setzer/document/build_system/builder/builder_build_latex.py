@@ -19,7 +19,6 @@
 import os
 import os.path
 import sys
-import base64
 import shutil
 import subprocess
 import shlex
@@ -30,6 +29,7 @@ from operator import itemgetter
 import setzer.document.build_system.builder.builder_build as builder_build
 import setzer.document.build_system.latex_log_parser.latex_log_parser as latex_log_parser
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.synctex_folder import synctex_folder
 
 
 class BuilderBuildLaTeX(builder_build.BuilderBuild):
@@ -83,7 +83,16 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             self.throw_build_error(query, 'interpreter_not_working', 'log file missing')
             return
 
-        query.can_sync = self.copy_synctex_file(query)
+        try:
+            query.can_sync = self.copy_synctex_file(query)
+        except OSError as e:
+            # synctex 缓存复制失败（如长文件名导致 OSError: [Errno 36]
+            # File name too long）不得中断构建或让 UI 卡死：synctex 仅用于
+            # 正向/反向同步，PDF 本身已成功。吞掉异常并标记不可同步，让
+            # 构建结果照常返回主线程（否则 _on_query_done 永不被调度，
+            # 编译计数器无限增长 = soft-hang）。
+            print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
+            query.can_sync = False
         self.cleanup_files(query)
 
         pdf_filename = os.path.splitext(query.tex_filename)[0] + '.pdf'
@@ -244,14 +253,14 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
     def copy_synctex_file(self, query):
         move_from = os.path.splitext(query.tex_filename)[0] + '.synctex.gz'
-        folder = os.path.join(self.config_folder, base64.urlsafe_b64encode(str.encode(query.tex_filename)).decode())
+        folder = synctex_folder(self.config_folder, query.tex_filename)
         move_to = os.path.join(folder, os.path.splitext(os.path.basename(query.tex_filename))[0] + '.synctex.gz')
 
         if not os.path.exists(folder):
             os.makedirs(folder)
 
         try: shutil.copyfile(move_from, move_to)
-        except FileNotFoundError: return False
+        except (FileNotFoundError, OSError): return False
         else: return True
 
     def _is_pdf_valid(self, pdf_filename):

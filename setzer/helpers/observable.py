@@ -60,17 +60,14 @@ class Observable(object):
             try:
                 if _timing:
                     _s = time.perf_counter()
-                if parameter is not None:
-                    callback(self, parameter)
-                else:
-                    callback(self)
+                callback(self, parameter)
                 if _timing:
                     _d = (time.perf_counter() - _s) * 1000
                     if _d > 1:
                         print(f'[TIMING] observer {change_code} -> {callback.__qualname__}: {_d:.1f}ms', file=sys.stderr)
             except Exception:
-                print(f'[Observable] callback {getattr(callback, "__qualname__", callback)!r} for {change_code!r} raised:', file=_sys.stderr)
-                _tb.print_exc(file=_sys.stderr)
+                print(f'[Observable] callback {getattr(callback, "__qualname__", callback)!r} for {change_code!r} raised:', file=sys.stderr)
+                traceback.print_exc(file=sys.stderr)
 
     def connect(self, change_code, callback):
         if change_code in self.connected_functions:

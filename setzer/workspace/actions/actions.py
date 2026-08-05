@@ -316,7 +316,8 @@ class Actions(object):
         self.actions['zoom-out'].set_enabled(can_zoom_out)
 
         # Preview context menu: sync recolor state and enable/disable.
-        has_pdf = document_active and document.preview is not None and document.preview.pdf_filename is not None
+        preview = getattr(document, 'preview', None) if document_active else None
+        has_pdf = document_active and preview is not None and preview.pdf_filename is not None
         self.actions['preview-rotate-cw'].set_enabled(has_pdf)
         self.actions['preview-rotate-ccw'].set_enabled(has_pdf)
         self.actions['preview-search-pdf'].set_enabled(has_pdf)
@@ -326,9 +327,9 @@ class Actions(object):
         self.actions['preview-save-image'].set_enabled(has_pdf)
         self.actions['preview-open-link'].set_enabled(has_pdf)
         self.actions['preview-copy-link'].set_enabled(has_pdf)
-        if document_active and document.preview is not None:
+        if preview is not None:
             self.actions['preview-recolor'].set_state(
-                GLib.Variant.new_boolean(document.preview.recolor_pdf))
+                GLib.Variant.new_boolean(preview.recolor_pdf))
         self.actions['preview-recolor'].set_enabled(has_pdf)
         self.actions['preview-zoom-in'].set_enabled(has_pdf)
         self.actions['preview-zoom-out'].set_enabled(has_pdf)
