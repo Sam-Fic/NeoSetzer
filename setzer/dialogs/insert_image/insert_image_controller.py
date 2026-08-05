@@ -22,13 +22,17 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gdk, Gio, GLib
 
 from setzer.dialogs.insert_image.insert_image_viewgtk import InsertImageView
+from setzer.app.service_locator import ServiceLocator
 
 
 class InsertImageController():
     '''处理"插入图片"对话框：从文件或剪贴板选取图片，落盘并生成 LaTeX 代码。'''
 
+    SETTINGS_SECTION = 'app_insert_image_dialog'
+
     def __init__(self, main_window):
         self.main_window = main_window
+        self.settings = ServiceLocator.get_settings()
         self.view = InsertImageView(main_window)
         self.clipboard_texture = None   # 当粘贴流程传入的纹理
         self.source_file_path = None    # 从文件选择的路径
@@ -37,6 +41,7 @@ class InsertImageController():
     def _connect_signals(self):
         self.view.cancel_button.connect('clicked', self._on_cancel)
         self.view.insert_button.connect('clicked', self._on_insert)
+        self.view.save_defaults_button.connect('clicked', self._on_save_defaults)
         self.view.choose_button.connect('clicked', self._on_choose_file)
         self.view.source_row.connect('notify::selected', self._on_source_changed)
         self.view.filename_row.connect('changed', self._on_filename_changed)
@@ -61,6 +66,12 @@ class InsertImageController():
         self.view.caption_row.set_text(_('Caption'))
         self.view.scale_row.set_value(1.0)
         self.view.width_row.set_text('')
+        # 恢复上次保存的默认值
+        try:
+            saved = self.settings.get_value(self.SETTINGS_SECTION, 'defaults')
+        except KeyError:
+            saved = None
+        self.view.apply_values(saved)
 
         if texture is not None:
             self.clipboard_texture = texture
@@ -139,6 +150,18 @@ class InsertImageController():
 
     def _on_insert(self, button):
         self._do_insert()
+
+    def _on_save_defaults(self, button):
+        self.settings.set_value(self.SETTINGS_SECTION, 'defaults', self.view.get_values())
+        self.settings.pickle()
+        # 视觉反馈：短暂改为 "Saved"
+        original = self.view.save_defaults_button.get_label()
+        self.view.save_defaults_button.set_label(_('Saved'))
+        GLib.timeout_add(1200, self._restore_save_button_label, original)
+
+    def _restore_save_button_label(self, label):
+        self.view.save_defaults_button.set_label(label)
+        return False
 
     # ------------------------------------------------------------------
     # 核心逻辑
