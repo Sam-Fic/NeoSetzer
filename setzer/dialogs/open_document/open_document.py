@@ -53,6 +53,10 @@ class OpenDocumentDialog(object):
         filters_model.append(latex_filter)
         filters_model.append(all_filter)
         self.view.set_filters(filters_model)
+
+        active_document = self.workspace.get_active_document()
+        if active_document is not None and active_document.get_filename() is not None:
+            self.view.set_initial_folder(Gio.File.new_for_path(active_document.get_dirname()))
         self.view.set_default_filter(latex_filter)
 
     def dialog_process_response(self, dialog, result):
