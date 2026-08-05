@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-05 23:25+0800\n"
+"POT-Creation-Date: 2026-08-05 23:45+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -732,6 +732,10 @@ msgstr "创建模版文档"
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
 #: setzer/dialogs/insert_image/insert_image_controller.py:108
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:49
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:50
+#: setzer/dialogs/insert_image/insert_image_controller.py:115
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
+#: setzer/dialogs/insert_image/insert_image_controller.py:119
 msgid "_Cancel"
 msgstr "取消(_C)"
 
@@ -1125,6 +1129,9 @@ msgstr "参考文献"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:297
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:120
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:134
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:135
 msgid "Layout"
 msgstr "布局"
 
@@ -5220,6 +5227,11 @@ msgstr "从最近列表中移除"
 #: setzer/dialogs/insert_image/insert_image_controller.py:56
 #: setzer/dialogs/insert_image/insert_image_controller.py:97
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:82
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
+#: setzer/dialogs/insert_image/insert_image_controller.py:61
+#: setzer/dialogs/insert_image/insert_image_controller.py:104
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:92
+#: setzer/dialogs/insert_image/insert_image_controller.py:108
 #, fuzzy
 msgid "No file chosen"
 msgstr "无文件"
@@ -5227,165 +5239,376 @@ msgstr "无文件"
 #: setzer/dialogs/insert_image/insert_image_controller.py:57
 #: setzer/dialogs/insert_image/insert_image_controller.py:91
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:87
+#: setzer/dialogs/insert_image/insert_image_controller.py:62
+#: setzer/dialogs/insert_image/insert_image_controller.py:98
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:93
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:94
+#: setzer/dialogs/insert_image/insert_image_controller.py:102
 msgid "_Choose…"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:61
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:181
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:183
+#: setzer/dialogs/insert_image/insert_image_controller.py:66
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:187
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:189
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:190
 #, fuzzy
 msgid "Caption"
 msgstr "引用"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:104
+#: setzer/dialogs/insert_image/insert_image_controller.py:111
+#: setzer/dialogs/insert_image/insert_image_controller.py:115
 #, fuzzy
 msgid "Select Image"
 msgstr "选择所有文本"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:109
+#: setzer/dialogs/insert_image/insert_image_controller.py:116
+#: setzer/dialogs/insert_image/insert_image_controller.py:120
 #, fuzzy
 msgid "_Open"
 msgstr "打开"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:111
+#: setzer/dialogs/insert_image/insert_image_controller.py:118
+#: setzer/dialogs/insert_image/insert_image_controller.py:122
 #, fuzzy
 msgid "Images"
 msgstr "另存为"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:47
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:48
 msgid "Insert Image"
 msgstr "插入图片"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:53
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:54
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:60
 msgid "_Insert"
 msgstr "插入"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:71
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:74
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
 msgid "Image Source"
 msgstr "图片来源"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:74
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:77
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
 msgid "Source"
 msgstr "来源"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:75
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:78
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:84
 msgid "Where the image comes from"
 msgstr "图片取自何处"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:76
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
 #, fuzzy
 msgid "From file…"
 msgstr "无文件"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:76
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
 msgid "From clipboard (pasted)"
 msgstr "从剪贴板（已粘贴）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:81
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:85
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:91
 msgid "Image File"
 msgstr "图片文件"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:103
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:109
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:115
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:116
 msgid "Save Location"
 msgstr "保存位置"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:106
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:112
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:118
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
 msgid "File name (without extension)"
 msgstr "文件名（不含扩展名）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:110
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:117
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:123
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:124
 msgid "Subfolder"
 msgstr "子文件夹"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:114
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:122
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:129
 msgid ""
 "Image will be saved as PNG into \"<document folder>/<subfolder>/<file "
 "name>.png\"."
 msgstr "图片将作为 PNG 保存至“<文档目录>/<子文件夹>/<文件名>.png”。"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:123
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:137
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
 msgid "Float placement"
 msgstr "浮动位置"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:124
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:132
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
 msgid "e.g. [ht] — use \"H\" for forced in-place (needs float package)"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:125
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:134
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
 msgid "htbp (here, top, bottom, page) — most flexible, default"
 msgstr "htbp（此处、页顶、页底、单独页）— 最灵活，默认"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:126
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:135
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
 msgid "ht (here, top) — common default"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:127
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:136
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:143
 msgid "h (here only)"
 msgstr "h（仅此处）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:128
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:137
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:143
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:144
 msgid "t (top)"
 msgstr "t（页顶）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:129
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:144
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:145
 msgid "b (bottom)"
 msgstr "b（页底）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:130
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:145
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
 msgid "p (separate float page)"
 msgstr "p（单独的浮动页）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
 msgid "H (HERE, forced in place by float package)"
 msgstr "H（HERE，由 float 宏包强制原位）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:132
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:148
 msgid "h! (here, override restrictions with !)"
 msgstr "h!（此处，用 ! 放宽限制）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:147
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:153
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:154
 msgid "Scale"
 msgstr "缩放"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:148
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:154
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:155
 msgid "Relative size, 1.0 = original"
 msgstr "相对大小，1.0 = 原始尺寸"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:146
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
 msgid "Width (optional, e.g. 0.8\\textwidth)"
 msgstr "宽度（可选，例如 0.8\textwidth）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:150
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:161
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:167
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
 msgid "Center the image"
 msgstr "图片居中"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:151
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
 #, python-brace-format
 msgid "Wrap in \\begin{center}…\\end{center}"
 msgstr ""
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:174
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:175
 msgid "Use figure environment"
 msgstr "使用 figure 环境"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:157
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:175
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
 msgid "Floating wrapper with caption & label"
 msgstr "带标题与标签的浮动环境"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:165
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:178
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:184
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
 msgid "Caption & Label"
 msgstr "标题与标签"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:173
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:187
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:193
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:194
 msgid "Label (for \\ref)"
 msgstr "标签（用于 \ref）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:177
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:192
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:198
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:199
 #, python-brace-format
 msgid ""
 "Label is referenced with \\ref{label}. Leave \"fig:\" prefix or customize."
 msgstr "通过 \ref{label} 引用标签。保留“fig:”前缀或自行修改。"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:210
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:222
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:228
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:244
 msgid "Change…"
 msgstr ""
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:51
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:53
+msgid "Close the dialog without inserting anything"
+msgstr "关闭对话框且不插入任何内容"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:57
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:63
+msgid "Generate the LaTeX code and insert it at the cursor"
+msgstr "生成 LaTeX 代码并插入到光标处"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:79
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:85
+msgid "Pick an image file or use the picture currently on the clipboard"
+msgstr "选择图片文件，或使用当前剪贴板中的图片"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:89
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:95
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:96
+msgid "Open a file chooser to select an image"
+msgstr "打开文件选择器以选取图片"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:113
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:120
+msgid "Base name used when saving the image, without .png"
+msgstr "保存图片时使用的基名，不含 .png"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:119
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:125
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:126
+msgid "Subfolder inside the document folder where the image is stored"
+msgstr "图片存放于文档目录下的子文件夹"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:133
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
+msgid "LaTeX float specifier controlling where the figure may be placed"
+msgstr "LaTeX 浮动位置参数，控制图片可放置的位置"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:149
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:155
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:156
+msgid "Multiplies the image size; 1.0 keeps the original dimensions"
+msgstr "图片缩放倍数；1.0 表示保持原始尺寸"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:157
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164
+msgid "Override scaling with an explicit width such as 0.8\\textwidth"
+msgstr "用显式宽度覆盖缩放，例如 0.8\textwidth"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:170
+msgid "Center the image horizontally on the page"
+msgstr "在页面上水平居中显示图片"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:170
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:177
+msgid "Wrap the image in a figure float with a caption and label"
+msgstr "将图片包裹在带标题与标签的 figure 浮动环境中"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:182
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:189
+msgid "Text shown below the image; leave empty for no caption"
+msgstr "显示在图片下方的文字；留空则不生成标题"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:194
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:195
+msgid "Identifier used with \\ref to cross-reference this figure"
+msgstr "用于 \ref 交叉引用此图的标识符"
+
+#: setzer/dialogs/insert_image/insert_image_controller.py:155
+#: setzer/dialogs/insert_image/insert_image_controller.py:159
+msgid "Saved"
+msgstr "已保存"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:56
+msgid "Save as _Default"
+msgstr "保存为默认(_D)"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:57
+msgid "Store the current options to be used next time"
+msgstr "将当前选项存储为下次使用的默认值"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:93
+msgid "The selected image file, or \"No file chosen\" before selection"
+msgstr "所选图片文件；若尚未选择则显示“未选择文件”"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
+#, fuzzy
+msgid "Floating wrapper with caption &amp; label"
+msgstr "带标题与标签的浮动环境"
+
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
+#, fuzzy
+msgid "Caption &amp; Label"
+msgstr "标题与标签"
