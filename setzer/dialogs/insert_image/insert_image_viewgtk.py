@@ -46,13 +46,17 @@ class InsertImageView(DialogView):
 
         # 工具栏
         self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Image')))
+        self.headerbar.set_show_start_title_buttons(False)
+        self.headerbar.set_show_end_title_buttons(False)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
+        self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
 
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
         self.insert_button.set_sensitive(False)
+        self.insert_button.set_tooltip_text(_('Generate the LaTeX code and insert it at the cursor'))
         self.headerbar.pack_end(self.insert_button)
 
         # 滚动内容
@@ -74,6 +78,7 @@ class InsertImageView(DialogView):
         self.source_row = Adw.ComboRow()
         self.source_row.set_title(_('Source'))
         self.source_row.set_subtitle(_('Where the image comes from'))
+        self.source_row.set_tooltip_text(_('Pick an image file or use the picture currently on the clipboard'))
         self.source_model = Gtk.StringList.new([_('From file…'), _('From clipboard (pasted)')])
         self.source_row.set_model(self.source_model)
         src_group.add(self.source_row)
@@ -83,6 +88,7 @@ class InsertImageView(DialogView):
         self.choose_row.set_subtitle(_('No file chosen'))
         self.choose_button = Gtk.Button.new_with_mnemonic(_('_Choose…'))
         self.choose_button.set_valign(Gtk.Align.CENTER)
+        self.choose_button.set_tooltip_text(_('Open a file chooser to select an image'))
         self.choose_row.add_suffix(self.choose_button)
         src_group.add(self.choose_row)
 
@@ -106,11 +112,13 @@ class InsertImageView(DialogView):
 
         self.filename_row = Adw.EntryRow()
         self.filename_row.set_title(_('File name (without extension)'))
+        self.filename_row.set_tooltip_text(_('Base name used when saving the image, without .png'))
         save_group.add(self.filename_row)
 
         self.subdir_row = Adw.EntryRow()
         self.subdir_row.set_title(_('Subfolder'))
         self.subdir_row.set_text('images')
+        self.subdir_row.set_tooltip_text(_('Subfolder inside the document folder where the image is stored'))
         save_group.add(self.subdir_row)
 
         save_group.add(self._note(_('Image will be saved as PNG into "<document folder>/<subfolder>/<file name>.png".')))
@@ -124,6 +132,7 @@ class InsertImageView(DialogView):
         self.placement_row = Adw.ComboRow()
         self.placement_row.set_title(_('Float placement'))
         self.placement_row.set_subtitle(_('e.g. [ht] — use "H" for forced in-place (needs float package)'))
+        self.placement_row.set_tooltip_text(_('LaTeX float specifier controlling where the figure may be placed'))
         placement_labels = [_('htbp (here, top, bottom, page) — most flexible, default'),
                              _('ht (here, top) — common default'),
                              _('h (here only)'),
@@ -139,6 +148,7 @@ class InsertImageView(DialogView):
         self.scale_row = Adw.SpinRow()
         self.scale_row.set_title(_('Scale'))
         self.scale_row.set_subtitle(_('Relative size, 1.0 = original'))
+        self.scale_row.set_tooltip_text(_('Multiplies the image size; 1.0 keeps the original dimensions'))
         self.scale_row.set_digits(2)
         adjustment_scale = Gtk.Adjustment(value=1.0, lower=0.05, upper=5.0, step_increment=0.05, page_increment=0.25)
         self.scale_row.set_adjustment(adjustment_scale)
@@ -146,17 +156,20 @@ class InsertImageView(DialogView):
 
         self.width_row = Adw.EntryRow()
         self.width_row.set_title(_('Width (optional, e.g. 0.8\\textwidth)'))
+        self.width_row.set_tooltip_text(_('Override scaling with an explicit width such as 0.8\\textwidth'))
         layout_group.add(self.width_row)
 
         self.centered_switch = Adw.SwitchRow()
         self.centered_switch.set_title(_('Center the image'))
         self.centered_switch.set_subtitle(_('Wrap in \\begin{center}…\\end{center}'))
+        self.centered_switch.set_tooltip_text(_('Center the image horizontally on the page'))
         self.centered_switch.set_active(True)
         layout_group.add(self.centered_switch)
 
         self.figure_switch = Adw.SwitchRow()
         self.figure_switch.set_title(_('Use figure environment'))
         self.figure_switch.set_subtitle(_('Floating wrapper with caption & label'))
+        self.figure_switch.set_tooltip_text(_('Wrap the image in a figure float with a caption and label'))
         self.figure_switch.set_active(True)
         layout_group.add(self.figure_switch)
 
@@ -168,11 +181,13 @@ class InsertImageView(DialogView):
 
         self.caption_row = Adw.EntryRow()
         self.caption_row.set_title(_('Caption'))
+        self.caption_row.set_tooltip_text(_('Text shown below the image; leave empty for no caption'))
         self.caption_row.set_text(_('Caption'))
         text_group.add(self.caption_row)
 
         self.label_row = Adw.EntryRow()
         self.label_row.set_title(_('Label (for \\ref)'))
+        self.label_row.set_tooltip_text(_('Identifier used with \\ref to cross-reference this figure'))
         self.label_row.set_text('fig:')
         text_group.add(self.label_row)
 
