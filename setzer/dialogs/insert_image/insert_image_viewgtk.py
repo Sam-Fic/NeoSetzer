@@ -53,6 +53,10 @@ class InsertImageView(DialogView):
         self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
 
+        self.save_defaults_button = Gtk.Button.new_with_mnemonic(_('Save as _Default'))
+        self.save_defaults_button.set_tooltip_text(_('Store the current options to be used next time'))
+        self.headerbar.pack_start(self.save_defaults_button)
+
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
         self.insert_button.set_sensitive(False)
@@ -86,6 +90,7 @@ class InsertImageView(DialogView):
         self.choose_row = Adw.ActionRow()
         self.choose_row.set_title(_('Image File'))
         self.choose_row.set_subtitle(_('No file chosen'))
+        self.choose_row.set_tooltip_text(_('The selected image file, or "No file chosen" before selection'))
         self.choose_button = Gtk.Button.new_with_mnemonic(_('_Choose…'))
         self.choose_button.set_valign(Gtk.Align.CENTER)
         self.choose_button.set_tooltip_text(_('Open a file chooser to select an image'))
@@ -133,6 +138,25 @@ class InsertImageView(DialogView):
         self.placement_row.set_title(_('Float placement'))
         self.placement_row.set_subtitle(_('e.g. [ht] — use "H" for forced in-place (needs float package)'))
         self.placement_row.set_tooltip_text(_('LaTeX float specifier controlling where the figure may be placed'))
+
+        # 为下拉列表项设置自定义 factory，使每个选项都有完整文字的悬停气泡
+        def _setup_list_item(factory, list_item):
+            label = Gtk.Label()
+            label.set_xalign(0)
+            label.set_ellipsize(Pango.EllipsizeMode.END)
+            list_item.set_child(label)
+
+        def _bind_list_item(factory, list_item):
+            child = list_item.get_child()
+            if isinstance(child, Gtk.Label):
+                text = list_item.get_item().get_string()
+                child.set_label(text)
+                child.set_tooltip_text(text)
+
+        list_factory = Gtk.SignalListItemFactory()
+        list_factory.connect('setup', _setup_list_item)
+        list_factory.connect('bind', _bind_list_item)
+
         placement_labels = [_('htbp (here, top, bottom, page) — most flexible, default'),
                              _('ht (here, top) — common default'),
                              _('h (here only)'),
@@ -142,6 +166,7 @@ class InsertImageView(DialogView):
                              _('H (HERE, forced in place by float package)'),
                              _('h! (here, override restrictions with !)')]
         self.placement_row.set_model(Gtk.StringList.new(placement_labels))
+        self.placement_row.set_list_factory(list_factory)
         self.placement_row.set_selected(1)  # 默认 ht
         layout_group.add(self.placement_row)
 
@@ -168,7 +193,7 @@ class InsertImageView(DialogView):
 
         self.figure_switch = Adw.SwitchRow()
         self.figure_switch.set_title(_('Use figure environment'))
-        self.figure_switch.set_subtitle(_('Floating wrapper with caption & label'))
+        self.figure_switch.set_subtitle(_('Floating wrapper with caption &amp; label'))
         self.figure_switch.set_tooltip_text(_('Wrap the image in a figure float with a caption and label'))
         self.figure_switch.set_active(True)
         layout_group.add(self.figure_switch)
@@ -177,7 +202,7 @@ class InsertImageView(DialogView):
 
         # ---- 文本组 ----
         text_group = Adw.PreferencesGroup()
-        text_group.set_title(_('Caption & Label'))
+        text_group.set_title(_('Caption &amp; Label'))
 
         self.caption_row = Adw.EntryRow()
         self.caption_row.set_title(_('Caption'))
@@ -196,6 +221,21 @@ class InsertImageView(DialogView):
         content.append(text_group)
 
         # 内容已挂到 self.topbox（DialogView 的 ToolbarView 内容区）
+        self._apply_row_tooltips()
+
+    def _apply_row_tooltips(self):
+        '''给所有 PreferenceRow 在缺少显式 tooltip 时，用其标题作为悬停气泡，
+        以便标题被折叠/省略时仍能通过鼠标悬停查看完整文字。'''
+        def walk(widget):
+            if isinstance(widget, Adw.PreferencesRow) and not widget.get_tooltip_text():
+                title = widget.get_title()
+                if title:
+                    widget.set_tooltip_text(title)
+            child = widget.get_first_child()
+            while child is not None:
+                walk(child)
+                child = child.get_next_sibling()
+        walk(self.topbox)
 
     def _note(self, text):
         label = Gtk.Label(label=text)
@@ -230,3 +270,31 @@ class InsertImageView(DialogView):
     def _has_image(self):
         # 有文件名即可插入；图片本身要么是文件要么是剪贴板纹理
         return len(self.filename_row.get_text().strip()) > 0
+
+    def get_values(self):
+        '''返回当前可持久化为默认值的选项。'''
+        return {
+            'subdir': self.subdir_row.get_text().strip() or 'images',
+            'placement_index': self.placement_row.get_selected(),
+            'scale': self.scale_row.get_value(),
+            'width': self.width_row.get_text().strip(),
+            'centered': self.centered_switch.get_active(),
+            'figure': self.figure_switch.get_active(),
+        }
+
+    def apply_values(self, values):
+        '''从已保存的默认值恢复选项（不影响文件名/图片来源等每次插入相关项）。'''
+        if not isinstance(values, dict):
+            return
+        if 'subdir' in values:
+            self.subdir_row.set_text(str(values['subdir']))
+        if 'placement_index' in values:
+            self.placement_row.set_selected(int(values['placement_index']))
+        if 'scale' in values:
+            self.scale_row.set_value(float(values['scale']))
+        if 'width' in values:
+            self.width_row.set_text(str(values['width']))
+        if 'centered' in values:
+            self.centered_switch.set_active(bool(values['centered']))
+        if 'figure' in values:
+            self.figure_switch.set_active(bool(values['figure']))
