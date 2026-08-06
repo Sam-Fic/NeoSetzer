@@ -324,6 +324,12 @@ class Workspace(Observable):
         return self.active_document
 
     def set_active_document(self, document):
+        # 同一文档内跳转（如 Document Structure 点击）时，避免无谓发射
+        # new_inactive_document / new_active_document 信号，防止 loading
+        # spinner 全屏 overlay 显示/隐藏造成界面闪烁。
+        if self.active_document is document:
+            return
+
         # 懒加载同步兜底：用户切换到尚未加载内容的文档时，取消其 idle 回调
         # 并立即读取文件内容。idle 后台加载虽已调度，但用户主动切换意味着
         # 要立即查看该文档——不能等 idle 排到它。

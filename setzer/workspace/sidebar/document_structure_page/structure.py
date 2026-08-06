@@ -87,7 +87,7 @@ class StructureSection(object):
             return
         self.data_provider.workspace.set_active_document(document)
         document.place_cursor(line_number)
-        document.scroll_cursor_onscreen()
+        document.scroll_cursor_onscreen(margin_lines=0)
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
 
     def register_row(self, row, node):
@@ -410,7 +410,9 @@ class StructureSection(object):
             if depth == 0:
                 close_brace.backward_char()
                 document.source_buffer.begin_user_action()
+                open_brace_offset = open_brace.get_offset()
                 document.source_buffer.delete(open_brace, close_brace)
+                open_brace = document.source_buffer.get_iter_at_offset(open_brace_offset)
                 document.source_buffer.insert(open_brace, new_title)
                 document.source_buffer.end_user_action()
 
@@ -440,7 +442,9 @@ class StructureSection(object):
                 after_close = close_brace.copy()
                 after_close.forward_char()
                 document.source_buffer.begin_user_action()
+                label_start_offset = label_start.get_offset()
                 document.source_buffer.delete(label_start, after_close)
+                label_start = document.source_buffer.get_iter_at_offset(label_start_offset)
                 document.source_buffer.insert(label_start, '\\label{' + new_label + '}')
                 document.source_buffer.end_user_action()
 
@@ -468,10 +472,11 @@ class StructureSection(object):
                     match_end_copy = match_end.copy()
                     full_text = buffer.get_text(full_start, match_end_copy, False)
                     new_full_text = pattern.sub(r'\1' + new_label + r'\2', full_text)
+                    full_start_offset = full_start.get_offset()
                     buffer.delete(full_start, match_end_copy)
+                    full_start = buffer.get_iter_at_offset(full_start_offset)
                     buffer.insert(full_start, new_full_text)
-                    search_iter = full_start.copy()
-                    search_iter.forward_chars(len(new_full_text))
+                    search_iter = buffer.get_iter_at_offset(full_start_offset + len(new_full_text))
                 else:
                     search_iter = match_end
             buffer.end_user_action()

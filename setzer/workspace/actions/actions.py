@@ -676,7 +676,7 @@ class Actions(object):
         next_line = document.bookmarks.get_next_bookmark_line(current_line)
         if next_line is not None:
             buffer.place_cursor(buffer.get_iter_at_line(next_line)[1])
-            document.scroll_cursor_onscreen()
+            document.scroll_cursor_onscreen(margin_lines=0)
 
     def previous_bookmark(self, action=None, parameter=None):
         """Navigate to the previous bookmark."""
@@ -722,6 +722,7 @@ class Actions(object):
             elif line_number == buffer.get_line_count() - 1:
                 # 末行无换行符：先补一个换行，再复制行内容。
                 buffer.insert(line_end, '\n')
+                line_end = buffer.get_iter_at_line(line_number)[1]
                 line_end.forward_char()
             line_text = buffer.get_slice(line_start, line_end, False)
             buffer.insert(line_end, line_text)
@@ -1334,7 +1335,7 @@ class Actions(object):
             offset = match.start()
             line = document.source_buffer.get_iter_at_offset(offset).get_line()
             document.place_cursor(line)
-            document.scroll_cursor_onscreen()
+            document.scroll_cursor_onscreen(margin_lines=0)
             document.view.source_view.grab_focus()
         else:
             # Check included documents
