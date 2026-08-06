@@ -161,6 +161,8 @@ class DocumentView(Gtk.Box):
 
         buffer.begin_user_action()
         buffer.delete(line_start, iter_after_ws)
+        # delete 会失效 line_start，需重新获取
+        line_start = buffer.get_iter_at_line(line_number)[1]
         buffer.insert(line_start, new_ws)
         buffer.end_user_action()
 

@@ -60,7 +60,10 @@ class Observable(object):
             try:
                 if _timing:
                     _s = time.perf_counter()
-                callback(self, parameter)
+                if parameter is not None:
+                    callback(self, parameter)
+                else:
+                    callback(self)
                 if _timing:
                     _d = (time.perf_counter() - _s) * 1000
                     if _d > 1:

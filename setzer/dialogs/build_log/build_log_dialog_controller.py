@@ -130,7 +130,7 @@ class BuildLogDialogController(object):
         # 错误行若落在折叠区内会不可见，跳转前先展开包含它的所有折叠区域。
         target_document.code_folding.unfold_region_containing_line(line_number)
         target_document.place_cursor(line_number)
-        target_document.scroll_cursor_onscreen()
+        target_document.scroll_cursor_onscreen(margin_lines=0)
         target_document.source_view.grab_focus()
 
         start, end = target_document.source_buffer.get_iter_at_line(line_number)[1], None
