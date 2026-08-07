@@ -393,6 +393,9 @@ class Actions(object):
             DialogLocator.get_dialog('build_save').run(document)
         else:
             self.save()
+            # 手动构建已覆盖 pending auto-build 倒计时的目的，取消尚未 fire
+            # 的倒计时，避免「用户手动编译后倒计时到又自动编一次」。
+            self.workspace.auto_build.cancel_pending_for_target(document)
             # 手动构建：确保 is_auto_build = False，使 build_log 始终遵循
             # autoshow_build_log 设置弹出日志（不受 auto_build_autoshow_errors 影响）。
             document.build_system.is_auto_build = False
@@ -408,6 +411,9 @@ class Actions(object):
         if document.filename == None:
             DialogLocator.get_dialog('build_save').run(document)
         else:
+            # 手动构建已覆盖 pending auto-build 倒计时的目的，取消尚未 fire
+            # 的倒计时，避免「用户手动编译后倒计时到又自动编一次」。
+            self.workspace.auto_build.cancel_pending_for_target(document)
             # 手动构建：确保 is_auto_build = False，使 build_log 始终遵循
             # autoshow_build_log 设置弹出日志（不受 auto_build_autoshow_errors 影响）。
             document.build_system.is_auto_build = False

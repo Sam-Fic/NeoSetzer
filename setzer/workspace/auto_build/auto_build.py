@@ -139,6 +139,18 @@ class AutoBuild(object):
         if source_id != None:
             GLib.Source.remove(source_id)
 
+    def cancel_pending_for_target(self, target):
+        '''手动构建已把最新编辑构建出来后，取消所有尚未 fire 的
+        auto-build 倒计时。
+
+        on_timer 触发时统一构建 get_root_or_active_latex_document()
+        ——即与本次手动构建相同的 target——故任何 pending 倒计时再
+        fire 都只是对同一 target 做一次冗余构建。手动构建已满足这些
+        倒计时的目的，全部取消即可，避免「用户刚手动编译、倒计时到
+        了又自动编一次」的极端情况。'''
+        for document in list(self.timers.keys()):
+            self.cancel_timer(document)
+
     def on_timer(self, document):
         # this is a one-shot timeout, drop the stored id right away
         self.timers.pop(document, None)
