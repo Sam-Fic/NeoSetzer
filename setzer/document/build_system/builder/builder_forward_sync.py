@@ -41,13 +41,13 @@ class BuilderForwardSync(builder_build.BuilderBuild):
             query.forward_sync_result = None
             return
 
-        synctex_folder = synctex_folder(self.config_folder, query.tex_filename)
+        synctex_dir = synctex_folder(self.config_folder, query.tex_filename)
         arguments = ['synctex', 'view', '-i']
         arguments.append(str(query.forward_sync_data['line']) + ':' + str(query.forward_sync_data['line_offset']) + ':' + query.forward_sync_data['filename'])
         arguments.append('-o')
         arguments.append(os.path.splitext(query.tex_filename)[0] + '.pdf')
         arguments.append('-d')
-        arguments.append(synctex_folder)
+        arguments.append(synctex_dir)
         try:
             self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except FileNotFoundError:
