@@ -7,12 +7,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -41,11 +41,11 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
             query.backward_sync_result = None
             return
 
-        synctex_folder = synctex_folder(self.config_folder, query.tex_filename)
+        synctex_dir = synctex_folder(self.config_folder, query.tex_filename)
         arguments = ['synctex', 'edit', '-o']
         arguments.append(str(query.backward_sync_data['page']) + ':' + str(query.backward_sync_data['x']) + ':' + str(query.backward_sync_data['y']) + ':' + os.path.splitext(query.tex_filename)[0] + '.pdf')
         arguments.append('-d')
-        arguments.append(synctex_folder)
+        arguments.append(synctex_dir)
         try:
             self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except FileNotFoundError:
@@ -76,5 +76,3 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
         if self.process != None:
             self.process.kill()
             self.process = None
-
-
