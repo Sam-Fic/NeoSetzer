@@ -107,34 +107,6 @@ class AutocompleteWidgetView(Gtk.ListBox):
         '''
         if self.get_realized():
             self.get_style_context().add_class('autocomplete-widget')
-            # 直接设置 ListBox 本身的背景色（使用主题的卡片背景）
-            self._set_bg_color()
-
-    def _set_bg_color(self):
-        '''直接为 widget 和其所有 row 设置背景色。'''
-        from setzer.app.color_manager import ColorManager
-        bg_color = ColorManager.get_ui_color('card_bg_color')
-        if bg_color:
-            # 为每个 row 设置背景色 CSS provider
-            css_provider = Gtk.CssProvider()
-            css = f'''
-            .autocomplete-widget {{
-                background-color: {bg_color.to_string()};
-                border-radius: 8px;
-                border: 1px solid @borders;
-            }}
-            .autocomplete-widget row {{
-                background-color: {bg_color.to_string()};
-            }}
-            .autocomplete-widget row:selected {{
-                background-color: alpha(@theme_selected_bg_color, 0.25);
-            }}
-            '''
-            css_provider.load_from_data(css.encode())
-            self.get_style_context().add_provider(
-                css_provider,
-                Gtk.STYLE_PROVIDER_PRIORITY_USER
-            )
 
     def populate(self):
         r'''Rebuild the visible rows from the model's current state.

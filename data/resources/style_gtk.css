@@ -617,14 +617,23 @@ headerbar {
  */
 .autocomplete-widget,
 .autocomplete-widget row {
-    background-color: @card_bg_color;
-    background: @card_bg_color;
+    background-color: transparent;
+    background: transparent;
     border: none;
 }
 .autocomplete-widget {
+    /* 使用主题的 window_bg_color 但不依赖可能的 alpha 通道，强制不透明 */
+    background-color: @window_bg_color;
+    background: @window_bg_color;
     border-radius: 14px;
     border: 1px solid @borders;
     padding: 6px;
+    /* 确保补全卡片完全不透明，不继承任何父级透明度 */
+    opacity: 1;
+    /* 强制覆盖任何可能的 inherited 透明度 */
+    background-image: none;
+    box-shadow: none;
+    outline: none;
 }
 .autocomplete-widget row:selected {
     background-color: alpha(@theme_selected_bg_color, 0.25);

@@ -18,7 +18,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Gdk, Adw, GLib
 
 import setzer.document.autocomplete.autocomplete_widget_viewgtk as autocomplete_view
 from setzer.app.service_locator import ServiceLocator
@@ -35,6 +36,16 @@ class AutocompleteWidget(object):
         self.source_buffer = self.model.document.source_buffer
 
         self.view = autocomplete_view.AutocompleteWidgetView(self)
+        # 强制补全弹窗卡片不透明：绕过可能带 alpha 的 CSS 变量。
+        # 延迟到 widget realize 后应用，确保 CSS provider 生效。
+        self._opaque_bg_applied = False
+        self._theme_handler_id = None
+        try:
+            style_manager = Adw.StyleManager.get_default()
+            self._theme_handler_id = style_manager.connect('notify::dark', self._on_theme_changed)
+        except Exception:
+            pass
+        GLib.idle_add(self._apply_opaque_background)
 
         self.line_height = FontManager.get_line_height(self.source_view)
         self.char_width = FontManager.get_char_width(self.source_view)
@@ -68,6 +79,48 @@ class AutocompleteWidget(object):
     def on_focus_in(self, widget):
         self.focus_hide = False
         self.queue_draw()
+
+    def _apply_opaque_background(self):
+        '''强制补全弹窗卡片不透明：获取主题背景色并强制 alpha=1.0。'''
+        from setzer.app.color_manager import ColorManager
+        bg_color = ColorManager.get_ui_color('window_bg_color')
+        if bg_color:
+            # 强制 alpha=1.0，确保完全不透明
+            opaque_color = Gdk.RGBA()
+            opaque_color.red = bg_color.red
+            opaque_color.green = bg_color.green
+            opaque_color.blue = bg_color.blue
+            opaque_color.alpha = 1.0
+            
+            # 转换为 #rrggbb 格式（不带 alpha），避免 CSS 变量可能带的透明度
+            r = int(round(opaque_color.red * 255))
+            g = int(round(opaque_color.green * 255))
+            b = int(round(opaque_color.blue * 255))
+            hex_color = f'#{r:02x}{g:02x}{b:02x}'
+            
+            css_provider = Gtk.CssProvider()
+            css = f'''
+            .autocomplete-widget {{
+                background-color: {hex_color};
+                background: {hex_color};
+                opacity: 1;
+            }}
+            .autocomplete-widget row {{
+                background-color: transparent;
+            }}
+            .autocomplete-widget row:selected {{
+                background-color: alpha(@theme_selected_bg_color, 0.25);
+            }}
+            '''
+            css_provider.load_from_data(css.encode())
+            self.view.get_style_context().add_provider(
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_USER
+            )
+
+    def _on_theme_changed(self, style_manager, pspec):
+        '''主题切换时重新应用不透明背景。'''
+        self._apply_opaque_background()
 
     def queue_draw(self):
         self.update_size()
