@@ -149,13 +149,6 @@ class ContextMenu(Observable):
         source_section.append_item(_action_item(_('Show Source'), 'win.preview-show-source'))
         model.append_section(None, source_section)
 
-        # Zoom controls as custom child row.
-        zoom_section = Gio.Menu()
-        zoom_item = Gio.MenuItem()
-        zoom_item.set_attribute_value('custom', GLib.Variant('s', 'zoom-controls'))
-        zoom_section.append_item(zoom_item)
-        model.append_section(None, zoom_section)
-
         return model
 
     # --- Menu activation ------------------------------------------------------
@@ -175,11 +168,6 @@ class ContextMenu(Observable):
         # Rebuild model for current context.
         model = self._build_model(page_number, link)
         self.popover_pointer.set_menu_model(model)
-
-        # Ensure zoom custom child is attached (only once).
-        if not hasattr(self, '_zoom_widget_added'):
-            self.popover_pointer.add_child(self._build_zoom_widget(), 'zoom-controls')
-            self._zoom_widget_added = True
 
         # Sync recolor action state so checkmark is current.
         recolor_action = self.preview.document.settings.get_value('preferences', 'recolor_pdf')
@@ -220,42 +208,6 @@ class ContextMenu(Observable):
         action = main_window.lookup_action('preview-recolor')
         if action is not None:
             action.set_state(GLib.Variant.new_boolean(recolor_pdf))
-
-    # --- Zoom widget (custom child) -------------------------------------------
-
-    def _build_zoom_widget(self):
-        box = Gtk.CenterBox()
-        box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        box.set_margin_start(6)
-        box.set_margin_end(6)
-        box.set_margin_top(6)
-        box.set_margin_bottom(6)
-
-        zoom_label = Gtk.Label(label=_('Zoom'))
-        box.set_start_widget(zoom_label)
-
-        inner_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-
-        button_zoom_out = Gtk.Button()
-        button_zoom_out.set_icon_name('value-decrease-symbolic')
-        button_zoom_out.add_css_class('flat')
-        button_zoom_out.set_action_name('win.preview-zoom-out')
-        inner_box.append(button_zoom_out)
-
-        self.reset_zoom_button = Gtk.Button()
-        self.reset_zoom_button.add_css_class('flat')
-        self.reset_zoom_button.set_action_name('win.preview-fit-mode')
-        self.reset_zoom_button.set_action_target_value(GLib.Variant('s', 'width'))
-        inner_box.append(self.reset_zoom_button)
-
-        button_zoom_in = Gtk.Button()
-        button_zoom_in.set_icon_name('value-increase-symbolic')
-        button_zoom_in.add_css_class('flat')
-        button_zoom_in.set_action_name('win.preview-zoom-in')
-        inner_box.append(button_zoom_in)
-
-        box.set_end_widget(inner_box)
-        return box
 
     # --- Search in PDF --------------------------------------------------------
 
