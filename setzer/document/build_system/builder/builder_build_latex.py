@@ -165,13 +165,22 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         - 进程结束（EOF）→ 退出循环
 
         用守护线程逐行读取 stdout，主线程轮询检测停滞。
-        '''
+
+        进程对象绑定到局部变量 process，全程不再读 self.process：
+        stop_running（主线程）会把 self.process 置 None，若此处仍用
+        self.process.poll() 会触发 AttributeError: 'NoneType' object
+        has no attribute 'poll'。局部引用指向同一进程对象，stop_running
+        的 terminate() 会让 process.poll() 返回退出码，循环正常退出。'''
+        process = self.process
+        if process is None:
+            return
+
         output_lines = []
         error_detected = False
 
         def reader():
             try:
-                for line in self.process.stdout:
+                for line in process.stdout:
                     output_lines.append(line)
             except Exception:
                 pass
@@ -184,7 +193,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         stall_timeout = 20  # 与原 pexpect timeout 一致
 
         while True:
-            if self.process.poll() is not None:
+            if process.poll() is not None:
                 reader_thread.join(timeout=2)
                 break
 
@@ -202,10 +211,10 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             elif time.time() - last_change_time > stall_timeout:
                 if error_detected:
                     try:
-                        self.process.terminate()
-                        self.process.wait(timeout=5)
+                        process.terminate()
+                        process.wait(timeout=5)
                     except Exception:
-                        try: self.process.kill()
+                        try: process.kill()
                         except Exception: pass
                     break
                 # 无错误但停滞：重置计时器继续等（大文档编译可能较慢）
@@ -213,11 +222,11 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
         # 确保进程结束 + 管道关闭
         try:
-            self.process.wait(timeout=5)
+            process.wait(timeout=5)
         except Exception:
-            try: self.process.kill()
+            try: process.kill()
             except Exception: pass
-        try: self.process.stdout.close()
+        try: process.stdout.close()
         except Exception: pass
 
     def stop_running(self):
