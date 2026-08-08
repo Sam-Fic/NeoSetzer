@@ -47,17 +47,20 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
         arguments.append('-d')
         arguments.append(synctex_dir)
         try:
-            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'synctex missing')
             return
+        # 暴露给 stop_running 以便外部中止；本方法用局部 process 操作，
+        # 避免 stop_running 置 self.process=None 后 wait/communicate 崩。
+        self.process = process
 
-        self.process.wait()
+        process.wait()
 
         result = None
-        if self.process != None:
-            raw = self.process.communicate()[0].decode('utf-8')
+        if process != None:
+            raw = process.communicate()[0].decode('utf-8')
             self.process = None
 
             match = self.backward_synctex_regex.search(raw)
