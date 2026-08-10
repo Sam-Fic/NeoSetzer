@@ -11,38 +11,59 @@
       <stop offset="0" stop-color="#C77DFF"/>
       <stop offset="1" stop-color="#7B2CBF"/>
     </linearGradient>
-    <linearGradient id="hl" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#c0a0e8" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#c0a0e8" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#c0a0e8" stop-opacity="0"/>
-    </linearGradient>
     <clipPath id="circClip">
       <circle cx="201" cy="256" r="120"/>
     </clipPath>
-    <clipPath id="sqClip">
-      <rect x="251" y="166" width="180" height="180" rx="10" ry="10"/>
+    <!-- 圆形厚度 clip（下移14px的圆 + 中间填充带） -->
+    <clipPath id="circThickClip">
+      <circle cx="201" cy="270" r="120"/>
+      <rect x="81" y="256" width="240" height="14"/>
     </clipPath>
   </defs>
 
   <g transform="translate(256,256) scale(1.3) translate(-256,-256)">
+
+    <!-- ====== Layer 0: 圆形厚度 ====== -->
   <circle cx="201" cy="270" r="120" fill="#0077B6"/>
   <!-- Circle: shadow fill — left/right gap between face and shadow -->
   <rect x="81" y="256" width="240" height="14" fill="#0077B6"/>
   <!-- Circle: face -->
   <circle cx="201" cy="256" r="120" fill="url(#circGrad)"/>
 
-  <!-- Square: thickness -->
+    <!-- ====== Layer 1: 方形厚度 ====== -->
   <rect x="251" y="180" width="180" height="180" rx="10" ry="10" fill="#5A189A"/>
-  <!-- Square: face -->
-  <rect x="251" y="166" width="180" height="180" rx="10" ry="10" fill="url(#sqGrad)"/>
 
-  <!-- Intersection zone -->
-  <g clip-path="url(#circClip)">
-    <rect x="251" y="166" width="180" height="180" rx="10" ry="10"
-          fill="#FF6600" fill-opacity="0.6"/>
+    <!-- ====== Layer 2: 圆厚 × 方厚（最暗） ====== -->
+    <g clip-path="url(#circThickClip)">
+      <rect x="251" y="180" width="180" height="180" rx="10" ry="10"
+            fill="#993D00"/>
   </g>
 
-  <!-- Accent diamond at circle center -->
+    <!-- ====== Layer 3: 圆形正面 ====== -->
+    <circle cx="201" cy="256" r="120" fill="url(#circGrad)"/>
+
+    <!-- ====== Layer 4: 圆面 × 方厚（中暗） ====== -->
+  <g clip-path="url(#circClip)">
+    <rect x="251" y="180" width="180" height="180" rx="10" ry="10"
+            fill="#CC5200"/>
+  </g>
+
+    <!-- ====== Layer 5: 方形正面 ====== -->
+    <rect x="251" y="166" width="180" height="180" rx="10" ry="10" fill="url(#sqGrad)"/>
+
+    <!-- ====== Layer 6: 圆厚 × 方面（中暗） ====== -->
+  <g clip-path="url(#circThickClip)">
+    <rect x="251" y="166" width="180" height="180" rx="10" ry="10"
+            fill="#CC5200"/>
+  </g>
+
+    <!-- ====== Layer 7: 圆面 × 方面（最亮） ====== -->
+    <g clip-path="url(#circClip)">
+      <rect x="251" y="166" width="180" height="180" rx="10" ry="10"
+            fill="#FF6600"/>
+  </g>
+
+    <!-- ====== Layer 8: 装饰元素 ====== -->
   <rect x="181" y="243" width="40" height="40" rx="6" ry="6"
         fill="#FB8500" transform="rotate(45,201,263)"/>
   <!-- Diamond shadow fill — left/right gap between face and shadow -->
