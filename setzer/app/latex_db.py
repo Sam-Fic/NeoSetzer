@@ -215,10 +215,37 @@ class LaTeXDB():
         items.sort(key=lambda item: item['command'].lower())
         return items
 
+    # 命令基础名提取：避免每次按键用正则，改为纯字符串扫描。
+    @staticmethod
+    def _command_base(command):
+        i = 1  # 跳过前导 '\'
+        n = len(command)
+        start = i
+        while i < n:
+            c = command[i]
+            if not ('a' <= c <= 'z' or 'A' <= c <= 'Z'):
+                break
+            i += 1
+        return command[start:i].lower()
+
+    # 仅 preamble 可用、文档体应隐藏的命令基础名（与 autocomplete._PREAMBLE_ONLY 同步）。
+    _PREAMBLE_ONLY = {
+        'documentclass', 'usepackage', 'requirepackage', 'newcommand',
+        'renewcommand', 'providecommand', 'newenvironment', 'renewenvironment',
+        'newtheorem', 'newlength', 'newcounter', 'setlength', 'newsavebox',
+        'passoptionstopackages', 'declaremathoperator',
+    }
+
     def generate_static_proposals():
         commands = LaTeXDB.get_commands()
         LaTeXDB.static_proposals = dict()
         LaTeXDB.all_commands = list(commands.values())
+        # 预计算每个命令的基础名与是否仅 preamble 可用，避免补全热路径里反复
+        # 用正则提取 + 集合查询（报告 #7 性能优化）。
+        for command in LaTeXDB.all_commands:
+            base = LaTeXDB._command_base(command['command'])
+            command['_cmd_base'] = base
+            command['_preamble_only'] = base in LaTeXDB._PREAMBLE_ONLY
         for command in LaTeXDB.all_commands:
             if not command['lowpriority']:
                 for i in range(2, len(command['command']) + 1):

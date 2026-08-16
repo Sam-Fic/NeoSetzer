@@ -46,20 +46,30 @@ def _is_in_math_mode(text_before_cursor):
         i += 1
     return count % 2 == 1
 
-# 仅 preamble 可用、文档体（\begin{document} 之后）应隐藏的命令基础名。
-# 用于 update_suggestions 的上下文过滤（报告 #7）。
+# 仅 preamble 可用、文档体（\begin{document} 之后）应隐藏的命令基础名（无前导 '\'，
+# 与 LaTeXDB._PREAMBLE_ONLY 保持一致）。用于 update_suggestions 的上下文过滤
+# （报告 #7）。注意：基础名已去 '\'，与 _cmd_base 返回值对齐，避免原实现因
+# 集合带 '\' 而过滤恒为真（即从未真正隐藏）的缺陷。
 _PREAMBLE_ONLY = {
-    '\\documentclass', '\\usepackage', '\\requirepackage', '\\newcommand',
-    '\\renewcommand', '\\providecommand', '\\newenvironment', '\\renewenvironment',
-    '\\newtheorem', '\\newlength', '\\newcounter', '\\setlength', '\\newsavebox',
-    '\\passoptionstopackage', '\\declaremathoperator',
+    'documentclass', 'usepackage', 'requirepackage', 'newcommand',
+    'renewcommand', 'providecommand', 'newenvironment', 'renewenvironment',
+    'newtheorem', 'newlength', 'newcounter', 'setlength', 'newsavebox',
+    'passoptionstopackages', 'declaremathoperator',
 }
 
 
 def _cmd_base(command):
-    '''提取命令基础名（首个 \\word 片段），用于 preamble 过滤的白名单匹配。'''
-    m = re.match(r'(\\[A-Za-z]+)', command)
-    return m.group(1).lower() if m is not None else command.lower()
+    '''提取命令基础名（首个 \\word 片段，无前导 '\'），用于 preamble 过滤。'''
+    i = 1 if command.startswith('\\') else 0
+    n = len(command)
+    start = i
+    while i < n:
+        c = command[i]
+        if not ('a' <= c <= 'z' or 'A' <= c <= 'Z'):
+            break
+        i += 1
+    base = command[start:i].lower()
+    return base if base else command.lower()
 
 
 class Autocomplete(object):
@@ -290,8 +300,11 @@ class Autocomplete(object):
             if self.context != 'begin':
                 preamble_end = self._get_preamble_end()
                 if preamble_end is not None and insert_iter.get_offset() > preamble_end:
+                    # 优先用 LaTeXDB 预计算的 _preamble_only 布尔；对未预计算的
+                    # 动态项回退到基础名提取（保持报告 #7 行为不变）。
                     self.items = [it for it in self.items
-                                  if _cmd_base(it['command']) not in _PREAMBLE_ONLY]
+                                  if not it.get('_preamble_only', False)
+                                  and _cmd_base(it.get('command', '')) not in _PREAMBLE_ONLY]
             # items 集合可能已变，重置选中项到首项（与原行为一致）。
             if len(self.items) > 0:
                 self.first_item_index = 0
@@ -309,7 +322,10 @@ class Autocomplete(object):
         self.widget.queue_draw()
 
     def _get_preamble_end(self):
-        '''返回 preamble 区块结束偏移（\begin{document} 之前）；无则返回 None。'''
+        '''返回 preamble 区块结束偏移（\begin{document} 之前）；无则返回 None。
+
+        对 symbols['blocks'] 对象做轻量缓存：blocks 仅在文档重解析时变化，
+        避免每次按键重复遍历区块列表。'''
         parser = getattr(self.document, 'parser', None)
         if parser is None:
             return None
@@ -319,10 +335,17 @@ class Autocomplete(object):
         blocks = symbols.get('blocks')
         if not blocks:
             return None
+        # 缓存：以 blocks 对象身份 + 首个 preamble 区块引用为键。
+        cache = getattr(self, '_preamble_end_cache', None)
+        if cache is not None and cache[0] is blocks and cache[1] == (blocks[0] if blocks else None):
+            return cache[2]
+        result = None
         for block in blocks:
             if len(block) >= 2 and block[-1] == 'preamble':
-                return block[1]
-        return None
+                result = block[1]
+                break
+        self._preamble_end_cache = (blocks, blocks[0] if blocks else None, result)
+        return result
 
     def select_next(self):
         if len(self.items) == 0: return
