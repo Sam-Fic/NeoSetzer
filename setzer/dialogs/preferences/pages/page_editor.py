@@ -27,6 +27,7 @@ from gi.repository import Pango
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
+from setzer.document.spellchecking.spellchecking import SpellChecker
 
 
 # 编辑器配色方案预览样例：用 LaTeX 代码（而非 Markdown），因为 Setzer 是
@@ -125,6 +126,33 @@ class PageEditor(object):
 
         self.view.option_show_whitespace.set_active(self.settings.get_value('preferences', 'show_whitespace'))
         self.view.option_show_whitespace.connect('notify::active', self.on_switch_toggled, 'show_whitespace')
+
+        # ---- 拼写检查（pyenchant 后端，缺库/无词典时整组置灰）----
+        self.spellchecking_languages = SpellChecker.available_languages()
+        if SpellChecker.is_available() and self.spellchecking_languages:
+            self.view.option_spellchecking.set_active(
+                self.settings.get_value('preferences', 'spellchecking_enabled'))
+            self.view.option_spellchecking.connect(
+                'notify::active', self.on_switch_toggled, 'spellchecking_enabled')
+
+            language_model = Gtk.StringList.new([
+                SpellChecker.language_display_name(tag)
+                for tag in self.spellchecking_languages])
+            self.view.spellchecking_language_row.set_model(language_model)
+            self.view.spellchecking_language_row.set_selected(
+                self._spellchecking_language_index(
+                    self.settings.get_value('preferences', 'spellchecking_language')))
+            self.view.spellchecking_language_row.connect(
+                'notify::selected', self.on_spellchecking_language_changed)
+            self.view.spellchecking_words_button.connect(
+                'clicked', self.on_manage_words_clicked)
+        else:
+            self.view.option_spellchecking.set_active(False)
+            self.view.option_spellchecking.set_sensitive(False)
+            self.view.spellchecking_language_row.set_sensitive(False)
+            self.view.spellchecking_words_row.set_sensitive(False)
+            self.view.option_spellchecking.set_subtitle(_(
+                'Unavailable: install pyenchant and hunspell dictionaries to enable.'))
 
         # 同步到预览 SourceView（初始状态）。
         self._apply_preview_space_drawer()
@@ -248,6 +276,32 @@ class PageEditor(object):
     def on_combo_row_changed(self, combo_row, pspec, pref_key, values):
         value = values[combo_row.get_selected()]
         self.settings.set_value('preferences', pref_key, value)
+
+    def _spellchecking_language_index(self, tag):
+        '''词典 tag → 下拉索引；保存值不可用时回退 en_US → 首项。'''
+        if tag in self.spellchecking_languages:
+            return self.spellchecking_languages.index(tag)
+        if 'en_US' in self.spellchecking_languages:
+            return self.spellchecking_languages.index('en_US')
+        return 0
+
+    def on_spellchecking_language_changed(self, combo_row, pspec):
+        index = combo_row.get_selected()
+        if 0 <= index < len(self.spellchecking_languages):
+            self.settings.set_value('preferences', 'spellchecking_language',
+                                    self.spellchecking_languages[index])
+
+    def on_manage_words_clicked(self, button):
+        '''打开「管理词表」对话框：查看/增删用户词典与会话忽略词。
+
+        首次点击时惰性创建（构造 Adw.Dialog 控件树成本不小），之后复用。
+        '''
+        if getattr(self, 'spellchecking_words_dialog', None) is None:
+            from setzer.dialogs.spellchecking_words.spellchecking_words \
+                import SpellCheckingWordsDialog
+            self.spellchecking_words_dialog = SpellCheckingWordsDialog(
+                self.main_window or ServiceLocator.get_main_window())
+        self.spellchecking_words_dialog.run()
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
@@ -510,6 +564,11 @@ class PageEditor(object):
         self.view.option_show_line_endings.set_active(defaults['show_line_endings'])
         self.view.option_show_whitespace.set_active(defaults['show_whitespace'])
         self._apply_preview_space_drawer()
+        # 拼写检查：开关直接写回；语言下拉仅在可用时复位（缺库时整组置灰）。
+        self.view.option_spellchecking.set_active(defaults['spellchecking_enabled'])
+        if getattr(self, 'spellchecking_languages', None):
+            self.view.spellchecking_language_row.set_selected(
+                self._spellchecking_language_index(defaults['spellchecking_language']))
         self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
         self.view.option_auto_reload_on_external_change.set_active(
@@ -766,6 +825,43 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_highlight_matching_begin_end.set_tooltip_text(_(
             'Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_begin_end)
+
+        # 拼写检查：pyenchant 后端；缺库或系统无词典时整组置灰。
+        group_spellchecking = Adw.PreferencesGroup()
+        group_spellchecking.set_title(_('Spell Checking'))
+        self.add(group_spellchecking)
+
+        self.option_spellchecking = Adw.SwitchRow()
+        self.option_spellchecking.set_title(_('Check spelling as you type'))
+        self.option_spellchecking.set_subtitle(_(
+            'Underline misspelled words in the text. '
+            'Commands, math and verbatim regions are skipped.'))
+        self.option_spellchecking.set_tooltip_text(_(
+            'Check spelling as you type using enchant/hunspell dictionaries. '
+            'LaTeX commands, math mode and verbatim environments are not checked. '
+            'Right-click a marked word for suggestions.'))
+        group_spellchecking.add(self.option_spellchecking)
+
+        self.spellchecking_language_row = Adw.ComboRow()
+        self.spellchecking_language_row.set_title(_('Language'))
+        self.spellchecking_language_row.set_subtitle(_('Dictionary used for spell checking'))
+        self.spellchecking_language_row.set_tooltip_text(_(
+            'The dictionary language for spell checking. '
+            'Additional languages can be installed via hunspell/aspell packages.'))
+        group_spellchecking.add(self.spellchecking_language_row)
+
+        self.spellchecking_words_row = Adw.ActionRow()
+        self.spellchecking_words_row.set_title(_('Manage Words'))
+        self.spellchecking_words_row.set_subtitle(_(
+            'View and edit ignored words and your user dictionary'))
+        self.spellchecking_words_row.set_tooltip_text(_(
+            'Manage the words you ignored for the current session and the '
+            'words saved permanently to your user dictionary.'))
+        self.spellchecking_words_button = Gtk.Button(label=_('Open'))
+        self.spellchecking_words_button.set_valign(Gtk.Align.CENTER)
+        self.spellchecking_words_row.add_suffix(self.spellchecking_words_button)
+        self.spellchecking_words_row.set_activatable_widget(self.spellchecking_words_button)
+        group_spellchecking.add(self.spellchecking_words_row)
 
         # 可见字符：显示行尾 ¶ 和空白（空格 · Tab →），调试缩进问题时有用。
         group_visible_chars = Adw.PreferencesGroup()

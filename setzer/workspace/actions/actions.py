@@ -85,6 +85,11 @@ class Actions(object):
         self.add_action('toggle-comment', self.toggle_comment)
         self.add_action('fold-all', self.fold_all)
         self.add_action('unfold-all', self.unfold_all)
+        # 拼写检查右键菜单动作：替换建议（参数 [offset_str, word, suggestion]）、
+        # 会话内忽略、加入用户词典。仅对有 spellchecking 的文档生效。
+        self.add_action('spell-replace', self.spell_replace, GLib.VariantType('as'))
+        self.add_action('spell-ignore', self.spell_ignore, GLib.VariantType('s'))
+        self.add_action('spell-add', self.spell_add, GLib.VariantType('s'))
         self.add_action('forward-sync', self.forward_sync)
 
         # Label context menu actions (right-click on \ref{...})
@@ -953,6 +958,48 @@ class Actions(object):
 
         document = self.workspace.get_active_document()
         DialogLocator.get_dialog('add_remove_packages').run(document)
+
+    def spell_replace(self, action=None, parameter=None):
+        '''右键菜单「拼写建议」：替换 buffer offset 处的错误词。
+
+        参数为 [offset_str, word, suggestion]——offset 与 word 来自弹出菜单
+        时检测的词位置；replace_word 内部校验该处文本仍是原词才替换。
+        '''
+        if parameter is None:
+            return
+        values = parameter.unpack()
+        if not isinstance(values, (list, tuple)) or len(values) != 3:
+            return
+        document = self.workspace.get_active_document()
+        spell = getattr(document, 'spellchecking', None) if document is not None else None
+        if spell is None:
+            return
+        try:
+            offset = int(values[0])
+        except (TypeError, ValueError):
+            return
+        spell.replace_word(offset, values[1], values[2])
+
+    def spell_ignore(self, action=None, parameter=None):
+        '''右键菜单「忽略」：本会话内不再标记该词（跨文档、不落盘）。'''
+        if parameter is None:
+            return
+        word = parameter.get_string()
+        if word:
+            from setzer.document.spellchecking.spellchecking import SpellChecker
+            SpellChecker.ignore_word(word)
+
+    def spell_add(self, action=None, parameter=None):
+        '''右键菜单「加入词典」：写入用户词表并重查所有文档。'''
+        if parameter is None:
+            return
+        word = parameter.get_string()
+        if not word:
+            return
+        document = self.workspace.get_active_document()
+        spell = getattr(document, 'spellchecking', None) if document is not None else None
+        if spell is not None:
+            spell.add_to_dictionary(word)
 
     def toggle_comment(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

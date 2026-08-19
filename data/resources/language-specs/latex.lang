@@ -86,7 +86,9 @@
 
     <!-- verbatim -->
 
-    <context id="verbatim-env" style-inside="true" style-ref="verbatim" class-disabled="no-spell-check">
+    <!-- class="no-spell-check"：verbatim 内容是代码/原文，不参与拼写检查
+         （与下方 lstlisting-env 一致；上游 gedit 用 class-disabled 使其可检查） -->
+    <context id="verbatim-env" style-inside="true" style-ref="verbatim" class="no-spell-check">
       <start>(\\begin)\{(verbatim\*?|alltt)\}</start>
       <end>(\\end)\{(\%{2@start})\}</end>
       <include>
@@ -224,7 +226,7 @@
     </context>
 
     <!-- If using \verb instead of \lstinline, the brackets cannot be used -->
-    <context id="verbatim-inline" style-inside="true" style-ref="verbatim" class-disabled="no-spell-check">
+    <context id="verbatim-inline" style-inside="true" style-ref="verbatim" class="no-spell-check">
       <start>(\\verb)\*?(\S)</start>
       <end>\%{2@start}</end>
       <include>

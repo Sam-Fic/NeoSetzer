@@ -87,6 +87,10 @@ class ContextMenuView(Gtk.PopoverMenu):
         self.set_size_request(288, -1)
 
         self.latex_section = Gio.Menu()
+        # 拼写建议 section：右键点击拼写错误词时由 rebuild_spell_section()
+        # 注入建议/忽略/加词典项，置于菜单最顶部（与主流编辑器一致）。
+        # 空section不渲染任何内容（无分隔线），不影响 F12 菜单常态外观。
+        self.spell_section = Gio.Menu()
         # 暴露 model 引用供共享：编辑器右键菜单（workspace ContextMenu.popover_pointer）
         # 用同一份 Gio.Menu model，使两者样式与内容完全一致（LaTeX section 重建对两者同效）。
         self.model = self._build_model()
@@ -96,6 +100,9 @@ class ContextMenuView(Gtk.PopoverMenu):
 
     def _build_model(self):
         model = Gio.Menu()
+
+        # 拼写建议在最顶部（默认空）。
+        model.prepend_section(None, self.spell_section)
 
         section_edit = Gio.Menu()
         section_edit.append_item(_action_item(_('Undo'), 'win.undo', '<Control>z'))
@@ -175,6 +182,42 @@ class ContextMenuView(Gtk.PopoverMenu):
 
         box.set_end_widget(inner_box)
         return box
+
+    def rebuild_spell_section(self, word, offset, suggestions):
+        r'''Populate (or clear) the spell checking section.
+
+        Called with a misspelled ``word`` at buffer ``offset`` before the
+        right-click popover is shown: suggestion items come first (invoking
+        ``win.spell-replace`` with ``[offset, word, suggestion]``), followed
+        by "Ignore …" (``win.spell-ignore``) and "Add … to Dictionary"
+        (``win.spell-add``).  Pass ``word=None`` to clear.
+
+        The offset travels through the action target because the popover
+        stays open without edits — offsets remain valid; the replace action
+        re-verifies the text at the offset before substituting.
+        '''
+        self.spell_section.remove_all()
+        if word is None:
+            return
+
+        for suggestion in suggestions:
+            item = Gio.MenuItem.new(suggestion, 'win.spell-replace')
+            item.set_action_and_target_value(
+                'win.spell-replace',
+                GLib.Variant('as', [str(offset), word, suggestion]))
+            self.spell_section.append_item(item)
+
+        item_ignore = Gio.MenuItem.new(
+            _('Ignore “{word}”').format(word=word), 'win.spell-ignore')
+        item_ignore.set_action_and_target_value(
+            'win.spell-ignore', GLib.Variant('s', word))
+        self.spell_section.append_item(item_ignore)
+
+        item_add = Gio.MenuItem.new(
+            _('Add “{word}” to Dictionary').format(word=word), 'win.spell-add')
+        item_add.set_action_and_target_value(
+            'win.spell-add', GLib.Variant('s', word))
+        self.spell_section.append_item(item_add)
 
     def rebuild_latex_section(self, document, label=None):
         r'''Populate (or clear) the LaTeX/BibTeX section for the active document.
