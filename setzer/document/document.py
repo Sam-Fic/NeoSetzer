@@ -43,6 +43,7 @@ import setzer.document.bracket_completion.bracket_completion as bracket_completi
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
 import setzer.document.autocomplete.autocomplete as autocomplete
 import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_highlight
+import setzer.document.spellchecking.spellchecking as spellchecking
 import setzer.document.build_diagnostics.build_diagnostics as build_diagnostics
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
@@ -128,6 +129,12 @@ class Document(Observable):
         self.sticky_scroll = sticky_scroll.StickyScroll(self)
         self.search = search.Search(self, self.view)
         self.multicursor = multicursor.MultiCursor(self)
+        # 拼写检查（仅 LaTeX 文档）：enchant 后端 + latex.lang 的
+        # no-spell-check 上下文跳过（数学/命令/verbatim 等不检查）。
+        # 非 LaTeX 文档不构造（无 latex 语法引擎），右键菜单与 actions
+        # 用 getattr(document, 'spellchecking', None) 守卫。
+        if self.is_latex_document():
+            self.spellchecking = spellchecking.SpellChecker(self)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
         # 更新行/列、语言、编码、缩进、选区词数。构造后注入 view。
         self.statusbar = statusbar.StatusBar(self)
@@ -262,6 +269,16 @@ class Document(Observable):
         if bookmarks is not None:
             try:
                 bookmarks.shutdown()
+            except Exception:
+                pass
+
+        # spellchecking 连接了 settings / style_manager 单例信号 + 防抖与
+        # 分片 idle 回调，需显式清理（取消回调、断开连接、清除错误标记），
+        # 否则单例持有文档引用阻碍 GC、关闭后回调访问已失效的 buffer。
+        spell = getattr(self, 'spellchecking', None)
+        if spell is not None:
+            try:
+                spell.shutdown()
             except Exception:
                 pass
 

@@ -175,6 +175,12 @@ class Settings(Observable):
         self.defaults['preferences']['highlight_current_line'] = True
         self.defaults['preferences']['highlight_matching_brackets'] = True
         self.defaults['preferences']['highlight_matching_begin_end'] = True
+        # 拼写检查（pyenchant 后端，缺库时偏好页置灰、功能整体停用）。
+        # 仅检查 LaTeX 文档；数学/命令/verbatim 等语法区域自动跳过。
+        # spellchecking_language 是 enchant/hunspell 词典 tag，系统无该
+        # 词典时运行时回退 en_US → 首个可用语言。
+        self.defaults['preferences']['spellchecking_enabled'] = False
+        self.defaults['preferences']['spellchecking_language'] = 'en_US'
         # 行尾/空白可见性：调试缩进问题时有用。
         # show_line_endings: 在行尾显示 ¶ 符号。
         self.defaults['preferences']['show_line_endings'] = False

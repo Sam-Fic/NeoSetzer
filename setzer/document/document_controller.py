@@ -352,6 +352,11 @@ class DocumentController(object):
             # Detect label under cursor for right-click context menu
             label = self.document.get_label_at_cursor()
             workspace = ServiceLocator.get_workspace()
+            # 右键处若是拼写错误词，向右键菜单注入建议/忽略/加词典项。
+            spell = getattr(self.document, 'spellchecking', None)
+            spell_word = spell.get_misspelled_word_at_position(x, y) \
+                if spell is not None else None
+            workspace.context_menu.set_spell_context(spell_word)
             workspace.context_menu.set_label_context(label)
             workspace.context_menu.popup_at_cursor(x, y)
         controller.reset()
