@@ -5,7 +5,7 @@
 
 # 单元测试：setzer.dialogs.document_wizard.page_map
 #
-# 覆盖所有 7 个页面 × 5 个 document_class 组合下的 next/prev 转移、
+# 覆盖当前 5 个页面与全部支持 document_class 组合下的 next/prev 转移、
 # is_settings_page / is_before_or_at_general / is_before_general /
 # is_at_or_after_general 边界。
 #
@@ -26,21 +26,25 @@ from setzer.dialogs.document_wizard.page_map import (
 )
 
 
-ALL_CLASSES = ['article', 'report', 'book', 'letter', 'beamer']
-ALL_PAGES = [0, 1, 2, 3, 4, 5, 6]
+ALL_CLASSES = list(CLASS_TO_SETTINGS_PAGE)
+ALL_PAGES = list(range(DOCUMENT_CLASS_PAGE_INDEX, GENERAL_PAGE_INDEX + 1))
 
 
 class TestConstants(unittest.TestCase):
 
     def test_constants_match_setup_order(self):
-        # 与 document_wizard.py 的 setup() 中 self.pages.append 顺序对齐
+        # 与 document_wizard.py 的 setup() 中页面工厂注册顺序对齐
         self.assertEqual(DOCUMENT_CLASS_PAGE_INDEX, 0)
-        self.assertEqual(GENERAL_PAGE_INDEX, 6)
+        self.assertEqual(GENERAL_PAGE_INDEX, 4)
         self.assertEqual(FIRST_CLASS_PAGE_INDEX, 1)
-        self.assertEqual(LAST_CLASS_PAGE_INDEX, 5)
+        self.assertEqual(LAST_CLASS_PAGE_INDEX, 3)
 
     def test_class_to_settings_page_mapping(self):
-        expected = {'article': 1, 'report': 2, 'book': 3, 'letter': 4, 'beamer': 5}
+        expected = {
+            'article': 1, 'report': 1, 'book': 1,
+            'letter': 2, 'beamer': 3,
+            'scrartcl': 1, 'scrreprt': 1, 'scrbook': 1, 'scrlttr2': 2,
+        }
         self.assertEqual(CLASS_TO_SETTINGS_PAGE, expected)
 
 
@@ -144,19 +148,19 @@ class TestHelpers(unittest.TestCase):
         self.assertFalse(is_before_or_at_general(100))
 
     def test_is_before_or_at_general_negative(self):
-        # 负数也 <= 6，虽然实际不会出现
+        # 负数也 <= GENERAL_PAGE_INDEX，虽然实际不会出现
         self.assertTrue(is_before_or_at_general(-1))
 
     def test_is_before_general(self):
-        # page < GENERAL_PAGE_INDEX(6)：0-5 为 True，6+ 为 False
-        for p in [0, 1, 2, 3, 4, 5]:
-            self.assertTrue(is_before_general(p), f'{p} < 6 应为 True')
+        # page < GENERAL_PAGE_INDEX(4)：0-3 为 True，4+ 为 False
+        for p in range(DOCUMENT_CLASS_PAGE_INDEX, GENERAL_PAGE_INDEX):
+            self.assertTrue(is_before_general(p), f'{p} < GENERAL_PAGE_INDEX 应为 True')
         self.assertFalse(is_before_general(GENERAL_PAGE_INDEX))
         self.assertFalse(is_before_general(7))
 
     def test_is_at_or_after_general(self):
-        # page >= GENERAL_PAGE_INDEX(6)：6+ 为 True，0-5 为 False
-        self.assertFalse(is_at_or_after_general(5))
+        # page >= GENERAL_PAGE_INDEX(4)：4+ 为 True，0-3 为 False
+        self.assertFalse(is_at_or_after_general(GENERAL_PAGE_INDEX - 1))
         self.assertTrue(is_at_or_after_general(GENERAL_PAGE_INDEX))
         self.assertTrue(is_at_or_after_general(7))
 

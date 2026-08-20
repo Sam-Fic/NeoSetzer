@@ -99,6 +99,7 @@ def _make_instance(font_package='lmodern'):
                  'margin_top': 3.5, 'margin_bottom': 3.5,
                  'is_landscape': False},
         'letter': {'page_format': 'US Letter', 'font_size': 11,
+                   'option_twocolumn': False, 'is_landscape': False,
                    'option_default_margins': True,
                    'margin_left': 3.5, 'margin_right': 3.5,
                    'margin_top': 3.5, 'margin_bottom': 3.5},
