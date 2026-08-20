@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Python packaging dependencies
         run: |
-          python3 -m pip install --break-system-packages bibtexparser pyinstaller
+          python3 -m pip install --break-system-packages bibtexparser numpy pyinstaller
 
       - name: Verify tag and project version agree
         if: startsWith(github.ref, 'refs/tags/v')
