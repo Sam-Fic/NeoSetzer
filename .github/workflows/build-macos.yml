@@ -29,6 +29,7 @@ jobs:
             gettext \
             pygobject3 \
             gtk4 \
+            adwaita-icon-theme \
             libadwaita \
             gtksourceview5 \
             poppler \
@@ -85,6 +86,7 @@ jobs:
             --collect-all cairo \
             --add-data "$STAGE_ROOT/usr/share/Setzer:share/Setzer" \
             --add-data "$STAGE_ROOT/usr/share/locale:share/locale" \
+            --add-data "$(brew --prefix adwaita-icon-theme)/share/icons/Adwaita:share/icons/Adwaita" \
             --add-data "$(brew --prefix)/share/glib-2.0/schemas:share/glib-2.0/schemas" \
             --add-data "$(brew --prefix)/lib/girepository-1.0:lib/girepository-1.0" \
             --workpath build-pyinstaller \
@@ -92,6 +94,8 @@ jobs:
             "$STAGE_ROOT/usr/bin/setzer"
 
           test -d dist-pyinstaller/Setzer.app
+          test -f dist-pyinstaller/Setzer.app/Contents/Resources/share/icons/Adwaita/index.theme
+          test -f dist-pyinstaller/Setzer.app/Contents/Resources/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg
           codesign --force --deep --sign - dist-pyinstaller/Setzer.app
           codesign --verify --deep --strict dist-pyinstaller/Setzer.app
           dist-pyinstaller/Setzer.app/Contents/MacOS/Setzer --version
@@ -99,6 +103,8 @@ jobs:
           unzip -l "$PACKAGE_FILE" > package-contents.txt
           grep -q 'Setzer.app/Contents/MacOS/Setzer' package-contents.txt
           grep -q 'Setzer.app/Contents/Resources/share/Setzer/resources' package-contents.txt
+          grep -q 'Setzer.app/Contents/Resources/share/icons/Adwaita/index.theme' package-contents.txt
+          grep -q 'Setzer.app/Contents/Resources/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg' package-contents.txt
 
           echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
