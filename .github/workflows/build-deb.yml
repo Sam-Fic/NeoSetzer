@@ -110,10 +110,7 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
           PACKAGE_FILE: ${{ steps.package.outputs.file }}
         run: |
-          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
-          else
-            gh release create "$TAG_NAME" "$PACKAGE_FILE" \
-              --title "Setzer $TAG_NAME" \
-              --generate-notes
+          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release create "$TAG_NAME" --title "Setzer $TAG_NAME" --generate-notes || true
           fi
+          gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
