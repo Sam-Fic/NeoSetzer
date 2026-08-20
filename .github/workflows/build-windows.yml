@@ -1,0 +1,124 @@
+---
+name: Build Windows package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows x64 portable package
+    runs-on: windows-2022
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Set up MSYS2 MINGW64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git
+            gettext
+            zip
+            mingw-w64-x86_64-meson
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-libadwaita
+            mingw-w64-x86_64-gtksourceview5
+            mingw-w64-x86_64-poppler
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-cairo
+            mingw-w64-x86_64-python-gobject
+            mingw-w64-x86_64-python-numpy
+            mingw-w64-x86_64-python-pip
+
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Install pure-Python dependency
+        run: python -m pip install --break-system-packages bibtexparser
+
+      - name: Verify tag and project version agree
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          project_version="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          tag_version="${TAG_NAME#v}"
+          test -n "$project_version"
+          test "$project_version" = "$tag_version"
+
+      - name: Configure and compile
+        run: |
+          meson setup builddir --prefix=/mingw64 --buildtype=release
+          meson compile -C builddir
+
+      - name: Build Windows portable package
+        id: package
+        run: |
+          set -eu
+          VERSION="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          STAGE_ROOT="$PWD/package-root"
+          PACKAGE_ROOT="$STAGE_ROOT/mingw64"
+          PACKAGE_FILE="$PWD/setzer_${VERSION}_windows_x64.zip"
+
+          test -n "$VERSION"
+          rm -rf "$STAGE_ROOT" "$PACKAGE_FILE" package-contents.txt
+          DESTDIR="$STAGE_ROOT" meson install -C builddir
+
+          mkdir -p "$PACKAGE_ROOT/bin" "$PACKAGE_ROOT/lib" "$PACKAGE_ROOT/share"
+          cp /mingw64/bin/*.dll "$PACKAGE_ROOT/bin/"
+          cp /mingw64/bin/python.exe "$PACKAGE_ROOT/bin/"
+          cp /mingw64/bin/pythonw.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /mingw64/bin/gdbus.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /mingw64/bin/gspawn-win64-helper.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /mingw64/bin/gspawn-win64-helper-console.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp -r /mingw64/lib/girepository-1.0 "$PACKAGE_ROOT/lib/"
+          cp -r /mingw64/lib/python3.* "$PACKAGE_ROOT/lib/"
+          cp -r /mingw64/lib/gdk-pixbuf-2.0 "$PACKAGE_ROOT/lib/" 2>/dev/null || true
+          cp -r /mingw64/share/glib-2.0 "$PACKAGE_ROOT/share/"
+          cp -r /mingw64/share/icons "$PACKAGE_ROOT/share/"
+          cp -r /mingw64/share/gtksourceview-5 "$PACKAGE_ROOT/share/" 2>/dev/null || true
+          cp -r /mingw64/share/locale "$PACKAGE_ROOT/share/" 2>/dev/null || true
+          find "$PACKAGE_ROOT" -type d -name __pycache__ -prune -exec rm -rf {} +
+          find "$PACKAGE_ROOT" -type f -name '*.pyc' -delete
+
+          test -f "$PACKAGE_ROOT/bin/setzer.bat"
+          test -f "$PACKAGE_ROOT/bin/python.exe"
+          test -d "$PACKAGE_ROOT/share/Setzer/resources"
+          (cd "$STAGE_ROOT" && zip -qr "$PACKAGE_FILE" mingw64)
+          unzip -l "$PACKAGE_FILE" > package-contents.txt
+          grep -q 'mingw64/bin/setzer.bat' package-contents.txt
+          grep -q 'mingw64/share/Setzer/resources' package-contents.txt
+
+          echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Windows package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.file }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish package to the matching GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+        run: |
+          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release create "$TAG_NAME" --title "Setzer $TAG_NAME" --generate-notes || true
+          fi
+          gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
