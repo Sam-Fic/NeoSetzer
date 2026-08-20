@@ -42,5 +42,5 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           test -f "release-asset/$ARTIFACT_NAME"
-          gh release view "$RELEASE_TAG" >/dev/null
-          gh release upload "$RELEASE_TAG" "release-asset/$ARTIFACT_NAME" --clobber
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release upload "$RELEASE_TAG" "release-asset/$ARTIFACT_NAME" --repo "$GITHUB_REPOSITORY" --clobber
