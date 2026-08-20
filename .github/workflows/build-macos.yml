@@ -70,7 +70,7 @@ jobs:
           test -n "$VERSION"
           rm -rf "$STAGE_ROOT" build-pyinstaller dist-pyinstaller "$PACKAGE_FILE" package-contents.txt
           DESTDIR="$STAGE_ROOT" meson install -C builddir
-          PYTHON_SITE_PACKAGES="$(find "$STAGE_ROOT/usr/lib" -type d -path '*/site-packages' | head -n 1)"
+          PYTHON_SITE_PACKAGES="$(find "$STAGE_ROOT" -type d -path '*/site-packages' | head -n 1)"
           test -n "$PYTHON_SITE_PACKAGES"
 
           python3 -m PyInstaller \
