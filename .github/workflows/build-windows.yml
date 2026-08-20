@@ -68,13 +68,14 @@ jobs:
           set -eu
           VERSION="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
           STAGE_ROOT="$PWD/package-root"
-          PACKAGE_ROOT="$STAGE_ROOT/mingw64"
           PACKAGE_FILE="$PWD/setzer_${VERSION}_windows_x64.zip"
 
           test -n "$VERSION"
           rm -rf "$STAGE_ROOT" "$PACKAGE_FILE" package-contents.txt
           DESTDIR="$STAGE_ROOT" meson install -C builddir
+          PACKAGE_ROOT="$(dirname "$(dirname "$(find "$STAGE_ROOT" -type f -name setzer.bat -print -quit)")")"
 
+          test -f "$PACKAGE_ROOT/bin/setzer.bat"
           mkdir -p "$PACKAGE_ROOT/bin" "$PACKAGE_ROOT/lib" "$PACKAGE_ROOT/share"
           cp /mingw64/bin/*.dll "$PACKAGE_ROOT/bin/"
           cp /mingw64/bin/python.exe "$PACKAGE_ROOT/bin/"
@@ -95,7 +96,7 @@ jobs:
           test -f "$PACKAGE_ROOT/bin/setzer.bat"
           test -f "$PACKAGE_ROOT/bin/python.exe"
           test -d "$PACKAGE_ROOT/share/Setzer/resources"
-          (cd "$STAGE_ROOT" && zip -qr "$PACKAGE_FILE" mingw64)
+          (cd "$(dirname "$PACKAGE_ROOT")" && zip -qr "$PACKAGE_FILE" mingw64)
           unzip -l "$PACKAGE_FILE" > package-contents.txt
           grep -q 'mingw64/bin/setzer.bat' package-contents.txt
           grep -q 'mingw64/share/Setzer/resources' package-contents.txt
