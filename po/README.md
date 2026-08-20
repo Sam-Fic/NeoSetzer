@@ -1,60 +1,67 @@
-# i18n
+# NeoSetzer 国际化维护
 
-## Weblate
-<a href="https://hosted.weblate.org/engage/Setzer/">
-<img src="https://hosted.weblate.org/widgets/Setzer/-/287x66-white.png" alt="Translation status" />
-</a>
+NeoSetzer 当前未配置独立的托管翻译平台。请直接在本仓库提交翻译更新，并通过 [NeoSetzer Issues](https://github.com/Sam-Fic/NeoSetzer/issues) 报告翻译问题。
 
-## Manually
+## 新增语言
 
-### Creating a new translation
+将 `lang` 替换为语言代码：
 
-Run: (replace `lang` with the language code)
 ```bash
-rm -Rf builddir
-meson builddir --prefix=/tmp/usr
-ninja setzer-pot -C builddir
-xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
+meson setup --wipe builddir --prefix=/tmp/usr
+ninja -C builddir setzer-pot
+xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
+  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
 cp po/setzer.pot po/lang.po
 ```
-Now translate the strings in `lang.po` and add `lang` to the `LINGUAS` file.
 
-### Updating a translation
+翻译 `po/lang.po` 后，将语言代码加入 `po/LINGUAS`。
 
-Run:
+## 更新现有翻译
+
 ```bash
-rm -Rf builddir
-meson builddir --prefix=/tmp/usr
-ninja setzer-update-po -C builddir
-xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
+meson setup --wipe builddir --prefix=/tmp/usr
+ninja -C builddir setzer-update-po
+xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
+  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
 msgmerge -U po/lang.po po/setzer.pot
 ```
-Now translate the fuzzy strings in `lang.po` (remove the `#,fuzzy` lines).
 
-### Testing a translation
+随后处理 `lang.po` 中标记为 `#, fuzzy` 的条目。`setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
 
-Currently it's not possible to test a translation without an installation in `usr`. Hopefully this will be fixed in a new version of meson (see [mesonbuild/meson#6973](https://github.com/mesonbuild/meson/issues/6973)).
-As a workaround, you can install Setzer with the prefix `/tmp/usr` and run the normal `setzer.dev` script. If you want to test Setzer in a certain language, you can set the `LANGUAGE=lang` environment variable.
+## 测试翻译
 
-### Before opening a PR
+Meson 的翻译测试需要先执行临时安装：
 
-- Please don't add any copyright in the first lines in the `.po` file (for copyright simplifications).
-- Check that the `POTFILES` file is up-to-date, you can check this by running `generate-potfiles.sh`.
-- Only commit files you actually translated, discard all other files. Don't commit the `setzer.pot` file.
-- Ensure that your translation has the correct format, you can check this by simply running the update command again, the only diff should be the date.
-- Ensure that the `.mo` file are generated without an error (`ninja setzer-gmo -C builddir`).
-- Please fill in the meta info in line 6+ according to this draft: 
-  ```
-  msgid ""
-  msgstr ""
-  "Project-Id-Version: setzer\n"
-  "Report-Msgid-Bugs-To: https://github.com/cvfosammmm/Setzer/issues\n"
-  "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-  "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-  "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-  "Language-Team: LANGUAGE \n"
-  "Language: lang\n"
-  "MIME-Version: 1.0\n"
-  "Content-Type: text/plain; charset=UTF-8\n"
-  "Content-Transfer-Encoding: 8bit\n"
-  ```
+```bash
+DESTDIR=/tmp/neosetzer-i18n meson install -C builddir
+LANGUAGE=lang ./scripts/dev/setzer.dev
+```
+
+将 `lang` 替换为要验证的语言代码。完成后可删除 `/tmp/neosetzer-i18n`。
+
+## 提交前检查
+
+| 检查项 | 要求 |
+|---|---|
+| 改动范围 | 只提交实际翻译过的 `.po` 文件、`LINGUAS` 和必要的源字符串清单更新。 |
+| 模板文件 | 不提交生成的 `po/setzer.pot`。 |
+| 格式验证 | 再次运行更新命令；除时间戳外不应产生意外差异。 |
+| 编译验证 | 执行 `ninja -C builddir setzer-gmo`，确认 `.mo` 可正常生成。 |
+| 版权信息 | 不要在 `.po` 文件开头新增版权行，以保持历史版权策略一致。 |
+
+`.po` 文件的元数据可使用以下模板：
+
+```po
+msgid ""
+msgstr ""
+"Project-Id-Version: NeoSetzer\n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE\n"
+"Language: lang\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+```

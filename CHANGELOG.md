@@ -1,5 +1,31 @@
 # Changelog
 
+## v77 — 2026-08-21
+
+### 主要改进
+
+- **更名为 NeoSetzer 并更新应用图标**：完成项目名称、仓库引用与版权信息迁移；重绘应用图标，简化图形结构并更新配色，使其在各类桌面环境中更清晰易辨。
+- **新增 LaTeX 实时拼写检查与词表管理**：支持防抖式实时检查、拼写错误波浪线提示、替换建议、会话忽略和用户词典持久化；能够识别 LaTeX 命令、数学环境、引用与路径，避免误报。
+- **新增插入图片对话框**：支持从文件或剪贴板插入图片，保存常用设置，并为关键控件补充工具提示。
+- **优化编辑器滚动、行号栏与粘性滚动**：以 FrameClock 驱动惯性滚动；改进行号栏离屏缓存、HiDPI/分数缩放下的文字与图标清晰度，以及粘性滚动的行高和绘制一致性。
+- **修复构建、同步与文档处理稳定性问题**：修复正向/反向同步与构建中止冲突、非 LaTeX 文档导致的属性错误和构建挂起，以及文本编辑后的迭代器失效问题。
+- **改善常用交互与界面细节**：打开文件时默认定位到当前活动文档目录；优化自动补全背景、预览菜单、搜索展开图标和光标滚动行为。
+- **建立跨平台打包与发布支持**：新增 Debian、Windows x64 和 macOS Apple Silicon 自动打包；Windows 与 macOS 包内置 Adwaita symbolic 图标主题，保证非 GNOME 平台上的图标一致性；同时加入持续集成测试。
+- **更新翻译与文档**：同步中文、德语、西班牙语及繁体中文翻译，并更新项目说明与版权信息。
+
+### Improvements
+
+- **branding**: Rename the project to NeoSetzer; update repository references and copyright notices; redesign the application icon with a simplified structure and refreshed palette for clearer desktop presentation.
+- **feat**: Add real-time LaTeX-aware spellchecking with debounced diagnostics, replacement suggestions, session ignore, persistent user dictionaries, and exclusions for commands, math, citations, and file paths.
+- **feat**: Add an insert-image dialog with file and clipboard support, saved defaults, and improved control tooltips.
+- **perf**: Drive inertial scrolling with FrameClock; improve gutter off-screen caching, HiDPI/fractional-scaling text and icon rendering, and sticky-scroll line-height and drawing consistency.
+- **fix**: Resolve forward/backward SyncTeX and build-cancellation conflicts, non-LaTeX document property errors and build hangs, and invalid iterators after text-buffer edits.
+- **improvements**: Open the file chooser in the active document directory; refine autocomplete backgrounds, preview context menus, search disclosure icons, and cursor scrolling behavior.
+- **ci**: Add automated Debian, Windows x64, and macOS Apple Silicon packaging with continuous tests; bundle the Adwaita symbolic icon theme in Windows and macOS packages for consistent non-GNOME icon rendering.
+- **i18n/docs**: Refresh Simplified Chinese, German, Spanish, and Traditional Chinese translations; update project documentation and copyright information.
+
+---
+
 ## v76 — 2026-08-03
 
 ### 主要改进

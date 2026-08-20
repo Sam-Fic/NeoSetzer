@@ -20,7 +20,7 @@ import os.path
 
 sys.dont_write_bytecode = True
 
-src_path = os.path.join(os.path.dirname(__file__), '..')
+src_path = os.path.join(os.path.dirname(__file__), '..', '..')
 bld_path = os.path.join(src_path, 'builddir')
 
 if os.path.isdir(bld_path):

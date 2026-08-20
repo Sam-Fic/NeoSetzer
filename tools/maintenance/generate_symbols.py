@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # coding: utf-8
+"""Regenerate sidebar symbol SVG assets and their XML size metadata.
+
+Run from any directory with: ``python3 tools/maintenance/generate_symbols.py``.
+Requires XeLaTeX, Poppler GI bindings, pdf2svg, Inkscape, and the ``file`` utility.
+"""
 
 # Copyright (C) 2017-present Robert Griesel
 # This program is free software: you can redistribute it and/or modify
@@ -23,6 +28,12 @@ from gi.repository import Poppler
 import xml.etree.ElementTree as ET
 import subprocess, os, os.path
 import re
+from pathlib import Path
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+SYMBOLS_DIR = REPOSITORY_ROOT / 'data' / 'resources' / 'symbols'
+WORK_DIR = Path(__file__).resolve().parent
+os.chdir(WORK_DIR)
 
 folders = [
             'arrows',
@@ -59,7 +70,10 @@ def generate_tex(border_h, border_v):
     
 
 for folder in folders:
-    tree = ET.parse('../data/resources/symbols/' + folder + '.xml')
+    xml_path = SYMBOLS_DIR / f'{folder}.xml'
+    target_dir = SYMBOLS_DIR / folder / 'hicolor' / 'scalable' / 'actions'
+    target_dir.mkdir(parents=True, exist_ok=True)
+    tree = ET.parse(xml_path)
     root = tree.getroot()
 
     for child in root:
@@ -95,23 +109,13 @@ for folder in folders:
         process.kill()
 
         # make svg
-        try: os.mkdir('../data/resources/symbols')
-        except FileExistsError: pass
-        try: os.mkdir('../data/resources/symbols/' + folder)
-        except FileExistsError: pass
-        try: os.mkdir('../data/resources/symbols/' + folder + '/hicolor')
-        except FileExistsError: pass
-        try: os.mkdir('../data/resources/symbols/' + folder + '/hicolor/scalable')
-        except FileExistsError: pass
-        try: os.mkdir('../data/resources/symbols/' + folder + '/hicolor/scalable/actions')
-        except FileExistsError: pass
-
-        arguments = ['pdf2svg', 'temp.pdf', '../data/resources/symbols/' + folder + '/hicolor/scalable/actions/sidebar-' + attrib['file'][:-4] + '-symbolic.svg']
+        target_svg = target_dir / f"sidebar-{attrib['file'][:-4]}-symbolic.svg"
+        arguments = ['pdf2svg', 'temp.pdf', str(target_svg)]
         process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
 
         # get image size
-        arguments = ['inkscape', '--export-filename=temp.png', '../data/resources/symbols/' + folder + '/hicolor/scalable/actions/sidebar-' + attrib['file'][:-4] + '-symbolic.svg']
+        arguments = ['inkscape', '--export-filename=temp.png', str(target_svg)]
         process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
         process.communicate()
@@ -128,7 +132,7 @@ for folder in folders:
         process.kill()
         child.set('original_width', width_match.group(1))
         child.set('original_height', width_match.group(2))
-        tree.write('../data/resources/symbols/' + folder + '.xml')
+        tree.write(xml_path)
 
         # delete helper files
         os.remove('temp.tex')

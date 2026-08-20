@@ -1,10 +1,10 @@
 @echo off
-rem Setzer development launcher for Windows.
+rem NeoSetzer development launcher for Windows.
 rem Runs the meson-built setzer_dev.py with the correct environment.
-rem Usage: scripts\setzer.dev.bat
+rem Usage: scripts\dev\setzer.dev.bat
 
 setlocal
-set SRC_DIR=%~dp0..
+set SRC_DIR=%~dp0..\..
 set BLD_DIR=%SRC_DIR%\builddir
 
 if not exist "%BLD_DIR%\setzer_dev.py" (

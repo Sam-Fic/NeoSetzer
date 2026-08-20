@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # coding: utf-8
-"""Setzer 性能基准:验证 HIGH 项 (H1/H2/H3/H4)。
+"""NeoSetzer 性能基准：验证 HIGH 项（H1/H2/H3/H4）。
 
 驱动真实的 ParserLaTeX(基于 GtkSource.Buffer),测量:
   H1/H2 — 每次按键(insert-text)的解析耗时,随文档规模增长的趋势
   H4    — 病态长行上的正则 finditer 行为
   H3    — 预览渲染线程忙轮询的空转唤醒频率
 
-用法: python3 scripts/perf_benchmark.py
+用法：python3 benchmarks/perf_benchmark.py
 """
 import gi
 gi.require_version('GtkSource', '5')

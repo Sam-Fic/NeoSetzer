@@ -1,14 +1,14 @@
 # NeoSetzer
 
 <div align="center">
-  <img src="data/org.cvfosammmm.Setzer.svg" alt="FileCollector" width="128" height="128">
+  <img src="data/org.cvfosammmm.Setzer.svg" alt="NeoSetzer" width="128" height="128">
 </div>
 
 [English](README.md)
 
 ---
 
-一款简单但功能完整的 LaTeX 编辑器，支持 Linux 和 Windows，基于 Python 和 GTK 编写。（Setzer 的一个 fork。）
+一款简单但功能完整的 LaTeX 编辑器，支持 Linux、Windows 和 macOS，基于 Python 和 GTK 编写。（Setzer 的一个 fork。）
 
 > 这是 [Setzer](https://github.com/cvfosammmm/Setzer) 的一个 fork，原作者为 cvfosammmm。
 > 原项目官网 <https://www.cvfosammmm.org/setzer/>，基于 GPL-3.0-or-later 许可证。
@@ -16,7 +16,7 @@
 
 ![截图](data/screenshot.png)
 
-Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试并提供反馈，我很开心——通过 GitHub 上的 issue 即可，无论是关于设计、代码架构、错误报告、功能请求等等。
+NeoSetzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。欢迎通过本仓库的 GitHub Issue 提供关于设计、代码架构、错误报告和功能请求的反馈。
 
 在原项目的基础上，迁移大量组件至 Libadwaita，现代且美观。
 
@@ -24,15 +24,16 @@ Setzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。如果你愿意尝试�
 
 ## 平台支持
 
-Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平台分支或单独构建。
+NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运行，无需平台分支或单独构建。
 
 | 平台 | 状态 | 运行时栈 |
 |------|------|----------|
 | Linux（Debian/Ubuntu 24.04+、Fedora、Arch 等） | 完全支持 | 系统 GTK4 + libadwaita |
-| Windows 10/11（x86_64） | 通过 MSYS2 支持 | MSYS2 mingw-w64 GTK4 栈 |
+| Windows 10/11（x86_64） | 通过 MSYS2 支持 | 便携式 MSYS2 mingw-w64 GTK4 栈 |
+| macOS Apple Silicon（ARM64） | 已支持 | 自包含 `.app` 发布包 |
 | WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
 
-> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 MSYS2 的 `mingw64` 中并未打包，因此无法在 Windows 上安装。当其不可用时 Setzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
+> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 MSYS2 的 `mingw64` 中并未打包，因此无法在 Windows 上安装。当其不可用时 NeoSetzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
 
 ## 安装
 
@@ -40,19 +41,20 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
 1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `mingw64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
 2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中。请在那里查看最新构建版本。
-3. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
+3. **macOS Apple Silicon 应用包**——下载 `setzer_<版本号>_macos_arm64.zip` 并解压 `Setzer.app`；当前 Gatekeeper 与签名状态见 [macOS 打包说明](docs/packaging/macos.md)。
+4. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
 
-## 使用 Gnome Builder 运行 Setzer
+## 使用 GNOME Builder 运行 NeoSetzer
 
-要使用 Gnome Builder 运行 Setzer，只需在启动屏幕上点击"克隆"按钮，粘贴 URL（ https://github.com/Sam-Fic/NeoSetzer.git ），再次点击"克隆"，等待下载完成后按下运行按钮。它会构建 Setzer 及其依赖项，然后启动它。
+要使用 GNOME Builder 运行 NeoSetzer，只需在启动屏幕上点击“克隆”按钮，粘贴 `https://github.com/Sam-Fic/NeoSetzer.git`，等待克隆完成后按下运行按钮。它会构建 NeoSetzer 及其依赖项，然后启动应用。
 
-警告：这种方式构建 Setzer 可能需要很长时间。
+警告：这种方式构建 NeoSetzer 可能需要较长时间。
 
-## 在 Debian/Ubuntu 上运行 Setzer
+## 在 Debian/Ubuntu 上运行 NeoSetzer
 
-我在 Ubuntu 上开发 Setzer，并在此基础上进行了测试。
+NeoSetzer 在 Ubuntu 上开发和测试。
 
-> **支持的发行版：** Setzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
+> **支持的发行版：** NeoSetzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
 
 1. 运行以下命令安装前置软件包：
 
@@ -63,18 +65,18 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
    > 注：`gir1.2-xdp-1.0` 仅用于 Linux/Flatpak 检测（即 libportal 的 GIR）。Windows 上不需要它（见下文说明）。
 
-2. 从 GitHub 克隆 Setzer 仓库：
+2. 从 GitHub 克隆 NeoSetzer 仓库：
 
    ```bash
    # 在 Linux 终端中执行
    git clone https://github.com/Sam-Fic/NeoSetzer.git
    ```
 
-3. 进入 Setzer 目录：
+3. 进入 NeoSetzer 目录：
 
    ```bash
    # 在 Linux 终端中执行
-   cd Setzer
+   cd NeoSetzer
    ```
 
 4. 运行 meson：
@@ -84,9 +86,9 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
    meson setup builddir
    ```
 
-   > 注意：某些发行版可能不包含未从发行版软件包安装的 Python 模块的系统级安装。在这种情况下，你需要将 Setzer 安装到主目录中，使用 `meson setup builddir --prefix=~/.local`。
+   > 注意：某些发行版可能不包含未从发行版软件包安装的 Python 模块的系统级安装。在这种情况下，你需要将 NeoSetzer 安装到主目录中，使用 `meson setup builddir --prefix=~/.local`。
 
-5. 使用以下命令安装 Setzer：
+5. 使用以下命令安装 NeoSetzer：
 
    ```bash
    # 在 Linux 终端中执行
@@ -97,17 +99,17 @@ Setzer 在 **Linux** 和 **Windows** 上使用同一套源码运行，无需平�
 
    ```bash
    # 在 Linux 终端中执行
-   ./scripts/setzer.dev
+   ./scripts/dev/setzer.dev
    ```
 
-## 在 Windows 上运行 Setzer
+## 在 Windows 上运行 NeoSetzer
 
-Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Windows 上获取最新 GTK4 / libadwaita / GtkSourceView 5 / Poppler 二进制文件的唯一可靠来源）。
+NeoSetzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Windows 上获取最新 GTK4 / libadwaita / GtkSourceView 5 / Poppler 二进制文件的唯一可靠来源）。
 
 有两种使用方式：
 
 - **便携 zip** —— 最省事，无需安装 MSYS2。见下文。
-- **从源码构建** —— 适合开发或需要修改 Setzer 的场景。见第 1 步及以后。
+- **从源码构建** —— 适合开发或需要修改 NeoSetzer 的场景。见第 1 步及以后。
 
 ### 使用便携 zip
 
@@ -115,12 +117,12 @@ Setzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 Win
 
 1. 从 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 页面下载 `setzer_<版本号>_windows_x64.zip`。
 
-2. 解压到**任意目录**——U 盘、`D:\Apps\Setzer`、桌面都可以，没有固定的安装路径要求。
+2. 解压到**任意目录**——U 盘、`D:\Apps\NeoSetzer`、桌面都可以，没有固定的安装路径要求。
 
    > 在资源管理器里右键 →「全部解压缩」即可。也可以用 PowerShell：
    >
    > ```powershell
-   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\Setzer
+   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\NeoSetzer
    > ```
 
 3. 运行解压目录下的 **`mingw64\bin\setzer.bat`**——在资源管理器里双击，或从 cmd / PowerShell 调用。
@@ -157,7 +159,7 @@ pacman -S --needed \
   gettext
 ```
 
-> **不需要 `libportal`：** MSYS2 中**不存在** `mingw-w64-x86_64-libportal` 这个包——libportal 只在 `msys` 子系统中打包，不提供 `mingw64` 版本。Setzer 仅在 Flatpak 检测时用到它（`Xdp`），且已被 `try/except` 包裹，因此在 Windows 上直接省略即可。
+> **不需要 `libportal`：** MSYS2 中**不存在** `mingw-w64-x86_64-libportal` 这个包——libportal 只在 `msys` 子系统中打包，不提供 `mingw64` 版本。NeoSetzer 仅在 Flatpak 检测时用到它（`Xdp`），且已被 `try/except` 包裹，因此在 Windows 上直接省略即可。
 
 然后安装 pacman 未提供的 **纯 Python** 库。MSYS2 的 Python 是 externally-managed（PEP 668），必须加 `--break-system-packages` 参数：
 
@@ -175,7 +177,7 @@ python -m pip install --break-system-packages bibtexparser
 ```bash
 # 在 MSYS2 MINGW64 终端中执行
 git clone https://github.com/Sam-Fic/NeoSetzer.git
-cd Setzer
+cd NeoSetzer
 meson setup builddir
 ```
 
@@ -183,21 +185,21 @@ meson setup builddir
 
 ```bash
 # 在 cmd / PowerShell 中执行（无需 MSYS2）
-scripts\setzer.dev.bat
+scripts\dev\setzer.dev.bat
 ```
 
-`scripts\setzer.dev.bat` 是推荐的 Windows 启动方式——它是一个轻量包装脚本：把源码根目录加入 `PYTHONPATH`（`setzer` 包并未安装到 `site-packages`），并把 `mingw64\bin` 加到 `PATH` 前面以便找到正确的 Python 与 GTK4 / libadwaita 的 DLL，然后运行 meson 生成的 `builddir\setzer_dev.py`。它可以从 cmd、PowerShell，或在资源管理器里双击运行，**无需 MSYS2 终端**。
+`scripts\dev\setzer.dev.bat` 是推荐的 Windows 启动方式——它是一个轻量包装脚本：把源码根目录加入 `PYTHONPATH`（`setzer` 包并未安装到 `site-packages`），并把 `mingw64\bin` 加到 `PATH` 前面以便找到正确的 Python 与 GTK4 / libadwaita 的 DLL，然后运行 meson 生成的 `builddir\setzer_dev.py`。它可以从 cmd、PowerShell，或在资源管理器里双击运行，**无需 MSYS2 终端**。
 
-> **PowerShell 注意：** 运行时**不要加引号**。加引号的路径（`"scripts\setzer.dev.bat"`）会被当成字符串只回显、不会执行。
+> **PowerShell 注意：** 运行时**不要加引号**。加引号的路径（`"scripts\dev\setzer.dev.bat"`）会被当成字符串只回显、不会执行。
 
 跨平台替代方式（在 MSYS2 MINGW64 终端里运行）——本 fork 正是用这一方式验证过构建：
 
 ```bash
 # 在 MSYS2 MINGW64 终端中执行
-python scripts/setzer.dev
+python scripts/dev/setzer.dev
 ```
 
-> 直接 `python builddir\setzer_dev.py` 在没有设置 `PYTHONPATH` 时会报 `ModuleNotFoundError: No module named 'setzer'`，请优先使用上面的 `.bat` 或 `python scripts/setzer.dev`。
+> 直接 `python builddir\setzer_dev.py` 在没有设置 `PYTHONPATH` 时会报 `ModuleNotFoundError: No module named 'setzer'`，请优先使用上面的 `.bat` 或 `python scripts/dev/setzer.dev`。
 
 ### 第 5 步 — 安装（可选）
 
@@ -229,11 +231,11 @@ ninja install -C builddir
 
 ### Debian/Ubuntu（`.deb`）
 
-完整 Debian 打包流程（版本号更新、CHANGELOG、构建、发布）见 [scripts/build_deb.md](scripts/build_deb.md)。
+Debian 软件包与发布流程见 [docs/packaging/debian.md](docs/packaging/debian.md)。
 
 ### Windows（便携 zip / 安装程序）
 
-完整 Windows 打包流程（依赖安装、DESTDIR 安装、运行时 DLL 打包、zip / Inno Setup 安装程序、发布）见 [scripts/build_win.md](scripts/build_win.md)。
+Windows 便携包流程见 [docs/packaging/windows.md](docs/packaging/windows.md)，macOS 应用包流程见 [docs/packaging/macos.md](docs/packaging/macos.md)。
 
 ## 联系方式
 
@@ -242,10 +244,10 @@ ninja install -C builddir
 
 ## 致谢
 
-Setzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同，尽管我仍在不断更改/整理它们。自动补全建议大多与 Texmaker 相同。我从 Gnome Builder 取用了一些图标。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
+NeoSetzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同，尽管我仍在不断更改/整理它们。自动补全建议大多与 Texmaker 相同。我从 Gnome Builder 取用了一些图标。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
 
 用户界面的部分设计参考了 [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)。
 
 ## 许可证
 
-Setzer 基于 GPL v3 或更高版本许可证发布。详见 COPYING 文件。
+NeoSetzer 基于 GPL v3 或更高版本许可证发布。详见 COPYING 文件。

@@ -83,25 +83,6 @@
             ]
         },
         {
-            "name" : "python3-pexpect",
-            "buildsystem" : "simple",
-            "build-commands" : [
-                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pexpect\" --no-build-isolation"
-            ],
-            "sources" : [
-                {
-                    "type" : "file",
-                    "url" : "https://files.pythonhosted.org/packages/39/7b/88dbb785881c28a102619d46423cb853b46dbccc70d3ac362d99773a78ce/pexpect-4.9.0-py2.py3-none-any.whl",
-                    "sha256" : "c63482e6656f21d4f358b3801fb76a2754dbf28f6d5188c68b28c16b62831831"
-                },
-                {
-                    "type" : "file",
-                    "url" : "https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl",
-                    "sha256" : "4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"
-                }
-            ]
-        },
-        {
             "name" : "python3-bibtexparser",
             "buildsystem" : "simple",
             "build-commands" : [

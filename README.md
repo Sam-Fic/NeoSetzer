@@ -1,14 +1,14 @@
 # NeoSetzer
 
 <div align="center">
-  <img src="data/org.cvfosammmm.Setzer.svg" alt="FileCollector" width="128" height="128">
+  <img src="data/org.cvfosammmm.Setzer.svg" alt="NeoSetzer" width="128" height="128">
 </div>
 
 [简体中文](README.zh-CN.md)
 
 ---
 
-Simple yet full-featured LaTeX editor for Linux and Windows, written in Python with GTK. (A fork of Setzer.)
+Simple yet full-featured LaTeX editor for Linux, Windows, and macOS, written in Python with GTK. (A fork of Setzer.)
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
 > The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
@@ -16,7 +16,7 @@ Simple yet full-featured LaTeX editor for Linux and Windows, written in Python w
 
 ![Screenshot](data/screenshot.png)
 
-Setzer is a LaTeX editor written in Python with GTK. I'm happy if you give it a try and provide feedback via the issue tracker here on GitHub, be it about design, code architecture, bugs, feature requests, ...
+NeoSetzer is a LaTeX editor written in Python with GTK. Feedback on design, code architecture, bugs, and feature requests is welcome through this repository's issue tracker.
 
 Based on the original project, a large number of components have been migrated to Libadwaita, which is modern and beautiful.
 
@@ -24,15 +24,16 @@ The UI/UX design has been thoroughly optimized; I hope you’ll appreciate the m
 
 ## Platform Support
 
-Setzer runs on both **Linux** and **Windows** from a single codebase. No platform fork or separate build is required.
+NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. No platform fork or separate build is required.
 
 | Platform | Status | Runtime stack |
 |----------|--------|---------------|
 | Linux (Debian/Ubuntu 24.04+, Fedora, Arch, ...) | Fully supported | System GTK4 + libadwaita |
-| Windows 10/11 (x86_64) | Supported via MSYS2 | MSYS2 mingw-w64 GTK4 stack |
+| Windows 10/11 (x86_64) | Supported via MSYS2 | Portable MSYS2 mingw-w64 GTK4 stack |
+| macOS Apple Silicon (ARM64) | Supported | Self-contained `.app` release package |
 | WSL (Windows Subsystem for Linux) | Supported as Linux app | Linux distribution inside WSL |
 
-> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not packaged for MSYS2 `mingw64`**, so it cannot be installed on Windows. Setzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
+> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not packaged for MSYS2 `mingw64`**, so it cannot be installed on Windows. NeoSetzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
 
 ## Installation
 
@@ -40,19 +41,20 @@ This fork is **not** published on Flathub. Ways to get it:
 
 1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Extract anywhere and run `mingw64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
 2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Check there for the latest build.
-3. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
+3. **macOS Apple Silicon application** — Download `setzer_<version>_macos_arm64.zip`, extract `Setzer.app`, and see [macOS packaging notes](docs/packaging/macos.md) for the current Gatekeeper and signing status.
+4. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
 
-## Running Setzer with Gnome Builder
+## Running NeoSetzer with GNOME Builder
 
-To run Setzer with Gnome Builder just click the "Clone" button on the start screen, paste in the url (https://github.com/Sam-Fic/NeoSetzer.git), click on "Clone" again, wait for it to download and hit the play button. It will build Setzer and its dependencies and then launch it.
+To run NeoSetzer with GNOME Builder, click the "Clone" button on the start screen, paste `https://github.com/Sam-Fic/NeoSetzer.git`, wait for the clone to finish, and press the play button. GNOME Builder will build NeoSetzer and its dependencies before launching it.
 
-> **Warning:** Building Setzer this way may take a long time.
+> **Warning:** Building NeoSetzer this way may take a long time.
 
-## Running Setzer on Debian/Ubuntu
+## Running NeoSetzer on Debian/Ubuntu
 
-I develop Setzer on Ubuntu and that's what I tested it with.
+NeoSetzer is developed and tested on Ubuntu.
 
-> **Supported distributions:** Setzer requires WebKitGTK 6.0 (gir1.2-webkit-6.0), which is available on **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) the `gir1.2-webkit-6.0` package does not exist and the `.deb` cannot be installed there. If you are on an older distribution, build from source as described below — the GTK4/WebKit bindings are resolved at runtime.
+> **Supported distributions:** NeoSetzer requires WebKitGTK 6.0 (gir1.2-webkit-6.0), which is available on **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) the `gir1.2-webkit-6.0` package does not exist and the `.deb` cannot be installed there. If you are on an older distribution, build from source as described below — the GTK4/WebKit bindings are resolved at runtime.
 
 1. Run the following command to install prerequisite packages:
 
@@ -63,18 +65,18 @@ I develop Setzer on Ubuntu and that's what I tested it with.
 
    > Note: `gir1.2-xdp-1.0` (the libportal GIR) is only used for Linux/Flatpak detection. It is not needed on Windows (see note below).
 
-2. Clone the Setzer repository from GitHub:
+2. Clone the NeoSetzer repository from GitHub:
 
    ```bash
    # Run in a Linux terminal
    git clone https://github.com/Sam-Fic/NeoSetzer.git
    ```
 
-3. cd to the Setzer folder:
+3. Change into the NeoSetzer folder:
 
    ```bash
    # Run in a Linux terminal
-   cd Setzer
+   cd NeoSetzer
    ```
 
 4. Run meson:
@@ -84,9 +86,9 @@ I develop Setzer on Ubuntu and that's what I tested it with.
    meson setup builddir
    ```
 
-   > Note: Some distributions may not include systemwide installations of Python modules which aren't installed from distribution packages. In this case, you want to install Setzer in your home directory with `meson setup builddir --prefix=~/.local`.
+   > Note: Some distributions may not include systemwide installations of Python modules which aren't installed from distribution packages. In this case, you want to install NeoSetzer in your home directory with `meson setup builddir --prefix=~/.local`.
 
-5. Install Setzer with:
+5. Install NeoSetzer with:
 
    ```bash
    # Run in a Linux terminal
@@ -97,17 +99,17 @@ I develop Setzer on Ubuntu and that's what I tested it with.
 
    ```bash
    # Run in a Linux terminal
-   ./scripts/setzer.dev
+   ./scripts/dev/setzer.dev
    ```
 
-## Running Setzer on Windows
+## Running NeoSetzer on Windows
 
-Setzer supports Windows natively. The GTK4 runtime stack is provided by **MSYS2** (the only reliable source of up-to-date GTK4 / libadwaita / GtkSourceView 5 / Poppler binaries on Windows).
+NeoSetzer supports Windows natively. The GTK4 runtime stack is provided by **MSYS2** (the only reliable source of up-to-date GTK4 / libadwaita / GtkSourceView 5 / Poppler binaries on Windows).
 
 There are two ways to get it running:
 
 - **Portable zip** — the easy way, no MSYS2 required. See directly below.
-- **Build from source** — for development or if you want to modify Setzer. See Step 1 onwards.
+- **Build from source** — for development or if you want to modify NeoSetzer. See Step 1 onwards.
 
 ### Using the portable zip
 
@@ -115,12 +117,12 @@ There are two ways to get it running:
 
 1. Download `setzer_<version>_windows_x64.zip` from the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) page.
 
-2. Extract it **anywhere you like** — a USB stick, `D:\Apps\Setzer`, your desktop. There is no fixed installation path.
+2. Extract it **anywhere you like** — a USB stick, `D:\Apps\NeoSetzer`, your desktop. There is no fixed installation path.
 
    > Right-click → "Extract All…" in File Explorer works. So does PowerShell:
    >
    > ```powershell
-   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\Setzer
+   > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\NeoSetzer
    > ```
 
 3. Run **`mingw64\bin\setzer.bat`** inside the extracted folder — double-click it in File Explorer, or call it from cmd / PowerShell.
@@ -157,7 +159,7 @@ pacman -S --needed \
   gettext
 ```
 
-> **No `libportal`:** the package `mingw-w64-x86_64-libportal` does **not** exist in MSYS2 — libportal is only packaged for the `msys` subsystem, not `mingw64`. Setzer only uses it (`Xdp`) for Flatpak detection, guarded by `try/except`, so it is simply omitted on Windows.
+> **No `libportal`:** the package `mingw-w64-x86_64-libportal` does **not** exist in MSYS2 — libportal is only packaged for the `msys` subsystem, not `mingw64`. NeoSetzer only uses it (`Xdp`) for Flatpak detection, guarded by `try/except`, so it is simply omitted on Windows.
 
 Then install the **pure-Python** libraries that are not packaged by pacman. MSYS2's Python is externally managed (PEP 668), so the `--break-system-packages` flag is required:
 
@@ -175,7 +177,7 @@ python -m pip install --break-system-packages bibtexparser
 ```bash
 # Run in the MSYS2 MINGW64 shell
 git clone https://github.com/Sam-Fic/NeoSetzer.git
-cd Setzer
+cd NeoSetzer
 meson setup builddir
 ```
 
@@ -183,21 +185,21 @@ meson setup builddir
 
 ```bash
 # Run in cmd / PowerShell (no MSYS2 needed)
-scripts\setzer.dev.bat
+scripts\dev\setzer.dev.bat
 ```
 
-`scripts\setzer.dev.bat` is the recommended Windows launcher — a thin wrapper that adds the source tree to `PYTHONPATH` (the `setzer` package is not installed into `site-packages`) and prepends `mingw64\bin` to `PATH` so the correct Python and the GTK4 / libadwaita DLLs are found, then runs the meson-built `builddir\setzer_dev.py`. It works from cmd, PowerShell, or a double-click in File Explorer, with no MSYS2 shell required.
+`scripts\dev\setzer.dev.bat` is the recommended Windows launcher — a thin wrapper that adds the source tree to `PYTHONPATH` (the `setzer` package is not installed into `site-packages`) and prepends `mingw64\bin` to `PATH` so the correct Python and the GTK4 / libadwaita DLLs are found, then runs the meson-built `builddir\setzer_dev.py`. It works from cmd, PowerShell, or a double-click in File Explorer, with no MSYS2 shell required.
 
-> **PowerShell note:** run it *without* quotes. A quoted path (`"scripts\setzer.dev.bat"`) is treated as a string and is only echoed, not executed.
+> **PowerShell note:** run it *without* quotes. A quoted path (`"scripts\dev\setzer.dev.bat"`) is treated as a string and is only echoed, not executed.
 
 Cross-platform alternative (run from the MSYS2 MINGW64 shell) — this is the path used to validate the build in this fork:
 
 ```bash
 # Run in the MSYS2 MINGW64 shell
-python scripts/setzer.dev
+python scripts/dev/setzer.dev
 ```
 
-> A bare `python builddir\setzer_dev.py` fails with `ModuleNotFoundError: No module named 'setzer'` unless `PYTHONPATH` is set first — prefer the `.bat` or `python scripts/setzer.dev`.
+> A bare `python builddir\setzer_dev.py` fails with `ModuleNotFoundError: No module named 'setzer'` unless `PYTHONPATH` is set first — prefer the `.bat` or `python scripts/dev/setzer.dev`.
 
 ### Step 5 — Install (optional)
 
@@ -206,7 +208,7 @@ python scripts/setzer.dev
 ninja install -C builddir
 ```
 
-This installs `setzer.bat` (and the Python `setzer` script) into the MSYS2 `bin/` directory. After installation you can launch Setzer by running `setzer` from any MSYS2 shell, or by adding `<MSYS2>\mingw64\bin` to your system `PATH` and running `setzer.bat` from cmd / PowerShell / Windows Terminal.
+This installs `setzer.bat` (and the Python `setzer` script) into the MSYS2 `bin/` directory. After installation you can launch NeoSetzer by running `setzer` from any MSYS2 shell, or by adding `<MSYS2>\mingw64\bin` to your system `PATH` and running `setzer.bat` from cmd / PowerShell / Windows Terminal.
 
 ### Installing a LaTeX distribution on Windows
 
@@ -229,11 +231,11 @@ To specify a build command open the "Preferences" dialog and choose the command 
 
 ### Debian/Ubuntu (`.deb`)
 
-See [scripts/build_deb.md](scripts/build_deb.md) for the full Debian packaging workflow (version bump, CHANGELOG, build, release).
+See [docs/packaging/debian.md](docs/packaging/debian.md) for the Debian package and release workflow.
 
 ### Windows (portable zip / installer)
 
-See [scripts/build_win.md](scripts/build_win.md) for the full Windows packaging workflow (dependency install, DESTDIR install, runtime DLL bundling, zip / Inno Setup installer, release).
+See [docs/packaging/windows.md](docs/packaging/windows.md) for the Windows portable-package workflow, and [docs/packaging/macos.md](docs/packaging/macos.md) for the macOS application-package workflow.
 
 ## Getting in touch
 
@@ -242,10 +244,10 @@ For the original upstream project, see [https://github.com/cvfosammmm/setzer](ht
 
 ## Acknowledgements
 
-Setzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. I took some icons from Gnome Builder. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
+NeoSetzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. I took some icons from Gnome Builder. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
 
 Parts of the user interface are modeled after [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor).
 
 ## License
 
-Setzer is licensed under GPL version 3 or later. See the COPYING file for details.
+NeoSetzer is licensed under GPL version 3 or later. See the COPYING file for details.
