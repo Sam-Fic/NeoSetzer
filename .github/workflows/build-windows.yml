@@ -59,7 +59,7 @@ jobs:
 
       - name: Configure and compile
         run: |
-          meson setup builddir --prefix=/mingw64 --buildtype=release
+          meson setup builddir --prefix=/mingw64 --buildtype=release -Dpython.bytecompile=0
           meson compile -C builddir
 
       - name: Build Windows portable package
