@@ -102,14 +102,15 @@ jobs:
           grep -q 'mingw64/bin/setzer.bat' package-contents.txt
           grep -q 'mingw64/share/Setzer/resources' package-contents.txt
 
-          echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
+          echo "artifact_file=$(cygpath -w "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+          echo "release_file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
 
       - name: Upload Windows package artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.package.outputs.name }}
-          path: ${{ steps.package.outputs.file }}
+          path: ${{ steps.package.outputs.artifact_file }}
           if-no-files-found: error
           retention-days: 30
 
@@ -118,7 +119,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
-          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+          PACKAGE_FILE: ${{ steps.package.outputs.release_file }}
         run: |
           if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
             gh release create "$TAG_NAME" --title "Setzer $TAG_NAME" --generate-notes || true
