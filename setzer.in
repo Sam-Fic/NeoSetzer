@@ -31,14 +31,34 @@
 
 import sys, os.path
 
-if sys.platform == 'darwin' and hasattr(sys, '_MEIPASS'):
+
+def _prepend_search_path(variable_name, path):
+    '''将打包资源目录加入 GTK/GLib 的搜索路径，且不覆盖用户已有配置。'''
+    if not os.path.isdir(path):
+        return
+    existing = os.environ.get(variable_name, '')
+    paths = existing.split(os.pathsep) if existing else []
+    if path not in paths:
+        os.environ[variable_name] = path + (os.pathsep + existing if existing else '')
+
+
+# 非 Linux 包不依赖宿主机的 GNOME 资源。Windows 便携版从脚本位置定位
+# mingw64 根目录；macOS PyInstaller 应用包将资源放入 sys._MEIPASS。
+if sys.platform == 'win32':
+    bundle_resources = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+elif sys.platform == 'darwin' and hasattr(sys, '_MEIPASS'):
     bundle_resources = sys._MEIPASS
-    schema_dir = os.path.join(bundle_resources, 'share', 'glib-2.0', 'schemas')
+else:
+    bundle_resources = None
+
+if bundle_resources:
+    share_dir = os.path.join(bundle_resources, 'share')
+    schema_dir = os.path.join(share_dir, 'glib-2.0', 'schemas')
     typelib_dir = os.path.join(bundle_resources, 'lib', 'girepository-1.0')
+    _prepend_search_path('XDG_DATA_DIRS', share_dir)
     if os.path.isdir(schema_dir):
         os.environ.setdefault('GSETTINGS_SCHEMA_DIR', schema_dir)
-    if os.path.isdir(typelib_dir):
-        os.environ.setdefault('GI_TYPELIB_PATH', typelib_dir)
+    _prepend_search_path('GI_TYPELIB_PATH', typelib_dir)
 
 import cairo
 import gi

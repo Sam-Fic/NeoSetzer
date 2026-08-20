@@ -33,6 +33,7 @@ jobs:
             mingw-w64-x86_64-meson
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-adwaita-icon-theme
             mingw-w64-x86_64-libadwaita
             mingw-w64-x86_64-gtksourceview5
             mingw-w64-x86_64-poppler
@@ -97,10 +98,14 @@ jobs:
           test -f "$PACKAGE_ROOT/bin/setzer.bat"
           test -f "$PACKAGE_ROOT/bin/python.exe"
           test -d "$PACKAGE_ROOT/share/Setzer/resources"
+          test -f "$PACKAGE_ROOT/share/icons/Adwaita/index.theme"
+          test -f "$PACKAGE_ROOT/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg"
           (cd "$(dirname "$PACKAGE_ROOT")" && zip -qr "$PACKAGE_FILE" mingw64)
           unzip -l "$PACKAGE_FILE" > package-contents.txt
           grep -q 'mingw64/bin/setzer.bat' package-contents.txt
           grep -q 'mingw64/share/Setzer/resources' package-contents.txt
+          grep -q 'mingw64/share/icons/Adwaita/index.theme' package-contents.txt
+          grep -q 'mingw64/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg' package-contents.txt
 
           echo "artifact_file=$(cygpath -w "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
           echo "release_file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
