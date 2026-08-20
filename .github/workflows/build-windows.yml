@@ -121,12 +121,14 @@ jobs:
 
       - name: Publish package to the matching GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
-          PACKAGE_FILE: ${{ steps.package.outputs.release_file }}
+          PACKAGE_FILE: ${{ steps.package.outputs.artifact_file }}
         run: |
-          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release create "$TAG_NAME" --title "Setzer $TAG_NAME" --generate-notes || true
-          fi
-          gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
+          gh release view "$env:TAG_NAME" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "$env:TAG_NAME" --title "Setzer $env:TAG_NAME" --generate-notes
+          }
+          gh release upload "$env:TAG_NAME" "$env:PACKAGE_FILE" --clobber
