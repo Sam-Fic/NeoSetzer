@@ -1,0 +1,119 @@
+---
+name: Build macOS package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS x64 application bundle
+    runs-on: macos-13
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Install build and GTK dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: |
+          brew install \
+            meson \
+            ninja \
+            gettext \
+            pygobject3 \
+            gtk4 \
+            libadwaita \
+            gtksourceview5 \
+            poppler \
+            gobject-introspection
+
+      - name: Install Python packaging dependencies
+        run: |
+          python3 -m pip install --break-system-packages bibtexparser pyinstaller
+
+      - name: Verify tag and project version agree
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          project_version="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          tag_version="${TAG_NAME#v}"
+          test -n "$project_version"
+          test "$project_version" = "$tag_version"
+
+      - name: Configure and compile
+        run: |
+          meson setup builddir --prefix=/usr --buildtype=release
+          meson compile -C builddir
+
+      - name: Build macOS application bundle
+        id: package
+        run: |
+          set -eu
+          VERSION="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          STAGE_ROOT="$PWD/package-root"
+          PACKAGE_FILE="$PWD/setzer_${VERSION}_macos_x64.zip"
+          PYTHON_SITE_PACKAGES=""
+
+          test -n "$VERSION"
+          rm -rf "$STAGE_ROOT" build-pyinstaller dist-pyinstaller "$PACKAGE_FILE" package-contents.txt
+          DESTDIR="$STAGE_ROOT" meson install -C builddir
+          PYTHON_SITE_PACKAGES="$(find "$STAGE_ROOT/usr/lib" -type d -path '*/site-packages' | head -n 1)"
+          test -n "$PYTHON_SITE_PACKAGES"
+
+          python3 -m PyInstaller \
+            --noconfirm \
+            --clean \
+            --windowed \
+            --name Setzer \
+            --osx-bundle-identifier org.cvfosammmm.Setzer \
+            --paths "$PYTHON_SITE_PACKAGES" \
+            --collect-submodules setzer \
+            --collect-all gi \
+            --collect-all cairo \
+            --add-data "$STAGE_ROOT/usr/share/Setzer:share/Setzer" \
+            --add-data "$STAGE_ROOT/usr/share/locale:share/locale" \
+            --add-data "$(brew --prefix)/share/glib-2.0/schemas:share/glib-2.0/schemas" \
+            --add-data "$(brew --prefix)/lib/girepository-1.0:lib/girepository-1.0" \
+            --workpath build-pyinstaller \
+            --distpath dist-pyinstaller \
+            "$STAGE_ROOT/usr/bin/setzer"
+
+          test -d dist-pyinstaller/Setzer.app
+          codesign --force --deep --sign - dist-pyinstaller/Setzer.app
+          codesign --verify --deep --strict dist-pyinstaller/Setzer.app
+          dist-pyinstaller/Setzer.app/Contents/MacOS/Setzer --version
+          ditto -c -k --sequesterRsrc --keepParent dist-pyinstaller/Setzer.app "$PACKAGE_FILE"
+          unzip -l "$PACKAGE_FILE" > package-contents.txt
+          grep -q 'Setzer.app/Contents/MacOS/Setzer' package-contents.txt
+          grep -q 'Setzer.app/Contents/Resources/share/Setzer/resources' package-contents.txt
+
+          echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload macOS package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.file }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish package to the matching GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+        run: |
+          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release create "$TAG_NAME" --title "Setzer $TAG_NAME" --generate-notes || true
+          fi
+          gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
