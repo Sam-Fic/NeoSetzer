@@ -6,38 +6,22 @@
 # 单元测试：settings._migrate_presets_bytes
 #
 # settings.Settings 顶部 import gi（Gtk.TextView 用于默认字体获取）。
-# 本测试用 conftest_stub 注入伪 gi，使 Settings 可在无 GTK 环境下实例化。
-# 实际生产中 _migrate_presets_bytes 是 staticmethod，可直接调，不需
-# 实例化 Settings；但保留 import 路径以验证模块可加载。
+# 本测试注入伪 gi 后直接调用真实的 staticmethod，无需实例化 Settings。
 
 import os
 import pickle
 import tempfile
 import unittest
 
-import conftest_stub  # noqa: F401  注入伪 gi，必须在 import setzer.* 前
+from tests.python import conftest_stub  # noqa: F401  必须先注入伪 gi
 
-from setzer.helpers.persistence import save_json, load_json, migrate_pickle_to_json
-
-
-# _migrate_presets_bytes 的逻辑独立可测：抽出来直接复制实现以避免触发
-# Settings.__init__ 的 GTK 依赖。生产代码中它是 Settings 的方法但本质
-# 是纯函数。此测试同时验证迁移函数本身与 persistence.migrate_pickle_to_json
-# 配合的端到端行为。
+from setzer.helpers.persistence import load_json, migrate_pickle_to_json
+from setzer.settings.settings import Settings
 
 
 def migrate_presets_bytes(data):
-    '''与 Settings._migrate_presets_bytes 同实现，用于隔离测试。'''
-    for section in ('app_document_wizard', 'app_bibtex_wizard',
-                    'app_include_bibtex_file_dialog'):
-        v = data.get(section, {}).get('presets')
-        if isinstance(v, (bytes, bytearray)):
-            try:
-                data[section]['presets'] = pickle.loads(v)
-            except (pickle.UnpicklingError, EOFError, ValueError,
-                    AttributeError, TypeError):
-                data[section]['presets'] = None
-    return data
+    '''调用生产代码，避免测试实现与实际迁移逻辑漂移。'''
+    return Settings._migrate_presets_bytes(data)
 
 
 class TestMigratePresetsBytes(unittest.TestCase):
