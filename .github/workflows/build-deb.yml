@@ -1,0 +1,119 @@
+---
+name: Build Debian package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: Build .deb on Ubuntu 24.04
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build and runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            meson \
+            ninja-build \
+            gettext \
+            python3-gi \
+            python3-cairo \
+            python3-gi-cairo \
+            python3-numpy \
+            python3-bibtexparser \
+            gir1.2-gtk-4.0 \
+            gir1.2-adw-1 \
+            gir1.2-gtksource-5 \
+            gir1.2-pango-1.0 \
+            gir1.2-poppler-0.18 \
+            gir1.2-webkit-6.0 \
+            gir1.2-xdp-1.0
+
+      - name: Verify tag and project version agree
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          project_version="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          tag_version="${TAG_NAME#v}"
+          test -n "$project_version"
+          test "$project_version" = "$tag_version"
+
+      - name: Configure and compile
+        run: |
+          meson setup builddir --prefix=/usr --buildtype=release
+          meson compile -C builddir
+
+      - name: Build Debian package
+        id: package
+        run: |
+          set -eu
+          VERSION="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
+          ARCH="$(dpkg --print-architecture)"
+          PACKAGE_ROOT="$PWD/package-root"
+          PACKAGE_FILE="$PWD/setzer_${VERSION}_${ARCH}.deb"
+
+          test -n "$VERSION"
+          rm -rf "$PACKAGE_ROOT" "$PACKAGE_FILE"
+          DESTDIR="$PACKAGE_ROOT" meson install -C builddir
+          find "$PACKAGE_ROOT" -type d -name __pycache__ -prune -exec rm -rf {} +
+          find "$PACKAGE_ROOT" -type f -name '*.pyc' -delete
+
+          mkdir -p "$PACKAGE_ROOT/DEBIAN"
+          cat > "$PACKAGE_ROOT/DEBIAN/control" <<EOF
+          Package: setzer
+          Version: ${VERSION}
+          Section: editors
+          Priority: optional
+          Architecture: ${ARCH}
+          Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, python3-bibtexparser, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
+          Recommends: texlive
+          Maintainer: NeoSetzer Packaging <noreply@github.com>
+          Description: LaTeX editor for the GNOME desktop
+           Setzer is a LaTeX editor with a modern GTK4/libadwaita interface.
+           It features live PDF preview, autocomplete, code folding, a document
+           structure outline, and an integrated build system supporting pdflatex,
+           xelatex, lualatex and tectonic.
+          EOF
+
+          dpkg-deb --build --root-owner-group "$PACKAGE_ROOT" "$PACKAGE_FILE"
+          dpkg-deb --info "$PACKAGE_FILE"
+          dpkg-deb --contents "$PACKAGE_FILE" > package-contents.txt
+          grep -q 'usr/bin/setzer' package-contents.txt
+          grep -q 'dist-packages/setzer' package-contents.txt
+
+          echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Debian package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.file }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish package to the matching GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$PACKAGE_FILE" --clobber
+          else
+            gh release create "$TAG_NAME" "$PACKAGE_FILE" \
+              --title "Setzer $TAG_NAME" \
+              --generate-notes
+          fi
