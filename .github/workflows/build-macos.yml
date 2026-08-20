@@ -12,8 +12,8 @@ permissions:
 
 jobs:
   build-macos:
-    name: Build macOS x64 application bundle
-    runs-on: macos-13
+    name: Build macOS application bundle
+    runs-on: macos-14
 
     steps:
       - name: Check out source
@@ -59,7 +59,12 @@ jobs:
           set -eu
           VERSION="$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build | head -n 1)"
           STAGE_ROOT="$PWD/package-root"
-          PACKAGE_FILE="$PWD/setzer_${VERSION}_macos_x64.zip"
+          case "$(uname -m)" in
+            arm64) ARCH="arm64" ;;
+            x86_64) ARCH="x64" ;;
+            *) echo "Unsupported macOS architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          PACKAGE_FILE="$PWD/setzer_${VERSION}_macos_${ARCH}.zip"
           PYTHON_SITE_PACKAGES=""
 
           test -n "$VERSION"
