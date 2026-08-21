@@ -180,6 +180,8 @@ class StructureSectionView(structure_widget.StructureWidget):
 
         section_type = block[4] if len(block) > 4 else None
         is_file = section_type == 'file'
+        is_frame = section_type == 'frame'
+        is_editable_section = not is_file and not is_frame
 
         menu = Gio.Menu()
 
@@ -196,26 +198,30 @@ class StructureSectionView(structure_widget.StructureWidget):
                 copy_section.append_item(
                     Gio.MenuItem.new(_('Copy Label') + f'  \\label{{{label_name}}}', 'outline.copy-label'))
 
-            # Edit section
-            edit_section = Gio.Menu()
-            edit_section.append_item(Gio.MenuItem.new(_('Rename Section…'), 'outline.rename'))
-            edit_section.append_item(Gio.MenuItem.new(_('Delete Section'), 'outline.delete'))
-            menu.append_section(None, edit_section)
+            if is_editable_section:
+                # Edit section
+                edit_section = Gio.Menu()
+                edit_section.append_item(Gio.MenuItem.new(_('Rename Section…'), 'outline.rename'))
+                edit_section.append_item(Gio.MenuItem.new(_('Delete Section'), 'outline.delete'))
+                menu.append_section(None, edit_section)
 
-            # Level section
-            can_promote = section_type in self.model.levels and self.model.levels[section_type] > 0
-            can_demote = section_type in self.model.levels and self.model.levels[section_type] < len(self.model.levels) - 1
+                # Level section
+                can_promote = section_type in self.model.levels and self.model.levels[section_type] > 0
+                can_demote = section_type in self.model.levels and self.model.levels[section_type] < len(self.model.levels) - 1
 
-            level_section = Gio.Menu()
-            promote_item = Gio.MenuItem.new(_('Promote') + '  ←', 'outline.promote')
-            demote_item = Gio.MenuItem.new(_('Demote') + '  →', 'outline.demote')
-            level_section.append_item(promote_item)
-            level_section.append_item(demote_item)
-            menu.append_section(None, level_section)
+                level_section = Gio.Menu()
+                promote_item = Gio.MenuItem.new(_('Promote') + '  ←', 'outline.promote')
+                demote_item = Gio.MenuItem.new(_('Demote') + '  →', 'outline.demote')
+                level_section.append_item(promote_item)
+                level_section.append_item(demote_item)
+                menu.append_section(None, level_section)
 
-            # Store capabilities for action enable/disable
-            self._can_promote = can_promote
-            self._can_demote = can_demote
+                # Store capabilities for action enable/disable
+                self._can_promote = can_promote
+                self._can_demote = can_demote
+            else:
+                self._can_promote = False
+                self._can_demote = False
 
         return menu
 
@@ -260,6 +266,8 @@ class StructureSectionView(structure_widget.StructureWidget):
 
         section_type = block[4] if len(block) > 4 else None
         is_file = section_type == 'file'
+        is_frame = section_type == 'frame'
+        is_editable_section = not is_file and not is_frame
 
         # Build the menu model
         menu_model = self._build_menu_model(node)
@@ -275,10 +283,10 @@ class StructureSectionView(structure_widget.StructureWidget):
             not is_file and self.model.find_label_for_node(node) is not None)
         action_group.lookup_action('copy-label').set_enabled(
             not is_file and self.model.find_label_for_node(node) is not None)
-        action_group.lookup_action('rename').set_enabled(not is_file)
-        action_group.lookup_action('delete').set_enabled(not is_file)
-        action_group.lookup_action('promote').set_enabled(not is_file and getattr(self, '_can_promote', False))
-        action_group.lookup_action('demote').set_enabled(not is_file and getattr(self, '_can_demote', False))
+        action_group.lookup_action('rename').set_enabled(is_editable_section)
+        action_group.lookup_action('delete').set_enabled(is_editable_section)
+        action_group.lookup_action('promote').set_enabled(is_editable_section and getattr(self, '_can_promote', False))
+        action_group.lookup_action('demote').set_enabled(is_editable_section and getattr(self, '_can_demote', False))
 
         # Create popover menu
         popover = Gtk.PopoverMenu()

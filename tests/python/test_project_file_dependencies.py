@@ -13,6 +13,8 @@ import tempfile
 import types
 import unittest
 
+from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
+
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
@@ -50,6 +52,7 @@ def _load_parser_class():
         'ServiceLocator': _RegexServiceLocator,
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
+        'extract_beamer_frame_titles': extract_beamer_frame_titles,
     })
 
 
@@ -129,6 +132,33 @@ class TestProjectFileDependencyParsing(unittest.TestCase):
         parser = ParserLaTeX(_ParserDocument())
         parser.initial_parse('\\documentclass{scrlttr2}\n')
         self.assertEqual(parser.symbols['included_project_files'], [('scrlttr2.cls', 0)])
+
+    def test_titled_beamer_frames_become_structure_blocks(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\begin{document}\n'
+            '\\section{Demo}\n'
+            '\\begin{frame}{Overview}\n'
+            'Content\n'
+            '\\end{frame}\n'
+            '\\begin{frame}\n'
+            '\\frametitle{Method}\n'
+            '\\end{frame}\n'
+            '\\begin{frame}\n'
+            'Untitled content\n'
+            '\\end{frame}\n'
+            '\\end{document}\n'
+        )
+        parser.initial_parse(text)
+        frames = [block for block in parser.symbols['blocks'] if block[4] == 'frame']
+        self.assertEqual(
+            [(block[0], block[2], block[5]) for block in frames if len(block) > 5],
+            [
+                (text.index('\\begin{frame}{Overview}'), 2, 'Overview'),
+                (text.index('\\begin{frame}\n\\frametitle'), 5, 'Method'),
+            ],
+        )
+        self.assertEqual(len(frames), 3)
 
 
 class TestProjectFileSidebarFiltering(unittest.TestCase):

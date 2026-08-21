@@ -21,6 +21,7 @@ from gi.repository import GLib
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
+from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 
 
 # 文档级符号正则：label/include/input/subfile/subimport/bibliography/
@@ -128,7 +129,7 @@ class ParserLaTeX(Observable):
         self.initial_parse(text)
 
     def parse_for_blocks(self, text, line_start, offset_line_start):
-        block_symbol_matches = {'begin_or_end': list(), 'others': list()}
+        block_symbol_matches = {'begin_or_end': list(), 'others': list(), 'beamer_frames': list()}
         counter = line_start
         for match in self._block_symbols_regex.finditer(text):
             if match.group(1) != None:
@@ -138,6 +139,16 @@ class ParserLaTeX(Observable):
                 counter += len(match.group(0).splitlines()) - 1
             if match.group(0) == '\n':
                 counter += 1
+        # Frame titles are parsed separately from generic begin/end blocks so
+        # their optional overlay/options syntax does not complicate the hot
+        # block-symbol regex.  Keep absolute source offsets and line numbers
+        # to match the tuple shape used by normal structure blocks.
+        for frame in extract_beamer_frame_titles(text):
+            block_symbol_matches['beamer_frames'].append((
+                frame.offset + offset_line_start,
+                line_start + text.count('\n', 0, frame.offset),
+                frame.title,
+            ))
         return block_symbol_matches
 
     #@timer
@@ -180,6 +191,22 @@ class ParserLaTeX(Observable):
                     block_begin[3] = line_number
                     block_begin.append(group2)
                     blocks_list.append(block_begin)
+
+        # 将有标题的 Beamer frame 关联到它们已经配对的 begin/end block。
+        # 无标题 frame 保持普通环境块，不出现在导航中；标题采用 `\\begin`
+        # 的位置作为跳转目标，即使标题由环境内的 `\\frametitle` 给出也是如此。
+        for frame_offset, _, frame_title in self.block_symbol_matches.get('beamer_frames', []):
+            matching_blocks = [
+                block for block in blocks_list
+                if block[4] == 'frame' and block[0] <= frame_offset and
+                (block[1] is None or frame_offset <= block[1])
+            ]
+            if matching_blocks:
+                frame_block = min(matching_blocks, key=lambda block: block[1] - block[0])
+                if len(frame_block) == 5:
+                    frame_block.append(frame_title)
+                else:
+                    frame_block[5] = frame_title
 
         # levels 定义先于 relevant_following_blocks：用 len(levels) 派生
         # 列表容量，避免「7 个 list()」与 levels 条目数耦合。新增层级

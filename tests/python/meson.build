@@ -35,6 +35,7 @@ foreach t : [
   ['test_command_palette_catalog', 'test_command_palette_catalog.py'],
   ['test_magic_comments',           'test_magic_comments.py'],
   ['test_environment_templates',   'test_environment_templates.py'],
+  ['test_beamer_frames',           'test_beamer_frames.py'],
 ]
   test(
     t[0],

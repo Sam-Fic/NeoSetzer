@@ -33,7 +33,9 @@ class StructureSection(object):
         # 跟踪当前文档，用于在切换时保存旧文档的折叠状态
         self._current_document = None
 
-        self.levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6, 'file': 7}
+        # frame 是 Beamer 中可导航的叶节点：置于既有章节层级之后，既能
+        # 归属到当前 section，又不会把随后出现的 subsection 误作其子节点。
+        self.levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6, 'frame': 7, 'file': 8}
 
         # 文档结构图标统一改用系统自带（Adwaita）symbolic 图标，
         # 避免应用自带的 section/file 等图标样式不统一且观感较差。
@@ -41,6 +43,7 @@ class StructureSection(object):
             'part': 'view-paged-symbolic',
             'chapter': 'bookmark-new-symbolic',
             'section': 'view-list-symbolic',
+            'frame': 'x-office-presentation-symbolic',
             'subsection': 'view-list-bullet-symbolic',
             'subsubsection': 'view-list-ordered-symbolic',
             'paragraph': 'format-justify-left-symbolic',
@@ -320,7 +323,7 @@ class StructureSection(object):
 
     def rename_section(self, node):
         block = node.get('block', None)
-        if block is None:
+        if block is None or block[4] == 'frame':
             return
         document = self._get_document_for_node(node)
         if document is None:
@@ -483,7 +486,7 @@ class StructureSection(object):
 
     def delete_section(self, node):
         block = node.get('block', None)
-        if block is None:
+        if block is None or block[4] == 'frame':
             return
         document = self._get_document_for_node(node)
         if document is None:
@@ -517,7 +520,7 @@ class StructureSection(object):
 
     def promote_section(self, node):
         block = node.get('block', None)
-        if block is None or block[4] not in self.levels:
+        if block is None or block[4] == 'frame' or block[4] not in self.levels:
             return
         document = self._get_document_for_node(node)
         if document is None:
@@ -533,7 +536,7 @@ class StructureSection(object):
 
     def demote_section(self, node):
         block = node.get('block', None)
-        if block is None or block[4] not in self.levels:
+        if block is None or block[4] == 'frame' or block[4] not in self.levels:
             return
         document = self._get_document_for_node(node)
         if document is None:
