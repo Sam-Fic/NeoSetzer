@@ -125,49 +125,6 @@ class PageGeneral(object):
 
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
-        # Experimental Features 开关
-        self.view.master_switch.set_active(
-            self.settings.get_value('preferences', 'experimental_features'))
-        self.view.master_switch.connect('notify::active', self._on_exp_master_toggled)
-
-        self.view.switch_multicursor.set_active(
-            self.settings.get_value('preferences', 'experimental_multicursor'))
-        self.view.switch_multicursor.connect('notify::active', self._on_exp_toggled, 'experimental_multicursor')
-
-        self.view.switch_alt_click.set_active(
-            self.settings.get_value('preferences', 'experimental_alt_click'))
-        self.view.switch_alt_click.connect('notify::active', self._on_exp_toggled, 'experimental_alt_click')
-
-        self.view.switch_alt_drag.set_active(
-            self.settings.get_value('preferences', 'experimental_alt_drag'))
-        self.view.switch_alt_drag.connect('notify::active', self._on_exp_toggled, 'experimental_alt_drag')
-
-        self.view.switch_select_next.set_active(
-            self.settings.get_value('preferences', 'experimental_select_next'))
-        self.view.switch_select_next.connect('notify::active', self._on_exp_toggled, 'experimental_select_next')
-
-        self.view.switch_select_all.set_active(
-            self.settings.get_value('preferences', 'experimental_select_all'))
-        self.view.switch_select_all.connect('notify::active', self._on_exp_toggled, 'experimental_select_all')
-
-        self.view.switch_add_above.set_active(
-            self.settings.get_value('preferences', 'experimental_add_above'))
-        self.view.switch_add_above.connect('notify::active', self._on_exp_toggled, 'experimental_add_above')
-
-        self.view.switch_add_below.set_active(
-            self.settings.get_value('preferences', 'experimental_add_below'))
-        self.view.switch_add_below.connect('notify::active', self._on_exp_toggled, 'experimental_add_below')
-
-        self.view.switch_escape_clear.set_active(
-            self.settings.get_value('preferences', 'experimental_escape_clear'))
-        self.view.switch_escape_clear.connect('notify::active', self._on_exp_toggled, 'experimental_escape_clear')
-
-        self.view.switch_multiedit.set_active(
-            self.settings.get_value('preferences', 'experimental_multiedit'))
-        self.view.switch_multiedit.connect('notify::active', self._on_exp_toggled, 'experimental_multiedit')
-
-        self._sync_exp_sub_sensitivity()
-
     # ---- theme ----
     def on_theme_changed(self, combo, pspec=None):
         value = THEME_MODES[combo.get_selected()][1]
@@ -383,32 +340,6 @@ class PageGeneral(object):
         self.view.option_preview_zoom.set_selected(
             self.view.preview_zoom_values.index(defaults['preview_zoom']))
 
-    # ---- Experimental Features handlers ----
-    def _on_exp_master_toggled(self, switch, pspec):
-        enabled = switch.get_active()
-        self.settings.set_value('preferences', 'experimental_features', enabled)
-        self._sync_exp_sub_sensitivity()
-
-    def _sync_exp_sub_sensitivity(self):
-        enabled = self.view.master_switch.get_active()
-        self.view.expander_row.set_sensitive(enabled)
-        children = [
-            self.view.switch_multicursor,
-            self.view.switch_alt_click,
-            self.view.switch_alt_drag,
-            self.view.switch_select_next,
-            self.view.switch_select_all,
-            self.view.switch_add_above,
-            self.view.switch_add_below,
-            self.view.switch_escape_clear,
-            self.view.switch_multiedit,
-        ]
-        for child in children:
-            child.set_sensitive(enabled)
-
-    def _on_exp_toggled(self, switch, pspec, preference_name):
-        self.settings.set_value('preferences', preference_name, switch.get_active())
-
 
 class PageGeneralView(Adw.PreferencesPage):
 
@@ -570,79 +501,6 @@ class PageGeneralView(Adw.PreferencesPage):
         self.reset_all_row.add_suffix(self.option_reset_all)
         self.reset_all_row.set_activatable_widget(self.option_reset_all)
         group_backup.add(self.reset_all_row)
-
-        # Experimental Features（实验性功能，在 General 页内展开）
-        group_experimental = Adw.PreferencesGroup()
-        group_experimental.set_title(_('Experimental Features'))
-        group_experimental.set_description(_(
-            'Unstable multi-cursor editing features.'))
-        self.add(group_experimental)
-
-        self.master_switch = Adw.SwitchRow()
-        self.master_switch.set_title(_('Enable experimental features'))
-        self.master_switch.set_subtitle(_(
-            'Master switch for all multi-cursor features below.'))
-        group_experimental.add(self.master_switch)
-
-        self.expander_row = Adw.ExpanderRow()
-        self.expander_row.set_title(_('Multi-Cursor Settings'))
-        self.expander_row.set_subtitle(_(
-            'Individually enable or disable each multi-cursor feature.'))
-        group_experimental.add(self.expander_row)
-
-        self.switch_multicursor = Adw.SwitchRow()
-        self.switch_multicursor.set_title(_('Multi-cursor mode'))
-        self.switch_multicursor.set_subtitle(_(
-            'Allow creating additional cursors.'))
-        self.expander_row.add_row(self.switch_multicursor)
-
-        self.switch_alt_click = Adw.SwitchRow()
-        self.switch_alt_click.set_title(_('Alt+Click to add/remove cursor'))
-        self.switch_alt_click.set_subtitle(_(
-            'Add a cursor at the clicked position, or remove an existing one.'))
-        self.expander_row.add_row(self.switch_alt_click)
-
-        self.switch_alt_drag = Adw.SwitchRow()
-        self.switch_alt_drag.set_title(_('Alt+Drag column selection'))
-        self.switch_alt_drag.set_subtitle(_(
-            'Drag to create a column (rectangular) selection.'))
-        self.expander_row.add_row(self.switch_alt_drag)
-
-        self.switch_select_next = Adw.SwitchRow()
-        self.switch_select_next.set_title(_('Select next occurrence (Ctrl+D)'))
-        self.switch_select_next.set_subtitle(_(
-            'Select the next match of the selected text or word.'))
-        self.expander_row.add_row(self.switch_select_next)
-
-        self.switch_select_all = Adw.SwitchRow()
-        self.switch_select_all.set_title(_('Select all occurrences (Ctrl+Shift+L)'))
-        self.switch_select_all.set_subtitle(_(
-            'Select all matches of the selected text or word.'))
-        self.expander_row.add_row(self.switch_select_all)
-
-        self.switch_add_above = Adw.SwitchRow()
-        self.switch_add_above.set_title(_('Add cursor above (Ctrl+Alt+↑)'))
-        self.switch_add_above.set_subtitle(_(
-            'Add a cursor on the line above each existing cursor.'))
-        self.expander_row.add_row(self.switch_add_above)
-
-        self.switch_add_below = Adw.SwitchRow()
-        self.switch_add_below.set_title(_('Add cursor below (Ctrl+Alt+↓)'))
-        self.switch_add_below.set_subtitle(_(
-            'Add a cursor on the line below each existing cursor.'))
-        self.expander_row.add_row(self.switch_add_below)
-
-        self.switch_escape_clear = Adw.SwitchRow()
-        self.switch_escape_clear.set_title(_('Escape to clear multi-cursor'))
-        self.switch_escape_clear.set_subtitle(_(
-            'Press Escape to clear all additional cursors.'))
-        self.expander_row.add_row(self.switch_escape_clear)
-
-        self.switch_multiedit = Adw.SwitchRow()
-        self.switch_multiedit.set_title(_('Multi-cursor text editing'))
-        self.switch_multiedit.set_subtitle(_(
-            'Insert, delete, and indent at all cursor positions simultaneously.'))
-        self.expander_row.add_row(self.switch_multiedit)
 
         # reset（通用页偏好）
         group_reset = Adw.PreferencesGroup()
