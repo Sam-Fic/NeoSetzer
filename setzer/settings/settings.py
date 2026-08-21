@@ -293,6 +293,9 @@ class Settings(Observable):
         # 且 app 控制器在 CAPTURE 阶段消费事件，\left 永远不触发。F4 空闲。
         self.defaults['keyboard_shortcuts']['build_log'] = 'F4'
         self.defaults['keyboard_shortcuts']['preview'] = '<Control><Shift>p'
+        # 命令面板不使用 Ctrl+Shift+P（预览）或 Ctrl+Shift+K（删除行）；
+        # Ctrl+. 在现有默认快捷键中空闲，且仍可在 Preferences 中改绑。
+        self.defaults['keyboard_shortcuts']['command_palette'] = '<Control>period'
         self.defaults['keyboard_shortcuts']['hamburger_menu'] = 'F10'
         self.defaults['keyboard_shortcuts']['fullscreen'] = 'F11'
         self.defaults['keyboard_shortcuts']['context_menu'] = 'F12'

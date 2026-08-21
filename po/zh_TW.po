@@ -5731,3 +5731,161 @@ msgstr "題注和標籤"
 
 #~ msgid "More"
 #~ msgstr "更多"
+
+# Command palette strings (reviewed 2026-08-21).
+
+#: setzer/command_palette/catalog.py:106
+msgid "About NeoSetzer"
+msgstr "關於 NeoSetzer"
+
+
+#: setzer/command_palette/catalog.py:103 setzer/command_palette/catalog.py:104
+#: setzer/command_palette/catalog.py:105 setzer/command_palette/catalog.py:106
+#: setzer/command_palette/catalog.py:107
+msgid "Application"
+msgstr "應用程式"
+
+
+#: setzer/command_palette/catalog.py:61
+msgid "Build PDF"
+msgstr "建置 PDF"
+
+
+#: setzer/command_palette/catalog.py:88
+msgid "Clear Bookmarks"
+msgstr "清除書籤"
+
+
+#: setzer/command_palette/catalog.py:64
+msgid "Close Build Log"
+msgstr "關閉建置日誌"
+
+
+#: setzer/command_palette/dialog.py:43
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:137
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
+msgid "Command Palette"
+msgstr "命令面板"
+
+
+#: setzer/command_palette/catalog.py:71
+msgid "Delete Selection"
+msgstr "刪除選取範圍"
+
+
+#: setzer/command_palette/catalog.py:89
+msgid "Document Wizard"
+msgstr "文件精靈"
+
+
+#: setzer/command_palette/catalog.py:66 setzer/command_palette/catalog.py:67
+#: setzer/command_palette/catalog.py:68 setzer/command_palette/catalog.py:69
+#: setzer/command_palette/catalog.py:70 setzer/command_palette/catalog.py:71
+#: setzer/command_palette/catalog.py:72 setzer/command_palette/catalog.py:73
+#: setzer/command_palette/catalog.py:74 setzer/command_palette/catalog.py:75
+#: setzer/command_palette/catalog.py:76 setzer/command_palette/catalog.py:77
+#: setzer/command_palette/catalog.py:78 setzer/command_palette/catalog.py:79
+#: setzer/command_palette/catalog.py:80 setzer/command_palette/catalog.py:81
+#: setzer/command_palette/catalog.py:82 setzer/command_palette/catalog.py:83
+#: setzer/command_palette/catalog.py:84 setzer/command_palette/catalog.py:85
+#: setzer/command_palette/catalog.py:86 setzer/command_palette/catalog.py:87
+#: setzer/command_palette/catalog.py:88
+msgid "Edit"
+msgstr "編輯"
+
+
+#: setzer/command_palette/catalog.py:56
+msgid "Export PDF As"
+msgstr "將 PDF 匯出為"
+
+
+#: setzer/command_palette/catalog.py:49 setzer/command_palette/catalog.py:50
+#: setzer/command_palette/catalog.py:51 setzer/command_palette/catalog.py:52
+#: setzer/command_palette/catalog.py:53 setzer/command_palette/catalog.py:54
+#: setzer/command_palette/catalog.py:55 setzer/command_palette/catalog.py:56
+#: setzer/command_palette/catalog.py:57 setzer/command_palette/catalog.py:58
+#: setzer/command_palette/catalog.py:59 setzer/command_palette/catalog.py:60
+msgid "File"
+msgstr "檔案"
+
+
+#: setzer/command_palette/catalog.py:90
+msgid "Manage Packages"
+msgstr "管理套件"
+
+
+#: setzer/command_palette/catalog.py:86
+msgid "Next Bookmark"
+msgstr "下一個書籤"
+
+
+#: setzer/command_palette/dialog.py:72
+msgid "No commands found"
+msgstr "找不到命令"
+
+
+#: setzer/command_palette/catalog.py:52
+msgid "Open Recent Documents"
+msgstr "開啟最近使用的文件"
+
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:80
+msgid "Open command palette"
+msgstr "開啟命令面板"
+
+
+#: setzer/command_palette/catalog.py:83
+msgid "Outdent"
+msgstr "減少縮排"
+
+
+#: setzer/command_palette/catalog.py:87
+msgid "Previous Bookmark"
+msgstr "上一個書籤"
+
+
+#: setzer/command_palette/catalog.py:62
+msgid "Save and Build PDF"
+msgstr "儲存並建置 PDF"
+
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:205
+msgid "Search and run application commands"
+msgstr "搜尋並執行應用程式命令"
+
+
+#: setzer/command_palette/dialog.py:55
+msgid "Search commands"
+msgstr "搜尋命令"
+
+
+#: setzer/command_palette/catalog.py:100
+msgid "Show Source from PDF"
+msgstr "從 PDF 顯示原始碼"
+
+
+#: setzer/command_palette/catalog.py:85
+msgid "Toggle Bookmark"
+msgstr "切換書籤"
+
+
+#: setzer/command_palette/dialog.py:79
+msgid "Use ↑ and ↓ to select, Enter to run"
+msgstr "使用 ↑ 與 ↓ 選取，按 Enter 執行"
+
+
+#: setzer/command_palette/catalog.py:94 setzer/command_palette/catalog.py:95
+#: setzer/command_palette/catalog.py:96 setzer/command_palette/catalog.py:97
+#: setzer/command_palette/catalog.py:98
+msgid "View"
+msgstr "檢視"
+
+
+#: setzer/command_palette/catalog.py:101
+msgid "Zoom In PDF"
+msgstr "放大 PDF"
+
+
+#: setzer/command_palette/catalog.py:102
+msgid "Zoom Out PDF"
+msgstr "縮小 PDF"

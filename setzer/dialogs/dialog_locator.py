@@ -40,6 +40,7 @@ from setzer.dialogs.export_pdf.export_pdf import ExportPdfDialog
 from setzer.dialogs.save_document.save_document import SaveDocumentDialog
 from setzer.dialogs.save_session.save_session import SaveSessionDialog
 from setzer.dialogs.insert_image.insert_image_controller import InsertImageController
+from setzer.command_palette.dialog import CommandPaletteDialog
 
 
 class DialogLocator():
@@ -69,6 +70,7 @@ class DialogLocator():
         dialogs['save_document'] = SaveDocumentDialog(main_window, workspace)
         dialogs['save_session'] = SaveSessionDialog(main_window, workspace)
         dialogs['insert_image'] = InsertImageController(main_window)
+        dialogs['command_palette'] = CommandPaletteDialog(main_window, workspace)
         dialogs['close_confirmation'] = CloseConfirmationDialog(main_window, workspace)
         dialogs['building_failed'] = BuildingFailedDialog(main_window, dialogs['preferences'], workspace)
         dialogs['interpreter_missing'] = InterpreterMissingDialog(main_window, dialogs['preferences'])

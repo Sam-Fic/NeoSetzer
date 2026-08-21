@@ -5761,3 +5761,161 @@ msgstr "Legenda &amp; Rótulo"
 
 #~ msgid "More"
 #~ msgstr "Mais"
+
+# Command palette strings (reviewed 2026-08-21).
+
+#: setzer/command_palette/catalog.py:106
+msgid "About NeoSetzer"
+msgstr "Sobre o NeoSetzer"
+
+
+#: setzer/command_palette/catalog.py:103 setzer/command_palette/catalog.py:104
+#: setzer/command_palette/catalog.py:105 setzer/command_palette/catalog.py:106
+#: setzer/command_palette/catalog.py:107
+msgid "Application"
+msgstr "Aplicativo"
+
+
+#: setzer/command_palette/catalog.py:61
+msgid "Build PDF"
+msgstr "Compilar PDF"
+
+
+#: setzer/command_palette/catalog.py:88
+msgid "Clear Bookmarks"
+msgstr "Limpar marcadores"
+
+
+#: setzer/command_palette/catalog.py:64
+msgid "Close Build Log"
+msgstr "Fechar registro de compilação"
+
+
+#: setzer/command_palette/dialog.py:43
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:137
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
+msgid "Command Palette"
+msgstr "Paleta de comandos"
+
+
+#: setzer/command_palette/catalog.py:71
+msgid "Delete Selection"
+msgstr "Excluir seleção"
+
+
+#: setzer/command_palette/catalog.py:89
+msgid "Document Wizard"
+msgstr "Assistente de documentos"
+
+
+#: setzer/command_palette/catalog.py:66 setzer/command_palette/catalog.py:67
+#: setzer/command_palette/catalog.py:68 setzer/command_palette/catalog.py:69
+#: setzer/command_palette/catalog.py:70 setzer/command_palette/catalog.py:71
+#: setzer/command_palette/catalog.py:72 setzer/command_palette/catalog.py:73
+#: setzer/command_palette/catalog.py:74 setzer/command_palette/catalog.py:75
+#: setzer/command_palette/catalog.py:76 setzer/command_palette/catalog.py:77
+#: setzer/command_palette/catalog.py:78 setzer/command_palette/catalog.py:79
+#: setzer/command_palette/catalog.py:80 setzer/command_palette/catalog.py:81
+#: setzer/command_palette/catalog.py:82 setzer/command_palette/catalog.py:83
+#: setzer/command_palette/catalog.py:84 setzer/command_palette/catalog.py:85
+#: setzer/command_palette/catalog.py:86 setzer/command_palette/catalog.py:87
+#: setzer/command_palette/catalog.py:88
+msgid "Edit"
+msgstr "Editar"
+
+
+#: setzer/command_palette/catalog.py:56
+msgid "Export PDF As"
+msgstr "Exportar PDF como"
+
+
+#: setzer/command_palette/catalog.py:49 setzer/command_palette/catalog.py:50
+#: setzer/command_palette/catalog.py:51 setzer/command_palette/catalog.py:52
+#: setzer/command_palette/catalog.py:53 setzer/command_palette/catalog.py:54
+#: setzer/command_palette/catalog.py:55 setzer/command_palette/catalog.py:56
+#: setzer/command_palette/catalog.py:57 setzer/command_palette/catalog.py:58
+#: setzer/command_palette/catalog.py:59 setzer/command_palette/catalog.py:60
+msgid "File"
+msgstr "Arquivo"
+
+
+#: setzer/command_palette/catalog.py:90
+msgid "Manage Packages"
+msgstr "Gerenciar pacotes"
+
+
+#: setzer/command_palette/catalog.py:86
+msgid "Next Bookmark"
+msgstr "Próximo marcador"
+
+
+#: setzer/command_palette/dialog.py:72
+msgid "No commands found"
+msgstr "Nenhum comando encontrado"
+
+
+#: setzer/command_palette/catalog.py:52
+msgid "Open Recent Documents"
+msgstr "Abrir documentos recentes"
+
+
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:80
+msgid "Open command palette"
+msgstr "Abrir paleta de comandos"
+
+
+#: setzer/command_palette/catalog.py:83
+msgid "Outdent"
+msgstr "Diminuir recuo"
+
+
+#: setzer/command_palette/catalog.py:87
+msgid "Previous Bookmark"
+msgstr "Marcador anterior"
+
+
+#: setzer/command_palette/catalog.py:62
+msgid "Save and Build PDF"
+msgstr "Salvar e compilar PDF"
+
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:205
+msgid "Search and run application commands"
+msgstr "Pesquisar e executar comandos do aplicativo"
+
+
+#: setzer/command_palette/dialog.py:55
+msgid "Search commands"
+msgstr "Pesquisar comandos"
+
+
+#: setzer/command_palette/catalog.py:100
+msgid "Show Source from PDF"
+msgstr "Mostrar fonte do PDF"
+
+
+#: setzer/command_palette/catalog.py:85
+msgid "Toggle Bookmark"
+msgstr "Alternar marcador"
+
+
+#: setzer/command_palette/dialog.py:79
+msgid "Use ↑ and ↓ to select, Enter to run"
+msgstr "Use ↑ e ↓ para selecionar e Enter para executar"
+
+
+#: setzer/command_palette/catalog.py:94 setzer/command_palette/catalog.py:95
+#: setzer/command_palette/catalog.py:96 setzer/command_palette/catalog.py:97
+#: setzer/command_palette/catalog.py:98
+msgid "View"
+msgstr "Visualização"
+
+
+#: setzer/command_palette/catalog.py:101
+msgid "Zoom In PDF"
+msgstr "Ampliar PDF"
+
+
+#: setzer/command_palette/catalog.py:102
+msgid "Zoom Out PDF"
+msgstr "Reduzir PDF"

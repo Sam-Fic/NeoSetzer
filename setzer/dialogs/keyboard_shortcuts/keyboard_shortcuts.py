@@ -77,6 +77,7 @@ class KeyboardShortcutsDialog(object):
         section['items'].append({'title': _('Toggle symbols panel'), 'shortcut': shortcuts.get('symbols', 'F8')})
         section['items'].append({'title': _('Toggle build log'), 'shortcut': shortcuts.get('build_log', 'F4')})
         section['items'].append({'title': _('Toggle preview panel'), 'shortcut': shortcuts.get('preview', '<ctrl><shift>P')})
+        section['items'].append({'title': _('Open command palette'), 'shortcut': shortcuts.get('command_palette', '<ctrl>period')})
         section['items'].append({'title': _('Show global menu'), 'shortcut': shortcuts.get('hamburger_menu', 'F10')})
         section['items'].append({'title': _('Show context menu'), 'shortcut': shortcuts.get('context_menu', 'F12')})
         section['items'].append({'title': _('Show keyboard shortcuts'), 'shortcut': shortcuts.get('show_shortcuts', '<ctrl>question')})

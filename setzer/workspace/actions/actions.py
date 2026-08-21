@@ -165,6 +165,7 @@ class Actions(object):
         self.add_action('show-preferences-dialog', self.show_preferences_dialog)
         self.add_action('show-document-properties', self.show_document_properties)
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
+        self.add_action('show-command-palette', self.show_command_palette)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
         # toggle-fullscreen 使用 PropertyAction 绑定 MainWindow.fullscreened 属性，
@@ -440,6 +441,9 @@ class Actions(object):
 
     def close_build_log(self, action=None, parameter=''):
         self.workspace.set_show_build_log(False)
+
+    def show_command_palette(self, action=None, parameter=None):
+        DialogLocator.get_dialog('command_palette').present()
 
     def save(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

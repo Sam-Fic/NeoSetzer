@@ -89,6 +89,7 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('forward_sync', shortcuts.get('forward_sync', 'F7'), self.actions.forward_sync)
         self._register_configurable('build_log', shortcuts.get('build_log', 'F4'), self.shortcut_build_log)
         self._register_configurable('preview', shortcuts.get('preview', '<Control><Shift>p'), self.shortcut_preview)
+        self._register_configurable('command_palette', shortcuts.get('command_palette', '<Control>period'), self.actions.show_command_palette)
         self._register_configurable('hamburger_menu', shortcuts.get('hamburger_menu', 'F10'), self.shortcut_show_hamburger)
         self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.actions['toggle-fullscreen'].activate)
         self._register_configurable('show_preferences_dialog', shortcuts.get('show_preferences_dialog', '<Control>comma'), self.actions.show_preferences_dialog)

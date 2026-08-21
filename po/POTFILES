@@ -15,6 +15,9 @@
 ./setzer/app/latex_db.py
 ./setzer/app/latex_templates.py
 ./setzer/app/service_locator.py
+./setzer/command_palette/__init__.py
+./setzer/command_palette/catalog.py
+./setzer/command_palette/dialog.py
 ./setzer/dialogs/about/about.py
 ./setzer/dialogs/about/__init__.py
 ./setzer/dialogs/add_remove_packages/add_remove_packages.py

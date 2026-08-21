@@ -104,6 +104,12 @@ class HamburgerMenu(object):
         self.session_section = Gio.Menu()
         self.menu_model.append_submenu(_('Session'), self.session_section)
 
+        section_commands = Gio.Menu()
+        command_palette = Gio.MenuItem.new(_('Command Palette'), 'win.show-command-palette')
+        command_palette.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>.'))
+        section_commands.append_item(command_palette)
+        self.menu_model.append_section(None, section_commands)
+
         section_prefs = Gio.Menu()
         prefs = Gio.MenuItem.new(_('Preferences'), 'win.show-preferences-dialog')
         prefs.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>comma'))
