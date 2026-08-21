@@ -143,7 +143,7 @@ class AutoBuild(object):
         '''手动构建已把最新编辑构建出来后，取消所有尚未 fire 的
         auto-build 倒计时。
 
-        on_timer 触发时统一构建 get_root_or_active_latex_document()
+        on_timer 触发时统一构建 get_magic_root_or_active_latex_document()
         ——即与本次手动构建相同的 target——故任何 pending 倒计时再
         fire 都只是对同一 target 做一次冗余构建。手动构建已满足这些
         倒计时的目的，全部取消即可，避免「用户刚手动编译、倒计时到
@@ -160,7 +160,7 @@ class AutoBuild(object):
         if document not in self.workspace.open_documents:
             return False
 
-        target = self.workspace.get_root_or_active_latex_document()
+        target = self.workspace.get_magic_root_or_active_latex_document()
         if target == None:
             return False
 

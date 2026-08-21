@@ -391,7 +391,7 @@ class Actions(object):
     def save_and_build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
-        document = self.workspace.get_root_or_active_latex_document()
+        document = self.workspace.get_magic_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
         if document == None or active_document == None: return
 
@@ -410,7 +410,7 @@ class Actions(object):
     def build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
 
-        document = self.workspace.get_root_or_active_latex_document()
+        document = self.workspace.get_magic_root_or_active_latex_document()
         active_document = ServiceLocator.get_workspace().get_active_document()
         if document == None or active_document == None: return
 

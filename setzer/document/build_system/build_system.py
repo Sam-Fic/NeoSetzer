@@ -34,6 +34,7 @@ import setzer.document.build_system.builder.builder_build_glossaries as builder_
 import setzer.document.build_system.builder.builder_forward_sync as builder_forward_sync
 import setzer.document.build_system.builder.builder_backward_sync as builder_backward_sync
 import setzer.document.build_system.query.query as query
+from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers.observable import Observable
 
 
@@ -367,7 +368,12 @@ class BuildSystem(Observable):
             synctex_arguments = self.forward_sync_arguments
 
         if mode in ['build', 'build_and_forward_sync']:
-            interpreter = self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
+            text = self.document.get_all_text()
+            # 文档内 `% !TEX program = ...` 仅影响本次构建，不写回设置。
+            # parse_magic_comments 只返回 NeoSetzer 已支持的引擎名，故绝不会
+            # 将注释文本当作命令执行。
+            magic = parse_magic_comments(text)
+            interpreter = magic.program or self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
             use_latexmk = self.settings.get_value('preferences', 'use_latexmk')
             build_option_system_commands = self.settings.get_value('preferences', 'build_option_system_commands')
             additional_arguments = ''
@@ -383,7 +389,6 @@ class BuildSystem(Observable):
                 elif build_option_system_commands == 'enable':
                     additional_arguments += lualatex_prefix + '-shell-escape'
 
-            text = self.document.get_all_text()
             do_cleanup = self.settings.get_value('preferences', 'cleanup_build_files')
 
         if mode == 'build':

@@ -33,6 +33,7 @@ foreach t : [
   ['test_latex_db_error_flag',    'test_latex_db_error_flag.py'],
   ['test_line_ending',            'test_line_ending.py'],
   ['test_command_palette_catalog', 'test_command_palette_catalog.py'],
+  ['test_magic_comments',           'test_magic_comments.py'],
 ]
   test(
     t[0],

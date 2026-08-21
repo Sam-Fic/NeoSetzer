@@ -25,6 +25,7 @@ import time
 import uuid
 
 from setzer.document.document import Document
+from setzer.document.magic_comments import parse_magic_comments, resolve_root_filename
 import setzer.document.build_system.build_system as build_system
 import setzer.document.build_widget.build_widget as build_widget
 import setzer.document.preview.preview as preview
@@ -928,15 +929,44 @@ class Workspace(Observable):
         return None
 
     def get_root_or_active_latex_document(self):
+        """Return the explicit project root or active LaTeX document without side effects."""
         if self.get_active_document() == None:
             return None
-        else:
-            if self.root_document != None:
-                return self.root_document
-            elif self.active_document.is_latex_document():
-                return self.active_document
-            else:
-                return None
+        if self.root_document != None:
+            return self.root_document
+        if self.active_document.is_latex_document():
+            return self.active_document
+        return None
+
+    def get_magic_root_or_active_latex_document(self):
+        """Resolve the active file's valid Magic Comment root for a build only.
+
+        This is deliberately separate from ``get_root_or_active_latex_document``:
+        the latter is also used by UI sensitivity and preview queries, where
+        opening a referenced root file would be an unexpected side effect.
+        """
+        document = self.get_root_or_active_latex_document()
+        if document is None or self.root_document is not None:
+            return document
+
+        active_document = self.active_document
+        magic = parse_magic_comments(active_document.get_all_text())
+        root_filename = resolve_root_filename(active_document.get_filename(), magic.root)
+        if root_filename is None or root_filename == os.path.abspath(active_document.get_filename()):
+            return active_document
+
+        for candidate in self.open_latex_documents:
+            if candidate.get_filename() == root_filename:
+                return candidate
+
+        # Match the manual "Set as root" loading behavior only at build time,
+        # then restore the child file as active for forward SyncTeX.  This does
+        # not change ``root_document`` or persist a project-level root choice.
+        root_document = self.open_document_by_filename(root_filename)
+        if root_document is not None and root_document.is_latex_document():
+            self.set_active_document(active_document)
+            return root_document
+        return active_document
 
     def update_preview_visibility(self, document):
         if document != None and document.is_latex_document():

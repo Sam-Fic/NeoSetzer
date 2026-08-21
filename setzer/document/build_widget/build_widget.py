@@ -27,6 +27,7 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.color_manager import ColorManager
 from setzer.settings.document_settings import DocumentSettings
+from setzer.document.magic_comments import parse_magic_comments
 
 import time
 import os.path
@@ -233,8 +234,10 @@ class BuildWidget(Observable):
         self.view.build_button.set_sensitive(True)
 
     def _active_interpreter_display(self):
-        '''当前文档实际使用的引擎显示名：每文档覆盖优先于全局默认。'''
-        interp = DocumentSettings.get_effective_value(self.document, self.settings, 'latex_interpreter')
+        '''当前文档实际使用的引擎显示名：Magic Comment 优先于已保存设置。'''
+        magic = parse_magic_comments(self.document.get_all_text())
+        interp = magic.program or DocumentSettings.get_effective_value(
+            self.document, self.settings, 'latex_interpreter')
         return _INTERPRETER_DISPLAY.get(interp, interp)
 
     def update_build_button_tooltip(self, *args):
