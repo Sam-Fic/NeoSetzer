@@ -28,6 +28,7 @@ foreach t : [
   ['test_symbol_categories',      'test_symbol_categories.py'],
   ['test_stats_markup',           'test_stats_markup.py'],
   ['test_matching_blocks_regex',  'test_matching_blocks_regex.py'],
+  ['test_project_file_dependencies', 'test_project_file_dependencies.py'],
   ['test_help_search',            'test_help_search.py'],
   ['test_latex_db_error_flag',    'test_latex_db_error_flag.py'],
   ['test_line_ending',            'test_line_ending.py'],

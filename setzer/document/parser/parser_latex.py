@@ -31,6 +31,10 @@ from setzer.helpers.timer import timer
 # 已编译对象直接 finditer。
 _OTHER_SYMBOLS_REGEX_PATTERN = (r'\\(label|include|input|subfile|subimport|bibliography|addbibresource|todo)(?:\[[^\{\[]*\]){0,1}\{((?:\s|\w|\:|\.|,|\/|\\|\'|-|\"|\(|\))*)\}|\\(usepackage)(?:\[[^\{\[]*\]){0,1}\{((?:\s|\w|\:|,)*)\}|\\(bibitem)(?:\[.*\]){0,1}\{((?:\s|\w|\:)*)\}')
 
+# 项目级配置依赖：KOMA 信件选项（.lco/.loc）与自定义文档类（.cls）。
+# 该规则与 _OTHER_SYMBOLS_REGEX_PATTERN 分离，以保持后者的 group 编号稳定。
+_PROJECT_DEPENDENCIES_REGEX_PATTERN = r'\\(LoadLetterOption|documentclass)\s*(?:\[[^\[\]]*\]\s*)?\{([^{}\s]+)\}'
+
 # 块级符号正则：换行 / \begin{} / \end{} / 章节命令。
 _BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(?:\*){0,1}\{([^\{]*)\}'
 
@@ -44,6 +48,7 @@ class ParserLaTeX(Observable):
         self.number_of_lines = 0
         self.block_symbol_matches = {'begin_or_end': list(), 'others': list()}
         self.other_symbols = list()
+        self.project_dependency_matches = list()
 
         self.symbols = dict()
         self.symbols['bibitems'] = set()
@@ -52,6 +57,8 @@ class ParserLaTeX(Observable):
         self.symbols['todos'] = set()
         self.symbols['todos_with_offset'] = set()
         self.symbols['included_latex_files'] = set()
+        # 本地 Letter Option（.lco/.loc）和 document class（.cls）依赖。
+        self.symbols['included_project_files'] = list()
         self.symbols['bibliographies'] = set()
         self.symbols['packages'] = set()
         self.symbols['packages_detailed'] = dict()
@@ -70,6 +77,7 @@ class ParserLaTeX(Observable):
 
         # 模块加载时一次性解析的正则对象，避免热路径里每次 finditer 都查表。
         self._other_symbols_regex = ServiceLocator.get_regex_object(_OTHER_SYMBOLS_REGEX_PATTERN)
+        self._project_dependencies_regex = ServiceLocator.get_regex_object(_PROJECT_DEPENDENCIES_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
 
         self.document.source_buffer.connect('insert-text', self.on_insert_text)
@@ -263,9 +271,24 @@ class ParserLaTeX(Observable):
             elif match.group(5) == 'bibitem':
                 bibitems.add(match.group(6).strip())
 
+        # #366: 将 KOMA 的 \\LoadLetterOption 与自定义 \\documentclass 记录为
+        # 项目配置依赖。DataProvider 会以主文档目录解析这些相对路径，并仅把
+        # 本地可访问的文件加入项目侧栏。
+        included_project_files = list()
+        for match, offset in self.project_dependency_matches:
+            command = match.group(1)
+            filename = match.group(2).strip()
+            if command == 'LoadLetterOption':
+                if not filename.endswith(('.lco', '.loc')):
+                    filename += '.lco'
+            elif command == 'documentclass' and not filename.endswith('.cls'):
+                filename += '.cls'
+            included_project_files.append((filename, offset))
+
         self.symbols['labels'] = labels
         self.symbols['labels_with_offset'] = labels_with_offset
         self.symbols['included_latex_files'] = included_latex_files
+        self.symbols['included_project_files'] = included_project_files
         self.symbols['todos'] = todos
         self.symbols['todos_with_offset'] = todos_with_offset
         self.symbols['bibliographies'] = bibliographies
@@ -287,6 +310,12 @@ class ParserLaTeX(Observable):
         '''
         matches = self.parse_for_blocks(text, 0, 0)
         self.block_symbol_matches = matches
+        # 当前解析流程在防抖后对全文重算；同时重建普通符号与项目配置依赖的
+        # 匹配列表，保证初次打开与后续编辑具有一致的解析结果。
+        self.other_symbols = [(match, match.start()) for match in self._other_symbols_regex.finditer(text)]
+        self.project_dependency_matches = [
+            (match, match.start()) for match in self._project_dependencies_regex.finditer(text)
+        ]
         self.text_length = len(text)
         self.number_of_lines = text.count('\n') + 1
         self.parse_blocks()

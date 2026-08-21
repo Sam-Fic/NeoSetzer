@@ -349,11 +349,11 @@ class MainWindow(Adw.ApplicationWindow):
         # 可见/激活，所以拖放自然只在该模式生效。优先用 Gdk.FileList 接收整批文件
         # （多文件拖入时一次拿到全部路径用于计数），无 Gdk.FileList 的环境退回 Gio.File。
         # preload=True：拖拽过程中即可通过 get_value() 读取文件列表，实时显示「将打开 N 个文件」。
-        # 扩展名过滤与 do_open（setzer_dev.py）一致：仅打开 .tex/.bib/.cls/.sty；其它文件不打开
-        # 但拖放仍被消费（返回 True），以红色描边提示。CAPTURE 阶段：先于 overlay 内子控件接管，
-        # 避免任何子控件抢走文件拖放（编辑器 Gtk.TextView 自带文本拖放不受影响——本 DropTarget
-        # 的 gtypes 仅含文件类型，纯文本拖放不匹配，不会触发这些 handler）。
-        self._drop_exts = ('.tex', '.bib', '.cls', '.sty')
+        # 扩展名过滤与文件打开分流保持一致：支持 TeX、BibTeX、类/样式及
+        # KOMA Letter Option 文件。其它文件仍被消费（返回 True），以红色描边提示。
+        # CAPTURE 阶段先于 overlay 内子控件接管；本 DropTarget 仅接受文件类型，
+        # 纯文本拖放不受影响。
+        self._drop_exts = ('.tex', '.bib', '.cls', '.sty', '.lco', '.loc')
 
         def _make_drop_target():
             drop_target = Gtk.DropTarget()

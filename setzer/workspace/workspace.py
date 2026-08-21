@@ -278,12 +278,12 @@ class Workspace(Observable):
     def create_document_from_filename(self, filename, lazy=False, with_loading_indicator=True):
         # 文件名可能短于 4 字符（极端但合法），[-4:] 会返回整个字符串，
         # endswith 在此情形下仍能正确比较，且语义更清晰。
-        if filename.endswith('.tex'):
+        if filename.endswith(('.tex', '.cls', '.sty', '.lco', '.loc')):
+            # 类、样式及 KOMA Letter Option 文件都是 LaTeX 项目文件：以 LaTeX
+            # 文档打开可让其 parser 参与项目侧栏、结构和跳转，而不会成为 root。
             document = self.create_latex_document()
         elif filename.endswith('.bib'):
             document = self.create_bibtex_document()
-        elif filename.endswith('.cls') or filename.endswith('.sty'):
-            document = self.create_other_document()
         else:
             # 兜底：用户通过"All Files"选择的非 TeX/BibTeX 文件（如 .txt/.md）
             # 作为纯文本(other)文档打开。

@@ -125,9 +125,22 @@ class DataProvider(Observable):
         integrated_includes = dict()
         includes_cache = list()
         if self.document.get_is_root():
-            for filename, offset in self.document.parser.symbols['included_latex_files']:
+            # 常规 include 文件即使尚未存在也保留占位，维持原有行为；而
+            # documentclass/LoadLetterOption 只应显示项目目录中真实存在的
+            # .cls/.lco/.loc 文件，避免把系统的 article.cls 等误当项目文件。
+            dependencies = [
+                (filename, offset, False)
+                for filename, offset in self.document.parser.symbols['included_latex_files']
+            ]
+            dependencies.extend(
+                (filename, offset, True)
+                for filename, offset in self.document.parser.symbols.get('included_project_files', list())
+            )
+            for filename, offset, must_be_local in dependencies:
                 abs_path = path_helpers.get_abspath(filename, self.document.get_dirname())
                 document = self.workspace.get_document_by_filename(abs_path)
+                if must_be_local and document is None and not os.path.isfile(abs_path):
+                    continue
                 # 一并构建 includes 缓存：document 仅当确实打开（在
                 # integrated_includes 中）时非 None，与原 get_includes 语义一致。
                 if document:
