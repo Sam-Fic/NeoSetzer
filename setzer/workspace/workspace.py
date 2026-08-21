@@ -95,6 +95,12 @@ class Workspace(Observable):
         self.pdf_preview_window = None
         self._loading_count = 0
 
+        # Actions 必须在 Workspace 构造期就建立：DialogLocator.init_dialogs()
+        # 在 activate() 中早于 init_workspace_controller() 调用，而命令面板等
+        # 对话框构造时即依赖 self.actions（如 CommandCatalog(workspace.actions)）。
+        # init_workspace_controller() 会复用此实例，不再重建。
+        self.actions = actions.Actions(self)
+
     def _loading_start(self):
         '''开始加载：计数器+1并发射信号。'''
         self._loading_count += 1
@@ -120,7 +126,8 @@ class Workspace(Observable):
         self.main_window = ServiceLocator.get_main_window()
         self.welcome_screen = welcome_screen.WelcomeScreen(self)
         self.sidebar = sidebar.Sidebar(self)
-        self.actions = actions.Actions(self)
+        # self.actions 已在 __init__ 中建立，此处复用（不再 new 一份），
+        # 避免覆盖掉 DialogLocator 等已持有引用的实例。
         self.shortcutsbar = shortcutsbar.ShortcutsBar(self)
         self.context_menu = context_menu.ContextMenu(self)
         self.presenter = workspace_presenter.WorkspacePresenter(self)

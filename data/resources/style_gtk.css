@@ -655,6 +655,43 @@ headerbar {
     margin: 9px;
 }
 
+/*
+ * 命令面板命令列表（替代 libadwaita 的 boxed-list 卡片样式）。
+ * boxed-list 会给 ListBox 加圆角边框 + 阴影；这里去掉阴影与卡片边框，
+ * 仅保留主题背景与行分隔，呈现扁平列表外观。
+ * GTK 的 CSS 解析器不支持 !important，靠选择器特异性压过 libadwaita 默认样式。
+ */
+.command-palette-list,
+.command-palette-list row {
+    background-color: transparent;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    outline: none;
+}
+.command-palette-list {
+    background-color: @window_bg_color;
+    background: @window_bg_color;
+    border-radius: 14px;
+    padding: 0;
+    background-image: none;
+    opacity: 1;
+}
+.command-palette-list row:selected {
+    background-color: alpha(@theme_selected_bg_color, 0.25);
+    background: alpha(@theme_selected_bg_color, 0.25);
+    border-radius: 8px;
+}
+
+/*
+ * 命令面板空状态 StatusPage：收紧默认内边距，让图标+标题居中填满
+ * 搜索框与底部提示之间的全部可用空间。
+ */
+.command-palette-dialog statuspage {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 .themeselector checkbutton {
     padding: 1px;
     min-height: 44px;

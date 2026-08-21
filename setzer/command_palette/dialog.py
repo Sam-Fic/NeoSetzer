@@ -60,7 +60,8 @@ class CommandPaletteDialog(DialogView):
 
         self.listbox = Gtk.ListBox()
         self.listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        self.listbox.add_css_class('boxed-list')
+        # 不加 'boxed-list'（libadwaita 会给该 class 加边框+阴影），用标准列表样式即可。
+        self.listbox.add_css_class('command-palette-list')
         self.listbox.connect('row-activated', self.on_row_activated)
 
         scrolled_window = Gtk.ScrolledWindow()
@@ -69,12 +70,13 @@ class CommandPaletteDialog(DialogView):
         scrolled_window.set_child(self.listbox)
         content.append(scrolled_window)
 
-        self.empty_label = Gtk.Label(label=_('No commands found'))
-        self.empty_label.add_css_class('dim-label')
-        self.empty_label.set_valign(Gtk.Align.CENTER)
-        self.empty_label.set_vexpand(True)
-        self.empty_label.set_visible(False)
-        content.append(self.empty_label)
+        self.empty_status_page = Adw.StatusPage()
+        self.empty_status_page.set_icon_name('system-search-symbolic')
+        self.empty_status_page.set_title(_('No commands found'))
+        self.empty_status_page.set_valign(Gtk.Align.CENTER)
+        self.empty_status_page.set_vexpand(True)
+        self.empty_status_page.set_visible(False)
+        content.append(self.empty_status_page)
 
         self.hint_label = Gtk.Label(label=_('Use ↑ and ↓ to select, Enter to run'))
         self.hint_label.add_css_class('dim-label')
@@ -140,7 +142,7 @@ class CommandPaletteDialog(DialogView):
             self.listbox.append(self.create_row(command))
         has_results = len(self.commands) > 0
         self.listbox.set_visible(has_results)
-        self.empty_label.set_visible(not has_results)
+        self.empty_status_page.set_visible(not has_results)
         if has_results:
             self.listbox.select_row(self.listbox.get_row_at_index(0))
 
