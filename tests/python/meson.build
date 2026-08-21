@@ -36,6 +36,8 @@ foreach t : [
   ['test_magic_comments',           'test_magic_comments.py'],
   ['test_environment_templates',   'test_environment_templates.py'],
   ['test_beamer_frames',           'test_beamer_frames.py'],
+  ['test_external_pdf_monitor',    'test_external_pdf_monitor.py'],
+  ['test_external_pdf_preview_integration', 'test_external_pdf_preview_integration.py'],
 ]
   test(
     t[0],

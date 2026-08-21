@@ -38,6 +38,10 @@ import setzer.document.preview.preview_zoom_manager as preview_zoom_manager
 import setzer.document.preview.context_menu.context_menu as context_menu
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
+from setzer.document.preview.external_pdf_monitor import (
+    ExternalPdfChangeTracker,
+    ExternalPdfState,
+)
 
 
 class Preview(Observable):
@@ -47,6 +51,14 @@ class Preview(Observable):
         self.document = document
 
         self.pdf_filename = None
+        # 外部编译器可能原子替换同一路径的 PDF。目录监控与状态协调器
+        # 仅在成功加载过一个版本后才提示，避免初次生成 PDF 时出现误报。
+        self._external_pdf_tracker = ExternalPdfChangeTracker()
+        self._external_pdf_monitor = None
+        self._external_pdf_monitor_directory = None
+        self._external_pdf_debounce_id = None
+        self._external_pdf_state = ExternalPdfState.CURRENT
+        self._external_pdf_debounce_ms = 400
         # 构建失败但保留旧 PDF 时为 True：预览面板据此显示「构建失败，显示的是
         # 上一次成功的 PDF」横幅，避免用户误以为构建成功。由 build_system 置 True，
         # set_pdf_filename / reset_pdf_data 置 False。
@@ -102,6 +114,11 @@ class Preview(Observable):
     def set_pdf_filename(self, pdf_filename):
         if pdf_filename != self.pdf_filename:
             self.pdf_filename = pdf_filename
+        # 仅在路径实际改变时替换目录 monitor；同一路径的内部构建要等
+        # Poppler 成功打开新版本后再更新已接受签名，不能提前吞掉外部变更。
+        if self._external_pdf_tracker.set_pdf_filename(pdf_filename):
+            self._stop_external_pdf_monitor()
+            self._set_external_pdf_state(ExternalPdfState.CURRENT)
         # 新 PDF 产出（构建成功或文档打开时发现已有 PDF）：清除 stale 标记。
         # 即使 filename 相同（重建同一文件），只要构建产出了新 PDF 就不算 stale。
         if self.pdf_is_stale:
@@ -119,6 +136,72 @@ class Preview(Observable):
             self.pdf_is_stale = stale
             self.add_change_code('pdf_stale_changed')
 
+    def _set_external_pdf_state(self, state):
+        '''Publish persistent external-PDF state only when it actually changes.'''
+
+        if self._external_pdf_state != state:
+            self._external_pdf_state = state
+            self.add_change_code('external_pdf_state_changed', state)
+
+    def _clear_external_pdf_debounce(self):
+        if self._external_pdf_debounce_id is not None:
+            try:
+                GLib.source_remove(self._external_pdf_debounce_id)
+            except (TypeError, ValueError):
+                pass
+            self._external_pdf_debounce_id = None
+
+    def _stop_external_pdf_monitor(self):
+        self._clear_external_pdf_debounce()
+        if self._external_pdf_monitor is not None:
+            try:
+                self._external_pdf_monitor.cancel()
+            except (AttributeError, TypeError):
+                pass
+        self._external_pdf_monitor = None
+        self._external_pdf_monitor_directory = None
+
+    def _ensure_external_pdf_monitor(self):
+        '''Monitor the parent directory so atomic PDF replacement is observed.'''
+
+        directory = self._external_pdf_tracker.directory
+        if directory is None or not os.path.isdir(directory):
+            return
+        if self._external_pdf_monitor is not None and self._external_pdf_monitor_directory == directory:
+            return
+        self._stop_external_pdf_monitor()
+        try:
+            directory_file = Gio.File.new_for_path(directory)
+            self._external_pdf_monitor = directory_file.monitor_directory(
+                Gio.FileMonitorFlags.WATCH_MOVES, None)
+            self._external_pdf_monitor.connect('changed', self._on_external_pdf_file_changed)
+            self._external_pdf_monitor_directory = directory
+        except Exception:
+            # File monitoring is a best-effort enhancement. Some sandboxes and
+            # virtual filesystems do not support it; retain normal preview use.
+            self._external_pdf_monitor = None
+            self._external_pdf_monitor_directory = None
+
+    def _on_external_pdf_file_changed(self, monitor, file, other_file, event_type):
+        if not self._external_pdf_tracker.matches_event_files(file, other_file):
+            return
+        self._clear_external_pdf_debounce()
+        self._external_pdf_debounce_id = GLib.timeout_add(
+            self._external_pdf_debounce_ms, self._on_external_pdf_debounced)
+
+    def _on_external_pdf_debounced(self):
+        self._external_pdf_debounce_id = None
+        state = self._external_pdf_tracker.inspect_disk_change()
+        self._set_external_pdf_state(state)
+        return False
+
+    def reload_external_pdf(self):
+        '''Safely reload a PDF after the user accepts the persistent banner.'''
+
+        if self.pdf_filename is None:
+            return False
+        return self.load_pdf(external_reload=True)
+
     def get_pdf_date(self):
         if self.pdf_filename != None:
             try:
@@ -130,7 +213,7 @@ class Preview(Observable):
         else:
             return None
 
-    def load_pdf(self):
+    def load_pdf(self, external_reload=False):
         new_document = None
         if self.pdf_filename != None:
             try:
@@ -156,8 +239,16 @@ class Preview(Observable):
             ]
             self.update_vertical_margin()
             self.layout = None
+            # Only a successfully opened Poppler document is accepted as the
+            # current disk version. This also suppresses monitor events caused
+            # by NeoSetzer's own successful builds.
+            self._external_pdf_tracker.set_pdf_filename(self.pdf_filename)
+            self._external_pdf_tracker.accept_current_file()
+            self._ensure_external_pdf_monitor()
+            self._set_external_pdf_state(ExternalPdfState.CURRENT)
             self.add_change_code('pdf_changed')
             self.add_change_code('layout_changed')
+            return True
         elif self.poppler_document == None:
             # nothing new and nothing old to fall back on -- show the
             # blank slate.
@@ -168,9 +259,16 @@ class Preview(Observable):
             # rendered PDF so the preview does not flicker to blank.
             # 不再静默：通知上层显示 toast + 错误图标，让用户知道构建
             # 实际失败而非误以为成功。
-            self.add_change_code('pdf_load_failed')
+            if external_reload:
+                self._set_external_pdf_state(self._external_pdf_tracker.record_reload_failure())
+            else:
+                self.add_change_code('pdf_load_failed')
+        return False
 
     def reset_pdf_data(self):
+        self._stop_external_pdf_monitor()
+        self._external_pdf_tracker.clear()
+        self._set_external_pdf_state(ExternalPdfState.CURRENT)
         self.pdf_filename = None
         self.poppler_document = None
         self.page_width = None
@@ -624,6 +722,7 @@ class Preview(Observable):
             self.presenter.cancel_fade_loop()
         except AttributeError:
             pass
+        self._stop_external_pdf_monitor()
         try:
             self.document.settings.disconnect('settings_changed', self._settings_callback)
         except (TypeError, KeyError, AttributeError):

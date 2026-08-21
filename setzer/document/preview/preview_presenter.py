@@ -59,6 +59,8 @@ class PreviewPresenter(object):
         self.preview.connect('pdf_changed', self.on_pdf_changed)
         self.preview.connect('layout_changed', self.on_layout_changed)
         self.preview.connect('pdf_load_failed', self.on_pdf_load_failed)
+        self.preview.connect('external_pdf_state_changed', self.on_external_pdf_state_changed)
+        self.view.set_external_pdf_reload_handler(self.on_external_pdf_reload_requested)
         self.page_renderer.connect('rendered_pages_changed', self.on_rendered_pages_changed)
 
         # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
@@ -104,6 +106,12 @@ class PreviewPresenter(object):
     def on_pdf_load_failed(self, preview):
         # 新 PDF 加载失败，回退到旧 PDF：显示错误图标，弹出 toast 告知用户。
         self.view.show_pdf_load_failed()
+
+    def on_external_pdf_state_changed(self, preview, state):
+        self.view.set_external_pdf_state(state)
+
+    def on_external_pdf_reload_requested(self):
+        self.preview.reload_external_pdf()
 
     def on_build_state_change(self, build_system, state):
         if state == 'building_in_progress':

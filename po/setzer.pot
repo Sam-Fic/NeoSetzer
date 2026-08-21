@@ -6978,3 +6978,25 @@ msgstr ""
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
 msgid "Caption &amp; Label"
 msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:178
+#: setzer/document/preview/preview_viewgtk.py:219
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "Reload Preview"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:219
+msgid "PDF changed on disk"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "PDF is no longer available on disk; showing the previous version"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "The changed PDF is not ready yet; showing the previous version"
+msgstr ""
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "Try Again"
+msgstr ""

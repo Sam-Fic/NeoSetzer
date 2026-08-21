@@ -5889,3 +5889,25 @@ msgstr "放大 PDF"
 #: setzer/command_palette/catalog.py:102
 msgid "Zoom Out PDF"
 msgstr "縮小 PDF"
+
+#: setzer/document/preview/preview_viewgtk.py:178
+#: setzer/document/preview/preview_viewgtk.py:219
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "Reload Preview"
+msgstr "重新載入預覽"
+
+#: setzer/document/preview/preview_viewgtk.py:219
+msgid "PDF changed on disk"
+msgstr "磁碟上的 PDF 已變更"
+
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "PDF is no longer available on disk; showing the previous version"
+msgstr "磁碟上的 PDF 已無法使用；正在顯示上一個版本"
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "The changed PDF is not ready yet; showing the previous version"
+msgstr "變更後的 PDF 尚未就緒；正在顯示上一個版本"
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "Try Again"
+msgstr "再試一次"

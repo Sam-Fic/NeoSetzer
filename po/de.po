@@ -6999,3 +6999,25 @@ msgstr "PDF vergrößern"
 #: setzer/command_palette/catalog.py:102
 msgid "Zoom Out PDF"
 msgstr "PDF verkleinern"
+
+#: setzer/document/preview/preview_viewgtk.py:178
+#: setzer/document/preview/preview_viewgtk.py:219
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "Reload Preview"
+msgstr "Vorschau neu laden"
+
+#: setzer/document/preview/preview_viewgtk.py:219
+msgid "PDF changed on disk"
+msgstr "PDF wurde auf dem Datenträger geändert"
+
+#: setzer/document/preview/preview_viewgtk.py:220
+msgid "PDF is no longer available on disk; showing the previous version"
+msgstr "PDF ist auf dem Datenträger nicht mehr verfügbar; die vorherige Version wird angezeigt"
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "The changed PDF is not ready yet; showing the previous version"
+msgstr "Die geänderte PDF ist noch nicht bereit; die vorherige Version wird angezeigt"
+
+#: setzer/document/preview/preview_viewgtk.py:221
+msgid "Try Again"
+msgstr "Erneut versuchen"

@@ -164,13 +164,21 @@ class PreviewView(Gtk.Box):
         # 外部（presenter）注册的点击回调：收到 (page_number_1based,)
         self._on_page_indicator_clicked = None
 
-        # ToastOverlay 包裹内容区，用于构建失败回退时弹出提示。
+        # ToastOverlay 仍用于短暂的构建失败反馈；外部 PDF 变更是持续状态，
+        # 使用 Adw.Banner 以免提示消失后用户不知预览仍可能是旧版本。
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_vexpand(True)
 
-        # 内容容器：卡片 + 提示语上下排列。
+        # 内容容器：持续状态 Banner + 预览卡片 + 提示语上下排列。
         self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content_box.set_vexpand(True)
+
+        self.external_pdf_banner = Adw.Banner()
+        self.external_pdf_banner.set_revealed(False)
+        self.external_pdf_banner.set_button_label(_('Reload Preview'))
+        self.external_pdf_banner.connect('button-clicked', self._on_external_pdf_banner_clicked)
+        self._on_external_pdf_reload_requested = None
+        self.content_box.append(self.external_pdf_banner)
         self.content_box.append(self.card_box)
 
         # 链接目标提示：位于卡片下方（与编辑器状态栏同款设计）。
@@ -197,6 +205,33 @@ class PreviewView(Gtk.Box):
         self._current_link_target = None
         self._link_target_at_top = False
         self.set_link_target_string('')
+
+    def set_external_pdf_reload_handler(self, callback):
+        '''Register the persistent Banner action owned by PreviewPresenter.'''
+
+        self._on_external_pdf_reload_requested = callback
+
+    def set_external_pdf_state(self, state):
+        '''Show or hide the persistent Banner for externally changed PDFs.'''
+
+        state_name = getattr(state, 'value', state)
+        messages = {
+            'changed': (_('PDF changed on disk'), _('Reload Preview')),
+            'unavailable': (_('PDF is no longer available on disk; showing the previous version'), _('Reload Preview')),
+            'reload_failed': (_('The changed PDF is not ready yet; showing the previous version'), _('Try Again')),
+        }
+        message = messages.get(state_name)
+        if message is None:
+            self.external_pdf_banner.set_revealed(False)
+            return
+        title, button_label = message
+        self.external_pdf_banner.set_title(title)
+        self.external_pdf_banner.set_button_label(button_label)
+        self.external_pdf_banner.set_revealed(True)
+
+    def _on_external_pdf_banner_clicked(self, banner):
+        if self._on_external_pdf_reload_requested is not None:
+            self._on_external_pdf_reload_requested()
 
     def show_pdf_load_failed(self):
         self.error_badge.set_visible(True)
