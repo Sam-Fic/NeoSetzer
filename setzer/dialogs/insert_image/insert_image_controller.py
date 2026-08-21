@@ -89,7 +89,21 @@ class InsertImageController():
             self.view.source_row.set_sensitive(True)
             self.view.insert_button.set_sensitive(False)
 
+        if document.get_dirname() is None:
+            # 文档尚未保存：没有目录可保存 PNG，否则 _do_insert 里
+            # os.path.join(None, ...) 会崩溃，figure 无法生成。先让用户
+            # 保存文档以获取目标目录，仅当保存成功后再弹出图片对话框；
+            # 用户取消保存则不展示（无目录可插入）。
+            from setzer.dialogs.dialog_locator import DialogLocator
+            DialogLocator.get_dialog('save_document').run(
+                document, lambda _: self._present_if_saved())
+            return
+
         self.view.present(self.main_window)
+
+    def _present_if_saved(self):
+        if self.document.get_dirname() is not None:
+            self.view.present(self.main_window)
 
     # ------------------------------------------------------------------
     # 信号处理
