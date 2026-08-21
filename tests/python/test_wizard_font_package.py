@@ -210,5 +210,55 @@ class TestTemplatesSwitchFontPackage(unittest.TestCase):
                 self._template_contains(method, 'none', None)
 
 
+class TestScrlttr2AdvancedLetterTemplate(unittest.TestCase):
+    '''#170: scrlttr2 模板须生成适配窗口信封的地址字段与折痕标记。'''
+
+    def test_uses_koma_options_and_sender_variables(self):
+        inst = _make_instance()
+        inst.current_values['title'] = 'Important subject'
+        inst.current_values['date'] = '2026-08-21'
+        inst.current_values['letter'].update({
+            'sender_name': 'Alice Sender',
+            'sender_address': '1 Main Street\nExample City',
+            'sender_phone': '+1 555 0100',
+            'recipient_name': 'Bob Recipient',
+            'recipient_address': '42 Office Road\nExample Town',
+            'recipient_phone': '+1 555 0200',
+            'signature': 'A. Sender',
+            'opening': 'Dear Bob,',
+            'closing': 'Kind regards,',
+        })
+
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertIn('\\documentclass[', template)
+        self.assertIn(']{scrlttr2}', template)
+        self.assertIn('\\KOMAoptions{', template)
+        self.assertIn('\tfromalign=left,', template)
+        self.assertIn('\tfromrule=afteraddress,', template)
+        self.assertIn('\tfromphone=true,', template)
+        self.assertIn('\taddrfield=true,', template)
+        self.assertIn('\tfoldmarks=true,', template)
+        self.assertIn('\tbackaddress=true', template)
+        self.assertIn('\\setkomavar{fromname}{Alice Sender}', template)
+        self.assertIn('\\setkomavar{fromaddress}{1 Main Street\\\\Example City}', template)
+        self.assertIn('\\setkomavar{fromphone}{+1 555 0100}', template)
+        self.assertIn('\\setkomavar{signature}{A. Sender}', template)
+        self.assertIn('\\setkomavar{date}{2026-08-21}', template)
+        self.assertIn('\\setkomavar{subject}{Important subject}', template)
+        self.assertIn('\\begin{letter}{Bob Recipient\\\\42 Office Road\\\\Example Town\\\\+1 555 0200}', template)
+        self.assertIn('\\opening{Dear Bob,}', template)
+        self.assertIn('\\closing{Kind regards,}', template)
+
+    def test_standard_letter_does_not_gain_koma_specific_commands(self):
+        inst = _make_instance()
+        start, end = inst.get_insert_text_letter()
+        template = start + end
+        self.assertNotIn('\\KOMAoptions{', template)
+        self.assertIn('\\address{', template)
+        self.assertIn('\\begin{letter}{', template)
+
+
 if __name__ == '__main__':
     unittest.main()

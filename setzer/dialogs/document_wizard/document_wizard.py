@@ -552,26 +552,17 @@ class DocumentWizard(object):
         opening = letter.get('opening', '') or _('Dear addressee,')
         closing = letter.get('closing', '') or _('Yours sincerely,')
 
-        # KOMA scrlttr2 使用不同的命令名
-        if class_name == 'scrlttr2':
-            address_cmd = 'setaddress'
-            date_cmd = 'setdate'
-            signature_cmd = 'setsignature'
-            opening_cmd = 'setkomavar{opening}'
-            closing_cmd = 'setkomavar{closing}'
-            letter_env = 'letter'
-            address_sep = '\n\t'
-            recipient_arg = recipient_name
-        else:
-            address_cmd = 'address'
-            date_cmd = 'date'
-            signature_cmd = 'signature'
-            opening_cmd = 'opening'
-            closing_cmd = 'closing'
-            letter_env = 'letter'
-            address_sep = '\\\\'
-            recipient_arg = (recipient_name + '\\\\' + recipient_address + '\\\\' + recipient_phone
-                             if recipient_address or recipient_phone else recipient_name)
+        # 统一把多行地址转换为 LaTeX 的显式换行；用户可在向导的地址字段中
+        # 使用换行，生成的地址块仍会同时适用于标准 letter 与 scrlttr2。
+        def latex_lines(value):
+            return value.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\\\\')
+
+        recipient_lines = [recipient_name]
+        if recipient_address:
+            recipient_lines.append(recipient_address)
+        if recipient_phone:
+            recipient_lines.append(recipient_phone)
+        recipient_arg = '\\\\'.join(latex_lines(item) for item in recipient_lines)
 
         preamble = (
             '\\documentclass[' + options + ']{' + class_name + '}\n'
@@ -580,23 +571,61 @@ class DocumentWizard(object):
             + self._get_preamble_packages()
         )
 
-        # Letter body 结构独特：address / date / signature + letter 环境
+        if class_name == 'scrlttr2':
+            # #170: scrlttr2 是向导中的高级信件选项。以下 KOMA 选项使寄件人
+            # 与收件人地址块适配带窗口的 DL 信封，并加入折痕标记；寄件人信息
+            # 使用 KOMA 变量而不是旧的 letter 宏，从而可由 scrlttr2 正确排版。
+            koma_options = (
+                '\\KOMAoptions{\n'
+                '\tfromalign=left,\n'
+                '\tfromrule=afteraddress,\n'
+                '\tfromphone=true,\n'
+                '\taddrfield=true,\n'
+                '\tfoldmarks=true,\n'
+                '\tbackaddress=true\n'
+                '}\n\n'
+            )
+            subject_line = ('\\setkomavar{subject}{' + self.current_values['title'] + '}\n'
+                            if self.current_values['title'] else '')
+            body = (
+                '\n' + koma_options
+                + '\\setkomavar{fromname}{' + latex_lines(sender_name) + '}\n'
+                + '\\setkomavar{fromaddress}{' + latex_lines(sender_address) + '}\n'
+                + '\\setkomavar{fromphone}{' + latex_lines(sender_phone) + '}\n'
+                + '\\setkomavar{signature}{' + latex_lines(signature) + '}\n'
+                + '\\setkomavar{date}{' + self.current_values['date'] + '}\n'
+                + subject_line
+                + '\\begin{document}\n\n'
+                + '\\begin{letter}{' + recipient_arg + '}\n\n'
+                + '\\opening{' + opening + '}\n\n'
+            )
+            end = (
+                '\n\n\\closing{' + closing + '}\n\n'
+                '%\\cc{' + _('Other destination') + '}\n'
+                '%\\ps{' + _('PS: PostScriptum') + '}\n'
+                '%\\encl{' + _('Enclosures') + '}\n\n'
+                '\\end{letter}\n'
+                '\\end{document}'
+            )
+            return (preamble + body, end)
+
+        # 标准 letter 类的传统命令保留原有行为。
         title_line = ('\\\\~\\\\\\textbf{' + self.current_values['title'] + '}'
                       if len(self.current_values['title']) > 0 else '')
         body = (
-            '\n\\' + address_cmd + '{' + sender_name + address_sep + sender_address + address_sep + sender_phone + '}\n'
-            '\\' + date_cmd + '{' + self.current_values['date'] + '}\n'
-            '\\' + signature_cmd + '{' + signature + '}\n\n'
+            '\n\\address{' + latex_lines(sender_name) + '\\\\' + latex_lines(sender_address) + '\\\\' + latex_lines(sender_phone) + '}\n'
+            '\\date{' + self.current_values['date'] + '}\n'
+            '\\signature{' + latex_lines(signature) + '}\n\n'
             '\\begin{document}\n\n'
-            '\\begin{' + letter_env + '}{' + recipient_arg + title_line + '}\n\n'
-            '\\' + opening_cmd + '{' + opening + '}\n\n'
+            '\\begin{letter}{' + recipient_arg + title_line + '}\n\n'
+            '\\opening{' + opening + '}\n\n'
         )
         end = (
-            '\n\n\\' + closing_cmd + '{' + closing + '}\n\n'
+            '\n\n\\closing{' + closing + '}\n\n'
             '%\\cc{' + _('Other destination') + '}\n'
             '%\\ps{' + _('PS: PostScriptum') + '}\n'
             '%\\encl{' + _('Enclosures') + '}\n\n'
-            '\\end{' + letter_env + '}\n'
+            '\\end{letter}\n'
             '\\end{document}'
         )
         return (preamble + body, end)
