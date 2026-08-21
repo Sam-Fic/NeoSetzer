@@ -361,6 +361,8 @@ class LaTeXDB():
                 LaTeXDB.files[filename]['last_parse'] = st.st_mtime
 
     def parse_latex_file(pathname):
+        if pathname not in LaTeXDB.files:
+            LaTeXDB.files[pathname] = get_file_dict(pathname)
         with open(pathname, 'r', encoding='utf-8', errors='replace') as f:
             text = f.read()
         labels = set()
@@ -376,6 +378,8 @@ class LaTeXDB():
         LaTeXDB.files[pathname]['labels'] = labels
 
     def parse_bibtex_file(pathname):
+        if pathname not in LaTeXDB.files:
+            LaTeXDB.files[pathname] = get_file_dict(pathname)
         with open(pathname, 'r', encoding='utf-8', errors='replace') as f:
             db = bibtexparser.load(f)
         bibitems = set()
