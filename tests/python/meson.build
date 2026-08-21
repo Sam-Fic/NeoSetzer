@@ -34,6 +34,7 @@ foreach t : [
   ['test_line_ending',            'test_line_ending.py'],
   ['test_command_palette_catalog', 'test_command_palette_catalog.py'],
   ['test_magic_comments',           'test_magic_comments.py'],
+  ['test_environment_templates',   'test_environment_templates.py'],
 ]
   test(
     t[0],

@@ -25,6 +25,7 @@ import re, os.path
 import setzer.document.autocomplete.autocomplete_controller as autocomplete_controller
 import setzer.document.autocomplete.autocomplete_widget as autocomplete_widget
 from setzer.app.latex_db import LaTeXDB
+from setzer.document.autocomplete.environment_templates import get_environment_completion_tail
 from setzer.app.service_locator import ServiceLocator
 
 
@@ -436,7 +437,7 @@ class Autocomplete(object):
                     bracket_pos = command.find('}') + 1
                     end_name = command[7:bracket_pos]
                     if not self._replace_begin_keep_auto_end(end_name):
-                        command += '\n\t•\n\\end{' + end_name + '}'
+                        command += get_environment_completion_tail(end_name)
                         self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
                     self.deactivate()
                 else:
@@ -466,7 +467,7 @@ class Autocomplete(object):
                 if self._replace_begin_keep_auto_end(end_name):
                     self.deactivate()
                     return
-                command += '\n\t•\n\\end{' + end_name + '}'
+                command += get_environment_completion_tail(end_name)
                 self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
             else:
                 self.replace_current_word_in_buffer(command, select_dot_and_scroll=True)
@@ -483,14 +484,14 @@ class Autocomplete(object):
         insert_iter = source_buffer.get_iter_at_mark(source_buffer.get_insert())
 
         text_after = source_buffer.get_text(insert_iter, source_buffer.get_end_iter(), False)
-        match = re.search(r'^\}?\n\t•\n\\end\{', text_after)
+        match = re.search(r'^\}?\n\t(?:\\item )?•\n\\end\{', text_after)
         if match is None:
             return False
 
         close_iter = insert_iter.copy()
         if match.group(0).startswith('}'):
             close_iter.forward_char()
-        dot_offset = insert_iter.get_offset() + match.start() + len('\n\t')
+        dot_offset = insert_iter.get_offset() + match.start() + match.group(0).index('•')
         dot_mark = source_buffer.create_mark(None, source_buffer.get_iter_at_offset(dot_offset), True)
 
         source_buffer.begin_user_action()
