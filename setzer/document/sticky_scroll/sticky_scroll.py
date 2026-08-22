@@ -218,18 +218,24 @@ class StickyScroll(Observable):
 
         return result, next_section
 
-    def get_navigation_reserved_height(self, line_number):
-        '''Return the pixel height that sticky parent headers occupy at a line.
+    def get_navigation_reserved_height(self, line_number, extra_margin_lines=1):
+        '''Return the navigation space reserved for sticky headers at a line.
 
         A target heading itself is not counted: when it becomes the first
         visible line, Sticky Scroll shows only its already-active parents.
-        Returning zero while disabled keeps ordinary top alignment unchanged.
+        One additional text line is reserved by default below those headers,
+        so reading-oriented navigation does not place content flush against
+        the sticky area.  Returning zero while disabled, or when no headers
+        are active, keeps ordinary top alignment unchanged.
         '''
 
         if not self.visible:
             return 0
         current_sections, _ = self._find_sections_for_line(line_number)
-        return len(current_sections) * FontManager.get_line_height(self.source_view)
+        if not current_sections:
+            return 0
+        line_height = FontManager.get_line_height(self.source_view)
+        return (len(current_sections) + max(0, extra_margin_lines)) * line_height
 
     def _is_section_visible(self, block):
         level = _SECTION_LEVELS.get(block[4])

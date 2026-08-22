@@ -9,13 +9,13 @@ import unittest
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
-def _load_method(path, class_name, method_name):
+def _load_method(path, class_name, method_name, namespace=None):
     tree = ast.parse(open(path, encoding='utf-8').read())
     class_node = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef) and node.name == class_name)
     method = next(node for node in class_node.body
                   if isinstance(node, ast.FunctionDef) and node.name == method_name)
-    namespace = {}
+    namespace = namespace or {}
     exec(compile(ast.Module(body=[method], type_ignores=[]), path, 'exec'), namespace)
     return namespace[method_name]
 
@@ -29,6 +29,13 @@ _SCROLL_TO_CENTER = _load_method(
 _SCROLL_WITH_CONTEXT = _load_method(
     os.path.join(REPO, 'setzer/document/document.py'),
     'Document', 'scroll_cursor_with_context')
+_STICKY_RESERVED_HEIGHT = _load_method(
+    os.path.join(REPO, 'setzer/document/sticky_scroll/sticky_scroll.py'),
+    'StickyScroll', 'get_navigation_reserved_height', {
+        'FontManager': type('FontManager', (), {
+            'get_line_height': staticmethod(lambda source_view: 28),
+        }),
+    })
 _STRUCTURE_ROW_ACTIVATED = _load_method(
     os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/structure.py'),
     'StructureSection', 'on_row_activated')
@@ -170,17 +177,42 @@ class StructureTopAlignmentTest(unittest.TestCase):
     def test_scroll_cursor_to_top_reserves_actual_sticky_header_height(self):
         calls = []
         document = _Document(calls)
-        document.sticky_scroll = _StickyScroll(calls, 56)
-
+        document.sticky_scroll = _StickyScroll(calls, 84)
         document.scroll_cursor_to_top()
+
 
         self.assertEqual(calls, [
             ('get-iter-at-mark', 'insert-mark'),
             ('sticky-height', 37),
             ('kinetic', False),
-            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.08),
+            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.12),
             ('kinetic', True),
         ])
+
+    def test_sticky_reservation_adds_one_reading_line_after_headers(self):
+        sticky_scroll = type('StickyScroll', (), {
+            'visible': True,
+            'source_view': object(),
+            '_find_sections_for_line': lambda self, line: (['chapter', 'section'], None),
+        })()
+
+        self.assertEqual(_STICKY_RESERVED_HEIGHT(sticky_scroll, 37), 84)
+        self.assertEqual(_STICKY_RESERVED_HEIGHT(sticky_scroll, 37, 2), 112)
+
+    def test_sticky_reservation_is_zero_without_active_headers_or_visibility(self):
+        no_headers = type('StickyScroll', (), {
+            'visible': True,
+            'source_view': object(),
+            '_find_sections_for_line': lambda self, line: ([], None),
+        })()
+        disabled = type('StickyScroll', (), {
+            'visible': False,
+            'source_view': object(),
+            '_find_sections_for_line': lambda self, line: (['section'], None),
+        })()
+
+        self.assertEqual(_STICKY_RESERVED_HEIGHT(no_headers, 37), 0)
+        self.assertEqual(_STICKY_RESERVED_HEIGHT(disabled, 37), 0)
 
     def test_scroll_cursor_to_center_uses_explicit_vertical_center_alignment(self):
         calls = []
@@ -211,16 +243,16 @@ class StructureTopAlignmentTest(unittest.TestCase):
     def test_scroll_cursor_with_context_reserves_sticky_headers_at_anchor(self):
         calls = []
         document = _Document(calls)
-        document.sticky_scroll = _StickyScroll(calls, 56)
-
+        document.sticky_scroll = _StickyScroll(calls, 84)
         document.scroll_cursor_with_context()
+
 
         self.assertEqual(calls, [
             ('get-iter-at-mark', 'insert-mark'),
             ('backward-lines', 'cursor-copy', 2),
             ('sticky-height', 37),
             ('kinetic', False),
-            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.08),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.12),
             ('kinetic', True),
         ])
 
