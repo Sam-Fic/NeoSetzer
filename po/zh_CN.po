@@ -6522,3 +6522,7 @@ msgstr "KOMA-Script 书籍 (scrbook)"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py
 msgid "KOMA-Script Letter (scrlttr2)"
 msgstr "KOMA-Script 信件 (scrlttr2)"
+
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py
+msgid "Template actions"
+msgstr "模板操作"

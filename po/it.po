@@ -7694,3 +7694,7 @@ msgstr "Libro KOMA-Script (scrbook)"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py
 msgid "KOMA-Script Letter (scrlttr2)"
 msgstr "Lettera KOMA-Script (scrlttr2)"
+
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py
+msgid "Template actions"
+msgstr "Azioni del modello"

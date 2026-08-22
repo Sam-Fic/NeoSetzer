@@ -233,14 +233,29 @@ class DocumentClassPageView(PageView):
         self.group_document_templates.add(self.delete_document_template_button)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-        inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
-        inner.append(self.list)
-        inner.append(self.preview_container)
-        self.content.append(inner)
+        self.class_chooser = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        self.class_chooser.append(self.list)
+        self.class_chooser.append(self.preview_container)
+
+        # 选择器在桌面上并排比较类别与预览；窄窗口自动改为纵向，
+        # 防止固定双栏压缩标题或让模板区横向溢出。
+        self.class_chooser_breakpoint_bin = Adw.BreakpointBin()
+        breakpoint = Adw.Breakpoint.new(
+            Adw.BreakpointCondition.parse('max-width: 620px'))
+        breakpoint.add_setter(
+            self.class_chooser, 'orientation', Gtk.Orientation.VERTICAL)
+        breakpoint.add_setter(self.list, 'width-request', -1)
+        breakpoint.add_setter(self.preview_container, 'width-request', -1)
+        self.class_chooser_breakpoint_bin.add_breakpoint(breakpoint)
+        self.class_chooser_breakpoint_bin.set_child(self.class_chooser)
+
+        self.content.append(self.class_chooser_breakpoint_bin)
         self.content.append(self.group_templates)
         self.content.append(self.group_document_templates)
 
-        self.append(self.content)
+        self.append(self.wrap_content(
+            self.content, maximum_size=760, tightening_threshold=520))
 
     def set_document_templates(self, templates):
         '''Populate the source-template chooser with validated store metadata.'''

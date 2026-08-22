@@ -30,12 +30,11 @@ class DocumentWizardView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
-        self.set_content_width(750)
-        self.set_content_height(650)
+        # 让 Adw.Dialog 按内容和可用窗口空间协商尺寸；各页面使用 Clamp 和
+        # 滚动容器处理宽/窄窗口，而不是固定为单一桌面尺寸。
         self.headerbar.set_title_widget(Gtk.Label(label=_('Create a template document')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
-        self.topbox.set_size_request(750, -1)
 
         self.center_box = Gtk.CenterBox()
         self.center_box.set_orientation(Gtk.Orientation.HORIZONTAL)
@@ -68,7 +67,26 @@ class DocumentWizardView(DialogView):
             _('Save _Document Template'))
 
         self.back_button = Gtk.Button.new_with_mnemonic(_('_Back'))
-        
+
+        # 保存预设与保存完整源模板是较少使用的模板管理操作。放入同一个
+        # popover 后，标题栏只保留导航和创建这两个主任务。
+        self.template_actions_button = Gtk.MenuButton()
+        self.template_actions_button.set_icon_name('view-more-symbolic')
+        self.template_actions_button.set_tooltip_text(_('Template actions'))
+        template_actions_popover = Gtk.Popover()
+        template_actions_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        template_actions_box.set_margin_top(6)
+        template_actions_box.set_margin_bottom(6)
+        template_actions_box.set_margin_start(6)
+        template_actions_box.set_margin_end(6)
+        self.save_template_button.set_halign(Gtk.Align.FILL)
+        self.save_document_template_button.set_halign(Gtk.Align.FILL)
+        template_actions_box.append(self.save_template_button)
+        template_actions_box.append(self.save_document_template_button)
+        template_actions_popover.set_child(template_actions_box)
+        self.template_actions_button.set_popover(template_actions_popover)
+
         self.next_button = Gtk.Button.new_with_mnemonic(_('_Next'))
         self.next_button.add_css_class('suggested-action')
 
@@ -77,9 +95,8 @@ class DocumentWizardView(DialogView):
 
         self.headerbar.set_title_widget(self.title_widget)
         self.headerbar.pack_start(self.cancel_button)
-        self.headerbar.pack_start(self.save_template_button)
-        self.headerbar.pack_start(self.save_document_template_button)
         self.headerbar.pack_start(self.back_button)
+        self.headerbar.pack_start(self.template_actions_button)
         self.headerbar.pack_end(self.create_button)
         self.headerbar.pack_end(self.next_button)
 
