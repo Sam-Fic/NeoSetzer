@@ -7182,3 +7182,76 @@ msgstr "Lange Tabelle (mehrere Seiten)"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
 msgid "Long tables cannot use a table float"
 msgstr "Lange Tabellen können nicht als table-Gleitobjekt verwendet werden"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:204
+msgid ""
+"Caption and label are placed inside longtable; float placement and centering "
+"are unavailable."
+msgstr "Beschriftung und Label werden innerhalb von longtable platziert; Float-Positionierung und Zentrierung sind nicht verfügbar."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Merge Cells"
+msgstr "Zellen verbinden"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid ""
+"Merge a rectangular range. The top-left cell supplies the generated LaTeX "
+"content."
+msgstr "Einen rechteckigen Bereich verbinden. Die Zelle oben links liefert den erzeugten LaTeX-Inhalt."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:141
+msgid "Start row"
+msgstr "Startzeile"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Start column"
+msgstr "Startspalte"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:149
+msgid "Rows to merge"
+msgstr "Zu verbindende Zeilen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Columns to merge"
+msgstr "Zu verbindende Spalten"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+msgid "_Add Merge"
+msgstr "_Verbindung hinzufügen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:159
+msgid "Add the selected cell range to the table"
+msgstr "Den ausgewählten Zellbereich zur Tabelle hinzufügen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:368
+msgid "No merged cells"
+msgstr "Keine verbundenen Zellen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:375
+#, python-brace-format
+msgid "Merged range: row {row}, column {column}"
+msgstr "Verbundener Bereich: Zeile {row}, Spalte {column}"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:377
+#, python-brace-format
+msgid "{rows} rows × {columns} columns"
+msgstr "{rows} Zeilen × {columns} Spalten"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
+msgid "Remove this merged range"
+msgstr "Diesen verbundenen Bereich entfernen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:400
+msgid "Covered by a merged cell"
+msgstr "Von einer verbundenen Zelle überdeckt"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:121
+msgid ""
+"The selected range must fit inside the table, span at least two cells, and "
+"not overlap another merged range."
+msgstr "Der ausgewählte Bereich muss in die Tabelle passen, mindestens zwei Zellen umfassen und darf keinen anderen verbundenen Bereich überlappen."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:171
+msgid ""
+"Header repetition was disabled because a first-row merge spans multiple rows."
+msgstr "Die Wiederholung der Kopfzeile wurde deaktiviert, weil eine Verbindung in der ersten Zeile mehrere Zeilen umfasst."

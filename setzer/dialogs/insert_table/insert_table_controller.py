@@ -15,13 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import builtins
+
 import gi
 gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gdk, Gtk
 
 from setzer.dialogs.insert_table.insert_table_viewgtk import InsertTableView
-from setzer.dialogs.insert_table.table_generator import TableSpec, resize_cells
+from setzer.dialogs.insert_table.table_generator import (
+    TableSpec,
+    resize_cells,
+    resize_merges,
+)
+
+
+def _(message):
+    return getattr(builtins, '_', lambda value: value)(message)
 
 
 class InsertTableController:
@@ -31,6 +41,7 @@ class InsertTableController:
         self.main_window = main_window
         self.view = InsertTableView(main_window)
         self.document = None
+        self.cell_merges = ()
         self._resizing = False
         self._connect_static_signals()
         self._connect_grid_signals()
@@ -41,9 +52,10 @@ class InsertTableController:
         self.view.insert_button.connect('clicked', self._on_insert)
         self.view.rows_row.connect('notify::value', self._on_size_changed)
         self.view.columns_row.connect('notify::value', self._on_size_changed)
+        self.view.add_merge_button.connect('clicked', self._on_add_merge)
         self.view.style_row.connect('notify::selected', self._on_options_changed)
         self.view.header_switch.connect('notify::active', self._on_header_changed)
-        self.view.repeat_header_switch.connect('notify::active', self._on_options_changed)
+        self.view.repeat_header_switch.connect('notify::active', self._on_repeat_header_changed)
         self.view.environment_row.connect('notify::selected', self._on_environment_changed)
         self.view.table_switch.connect('notify::active', self._on_table_switch_changed)
         self.view.placement_row.connect('notify::selected', self._on_options_changed)
@@ -63,9 +75,11 @@ class InsertTableController:
 
         self.document = document
         self._resizing = True
+        self.cell_merges = ()
         self.view.reset()
         self._resizing = False
         self._connect_grid_signals()
+        self._sync_merge_view()
         self.view.set_environment_sensitive()
         self._refresh_preview()
         self.view.present(self.main_window)
@@ -88,19 +102,52 @@ class InsertTableController:
             else ('l' if column_index == 0 else 'c')
             for column_index in range(columns)
         )
+        self.cell_merges = resize_merges(self.cell_merges, rows, columns)
         self._resizing = True
         self.view.set_cells(cells, rows, columns, alignments)
+        self.view.set_merge_limits(rows, columns)
         self._resizing = False
         self._connect_grid_signals()
+        self._sync_merge_view()
         self.view.set_environment_sensitive()
+        self._ensure_merge_compatibility()
         self._refresh_preview()
+
+    def _on_add_merge(self, button):
+        try:
+            candidate = self.view.get_merge_draft()
+            spec = self._get_spec(self.cell_merges + (candidate,))
+        except (TypeError, ValueError):
+            self.view.set_merge_error(_(
+                'The selected range must fit inside the table, span at least two cells, and not overlap another merged range.'))
+            return
+        self.cell_merges = spec.cell_merges
+        self.view.set_merge_error()
+        self._sync_merge_view()
+        self._refresh_preview()
+
+    def _on_remove_merge(self, merge):
+        self.cell_merges = tuple(item for item in self.cell_merges if item != merge)
+        self.view.set_merge_error()
+        self._sync_merge_view()
+        self._refresh_preview()
+
+    def _sync_merge_view(self):
+        self.view.set_cell_merges(self.cell_merges, self._on_remove_merge)
+        self.view.set_merge_coverage(self.cell_merges)
 
     def _on_header_changed(self, row, pspec):
         self.view.set_environment_sensitive()
+        self._ensure_merge_compatibility()
+        self._refresh_preview()
+
+    def _on_repeat_header_changed(self, row, pspec):
+        self._ensure_merge_compatibility()
         self._refresh_preview()
 
     def _on_environment_changed(self, row, pspec):
         self.view.set_environment_sensitive()
+        self._ensure_merge_compatibility()
         self._refresh_preview()
 
     def _on_table_switch_changed(self, row, pspec):
@@ -111,12 +158,27 @@ class InsertTableController:
         if not self._resizing:
             self._refresh_preview()
 
-    def _get_spec(self):
+    def _ensure_merge_compatibility(self):
+        incompatible = (
+            self.view.get_environment() == 'longtable'
+            and self.view.header_switch.get_active()
+            and self.view.repeat_header_switch.get_active()
+            and any(merge.row == 0 and merge.row_span > 1 for merge in self.cell_merges)
+        )
+        if incompatible:
+            self.view.repeat_header_switch.set_active(False)
+            self.view.set_merge_error(_(
+                'Header repetition was disabled because a first-row merge spans multiple rows.'))
+            return False
+        return True
+
+    def _get_spec(self, cell_merges=None):
         return TableSpec(
             rows=int(self.view.rows_row.get_value()),
             columns=int(self.view.columns_row.get_value()),
             cells=self.view.get_cells(),
             alignments=self.view.get_alignments(),
+            cell_merges=self.cell_merges if cell_merges is None else cell_merges,
             style=self.view.get_style(),
             environment=self.view.get_environment(),
             header_row=self.view.header_switch.get_active(),
@@ -129,7 +191,10 @@ class InsertTableController:
         )
 
     def _refresh_preview(self):
-        self.view.set_preview(self._get_spec().render())
+        try:
+            self.view.set_preview(self._get_spec().render())
+        except ValueError as error:
+            self.view.set_merge_error(str(error))
 
     def _on_copy(self, button):
         display = Gdk.Display.get_default()

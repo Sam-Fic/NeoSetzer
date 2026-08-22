@@ -17,7 +17,7 @@
 
 '''Pure-Python model and LaTeX renderer for the Insert Table dialog.
 
-The dialog deliberately keeps this module free of GTK dependencies.  The
+The dialog deliberately keeps this module free of GTK dependencies. The
 renderer can therefore be tested in headless Meson runs and reused by a future
 TSV/CSV import enhancement without coupling table semantics to widgets.
 '''
@@ -30,6 +30,7 @@ MIN_ROWS = 1
 MAX_ROWS = 30
 MIN_COLUMNS = 1
 MAX_COLUMNS = 12
+MAX_CELL_MERGES = 16
 ALIGNMENTS = ('l', 'c', 'r')
 STYLE_PLAIN = 'plain'
 STYLE_BOOKTABS = 'booktabs'
@@ -38,6 +39,44 @@ ENVIRONMENT_TABULAR = 'tabular'
 ENVIRONMENT_LONGTABLE = 'longtable'
 ENVIRONMENTS = (ENVIRONMENT_TABULAR, ENVIRONMENT_LONGTABLE)
 PLACEMENTS = ('htbp', 'ht', 'h', 't', 'b', 'p', 'H', 'h!')
+
+
+@dataclass(frozen=True, order=True)
+class CellMerge:
+    '''A zero-based rectangular cell range rendered as one LaTeX cell.
+
+    The merge content is always taken from its top-left anchor cell.  Covered
+    cells remain in the editable source grid so resizing a table does not lose
+    user input, but they are intentionally omitted from the emitted LaTeX.
+    '''
+
+    row: int
+    column: int
+    row_span: int = 1
+    column_span: int = 2
+
+    def __post_init__(self):
+        if self.row < 0 or self.column < 0:
+            raise ValueError('Cell merge positions cannot be negative')
+        if self.row_span < 1 or self.column_span < 1:
+            raise ValueError('Cell merge spans must be positive')
+        if self.row_span == 1 and self.column_span == 1:
+            raise ValueError('A cell merge must span at least two cells')
+
+    @property
+    def end_row(self) -> int:
+        return self.row + self.row_span
+
+    @property
+    def end_column(self) -> int:
+        return self.column + self.column_span
+
+    def covers(self, row: int, column: int) -> bool:
+        return self.row <= row < self.end_row and self.column <= column < self.end_column
+
+    def overlaps(self, other: 'CellMerge') -> bool:
+        return (self.row < other.end_row and other.row < self.end_row
+                and self.column < other.end_column and other.column < self.end_column)
 
 
 def resize_cells(cells: Sequence[Sequence[str]], rows: int, columns: int) -> tuple[tuple[str, ...], ...]:
@@ -54,6 +93,18 @@ def resize_cells(cells: Sequence[Sequence[str]], rows: int, columns: int) -> tup
     return tuple(result)
 
 
+def resize_merges(merges: Sequence[CellMerge], rows: int, columns: int) -> tuple[CellMerge, ...]:
+    '''Drop merge ranges that no longer fit after a table resize.
+
+    A partial merge is never silently shrunk because that could change its
+    semantic meaning. The caller retains the surviving ranges unchanged.
+    '''
+
+    _validate_dimensions(rows, columns)
+    return tuple(merge for merge in merges
+                 if merge.end_row <= rows and merge.end_column <= columns)
+
+
 @dataclass(frozen=True)
 class TableSpec:
     '''The complete user-configurable description of a simple LaTeX table.'''
@@ -62,6 +113,7 @@ class TableSpec:
     columns: int = 3
     cells: tuple[tuple[str, ...], ...] = ()
     alignments: tuple[str, ...] = ()
+    cell_merges: tuple[CellMerge, ...] = ()
     style: str = STYLE_PLAIN
     environment: str = ENVIRONMENT_TABULAR
     header_row: bool = True
@@ -97,8 +149,14 @@ class TableSpec:
         if invalid_alignments:
             raise ValueError(f'Unsupported table alignment: {sorted(invalid_alignments)!r}')
 
+        normalized_merges = _validate_cell_merges(self.cell_merges, self.rows, self.columns)
+        if self.uses_repeated_header and any(
+                merge.row == 0 and merge.row_span > 1 for merge in normalized_merges):
+            raise ValueError('A repeated longtable header cannot contain a merge across rows')
+
         object.__setattr__(self, 'cells', normalized_cells)
         object.__setattr__(self, 'alignments', normalized_alignments)
+        object.__setattr__(self, 'cell_merges', normalized_merges)
         object.__setattr__(self, 'caption', self.caption.strip())
         object.__setattr__(self, 'label', self.label.strip())
 
@@ -120,6 +178,8 @@ class TableSpec:
             packages.append('booktabs')
         if self.environment == ENVIRONMENT_LONGTABLE:
             packages.append('longtable')
+        if any(merge.row_span > 1 for merge in self.cell_merges):
+            packages.append('multirow')
         if self.use_table_environment and self.placement == 'H':
             packages.append('float')
         return tuple(packages)
@@ -127,7 +187,7 @@ class TableSpec:
     def render(self) -> str:
         '''Render editable LaTeX source without escaping cell content.
 
-        Cell text is intentionally treated as raw LaTeX.  This permits common
+        Cell text is intentionally treated as raw LaTeX. This permits common
         scientific input such as ``$x^2$`` and ``\\textbf{Header}``, and keeps
         the generated source under the author's control.
         '''
@@ -169,12 +229,12 @@ class TableSpec:
 
         lines.extend(self._render_rules_before_rows())
         if self.uses_repeated_header:
-            lines.append(self._render_row(self.cells[0]))
-            lines.extend(self._render_separator_after_header())
+            lines.append(self._render_row(0))
+            lines.extend(self._render_separator_after_header(0))
             lines.append('\\endfirsthead')
             lines.extend(self._render_rules_before_rows())
-            lines.append(self._render_row(self.cells[0]))
-            lines.extend(self._render_separator_after_header())
+            lines.append(self._render_row(0))
+            lines.extend(self._render_separator_after_header(0))
             lines.append('\\endhead')
             row_start = 1
         else:
@@ -191,23 +251,96 @@ class TableSpec:
     def _render_rules_after_rows(self) -> list[str]:
         return ['\\bottomrule'] if self.style == STYLE_BOOKTABS else []
 
-    def _render_separator_after_header(self) -> list[str]:
+    def _render_separator_after_header(self, row_index: int) -> list[str]:
         if self.style == STYLE_PLAIN:
-            return ['\\hline']
-        return ['\\midrule']
+            return self._rule_after_row(row_index)
+        blocked = self._continuing_columns_after_row(row_index)
+        if not blocked:
+            return ['\\midrule']
+        ranges = self._unblocked_column_ranges(blocked)
+        return [f'\\cmidrule(lr){{{start}-{end}}}' for start, end in ranges]
 
-    def _render_row(self, row: Sequence[str]) -> str:
-        return ' & '.join(row) + r' \\'
+    def _render_row(self, row_index: int) -> str:
+        merge_starts = {(merge.row, merge.column): merge for merge in self.cell_merges}
+        row_values = []
+        column_index = 0
+        while column_index < self.columns:
+            merge = merge_starts.get((row_index, column_index))
+            if merge is not None:
+                value = self.cells[row_index][column_index]
+                if merge.row_span > 1:
+                    value = f'\\multirow{{{merge.row_span}}}{{*}}{{{value}}}'
+                if merge.column_span > 1:
+                    alignment = self.alignments[column_index]
+                    value = f'\\multicolumn{{{merge.column_span}}}{{{alignment}}}{{{value}}}'
+                row_values.append(value)
+                column_index = merge.end_column
+                continue
+            if self._is_covered(row_index, column_index):
+                row_values.append('')
+            else:
+                row_values.append(self.cells[row_index][column_index])
+            column_index += 1
+        return ' & '.join(row_values) + r' \\'
 
     def _render_rows(self, start: int = 0) -> list[str]:
         lines = []
         for row_index in range(start, self.rows):
-            lines.append(self._render_row(self.cells[row_index]))
+            lines.append(self._render_row(row_index))
             if self.style == STYLE_PLAIN:
-                lines.append('\\hline')
+                lines.extend(self._rule_after_row(row_index))
             elif self.header_row and row_index == 0 and self.rows > 1:
-                lines.extend(self._render_separator_after_header())
+                lines.extend(self._render_separator_after_header(row_index))
         return lines
+
+    def _is_covered(self, row_index: int, column_index: int) -> bool:
+        return any(merge.covers(row_index, column_index)
+                   and (merge.row, merge.column) != (row_index, column_index)
+                   for merge in self.cell_merges)
+
+    def _continuing_columns_after_row(self, row_index: int) -> set[int]:
+        return {
+            column_index
+            for merge in self.cell_merges
+            if merge.row <= row_index < merge.end_row - 1
+            for column_index in range(merge.column, merge.end_column)
+        }
+
+    def _unblocked_column_ranges(self, blocked: set[int]) -> list[tuple[int, int]]:
+        ranges = []
+        start = None
+        for column_index in range(self.columns):
+            if column_index not in blocked and start is None:
+                start = column_index
+            elif column_index in blocked and start is not None:
+                ranges.append((start + 1, column_index))
+                start = None
+        if start is not None:
+            ranges.append((start + 1, self.columns))
+        return ranges
+
+    def _rule_after_row(self, row_index: int) -> list[str]:
+        blocked = self._continuing_columns_after_row(row_index)
+        if not blocked:
+            return ['\\hline']
+        return [f'\\cline{{{start}-{end}}}'
+                for start, end in self._unblocked_column_ranges(blocked)]
+
+
+def _validate_cell_merges(merges: Sequence[CellMerge], rows: int,
+                          columns: int) -> tuple[CellMerge, ...]:
+    if len(merges) > MAX_CELL_MERGES:
+        raise ValueError(f'No more than {MAX_CELL_MERGES} cell merges are supported')
+    normalized = []
+    for merge in merges:
+        if not isinstance(merge, CellMerge):
+            raise TypeError('Cell merges must be CellMerge instances')
+        if merge.end_row > rows or merge.end_column > columns:
+            raise ValueError('Cell merge extends beyond the table dimensions')
+        if any(merge.overlaps(existing) for existing in normalized):
+            raise ValueError('Cell merge ranges cannot overlap')
+        normalized.append(merge)
+    return tuple(sorted(normalized))
 
 
 def _validate_dimensions(rows: int, columns: int):

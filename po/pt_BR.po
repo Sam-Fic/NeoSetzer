@@ -6102,3 +6102,76 @@ msgstr "Tabela longa (várias páginas)"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
 msgid "Long tables cannot use a table float"
 msgstr "Tabelas longas não podem usar um float table"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:204
+msgid ""
+"Caption and label are placed inside longtable; float placement and centering "
+"are unavailable."
+msgstr "A legenda e o rótulo são colocados dentro de longtable; posicionamento flutuante e centralização não estão disponíveis."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Merge Cells"
+msgstr "Mesclar células"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid ""
+"Merge a rectangular range. The top-left cell supplies the generated LaTeX "
+"content."
+msgstr "Mescle um intervalo retangular. A célula superior esquerda fornece o conteúdo LaTeX gerado."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:141
+msgid "Start row"
+msgstr "Linha inicial"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Start column"
+msgstr "Coluna inicial"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:149
+msgid "Rows to merge"
+msgstr "Linhas a mesclar"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Columns to merge"
+msgstr "Colunas a mesclar"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+msgid "_Add Merge"
+msgstr "_Adicionar mesclagem"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:159
+msgid "Add the selected cell range to the table"
+msgstr "Adicionar o intervalo de células selecionado à tabela"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:368
+msgid "No merged cells"
+msgstr "Não há células mescladas"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:375
+#, python-brace-format
+msgid "Merged range: row {row}, column {column}"
+msgstr "Intervalo mesclado: linha {row}, coluna {column}"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:377
+#, python-brace-format
+msgid "{rows} rows × {columns} columns"
+msgstr "{rows} linhas × {columns} colunas"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
+msgid "Remove this merged range"
+msgstr "Remover este intervalo mesclado"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:400
+msgid "Covered by a merged cell"
+msgstr "Coberta por uma célula mesclada"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:121
+msgid ""
+"The selected range must fit inside the table, span at least two cells, and "
+"not overlap another merged range."
+msgstr "O intervalo selecionado deve caber na tabela, abranger pelo menos duas células e não se sobrepor a outro intervalo mesclado."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:171
+msgid ""
+"Header repetition was disabled because a first-row merge spans multiple rows."
+msgstr "A repetição do cabeçalho foi desativada porque uma mesclagem da primeira linha abrange várias linhas."

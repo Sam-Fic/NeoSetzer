@@ -8,12 +8,15 @@ import unittest
 
 from setzer.dialogs.insert_table.table_generator import (
     MAX_COLUMNS,
+    CellMerge,
     ENVIRONMENT_LONGTABLE,
+    MAX_CELL_MERGES,
     MAX_ROWS,
     STYLE_BOOKTABS,
     STYLE_PLAIN,
     TableSpec,
     resize_cells,
+    resize_merges,
 )
 
 
@@ -149,6 +152,89 @@ class TableGeneratorTest(unittest.TestCase):
         self.assertFalse(spec.uses_repeated_header)
         self.assertEqual(spec.required_packages, ('longtable',))
 
+    def test_multicolumn_merges_anchor_content_and_skips_covered_cells(self):
+        spec = TableSpec(
+            rows=2,
+            columns=3,
+            cells=(('Methods', 'ignored', 'Score'), ('Baseline', 'N/A', '91.2\\%')),
+            cell_merges=(CellMerge(0, 0, column_span=2),),
+            use_table_environment=False,
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{tabular}{lcc}',
+            '\\hline',
+            r'\multicolumn{2}{l}{Methods} & Score \\',
+            '\\hline',
+            r'Baseline & N/A & 91.2\% \\',
+            '\\hline',
+            '\\end{tabular}',
+        )))
+        self.assertEqual(spec.required_packages, ())
+
+    def test_multirow_merges_add_package_and_avoid_blocked_rule_columns(self):
+        spec = TableSpec(
+            rows=3,
+            columns=3,
+            cells=(('Group', 'Method', 'Score'), ('ignored', 'Baseline', '91.2\\%'), ('Other', 'Proposed', '94.6\\%')),
+            cell_merges=(CellMerge(0, 0, row_span=2, column_span=1),),
+            use_table_environment=False,
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{tabular}{lcc}',
+            '\\hline',
+            r'\multirow{2}{*}{Group} & Method & Score \\',
+            '\\cline{2-3}',
+            r' & Baseline & 91.2\% \\',
+            '\\hline',
+            r'Other & Proposed & 94.6\% \\',
+            '\\hline',
+            '\\end{tabular}',
+        )))
+        self.assertEqual(spec.required_packages, ('multirow',))
+
+    def test_booktabs_multirow_uses_cmidrule_for_unblocked_columns(self):
+        spec = TableSpec(
+            rows=2,
+            columns=3,
+            cells=(('Group', 'Method', 'Score'), ('ignored', 'Baseline', '91.2\\%')),
+            cell_merges=(CellMerge(0, 0, row_span=2, column_span=1),),
+            style=STYLE_BOOKTABS,
+            use_table_environment=False,
+        )
+
+        rendered = spec.render()
+        self.assertIn('\\cmidrule(lr){2-3}', rendered)
+        self.assertNotIn('\\midrule', rendered)
+        self.assertEqual(spec.required_packages, ('booktabs', 'multirow'))
+
+    def test_cell_merges_reject_overlap_bounds_and_repeated_header_rowspan(self):
+        with self.assertRaises(ValueError):
+            TableSpec(rows=2, columns=2, cell_merges=(CellMerge(0, 0, column_span=2), CellMerge(0, 1, row_span=2)))
+        with self.assertRaises(ValueError):
+            TableSpec(rows=2, columns=2, cell_merges=(CellMerge(1, 1, column_span=2),))
+        with self.assertRaises(ValueError):
+            TableSpec(rows=2, columns=2, cell_merges=(CellMerge(0, 0, 1, 1),))
+        with self.assertRaises(ValueError):
+            TableSpec(
+                rows=3,
+                columns=2,
+                environment=ENVIRONMENT_LONGTABLE,
+                use_table_environment=False,
+                cell_merges=(CellMerge(0, 0, row_span=2),),
+            )
+        with self.assertRaises(ValueError):
+            TableSpec(rows=5, columns=5, cell_merges=tuple(
+                CellMerge(index // 4, (index % 4) * 2, column_span=2)
+                for index in range(MAX_CELL_MERGES + 1)
+            ))
+
+    def test_resize_merges_drops_ranges_outside_new_dimensions(self):
+        merges = (CellMerge(0, 0, column_span=2), CellMerge(1, 1, row_span=2))
+        self.assertEqual(resize_merges(merges, 3, 3), merges)
+        self.assertEqual(resize_merges(merges, 2, 3), (CellMerge(0, 0, column_span=2),))
+
     def test_longtable_rejects_table_float_wrapper(self):
         with self.assertRaises(ValueError):
             TableSpec(environment=ENVIRONMENT_LONGTABLE)
@@ -222,7 +308,15 @@ class TableGeneratorTest(unittest.TestCase):
         table_controller_source = Path(
             os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_controller.py')).read_text(encoding='utf-8')
         self.assertIn("self.view.copy_button.connect('clicked', self._on_copy)", table_controller_source)
+        self.assertIn("self.view.add_merge_button.connect('clicked', self._on_add_merge)", table_controller_source)
+        self.assertIn('self.cell_merges = resize_merges(self.cell_merges, rows, columns)', table_controller_source)
+        self.assertIn('cell_merges=self.cell_merges if cell_merges is None else cell_merges', table_controller_source)
         self.assertIn("self.document.add_packages(spec.required_packages)", table_controller_source)
+        table_view_source = Path(
+            os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_viewgtk.py')).read_text(encoding='utf-8')
+        self.assertIn("self.merges_group.set_title(_('Merge Cells'))", table_view_source)
+        self.assertIn('def set_merge_coverage(self, merges):', table_view_source)
+        self.assertIn("entry.set_sensitive(not covered)", table_view_source)
 
     def test_plain_style_constant_is_the_default(self):
         self.assertEqual(TableSpec().style, STYLE_PLAIN)

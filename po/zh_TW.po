@@ -6072,3 +6072,76 @@ msgstr "長表格（跨多頁）"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
 msgid "Long tables cannot use a table float"
 msgstr "長表格不能使用 table 浮動環境"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:204
+msgid ""
+"Caption and label are placed inside longtable; float placement and centering "
+"are unavailable."
+msgstr "題注與標籤置於 longtable 內部；無法設定浮動位置或置中。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Merge Cells"
+msgstr "合併儲存格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid ""
+"Merge a rectangular range. The top-left cell supplies the generated LaTeX "
+"content."
+msgstr "合併一個矩形範圍。左上角儲存格提供產生的 LaTeX 內容。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:141
+msgid "Start row"
+msgstr "起始列"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Start column"
+msgstr "起始欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:149
+msgid "Rows to merge"
+msgstr "合併列數"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Columns to merge"
+msgstr "合併欄數"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+msgid "_Add Merge"
+msgstr "新增合併(_A)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:159
+msgid "Add the selected cell range to the table"
+msgstr "將所選儲存格範圍加入表格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:368
+msgid "No merged cells"
+msgstr "沒有已合併的儲存格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:375
+#, python-brace-format
+msgid "Merged range: row {row}, column {column}"
+msgstr "合併範圍：第 {row} 列、第 {column} 欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:377
+#, python-brace-format
+msgid "{rows} rows × {columns} columns"
+msgstr "{rows} 列 × {columns} 欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
+msgid "Remove this merged range"
+msgstr "移除此合併範圍"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:400
+msgid "Covered by a merged cell"
+msgstr "由合併儲存格覆蓋"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:121
+msgid ""
+"The selected range must fit inside the table, span at least two cells, and "
+"not overlap another merged range."
+msgstr "所選範圍必須位於表格內、至少跨越兩個儲存格，且不能與其他合併範圍重疊。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:171
+msgid ""
+"Header repetition was disabled because a first-row merge spans multiple rows."
+msgstr "由於第一列的合併跨越多列，已關閉重複表頭。"

@@ -23,8 +23,10 @@ from gi.repository import Gtk, Adw
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 from setzer.dialogs.insert_table.table_generator import (
     ALIGNMENTS,
+    CellMerge,
     ENVIRONMENT_LONGTABLE,
     ENVIRONMENT_TABULAR,
+    MAX_CELL_MERGES,
     MAX_COLUMNS,
     MAX_ROWS,
     PLACEMENTS,
@@ -66,6 +68,7 @@ class InsertTableView(DialogView):
         self.set_content_height(760)
         self.cell_entries = []
         self.alignment_rows = []
+        self.merge_rows = []
 
         self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Table')))
         self.headerbar.set_show_start_title_buttons(False)
@@ -130,6 +133,39 @@ class InsertTableView(DialogView):
         self.columns_group = Adw.PreferencesGroup()
         self.columns_group.set_title(_('Column Alignment'))
         content.append(self.columns_group)
+
+        self.merges_group = Adw.PreferencesGroup()
+        self.merges_group.set_title(_('Merge Cells'))
+        self.merges_group.set_description(_('Merge a rectangular range. The top-left cell supplies the generated LaTeX content.'))
+        self.merge_row_row = Adw.SpinRow()
+        self.merge_row_row.set_title(_('Start row'))
+        self.merge_row_row.set_adjustment(Gtk.Adjustment(value=1, lower=1, upper=MAX_ROWS, step_increment=1, page_increment=1))
+        self.merges_group.add(self.merge_row_row)
+        self.merge_column_row = Adw.SpinRow()
+        self.merge_column_row.set_title(_('Start column'))
+        self.merge_column_row.set_adjustment(Gtk.Adjustment(value=1, lower=1, upper=MAX_COLUMNS, step_increment=1, page_increment=1))
+        self.merges_group.add(self.merge_column_row)
+        self.merge_row_span_row = Adw.SpinRow()
+        self.merge_row_span_row.set_title(_('Rows to merge'))
+        self.merge_row_span_row.set_adjustment(Gtk.Adjustment(value=1, lower=1, upper=MAX_ROWS, step_increment=1, page_increment=1))
+        self.merges_group.add(self.merge_row_span_row)
+        self.merge_column_span_row = Adw.SpinRow()
+        self.merge_column_span_row.set_title(_('Columns to merge'))
+        self.merge_column_span_row.set_adjustment(Gtk.Adjustment(value=2, lower=1, upper=MAX_COLUMNS, step_increment=1, page_increment=1))
+        self.merges_group.add(self.merge_column_span_row)
+        self.add_merge_button = Gtk.Button.new_with_mnemonic(_('_Add Merge'))
+        self.add_merge_button.set_halign(Gtk.Align.START)
+        self.add_merge_button.set_margin_top(6)
+        self.add_merge_button.set_tooltip_text(_('Add the selected cell range to the table'))
+        self.merges_group.add(self.add_merge_button)
+        self.merge_status = Gtk.Label()
+        self.merge_status.set_halign(Gtk.Align.START)
+        self.merge_status.set_wrap(True)
+        self.merge_status.add_css_class('error')
+        self.merges_group.add(self.merge_status)
+        self.merge_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.merges_group.add(self.merge_list)
+        content.append(self.merges_group)
 
         appearance_group = Adw.PreferencesGroup()
         appearance_group.set_title(_('Appearance'))
@@ -241,6 +277,8 @@ class InsertTableView(DialogView):
         self.caption_row.set_text('')
         self.label_row.set_text('tab:')
         self.set_cells((), 3, 3)
+        self.set_merge_limits(3, 3)
+        self.set_cell_merges(())
         self.set_environment_sensitive()
         self.set_preview('')
 
@@ -300,6 +338,69 @@ class InsertTableView(DialogView):
             row.set_selected(ALIGNMENTS.index(value))
             self.columns_group.add(row)
             self.alignment_rows.append(row)
+
+    def set_merge_limits(self, rows, columns):
+        self.merge_row_row.get_adjustment().set_upper(rows)
+        self.merge_column_row.get_adjustment().set_upper(columns)
+        self.merge_row_span_row.get_adjustment().set_upper(rows)
+        self.merge_column_span_row.get_adjustment().set_upper(columns)
+        self.merge_row_row.set_value(min(self.merge_row_row.get_value(), rows))
+        self.merge_column_row.set_value(min(self.merge_column_row.get_value(), columns))
+        self.merge_row_span_row.set_value(min(self.merge_row_span_row.get_value(), rows))
+        self.merge_column_span_row.set_value(min(self.merge_column_span_row.get_value(), columns))
+
+    def get_merge_draft(self):
+        return CellMerge(
+            row=int(self.merge_row_row.get_value()) - 1,
+            column=int(self.merge_column_row.get_value()) - 1,
+            row_span=int(self.merge_row_span_row.get_value()),
+            column_span=int(self.merge_column_span_row.get_value()),
+        )
+
+    def set_cell_merges(self, merges, on_remove=None):
+        child = self.merge_list.get_first_child()
+        while child is not None:
+            next_child = child.get_next_sibling()
+            self.merge_list.remove(child)
+            child = next_child
+        self.merge_rows = []
+        if not merges:
+            placeholder = Gtk.Label(label=_('No merged cells'))
+            placeholder.add_css_class('dim-label')
+            placeholder.set_halign(Gtk.Align.START)
+            self.merge_list.append(placeholder)
+            return
+        for merge in merges:
+            row = Adw.ActionRow()
+            row.set_title(_('Merged range: row {row}, column {column}').format(
+                row=merge.row + 1, column=merge.column + 1))
+            row.set_subtitle(_('{rows} rows × {columns} columns').format(
+                rows=merge.row_span, columns=merge.column_span))
+            remove_button = Gtk.Button.new_from_icon_name('user-trash-symbolic')
+            remove_button.set_tooltip_text(_('Remove this merged range'))
+            if on_remove is not None:
+                remove_button.connect('clicked', lambda button, item=merge: on_remove(item))
+            row.add_suffix(remove_button)
+            self.merge_list.append(row)
+            self.merge_rows.append(row)
+
+    def set_merge_error(self, message=''):
+        self.merge_status.set_text(message)
+        self.merge_status.set_visible(bool(message))
+
+    def set_merge_coverage(self, merges):
+        for row_index, entries in enumerate(self.cell_entries):
+            for column_index, entry in enumerate(entries):
+                covered = any(
+                    merge.covers(row_index, column_index)
+                    and (merge.row, merge.column) != (row_index, column_index)
+                    for merge in merges)
+                entry.set_sensitive(not covered)
+                if covered:
+                    entry.set_tooltip_text(_('Covered by a merged cell'))
+                else:
+                    entry.set_tooltip_text(_('Row {row}, column {column}').format(
+                        row=row_index + 1, column=column_index + 1))
 
     def get_cells(self):
         return tuple(tuple(entry.get_text() for entry in row) for row in self.cell_entries)
