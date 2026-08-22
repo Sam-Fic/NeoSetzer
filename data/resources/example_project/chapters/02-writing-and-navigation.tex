@@ -1,0 +1,45 @@
+% !TEX root = ../main.tex
+
+\section{Writing, Structure, and Navigation}
+\label{sec:writing-navigation}
+
+NeoSetzer continuously reads the source so that the editor can offer
+completion, navigation, and structure information while you write. These
+features are source-level helpers: they are designed to be fast and reliable,
+not to emulate every possible TeX macro expansion.
+
+\subsection{A \textit{nested} heading title}
+\label{sec:writing-navigation:nested-title}
+
+This heading intentionally contains a nested command. It is a useful sample
+for the Document Structure sidebar: the title remains visible as one heading,
+while its italic formatting belongs to the rendered PDF. Try selecting it from
+the sidebar and compare the source, outline, and preview.
+
+\subsection{Labels, references, and completion}
+\label{sec:writing-navigation:labels}
+
+This section has a label, so another part of the document can refer to
+Section~\ref{sec:writing-navigation}. NeoSetzer indexes labels, references,
+citations, and bibliography keys from open documents to improve completion.
+Type a backslash for command completion, or use the configurable manual
+completion shortcut when you prefer to invoke the list explicitly.
+
+\subsection{TODO items and comments}
+\label{sec:writing-navigation:todos}
+
+The following visible note is also a small navigation sample:
+\todo{Replace this note after exploring the TODO list in Document Structure.}
+
+NeoSetzer recognizes \texttt{\textbackslash todo\{...\}} items and lists them
+in the document-structure sidebar. Select the TODO entry to jump to its source
+location. In a real project you can delete the command after finishing the
+task; this example keeps it as a discoverable demonstration.
+
+\subsection{Open a child file directly}
+\label{sec:writing-navigation:root}
+
+The first line of this file contains \texttt{\% !TEX root = ../main.tex}.
+Open this child file in NeoSetzer and build: the relative root declaration
+points the build at \texttt{main.tex}, while keeping the child convenient to
+edit. This pattern is useful for reports, theses, and books split into chapters.

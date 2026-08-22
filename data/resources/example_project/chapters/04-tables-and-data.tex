@@ -1,0 +1,41 @@
+% !TEX root = ../main.tex
+
+\section{Tables and Imported Data}
+\label{sec:tables-data}
+
+The earlier tables show ordinary LaTeX source. NeoSetzer also provides an
+\textbf{Insert Table} dialog for creating a grid, selecting alignment and
+borders, merging constrained cells, and editing cell contents before inserting
+LaTeX into the document.
+
+\subsection{CSV and TSV practice data}
+\label{sec:tables-data:csv}
+
+This project includes \texttt{data/example-table.csv}. Open it in a text
+editor, copy its rows, then open NeoSetzer's \menu{Insert Table} dialog and
+choose \menu{Paste TSV/CSV}. The dialog detects tab-separated text first and
+otherwise treats comma-separated CSV as the default; it also provides explicit
+CSV delimiter choices and an \menu{Import CSV/TSV File} action.
+
+The CSV file is deliberately a \emph{practice input} for the table generator.
+It is not an instruction for LaTeX to read CSV automatically. After the dialog
+inserts the resulting tabular code, build this project to see the table in the
+PDF and adjust the generated source as you would in your own document.
+
+\subsection{Long tables and cell structure}
+\label{sec:tables-data:longtable}
+
+For a table that may span pages, choose the \texttt{longtable} environment in
+the generator or adapt the generated source. The existing table examples use
+\texttt{booktabs}; they demonstrate professional horizontal rules and a
+\texttt{\textbackslash multicolumn} total row. The editor's table workflow is
+meant to speed up correct starting code, not to hide the LaTeX source from you.
+
+\subsection{A suggested experiment}
+\label{sec:tables-data:experiment}
+
+Import \texttt{data/example-table.csv}, insert the result below this paragraph,
+and add a caption and label. Then refer to it from a later paragraph with
+\texttt{\textbackslash ref}. This links the table generator, labels,
+completion, PDF preview, and Document Structure into one small reproducible
+exercise.

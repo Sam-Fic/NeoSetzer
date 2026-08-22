@@ -1,0 +1,5 @@
+Feature,Where to find it,Try this
+Document Structure,Sidebar,Select a heading to jump to its source
+Command Palette,Application menu,Search for a command by name
+Table Generator,Insert Table dialog,Import this CSV file
+Build Log,Bottom panel,Select a diagnostic to open its source line

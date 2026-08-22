@@ -1,0 +1,52 @@
+% !TEX root = ../main.tex
+
+\section{Project Workflows}
+\label{sec:project-workflows}
+
+A larger LaTeX project is more than one source file. NeoSetzer tracks common
+project dependencies such as \texttt{\textbackslash input},
+\texttt{\textbackslash include}, bibliography files, local letter options, and
+custom document classes so that related files remain discoverable from the
+workspace.
+
+\subsection{Root documents and Magic Comments}
+\label{sec:project-workflows:magic-comments}
+
+The root declaration at the top of this child file is intentionally literal:
+\begin{lstlisting}[language={[LaTeX]TeX}, caption={A child-file build declaration.}]
+% !TEX root = ../main.tex
+\end{lstlisting}
+
+Magic Comments are metadata, not shell commands. NeoSetzer accepts a small,
+safe subset: supported \texttt{program} values select a known LaTeX engine,
+and a relative \texttt{root} value identifies a \texttt{.tex} document to
+build. The application does not execute arbitrary source comments.
+
+\subsection{Bibliography files}
+\label{sec:project-workflows:bibliography}
+
+The citation in the main document uses the bundled \texttt{references.bib}
+file. Build the project twice, or let your configured build tool manage the
+passes, so BibTeX can create the bibliography. The result demonstrates a real
+multi-file dependency rather than a citation only written as prose.
+
+\subsection{Structure numbering}
+\label{sec:project-workflows:numbering}
+
+The Document Structure sidebar displays standard source-level section numbers
+when they can be determined reliably. It observes starred section commands and
+literal section-counter changes, but it intentionally does not pretend to run
+arbitrary TeX macros or custom number-format redefinitions.
+
+The appendix at the end of \texttt{main.tex} demonstrates the common
+\texttt{\textbackslash appendix} transition. In an article, the first appendix
+section appears as \texttt{A}; its child headings appear as \texttt{A.1}.
+
+\subsection{Build diagnostics}
+\label{sec:project-workflows:diagnostics}
+
+When a build fails, select an item in the build log to jump back to the
+reported source line. For a harmless experiment, add an unknown command on a
+new line, build once, inspect the diagnostic, and then undo the edit. Keep
+experiments in this user-owned copy rather than in a valuable production
+project.

@@ -6,6 +6,7 @@ import pathlib
 import tempfile
 import unittest
 
+from setzer.document.magic_comments import parse_magic_comments, resolve_root_filename
 from setzer.example_project.project_store import (
     DEFAULT_PROJECT_NAME,
     ExampleProjectError,
@@ -103,6 +104,39 @@ class ExampleProjectStoreTest(unittest.TestCase):
         self.assertNotIn('\\usepackage{fontspec}', source)
         self.assertTrue((main_document.parent / 'README.md').is_file())
         self.assertEqual(main_document.parent.name, DEFAULT_PROJECT_NAME)
+
+    def test_bundled_project_includes_core_multifile_learning_resources(self):
+        repository_root = pathlib.Path(__file__).resolve().parents[2]
+        project_root = repository_root / 'data' / 'resources' / 'example_project'
+        main_source = (project_root / MAIN_DOCUMENT_FILENAME).read_text(encoding='utf-8')
+
+        self.assertEqual(parse_magic_comments(main_source).program, 'pdflatex')
+        self.assertIn('\\input{chapters/01-getting-started}', main_source)
+        self.assertIn('\\input{chapters/appendix-structure}', main_source)
+        self.assertIn('\\bibliography{references}', main_source)
+        self.assertIn('\\appendix', main_source)
+        self.assertTrue((project_root / 'data' / 'example-table.csv').is_file())
+        self.assertTrue((project_root / 'references.bib').is_file())
+
+        for chapter in (
+                '01-getting-started.tex', '02-writing-and-navigation.tex',
+                '03-project-workflows.tex', '04-tables-and-data.tex',
+                'appendix-structure.tex'):
+            chapter_path = project_root / 'chapters' / chapter
+            source = chapter_path.read_text(encoding='utf-8')
+            self.assertEqual(parse_magic_comments(source).root, '../main.tex')
+            self.assertEqual(
+                resolve_root_filename(str(chapter_path), '../main.tex'),
+                str(project_root / MAIN_DOCUMENT_FILENAME),
+            )
+
+        appendix_source = (project_root / 'chapters' / 'appendix-structure.tex').read_text(
+            encoding='utf-8')
+        self.assertIn('\\setcounter{subsection}{2}', appendix_source)
+        navigation_source = (project_root / 'chapters' / '02-writing-and-navigation.tex').read_text(
+            encoding='utf-8')
+        self.assertIn('\\todo{', navigation_source)
+        self.assertIn('\\subsection{A \\textit{nested} heading title}', navigation_source)
 
     def test_copy_failure_removes_reserved_partial_directory(self):
         store = ExampleProjectStore(str(self.source), str(self.destination))

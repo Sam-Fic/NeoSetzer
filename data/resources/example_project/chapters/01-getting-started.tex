@@ -1,0 +1,48 @@
+% !TEX root = ../main.tex
+
+\section{Getting Started with NeoSetzer}
+\label{sec:getting-started}
+
+This folder is your own copy of the NeoSetzer example project. It is safe to
+edit, save, build, move, or delete: later NeoSetzer updates do not overwrite
+it. Build \texttt{main.tex} first, then keep this document open while you
+explore the source and the PDF preview.
+
+\subsection{Choose a starting point}
+\label{sec:getting-started:starting-point}
+
+The welcome screen offers several paths into a document. Create a blank LaTeX
+file when you want a minimal starting point, or use the \textbf{Document
+Wizard} to choose a document class, packages, title information, and other
+sensible defaults. The wizard also keeps its small configuration presets
+separate from \textbf{user document templates}: a user document template is a
+snapshot of a complete LaTeX source document that can be saved, previewed, and
+used as a starting point later.
+
+This example project is deliberately another starting point. It is useful when
+you prefer to learn by changing a working document rather than assembling every
+piece from scratch.
+
+\subsection{Build a first PDF}
+\label{sec:getting-started:first-build}
+
+The Magic Comment at the beginning of \texttt{main.tex} selects
+\texttt{pdflatex}. NeoSetzer reads this small source-level instruction and
+uses it only when the configured program is supported. The document keeps
+PDFLaTeX as a portable baseline; you can change the configured build system in
+\menu{Preferences} when your project needs XeLaTeX, LuaLaTeX, Tectonic, or
+another available builder.
+
+Use \textbf{Save and Build} after changing one sentence. The default shortcut
+is commonly F5, but keyboard shortcuts are configurable, so the authoritative
+list is \menu{Preferences \textrightarrow{} Keyboard Shortcuts}. The preview
+shows the generated PDF, and the build log identifies errors, warnings, and bad
+boxes with links back to source locations.
+
+\subsection{A small task to try}
+\label{sec:getting-started:task}
+
+Change the title in \texttt{main.tex}, save, and build again. Then open the
+Document Structure sidebar and select this section. It should take you to the
+corresponding source heading. This short loop---edit, build, preview, and
+navigate---is the foundation for the rest of the project.

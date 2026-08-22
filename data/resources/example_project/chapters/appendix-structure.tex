@@ -1,0 +1,25 @@
+% !TEX root = ../main.tex
+
+\section{Appendix Structure Sample}
+\label{sec:appendix-structure}
+
+This appendix is part of the example project so you can inspect how the
+Document Structure sidebar represents the usual article transition from numeric
+sections to alphabetic appendix sections. The heading should be shown as
+\texttt{A}, and the next subsection as \texttt{A.1} when source-level numbering
+is available.
+
+\subsection{A child appendix heading}
+\label{sec:appendix-structure:child}
+
+This subsection deliberately has no special formatting. It is a compact sample
+of a normal child heading under an appendix section.
+
+\setcounter{subsection}{2}
+\subsection{A literal counter change}
+\label{sec:appendix-structure:counter}
+
+The literal \texttt{\textbackslash setcounter\{subsection\}\{2\}} command
+above means this source heading is numbered \texttt{A.3}. NeoSetzer tracks this
+small, explicit counter rule because it is deterministic in source text. More
+complex macro-based numbering remains outside the live outline model.
