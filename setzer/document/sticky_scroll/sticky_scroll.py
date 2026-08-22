@@ -164,12 +164,17 @@ class StickyScroll(Observable):
         self.drawing_area.queue_draw()
 
     def _find_current_sections(self):
-        blocks = self.document.parser.symbols.get('blocks', list())
-        if not blocks:
-            return list(), None
+        return self._find_sections_for_line(self._get_first_visible_line())
 
-        first_visible_line = self._get_first_visible_line()
-        if first_visible_line is None:
+    def _find_sections_for_line(self, first_visible_line):
+        '''Return sticky parent sections and the heading at ``first_visible_line``.
+
+        Navigation needs the same answer before it changes the adjustment, so
+        this calculation is deliberately independent of the current viewport.
+        '''
+
+        blocks = self.document.parser.symbols.get('blocks', list())
+        if not blocks or first_visible_line is None:
             return list(), None
 
         active_sections = dict()
@@ -212,6 +217,19 @@ class StickyScroll(Observable):
                 next_section = None
 
         return result, next_section
+
+    def get_navigation_reserved_height(self, line_number):
+        '''Return the pixel height that sticky parent headers occupy at a line.
+
+        A target heading itself is not counted: when it becomes the first
+        visible line, Sticky Scroll shows only its already-active parents.
+        Returning zero while disabled keeps ordinary top alignment unchanged.
+        '''
+
+        if not self.visible:
+            return 0
+        current_sections, _ = self._find_sections_for_line(line_number)
+        return len(current_sections) * FontManager.get_line_height(self.source_view)
 
     def _is_section_visible(self, block):
         level = _SECTION_LEVELS.get(block[4])

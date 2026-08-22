@@ -64,6 +64,20 @@ class _ScrolledWindow:
     def set_kinetic_scrolling(self, enabled):
         self.calls.append(('kinetic', enabled))
 
+    def get_allocated_height(self):
+        return 700
+
+
+class _StickyScroll:
+
+    def __init__(self, calls, reserved_height):
+        self.calls = calls
+        self.reserved_height = reserved_height
+
+    def get_navigation_reserved_height(self, line_number):
+        self.calls.append(('sticky-height', line_number))
+        return self.reserved_height
+
 
 class _SourceView:
 
@@ -147,8 +161,24 @@ class StructureTopAlignmentTest(unittest.TestCase):
         document.scroll_cursor_to_top()
 
         self.assertEqual(calls, [
+            ('get-iter-at-mark', 'insert-mark'),
             ('kinetic', False),
             ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+        ])
+
+    def test_scroll_cursor_to_top_reserves_actual_sticky_header_height(self):
+        calls = []
+        document = _Document(calls)
+        document.sticky_scroll = _StickyScroll(calls, 56)
+
+        document.scroll_cursor_to_top()
+
+        self.assertEqual(calls, [
+            ('get-iter-at-mark', 'insert-mark'),
+            ('sticky-height', 37),
+            ('kinetic', False),
+            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.08),
             ('kinetic', True),
         ])
 
@@ -192,6 +222,7 @@ class StructureTopAlignmentTest(unittest.TestCase):
         self.assertEqual(calls, [
             ('activate', document),
             ('cursor', 37),
+            ('get-iter-at-mark', 'insert-mark'),
             ('kinetic', False),
             ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.0),
             ('kinetic', True),

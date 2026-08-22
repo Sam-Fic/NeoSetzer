@@ -1135,9 +1135,18 @@ class Document(Observable):
         leaving the selected heading's following content in view.
         '''
 
+        cursor_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        sticky_scroll = getattr(self, 'sticky_scroll', None)
+        reserved_height = 0
+        if sticky_scroll is not None:
+            reserved_height = sticky_scroll.get_navigation_reserved_height(cursor_iter.get_line())
+        viewport_height = self.view.scrolled_window.get_allocated_height()
+        vertical_alignment = (reserved_height / viewport_height
+                              if viewport_height > 0 else 0.0)
+
         self.view.scrolled_window.set_kinetic_scrolling(False)
         self.source_view.scroll_to_mark(
-            self.source_buffer.get_insert(), 0.0, True, 0.0, 0.0)
+            self.source_buffer.get_insert(), 0.0, True, 0.0, vertical_alignment)
         self.view.scrolled_window.set_kinetic_scrolling(True)
 
     def scroll_cursor_to_center(self):
