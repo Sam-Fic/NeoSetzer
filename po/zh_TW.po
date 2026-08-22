@@ -6145,3 +6145,102 @@ msgstr "所選範圍必須位於表格內、至少跨越兩個儲存格，且不
 msgid ""
 "Header repetition was disabled because a first-row merge spans multiple rows."
 msgstr "由於第一列的合併跨越多列，已關閉重複表頭。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:142
+msgid "Import format"
+msgstr "匯入格式"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:143
+msgid "Auto uses TSV when the text contains tabs; otherwise it uses comma CSV"
+msgstr "自動模式會在文字含有定位字元時使用 TSV；否則使用逗號分隔 CSV。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Auto (TSV when tabs are present)"
+msgstr "自動（有定位字元時使用 TSV）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:146
+msgid "TSV (tab-separated)"
+msgstr "TSV（定位字元分隔）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
+msgid "CSV (comma-separated)"
+msgstr "CSV（逗號分隔）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+msgid "CSV (semicolon-separated)"
+msgstr "CSV（分號分隔）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
+msgid "_Paste TSV/CSV"
+msgstr "貼上 TSV/CSV(_P)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Replace the grid with text from the clipboard"
+msgstr "使用剪貼簿中的文字取代網格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+msgid "_Import CSV/TSV File"
+msgstr "匯入 CSV/TSV 檔案(_I)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+msgid "Replace the grid with UTF-8 CSV or TSV data from a file"
+msgstr "使用檔案中的 UTF-8 CSV 或 TSV 資料取代網格"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:101
+msgid "The clipboard is unavailable."
+msgstr "剪貼簿無法使用。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:109
+msgid "Could not read text from the clipboard."
+msgstr "無法從剪貼簿讀取文字。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:112
+msgid "The clipboard does not contain text table data."
+msgstr "剪貼簿不包含文字形式的表格資料。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:118
+msgid "Import CSV/TSV File"
+msgstr "匯入 CSV/TSV 檔案"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:121
+msgid "_Import"
+msgstr "匯入(_I)"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:125
+msgid "CSV and TSV files"
+msgstr "CSV 與 TSV 檔案"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:142
+msgid "No file was selected for table import."
+msgstr "未選取要匯入的表格檔案。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:150
+#: setzer/dialogs/insert_table/insert_table_controller.py:153
+msgid "Could not read the selected table file."
+msgstr "無法讀取所選表格檔案。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:158
+msgid "The selected table file must be UTF-8 encoded."
+msgstr "所選表格檔案必須採用 UTF-8 編碼。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:183
+#, python-brace-format
+msgid "Imported {rows} rows and {columns} columns."
+msgstr "已匯入 {rows} 列和 {columns} 欄。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:186
+#, python-brace-format
+msgid "Cleared {count} merged ranges because imported data replaces the grid."
+msgstr "由於匯入資料會取代網格，已清除 {count} 個合併範圍。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:194
+msgid "Imported data exceeds the maximum of 30 rows and 12 columns."
+msgstr "匯入資料超過 30 列和 12 欄的最大限制。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:196
+msgid "No table data was found in the imported text."
+msgstr "匯入文字中找不到表格資料。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:197
+msgid "The imported TSV/CSV data is invalid."
+msgstr "匯入的 TSV/CSV 資料無效。"

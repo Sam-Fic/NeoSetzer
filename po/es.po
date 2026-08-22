@@ -7029,3 +7029,102 @@ msgstr "El rango seleccionado debe caber en la tabla, abarcar al menos dos celda
 msgid ""
 "Header repetition was disabled because a first-row merge spans multiple rows."
 msgstr "Se desactivó la repetición del encabezado porque una combinación de la primera fila abarca varias filas."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:142
+msgid "Import format"
+msgstr "Formato de importación"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:143
+msgid "Auto uses TSV when the text contains tabs; otherwise it uses comma CSV"
+msgstr "Automático usa TSV cuando el texto contiene tabuladores; en caso contrario usa CSV con comas."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Auto (TSV when tabs are present)"
+msgstr "Automático (TSV si hay tabuladores)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:146
+msgid "TSV (tab-separated)"
+msgstr "TSV (separado por tabuladores)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
+msgid "CSV (comma-separated)"
+msgstr "CSV (separado por comas)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+msgid "CSV (semicolon-separated)"
+msgstr "CSV (separado por punto y coma)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
+msgid "_Paste TSV/CSV"
+msgstr "_Pegar TSV/CSV"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Replace the grid with text from the clipboard"
+msgstr "Reemplazar la cuadrícula con texto del portapapeles"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+msgid "_Import CSV/TSV File"
+msgstr "_Importar archivo CSV/TSV"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+msgid "Replace the grid with UTF-8 CSV or TSV data from a file"
+msgstr "Reemplazar la cuadrícula con datos CSV o TSV UTF-8 de un archivo"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:101
+msgid "The clipboard is unavailable."
+msgstr "El portapapeles no está disponible."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:109
+msgid "Could not read text from the clipboard."
+msgstr "No se pudo leer texto del portapapeles."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:112
+msgid "The clipboard does not contain text table data."
+msgstr "El portapapeles no contiene datos de tabla en texto."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:118
+msgid "Import CSV/TSV File"
+msgstr "Importar archivo CSV/TSV"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:121
+msgid "_Import"
+msgstr "_Importar"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:125
+msgid "CSV and TSV files"
+msgstr "Archivos CSV y TSV"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:142
+msgid "No file was selected for table import."
+msgstr "No se seleccionó ningún archivo para importar la tabla."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:150
+#: setzer/dialogs/insert_table/insert_table_controller.py:153
+msgid "Could not read the selected table file."
+msgstr "No se pudo leer el archivo de tabla seleccionado."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:158
+msgid "The selected table file must be UTF-8 encoded."
+msgstr "El archivo de tabla seleccionado debe estar codificado en UTF-8."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:183
+#, python-brace-format
+msgid "Imported {rows} rows and {columns} columns."
+msgstr "Se importaron {rows} filas y {columns} columnas."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:186
+#, python-brace-format
+msgid "Cleared {count} merged ranges because imported data replaces the grid."
+msgstr "Se eliminaron {count} rangos combinados porque los datos importados reemplazan la cuadrícula."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:194
+msgid "Imported data exceeds the maximum of 30 rows and 12 columns."
+msgstr "Los datos importados superan el máximo de 30 filas y 12 columnas."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:196
+msgid "No table data was found in the imported text."
+msgstr "No se encontraron datos de tabla en el texto importado."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:197
+msgid "The imported TSV/CSV data is invalid."
+msgstr "Los datos TSV/CSV importados no son válidos."

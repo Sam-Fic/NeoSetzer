@@ -20,11 +20,13 @@ import builtins
 import gi
 gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 from setzer.dialogs.insert_table.insert_table_viewgtk import InsertTableView
 from setzer.dialogs.insert_table.table_generator import (
+    TableImportError,
     TableSpec,
+    parse_table_text,
     resize_cells,
     resize_merges,
 )
@@ -43,6 +45,7 @@ class InsertTableController:
         self.document = None
         self.cell_merges = ()
         self._resizing = False
+        self._file_chooser = None
         self._connect_static_signals()
         self._connect_grid_signals()
 
@@ -50,6 +53,8 @@ class InsertTableController:
         self.view.cancel_button.connect('clicked', self._on_cancel)
         self.view.copy_button.connect('clicked', self._on_copy)
         self.view.insert_button.connect('clicked', self._on_insert)
+        self.view.paste_data_button.connect('clicked', self._on_paste_data)
+        self.view.import_file_button.connect('clicked', self._on_import_file)
         self.view.rows_row.connect('notify::value', self._on_size_changed)
         self.view.columns_row.connect('notify::value', self._on_size_changed)
         self.view.add_merge_button.connect('clicked', self._on_add_merge)
@@ -89,6 +94,107 @@ class InsertTableController:
     def _on_cancel(self, button):
         self.view.close()
         self._restore_editor_focus()
+
+    def _on_paste_data(self, button):
+        display = Gdk.Display.get_default()
+        if display is None:
+            self.view.set_import_status(_('The clipboard is unavailable.'), is_error=True)
+            return
+        display.get_clipboard().read_text_async(None, self._on_clipboard_text_ready)
+
+    def _on_clipboard_text_ready(self, clipboard, result):
+        try:
+            text = clipboard.read_text_finish(result)
+        except GLib.Error:
+            self.view.set_import_status(_('Could not read text from the clipboard.'), is_error=True)
+            return
+        if text is None:
+            self.view.set_import_status(_('The clipboard does not contain text table data.'), is_error=True)
+            return
+        self._apply_import_text(text)
+
+    def _on_import_file(self, button):
+        chooser = Gtk.FileChooserNative.new(
+            _('Import CSV/TSV File'),
+            self.main_window,
+            Gtk.FileChooserAction.OPEN,
+            _('_Import'),
+            _('_Cancel'),
+        )
+        filter = Gtk.FileFilter()
+        filter.set_name(_('CSV and TSV files'))
+        filter.add_pattern('*.csv')
+        filter.add_pattern('*.tsv')
+        filter.add_pattern('*.txt')
+        chooser.add_filter(filter)
+        chooser.connect('response', self._on_import_file_response)
+        self._file_chooser = chooser
+        chooser.show()
+
+    def _on_import_file_response(self, chooser, response):
+        self._file_chooser = None
+        if response != Gtk.ResponseType.ACCEPT:
+            chooser.destroy()
+            return
+        file = chooser.get_file()
+        chooser.destroy()
+        if file is None:
+            self.view.set_import_status(_('No file was selected for table import.'), is_error=True)
+            return
+        file.load_contents_async(None, self._on_import_file_contents_ready)
+
+    def _on_import_file_contents_ready(self, file, result):
+        try:
+            success, contents, etag = file.load_contents_finish(result)
+        except GLib.Error:
+            self.view.set_import_status(_('Could not read the selected table file.'), is_error=True)
+            return
+        if not success:
+            self.view.set_import_status(_('Could not read the selected table file.'), is_error=True)
+            return
+        try:
+            text = contents.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            self.view.set_import_status(_('The selected table file must be UTF-8 encoded.'), is_error=True)
+            return
+        self._apply_import_text(text)
+
+    def _apply_import_text(self, text):
+        '''Replace the editable grid only after a complete parse has succeeded.'''
+
+        try:
+            imported = parse_table_text(text, self.view.get_import_format())
+        except TableImportError as error:
+            self.view.set_import_status(self._import_error_message(error), is_error=True)
+            return False
+
+        removed_merges = len(self.cell_merges)
+        self._resizing = True
+        self.view.rows_row.set_value(imported.rows)
+        self.view.columns_row.set_value(imported.columns)
+        self.view.set_cells(imported.cells, imported.rows, imported.columns)
+        self.view.set_merge_limits(imported.rows, imported.columns)
+        self.cell_merges = ()
+        self._resizing = False
+        self._connect_grid_signals()
+        self._sync_merge_view()
+        self.view.set_environment_sensitive()
+        self._refresh_preview()
+        message = _('Imported {rows} rows and {columns} columns.').format(
+            rows=imported.rows, columns=imported.columns)
+        if removed_merges:
+            message += ' ' + _('Cleared {count} merged ranges because imported data replaces the grid.').format(
+                count=removed_merges)
+        self.view.set_import_status(message)
+        return True
+
+    def _import_error_message(self, error):
+        message = str(error)
+        if message.startswith('Imported table dimensions'):
+            return _('Imported data exceeds the maximum of 30 rows and 12 columns.')
+        if message == 'No table data was found':
+            return _('No table data was found in the imported text.')
+        return _('The imported TSV/CSV data is invalid.')
 
     def _on_size_changed(self, row, pspec):
         if self._resizing:

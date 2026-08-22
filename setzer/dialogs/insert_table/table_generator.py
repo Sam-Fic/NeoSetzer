@@ -22,6 +22,8 @@ renderer can therefore be tested in headless Meson runs and reused by a future
 TSV/CSV import enhancement without coupling table semantics to widgets.
 '''
 
+import csv
+import io
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -39,6 +41,30 @@ ENVIRONMENT_TABULAR = 'tabular'
 ENVIRONMENT_LONGTABLE = 'longtable'
 ENVIRONMENTS = (ENVIRONMENT_TABULAR, ENVIRONMENT_LONGTABLE)
 PLACEMENTS = ('htbp', 'ht', 'h', 't', 'b', 'p', 'H', 'h!')
+IMPORT_FORMAT_AUTO = 'auto'
+IMPORT_FORMAT_TSV = 'tsv'
+IMPORT_FORMAT_CSV_COMMA = 'csv-comma'
+IMPORT_FORMAT_CSV_SEMICOLON = 'csv-semicolon'
+IMPORT_FORMATS = (
+    IMPORT_FORMAT_AUTO,
+    IMPORT_FORMAT_TSV,
+    IMPORT_FORMAT_CSV_COMMA,
+    IMPORT_FORMAT_CSV_SEMICOLON,
+)
+
+
+class TableImportError(ValueError):
+    '''Raised when pasted or imported delimited text cannot form a table.'''
+
+
+@dataclass(frozen=True)
+class ImportedTableData:
+    '''Normalized table data accepted by the insert-table dialog.'''
+
+    cells: tuple[tuple[str, ...], ...]
+    rows: int
+    columns: int
+    format_name: str
 
 
 @dataclass(frozen=True, order=True)
@@ -77,6 +103,52 @@ class CellMerge:
     def overlaps(self, other: 'CellMerge') -> bool:
         return (self.row < other.end_row and other.row < self.end_row
                 and self.column < other.end_column and other.column < self.end_column)
+
+
+def parse_table_text(text: str, format_name: str = IMPORT_FORMAT_AUTO) -> ImportedTableData:
+    '''Parse UTF-8 TSV or CSV text into a bounded rectangular cell matrix.
+
+    The parser intentionally accepts only four explicit formats. Auto prefers
+    TSV whenever a tab appears, otherwise it uses comma CSV. This keeps
+    spreadsheet pastes predictable and avoids broad delimiter guessing.
+    '''
+
+    if not isinstance(text, str):
+        raise TableImportError('Table import data must be text')
+    if format_name not in IMPORT_FORMATS:
+        raise TableImportError(f'Unknown table import format: {format_name}')
+
+    selected_format = format_name
+    if selected_format == IMPORT_FORMAT_AUTO:
+        selected_format = IMPORT_FORMAT_TSV if '\t' in text else IMPORT_FORMAT_CSV_COMMA
+    delimiter = {
+        IMPORT_FORMAT_TSV: '\t',
+        IMPORT_FORMAT_CSV_COMMA: ',',
+        IMPORT_FORMAT_CSV_SEMICOLON: ';',
+    }[selected_format]
+
+    try:
+        rows = list(csv.reader(io.StringIO(text, newline=''), delimiter=delimiter, strict=True))
+    except csv.Error as error:
+        raise TableImportError('The delimited table data is invalid') from error
+
+    while rows and not any(rows[-1]):
+        rows.pop()
+    if not rows:
+        raise TableImportError('No table data was found')
+
+    columns = max(len(row) for row in rows)
+    if columns < MIN_COLUMNS:
+        raise TableImportError('No table columns were found')
+    if len(rows) > MAX_ROWS or columns > MAX_COLUMNS:
+        raise TableImportError(
+            f'Imported table dimensions must not exceed {MAX_ROWS} rows and {MAX_COLUMNS} columns')
+
+    normalized_cells = tuple(
+        tuple(row[column] if column < len(row) else '' for column in range(columns))
+        for row in rows
+    )
+    return ImportedTableData(normalized_cells, len(normalized_cells), columns, selected_format)
 
 
 def resize_cells(cells: Sequence[Sequence[str]], rows: int, columns: int) -> tuple[tuple[str, ...], ...]:

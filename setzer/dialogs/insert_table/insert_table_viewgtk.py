@@ -26,6 +26,10 @@ from setzer.dialogs.insert_table.table_generator import (
     CellMerge,
     ENVIRONMENT_LONGTABLE,
     ENVIRONMENT_TABULAR,
+    IMPORT_FORMAT_AUTO,
+    IMPORT_FORMAT_CSV_COMMA,
+    IMPORT_FORMAT_CSV_SEMICOLON,
+    IMPORT_FORMAT_TSV,
     MAX_CELL_MERGES,
     MAX_COLUMNS,
     MAX_ROWS,
@@ -50,6 +54,12 @@ class InsertTableView(DialogView):
     ENVIRONMENT_OPTIONS = (
         (ENVIRONMENT_TABULAR, 'Standard table'),
         (ENVIRONMENT_LONGTABLE, 'Long table (multiple pages)'),
+    )
+    IMPORT_OPTIONS = (
+        (IMPORT_FORMAT_AUTO, 'Auto (TSV when tabs are present)'),
+        (IMPORT_FORMAT_TSV, 'TSV (tab-separated)'),
+        (IMPORT_FORMAT_CSV_COMMA, 'CSV (comma-separated)'),
+        (IMPORT_FORMAT_CSV_SEMICOLON, 'CSV (semicolon-separated)'),
     )
     PLACEMENT_OPTIONS = (
         ('htbp', 'htbp (here, top, bottom, page) — default'),
@@ -128,6 +138,29 @@ class InsertTableView(DialogView):
         self.cell_grid.set_margin_end(8)
         self.grid_scrolled.set_child(self.cell_grid)
         data_group.add(self.grid_scrolled)
+        self.import_format_row = Adw.ComboRow()
+        self.import_format_row.set_title(_('Import format'))
+        self.import_format_row.set_subtitle(_('Auto uses TSV when the text contains tabs; otherwise it uses comma CSV'))
+        self.import_format_row.set_model(Gtk.StringList.new([
+            _('Auto (TSV when tabs are present)'),
+            _('TSV (tab-separated)'),
+            _('CSV (comma-separated)'),
+            _('CSV (semicolon-separated)'),
+        ]))
+        data_group.add(self.import_format_row)
+        import_actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.paste_data_button = Gtk.Button.new_with_mnemonic(_('_Paste TSV/CSV'))
+        self.paste_data_button.set_tooltip_text(_('Replace the grid with text from the clipboard'))
+        import_actions.append(self.paste_data_button)
+        self.import_file_button = Gtk.Button.new_with_mnemonic(_('_Import CSV/TSV File'))
+        self.import_file_button.set_tooltip_text(_('Replace the grid with UTF-8 CSV or TSV data from a file'))
+        import_actions.append(self.import_file_button)
+        data_group.add(import_actions)
+        self.import_status = Gtk.Label()
+        self.import_status.set_halign(Gtk.Align.START)
+        self.import_status.set_wrap(True)
+        self.import_status.add_css_class('dim-label')
+        data_group.add(self.import_status)
         content.append(data_group)
 
         self.columns_group = Adw.PreferencesGroup()
@@ -276,6 +309,8 @@ class InsertTableView(DialogView):
         self.center_switch.set_active(True)
         self.caption_row.set_text('')
         self.label_row.set_text('tab:')
+        self.import_format_row.set_selected(0)
+        self.set_import_status()
         self.set_cells((), 3, 3)
         self.set_merge_limits(3, 3)
         self.set_cell_merges(())
@@ -401,6 +436,19 @@ class InsertTableView(DialogView):
                 else:
                     entry.set_tooltip_text(_('Row {row}, column {column}').format(
                         row=row_index + 1, column=column_index + 1))
+
+    def get_import_format(self):
+        return self.IMPORT_OPTIONS[self.import_format_row.get_selected()][0]
+
+    def set_import_status(self, message='', is_error=False):
+        self.import_status.set_text(message)
+        self.import_status.set_visible(bool(message))
+        if is_error:
+            self.import_status.remove_css_class('dim-label')
+            self.import_status.add_css_class('error')
+        else:
+            self.import_status.remove_css_class('error')
+            self.import_status.add_css_class('dim-label')
 
     def get_cells(self):
         return tuple(tuple(entry.get_text() for entry in row) for row in self.cell_entries)

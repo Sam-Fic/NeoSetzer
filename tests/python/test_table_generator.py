@@ -7,6 +7,10 @@ from pathlib import Path
 import unittest
 
 from setzer.dialogs.insert_table.table_generator import (
+    IMPORT_FORMAT_AUTO,
+    IMPORT_FORMAT_CSV_COMMA,
+    IMPORT_FORMAT_CSV_SEMICOLON,
+    IMPORT_FORMAT_TSV,
     MAX_COLUMNS,
     CellMerge,
     ENVIRONMENT_LONGTABLE,
@@ -14,7 +18,9 @@ from setzer.dialogs.insert_table.table_generator import (
     MAX_ROWS,
     STYLE_BOOKTABS,
     STYLE_PLAIN,
+    TableImportError,
     TableSpec,
+    parse_table_text,
     resize_cells,
     resize_merges,
 )
@@ -33,6 +39,49 @@ def _method_calls(path, class_name, method_name):
 
 
 class TableGeneratorTest(unittest.TestCase):
+
+    def test_import_auto_prefers_tsv_and_normalizes_ragged_rows(self):
+        imported = parse_table_text('Header A\tHeader B\nOne\tTwo\nThree\n', IMPORT_FORMAT_AUTO)
+
+        self.assertEqual(imported.format_name, IMPORT_FORMAT_TSV)
+        self.assertEqual(imported.rows, 3)
+        self.assertEqual(imported.columns, 2)
+        self.assertEqual(imported.cells, (
+            ('Header A', 'Header B'),
+            ('One', 'Two'),
+            ('Three', ''),
+        ))
+
+    def test_import_csv_preserves_quotes_commas_and_embedded_newlines(self):
+        imported = parse_table_text(
+            'Name,Notes\n"Ada, Lovelace","First line\nSecond ""quoted"" line"\n',
+            IMPORT_FORMAT_CSV_COMMA,
+        )
+
+        self.assertEqual(imported.cells, (
+            ('Name', 'Notes'),
+            ('Ada, Lovelace', 'First line\nSecond "quoted" line'),
+        ))
+        self.assertEqual(imported.format_name, IMPORT_FORMAT_CSV_COMMA)
+
+    def test_import_supports_explicit_semicolon_and_trims_only_trailing_blank_records(self):
+        imported = parse_table_text('A;B\n;\n\n', IMPORT_FORMAT_CSV_SEMICOLON)
+
+        self.assertEqual(imported.cells, (('A', 'B'),))
+        self.assertEqual(imported.rows, 1)
+        self.assertEqual(imported.columns, 2)
+
+    def test_import_rejects_empty_invalid_and_oversized_data(self):
+        with self.assertRaises(TableImportError):
+            parse_table_text('')
+        with self.assertRaises(TableImportError):
+            parse_table_text('"unterminated', IMPORT_FORMAT_CSV_COMMA)
+        with self.assertRaises(TableImportError):
+            parse_table_text('\n'.join('a' for index in range(MAX_ROWS + 1)))
+        with self.assertRaises(TableImportError):
+            parse_table_text('\t'.join(str(index) for index in range(MAX_COLUMNS + 1)), IMPORT_FORMAT_TSV)
+        with self.assertRaises(TableImportError):
+            parse_table_text('A,B', 'spreadsheet')
 
     def test_resize_cells_preserves_overlapping_values(self):
         cells = resize_cells((('A', 'B'), ('C', 'D')), 3, 3)
@@ -308,6 +357,9 @@ class TableGeneratorTest(unittest.TestCase):
         table_controller_source = Path(
             os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_controller.py')).read_text(encoding='utf-8')
         self.assertIn("self.view.copy_button.connect('clicked', self._on_copy)", table_controller_source)
+        self.assertIn('parse_table_text', table_controller_source)
+        self.assertIn("self.view.paste_data_button.connect('clicked', self._on_paste_data)", table_controller_source)
+        self.assertIn("self.view.import_file_button.connect('clicked', self._on_import_file)", table_controller_source)
         self.assertIn("self.view.add_merge_button.connect('clicked', self._on_add_merge)", table_controller_source)
         self.assertIn('self.cell_merges = resize_merges(self.cell_merges, rows, columns)', table_controller_source)
         self.assertIn('cell_merges=self.cell_merges if cell_merges is None else cell_merges', table_controller_source)
@@ -315,6 +367,8 @@ class TableGeneratorTest(unittest.TestCase):
         table_view_source = Path(
             os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_viewgtk.py')).read_text(encoding='utf-8')
         self.assertIn("self.merges_group.set_title(_('Merge Cells'))", table_view_source)
+        self.assertIn("self.paste_data_button = Gtk.Button.new_with_mnemonic(_('_Paste TSV/CSV'))", table_view_source)
+        self.assertIn("self.import_file_button = Gtk.Button.new_with_mnemonic(_('_Import CSV/TSV File'))", table_view_source)
         self.assertIn('def set_merge_coverage(self, merges):', table_view_source)
         self.assertIn("entry.set_sensitive(not covered)", table_view_source)
 
