@@ -3,7 +3,7 @@
 
 import unittest
 
-from setzer.command_palette.catalog import CommandCatalog, CommandDescriptor, normalize, search
+from setzer.command_palette.catalog import COMMANDS, CommandCatalog, CommandDescriptor, normalize, search
 
 
 class FakeAction:
@@ -57,6 +57,13 @@ class CommandPaletteCatalogTest(unittest.TestCase):
     def test_execute_activates_enabled_action_without_parameter(self):
         self.assertTrue(self.catalog.execute(self.build))
         self.assertEqual(self.fake_build.activations, [None])
+
+    def test_global_catalog_includes_searchable_insert_table_command(self):
+        table_command = next(command for command in COMMANDS if command.identifier == 'insert-table')
+        self.assertEqual(table_command.action_name, 'insert-table-dialog')
+        self.assertEqual(table_command.category, 'LaTeX')
+        self.assertEqual(search((table_command,), 'booktabs'), [table_command])
+        self.assertEqual(search((table_command,), 'tabular'), [table_command])
 
     def test_execute_refuses_disabled_action(self):
         self.assertFalse(self.catalog.execute(self.preferences))

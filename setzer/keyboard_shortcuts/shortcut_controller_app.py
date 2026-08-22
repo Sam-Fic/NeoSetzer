@@ -94,6 +94,7 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('fullscreen', shortcuts.get('fullscreen', 'F11'), self.actions.actions['toggle-fullscreen'].activate)
         self._register_configurable('show_preferences_dialog', shortcuts.get('show_preferences_dialog', '<Control>comma'), self.actions.show_preferences_dialog)
         self._register_configurable('show_about_dialog', shortcuts.get('show_about_dialog', ''), self.actions.show_about_dialog)
+        self._register_configurable('insert_table_dialog', shortcuts.get('insert_table_dialog', ''), self.actions.start_insert_table_dialog)
         self._register_configurable('close_all_documents', shortcuts.get('close_all_documents', '<Control><Shift>w'), self.actions.close_all)
         self._register_configurable('restore_session', shortcuts.get('restore_session', '<Control><Shift>j'), lambda: self.main_window.activate_action('restore-session'))
 

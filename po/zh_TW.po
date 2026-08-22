@@ -831,12 +831,12 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page.py:149
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:165
 msgid "Left"
-msgstr "左"
+msgstr "靠左"
 
 #: setzer/dialogs/document_wizard/pages/page.py:150
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:166
 msgid "Right"
-msgstr "右"
+msgstr "靠右"
 
 #: setzer/dialogs/document_wizard/pages/page.py:151
 msgid "Top"
@@ -5911,3 +5911,128 @@ msgstr "變更後的 PDF 尚未就緒；正在顯示上一個版本"
 #: setzer/document/preview/preview_viewgtk.py:221
 msgid "Try Again"
 msgstr "再試一次"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:64
+#: setzer/command_palette/catalog.py:94
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:170
+msgid "Insert Table"
+msgstr "插入表格"
+
+#: setzer/popovers/shortcutsbar/object_menu.py:32
+msgid "Table"
+msgstr "表格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:88
+msgid "Table Size"
+msgstr "表格大小"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:90
+msgid "Rows"
+msgstr "列"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:91
+msgid "Number of table rows"
+msgstr "表格列數"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:96
+msgid "Columns"
+msgstr "欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:97
+msgid "Number of table columns"
+msgstr "表格欄數"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:104
+msgid "Table Data"
+msgstr "表格資料"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:105
+msgid ""
+"Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
+msgstr "以 LaTeX 輸入儲存格內容。使用 Tab 與 Shift+Tab 在儲存格之間移動。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
+msgid "Column Alignment"
+msgstr "欄對齊"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:130
+msgid "Rule style"
+msgstr "規則線樣式"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:131
+msgid "Plain rules use \\hline; Booktabs uses professional horizontal rules"
+msgstr "一般規則線使用 \\hline；Booktabs 使用專業橫線。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:133
+msgid "Plain rules"
+msgstr "一般規則線"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:134
+msgid "Booktabs"
+msgstr "Booktabs"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Use first row as header"
+msgstr "將第一列作為表頭"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid "Add a separating rule below the first row with Booktabs"
+msgstr "使用 Booktabs 在第一列下方加入分隔線"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Table Environment"
+msgstr "table 環境"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
+msgid "Use table environment"
+msgstr "使用 table 環境"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+msgid "Wrap tabular in a floating table with caption and label support"
+msgstr "將 tabular 包裝在支援題注與標籤的浮動 table 環境中"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:154
+msgid "htbp (here, top, bottom, page) — default"
+msgstr "htbp（此處、頂端、底部、獨立頁面）— 預設"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+msgid "ht (here, top)"
+msgstr "ht（此處、頂端）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:160
+msgid "H (forced in place; needs float package)"
+msgstr "H（強制於此處；需要 float 套件）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "h! (here, override restrictions)"
+msgstr "h!（此處，忽略限制）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Center the table"
+msgstr "將表格置中"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:174
+msgid "Text displayed above the table; leave empty to omit it"
+msgstr "顯示在表格上方的文字；留空則省略"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:178
+msgid "Identifier used with \\ref to cross-reference this table"
+msgstr "用於透過 \\ref 交叉參照此表格的識別碼"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:184
+msgid "LaTeX Preview"
+msgstr "LaTeX 預覽"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:247
+#, python-brace-format
+msgid "Row {row}, column {column}"
+msgstr "第 {row} 列、第 {column} 欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:269
+#, python-brace-format
+msgid "Column {column}"
+msgstr "第 {column} 欄"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
+msgid "Center"
+msgstr "置中"

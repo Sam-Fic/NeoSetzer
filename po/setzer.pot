@@ -7000,3 +7000,128 @@ msgstr ""
 #: setzer/document/preview/preview_viewgtk.py:221
 msgid "Try Again"
 msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:64
+#: setzer/command_palette/catalog.py:94
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:170
+msgid "Insert Table"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:88
+msgid "Table Size"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:90
+msgid "Rows"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:91
+msgid "Number of table rows"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:96
+msgid "Columns"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:97
+msgid "Number of table columns"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:104
+msgid "Table Data"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:105
+msgid ""
+"Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
+msgid "Column Alignment"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:130
+msgid "Rule style"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:131
+msgid "Plain rules use \\hline; Booktabs uses professional horizontal rules"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:133
+msgid "Plain rules"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:134
+msgid "Booktabs"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Use first row as header"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid "Add a separating rule below the first row with Booktabs"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Table Environment"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
+msgid "Use table environment"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+msgid "Wrap tabular in a floating table with caption and label support"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:154
+msgid "htbp (here, top, bottom, page) — default"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+msgid "ht (here, top)"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:160
+msgid "H (forced in place; needs float package)"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "h! (here, override restrictions)"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Center the table"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:174
+msgid "Text displayed above the table; leave empty to omit it"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:178
+msgid "Identifier used with \\ref to cross-reference this table"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:184
+msgid "LaTeX Preview"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:247
+#, python-brace-format
+msgid "Row {row}, column {column}"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
+msgid "Center"
+msgstr ""
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:269
+#, python-brace-format
+msgid "Column {column}"
+msgstr ""
+
+#: setzer/popovers/shortcutsbar/object_menu.py:32
+msgid "Table"
+msgstr ""

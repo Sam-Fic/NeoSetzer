@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+import ast
+import os
+from pathlib import Path
+import unittest
+
+from setzer.dialogs.insert_table.table_generator import (
+    MAX_COLUMNS,
+    MAX_ROWS,
+    STYLE_BOOKTABS,
+    STYLE_PLAIN,
+    TableSpec,
+    resize_cells,
+)
+
+
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+
+def _method_calls(path, class_name, method_name):
+    tree = ast.parse(Path(path).read_text(encoding='utf-8'))
+    class_node = next(node for node in tree.body
+                      if isinstance(node, ast.ClassDef) and node.name == class_name)
+    method = next(node for node in class_node.body
+                  if isinstance(node, ast.FunctionDef) and node.name == method_name)
+    return [node for node in ast.walk(method) if isinstance(node, ast.Call)]
+
+
+class TableGeneratorTest(unittest.TestCase):
+
+    def test_resize_cells_preserves_overlapping_values(self):
+        cells = resize_cells((('A', 'B'), ('C', 'D')), 3, 3)
+        self.assertEqual(cells, (
+            ('A', 'B', ''),
+            ('C', 'D', ''),
+            ('', '', ''),
+        ))
+        self.assertEqual(resize_cells(cells, 1, 2), (('A', 'B'),))
+
+    def test_default_spec_uses_left_then_centered_column_alignment(self):
+        spec = TableSpec()
+        self.assertEqual(spec.cells, (('', '', ''), ('', '', ''), ('', '', '')))
+        self.assertEqual(spec.alignments, ('l', 'c', 'c'))
+        self.assertEqual(spec.column_specification, 'lcc')
+
+    def test_plain_table_with_metadata_renders_editable_latex(self):
+        spec = TableSpec(
+            rows=2,
+            columns=2,
+            cells=(('Method', 'Score'), ('Proposed', '$94.6\\%$')),
+            alignments=('l', 'r'),
+            caption='Results',
+            label='tab:results',
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{table}[htbp]',
+            '\\centering',
+            '\\caption{Results}',
+            '\\label{tab:results}',
+            '\\begin{tabular}{lr}',
+            '\\hline',
+            r'Method & Score \\',
+            '\\hline',
+            r'Proposed & $94.6\%$ \\',
+            '\\hline',
+            '\\end{tabular}',
+            '\\end{table}',
+        )))
+        self.assertEqual(spec.required_packages, ())
+
+    def test_booktabs_table_adds_only_header_midrule_and_package(self):
+        spec = TableSpec(
+            rows=3,
+            columns=2,
+            cells=(('Method', 'Score'), ('Baseline', '91.2\\%'), ('Proposed', '94.6\\%')),
+            style=STYLE_BOOKTABS,
+            header_row=True,
+            use_table_environment=False,
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{tabular}{lc}',
+            '\\toprule',
+            r'Method & Score \\',
+            '\\midrule',
+            r'Baseline & 91.2\% \\',
+            r'Proposed & 94.6\% \\',
+            '\\bottomrule',
+            '\\end{tabular}',
+        )))
+        self.assertEqual(spec.required_packages, ('booktabs',))
+
+    def test_forced_h_table_requests_float_package(self):
+        forced_table = TableSpec(rows=1, columns=1, placement='H')
+        forced_booktabs_table = TableSpec(rows=1, columns=1, placement='H', style=STYLE_BOOKTABS)
+        bare_tabular = TableSpec(rows=1, columns=1, placement='H', use_table_environment=False)
+
+        self.assertEqual(forced_table.required_packages, ('float',))
+        self.assertEqual(forced_booktabs_table.required_packages, ('booktabs', 'float'))
+        self.assertEqual(bare_tabular.required_packages, ())
+
+    def test_booktabs_without_header_does_not_add_midrule(self):
+        spec = TableSpec(
+            rows=2,
+            columns=1,
+            cells=(('First',), ('Second',)),
+            style=STYLE_BOOKTABS,
+            header_row=False,
+            use_table_environment=False,
+        )
+        self.assertNotIn('\\midrule', spec.render())
+
+    def test_empty_caption_and_label_are_omitted(self):
+        spec = TableSpec(rows=1, columns=1, caption='  ', label='  ')
+        rendered = spec.render()
+        self.assertNotIn('\\caption', rendered)
+        self.assertNotIn('\\label', rendered)
+
+    def test_invalid_dimensions_style_placement_and_alignment_are_rejected(self):
+        with self.assertRaises(ValueError):
+            TableSpec(rows=0)
+        with self.assertRaises(ValueError):
+            TableSpec(rows=MAX_ROWS + 1)
+        with self.assertRaises(ValueError):
+            TableSpec(columns=MAX_COLUMNS + 1)
+        with self.assertRaises(ValueError):
+            TableSpec(style='grid')
+        with self.assertRaises(ValueError):
+            TableSpec(placement='x')
+        with self.assertRaises(ValueError):
+            TableSpec(columns=2, alignments=('l',))
+        with self.assertRaises(ValueError):
+            TableSpec(alignments=('p', 'c', 'c'))
+
+    def test_editor_integration_uses_one_table_dialog_action(self):
+        actions_path = os.path.join(REPO, 'setzer/workspace/actions/actions.py')
+        source = Path(actions_path).read_text(encoding='utf-8')
+        self.assertIn("self.add_action('insert-table-dialog', self.start_insert_table_dialog, None)", source)
+        self.assertIn("self.actions['insert-table-dialog'].set_enabled(document_active_is_latex)", source)
+        start_calls = _method_calls(actions_path, 'Actions', 'start_insert_table_dialog')
+        self.assertTrue(any(
+            isinstance(call.func, ast.Attribute) and call.func.attr == 'open'
+            and any(isinstance(argument, ast.Constant) and argument.value == 'insert_table'
+                    for argument in ast.walk(call))
+            for call in start_calls
+        ))
+
+        locator_source = Path(
+            os.path.join(REPO, 'setzer/dialogs/dialog_locator.py')).read_text(encoding='utf-8')
+        self.assertIn("dialogs['insert_table'] = InsertTableController(main_window)", locator_source)
+        menu_source = Path(
+            os.path.join(REPO, 'setzer/popovers/shortcutsbar/object_menu.py')).read_text(encoding='utf-8')
+        self.assertIn("self.add_action_button('main', _('Table'), 'win.insert-table-dialog')", menu_source)
+        shortcut_source = Path(
+            os.path.join(REPO, 'setzer/keyboard_shortcuts/shortcut_controller_app.py')).read_text(encoding='utf-8')
+        self.assertIn("self._register_configurable('insert_table_dialog'", shortcut_source)
+
+    def test_plain_style_constant_is_the_default(self):
+        self.assertEqual(TableSpec().style, STYLE_PLAIN)
+
+
+if __name__ == '__main__':
+    unittest.main()

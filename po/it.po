@@ -6962,3 +6962,128 @@ msgstr "Il PDF modificato non è ancora pronto; viene mostrata la versione prece
 #: setzer/document/preview/preview_viewgtk.py:221
 msgid "Try Again"
 msgstr "Riprova"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:64
+#: setzer/command_palette/catalog.py:94
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:170
+msgid "Insert Table"
+msgstr "Inserisci tabella"
+
+#: setzer/popovers/shortcutsbar/object_menu.py:32
+msgid "Table"
+msgstr "Tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:88
+msgid "Table Size"
+msgstr "Dimensioni della tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:90
+msgid "Rows"
+msgstr "Righe"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:91
+msgid "Number of table rows"
+msgstr "Numero di righe della tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:96
+msgid "Columns"
+msgstr "Colonne"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:97
+msgid "Number of table columns"
+msgstr "Numero di colonne della tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:104
+msgid "Table Data"
+msgstr "Dati della tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:105
+msgid ""
+"Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
+msgstr "Inserisci il contenuto delle celle come LaTeX. Usa Tab e Maiusc+Tab per spostarti tra le celle."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
+msgid "Column Alignment"
+msgstr "Allineamento delle colonne"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:130
+msgid "Rule style"
+msgstr "Stile delle linee"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:131
+msgid "Plain rules use \\hline; Booktabs uses professional horizontal rules"
+msgstr "Le linee semplici usano \\hline; Booktabs usa regole orizzontali professionali."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:133
+msgid "Plain rules"
+msgstr "Linee semplici"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:134
+msgid "Booktabs"
+msgstr "Booktabs"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:138
+msgid "Use first row as header"
+msgstr "Usa la prima riga come intestazione"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:139
+msgid "Add a separating rule below the first row with Booktabs"
+msgstr "Aggiungi una linea di separazione sotto la prima riga con Booktabs"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+msgid "Table Environment"
+msgstr "Ambiente table"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
+msgid "Use table environment"
+msgstr "Usa l’ambiente table"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+msgid "Wrap tabular in a floating table with caption and label support"
+msgstr "Racchiudi tabular in una tabella flottante con supporto per didascalia ed etichetta"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:154
+msgid "htbp (here, top, bottom, page) — default"
+msgstr "htbp (qui, in alto, in basso, pagina) — predefinito"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+msgid "ht (here, top)"
+msgstr "ht (qui, in alto)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:160
+msgid "H (forced in place; needs float package)"
+msgstr "H (forzato in posizione; richiede il pacchetto float)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "h! (here, override restrictions)"
+msgstr "h! (qui, ignora le restrizioni)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Center the table"
+msgstr "Centra la tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:174
+msgid "Text displayed above the table; leave empty to omit it"
+msgstr "Testo visualizzato sopra la tabella; lascia vuoto per ometterlo"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:178
+msgid "Identifier used with \\ref to cross-reference this table"
+msgstr "Identificatore usato con \\ref per fare riferimento incrociato a questa tabella"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:184
+msgid "LaTeX Preview"
+msgstr "Anteprima LaTeX"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:247
+#, python-brace-format
+msgid "Row {row}, column {column}"
+msgstr "Riga {row}, colonna {column}"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:269
+#, python-brace-format
+msgid "Column {column}"
+msgstr "Colonna {column}"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
+msgid "Center"
+msgstr "Centro"

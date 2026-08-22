@@ -74,6 +74,10 @@
 ./setzer/dialogs/insert_image/__init__.py
 ./setzer/dialogs/insert_image/insert_image_controller.py
 ./setzer/dialogs/insert_image/insert_image_viewgtk.py
+./setzer/dialogs/insert_table/__init__.py
+./setzer/dialogs/insert_table/insert_table_controller.py
+./setzer/dialogs/insert_table/insert_table_viewgtk.py
+./setzer/dialogs/insert_table/table_generator.py
 ./setzer/dialogs/interpreter_missing/__init__.py
 ./setzer/dialogs/interpreter_missing/interpreter_missing.py
 ./setzer/dialogs/keyboard_shortcuts/__init__.py

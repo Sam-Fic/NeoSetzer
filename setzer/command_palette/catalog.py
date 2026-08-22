@@ -91,6 +91,7 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('include-bibtex', _('Include BibTeX File'), _('LaTeX'), 'include-bibtex-file', ('bibliography', 'bib')),
     CommandDescriptor('include-latex', _('Include LaTeX File'), _('LaTeX'), 'include-latex-file', ('input', 'include', 'tex')),
     CommandDescriptor('insert-image', _('Insert Image'), _('LaTeX'), 'insert-image-dialog', ('figure', 'graphic', 'image')),
+    CommandDescriptor('insert-table', _('Insert Table'), _('LaTeX'), 'insert-table-dialog', ('table', 'tabular', 'booktabs')),
     CommandDescriptor('fold-all', _('Fold All'), _('View'), 'fold-all', ('collapse', 'sections')),
     CommandDescriptor('unfold-all', _('Unfold All'), _('View'), 'unfold-all', ('expand', 'sections')),
     CommandDescriptor('zoom-in', _('Zoom In'), _('View'), 'zoom-in', ('font', 'increase')),
