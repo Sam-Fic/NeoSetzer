@@ -1194,8 +1194,9 @@ msgid "Address"
 msgstr "地址"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "您的街道地址或郵政信箱。"
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "您的街道地址或郵政信箱。請將每一行地址單獨換行輸入。"
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1215,8 +1216,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "您致信的個人或組織名稱。"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "收件人的街道地址或郵政信箱。"
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "收件者的街道地址或郵政信箱。請將每一行地址單獨換行輸入。"
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -6510,3 +6512,38 @@ msgstr "無法使用選取的資料夾"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "已存在過多範例專案副本"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "信封與摺疊"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "顯示信封窗地址欄"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "在適用於帶視窗信封的位置顯示收件者地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "顯示回信地址"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "在收件者地址欄上方顯示寄件者地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "顯示摺痕標記"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "顯示有助於將信件摺入帶視窗信封的標記。"

@@ -1180,8 +1180,9 @@ msgid "Address"
 msgstr "您的地址"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "你的街道地址或邮政信箱"
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "你的街道地址或邮政信箱。请将每一行地址单独换行输入。"
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1201,8 +1202,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "你写信给的个人或组织名称"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "收件人的街道地址"
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "收件人的街道地址或邮政信箱。请将每一行地址单独换行输入。"
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -6385,3 +6387,38 @@ msgstr "无法使用所选文件夹"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "已存在过多示例项目副本"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "信封与折叠"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "显示信封窗地址栏"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "在适用于带窗口信封的位置显示收件人地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "显示回信地址"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "在收件人地址栏上方显示寄件人地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "显示折痕标记"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "显示有助于将信件折入带窗口信封的标记。"

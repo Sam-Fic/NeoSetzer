@@ -1203,8 +1203,9 @@ msgid "Address"
 msgstr "Dirección"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "Tu dirección postal o apartado de correos."
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "Tu dirección postal o apartado de correos. Usa una línea nueva para cada línea de la dirección."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1224,8 +1225,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "El nombre de la persona u organización a la que escribes."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "La dirección postal o apartado de correos del destinatario."
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "La dirección postal o apartado de correos del destinatario. Usa una línea nueva para cada línea de la dirección."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -7394,3 +7396,38 @@ msgstr "No se pudo usar la carpeta seleccionada"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "Ya existen demasiadas copias del proyecto de ejemplo"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "Sobre y plegado"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "Mostrar el campo de dirección para sobre con ventana"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "Muestra la dirección del destinatario en la posición para un sobre con ventana."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "Mostrar la dirección de remite"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "Muestra la dirección del remitente encima del campo de dirección del destinatario."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "Mostrar marcas de plegado"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "Muestra marcas que ayudan a plegar la carta para un sobre con ventana."

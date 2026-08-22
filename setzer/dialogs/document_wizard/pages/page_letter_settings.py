@@ -48,6 +48,11 @@ class LetterSettingsPage(Page):
         def text_changed(entry, field_name):
             self.current_values['letter'][field_name] = entry.get_text()
 
+        def address_changed(buffer, field_name):
+            start = buffer.get_start_iter()
+            end = buffer.get_end_iter()
+            self.current_values['letter'][field_name] = buffer.get_text(start, end, False)
+
         self.view.page_format_combo.connect('notify::selected', format_changed)
         self.view.font_size_entry.connect('notify::value', font_size_changed)
         self.view.option_twocolumn.connect('notify::active', option_toggled, 'option_twocolumn')
@@ -59,12 +64,15 @@ class LetterSettingsPage(Page):
         self.view.margins_button_bottom.connect('notify::value', margin_changed, 'bottom')
 
         self.view.sender_name_entry.connect('changed', text_changed, 'sender_name')
-        self.view.sender_address_entry.connect('changed', text_changed, 'sender_address')
+        self.view.sender_address_buffer.connect('changed', address_changed, 'sender_address')
         self.view.sender_phone_entry.connect('changed', text_changed, 'sender_phone')
         self.view.recipient_name_entry.connect('changed', text_changed, 'recipient_name')
-        self.view.recipient_address_entry.connect('changed', text_changed, 'recipient_address')
+        self.view.recipient_address_buffer.connect('changed', address_changed, 'recipient_address')
         self.view.recipient_phone_entry.connect('changed', text_changed, 'recipient_phone')
         self.view.signature_entry.connect('changed', text_changed, 'signature')
+        self.view.option_window_address.connect('notify::active', option_toggled, 'option_window_address')
+        self.view.option_backaddress.connect('notify::active', option_toggled, 'option_backaddress')
+        self.view.option_foldmarks.connect('notify::active', option_toggled, 'option_foldmarks')
         self.view.opening_entry.connect('changed', text_changed, 'opening')
         self.view.closing_entry.connect('changed', text_changed, 'closing')
 
@@ -85,7 +93,10 @@ class LetterSettingsPage(Page):
             (self.view.margins_button_right.set_value, 'margin_right'),
             (self.view.margins_button_top.set_value, 'margin_top'),
             (self.view.margins_button_bottom.set_value, 'margin_bottom'),
-            (self.view.option_default_margins.set_active, 'option_default_margins')
+            (self.view.option_default_margins.set_active, 'option_default_margins'),
+            (self.view.option_window_address.set_active, 'option_window_address'),
+            (self.view.option_backaddress.set_active, 'option_backaddress'),
+            (self.view.option_foldmarks.set_active, 'option_foldmarks'),
         ]:
             try:
                 value = presets['letter'][value_name]
@@ -107,15 +118,46 @@ class LetterSettingsPage(Page):
                 text = presets['letter'][field_name]
             except (TypeError, KeyError):
                 text = self.current_values['letter'].get(field_name, '')
-            getattr(self.view, field_name + '_entry').set_text(text)
+            if field_name in ('sender_address', 'recipient_address'):
+                getattr(self.view, field_name + '_buffer').set_text(text)
+            else:
+                getattr(self.view, field_name + '_entry').set_text(text)
 
         self.option_default_margins_toggled(self.view.option_default_margins)
+        self._update_scrlttr2_options_visibility()
+
+    def _update_scrlttr2_options_visibility(self):
+        self.view.group_envelope.set_visible(
+            self.current_values.get('document_class') == 'scrlttr2')
 
     def on_activation(self):
-        pass
+        self._update_scrlttr2_options_visibility()
 
 
 class LetterSettingsPageView(PageView):
+
+    @staticmethod
+    def _make_address_row(title, tooltip):
+        '''Create an accessible multiline postal-address editor inside a row.'''
+        row = Adw.ActionRow()
+        row.set_title(title)
+        row.set_subtitle(tooltip)
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_min_content_width(240)
+        scrolled.set_min_content_height(76)
+        scrolled.set_vexpand(True)
+        buffer = Gtk.TextBuffer()
+        text_view = Gtk.TextView(buffer=buffer)
+        text_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        text_view.set_top_margin(6)
+        text_view.set_bottom_margin(6)
+        text_view.set_left_margin(8)
+        text_view.set_right_margin(8)
+        text_view.set_tooltip_text(tooltip)
+        scrolled.set_child(text_view)
+        row.add_suffix(scrolled)
+        return row, buffer
 
     def __init__(self):
         PageView.__init__(self)
@@ -130,14 +172,13 @@ class LetterSettingsPageView(PageView):
         self.sender_name_entry = Adw.EntryRow()
         self.sender_name_entry.set_title(_('Name'))
         self.sender_name_entry.set_tooltip_text(_('Your name as it appears in the address block.'))
-        self.sender_address_entry = Adw.EntryRow()
-        self.sender_address_entry.set_title(_('Address'))
-        self.sender_address_entry.set_tooltip_text(_('Your street address or PO box.'))
+        self.sender_address_row, self.sender_address_buffer = self._make_address_row(
+            _('Address'), _('Your street address or PO box. Use a new line for each address line.'))
         self.sender_phone_entry = Adw.EntryRow()
         self.sender_phone_entry.set_title(_('Phone'))
         self.sender_phone_entry.set_tooltip_text(_('Your phone number.'))
         self.group_sender.add(self.sender_name_entry)
-        self.group_sender.add(self.sender_address_entry)
+        self.group_sender.add(self.sender_address_row)
         self.group_sender.add(self.sender_phone_entry)
 
         # ---- Recipient information ----
@@ -146,14 +187,13 @@ class LetterSettingsPageView(PageView):
         self.recipient_name_entry = Adw.EntryRow()
         self.recipient_name_entry.set_title(_('Name'))
         self.recipient_name_entry.set_tooltip_text(_('The name of the person or organization you are writing to.'))
-        self.recipient_address_entry = Adw.EntryRow()
-        self.recipient_address_entry.set_title(_('Address'))
-        self.recipient_address_entry.set_tooltip_text(_('The recipient\'s street address or PO box.'))
+        self.recipient_address_row, self.recipient_address_buffer = self._make_address_row(
+            _('Address'), _('The recipient\'s street address or PO box. Use a new line for each address line.'))
         self.recipient_phone_entry = Adw.EntryRow()
         self.recipient_phone_entry.set_title(_('Phone'))
         self.recipient_phone_entry.set_tooltip_text(_('The recipient\'s phone number.'))
         self.group_recipient.add(self.recipient_name_entry)
-        self.group_recipient.add(self.recipient_address_entry)
+        self.group_recipient.add(self.recipient_address_row)
         self.group_recipient.add(self.recipient_phone_entry)
 
         # ---- Letter content ----
@@ -171,6 +211,25 @@ class LetterSettingsPageView(PageView):
         self.group_content.add(self.signature_entry)
         self.group_content.add(self.opening_entry)
         self.group_content.add(self.closing_entry)
+
+        # ---- scrlttr2 envelope controls ----
+        self.group_envelope = Adw.PreferencesGroup()
+        self.group_envelope.set_title(_('Envelope and folding'))
+        self.option_window_address = Adw.SwitchRow()
+        self.option_window_address.set_title(_('Show window-envelope address field'))
+        self.option_window_address.set_tooltip_text(_(
+            'Show the recipient address in the position for a windowed envelope.'))
+        self.option_backaddress = Adw.SwitchRow()
+        self.option_backaddress.set_title(_('Show return address'))
+        self.option_backaddress.set_tooltip_text(_(
+            'Show the sender address above the recipient address field.'))
+        self.option_foldmarks = Adw.SwitchRow()
+        self.option_foldmarks.set_title(_('Show fold marks'))
+        self.option_foldmarks.set_tooltip_text(_(
+            'Show marks that help fold the letter for a windowed envelope.'))
+        self.group_envelope.add(self.option_window_address)
+        self.group_envelope.add(self.option_backaddress)
+        self.group_envelope.add(self.option_foldmarks)
 
         # ---- Page format ----
         self.group_page_format = Adw.PreferencesGroup()
@@ -199,6 +258,7 @@ class LetterSettingsPageView(PageView):
         self.content.append(self.group_sender)
         self.content.append(self.group_recipient)
         self.content.append(self.group_content)
+        self.content.append(self.group_envelope)
         self.content.append(self.group_page_format)
         self.content.append(self.group_options)
         self.content.append(self.group_font_size)

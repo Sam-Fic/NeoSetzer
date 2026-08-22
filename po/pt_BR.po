@@ -1196,8 +1196,9 @@ msgid "Address"
 msgstr "Endereço"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "Seu endereço (rua) ou caixa postal."
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "Seu endereço ou caixa postal. Use uma nova linha para cada linha do endereço."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1217,8 +1218,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "Nome da pessoa ou organização a quem você está escrevendo."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "Endereço (rua) ou caixa postal do destinatário."
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "O endereço ou caixa postal do destinatário. Use uma nova linha para cada linha do endereço."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -6540,3 +6542,38 @@ msgstr "Não foi possível usar a pasta selecionada"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "Já existem muitas cópias do projeto de exemplo"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "Envelope e dobra"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "Mostrar campo de endereço para envelope com janela"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "Mostra o endereço do destinatário na posição para um envelope com janela."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "Mostrar endereço de retorno"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "Mostra o endereço do remetente acima do campo de endereço do destinatário."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "Mostrar marcas de dobra"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "Mostra marcas que ajudam a dobrar a carta para um envelope com janela."

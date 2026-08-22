@@ -1196,8 +1196,9 @@ msgid "Address"
 msgstr "Indirizzo"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "Il tuo indirizzo stradale o casella postale."
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "Il tuo indirizzo stradale o casella postale. Usa una nuova riga per ogni riga dell’indirizzo."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1217,8 +1218,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "Il nome della persona o dell'organizzazione a cui stai scrivendo."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "Indirizzo di via o casella postale del destinatario."
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "L’indirizzo stradale o la casella postale del destinatario. Usa una nuova riga per ogni riga dell’indirizzo."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -7561,3 +7563,38 @@ msgstr "Non è stato possibile usare la cartella selezionata"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "Esistono già troppe copie del progetto di esempio"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "Busta e piegatura"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "Mostra il campo indirizzo per busta con finestra"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "Mostra l’indirizzo del destinatario nella posizione per una busta con finestra."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "Mostra l’indirizzo del mittente"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "Mostra l’indirizzo del mittente sopra il campo dell’indirizzo del destinatario."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "Mostra i segni di piega"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "Mostra segni che aiutano a piegare la lettera per una busta con finestra."

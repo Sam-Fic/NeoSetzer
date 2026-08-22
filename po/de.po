@@ -1197,8 +1197,9 @@ msgid "Address"
 msgstr "Adresse"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:135
-msgid "Your street address or PO box."
-msgstr "Ihre Straßenadresse oder Postfachadresse."
+msgid "Your street address or PO box. Use a new line for each address line."
+msgstr "Ihre Straßenadresse oder Ihr Postfach. Verwenden Sie für jede Adresszeile eine neue Zeile."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:137
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:153
@@ -1218,8 +1219,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "Der Name der Person oder Organisation, an die Sie schreiben."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:151
-msgid "The recipient's street address or PO box."
-msgstr "Die Straßenadresse oder Postfachadresse des Empfängers."
+msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgstr "Straßenadresse oder Postfach des Empfängers. Verwenden Sie für jede Adresszeile eine neue Zeile."
+
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:154
 msgid "The recipient's phone number."
@@ -7620,3 +7622,38 @@ msgstr "Der ausgewählte Ordner konnte nicht verwendet werden"
 #: setzer/example_project/project_store.py:102
 msgid "Too many example project copies already exist"
 msgstr "Es existieren bereits zu viele Beispielprojektkopien"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Envelope and folding"
+msgstr "Umschlag und Faltung"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show window-envelope address field"
+msgstr "Adressfeld für Fensterumschlag anzeigen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the recipient address in the position for a windowed envelope."
+msgstr "Die Empfängeradresse an der Position für einen Fensterumschlag anzeigen."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show return address"
+msgstr "Rücksendeadresse anzeigen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show the sender address above the recipient address field."
+msgstr "Die Absenderadresse oberhalb des Empfängeradressfelds anzeigen."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show fold marks"
+msgstr "Faltmarken anzeigen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Show marks that help fold the letter for a windowed envelope."
+msgstr "Markierungen anzeigen, die beim Falten des Briefs für einen Fensterumschlag helfen."

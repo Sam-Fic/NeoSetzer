@@ -18,6 +18,7 @@
 # 与 test_wizard_presets.py / test_wizard_page_map.py 的 gi-free 风格一致。
 
 import ast
+import copy
 import os
 import sys
 import types
@@ -58,6 +59,7 @@ def _load_document_wizard_class():
         'ngettext': builtins.ngettext,
         'LaTeXDB': LaTeXDB,
         'pickle': __import__('pickle'),
+        'copy': copy,
         'os': os,
         'Gdk': types.SimpleNamespace(keyval_from_name=lambda name: 0),
     }
@@ -258,6 +260,71 @@ class TestScrlttr2AdvancedLetterTemplate(unittest.TestCase):
         self.assertNotIn('\\KOMAoptions{', template)
         self.assertIn('\\address{', template)
         self.assertIn('\\begin{letter}{', template)
+
+    def test_applying_legacy_letter_template_normalises_missing_fields(self):
+        inst = DocumentWizard.__new__(DocumentWizard)
+        inst.get_templates = lambda: {
+            'legacy': {
+                'document_class': 'scrlttr2',
+                'letter': {
+                    'page_format': 'A4',
+                    'font_size': 12,
+                    'is_landscape': True,
+                },
+            },
+        }
+        inst._page_factories = []
+        inst.pages = []
+
+        self.assertTrue(inst.apply_template('legacy'))
+        self.assertEqual(inst.current_values['letter']['page_format'], 'A4')
+        self.assertEqual(inst.current_values['letter']['font_size'], 12)
+        self.assertTrue(inst.current_values['letter']['is_landscape'])
+        self.assertFalse(inst.current_values['letter']['option_twocolumn'])
+        self.assertTrue(inst.current_values['letter']['option_window_address'])
+        self.assertTrue(inst.current_values['letter']['option_backaddress'])
+        self.assertTrue(inst.current_values['letter']['option_foldmarks'])
+
+    def test_legacy_letter_settings_are_normalised_before_generating(self):
+        inst = _make_instance()
+        for key in ('option_twocolumn', 'option_default_margins',
+                    'sender_name', 'sender_address', 'sender_phone',
+                    'recipient_name', 'recipient_address', 'recipient_phone',
+                    'signature', 'opening', 'closing',
+                    'option_window_address', 'option_backaddress',
+                    'option_foldmarks'):
+            inst.current_values['letter'].pop(key, None)
+
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertNotIn(',twocolumn', template)
+        self.assertIn('\taddrfield=true,', template)
+        self.assertIn('\tfoldmarks=true,', template)
+        self.assertIn('\tbackaddress=true', template)
+        self.assertFalse(inst.current_values['letter']['option_twocolumn'])
+        self.assertTrue(inst.current_values['letter']['option_window_address'])
+        self.assertTrue(inst.current_values['letter']['option_backaddress'])
+        self.assertTrue(inst.current_values['letter']['option_foldmarks'])
+
+    def test_scrlttr2_envelope_options_can_be_disabled_and_keep_multiline_addresses(self):
+        inst = _make_instance()
+        inst.current_values['letter'].update({
+            'sender_address': '1 Main Street\nExample City',
+            'recipient_address': '42 Office Road\nExample Town',
+            'option_window_address': False,
+            'option_backaddress': False,
+            'option_foldmarks': False,
+        })
+
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertIn('\taddrfield=false,', template)
+        self.assertIn('\tfoldmarks=false,', template)
+        self.assertIn('\tbackaddress=false', template)
+        self.assertIn('\\setkomavar{fromaddress}{1 Main Street\\\\Example City}', template)
+        self.assertIn('\\begin{letter}{Destination\\\\42 Office Road\\\\Example Town', template)
 
 
 if __name__ == '__main__':

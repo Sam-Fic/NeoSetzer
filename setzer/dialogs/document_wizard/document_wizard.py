@@ -200,10 +200,55 @@ class DocumentWizard(object):
         self.current_values['letter']['signature'] = ''
         self.current_values['letter']['opening'] = ''
         self.current_values['letter']['closing'] = ''
+        # scrlttr2 envelope defaults: retain the established output while
+        # allowing the Letter page to expose each KOMA-Script option.
+        self.current_values['letter']['option_window_address'] = True
+        self.current_values['letter']['option_backaddress'] = True
+        self.current_values['letter']['option_foldmarks'] = True
         self.current_values['beamer'] = dict()
         self.current_values['beamer']['theme'] = 'default'
         self.current_values['beamer']['option_show_navigation'] = True
         self.current_values['beamer']['option_top_align'] = True
+
+    def _normalise_letter_settings(self):
+        '''Fill fields missing from historical Letter presets without replacing values.
+
+        Named wizard presets predate several Letter fields. They are loaded as
+        full snapshots, so replacing ``current_values`` with an old snapshot
+        would otherwise make the Letter page and template generators index a
+        missing key. This method is intentionally idempotent: it only supplies
+        safe defaults for absent or malformed Letter settings.
+        '''
+        defaults = {
+            'page_format': 'A4',
+            'font_size': 10,
+            'option_twocolumn': False,
+            'is_landscape': False,
+            'option_default_margins': True,
+            'margin_left': 3.5,
+            'margin_right': 3.5,
+            'margin_top': 3.5,
+            'margin_bottom': 3.5,
+            'sender_name': '',
+            'sender_address': '',
+            'sender_phone': '',
+            'recipient_name': '',
+            'recipient_address': '',
+            'recipient_phone': '',
+            'signature': '',
+            'opening': '',
+            'closing': '',
+            'option_window_address': True,
+            'option_backaddress': True,
+            'option_foldmarks': True,
+        }
+        letter = self.current_values.get('letter')
+        if not isinstance(letter, dict):
+            letter = dict()
+            self.current_values['letter'] = letter
+        for key, value in defaults.items():
+            letter.setdefault(key, value)
+        return letter
 
     def _default_page_format(self):
         '''按 locale 选默认纸张：美加墨用 US Letter，其余用 A4（报告 #13）。'''
@@ -320,6 +365,7 @@ class DocumentWizard(object):
             return False
         # 深拷贝避免后续编辑污染存储的模板。
         self.current_values = copy.deepcopy(blob)
+        self._normalise_letter_settings()
         # 强制建完所有页，但 apply_presets=False：避免 _ensure_page_built 内的
         # load_presets(self.presets) 用「保存的预设」经 set_* 信号回写污染
         # current_values（模板值会被预设值覆盖）。随后统一用 current_values
@@ -554,7 +600,10 @@ class DocumentWizard(object):
     def _build_class_options(self, settings_key):
         '''构造 \\documentclass[...] 的 options 字符串（不含花括号与类名）。
         settings_key 是 current_values 中的键（KOMA 类复用对应标准类键）。'''
-        s = self.current_values[settings_key]
+        if settings_key == 'letter':
+            s = self._normalise_letter_settings()
+        else:
+            s = self.current_values[settings_key]
         size = s['font_size']
         # 非标准字号（非 10/11/12）需 extsizes 包；documentclass 用 10pt 作基。
         base = size if size in (10, 11, 12) else 10
@@ -628,8 +677,8 @@ class DocumentWizard(object):
         return self._get_insert_text_letter('scrlttr2')
 
     def _get_insert_text_letter(self, class_name):
+        letter = self._normalise_letter_settings()
         options = self._build_class_options('letter')
-        letter = self.current_values['letter']
         sender_name = letter.get('sender_name', '') or _('Your name')
         sender_address = letter.get('sender_address', '') or _('Your address')
         sender_phone = letter.get('sender_phone', '') or _('Your phone number')
@@ -668,10 +717,10 @@ class DocumentWizard(object):
                 '\tfromalign=left,\n'
                 '\tfromrule=afteraddress,\n'
                 '\tfromphone=true,\n'
-                '\taddrfield=true,\n'
-                '\tfoldmarks=true,\n'
-                '\tbackaddress=true\n'
-                '}\n\n'
+                + '\taddrfield=' + ('true' if letter['option_window_address'] else 'false') + ',\n'
+                + '\tfoldmarks=' + ('true' if letter['option_foldmarks'] else 'false') + ',\n'
+                + '\tbackaddress=' + ('true' if letter['option_backaddress'] else 'false') + '\n'
+                + '}\n\n'
             )
             subject_line = ('\\setkomavar{subject}{' + self.current_values['title'] + '}\n'
                             if self.current_values['title'] else '')
