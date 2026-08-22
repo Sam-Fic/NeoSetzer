@@ -40,6 +40,7 @@ from setzer.dialogs.document_wizard.wizard_state import (
     build_default_wizard_state,
     normalise_wizard_state,
 )
+from setzer.dialogs.document_wizard.creation_plan import build_creation_plan
 
 # KOMA-Script 文档类复用对应标准类的设置页与 current_values 键
 # （scrartcl/article、scrreprt/report、scrbook/book、scrlttr2/letter）。键用于查设置，
@@ -77,6 +78,7 @@ class DocumentWizard(object):
         self.document = document
         self.completed = False
         self.selected_document_template_id = None
+        self.selected_document_template_name = None
 
         self.init_current_values()
         # 先读预设（load_presets 现只读 settings → self.presets，不再遍历页面），
@@ -291,15 +293,37 @@ class DocumentWizard(object):
         except TemplateStoreError:
             return []
 
+    def get_creation_plan(self):
+        '''Describe the pending creation mode without inspecting GTK widgets.'''
+        return build_creation_plan(
+            self.current_values,
+            getattr(self, 'selected_document_template_name', None))
+
+    def refresh_creation_controls(self):
+        '''Synchronise Create sensitivity and the final-page summary when built.'''
+        plan = self.get_creation_plan()
+        if hasattr(self, 'view'):
+            self.view.create_button.set_sensitive(plan.ready)
+        general_page_index = page_map.GENERAL_PAGE_INDEX
+        if hasattr(self, 'pages') and self.pages[general_page_index] is not None:
+            self.pages[general_page_index].view.set_creation_plan(plan)
+        return plan
+
     def select_document_template(self, identifier):
         if identifier is None:
             self.selected_document_template_id = None
+            self.selected_document_template_name = None
+            self.refresh_creation_controls()
             return True
         try:
+            templates = self.get_document_template_store().list_templates()
+            template = next(item for item in templates if item.identifier == identifier)
             self.get_document_template_store().load(identifier)
-        except TemplateStoreError:
+        except (StopIteration, TemplateStoreError):
             return False
         self.selected_document_template_id = identifier
+        self.selected_document_template_name = template.name
+        self.refresh_creation_controls()
         return True
 
     def get_selected_document_template_preview(self):
@@ -319,6 +343,8 @@ class DocumentWizard(object):
             return False
         if deleted and self.selected_document_template_id == identifier:
             self.selected_document_template_id = None
+            self.selected_document_template_name = None
+            self.refresh_creation_controls()
         return deleted
 
     def open_save_document_template_dialog(self, button=None):
@@ -395,10 +421,9 @@ class DocumentWizard(object):
         新增页面级校验只需在此按 page_index 扩展。
         '''
         if self.current_page == page_map.GENERAL_PAGE_INDEX:
-            title = self.current_values.get('title', '').strip()
-            if not title:
-                return (False, _('Please enter a document title before creating the '
-                                  'document. Otherwise the generated \\title{} will be empty.'))
+            plan = self.get_creation_plan()
+            if not plan.ready:
+                return (False, _('Enter a document title before creating this document.'))
         return (True, '')
 
     def _show_validation_error(self, message):
@@ -424,6 +449,7 @@ class DocumentWizard(object):
             if page_number == page_map.GENERAL_PAGE_INDEX:
                 self.pages[page_number].view.preview_label.set_text(
                     self.get_documentclass_preview())
+                self.refresh_creation_controls()
 
             # 按钮可见性也走 page_map 谓词，避免 0 / 6 硬编码：
             #   back  : 非首页（!= DOCUMENT_CLASS_PAGE_INDEX）

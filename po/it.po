@@ -7598,3 +7598,63 @@ msgstr "Mostra i segni di piega"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "Show marks that help fold the letter for a windowed envelope."
 msgstr "Mostra segni che aiutano a piegare la lettera per una busta con finestra."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Enter a document title before creating this document."
+msgstr "Inserire un titolo per il documento prima di crearlo."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Ready to create"
+msgstr "Pronto per la creazione"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Saved source template"
+msgstr "Modello di sorgente salvato"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
+msgstr "“{}” verrà inserito esattamente come è stato salvato. Le impostazioni di classe del documento, lingua, pacchetti e metadati sopra indicate non verranno applicate."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Document title required"
+msgstr "Titolo del documento obbligatorio"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "landscape"
+msgstr "orizzontale"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "portrait"
+msgstr "verticale"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "no extra packages"
+msgstr "nessun pacchetto aggiuntivo"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid ""
+"{} · {} · {} · {}\n"
+"Language: {}\n"
+"Font package: {}\n"
+"Packages: {}"
+msgstr ""
+"{} · {} · {} · {}\n"
+"Lingua: {}\n"
+"Pacchetto di caratteri: {}\n"
+"Pacchetti: {}"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "default paper"
+msgstr "formato carta predefinito"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "ready"
+msgstr "pronto"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "enter a title to continue"
+msgstr "inserire un titolo per continuare"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "not set"
+msgstr "non impostato"

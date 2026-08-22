@@ -7431,3 +7431,63 @@ msgstr "Mostrar marcas de plegado"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "Show marks that help fold the letter for a windowed envelope."
 msgstr "Muestra marcas que ayudan a plegar la carta para un sobre con ventana."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Enter a document title before creating this document."
+msgstr "Introduzca un título de documento antes de crear este documento."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Ready to create"
+msgstr "Listo para crear"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Saved source template"
+msgstr "Plantilla de código fuente guardada"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
+msgstr "«{}» se insertará exactamente como se guardó. La clase de documento, el idioma, los paquetes y los metadatos indicados arriba no se aplicarán."
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Document title required"
+msgstr "Se requiere un título de documento"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "landscape"
+msgstr "horizontal"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "portrait"
+msgstr "vertical"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "no extra packages"
+msgstr "sin paquetes adicionales"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid ""
+"{} · {} · {} · {}\n"
+"Language: {}\n"
+"Font package: {}\n"
+"Packages: {}"
+msgstr ""
+"{} · {} · {} · {}\n"
+"Idioma: {}\n"
+"Paquete de fuentes: {}\n"
+"Paquetes: {}"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "default paper"
+msgstr "papel predeterminado"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "ready"
+msgstr "listo"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "enter a title to continue"
+msgstr "introduzca un título para continuar"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "not set"
+msgstr "sin configurar"

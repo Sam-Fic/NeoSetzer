@@ -6547,3 +6547,63 @@ msgstr "顯示摺痕標記"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "Show marks that help fold the letter for a windowed envelope."
 msgstr "顯示有助於將信件摺入帶視窗信封的標記。"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Enter a document title before creating this document."
+msgstr "請先輸入文件標題，再建立此文件。"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Ready to create"
+msgstr "可以建立"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Saved source template"
+msgstr "已儲存的原始碼文件範本"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
+msgstr "將完全依照儲存時的內容插入「{}」。上方的文件類別、語言、套件和中繼資料設定不會套用。"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "Document title required"
+msgstr "需要文件標題"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "landscape"
+msgstr "橫向"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "portrait"
+msgstr "縱向"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "no extra packages"
+msgstr "沒有額外套件"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid ""
+"{} · {} · {} · {}\n"
+"Language: {}\n"
+"Font package: {}\n"
+"Packages: {}"
+msgstr ""
+"{} · {} · {} · {}\n"
+"語言：{}\n"
+"字型套件：{}\n"
+"套件：{}"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "default paper"
+msgstr "預設紙張"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "ready"
+msgstr "可建立"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "enter a title to continue"
+msgstr "輸入標題後即可繼續"
+
+#: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
+msgid "not set"
+msgstr "未設定"

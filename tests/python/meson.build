@@ -24,6 +24,7 @@ foreach t : [
   ['test_workspace_session',      'test_workspace_session.py'],
   ['test_wizard_presets',         'test_wizard_presets.py'],
   ['test_wizard_state',           'test_wizard_state.py'],
+  ['test_wizard_creation_plan',   'test_wizard_creation_plan.py'],
   ['test_wizard_page_map',        'test_wizard_page_map.py'],
   ['test_wizard_font_package',    'test_wizard_font_package.py'],
   ['test_user_document_templates', 'test_user_document_templates.py'],

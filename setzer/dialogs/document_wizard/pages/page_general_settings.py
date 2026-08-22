@@ -37,14 +37,21 @@ class GeneralSettingsPage(Page):
         self.view = GeneralSettingsPageView()
 
     def observe_view(self):
+        def refresh_creation_status():
+            controller = getattr(self, 'controller', None)
+            if controller is not None:
+                controller.refresh_creation_controls()
+
         def text_changed(entry, field_name):
             self.current_values[field_name] = entry.get_text()
+            refresh_creation_status()
 
         def language_changed(combo, pspec):
             selected = combo.get_selected()
             if selected != Gtk.INVALID_LIST_POSITION:
                 code = self.view.language_codes[selected]
                 self.update_languages_list(code)
+                refresh_creation_status()
 
         def font_package_changed(combo, pspec):
             # Problem 5: 用户在 ComboRow 选择字体包, 反查为字符串键
@@ -56,12 +63,15 @@ class GeneralSettingsPage(Page):
                 self.current_values['font_package'] = font_package
                 # 报告 #6：选 fontspec 时显示编译引擎提示。
                 self.view.fontspec_note.set_visible(font_package == 'fontspec')
+                refresh_creation_status()
 
         def custom_packages_changed(entry, pspec):
             self.current_values['custom_packages'] = entry.get_text()
+            refresh_creation_status()
 
         def option_toggled(row, pspec, package_name):
             self.current_values['packages'][package_name] = row.get_active()
+            refresh_creation_status()
 
         self.view.title_entry.connect('changed', text_changed, 'title')
         self.view.author_entry.connect('changed', text_changed, 'author')
@@ -336,6 +346,16 @@ class GeneralSettingsPageView(PageView):
         self.preview_label.set_markup('<tt>\\documentclass{article}</tt>')
         self.group_preview.add(self.preview_label)
 
+        # Creation summary ---------------------------------------------------
+        self.group_creation_summary = Adw.PreferencesGroup()
+        self.group_creation_summary.set_title(_('Ready to create'))
+        self.creation_summary_label = Gtk.Label()
+        self.creation_summary_label.set_xalign(0)
+        self.creation_summary_label.set_wrap(True)
+        self.creation_summary_label.set_selectable(True)
+        self.creation_summary_label.add_css_class('dim-label')
+        self.group_creation_summary.add(self.creation_summary_label)
+
         # Layout -------------------------------------------------------------
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.content.append(self.group_document_properties)
@@ -343,8 +363,29 @@ class GeneralSettingsPageView(PageView):
         self.content.append(self.group_font)
         self.content.append(self.group_packages)
         self.content.append(self.group_preview)
+        self.content.append(self.group_creation_summary)
 
         self.append(self.wrap_content(self.content))
+
+    def set_creation_plan(self, plan):
+        '''Render a concise, non-editable description of the pending action.'''
+        if plan.mode == 'source-template':
+            self.group_creation_summary.set_title(_('Saved source template'))
+            self.creation_summary_label.set_text(
+                _('“{}” will be inserted exactly as saved. Document class, language, '
+                  'package, and metadata settings above will not be applied.').format(
+                      plan.template_name))
+            return
+
+        self.group_creation_summary.set_title(
+            _('Ready to create') if plan.ready else _('Document title required'))
+        orientation = _('landscape') if plan.landscape else _('portrait')
+        package_text = ', '.join(plan.packages) if plan.packages else _('no extra packages')
+        self.creation_summary_label.set_text(
+            _('{} · {} · {} · {}\nLanguage: {}\nFont package: {}\nPackages: {}').format(
+                plan.document_class, plan.page_format or _('default paper'), orientation,
+                _('ready') if plan.ready else _('enter a title to continue'),
+                plan.language or _('not set'), plan.font_package or _('none'), package_text))
 
     def _create_package_row(self, label, name):
         row = Adw.SwitchRow()
