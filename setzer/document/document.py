@@ -1125,6 +1125,21 @@ class Document(Observable):
 
     def ease(self, factor): return (factor - 1)**3 + 1
 
+    def scroll_cursor_to_top(self):
+        '''Align the cursor line with the top of the editor viewport.
+
+        This is deliberately separate from :meth:`scroll_cursor_onscreen`.
+        The latter preserves the least-disruptive "make visible" behaviour
+        used by search, diagnostics and ordinary editing; document-structure
+        navigation has a different reading-oriented intent and benefits from
+        leaving the selected heading's following content in view.
+        '''
+
+        self.view.scrolled_window.set_kinetic_scrolling(False)
+        self.source_view.scroll_to_mark(
+            self.source_buffer.get_insert(), 0.0, True, 0.0, 0.0)
+        self.view.scrolled_window.set_kinetic_scrolling(True)
+
     def scroll_cursor_onscreen(self, margin_lines=5):
         height = self.view.scrolled_window.get_allocated_height()
         if height > 0:

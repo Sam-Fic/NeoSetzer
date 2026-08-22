@@ -38,6 +38,7 @@ foreach t : [
   ['test_beamer_frames',           'test_beamer_frames.py'],
   ['test_external_pdf_monitor',    'test_external_pdf_monitor.py'],
   ['test_external_pdf_preview_integration', 'test_external_pdf_preview_integration.py'],
+  ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
 ]
   test(
     t[0],

@@ -90,7 +90,7 @@ class StructureSection(object):
             return
         self.data_provider.workspace.set_active_document(document)
         document.place_cursor(line_number)
-        document.scroll_cursor_onscreen(margin_lines=0)
+        document.scroll_cursor_to_top()
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
 
     def register_row(self, row, node):
