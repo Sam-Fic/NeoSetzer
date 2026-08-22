@@ -21,6 +21,7 @@ import os
 from gi.repository import Adw, Gtk, GLib
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.example_project.opener import ExampleProjectOpener
 
 
 class WelcomeScreen(object):
@@ -37,7 +38,9 @@ class WelcomeScreen(object):
 
     def __init__(self, workspace):
         self.workspace = workspace
-        self.view = ServiceLocator.get_main_window().welcome_screen
+        main_window = ServiceLocator.get_main_window()
+        self.view = main_window.welcome_screen
+        self.example_project_opener = ExampleProjectOpener(workspace, main_window)
         self.is_active = False
 
         # quick-action buttons
@@ -105,9 +108,7 @@ class WelcomeScreen(object):
             self.workspace.remove_document(document)
 
     def on_example_clicked(self, button):
-        example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')
-        if os.path.isfile(example_path):
-            self.workspace.open_document_by_filename_with_spinner(example_path)
+        self.example_project_opener.choose_and_open()
 
     # --- recent documents ---
 

@@ -15,14 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import os
-
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.example_project.opener import ExampleProjectOpener
 from setzer.dialogs.first_run_tutorial.tutorial_content import (
     DEFAULT_SHORTCUTS,
     get_configured_shortcut,
@@ -50,6 +49,8 @@ class FirstRunTutorialDialog(object):
     def __init__(self, main_window):
         self.main_window = main_window
         self.settings = ServiceLocator.get_settings()
+        self.example_project_opener = ExampleProjectOpener(
+            ServiceLocator.get_workspace(), main_window)
         self.setup()
 
     def setup(self):
@@ -119,7 +120,7 @@ class FirstRunTutorialDialog(object):
         # 引导用户打开示例文档（与欢迎页入口保持一致）。
         example_button = Gtk.Button()
         example_button.set_icon_name('document-open-symbolic')
-        example_button.set_label(_('Open Example Document'))
+        example_button.set_label(_('Create Example Project…'))
         example_button.set_halign(Gtk.Align.CENTER)
         example_button.connect('clicked', self.on_open_example_clicked)
         box.append(example_button)
@@ -141,12 +142,7 @@ class FirstRunTutorialDialog(object):
             return fallback
 
     def on_open_example_clicked(self, button):
-        example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')
-        if os.path.isfile(example_path):
-            workspace = ServiceLocator.get_workspace()
-            if workspace is not None:
-                workspace.open_document_by_filename_with_spinner(example_path)
-        self.view.close()
+        self.example_project_opener.choose_and_open(self.view.close)
 
     def run(self):
         # 标记已展示，确保只自动弹一次（无论以何种方式关闭）。

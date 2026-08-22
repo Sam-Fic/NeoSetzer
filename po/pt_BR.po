@@ -6495,3 +6495,48 @@ msgstr "Encontre comandos rapidamente"
 #, python-brace-format
 msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
 msgstr "Use {shortcut} para pesquisar e executar comandos do aplicativo quando não se lembrar de onde fica uma ação."
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:123
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
+msgid "Create Example Project…"
+msgstr "Criar projeto de exemplo…"
+
+#: setzer/example_project/opener.py:39
+msgid "Choose a Folder for the Example Project"
+msgstr "Escolha uma pasta para o projeto de exemplo"
+
+#: setzer/example_project/opener.py:70
+msgid "Example project created"
+msgstr "Projeto de exemplo criado"
+
+#: setzer/example_project/project_store.py:57
+#: setzer/example_project/project_store.py:76
+msgid "The example project is incomplete"
+msgstr "O projeto de exemplo está incompleto"
+
+#: setzer/example_project/project_store.py:63
+#: setzer/example_project/project_store.py:100
+msgid "The example project could not be created"
+msgstr "Não foi possível criar o projeto de exemplo"
+
+#: setzer/example_project/project_store.py:68
+msgid "A directory is required"
+msgstr "É necessária uma pasta"
+
+#: setzer/example_project/project_store.py:73
+msgid "The bundled example project is missing"
+msgstr "O projeto de exemplo incluído está ausente"
+
+#: setzer/example_project/project_store.py:79
+#: setzer/example_project/project_store.py:82
+msgid "The bundled example project is invalid"
+msgstr "O projeto de exemplo incluído é inválido"
+
+#: setzer/example_project/project_store.py:88
+#: setzer/example_project/project_store.py:90
+msgid "The selected folder could not be used"
+msgstr "Não foi possível usar a pasta selecionada"
+
+#: setzer/example_project/project_store.py:102
+msgid "Too many example project copies already exist"
+msgstr "Já existem muitas cópias do projeto de exemplo"

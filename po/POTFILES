@@ -172,6 +172,9 @@
 ./setzer/document/update_matching_blocks/begin_end_match.py
 ./setzer/document/update_matching_blocks/__init__.py
 ./setzer/document/update_matching_blocks/update_matching_blocks.py
+./setzer/example_project/__init__.py
+./setzer/example_project/opener.py
+./setzer/example_project/project_store.py
 ./setzer/helpers/document_state_paths.py
 ./setzer/helpers/drawing.py
 ./setzer/helpers/file_io.py

@@ -7349,3 +7349,48 @@ msgstr "Encontrar comandos rápidamente"
 #, python-brace-format
 msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
 msgstr "Usa {shortcut} para buscar y ejecutar comandos de la aplicación cuando no recuerdes dónde se encuentra una acción."
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:123
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
+msgid "Create Example Project…"
+msgstr "Crear proyecto de ejemplo…"
+
+#: setzer/example_project/opener.py:39
+msgid "Choose a Folder for the Example Project"
+msgstr "Elegir una carpeta para el proyecto de ejemplo"
+
+#: setzer/example_project/opener.py:70
+msgid "Example project created"
+msgstr "Proyecto de ejemplo creado"
+
+#: setzer/example_project/project_store.py:57
+#: setzer/example_project/project_store.py:76
+msgid "The example project is incomplete"
+msgstr "El proyecto de ejemplo está incompleto"
+
+#: setzer/example_project/project_store.py:63
+#: setzer/example_project/project_store.py:100
+msgid "The example project could not be created"
+msgstr "No se pudo crear el proyecto de ejemplo"
+
+#: setzer/example_project/project_store.py:68
+msgid "A directory is required"
+msgstr "Se requiere una carpeta"
+
+#: setzer/example_project/project_store.py:73
+msgid "The bundled example project is missing"
+msgstr "Falta el proyecto de ejemplo incluido"
+
+#: setzer/example_project/project_store.py:79
+#: setzer/example_project/project_store.py:82
+msgid "The bundled example project is invalid"
+msgstr "El proyecto de ejemplo incluido no es válido"
+
+#: setzer/example_project/project_store.py:88
+#: setzer/example_project/project_store.py:90
+msgid "The selected folder could not be used"
+msgstr "No se pudo usar la carpeta seleccionada"
+
+#: setzer/example_project/project_store.py:102
+msgid "Too many example project copies already exist"
+msgstr "Ya existen demasiadas copias del proyecto de ejemplo"

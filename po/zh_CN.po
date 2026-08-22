@@ -6340,3 +6340,48 @@ msgstr "快速查找命令"
 #, python-brace-format
 msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
 msgstr "当你不记得某个操作的位置时，使用 {shortcut} 搜索并运行应用程序命令。"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:123
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
+msgid "Create Example Project…"
+msgstr "创建示例项目…"
+
+#: setzer/example_project/opener.py:39
+msgid "Choose a Folder for the Example Project"
+msgstr "选择示例项目的文件夹"
+
+#: setzer/example_project/opener.py:70
+msgid "Example project created"
+msgstr "示例项目已创建"
+
+#: setzer/example_project/project_store.py:57
+#: setzer/example_project/project_store.py:76
+msgid "The example project is incomplete"
+msgstr "示例项目不完整"
+
+#: setzer/example_project/project_store.py:63
+#: setzer/example_project/project_store.py:100
+msgid "The example project could not be created"
+msgstr "无法创建示例项目"
+
+#: setzer/example_project/project_store.py:68
+msgid "A directory is required"
+msgstr "需要一个文件夹"
+
+#: setzer/example_project/project_store.py:73
+msgid "The bundled example project is missing"
+msgstr "随附的示例项目缺失"
+
+#: setzer/example_project/project_store.py:79
+#: setzer/example_project/project_store.py:82
+msgid "The bundled example project is invalid"
+msgstr "随附的示例项目无效"
+
+#: setzer/example_project/project_store.py:88
+#: setzer/example_project/project_store.py:90
+msgid "The selected folder could not be used"
+msgstr "无法使用所选文件夹"
+
+#: setzer/example_project/project_store.py:102
+msgid "Too many example project copies already exist"
+msgstr "已存在过多示例项目副本"

@@ -111,7 +111,7 @@ def WelcomeScreenView():
 
     example_button = Gtk.Button()
     example_button.set_icon_name('document-new-symbolic')
-    example_button.set_label(_('Open Example Document'))
+    example_button.set_label(_('Create Example Project…'))
     example_button.set_hexpand(True)
 
     actions_box.append(new_latex_button)
