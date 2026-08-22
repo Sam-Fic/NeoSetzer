@@ -1399,7 +1399,7 @@ class Actions(object):
             offset = match.start()
             line = document.source_buffer.get_iter_at_offset(offset).get_line()
             document.place_cursor(line)
-            document.scroll_cursor_onscreen(margin_lines=0)
+            document.scroll_cursor_with_context(context_lines=2)
             document.view.source_view.grab_focus()
         else:
             # Check included documents
@@ -1416,7 +1416,7 @@ class Actions(object):
                     offset = match.start()
                     line = doc.source_buffer.get_iter_at_offset(offset).get_line()
                     doc.place_cursor(line)
-                    doc.scroll_cursor_onscreen()
+                    doc.scroll_cursor_with_context(context_lines=2)
                     doc.view.source_view.grab_focus()
                     return
 

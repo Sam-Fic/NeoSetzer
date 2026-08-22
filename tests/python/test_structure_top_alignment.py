@@ -45,6 +45,9 @@ _LABEL_ROW_ACTIVATED = _load_method(
 _TODO_JUMP = _load_method(
     os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/todos.py'),
     'TodosSection', 'jump_to_todo')
+_JUMP_TO_DEFINITION = _load_method(
+    os.path.join(REPO, 'setzer/workspace/actions/actions.py'),
+    'Actions', 'jump_to_definition')
 
 
 class _FakeIter:
@@ -138,6 +141,19 @@ class _Document:
     scroll_cursor_with_context = _SCROLL_WITH_CONTEXT
 
 
+class _ReferenceDocument(_Document):
+
+    def __init__(self, calls, text):
+        _Document.__init__(self, calls)
+        self.text = text
+
+    def is_latex_document(self):
+        return True
+
+    def get_all_text(self):
+        return self.text
+
+
 class _Workspace:
 
     def __init__(self, document, calls):
@@ -145,6 +161,9 @@ class _Workspace:
         self.active_document = document
         self.calls = calls
         self.open_result = document
+
+    def get_active_document(self):
+        return self.active_document
 
     def set_active_document(self, document):
         self.calls.append(('activate', document))
@@ -317,6 +336,67 @@ class StructureTopAlignmentTest(unittest.TestCase):
             ('kinetic', True),
             ('focus',),
         ])
+
+    def test_reference_jump_uses_context_scroll_in_current_document(self):
+        calls = []
+        document = _ReferenceDocument(calls, 'Before\n\\label{fig:workflow}\nAfter')
+        workspace = _Workspace(document, calls)
+        workspace.open_documents = (document,)
+        actions = type('Actions', (), {'workspace': workspace})()
+        parameter = type('Parameter', (), {
+            'get_string': lambda self: 'fig:workflow',
+        })()
+
+        _JUMP_TO_DEFINITION(actions, None, parameter)
+
+        self.assertEqual(calls, [
+            ('get-iter-at-offset', 7),
+            ('cursor', 37),
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+            ('focus',),
+        ])
+
+    def test_reference_jump_uses_context_scroll_after_switching_document(self):
+        calls = []
+        source_document = _ReferenceDocument(calls, 'A reference without a definition')
+        target_document = _ReferenceDocument(calls, 'Before\n\\label{fig:workflow}\nAfter')
+        workspace = _Workspace(source_document, calls)
+        workspace.open_documents = (source_document, target_document)
+        actions = type('Actions', (), {'workspace': workspace})()
+        parameter = type('Parameter', (), {
+            'get_string': lambda self: 'fig:workflow',
+        })()
+
+        _JUMP_TO_DEFINITION(actions, None, parameter)
+
+        self.assertEqual(calls, [
+            ('activate', target_document),
+            ('get-iter-at-offset', 7),
+            ('cursor', 37),
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+            ('focus',),
+        ])
+
+    def test_jump_to_definition_has_no_onscreen_navigation_branch(self):
+        path = os.path.join(REPO, 'setzer/workspace/actions/actions.py')
+        with open(path, encoding='utf-8') as source_file:
+            tree = ast.parse(source_file.read())
+        class_node = next(node for node in tree.body
+                          if isinstance(node, ast.ClassDef) and node.name == 'Actions')
+        method = next(node for node in class_node.body
+                      if isinstance(node, ast.FunctionDef) and node.name == 'jump_to_definition')
+        calls = [node.func.attr for node in ast.walk(method)
+                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)]
+        self.assertEqual(calls.count('scroll_cursor_with_context'), 2)
+        self.assertNotIn('scroll_cursor_onscreen', calls)
 
     def test_go_to_line_and_build_log_use_centered_navigation(self):
         targets = (
