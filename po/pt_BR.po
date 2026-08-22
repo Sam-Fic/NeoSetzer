@@ -6681,3 +6681,15 @@ msgstr "Carta KOMA-Script (scrlttr2)"
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py
 msgid "Template actions"
 msgstr "Ações de modelo"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Search themes"
+msgstr "Pesquisar temas"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Filter the available Beamer themes by name."
+msgstr "Filtre os temas Beamer disponíveis por nome."
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "No themes match this search."
+msgstr "Nenhum tema corresponde a esta pesquisa."

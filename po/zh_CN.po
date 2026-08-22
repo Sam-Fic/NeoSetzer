@@ -6526,3 +6526,15 @@ msgstr "KOMA-Script 信件 (scrlttr2)"
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py
 msgid "Template actions"
 msgstr "模板操作"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Search themes"
+msgstr "搜索主题"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Filter the available Beamer themes by name."
+msgstr "按名称筛选可用的 Beamer 主题。"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "No themes match this search."
+msgstr "没有主题与此次搜索匹配。"

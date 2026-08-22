@@ -22,6 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.dialogs.document_wizard.beamer_themes import filter_theme_names
 from setzer.app.service_locator import ServiceLocator
 
 import os
@@ -46,14 +47,20 @@ class BeamerSettingsPage(Page):
 
     def observe_view(self):
         def row_selected(box, row, user_data=None):
+            if row is None:
+                return
             child_name = row.get_title()
             self.current_values['beamer']['theme'] = child_name
             self._update_preview(child_name)
+
+        def search_changed(entry):
+            self.view.set_theme_filter(entry.get_text())
 
         def option_toggled(row, pspec, option_name):
             self.current_values['beamer']['option_' + option_name] = row.get_active()
 
         self.view.themes_list.connect('row-selected', row_selected)
+        self.view.theme_search.connect('search-changed', search_changed)
         self.view.option_show_navigation.connect('notify::active', option_toggled, 'show_navigation')
         self.view.option_top_align.connect('notify::active', option_toggled, 'top_align')
 
@@ -109,6 +116,7 @@ class BeamerSettingsPage(Page):
         except Exception:
             row = self.view.themes_list_rows[self.current_values['beamer']['theme']]
         self.view.themes_list.select_row(row)
+        self.view.set_theme_filter(self.view.theme_search.get_text())
 
         for setter_function, value_name in [
             (self.view.option_show_navigation.set_active, 'option_show_navigation'),
@@ -134,6 +142,11 @@ class BeamerSettingsPageView(PageView):
 
         self.theme_names = ['Warsaw', 'Malmoe', 'Luebeck', 'Copenhagen', 'Szeged', 'Singapore', 'Frankfurt', 'Darmstadt', 'Dresden', 'Ilmenau', 'Berlin', 'Hannover', 'Marburg', 'Goettingen', 'PaloAlto', 'Berkeley', 'Montpellier', 'JuanLesPins', 'Antibes', 'Rochester', 'Pittsburgh', 'EastLansing', 'CambridgeUS', 'AnnArbor', 'Madrid', 'Boadilla', 'Bergen', 'default']
 
+        self.theme_search = Gtk.SearchEntry()
+        self.theme_search.set_placeholder_text(_('Search themes'))
+        self.theme_search.set_tooltip_text(
+            _('Filter the available Beamer themes by name.'))
+
         self.themes_list = Gtk.ListBox()
         self.themes_list.set_can_focus(True)
         self.themes_list.add_css_class('boxed-list')
@@ -143,6 +156,13 @@ class BeamerSettingsPageView(PageView):
             row.set_title(name)
             self.themes_list_rows[name] = row
             self.themes_list.prepend(row)
+
+        self.no_themes_label = Gtk.Label(
+            label=_('No themes match this search.'))
+        self.no_themes_label.set_halign(Gtk.Align.START)
+        self.no_themes_label.set_wrap(True)
+        self.no_themes_label.add_css_class('dim-label')
+        self.no_themes_label.set_visible(False)
 
         self.group_options = Adw.PreferencesGroup()
         self.group_options.set_title(_('Options'))
@@ -165,8 +185,10 @@ class BeamerSettingsPageView(PageView):
 
         self.preview_images = dict()
 
-        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.form.append(self.theme_search)
         self.form.append(self.themes_list)
+        self.form.append(self.no_themes_label)
         self.form.append(self.group_options)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
@@ -174,3 +196,10 @@ class BeamerSettingsPageView(PageView):
         self.content.append(self.form)
 
         self.append(self.wrap_content(self.content))
+
+    def set_theme_filter(self, query):
+        '''Show matching theme rows in stable catalogue order and empty feedback.'''
+        visible_names = set(filter_theme_names(self.theme_names, query))
+        for name, row in self.themes_list_rows.items():
+            row.set_visible(name in visible_names)
+        self.no_themes_label.set_visible(not visible_names)

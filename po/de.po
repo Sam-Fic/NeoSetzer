@@ -7757,3 +7757,15 @@ msgstr "KOMA-Script-Brief (scrlttr2)"
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py
 msgid "Template actions"
 msgstr "Vorlagenaktionen"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Search themes"
+msgstr "Themen suchen"
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "Filter the available Beamer themes by name."
+msgstr "Die verfügbaren Beamer-Themen nach Namen filtern."
+
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
+msgid "No themes match this search."
+msgstr "Keine Themen entsprechen dieser Suche."
