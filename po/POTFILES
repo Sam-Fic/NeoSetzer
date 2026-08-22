@@ -58,6 +58,7 @@
 ./setzer/dialogs/document_wizard/pages/page_standard_settings.py
 ./setzer/dialogs/export_pdf/export_pdf.py
 ./setzer/dialogs/first_run_tutorial/first_run_tutorial.py
+./setzer/dialogs/first_run_tutorial/tutorial_content.py
 ./setzer/dialogs/first_run_tutorial/__init__.py
 ./setzer/dialogs/go_to_line/go_to_line.py
 ./setzer/dialogs/go_to_line/__init__.py

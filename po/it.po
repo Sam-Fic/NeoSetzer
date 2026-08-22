@@ -7470,3 +7470,49 @@ msgstr "— Usa le impostazioni della procedura guidata —"
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
 msgstr "Seleziona un modello di sorgente LaTeX salvato per visualizzarne qui l’anteprima."
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:57
+msgid "Welcome to NeoSetzer"
+msgstr "Benvenuto in NeoSetzer"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:66
+msgid "Start Writing"
+msgstr "Inizia a scrivere"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:91
+msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
+msgstr "Inizia con un documento, poi compilalo e visualizza l’anteprima. Puoi riaprire questi suggerimenti in qualsiasi momento dalle Preferenze."
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:58
+msgid "Start with a document"
+msgstr "Inizia con un documento"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
+msgid "Use the welcome screen to create or open a file, choose a template, or try the example document."
+msgstr "Usa la schermata di benvenuto per creare o aprire un file, scegliere un modello o provare il documento di esempio."
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
+msgid "Build and preview your PDF"
+msgstr "Compila e visualizza l’anteprima del PDF"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
+#, python-brace-format
+msgid "Use {shortcut} to save and build. The PDF opens in the preview panel, where you can inspect the result."
+msgstr "Usa {shortcut} per salvare e compilare. Il PDF si apre nel pannello di anteprima, dove puoi controllare il risultato."
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
+msgid "Navigate with document structure"
+msgstr "Naviga con la struttura del documento"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
+msgid "Use Document Structure to move between headings in a long document. Select an entry to jump to its title."
+msgstr "Usa Struttura del documento per spostarti tra le intestazioni di un documento lungo. Seleziona una voce per passare al relativo titolo."
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
+msgid "Find commands quickly"
+msgstr "Trova rapidamente i comandi"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
+#, python-brace-format
+msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
+msgstr "Usa {shortcut} per cercare ed eseguire i comandi dell’applicazione quando non ricordi dove si trova un’azione."

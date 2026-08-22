@@ -272,10 +272,6 @@ class MainApplicationController(Adw.Application):
                                           self.settings.get_value('window_state', 'height'))
         self.main_window.present()
 
-        # 首次启动引导：应用真正首次启动时弹一次（由 settings 标志保证只弹一次）。
-        # 放在 present() 之后，确保窗口已可见、作为模态浮于其上。
-        maybe_show_first_run_tutorial()
-
         self.main_window.connect('close-request', self.on_window_close)
 
         # init controller
@@ -283,6 +279,10 @@ class MainApplicationController(Adw.Application):
         self.shortcuts = shortcuts.Shortcuts()
         ServiceLocator.set_shortcuts(self.shortcuts)
         self.workspace.actions.actions['quit'].connect('activate', self.on_quit_action)
+
+        # 首次启动引导：窗口和所有教程动作已就绪后弹出，避免用户点击
+        # “打开示例文档”时 workspace controller 尚未初始化。
+        maybe_show_first_run_tutorial()
 
         # ① 周期快照：每 30 秒保存工作区布局与每文档状态，避免崩溃/断电丢失布局。
         GLib.timeout_add_seconds(30, self.periodic_snapshot)

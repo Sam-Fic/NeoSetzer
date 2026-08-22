@@ -7399,3 +7399,59 @@ msgstr ""
 #: setzer/command_palette/dialog.py:263
 msgid "Unavailable in the current document or view"
 msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:57
+msgid "Welcome to NeoSetzer"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:66
+msgid "Start Writing"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:91
+msgid ""
+"Start with a document, then build and preview it. You can reopen these tips "
+"at any time from Preferences."
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:58
+msgid "Start with a document"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
+msgid ""
+"Use the welcome screen to create or open a file, choose a template, or try "
+"the example document."
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
+msgid "Build and preview your PDF"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
+#, python-brace-format
+msgid ""
+"Use {shortcut} to save and build. The PDF opens in the preview panel, where "
+"you can inspect the result."
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
+msgid "Navigate with document structure"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
+msgid ""
+"Use Document Structure to move between headings in a long document. Select an "
+"entry to jump to its title."
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
+msgid "Find commands quickly"
+msgstr ""
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
+#, python-brace-format
+msgid ""
+"Use {shortcut} to search and run application commands when you do not "
+"remember where an action is located."
+msgstr ""

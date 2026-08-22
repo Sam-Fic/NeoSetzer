@@ -6294,3 +6294,49 @@ msgstr "— 使用向导设置 —"
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
 msgstr "选择已保存的 LaTeX 源文本模板，即可在此处预览。"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:57
+msgid "Welcome to NeoSetzer"
+msgstr "欢迎使用 NeoSetzer"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:66
+msgid "Start Writing"
+msgstr "开始写作"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:91
+msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
+msgstr "从一个文档开始，然后构建并预览 PDF。你可以随时在“偏好设置”中重新打开这些提示。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:58
+msgid "Start with a document"
+msgstr "从一个文档开始"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
+msgid "Use the welcome screen to create or open a file, choose a template, or try the example document."
+msgstr "使用欢迎页面新建或打开文件、选择模板，或试用示例文档。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
+msgid "Build and preview your PDF"
+msgstr "构建并预览 PDF"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
+#, python-brace-format
+msgid "Use {shortcut} to save and build. The PDF opens in the preview panel, where you can inspect the result."
+msgstr "使用 {shortcut} 保存并构建。PDF 会在预览面板中打开，你可以在那里查看结果。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
+msgid "Navigate with document structure"
+msgstr "使用文档结构导航"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
+msgid "Use Document Structure to move between headings in a long document. Select an entry to jump to its title."
+msgstr "使用“文档结构”在长文档的各个标题之间移动。选择一个条目即可跳转到对应标题。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
+msgid "Find commands quickly"
+msgstr "快速查找命令"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
+#, python-brace-format
+msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
+msgstr "当你不记得某个操作的位置时，使用 {shortcut} 搜索并运行应用程序命令。"

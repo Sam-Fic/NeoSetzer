@@ -23,6 +23,11 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.dialogs.first_run_tutorial.tutorial_content import (
+    DEFAULT_SHORTCUTS,
+    get_configured_shortcut,
+    get_tutorial_tips,
+)
 
 
 def maybe_show_first_run_tutorial():
@@ -40,7 +45,7 @@ def maybe_show_first_run_tutorial():
 
 
 class FirstRunTutorialDialog(object):
-    '''首次运行欢迎引导（Adw.Dialog），列出 Setzer 的核心功能要点。'''
+    '''首次运行欢迎引导（Adw.Dialog），介绍 NeoSetzer 的核心工作流。'''
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -49,7 +54,7 @@ class FirstRunTutorialDialog(object):
 
     def setup(self):
         self.view = Adw.Dialog()
-        self.view.set_title(_('Welcome to Setzer'))
+        self.view.set_title(_('Welcome to NeoSetzer'))
         # Adw.Dialog 会按 content 自然撑开并可被用户拖拽缩放；
         # 这里给一个舒适的默认尺寸，避免初次弹出过窄。
         self.view.set_content_width(620)
@@ -58,7 +63,7 @@ class FirstRunTutorialDialog(object):
         headerbar = Adw.HeaderBar()
         headerbar.set_show_start_title_buttons(False)
         headerbar.set_show_end_title_buttons(False)
-        self.start_button = Gtk.Button(label=_('Get Started'))
+        self.start_button = Gtk.Button(label=_('Start Writing'))
         self.start_button.add_css_class('suggested-action')
         self.start_button.connect('clicked', lambda b: self.view.close())
         headerbar.pack_end(self.start_button)
@@ -83,33 +88,21 @@ class FirstRunTutorialDialog(object):
         clamp.set_child(box)
 
         intro = Gtk.Label()
-        intro.set_markup(_('Setzer has a few powerful features that are easy to miss. '
-                           'You can always bring this up again from Preferences.'))
+        intro.set_text(_('Start with a document, then build and preview it. You can '
+                         'reopen these tips at any time from Preferences.'))
         intro.set_wrap(True)
         intro.set_xalign(0.0)
         intro.add_css_class('caption')
         intro.add_css_class('dim-label')
         box.append(intro)
 
-        # 核心功能要点：(图标, 标题, 说明)。在运行时构造以使用 _() 翻译。
-        tips = [
-            ('system-run-symbolic',
-             _('Build your document (F5)'),
-             _('Press F5 to save and build, or F6 to build without saving. '
-               'The result shows up in the preview on the right.')),
-            ('go-jump-symbolic',
-             _('Jump back from the preview'),
-             _('In the preview, hold Ctrl and click to jump to the matching '
-               'line in your source code.')),
-            ('folder-open-symbolic',
-             _('Root document for multi-file projects'),
-             _('In projects with several files, set a root document so that '
-               'building and syncing always use the right entry point.')),
-            ('view-refresh-symbolic',
-             _('Automatic building'),
-             _('Enable “Automatic build” in Preferences to rebuild shortly '
-               'after you stop typing.')),
-        ]
+        # 核心功能要点由无 GTK 内容模块集中定义，便于验证内容顺序、
+        # 快捷键回退和本地化占位符。快捷键按用户当前配置动态展示，避免
+        # 教程在用户改绑后仍显示过期的固定按键说明。
+        tips = get_tutorial_tips(
+            self.get_shortcut_label('save_and_build'),
+            self.get_shortcut_label('command_palette'),
+        )
         listbox = Gtk.ListBox()
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         listbox.add_css_class('boxed-list')
@@ -130,6 +123,22 @@ class FirstRunTutorialDialog(object):
         example_button.set_halign(Gtk.Align.CENTER)
         example_button.connect('clicked', self.on_open_example_clicked)
         box.append(example_button)
+
+    def get_shortcut_label(self, action_name):
+        '''Return a localized accelerator label with a defensive fallback.'''
+        shortcut = get_configured_shortcut(self.settings, action_name)
+        try:
+            label = Gtk.accelerator_get_label(shortcut)
+        except (TypeError, ValueError):
+            label = ''
+        if label:
+            return label
+
+        fallback = DEFAULT_SHORTCUTS[action_name]
+        try:
+            return Gtk.accelerator_get_label(fallback) or fallback
+        except (TypeError, ValueError):
+            return fallback
 
     def on_open_example_clicked(self, button):
         example_path = os.path.join(ServiceLocator.get_resources_path(), 'example_document.tex')

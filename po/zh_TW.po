@@ -6419,3 +6419,49 @@ msgstr "— 使用精靈設定 —"
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
 msgstr "選取已儲存的 LaTeX 原始碼範本，即可在此預覽。"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:57
+msgid "Welcome to NeoSetzer"
+msgstr "歡迎使用 NeoSetzer"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:66
+msgid "Start Writing"
+msgstr "開始寫作"
+
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:91
+msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
+msgstr "從一份文件開始，接著建置並預覽 PDF。您可以隨時在「偏好設定」中重新開啟這些提示。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:58
+msgid "Start with a document"
+msgstr "從一份文件開始"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
+msgid "Use the welcome screen to create or open a file, choose a template, or try the example document."
+msgstr "使用歡迎頁面建立或開啟檔案、選擇範本，或試用範例文件。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
+msgid "Build and preview your PDF"
+msgstr "建置並預覽 PDF"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
+#, python-brace-format
+msgid "Use {shortcut} to save and build. The PDF opens in the preview panel, where you can inspect the result."
+msgstr "使用 {shortcut} 儲存並建置。PDF 會在預覽面板中開啟，您可以在其中查看結果。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
+msgid "Navigate with document structure"
+msgstr "使用文件結構導覽"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
+msgid "Use Document Structure to move between headings in a long document. Select an entry to jump to its title."
+msgstr "使用「文件結構」在長文件的各個標題之間移動。選擇一個項目即可跳至對應標題。"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
+msgid "Find commands quickly"
+msgstr "快速尋找命令"
+
+#: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
+#, python-brace-format
+msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
+msgstr "當您不記得某個操作的位置時，使用 {shortcut} 搜尋並執行應用程式命令。"
