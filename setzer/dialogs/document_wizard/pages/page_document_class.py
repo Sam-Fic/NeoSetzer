@@ -53,8 +53,46 @@ class DocumentClassPage(Page):
                 # apply_template 已刷新各页控件；跳到通用设置页并刷新预览。
                 self.controller.goto_page(page_map.GENERAL_PAGE_INDEX)
 
+        def document_template_selected(combo, pspec):
+            selected = combo.get_selected()
+            if selected == 0 or selected == Gtk.INVALID_LIST_POSITION:
+                self.controller.select_document_template(None)
+                self.view.set_document_template_preview(None)
+                self.view.delete_document_template_button.set_sensitive(False)
+                return
+            identifier = self.view.document_template_ids[selected - 1]
+            if self.controller.select_document_template(identifier):
+                self.view.set_document_template_preview(
+                    self.controller.get_selected_document_template_preview())
+                self.view.delete_document_template_button.set_sensitive(True)
+            else:
+                self.view.document_templates_combo.set_selected(0)
+
+        def delete_document_template(button):
+            selected = self.view.document_templates_combo.get_selected()
+            if selected <= 0 or selected == Gtk.INVALID_LIST_POSITION:
+                return
+            identifier = self.view.document_template_ids[selected - 1]
+            dialog = Adw.AlertDialog(
+                heading=_('Delete document template?'),
+                body=_('The saved template source will be permanently removed.'))
+            dialog.add_response('cancel', _('Cancel'))
+            dialog.add_response('delete', _('Delete'))
+            dialog.set_response_appearance('delete', Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.set_default_response('cancel')
+            dialog.set_close_response('cancel')
+
+            def on_response(dialog, response):
+                if response == 'delete' and self.controller.delete_document_template(identifier):
+                    self.refresh_document_templates()
+
+            dialog.connect('response', on_response)
+            dialog.present(self.view.get_root())
+
         self.view.list.connect('row-selected', row_selected)
         self.view.templates_combo.connect('notify::selected', template_selected)
+        self.view.document_templates_combo.connect('notify::selected', document_template_selected)
+        self.view.delete_document_template_button.connect('clicked', delete_document_template)
 
     def load_presets(self, presets):
         try:
@@ -63,10 +101,19 @@ class DocumentClassPage(Page):
             row = self.view.list_rows[self.current_values['document_class']]
         self.view.list.select_row(row)
 
+    def refresh_document_templates(self):
+        if getattr(self, 'controller', None) is None:
+            return
+        self.view.set_document_templates(self.controller.get_document_templates())
+        self.view.set_document_template_preview(
+            self.controller.get_selected_document_template_preview())
+        self.view.delete_document_template_button.set_sensitive(False)
+
     def on_activation(self):
-        # 进入文档类页时刷新模板下拉（报告 #5）。
+        # 进入文档类页时刷新向导预设与用户源模板下拉。
         if getattr(self, 'controller', None) is not None:
             self.view.set_templates(list(self.controller.get_templates().keys()))
+            self.refresh_document_templates()
 
 
 class DocumentClassPageView(PageView):
@@ -130,14 +177,58 @@ class DocumentClassPageView(PageView):
         self.template_names = list()
         self.group_templates.add(self.templates_combo)
 
+        # #205：用户源模板是完整 LaTeX 快照，不能与上面的向导设置预设混淆。
+        self.group_document_templates = Adw.PreferencesGroup()
+        self.group_document_templates.set_title(_('Document templates'))
+        self.document_templates_combo = Adw.ComboRow()
+        self.document_templates_combo.set_title(_('Use document template'))
+        self.document_templates_combo.set_model(Gtk.StringList())
+        self.document_template_ids = list()
+        self.group_document_templates.add(self.document_templates_combo)
+        self.document_template_preview = Gtk.TextView()
+        self.document_template_preview.set_editable(False)
+        self.document_template_preview.set_cursor_visible(False)
+        self.document_template_preview.set_monospace(True)
+        self.document_template_preview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.document_template_preview.add_css_class('view')
+        preview_scroller = Gtk.ScrolledWindow()
+        preview_scroller.set_min_content_height(110)
+        preview_scroller.set_max_content_height(220)
+        preview_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        preview_scroller.set_child(self.document_template_preview)
+        self.group_document_templates.add(preview_scroller)
+        self.delete_document_template_button = Gtk.Button.new_with_mnemonic(
+            _('Delete selected document template'))
+        self.delete_document_template_button.add_css_class('destructive-action')
+        self.delete_document_template_button.set_sensitive(False)
+        self.delete_document_template_button.set_margin_start(12)
+        self.delete_document_template_button.set_margin_end(12)
+        self.delete_document_template_button.set_margin_bottom(12)
+        self.group_document_templates.add(self.delete_document_template_button)
+
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
         inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
         inner.append(self.list)
         inner.append(self.preview_container)
         self.content.append(inner)
         self.content.append(self.group_templates)
+        self.content.append(self.group_document_templates)
 
         self.append(self.content)
+
+    def set_document_templates(self, templates):
+        '''Populate the source-template chooser with validated store metadata.'''
+        self.document_template_ids = [template.identifier for template in templates]
+        model = Gtk.StringList()
+        model.append(_('— Use wizard settings —'))
+        for template in templates:
+            model.append(template.name)
+        self.document_templates_combo.set_model(model)
+        self.document_templates_combo.set_selected(0)
+
+    def set_document_template_preview(self, preview):
+        self.document_template_preview.get_buffer().set_text(
+            preview or _('Select a saved LaTeX source template to preview it here.'))
 
     def set_templates(self, names):
         '''用已保存模板名填充下拉；索引 0 为"不加载"。'''

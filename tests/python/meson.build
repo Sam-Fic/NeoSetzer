@@ -25,6 +25,7 @@ foreach t : [
   ['test_wizard_presets',         'test_wizard_presets.py'],
   ['test_wizard_page_map',        'test_wizard_page_map.py'],
   ['test_wizard_font_package',    'test_wizard_font_package.py'],
+  ['test_user_document_templates', 'test_user_document_templates.py'],
   ['test_symbol_categories',      'test_symbol_categories.py'],
   ['test_stats_markup',           'test_stats_markup.py'],
   ['test_matching_blocks_regex',  'test_matching_blocks_regex.py'],

@@ -45,6 +45,7 @@
 ./setzer/dialogs/document_properties/document_properties_viewgtk.py
 ./setzer/dialogs/document_properties/__init__.py
 ./setzer/dialogs/document_wizard/document_wizard.py
+./setzer/dialogs/document_wizard/user_document_templates.py
 ./setzer/dialogs/document_wizard/document_wizard_viewgtk.py
 ./setzer/dialogs/document_wizard/__init__.py
 ./setzer/dialogs/document_wizard/page_map.py

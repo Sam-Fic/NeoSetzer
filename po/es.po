@@ -7178,3 +7178,136 @@ msgstr "No disponible en el contexto actual"
 #: setzer/command_palette/dialog.py:263
 msgid "Unavailable in the current document or view"
 msgstr "No disponible en el documento o la vista actual"
+
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "A user data directory is required"
+msgstr "Se requiere un directorio de datos de usuario."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name must be text"
+msgstr "El nombre de la plantilla debe ser texto."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name cannot be empty"
+msgstr "El nombre de la plantilla no puede estar vacío."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name is too long"
+msgstr "El nombre de la plantilla es demasiado largo."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name contains unsupported characters"
+msgstr "El nombre de la plantilla contiene caracteres no compatibles."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source must be text"
+msgstr "El código fuente de la plantilla debe ser texto."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source must be valid UTF-8 text"
+msgstr "El código fuente de la plantilla debe ser texto UTF-8 válido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source cannot be empty"
+msgstr "El código fuente de la plantilla no puede estar vacío."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source is too large"
+msgstr "El código fuente de la plantilla es demasiado grande."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "A template with this name already exists"
+msgstr "Ya existe una plantilla con este nombre."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template source file is missing"
+msgstr "Falta el archivo de código fuente de la plantilla."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template source file is not valid UTF-8"
+msgstr "El archivo de código fuente de la plantilla no es UTF-8 válido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template identifier is invalid"
+msgstr "El identificador de la plantilla no es válido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The selected template no longer exists"
+msgstr "La plantilla seleccionada ya no existe."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index could not be read"
+msgstr "No se pudo leer el índice de la biblioteca de plantillas."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index has an unsupported format"
+msgstr "El índice de la biblioteca de plantillas tiene un formato no compatible."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index is invalid"
+msgstr "El índice de la biblioteca de plantillas no es válido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template metadata is invalid"
+msgstr "Los metadatos de la plantilla no son válidos."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template filename is invalid"
+msgstr "El nombre de archivo de la plantilla no es válido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template filename does not match its identifier"
+msgstr "El nombre de archivo de la plantilla no coincide con su identificador."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template path is invalid"
+msgstr "La ruta de la plantilla no es válida."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library could not be written"
+msgstr "No se pudo escribir la biblioteca de plantillas."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save document template"
+msgstr "Guardar plantilla de documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save a snapshot of the current LaTeX source for future documents."
+msgstr "Guarda una instantánea del código fuente LaTeX actual para documentos futuros."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save as _Preset"
+msgstr "Guardar como valor _predefinido"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save _Document Template"
+msgstr "Guardar plantilla de _documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Delete document template?"
+msgstr "¿Eliminar la plantilla de documento?"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The saved template source will be permanently removed."
+msgstr "El código fuente de la plantilla guardada se eliminará permanentemente."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Document templates"
+msgstr "Plantillas de documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Use document template"
+msgstr "Usar plantilla de documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Delete selected document template"
+msgstr "Eliminar la plantilla de documento seleccionada"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "— Use wizard settings —"
+msgstr "— Usar configuración del asistente —"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Select a saved LaTeX source template to preview it here."
+msgstr "Seleccione una plantilla de código fuente LaTeX guardada para previsualizarla aquí."

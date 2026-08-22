@@ -19,7 +19,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gio, Gdk, Adw
+from gi.repository import Gtk, Gio, Gdk, Adw, GLib
 
 import copy
 
@@ -32,6 +32,10 @@ from setzer.dialogs.document_wizard.pages.page_general_settings import GeneralSe
 from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.latex_db import LaTeXDB
+from setzer.dialogs.document_wizard.user_document_templates import (
+    TemplateStoreError,
+    UserDocumentTemplateStore,
+)
 
 # KOMA-Script 文档类复用对应标准类的设置页与 current_values 键
 # （scrartcl/article、scrreprt/report、scrbook/book、scrlttr2/letter）。键用于查设置，
@@ -68,6 +72,7 @@ class DocumentWizard(object):
     def run(self, document):
         self.document = document
         self.completed = False
+        self.selected_document_template_id = None
 
         self.init_current_values()
         # 先读预设（load_presets 现只读 settings → self.presets，不再遍历页面），
@@ -76,6 +81,8 @@ class DocumentWizard(object):
         self.presets = None
         self.load_presets()
         self.setup()
+        self.view.save_document_template_button.set_visible(
+            document.is_latex_document())
 
         self.current_page = -1
         self.goto_page(page_map.DOCUMENT_CLASS_PAGE_INDEX)
@@ -92,18 +99,27 @@ class DocumentWizard(object):
             self._show_validation_error(message)
             return
         self.save_presets()
-        self.completed = True
 
-        document_class = self.current_values['document_class']
-        # 用 getattr 替代 eval:既避免任意代码执行风险(若 presets 被篡改,
-        # document_class 可能是任意字符串),也使方法不存在时抛出更清晰的
-        # AttributeError 而非 SyntaxError/NameError。
-        try:
-            get_insert_text = getattr(self, 'get_insert_text_' + document_class)
-        except AttributeError:
-            return
-        template_start, template_end = get_insert_text()
+        if self.selected_document_template_id is not None:
+            try:
+                template_start = self.get_document_template_store().load(
+                    self.selected_document_template_id)
+            except TemplateStoreError as error:
+                self._show_validation_error(str(error))
+                return
+            template_end = ''
+        else:
+            document_class = self.current_values['document_class']
+            # 用 getattr 替代 eval:既避免任意代码执行风险(若 presets 被篡改,
+            # document_class 可能是任意字符串),也使方法不存在时抛出更清晰的
+            # AttributeError 而非 SyntaxError/NameError。
+            try:
+                get_insert_text = getattr(self, 'get_insert_text_' + document_class)
+            except AttributeError:
+                return
+            template_start, template_end = get_insert_text()
         self.insert_template(template_start, template_end)
+        self.completed = True
 
         self.view.close()
 
@@ -219,6 +235,8 @@ class DocumentWizard(object):
         self.view.cancel_button.connect('clicked', self.on_cancel_button_clicked)
         self.view.create_button.connect('clicked', self.on_create_button_clicked)
         self.view.save_template_button.connect('clicked', self.open_save_template_dialog)
+        self.view.save_document_template_button.connect(
+            'clicked', self.open_save_document_template_dialog)
 
         key_controller = Gtk.EventControllerKey()
         key_controller.connect('key-pressed', self.on_keypress)
@@ -312,6 +330,76 @@ class DocumentWizard(object):
         for page in self.pages:
             page.load_presets(self.current_values)
         return True
+
+    # ---- 用户 LaTeX 源模板（上游 #205） -------------------------------
+    def get_document_template_store(self):
+        '''Return the private XDG data store for immutable source snapshots.'''
+        return UserDocumentTemplateStore(os.path.join(
+            GLib.get_user_data_dir(), 'org.cvfosammmm.Setzer'))
+
+    def get_document_templates(self):
+        try:
+            return self.get_document_template_store().list_templates()
+        except TemplateStoreError:
+            return []
+
+    def select_document_template(self, identifier):
+        if identifier is None:
+            self.selected_document_template_id = None
+            return True
+        try:
+            self.get_document_template_store().load(identifier)
+        except TemplateStoreError:
+            return False
+        self.selected_document_template_id = identifier
+        return True
+
+    def get_selected_document_template_preview(self):
+        '''Return the immutable source snapshot for a read-only wizard preview.'''
+        if self.selected_document_template_id is None:
+            return None
+        try:
+            return self.get_document_template_store().load(
+                self.selected_document_template_id)
+        except TemplateStoreError:
+            return None
+
+    def delete_document_template(self, identifier):
+        try:
+            deleted = self.get_document_template_store().delete(identifier)
+        except TemplateStoreError:
+            return False
+        if deleted and self.selected_document_template_id == identifier:
+            self.selected_document_template_id = None
+        return deleted
+
+    def open_save_document_template_dialog(self, button=None):
+        source = self.document.get_all_text()
+        dialog = Adw.AlertDialog(
+            heading=_('Save document template'),
+            body=_('Save a snapshot of the current LaTeX source for future documents.'))
+        entry = Gtk.Entry()
+        entry.set_hexpand(True)
+        dialog.set_extra_child(entry)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('save', _('Save'))
+        dialog.set_default_response('save')
+        dialog.set_response_appearance('save', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_close_response('cancel')
+
+        def on_response(dialog, response):
+            if response != 'save':
+                return
+            try:
+                self.get_document_template_store().save(entry.get_text(), source)
+            except TemplateStoreError as error:
+                self._show_validation_error(str(error))
+                return
+            document_class_page = self.pages[page_map.DOCUMENT_CLASS_PAGE_INDEX]
+            document_class_page.refresh_document_templates()
+
+        dialog.connect('response', on_response)
+        dialog.present(self.main_window)
 
     def open_save_template_dialog(self):
         '''弹出对话框，将当前设置另存为命名模板（报告 #5）。'''

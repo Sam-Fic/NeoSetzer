@@ -7345,3 +7345,136 @@ msgstr "Non disponibile nel contesto attuale"
 #: setzer/command_palette/dialog.py:263
 msgid "Unavailable in the current document or view"
 msgstr "Non disponibile nel documento o nella vista attuale"
+
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "A user data directory is required"
+msgstr "È richiesta una cartella dei dati utente."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name must be text"
+msgstr "Il nome del modello deve essere testo."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name cannot be empty"
+msgstr "Il nome del modello non può essere vuoto."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name is too long"
+msgstr "Il nome del modello è troppo lungo."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template name contains unsupported characters"
+msgstr "Il nome del modello contiene caratteri non supportati."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source must be text"
+msgstr "Il sorgente del modello deve essere testo."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source must be valid UTF-8 text"
+msgstr "Il sorgente del modello deve essere testo UTF-8 valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source cannot be empty"
+msgstr "Il sorgente del modello non può essere vuoto."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template source is too large"
+msgstr "Il sorgente del modello è troppo grande."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "A template with this name already exists"
+msgstr "Esiste già un modello con questo nome."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template source file is missing"
+msgstr "Manca il file sorgente del modello."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template source file is not valid UTF-8"
+msgstr "Il file sorgente del modello non è UTF-8 valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template identifier is invalid"
+msgstr "L’identificatore del modello non è valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The selected template no longer exists"
+msgstr "Il modello selezionato non esiste più."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index could not be read"
+msgstr "Non è stato possibile leggere l’indice della raccolta di modelli."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index has an unsupported format"
+msgstr "L’indice della raccolta di modelli ha un formato non supportato."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library index is invalid"
+msgstr "L’indice della raccolta di modelli non è valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template metadata is invalid"
+msgstr "I metadati del modello non sono validi."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template filename is invalid"
+msgstr "Il nome file del modello non è valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template filename does not match its identifier"
+msgstr "Il nome file del modello non corrisponde al suo identificatore."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Template path is invalid"
+msgstr "Il percorso del modello non è valido."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The template library could not be written"
+msgstr "Non è stato possibile scrivere la raccolta di modelli."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save document template"
+msgstr "Salva modello di documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save a snapshot of the current LaTeX source for future documents."
+msgstr "Salva un’istantanea del sorgente LaTeX attuale per documenti futuri."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save as _Preset"
+msgstr "Salva come _preimpostazione"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Save _Document Template"
+msgstr "Salva _modello di documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Delete document template?"
+msgstr "Eliminare il modello di documento?"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "The saved template source will be permanently removed."
+msgstr "Il sorgente del modello salvato sarà rimosso definitivamente."
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Document templates"
+msgstr "Modelli di documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Use document template"
+msgstr "Usa modello di documento"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Delete selected document template"
+msgstr "Elimina il modello di documento selezionato"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "— Use wizard settings —"
+msgstr "— Usa le impostazioni della procedura guidata —"
+
+#: setzer/dialogs/document_wizard/user_document_templates.py
+msgid "Select a saved LaTeX source template to preview it here."
+msgstr "Seleziona un modello di sorgente LaTeX salvato per visualizzarne qui l’anteprima."
