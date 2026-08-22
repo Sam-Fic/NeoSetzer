@@ -121,7 +121,8 @@ class BeamerSettingsPage(Page):
             setter_function(value)
 
     def on_activation(self):
-        pass
+        # 主题决定生成的 presentation 样式，进入页面后可直接用方向键选择。
+        self.view.themes_list.grab_focus()
 
 
 class BeamerSettingsPageView(PageView):
@@ -134,7 +135,7 @@ class BeamerSettingsPageView(PageView):
         self.theme_names = ['Warsaw', 'Malmoe', 'Luebeck', 'Copenhagen', 'Szeged', 'Singapore', 'Frankfurt', 'Darmstadt', 'Dresden', 'Ilmenau', 'Berlin', 'Hannover', 'Marburg', 'Goettingen', 'PaloAlto', 'Berkeley', 'Montpellier', 'JuanLesPins', 'Antibes', 'Rochester', 'Pittsburgh', 'EastLansing', 'CambridgeUS', 'AnnArbor', 'Madrid', 'Boadilla', 'Bergen', 'default']
 
         self.themes_list = Gtk.ListBox()
-        self.themes_list.set_can_focus(False)
+        self.themes_list.set_can_focus(True)
         self.themes_list.add_css_class('boxed-list')
         self.themes_list_rows = dict()
         for name in self.theme_names:

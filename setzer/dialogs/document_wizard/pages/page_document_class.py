@@ -114,6 +114,8 @@ class DocumentClassPage(Page):
         if getattr(self, 'controller', None) is not None:
             self.view.set_templates(list(self.controller.get_templates().keys()))
             self.refresh_document_templates()
+        # 此列表决定后续页面和生成结果，必须是键盘流程中的首个控件。
+        self.view.list.grab_focus()
 
 
 class DocumentClassPageView(PageView):
@@ -126,7 +128,7 @@ class DocumentClassPageView(PageView):
         self.list = Gtk.ListBox()
         self.list.set_selection_mode(Gtk.SelectionMode.BROWSE)
         self.list.set_size_request(348, -1)
-        self.list.set_can_focus(False)
+        self.list.set_can_focus(True)
         self.list.add_css_class('boxed-list')
         self.list_rows = dict()
         for document_class in ['beamer', 'letter', 'book', 'report', 'article',
