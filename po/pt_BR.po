@@ -3474,15 +3474,7 @@ msgstr "Exportar Atalhos"
 msgid "Save keyboard shortcuts to a JSON file"
 msgstr "Salvar atalhos de teclado em um arquivo JSON"
 
-#: setzer/dialogs/print/print.py:83
-#, python-brace-format
-msgid "Printing failed: {error}"
-msgstr "Falha na impressão: {error}"
 
-#: setzer/dialogs/print/print.py:182
-#, python-brace-format
-msgid "Page {page} of {total}"
-msgstr "Página {page} de {total}"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 #, python-brace-format

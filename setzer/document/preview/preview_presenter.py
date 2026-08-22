@@ -21,8 +21,10 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import GObject, Gdk, Gtk
 import cairo
 
+import os
 import os.path
 import math
+import tempfile
 import time
 
 from setzer.app.color_manager import ColorManager
@@ -92,6 +94,9 @@ class PreviewPresenter(object):
         if self.preview.poppler_document != None:
             # 成功加载新 PDF 时清除上次的构建失败提示。
             self.view.hide_pdf_load_failed()
+            # 关键：启动后台渲染线程与轮询定时器，否则 rendered_pages 永远为空，
+            # 预览只画白底、打印也无内容（page_renderer.activate 此前无任何调用方）。
+            self.page_renderer.activate()
             self.show_pdf()
         else:
             # 回到空白状态（无旧 PDF 可回退）时也清除失败提示。
@@ -430,23 +435,167 @@ class PreviewPresenter(object):
             pass
 
     def print_pdf(self):
-        doc = self.preview.poppler_document
-        if doc is None: return
-        window = self.view.get_root()
-        operation = Gtk.PrintOperation()
-        operation.set_n_pages(doc.get_n_pages())
-        operation.connect('draw-page', self._print_draw_page)
-        operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, window)
+        '''通过系统打印对话框打印生成的 PDF（issue #261）。
 
-    def _print_draw_page(self, operation, context, page_num):
+        注意：刻意不走 Gtk.PrintOperation 的 PRINT_DIALOG 动作。在委托
+        xdg-desktop-portal 的系统上（Ubuntu 26.04 / GNOME 50 实测），该动作会把
+        打印流程整体交给 xdg-desktop-portal-gnome，而后者要求会话总线上存在可
+        激活的 org.gnome.Papers 打印预览服务；缺这个服务时任务被**静默丢弃**——
+        假脱机文件写出来了、所有信号正常、done 返回无错误，但任务永远不提交给
+        cupsd（本机 /var/log/cups/access_log 无任何 Print-Job 记录）。
+
+        这里改为直接弹 Gtk.PrintUnixDialog（打印机枚举、份数、纸张等能力与
+        原生一致，且不经过门户），用户确认后用 Poppler 把已生成的 PDF 按所选
+        纸张重排进临时 spool 文件，再用 Gtk.PrintJob 经 libcups 直接提交。
+        该链路已在本机验证：CUPS access_log 出现 Print-Job，输出正常。
+        '''
+        if self.preview.poppler_document is None:
+            return
+        # 已有打印对话框打开时不重复弹，直接置前。
+        if getattr(self, '_print_dialog', None) is not None:
+            self._print_dialog.present()
+            return
+
+        dialog = Gtk.PrintUnixDialog.new(_('Print'), self.view.get_root())
+        dialog.set_modal(True)
+        # 恢复上次保存的打印偏好（沿用旧版打印功能的两份 ini，用户无感迁移）。
+        settings, page_setup = self._load_print_prefs()
+        if settings is not None:
+            dialog.set_settings(settings)
+        if page_setup is not None:
+            dialog.set_page_setup(page_setup)
+        dialog.connect('response', self._on_print_dialog_response)
+        dialog.present()
+        self._print_dialog = dialog
+
+    PRINT_SETTINGS_FILE = 'print-settings.ini'
+    PAGE_SETUP_FILE = 'page-setup.ini'
+
+    def _load_print_prefs(self):
+        '''读取持久化的 PrintSettings / PageSetup；缺失或损坏时返回 (None, None)。'''
+        from setzer.app.service_locator import ServiceLocator
+        config = ServiceLocator.get_config_folder()
+        settings = None
+        page_setup = None
+        try:
+            path = os.path.join(config, self.PRINT_SETTINGS_FILE)
+            if os.path.exists(path):
+                settings = Gtk.PrintSettings.new_from_file(path)
+        except Exception:
+            settings = None
+        try:
+            path = os.path.join(config, self.PAGE_SETUP_FILE)
+            if os.path.exists(path):
+                page_setup = Gtk.PageSetup.new_from_file(path)
+        except Exception:
+            page_setup = None
+        return (settings, page_setup)
+
+    def _save_print_prefs(self, settings, page_setup):
+        '''打印偏好落盘，下次打开打印对话框时恢复。失败静默（非关键路径）。'''
+        try:
+            from setzer.app.service_locator import ServiceLocator
+            config = ServiceLocator.get_config_folder()
+            if settings is not None:
+                settings.to_file(os.path.join(config, self.PRINT_SETTINGS_FILE))
+            if page_setup is not None:
+                page_setup.to_file(os.path.join(config, self.PAGE_SETUP_FILE))
+        except Exception:
+            pass
+
+    def _on_print_dialog_response(self, dialog, response):
+        settings = dialog.get_settings()
+        page_setup = dialog.get_page_setup()
+        printer = dialog.get_selected_printer()
+        dialog.destroy()
+        self._print_dialog = None
+
+        if response != Gtk.ResponseType.OK:
+            return
+        self._save_print_prefs(settings, page_setup)
+
+        if printer is None:
+            self._show_print_error(self.view.get_root(), _('No printer available'))
+            return
+
+        spool_path = self._write_print_spool(page_setup)
+        if spool_path is None:
+            self._show_print_error(self.view.get_root(), _('Could not prepare print data'))
+            return
+
+        job_name = self.preview.document.get_displayname()
+        if not job_name:
+            job_name = _('Document')
+        job = Gtk.PrintJob.new(job_name, printer, settings, page_setup)
+        job.set_source_file(spool_path)
+        self._print_job_spool_path = spool_path
+        job.send(self._on_print_job_sent)
+
+    def _show_print_error(self, window, message):
+        try:
+            d = Gtk.AlertDialog()
+            d.set_message(_('Printing failed'))
+            d.set_detail(message)
+            d.show(window)
+        except Exception:
+            pass
+
+    def _write_print_spool(self, page_setup):
+        '''把当前 PDF 按目标纸张逐页重排进临时 PDF，作为提交给 CUPS 的打印数据。
+
+        返回 spool 文件路径；无 PDF 或写盘失败返回 None。页面居中、等比缩放
+        适配纸张（与 GtkPrintOperation 内置行为一致）。
+        '''
         doc = self.preview.poppler_document
-        page = doc.get_page(page_num)
-        cr = context.get_cairo_context()
-        w, h = page.get_size()
-        pw = context.get_width()
-        ph = context.get_height()
-        scale = min(pw / w, ph / h)
-        cr.scale(scale, scale)
-        page.render(cr)
+        if doc is None:
+            return None
+
+        if page_setup is not None:
+            paper_w = page_setup.get_page_width(Gtk.Unit.POINTS)
+            paper_h = page_setup.get_page_height(Gtk.Unit.POINTS)
+        else:
+            paper_w, paper_h = doc.get_page(0).get_size()
+        if paper_w <= 0 or paper_h <= 0:
+            return None
+
+        path = None
+        try:
+            fd, path = tempfile.mkstemp(prefix='setzer-print-', suffix='.pdf')
+            os.close(fd)
+            surface = cairo.PDFSurface(path, paper_w, paper_h)
+            for page_number in range(doc.get_n_pages()):
+                page = doc.get_page(page_number)
+                page_w, page_h = page.get_size()
+                if page_w <= 0 or page_h <= 0:
+                    continue
+                ctx = cairo.Context(surface)
+                scale = min(paper_w / page_w, paper_h / page_h)
+                ctx.translate((paper_w - page_w * scale) / 2.0,
+                              (paper_h - page_h * scale) / 2.0)
+                ctx.scale(scale, scale)
+                page.render(ctx)
+                ctx.show_page()
+            surface.finish()
+            return path
+        except Exception:
+            if path is not None:
+                try:
+                    os.unlink(path)
+                except Exception:
+                    pass
+            return None
+
+    def _on_print_job_sent(self, job, error, user_data=None):
+        '''Gtk.PrintJob.send 完成回调：error 非 None 时弹窗告知。'''
+        spool_path = getattr(self, '_print_job_spool_path', None)
+        if spool_path is not None:
+            try:
+                os.unlink(spool_path)
+            except Exception:
+                pass
+            self._print_job_spool_path = None
+        if error is not None:
+            message = error.message if hasattr(error, 'message') else str(error)
+            self._show_print_error(self.view.get_root(), message)
 
 

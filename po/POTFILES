@@ -96,8 +96,6 @@
 ./setzer/dialogs/preferences/pages/page_shortcuts.py
 ./setzer/dialogs/preferences/preferences.py
 ./setzer/dialogs/preferences/preferences_viewgtk.py
-./setzer/dialogs/print/__init__.py
-./setzer/dialogs/print/print.py
 ./setzer/dialogs/replace_confirmation/__init__.py
 ./setzer/dialogs/replace_confirmation/replace_confirmation.py
 ./setzer/dialogs/save_document/__init__.py

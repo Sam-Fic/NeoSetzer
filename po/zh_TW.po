@@ -3464,15 +3464,7 @@ msgstr "匯出快捷鍵"
 msgid "Save keyboard shortcuts to a JSON file"
 msgstr "將鍵盤快捷鍵儲存至 JSON 檔案"
 
-#: setzer/dialogs/print/print.py:83
-#, python-brace-format
-msgid "Printing failed: {error}"
-msgstr "列印失敗：{error}"
 
-#: setzer/dialogs/print/print.py:182
-#, python-brace-format
-msgid "Page {page} of {total}"
-msgstr "第 {page} 頁，共 {total} 頁"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 #, python-brace-format

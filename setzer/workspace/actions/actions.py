@@ -273,10 +273,10 @@ class Actions(object):
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
         self.actions['save-as'].set_enabled(document_active)
-        self.actions['print'].set_enabled(document_active)
         # Export PDF As…：仅当已 build 出 PDF（preview.pdf_filename 已就绪）时启用。
         pdf_document = self.workspace.get_root_or_active_latex_document()
         has_pdf = pdf_document is not None and pdf_document.preview.pdf_filename is not None
+        self.actions['print'].set_enabled(has_pdf)
         self.actions['export-pdf-as'].set_enabled(has_pdf)
         self.actions['save-all'].set_enabled(len(self.workspace.get_unsaved_documents()) > 0)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
@@ -474,11 +474,9 @@ class Actions(object):
         DialogLocator.get_dialog('export_pdf').run(document)
 
     def print_document(self, action=None, parameter=None):
-        if self.workspace.get_active_document() == None: return
-
-        from setzer.dialogs.print.print import PrintDialog
-        document = self.workspace.get_active_document()
-        PrintDialog().run(document)
+        preview = self._get_preview()
+        if preview is not None:
+            preview.print_pdf()
 
     def save_all(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
