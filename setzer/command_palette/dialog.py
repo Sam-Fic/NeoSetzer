@@ -19,7 +19,13 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gdk, Gtk, Pango
 
-from setzer.command_palette.catalog import CommandCatalog, CommandDescriptor
+from setzer.app.service_locator import ServiceLocator
+from setzer.command_palette.catalog import (
+    CommandCatalog,
+    CommandDescriptor,
+    update_recent_command_ids,
+)
+from setzer.keyboard_shortcuts.shortcut_tooltips import get_action_label
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 
 
@@ -37,6 +43,7 @@ class CommandPaletteDialog(DialogView):
         self.main_window = main_window
         self.workspace = workspace
         self.catalog = CommandCatalog(workspace.actions)
+        self.settings = ServiceLocator.get_settings()
         self.commands: list[CommandDescriptor] = []
         self._previous_focus = None
 
@@ -116,6 +123,12 @@ class CommandPaletteDialog(DialogView):
         if keyval == Gdk.KEY_Up:
             self.select_relative(-1)
             return True
+        if keyval == Gdk.KEY_Home:
+            self.select_index(0)
+            return True
+        if keyval == Gdk.KEY_End:
+            self.select_index(len(self.commands) - 1)
+            return True
         if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             return self.activate_selected()
         return False
@@ -135,8 +148,17 @@ class CommandPaletteDialog(DialogView):
             self.listbox.remove(child)
             child = next_child
 
+    def get_recent_command_ids(self):
+        recent = self.settings.get_value('app_command_palette', 'recent_commands')
+        return recent if isinstance(recent, list) else []
+
+    def record_recent_command(self, command: CommandDescriptor):
+        recent = update_recent_command_ids(command.identifier, self.get_recent_command_ids())
+        self.settings.set_value('app_command_palette', 'recent_commands', recent)
+
     def refresh_results(self):
-        self.commands = self.catalog.search(self.search_entry.get_text())
+        self.commands = self.catalog.search(
+            self.search_entry.get_text(), self.get_recent_command_ids())
         self.clear_rows()
         for command in self.commands:
             self.listbox.append(self.create_row(command))
@@ -162,6 +184,13 @@ class CommandPaletteDialog(DialogView):
         title.set_ellipsize(Pango.EllipsizeMode.END)
         box.append(title)
 
+        shortcut = get_action_label(command.settings_shortcut_key)
+        if shortcut:
+            shortcut_label = Gtk.Label(label=shortcut)
+            shortcut_label.add_css_class('dim-label')
+            shortcut_label.set_halign(Gtk.Align.END)
+            box.append(shortcut_label)
+
         category = Gtk.Label(label=_(command.category))
         category.add_css_class('dim-label')
         category.set_halign(Gtk.Align.END)
@@ -174,7 +203,11 @@ class CommandPaletteDialog(DialogView):
             return
         selected = self.listbox.get_selected_row()
         current = selected.get_index() if selected is not None else 0
-        index = max(0, min(current + offset, len(self.commands) - 1))
+        self.select_index(max(0, min(current + offset, len(self.commands) - 1)))
+
+    def select_index(self, index: int):
+        if not self.commands or not 0 <= index < len(self.commands):
+            return
         row = self.listbox.get_row_at_index(index)
         self.listbox.select_row(row)
         row.grab_focus()
@@ -193,6 +226,7 @@ class CommandPaletteDialog(DialogView):
         # Re-check enablement at execution time: the active document or preview
         # may have changed while the dialog was open.
         if self.catalog.execute(command):
+            self.record_recent_command(command)
             self.close()
         else:
             self.refresh_results()

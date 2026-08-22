@@ -3,7 +3,16 @@
 
 import unittest
 
-from setzer.command_palette.catalog import COMMANDS, CommandCatalog, CommandDescriptor, normalize, search
+from setzer.command_palette.catalog import (
+    COMMANDS,
+    CommandCatalog,
+    CommandDescriptor,
+    RECENT_COMMAND_LIMIT,
+    normalize,
+    prioritize_recent,
+    search,
+    update_recent_command_ids,
+)
 
 
 class FakeAction:
@@ -57,6 +66,38 @@ class CommandPaletteCatalogTest(unittest.TestCase):
     def test_execute_activates_enabled_action_without_parameter(self):
         self.assertTrue(self.catalog.execute(self.build))
         self.assertEqual(self.fake_build.activations, [None])
+
+    def test_shortcut_settings_key_uses_explicit_or_action_name_mapping(self):
+        self.assertEqual(self.build.settings_shortcut_key, 'build')
+        self.assertEqual(self.save_build.settings_shortcut_key, 'save_and_build')
+        self.assertEqual(self.preferences.settings_shortcut_key, 'preferences')
+        find_command = next(command for command in COMMANDS if command.identifier == 'find')
+        self.assertEqual(find_command.settings_shortcut_key, 'find')
+
+    def test_recent_command_ids_are_deduplicated_and_bounded(self):
+        previous = ['save-build', 'build', 'save-build', 'missing']
+        recent = update_recent_command_ids('build', previous)
+        self.assertEqual(recent, ['build', 'save-build', 'missing'])
+        self.assertEqual(
+            update_recent_command_ids('latest', range(20), limit=RECENT_COMMAND_LIMIT),
+            ['latest'],
+        )
+        with self.assertRaises(ValueError):
+            update_recent_command_ids('build', (), limit=0)
+
+    def test_empty_query_prioritizes_available_recent_commands(self):
+        commands = self.catalog.search('', ('save-build', 'missing', 'build', 'save-build'))
+        self.assertEqual(commands, [self.save_build, self.build])
+        self.assertEqual(
+            prioritize_recent((self.build, self.save_build), ('missing', 'save-build')),
+            [self.save_build, self.build],
+        )
+
+    def test_search_query_keeps_relevance_order_over_recent_commands(self):
+        self.assertEqual(
+            self.catalog.search('build', ('save-build',)),
+            [self.build, self.save_build],
+        )
 
     def test_global_catalog_includes_searchable_insert_table_command(self):
         table_command = next(command for command in COMMANDS if command.identifier == 'insert-table')

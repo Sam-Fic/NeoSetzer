@@ -31,6 +31,9 @@ def _(message: str) -> str:
     return getattr(builtins, '_', lambda value: value)(message)
 
 
+RECENT_COMMAND_LIMIT = 8
+
+
 @dataclass(frozen=True)
 class CommandDescriptor:
     """A user-facing command backed by an existing action."""
@@ -40,6 +43,19 @@ class CommandDescriptor:
     category: str
     action_name: str
     keywords: tuple[str, ...] = ()
+    shortcut_key: str | None = None
+
+    @property
+    def settings_shortcut_key(self) -> str:
+        '''Return the keyboard-shortcut settings key for this command.
+
+        Most Gio Action names map directly to the settings convention by
+        replacing hyphens with underscores.  Commands whose action describes
+        a UI target rather than the user-facing operation can declare a
+        dedicated ``shortcut_key``.
+        '''
+
+        return self.shortcut_key or self.action_name.replace('-', '_')
 
 
 # Keep labels in one place so they can be localized together when the dialog is
@@ -55,12 +71,12 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('save-all', _('Save All'), _('File'), 'save-all', ('write', 'documents')),
     CommandDescriptor('export-pdf', _('Export PDF As'), _('File'), 'export-pdf-as', ('export', 'pdf')),
     CommandDescriptor('print', _('Print'), _('File'), 'print', ('printer', 'pdf')),
-    CommandDescriptor('close-document', _('Close Document'), _('File'), 'close-active-document', ('close', 'tab')),
-    CommandDescriptor('close-all', _('Close All Documents'), _('File'), 'close-all-documents', ('close', 'tabs')),
-    CommandDescriptor('reopen', _('Reopen Last Closed Document'), _('File'), 'reopen-last-closed-document', ('restore', 'tab')),
+    CommandDescriptor('close-document', _('Close Document'), _('File'), 'close-active-document', ('close', 'tab'), 'close_document'),
+    CommandDescriptor('close-all', _('Close All Documents'), _('File'), 'close-all-documents', ('close', 'tabs'), 'close_all_documents'),
+    CommandDescriptor('reopen', _('Reopen Last Closed Document'), _('File'), 'reopen-last-closed-document', ('restore', 'tab'), 'reopen_last_closed_document'),
     CommandDescriptor('build', _('Build PDF'), _('Build'), 'build', ('compile', 'latex', 'pdf')),
     CommandDescriptor('save-build', _('Save and Build PDF'), _('Build'), 'save-and-build', ('compile', 'latex', 'pdf')),
-    CommandDescriptor('build-log', _('Show Build Log'), _('Build'), 'show-build-log', ('compile', 'output', 'log')),
+    CommandDescriptor('build-log', _('Show Build Log'), _('Build'), 'show-build-log', ('compile', 'output', 'log'), 'build_log'),
     CommandDescriptor('close-build-log', _('Close Build Log'), _('Build'), 'close-build-log', ('compile', 'output', 'log')),
     CommandDescriptor('forward-sync', _('Forward Sync'), _('Build'), 'forward-sync', ('synctex', 'preview', 'pdf')),
     CommandDescriptor('undo', _('Undo'), _('Edit'), 'undo', ('edit', 'history')),
@@ -70,8 +86,8 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('paste', _('Paste'), _('Edit'), 'paste', ('clipboard',)),
     CommandDescriptor('delete-selection', _('Delete Selection'), _('Edit'), 'delete-selection', ('remove', 'selection')),
     CommandDescriptor('select-all', _('Select All'), _('Edit'), 'select-all', ('selection', 'text')),
-    CommandDescriptor('find', _('Find'), _('Edit'), 'start-search', ('search', 'text')),
-    CommandDescriptor('replace', _('Find and Replace'), _('Edit'), 'start-search-and-replace', ('search', 'replace', 'text')),
+    CommandDescriptor('find', _('Find'), _('Edit'), 'start-search', ('search', 'text'), 'find'),
+    CommandDescriptor('replace', _('Find and Replace'), _('Edit'), 'start-search-and-replace', ('search', 'replace', 'text'), 'find_and_replace'),
     CommandDescriptor('find-next', _('Find Next'), _('Edit'), 'find-next', ('search', 'next')),
     CommandDescriptor('find-previous', _('Find Previous'), _('Edit'), 'find-previous', ('search', 'previous')),
     CommandDescriptor('go-to-line', _('Go to Line'), _('Edit'), 'go-to-line', ('line', 'navigation')),
@@ -101,11 +117,11 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('preview-source', _('Show Source from PDF'), _('Preview'), 'preview-show-source', ('synctex', 'pdf', 'source')),
     CommandDescriptor('preview-zoom-in', _('Zoom In PDF'), _('Preview'), 'preview-zoom-in', ('pdf', 'increase')),
     CommandDescriptor('preview-zoom-out', _('Zoom Out PDF'), _('Preview'), 'preview-zoom-out', ('pdf', 'decrease')),
-    CommandDescriptor('preferences', _('Preferences'), _('Application'), 'show-preferences-dialog', ('settings', 'options')),
+    CommandDescriptor('preferences', _('Preferences'), _('Application'), 'show-preferences-dialog', ('settings', 'options'), 'show_preferences_dialog'),
     CommandDescriptor('document-properties', _('Document Properties'), _('Application'), 'show-document-properties', ('settings', 'document')),
-    CommandDescriptor('keyboard-shortcuts', _('Keyboard Shortcuts'), _('Application'), 'show-shortcuts-dialog', ('shortcuts', 'help')),
-    CommandDescriptor('about', _('About NeoSetzer'), _('Application'), 'show-about-dialog', ('about', 'help')),
-    CommandDescriptor('fullscreen', _('Toggle Fullscreen'), _('Application'), 'toggle-fullscreen', ('fullscreen', 'window')),
+    CommandDescriptor('keyboard-shortcuts', _('Keyboard Shortcuts'), _('Application'), 'show-shortcuts-dialog', ('shortcuts', 'help'), 'show_shortcuts'),
+    CommandDescriptor('about', _('About NeoSetzer'), _('Application'), 'show-about-dialog', ('about', 'help'), 'show_about_dialog'),
+    CommandDescriptor('fullscreen', _('Toggle Fullscreen'), _('Application'), 'toggle-fullscreen', ('fullscreen', 'window'), 'fullscreen'),
 )
 
 
@@ -161,6 +177,37 @@ def score(command: CommandDescriptor, query: str) -> int | None:
     return total
 
 
+def update_recent_command_ids(command_id: str, identifiers: Iterable[str],
+                              limit: int = RECENT_COMMAND_LIMIT) -> list[str]:
+    '''Return a de-duplicated, bounded MRU list with ``command_id`` first.'''
+
+    if limit < 1:
+        raise ValueError('The recent-command limit must be positive')
+    remaining = []
+    seen = {command_id}
+    for identifier in identifiers:
+        if isinstance(identifier, str) and identifier not in seen:
+            remaining.append(identifier)
+            seen.add(identifier)
+    return [command_id] + remaining[:limit - 1]
+
+
+def prioritize_recent(commands: Iterable[CommandDescriptor],
+                      recent_identifiers: Iterable[str]) -> list[CommandDescriptor]:
+    '''Move still-available recent commands to the front without duplication.'''
+
+    command_list = list(commands)
+    commands_by_id = {command.identifier: command for command in command_list}
+    recent = []
+    seen = set()
+    for identifier in recent_identifiers:
+        command = commands_by_id.get(identifier)
+        if command is not None and identifier not in seen:
+            recent.append(command)
+            seen.add(identifier)
+    return recent + [command for command in command_list if command.identifier not in seen]
+
+
 def search(commands: Iterable[CommandDescriptor], query: str) -> list[CommandDescriptor]:
     """Return commands ordered by relevance, then by category and title."""
 
@@ -193,8 +240,12 @@ class CommandCatalog:
             if (action := self.get_action(command)) is not None and action.get_enabled()
         ]
 
-    def search(self, query: str) -> list[CommandDescriptor]:
-        return search(self.available(), query)
+    def search(self, query: str,
+               recent_identifiers: Iterable[str] = ()) -> list[CommandDescriptor]:
+        commands = search(self.available(), query)
+        if not normalize(query):
+            return prioritize_recent(commands, recent_identifiers)
+        return commands
 
     def execute(self, command: CommandDescriptor) -> bool:
         """Activate a currently enabled parameter-free action safely."""

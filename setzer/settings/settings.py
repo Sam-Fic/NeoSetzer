@@ -129,6 +129,8 @@ class Settings(Observable):
         # setzer/document/document.py 的 document.recent_symbols 与
         # setzer/settings/document_settings.py 的 per-document 持久化）。
         self.defaults['app_favorite_symbols'] = {'symbols': []}
+        # 命令面板的最近使用项只保存命令标识符，不记录搜索词或文档内容。
+        self.defaults['app_command_palette'] = {'recent_commands': []}
 
         self.defaults['preferences'] = dict()
         self.defaults['preferences']['cleanup_build_files'] = True
