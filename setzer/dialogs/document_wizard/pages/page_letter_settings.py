@@ -16,10 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import os
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import Gio, GLib, Gtk, Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
 
@@ -66,6 +68,10 @@ class LetterSettingsPage(Page):
         self.view.sender_name_entry.connect('changed', text_changed, 'sender_name')
         self.view.sender_address_buffer.connect('changed', address_changed, 'sender_address')
         self.view.sender_phone_entry.connect('changed', text_changed, 'sender_phone')
+        self.view.sender_email_entry.connect('changed', text_changed, 'sender_email')
+        self.view.sender_url_entry.connect('changed', text_changed, 'sender_url')
+        self.view.logo_choose_button.connect('clicked', self.choose_logo)
+        self.view.logo_clear_button.connect('clicked', self.clear_logo)
         self.view.recipient_name_entry.connect('changed', text_changed, 'recipient_name')
         self.view.recipient_address_buffer.connect('changed', address_changed, 'recipient_address')
         self.view.recipient_phone_entry.connect('changed', text_changed, 'recipient_phone')
@@ -112,6 +118,7 @@ class LetterSettingsPage(Page):
 
         # 信件专用字段
         for field_name in ['sender_name', 'sender_address', 'sender_phone',
+                           'sender_email', 'sender_url',
                            'recipient_name', 'recipient_address', 'recipient_phone',
                            'signature', 'opening', 'closing']:
             try:
@@ -123,12 +130,53 @@ class LetterSettingsPage(Page):
             else:
                 getattr(self.view, field_name + '_entry').set_text(text)
 
+        try:
+            logo_path = presets['letter']['sender_logo_path']
+        except (TypeError, KeyError):
+            logo_path = self.current_values['letter'].get('sender_logo_path', '')
+        self.view.set_logo_path(logo_path)
+
         self.option_default_margins_toggled(self.view.option_default_margins)
         self._update_scrlttr2_options_visibility()
 
+    def choose_logo(self, button=None):
+        dialog = Gtk.FileDialog()
+        dialog.set_modal(True)
+        dialog.set_title(_('Choose a Logo File'))
+        image_filter = Gtk.FileFilter()
+        image_filter.set_name(_('Image or PDF files'))
+        for pattern in ('*.png', '*.jpg', '*.jpeg', '*.pdf'):
+            image_filter.add_pattern(pattern)
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(image_filter)
+        dialog.set_filters(filters)
+        self.logo_dialog = dialog
+        dialog.open(self.controller.main_window, None, self._on_logo_selected)
+
+    def _on_logo_selected(self, dialog, result):
+        try:
+            logo_file = dialog.open_finish(result)
+        except GLib.Error:
+            # Cancelling the native file chooser deliberately leaves the value unchanged.
+            return
+        finally:
+            self.logo_dialog = None
+        if logo_file is None:
+            return
+        logo_path = logo_file.get_path()
+        if not logo_path:
+            return
+        self.current_values['letter']['sender_logo_path'] = logo_path
+        self.view.set_logo_path(logo_path)
+
+    def clear_logo(self, button=None):
+        self.current_values['letter']['sender_logo_path'] = ''
+        self.view.set_logo_path('')
+
     def _update_scrlttr2_options_visibility(self):
-        self.view.group_envelope.set_visible(
-            self.current_values.get('document_class') == 'scrlttr2')
+        visible = self.current_values.get('document_class') == 'scrlttr2'
+        self.view.group_envelope.set_visible(visible)
+        self.view.group_letterhead.set_visible(visible)
 
     def on_activation(self):
         self._update_scrlttr2_options_visibility()
@@ -180,6 +228,29 @@ class LetterSettingsPageView(PageView):
         self.group_sender.add(self.sender_name_entry)
         self.group_sender.add(self.sender_address_row)
         self.group_sender.add(self.sender_phone_entry)
+
+        # ---- scrlttr2 letterhead ----
+        self.group_letterhead = Adw.PreferencesGroup()
+        self.group_letterhead.set_title(_('Letterhead'))
+        self.sender_email_entry = Adw.EntryRow()
+        self.sender_email_entry.set_title(_('Email'))
+        self.sender_email_entry.set_tooltip_text(_('Your email address.'))
+        self.sender_url_entry = Adw.EntryRow()
+        self.sender_url_entry.set_title(_('Website'))
+        self.sender_url_entry.set_tooltip_text(_('Your website address.'))
+        self.logo_row = Adw.ActionRow()
+        self.logo_row.set_title(_('Logo'))
+        self.logo_row.set_tooltip_text(_('Choose a logo image or PDF to include in the letterhead.'))
+        self.logo_choose_button = Gtk.Button(label=_('Choose logo'))
+        self.logo_choose_button.add_css_class('flat')
+        self.logo_clear_button = Gtk.Button(label=_('Clear logo'))
+        self.logo_clear_button.add_css_class('flat')
+        self.logo_row.add_suffix(self.logo_clear_button)
+        self.logo_row.add_suffix(self.logo_choose_button)
+        self.group_letterhead.add(self.sender_email_entry)
+        self.group_letterhead.add(self.sender_url_entry)
+        self.group_letterhead.add(self.logo_row)
+        self.set_logo_path('')
 
         # ---- Recipient information ----
         self.group_recipient = Adw.PreferencesGroup()
@@ -256,6 +327,7 @@ class LetterSettingsPageView(PageView):
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
         self.content.append(self.group_sender)
+        self.content.append(self.group_letterhead)
         self.content.append(self.group_recipient)
         self.content.append(self.group_content)
         self.content.append(self.group_envelope)
@@ -265,3 +337,13 @@ class LetterSettingsPageView(PageView):
         self.content.append(self.group_margins)
 
         self.append(self.wrap_content(self.content))
+
+    def set_logo_path(self, logo_path):
+        logo_path = logo_path or ''
+        self.logo_clear_button.set_sensitive(bool(logo_path))
+        if logo_path:
+            self.logo_row.set_subtitle(os.path.basename(logo_path))
+            self.logo_row.set_tooltip_text(logo_path)
+        else:
+            self.logo_row.set_subtitle(_('No logo selected'))
+            self.logo_row.set_tooltip_text(_('Choose a logo image or PDF to include in the letterhead.'))

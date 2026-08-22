@@ -6904,3 +6904,48 @@ msgstr "所选 BibTeX 路径不是常规文件"
 #: setzer/document/bibtex/file_session.py:82
 msgid "The bibliography changed outside Setzer"
 msgstr "参考文献库已在 Setzer 外部被更改"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a Logo File"
+msgstr "选择徽标文件"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Image or PDF files"
+msgstr "图像或 PDF 文件"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Letterhead"
+msgstr "信头"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your email address."
+msgstr "您的电子邮件地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your website address."
+msgstr "您的网站地址。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a logo image or PDF to include in the letterhead."
+msgstr "选择要包含在信头中的徽标图像或 PDF。"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose logo"
+msgstr "选择徽标"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Clear logo"
+msgstr "移除徽标"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "No logo selected"
+msgstr "未选择徽标"

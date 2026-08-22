@@ -72,6 +72,7 @@ _STRING_KEYS = frozenset((
 
 _LETTER_TEXT_KEYS = frozenset((
     'sender_name', 'sender_address', 'sender_phone',
+    'sender_email', 'sender_url', 'sender_logo_path',
     'recipient_name', 'recipient_address', 'recipient_phone',
     'signature', 'opening', 'closing',
 ))

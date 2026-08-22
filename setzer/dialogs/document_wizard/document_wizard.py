@@ -610,6 +610,9 @@ class DocumentWizard(object):
         sender_name = letter.get('sender_name', '') or _('Your name')
         sender_address = letter.get('sender_address', '') or _('Your address')
         sender_phone = letter.get('sender_phone', '') or _('Your phone number')
+        sender_email = letter.get('sender_email', '').strip()
+        sender_url = letter.get('sender_url', '').strip()
+        sender_logo_path = letter.get('sender_logo_path', '').strip()
         recipient_name = letter.get('recipient_name', '') or _('Destination')
         recipient_address = letter.get('recipient_address', '') or _('Address of the destination')
         recipient_phone = letter.get('recipient_phone', '') or _('Phone number of the destination')
@@ -629,26 +632,44 @@ class DocumentWizard(object):
             recipient_lines.append(recipient_phone)
         recipient_arg = '\\\\'.join(latex_lines(item) for item in recipient_lines)
 
+        # A selected logo emits \\includegraphics. Respect the general package
+        # toggle when it is enabled, but make the generated letter self-contained
+        # when the user has disabled graphicx in the general settings.
+        logo_graphics_package = (
+            '\\usepackage{graphicx}\n'
+            if sender_logo_path and not self.current_values['packages'].get('graphicx', False)
+            else '')
         preamble = (
             '\\documentclass[' + options + ']{' + class_name + '}\n'
             + self._get_extsizes_line('letter')
             + self._get_geometry_line('letter')
             + self._get_preamble_packages()
+            + logo_graphics_package
         )
 
         if class_name == 'scrlttr2':
             # #170: scrlttr2 是向导中的高级信件选项。以下 KOMA 选项使寄件人
             # 与收件人地址块适配带窗口的 DL 信封，并加入折痕标记；寄件人信息
             # 使用 KOMA 变量而不是旧的 letter 宏，从而可由 scrlttr2 正确排版。
+            koma_option_pairs = [
+                ('fromalign', 'left'),
+                ('fromrule', 'afteraddress'),
+                ('fromphone', 'true'),
+                ('addrfield', 'true' if letter['option_window_address'] else 'false'),
+                ('foldmarks', 'true' if letter['option_foldmarks'] else 'false'),
+                ('backaddress', 'true' if letter['option_backaddress'] else 'false'),
+            ]
+            if sender_email:
+                koma_option_pairs.append(('fromemail', 'true'))
+            if sender_url:
+                koma_option_pairs.append(('fromurl', 'true'))
+            if sender_logo_path:
+                koma_option_pairs.append(('fromlogo', 'true'))
             koma_options = (
                 '\\KOMAoptions{\n'
-                '\tfromalign=left,\n'
-                '\tfromrule=afteraddress,\n'
-                '\tfromphone=true,\n'
-                + '\taddrfield=' + ('true' if letter['option_window_address'] else 'false') + ',\n'
-                + '\tfoldmarks=' + ('true' if letter['option_foldmarks'] else 'false') + ',\n'
-                + '\tbackaddress=' + ('true' if letter['option_backaddress'] else 'false') + '\n'
-                + '}\n\n'
+                + ',\n'.join('\t' + key + '=' + value
+                             for key, value in koma_option_pairs)
+                + '\n}\n\n'
             )
             subject_line = ('\\setkomavar{subject}{' + self.current_values['title'] + '}\n'
                             if self.current_values['title'] else '')
@@ -657,6 +678,13 @@ class DocumentWizard(object):
                 + '\\setkomavar{fromname}{' + latex_lines(sender_name) + '}\n'
                 + '\\setkomavar{fromaddress}{' + latex_lines(sender_address) + '}\n'
                 + '\\setkomavar{fromphone}{' + latex_lines(sender_phone) + '}\n'
+                + ('\\setkomavar{fromemail}{' + latex_lines(sender_email) + '}\n'
+                   if sender_email else '')
+                + ('\\setkomavar{fromurl}{' + latex_lines(sender_url) + '}\n'
+                   if sender_url else '')
+                + ('\\setkomavar{fromlogo}{\\includegraphics[height=3\\baselineskip]{'
+                   + sender_logo_path.replace('\\\\', '/') + '}}\n'
+                   if sender_logo_path else '')
                 + '\\setkomavar{signature}{' + latex_lines(signature) + '}\n'
                 + '\\setkomavar{date}{' + self.current_values['date'] + '}\n'
                 + subject_line

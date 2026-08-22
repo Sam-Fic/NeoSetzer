@@ -8147,3 +8147,48 @@ msgstr "Der ausgewählte BibTeX-Pfad ist keine reguläre Datei"
 #: setzer/document/bibtex/file_session.py:82
 msgid "The bibliography changed outside Setzer"
 msgstr "Die Bibliographie wurde außerhalb von Setzer geändert"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a Logo File"
+msgstr "Logo-Datei auswählen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Image or PDF files"
+msgstr "Bild- oder PDF-Dateien"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Letterhead"
+msgstr "Briefkopf"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your email address."
+msgstr "Ihre E-Mail-Adresse."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your website address."
+msgstr "Ihre Website-Adresse."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a logo image or PDF to include in the letterhead."
+msgstr "Wählen Sie ein Logo als Bild oder PDF für den Briefkopf aus."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose logo"
+msgstr "Logo auswählen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Clear logo"
+msgstr "Logo entfernen"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "No logo selected"
+msgstr "Kein Logo ausgewählt"

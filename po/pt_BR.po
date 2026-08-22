@@ -7066,3 +7066,48 @@ msgstr "O caminho BibTeX selecionado não é um arquivo regular"
 #: setzer/document/bibtex/file_session.py:82
 msgid "The bibliography changed outside Setzer"
 msgstr "A bibliografia foi alterada fora do Setzer"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a Logo File"
+msgstr "Escolher um arquivo de logotipo"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Image or PDF files"
+msgstr "Arquivos de imagem ou PDF"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Letterhead"
+msgstr "Cabeçalho da carta"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your email address."
+msgstr "Seu endereço de e-mail."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Your website address."
+msgstr "O endereço do seu site."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose a logo image or PDF to include in the letterhead."
+msgstr "Escolha uma imagem ou PDF de logotipo para incluir no cabeçalho da carta."
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Choose logo"
+msgstr "Escolher logotipo"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "Clear logo"
+msgstr "Remover logotipo"
+
+
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py
+msgid "No logo selected"
+msgstr "Nenhum logotipo selecionado"

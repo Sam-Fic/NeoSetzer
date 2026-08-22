@@ -291,11 +291,56 @@ class TestScrlttr2AdvancedLetterTemplate(unittest.TestCase):
         self.assertTrue(inst.current_values['letter']['option_window_address'])
         self.assertTrue(inst.current_values['letter']['option_backaddress'])
         self.assertTrue(inst.current_values['letter']['option_foldmarks'])
+        self.assertEqual(inst.current_values['letter']['sender_email'], '')
+        self.assertEqual(inst.current_values['letter']['sender_url'], '')
+        self.assertEqual(inst.current_values['letter']['sender_logo_path'], '')
+
+    def test_scrlttr2_letterhead_values_enable_only_their_koma_features(self):
+        inst = _make_instance()
+        inst.current_values['letter'].update({
+            'sender_email': 'letters@example.test',
+            'sender_url': 'https://example.test',
+            'sender_logo_path': '/tmp/brand-mark.pdf',
+        })
+
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertIn('\tfromemail=true,', template)
+        self.assertIn('\tfromurl=true,', template)
+        self.assertIn('\tfromlogo=true', template)
+        self.assertIn('\\setkomavar{fromemail}{letters@example.test}', template)
+        self.assertIn('\\setkomavar{fromurl}{https://example.test}', template)
+        self.assertIn('\\setkomavar{fromlogo}{\\includegraphics[height=3\\baselineskip]{/tmp/brand-mark.pdf}}', template)
+
+    def test_logo_forces_graphicx_when_general_package_is_disabled(self):
+        inst = _make_instance()
+        inst.current_values['packages']['graphicx'] = False
+        inst.current_values['letter']['sender_logo_path'] = '/tmp/brand-mark.png'
+
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertEqual(template.count('\\usepackage{graphicx}'), 1)
+        self.assertIn('\\setkomavar{fromlogo}{\\includegraphics[height=3\\baselineskip]{/tmp/brand-mark.png}}', template)
+
+    def test_empty_scrlttr2_letterhead_values_do_not_enable_koma_features(self):
+        inst = _make_instance()
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+
+        self.assertNotIn('\tfromemail=', template)
+        self.assertNotIn('\tfromurl=', template)
+        self.assertNotIn('\tfromlogo=', template)
+        self.assertNotIn('\\setkomavar{fromemail}', template)
+        self.assertNotIn('\\setkomavar{fromurl}', template)
+        self.assertNotIn('\\setkomavar{fromlogo}', template)
 
     def test_legacy_letter_settings_are_normalised_before_generating(self):
         inst = _make_instance()
         for key in ('option_twocolumn', 'option_default_margins',
                     'sender_name', 'sender_address', 'sender_phone',
+                    'sender_email', 'sender_url', 'sender_logo_path',
                     'recipient_name', 'recipient_address', 'recipient_phone',
                     'signature', 'opening', 'closing',
                     'option_window_address', 'option_backaddress',
