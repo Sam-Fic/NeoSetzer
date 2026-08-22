@@ -23,6 +23,8 @@ from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 from setzer.document.parser.structure_numbering import (
+    AppendixStart,
+    CounterChange,
     SectioningCommand,
     SecnumDepthChange,
     calculate_structure_numbers,
@@ -43,7 +45,10 @@ _PROJECT_DEPENDENCIES_REGEX_PATTERN = r'\\(LoadLetterOption|documentclass)\s*(?:
 
 # 块级符号正则：换行 / \begin{} / \end{} / 章节命令。
 _BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(\*)?\{([^\{]*)\}'
-_SECTION_NUMBERING_REGEX_PATTERN = r'\\setcounter\s*\{\s*secnumdepth\s*\}\s*\{\s*(-?\d+)\s*\}'
+_SECTION_NUMBERING_REGEX_PATTERN = r'\\(setcounter|addtocounter)\s*\{\s*(secnumdepth|part|chapter|section|subsection|subsubsection|paragraph|subparagraph)\s*\}\s*\{\s*(-?\d+)\s*\}'
+_APPENDIX_REGEX_PATTERN = r'\\appendix(?![A-Za-z@])'
+_DOCUMENT_CLASS_REGEX_PATTERN = r'\\documentclass\s*(?:\[[^\[\]]*\]\s*)?\{\s*([^,}\s]+)'
+_CHAPTER_DOCUMENT_CLASSES = frozenset(('book', 'report', 'memoir', 'scrbook', 'scrreprt'))
 
 
 class ParserLaTeX(Observable):
@@ -90,6 +95,8 @@ class ParserLaTeX(Observable):
         self._project_dependencies_regex = ServiceLocator.get_regex_object(_PROJECT_DEPENDENCIES_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
         self._section_numbering_regex = ServiceLocator.get_regex_object(_SECTION_NUMBERING_REGEX_PATTERN)
+        self._appendix_regex = ServiceLocator.get_regex_object(_APPENDIX_REGEX_PATTERN)
+        self._document_class_regex = ServiceLocator.get_regex_object(_DOCUMENT_CLASS_REGEX_PATTERN)
 
         self.document.source_buffer.connect('insert-text', self.on_insert_text)
         self.document.source_buffer.connect('delete-range', self.on_text_deleted)
@@ -144,6 +151,8 @@ class ParserLaTeX(Observable):
             'others': list(),
             'beamer_frames': list(),
             'secnumdepth': list(),
+            'counter_changes': list(),
+            'appendices': list(),
         }
         counter = line_start
         for match in self._block_symbols_regex.finditer(text):
@@ -155,9 +164,26 @@ class ParserLaTeX(Observable):
             if match.group(0) == '\n':
                 counter += 1
         for match in self._section_numbering_regex.finditer(text):
-            block_symbol_matches['secnumdepth'].append((
+            operation = match.group(1)
+            counter_name = match.group(2)
+            value = int(match.group(3))
+            offset = match.start() + offset_line_start
+            if counter_name == 'secnumdepth' and operation == 'setcounter':
+                block_symbol_matches['secnumdepth'].append((offset, value))
+            elif counter_name != 'secnumdepth':
+                block_symbol_matches['counter_changes'].append((
+                    offset,
+                    counter_name,
+                    value,
+                    operation == 'addtocounter',
+                ))
+        document_class_match = self._document_class_regex.search(text)
+        document_class = document_class_match.group(1) if document_class_match else ''
+        appendix_root = 'chapter' if document_class in _CHAPTER_DOCUMENT_CLASSES else 'section'
+        for match in self._appendix_regex.finditer(text):
+            block_symbol_matches['appendices'].append((
                 match.start() + offset_line_start,
-                int(match.group(1)),
+                appendix_root,
             ))
         # Frame titles are parsed separately from generic begin/end blocks so
         # their optional overlay/options syntax does not complicate the hot
@@ -279,7 +305,26 @@ class ParserLaTeX(Observable):
             SecnumDepthChange(offset=offset, value=value)
             for offset, value in self.block_symbol_matches.get('secnumdepth', [])
         ]
-        numbers = calculate_structure_numbers(sectioning_commands, secnumdepth_changes)
+        appendix_starts = [
+            AppendixStart(offset=offset, root_command=root_command)
+            for offset, root_command in self.block_symbol_matches.get('appendices', [])
+        ]
+        counter_changes = [
+            CounterChange(
+                offset=offset,
+                counter=counter,
+                value=value,
+                relative=relative,
+            )
+            for offset, counter, value, relative
+            in self.block_symbol_matches.get('counter_changes', [])
+        ]
+        numbers = calculate_structure_numbers(
+            sectioning_commands,
+            secnumdepth_changes,
+            appendix_starts=appendix_starts,
+            counter_changes=counter_changes,
+        )
         self.symbols['block_metadata'] = {
             command.offset: {
                 'number': numbers[command.offset],

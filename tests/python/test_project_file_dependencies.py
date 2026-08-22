@@ -15,6 +15,8 @@ import unittest
 
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 from setzer.document.parser.structure_numbering import (
+    AppendixStart,
+    CounterChange,
     SectioningCommand,
     SecnumDepthChange,
     calculate_structure_numbers,
@@ -58,6 +60,8 @@ def _load_parser_class():
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
         'extract_beamer_frame_titles': extract_beamer_frame_titles,
+        'AppendixStart': AppendixStart,
+        'CounterChange': CounterChange,
         'SectioningCommand': SectioningCommand,
         'SecnumDepthChange': SecnumDepthChange,
         'calculate_structure_numbers': calculate_structure_numbers,
@@ -166,6 +170,50 @@ class TestProjectFileDependencyParsing(unittest.TestCase):
         sections = [block for block in parser.symbols['blocks'] if block[4] in ('section', 'subsection')]
         self.assertEqual([block[5] for block in sections],
                          ['One', 'One One', 'Unnumbered', 'Hidden', 'Two'])
+
+    def test_article_appendix_uses_sections_as_the_alphabetic_root(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\documentclass{article}\n'
+            '\\section{Body}\n'
+            '\\appendix\n'
+            '\\section{Supplement}\n'
+            '\\subsection{Details}\n'
+        )
+        parser.initial_parse(text)
+
+        self.assertEqual(
+            parser.symbols['block_metadata'],
+            {
+                text.index('\\section{Body}'): {'number': '1', 'starred': False},
+                text.index('\\section{Supplement}'): {'number': 'A', 'starred': False},
+                text.index('\\subsection{Details}'): {'number': 'A.1', 'starred': False},
+            },
+        )
+
+    def test_appendix_and_literal_counter_changes_flow_into_block_metadata(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\documentclass{book}\n'
+            '\\chapter{Body}\n'
+            '\\section{Introduction}\n'
+            '\\appendix\n'
+            '\\setcounter{chapter}{2}\n'
+            '\\chapter{Supplement}\n'
+            '\\addtocounter{section}{3}\n'
+            '\\section{Data}\n'
+        )
+        parser.initial_parse(text)
+
+        self.assertEqual(
+            parser.symbols['block_metadata'],
+            {
+                text.index('\\chapter{Body}'): {'number': '1', 'starred': False},
+                text.index('\\section{Introduction}'): {'number': '1.1', 'starred': False},
+                text.index('\\chapter{Supplement}'): {'number': 'C', 'starred': False},
+                text.index('\\section{Data}'): {'number': 'C.4', 'starred': False},
+            },
+        )
 
     def test_titled_beamer_frames_become_structure_blocks(self):
         parser = ParserLaTeX(_ParserDocument())
