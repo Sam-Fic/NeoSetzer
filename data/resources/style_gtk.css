@@ -512,6 +512,18 @@ toolbarview > * > * > * {
     background-color: transparent;
     background-image: none;
     box-shadow: none;
+
+/*
+ * 插入表格对话框 LaTeX 预览卡片：圆角 + 内边距。
+ * 覆盖上方 .preview scrolledwindow 的清描边规则，单独赋予圆角与背景，
+ * 让只读预览呈现卡片外观（GTK4 无 CSS overflow，由代码 set_overflow(HIDDEN) 裁剪）。
+ */
+.preview-card {
+    border-radius: 12px;
+    border: 1px solid @borders;
+    background: @card_bg_color;
+    padding: 2px;
+}
     color: inherit;
 }
 

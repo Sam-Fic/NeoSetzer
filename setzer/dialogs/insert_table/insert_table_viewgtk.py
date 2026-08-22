@@ -74,13 +74,13 @@ class InsertTableView(DialogView):
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
         self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
-        self.copy_button = Gtk.Button.new_with_mnemonic(_('_Copy LaTeX'))
-        self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
-        self.headerbar.pack_end(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
         self.insert_button.set_tooltip_text(_('Generate the LaTeX code and insert it at the cursor'))
         self.headerbar.pack_end(self.insert_button)
+        self.copy_button = Gtk.Button.new_with_mnemonic(_('_Copy LaTeX'))
+        self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
+        self.headerbar.pack_end(self.copy_button)
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
@@ -127,11 +127,9 @@ class InsertTableView(DialogView):
         data_group.add(self.grid_scrolled)
         content.append(data_group)
 
-        columns_group = Adw.PreferencesGroup()
-        columns_group.set_title(_('Column Alignment'))
-        self.alignment_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        columns_group.add(self.alignment_box)
-        content.append(columns_group)
+        self.columns_group = Adw.PreferencesGroup()
+        self.columns_group.set_title(_('Column Alignment'))
+        content.append(self.columns_group)
 
         appearance_group = Adw.PreferencesGroup()
         appearance_group.set_title(_('Appearance'))
@@ -223,6 +221,8 @@ class InsertTableView(DialogView):
         preview_scrolled.set_min_content_height(160)
         preview_scrolled.set_max_content_height(260)
         preview_scrolled.set_child(self.preview)
+        preview_scrolled.add_css_class('preview-card')
+        preview_scrolled.set_overflow(Gtk.Overflow.HIDDEN)
         preview_group.add(preview_scrolled)
         content.append(preview_group)
 
@@ -283,11 +283,8 @@ class InsertTableView(DialogView):
         self.set_alignments(alignments, columns)
 
     def set_alignments(self, alignments, columns):
-        child = self.alignment_box.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
-            self.alignment_box.remove(child)
-            child = next_child
+        for row in self.alignment_rows:
+            self.columns_group.remove(row)
         self.alignment_rows = []
         model = Gtk.StringList.new([
             _('Left'),
@@ -301,7 +298,7 @@ class InsertTableView(DialogView):
             value = alignments[column_index] if column_index < len(alignments) else (
                 'l' if column_index == 0 else 'c')
             row.set_selected(ALIGNMENTS.index(value))
-            self.alignment_box.append(row)
+            self.columns_group.add(row)
             self.alignment_rows.append(row)
 
     def get_cells(self):
