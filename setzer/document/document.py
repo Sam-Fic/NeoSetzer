@@ -1175,8 +1175,17 @@ class Document(Observable):
         cursor_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
         anchor_iter = cursor_iter.copy()
         anchor_iter.backward_lines(max(0, context_lines))
+        sticky_scroll = getattr(self, 'sticky_scroll', None)
+        reserved_height = 0
+        if sticky_scroll is not None:
+            reserved_height = sticky_scroll.get_navigation_reserved_height(anchor_iter.get_line())
+        viewport_height = self.view.scrolled_window.get_allocated_height()
+        vertical_alignment = (reserved_height / viewport_height
+                              if viewport_height > 0 else 0.0)
+
         self.view.scrolled_window.set_kinetic_scrolling(False)
-        self.source_view.scroll_to_iter(anchor_iter, 0.0, True, 0.0, 0.0)
+        self.source_view.scroll_to_iter(
+            anchor_iter, 0.0, True, 0.0, vertical_alignment)
         self.view.scrolled_window.set_kinetic_scrolling(True)
 
     def scroll_cursor_onscreen(self, margin_lines=5):

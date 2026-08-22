@@ -208,6 +208,22 @@ class StructureTopAlignmentTest(unittest.TestCase):
             ('kinetic', True),
         ])
 
+    def test_scroll_cursor_with_context_reserves_sticky_headers_at_anchor(self):
+        calls = []
+        document = _Document(calls)
+        document.sticky_scroll = _StickyScroll(calls, 56)
+
+        document.scroll_cursor_with_context()
+
+        self.assertEqual(calls, [
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('sticky-height', 37),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.08),
+            ('kinetic', True),
+        ])
+
     def test_structure_activation_places_cursor_then_aligns_heading_to_top(self):
         calls = []
         document = _Document(calls)
