@@ -114,6 +114,7 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('wizard', _('Document Wizard'), _('LaTeX'), 'show-document-wizard', ('new', 'template', 'latex')),
     CommandDescriptor('packages', _('Manage Packages'), _('LaTeX'), 'add-remove-packages-dialog', ('package', 'latex')),
     CommandDescriptor('include-bibtex', _('Include BibTeX File'), _('LaTeX'), 'include-bibtex-file', ('bibliography', 'bib')),
+    CommandDescriptor('manage-bibliography', _('Manage Bibliography'), _('LaTeX'), 'manage-bibliography', ('bibliography', 'bib', 'citation', 'reference')),
     CommandDescriptor('include-latex', _('Include LaTeX File'), _('LaTeX'), 'include-latex-file', ('input', 'include', 'tex')),
     CommandDescriptor('insert-image', _('Insert Image'), _('LaTeX'), 'insert-image-dialog', ('figure', 'graphic', 'image')),
     CommandDescriptor('insert-table', _('Insert Table'), _('LaTeX'), 'insert-table-dialog', ('table', 'tabular', 'booktabs')),

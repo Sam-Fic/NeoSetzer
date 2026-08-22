@@ -7710,3 +7710,378 @@ msgstr "Filtra i temi Beamer disponibili per nome."
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
 msgid "No themes match this search."
 msgstr "Nessun tema corrisponde a questa ricerca."
+#: setzer/command_palette/catalog.py:117
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:90
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:32
+msgid "Manage Bibliography"
+msgstr "Gestisci bibliografia"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:51
+msgid "Year"
+msgstr "Anno"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:52
+msgid "Journal"
+msgstr "Rivista"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:53
+msgid "Book Title"
+msgstr "Titolo del libro"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:54
+msgid "Publisher"
+msgstr "Editore"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:55
+msgid "Volume"
+msgstr "Volume"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:56
+msgid "Number"
+msgstr "Numero"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:57
+msgid "Pages"
+msgstr "Pagine"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:58
+msgid "DOI"
+msgstr "DOI"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:59
+msgid "URL"
+msgstr "URL"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:61
+msgid "Edition"
+msgstr "Edizione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:63
+msgid "Month"
+msgstr "Mese"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:64
+msgid "Note"
+msgstr "Nota"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:65
+msgid "Series"
+msgstr "Collana"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:66
+msgid "Institution"
+msgstr "Istituzione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:67
+msgid "School"
+msgstr "Istituto"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:68
+msgid "How Published"
+msgstr "Modalità di pubblicazione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:69
+msgid "Keywords"
+msgstr "Parole chiave"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:99
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:667
+msgid "Reload"
+msgstr "Ricarica"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:116
+msgid "Open BibTeX File…"
+msgstr "Apri file BibTeX…"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:121
+msgid "Add Entry"
+msgstr "Aggiungi voce"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:140
+msgid "Search citation key, title, author, or year"
+msgstr "Cerca chiave di citazione, titolo, autore o anno"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:146
+msgid "Sort by Citation Key"
+msgstr "Ordina per chiave di citazione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:147
+msgid "Sort by Title"
+msgstr "Ordina per titolo"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:148
+msgid "Sort by Author"
+msgstr "Ordina per autore"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:149
+msgid "Sort by Year"
+msgstr "Ordina per anno"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:152
+msgid "Sort bibliography entries"
+msgstr "Ordina voci bibliografiche"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:174
+msgid "Choose a BibTeX File"
+msgstr "Scegli un file BibTeX"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:175
+msgid ""
+"Choose a bibliography associated with the current document, or open a BibTeX"
+" file."
+msgstr ""
+"Scegli una bibliografia associata al documento corrente oppure apri un file "
+"BibTeX."
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:208
+msgid "Insert Citation"
+msgstr "Inserisci citazione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:212
+msgid "Edit Entry"
+msgstr "Modifica voce"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:216
+msgid "Delete Entry"
+msgstr "Elimina voce"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:242
+msgid "Entry type, for example article"
+msgstr "Tipo di voce, ad esempio article"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:243
+msgid "Entry Type"
+msgstr "Tipo di voce"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:245
+msgid "Unique citation key"
+msgstr "Chiave di citazione univoca"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:246
+msgid "Citation Key"
+msgstr "Chiave di citazione"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:263
+msgid "Additional Fields"
+msgstr "Campi aggiuntivi"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:264
+msgid "One field per line: name = value"
+msgstr "Un campo per riga: name = value"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:272
+msgid "Save Entry"
+msgstr "Salva voce"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:334
+msgid "Untitled BibTeX File"
+msgstr "File BibTeX senza titolo"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:422
+msgid "No Bibliography Entries Found"
+msgstr "Nessuna voce bibliografica trovata"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:423
+msgid "Add an entry or adjust the search query."
+msgstr "Aggiungi una voce o modifica la ricerca."
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:542
+msgid "Additional fields must use “name = value”"
+msgstr "I campi aggiuntivi devono usare «name = value»"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:546
+#: setzer/document/bibtex/entry_store.py:348
+#, python-brace-format
+msgid "The field “{field}” occurs more than once"
+msgstr "Il campo «{field}» compare più di una volta"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:555
+msgid "Delete BibTeX Entry?"
+msgstr "Eliminare la voce BibTeX?"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:556
+#, python-brace-format
+msgid ""
+"Delete “{key}” from this bibliography? This can be undone when the file is "
+"open in Setzer."
+msgstr ""
+"Eliminare «{key}» da questa bibliografia? L’operazione può essere annullata "
+"quando il file è aperto in Setzer."
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:586
+msgid "Citation inserted"
+msgstr "Citazione inserita"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:593
+msgid "The open BibTeX document changed. Reload before saving."
+msgstr "Il documento BibTeX aperto è cambiato. Ricaricalo prima di salvare."
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:606
+msgid "No BibTeX file is selected"
+msgstr "Nessun file BibTeX selezionato"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:626
+msgid "Open BibTeX File"
+msgstr "Apri file BibTeX"
+
+
+#: setzer/document/bibtex/entry_store.py:131
+#, python-brace-format
+msgid "An entry beginning at character {position} is not closed"
+msgstr "Una voce che inizia al carattere {position} non è chiusa"
+
+
+#: setzer/document/bibtex/entry_store.py:150
+#, python-brace-format
+msgid "The citation key “{key}” is used more than once"
+msgstr "La chiave di citazione «{key}» è usata più di una volta"
+
+
+#: setzer/document/bibtex/entry_store.py:193
+#: setzer/document/bibtex/entry_store.py:213
+#, python-brace-format
+msgid "The citation key “{key}” already exists"
+msgstr "La chiave di citazione «{key}» esiste già"
+
+
+#: setzer/document/bibtex/entry_store.py:207
+#: setzer/document/bibtex/entry_store.py:222
+#, python-brace-format
+msgid "The citation key “{key}” no longer exists"
+msgstr "La chiave di citazione «{key}» non esiste più"
+
+
+#: setzer/document/bibtex/entry_store.py:209
+#: setzer/document/bibtex/entry_store.py:224
+#, python-brace-format
+msgid "The citation key “{key}” is ambiguous"
+msgstr "La chiave di citazione «{key}» è ambigua"
+
+
+#: setzer/document/bibtex/entry_store.py:289
+#, python-brace-format
+msgid "The {type} entry at character {position} has no citation key"
+msgstr ""
+"La voce di tipo {type} al carattere {position} non ha una chiave di "
+"citazione"
+
+
+#: setzer/document/bibtex/entry_store.py:297
+#, python-brace-format
+msgid "The entry at character {position} cannot be edited safely: {reason}"
+msgstr ""
+"La voce al carattere {position} non può essere modificata in sicurezza: "
+"{reason}"
+
+
+#: setzer/document/bibtex/entry_store.py:339
+msgid "A field name is invalid"
+msgstr "Un nome di campo non è valido"
+
+
+#: setzer/document/bibtex/entry_store.py:342
+#: setzer/document/bibtex/entry_store.py:345
+#, python-brace-format
+msgid "The field “{field}” has no value"
+msgstr "Il campo «{field}» non ha un valore"
+
+
+#: setzer/document/bibtex/entry_store.py:358
+msgid "A braced field value is not closed"
+msgstr "Un valore di campo tra parentesi graffe non è chiuso"
+
+
+#: setzer/document/bibtex/entry_store.py:363
+msgid "A quoted field value is not closed"
+msgstr "Un valore di campo tra virgolette non è chiuso"
+
+
+#: setzer/document/bibtex/entry_store.py:370
+msgid "A field value is empty"
+msgstr "Un valore di campo è vuoto"
+
+
+#: setzer/document/bibtex/entry_store.py:401
+msgid "Fields must be a mapping"
+msgstr "I campi devono essere una mappatura"
+
+
+#: setzer/document/bibtex/entry_store.py:406
+#, python-brace-format
+msgid "The field name “{field}” is invalid"
+msgstr "Il nome del campo «{field}» non è valido"
+
+
+#: setzer/document/bibtex/entry_store.py:413
+msgid "A field value contains an invalid character"
+msgstr "Un valore di campo contiene un carattere non valido"
+
+
+#: setzer/document/bibtex/entry_store.py:421
+msgid "A citation key must not contain whitespace, commas, or braces"
+msgstr ""
+"Una chiave di citazione non deve contenere spazi, virgole o parentesi graffe"
+
+
+#: setzer/document/bibtex/entry_store.py:428
+msgid "The entry type is invalid"
+msgstr "Il tipo di voce non è valido"
+
+
+#: setzer/document/bibtex/file_session.py:57
+msgid "The selected BibTeX path is not a regular file"
+msgstr "Il percorso BibTeX selezionato non è un file regolare"
+
+
+#: setzer/document/bibtex/file_session.py:82
+msgid "The bibliography changed outside Setzer"
+msgstr "La bibliografia è cambiata al di fuori di Setzer"

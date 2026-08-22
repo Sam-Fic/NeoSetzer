@@ -28,6 +28,7 @@ from setzer.dialogs.document_deleted_on_disk.document_deleted_on_disk import Doc
 from setzer.dialogs.document_properties.document_properties import DocumentPropertiesDialog
 from setzer.dialogs.document_wizard.document_wizard import DocumentWizard
 from setzer.dialogs.include_bibtex_file.include_bibtex_file import IncludeBibTeXFile
+from setzer.dialogs.bibliography_manager.bibliography_manager import BibliographyManagerDialog
 from setzer.dialogs.include_latex_file.include_latex_file import IncludeLaTeXFile
 from setzer.dialogs.interpreter_missing.interpreter_missing import InterpreterMissingDialog
 from setzer.dialogs.keyboard_shortcuts.keyboard_shortcuts import KeyboardShortcutsDialog
@@ -60,6 +61,7 @@ class DialogLocator():
         dialogs['document_properties'] = DocumentPropertiesDialog(main_window)
         dialogs['document_wizard'] = DocumentWizard(main_window)
         dialogs['include_bibtex_file'] = IncludeBibTeXFile(main_window)
+        dialogs['bibliography_manager'] = BibliographyManagerDialog(main_window, workspace)
         dialogs['include_latex_file'] = IncludeLaTeXFile(main_window)
         dialogs['keyboard_shortcuts'] = KeyboardShortcutsDialog(main_window)
         dialogs['open_document'] = OpenDocumentDialog(main_window, workspace)

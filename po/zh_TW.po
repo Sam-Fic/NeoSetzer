@@ -6663,3 +6663,369 @@ msgstr "依名稱篩選可用的 Beamer 主題。"
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py
 msgid "No themes match this search."
 msgstr "沒有主題符合此次搜尋。"
+#: setzer/command_palette/catalog.py:117
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:90
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:32
+msgid "Manage Bibliography"
+msgstr "管理參考文獻"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:51
+msgid "Year"
+msgstr "年份"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:52
+msgid "Journal"
+msgstr "期刊"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:53
+msgid "Book Title"
+msgstr "書名"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:54
+msgid "Publisher"
+msgstr "出版社"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:55
+msgid "Volume"
+msgstr "卷"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:56
+msgid "Number"
+msgstr "期號"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:57
+msgid "Pages"
+msgstr "頁碼"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:58
+msgid "DOI"
+msgstr "DOI"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:59
+msgid "URL"
+msgstr "URL"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:61
+msgid "Edition"
+msgstr "版本"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:63
+msgid "Month"
+msgstr "月份"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:64
+msgid "Note"
+msgstr "附註"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:65
+msgid "Series"
+msgstr "叢書"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:66
+msgid "Institution"
+msgstr "機構"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:67
+msgid "School"
+msgstr "學校"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:68
+msgid "How Published"
+msgstr "出版方式"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:69
+msgid "Keywords"
+msgstr "關鍵字"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:99
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:667
+msgid "Reload"
+msgstr "重新載入"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:116
+msgid "Open BibTeX File…"
+msgstr "開啟 BibTeX 檔案…"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:121
+msgid "Add Entry"
+msgstr "新增條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:140
+msgid "Search citation key, title, author, or year"
+msgstr "搜尋引用鍵、標題、作者或年份"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:146
+msgid "Sort by Citation Key"
+msgstr "按引用鍵排序"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:147
+msgid "Sort by Title"
+msgstr "按標題排序"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:148
+msgid "Sort by Author"
+msgstr "按作者排序"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:149
+msgid "Sort by Year"
+msgstr "按年份排序"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:152
+msgid "Sort bibliography entries"
+msgstr "排序參考文獻條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:174
+msgid "Choose a BibTeX File"
+msgstr "選擇 BibTeX 檔案"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:175
+msgid ""
+"Choose a bibliography associated with the current document, or open a BibTeX"
+" file."
+msgstr "請選擇與目前文件關聯的參考文獻庫，或開啟一個 BibTeX 檔案。"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:208
+msgid "Insert Citation"
+msgstr "插入引用"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:212
+msgid "Edit Entry"
+msgstr "編輯條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:216
+msgid "Delete Entry"
+msgstr "刪除條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:242
+msgid "Entry type, for example article"
+msgstr "條目類型，例如 article"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:243
+msgid "Entry Type"
+msgstr "條目類型"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:245
+msgid "Unique citation key"
+msgstr "唯一引用鍵"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:246
+msgid "Citation Key"
+msgstr "引用鍵"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:263
+msgid "Additional Fields"
+msgstr "附加欄位"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:264
+msgid "One field per line: name = value"
+msgstr "每行一個欄位：name = value"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:272
+msgid "Save Entry"
+msgstr "儲存條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:334
+msgid "Untitled BibTeX File"
+msgstr "未命名 BibTeX 檔案"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:422
+msgid "No Bibliography Entries Found"
+msgstr "找不到參考文獻條目"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:423
+msgid "Add an entry or adjust the search query."
+msgstr "請新增條目或調整搜尋條件。"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:542
+msgid "Additional fields must use “name = value”"
+msgstr "附加欄位必須使用「name = value」格式"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:546
+#: setzer/document/bibtex/entry_store.py:348
+#, python-brace-format
+msgid "The field “{field}” occurs more than once"
+msgstr "欄位「{field}」出現超過一次"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:555
+msgid "Delete BibTeX Entry?"
+msgstr "刪除 BibTeX 條目？"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:556
+#, python-brace-format
+msgid ""
+"Delete “{key}” from this bibliography? This can be undone when the file is "
+"open in Setzer."
+msgstr "要從此參考文獻庫刪除「{key}」嗎？檔案在 Setzer 中開啟時可以復原此操作。"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:586
+msgid "Citation inserted"
+msgstr "已插入引用"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:593
+msgid "The open BibTeX document changed. Reload before saving."
+msgstr "已開啟的 BibTeX 文件已變更。請先重新載入再儲存。"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:606
+msgid "No BibTeX file is selected"
+msgstr "未選擇 BibTeX 檔案"
+
+
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:626
+msgid "Open BibTeX File"
+msgstr "開啟 BibTeX 檔案"
+
+
+#: setzer/document/bibtex/entry_store.py:131
+#, python-brace-format
+msgid "An entry beginning at character {position} is not closed"
+msgstr "從字元 {position} 開始的條目未閉合"
+
+
+#: setzer/document/bibtex/entry_store.py:150
+#, python-brace-format
+msgid "The citation key “{key}” is used more than once"
+msgstr "引用鍵「{key}」被使用超過一次"
+
+
+#: setzer/document/bibtex/entry_store.py:193
+#: setzer/document/bibtex/entry_store.py:213
+#, python-brace-format
+msgid "The citation key “{key}” already exists"
+msgstr "引用鍵「{key}」已存在"
+
+
+#: setzer/document/bibtex/entry_store.py:207
+#: setzer/document/bibtex/entry_store.py:222
+#, python-brace-format
+msgid "The citation key “{key}” no longer exists"
+msgstr "引用鍵「{key}」已不再存在"
+
+
+#: setzer/document/bibtex/entry_store.py:209
+#: setzer/document/bibtex/entry_store.py:224
+#, python-brace-format
+msgid "The citation key “{key}” is ambiguous"
+msgstr "引用鍵「{key}」不明確"
+
+
+#: setzer/document/bibtex/entry_store.py:289
+#, python-brace-format
+msgid "The {type} entry at character {position} has no citation key"
+msgstr "字元 {position} 處的 {type} 條目沒有引用鍵"
+
+
+#: setzer/document/bibtex/entry_store.py:297
+#, python-brace-format
+msgid "The entry at character {position} cannot be edited safely: {reason}"
+msgstr "字元 {position} 處的條目無法安全編輯：{reason}"
+
+
+#: setzer/document/bibtex/entry_store.py:339
+msgid "A field name is invalid"
+msgstr "欄位名稱無效"
+
+
+#: setzer/document/bibtex/entry_store.py:342
+#: setzer/document/bibtex/entry_store.py:345
+#, python-brace-format
+msgid "The field “{field}” has no value"
+msgstr "欄位「{field}」沒有值"
+
+
+#: setzer/document/bibtex/entry_store.py:358
+msgid "A braced field value is not closed"
+msgstr "大括號欄位值未閉合"
+
+
+#: setzer/document/bibtex/entry_store.py:363
+msgid "A quoted field value is not closed"
+msgstr "引號欄位值未閉合"
+
+
+#: setzer/document/bibtex/entry_store.py:370
+msgid "A field value is empty"
+msgstr "欄位值為空"
+
+
+#: setzer/document/bibtex/entry_store.py:401
+msgid "Fields must be a mapping"
+msgstr "欄位必須是對應表"
+
+
+#: setzer/document/bibtex/entry_store.py:406
+#, python-brace-format
+msgid "The field name “{field}” is invalid"
+msgstr "欄位名稱「{field}」無效"
+
+
+#: setzer/document/bibtex/entry_store.py:413
+msgid "A field value contains an invalid character"
+msgstr "欄位值包含無效字元"
+
+
+#: setzer/document/bibtex/entry_store.py:421
+msgid "A citation key must not contain whitespace, commas, or braces"
+msgstr "引用鍵不得包含空白、逗號或大括號"
+
+
+#: setzer/document/bibtex/entry_store.py:428
+msgid "The entry type is invalid"
+msgstr "條目類型無效"
+
+
+#: setzer/document/bibtex/file_session.py:57
+msgid "The selected BibTeX path is not a regular file"
+msgstr "所選 BibTeX 路徑不是一般檔案"
+
+
+#: setzer/document/bibtex/file_session.py:82
+msgid "The bibliography changed outside Setzer"
+msgstr "參考文獻庫已在 Setzer 外部變更"

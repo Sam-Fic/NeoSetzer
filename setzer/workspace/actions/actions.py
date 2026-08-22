@@ -79,6 +79,7 @@ class Actions(object):
         self.add_action('insert-before-document-end', self.insert_before_document_end, GLib.VariantType('as'))
         self.add_action('add-packages', self.add_packages, GLib.VariantType('as'))
         self.add_action('include-bibtex-file', self.start_include_bibtex_file_dialog, None)
+        self.add_action('manage-bibliography', self.start_bibliography_manager, None)
         self.add_action('include-latex-file', self.start_include_latex_file_dialog, None)
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
         self.add_action('insert-image-dialog', self.start_insert_image_dialog, None)
@@ -254,6 +255,7 @@ class Actions(object):
         document = self.workspace.get_active_document()
         document_active = document != None
         document_active_is_latex = document_active and document.is_latex_document()
+        document_active_is_bibtex = document_active and document.is_bibtex_document()
         enable_save = document_active and (document.source_buffer.get_modified() or document.get_filename() == None)
         has_selection = document_active and document.source_buffer.get_has_selection()
         if self.workspace.root_document != None: sync_document = self.workspace.root_document
@@ -297,6 +299,7 @@ class Actions(object):
         self.actions['add-packages'].set_enabled(document_active_is_latex)
         self.actions['show-document-wizard'].set_enabled(document_active_is_latex)
         self.actions['include-bibtex-file'].set_enabled(document_active_is_latex)
+        self.actions['manage-bibliography'].set_enabled(document_active_is_latex or document_active_is_bibtex)
         self.actions['include-latex-file'].set_enabled(document_active_is_latex)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['toggle-comment'].set_enabled(document_active_is_latex)
@@ -947,9 +950,15 @@ class Actions(object):
 
     def start_include_bibtex_file_dialog(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
-
         document = self.workspace.get_active_document()
         DialogLocator.get_dialog('include_bibtex_file').run(document)
+
+    def start_bibliography_manager(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document is None or not (document.is_latex_document() or document.is_bibtex_document()):
+            return
+        DialogLocator.get_dialog('bibliography_manager').run(document)
+
 
     def start_include_latex_file_dialog(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

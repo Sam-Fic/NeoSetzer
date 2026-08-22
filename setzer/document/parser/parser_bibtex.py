@@ -16,16 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import re
+from setzer.document.bibtex.entry_store import BibTeXEntryStore
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
-
-
-# parse_symbols 在每次按键（insert/delete）时都 finditer 全文。原实现每次
-# 都经 ServiceLocator.get_regex_object 做哈希查表；模块级预编译后直接持有。
-_BIBITEM_REGEX = re.compile(r'@(\w+)\{(\w+)')
 
 
 class ParserBibTeX(Observable):
@@ -65,10 +60,12 @@ class ParserBibTeX(Observable):
 
     #@timer
     def parse_symbols(self, text):
-        bibitems = set()
-        for match in _BIBITEM_REGEX.finditer(text):
-            bibitems.add(match.group(2).strip())
+        store = BibTeXEntryStore(text)
+        self.symbols['bibitems'] = {entry.key for entry in store.entries}
 
-        self.symbols['bibitems'] = bibitems
+    def initial_parse(self, text):
+        '''Populate keys when a BibTeX file is loaded via ``set_text``.'''
+        self.text = text
+        self.parse_symbols(text)
 
 

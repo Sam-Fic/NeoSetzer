@@ -25,6 +25,7 @@
 ./setzer/dialogs/add_remove_packages/__init__.py
 ./setzer/dialogs/autosave_recovery/autosave_recovery.py
 ./setzer/dialogs/autosave_recovery/__init__.py
+./setzer/dialogs/bibliography_manager/bibliography_manager.py
 ./setzer/dialogs/building_failed/building_failed.py
 ./setzer/dialogs/building_failed/__init__.py
 ./setzer/dialogs/build_log/build_log_dialog_controller.py
@@ -138,6 +139,8 @@
 ./setzer/document/code_folding/__init__.py
 ./setzer/document/document_controller.py
 ./setzer/document/document_presenter.py
+./setzer/document/bibtex/entry_store.py
+./setzer/document/bibtex/file_session.py
 ./setzer/document/document.py
 ./setzer/document/document_viewgtk.py
 ./setzer/document/gutter/gutter.py
