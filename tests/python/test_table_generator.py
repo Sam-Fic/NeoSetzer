@@ -8,6 +8,7 @@ import unittest
 
 from setzer.dialogs.insert_table.table_generator import (
     MAX_COLUMNS,
+    ENVIRONMENT_LONGTABLE,
     MAX_ROWS,
     STYLE_BOOKTABS,
     STYLE_PLAIN,
@@ -93,6 +94,65 @@ class TableGeneratorTest(unittest.TestCase):
         )))
         self.assertEqual(spec.required_packages, ('booktabs',))
 
+    def test_longtable_with_booktabs_repeats_header_and_requests_packages(self):
+        spec = TableSpec(
+            rows=3,
+            columns=2,
+            cells=(('Method', 'Score'), ('Baseline', '91.2\\%'), ('Proposed', '94.6\\%')),
+            style=STYLE_BOOKTABS,
+            environment=ENVIRONMENT_LONGTABLE,
+            use_table_environment=False,
+            caption='Results',
+            label='tab:results',
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{longtable}{lc}',
+            '\\caption{Results}\\label{tab:results} \\\\',
+            '\\toprule',
+            r'Method & Score \\',
+            '\\midrule',
+            '\\endfirsthead',
+            '\\toprule',
+            r'Method & Score \\',
+            '\\midrule',
+            '\\endhead',
+            r'Baseline & 91.2\% \\',
+            r'Proposed & 94.6\% \\',
+            '\\bottomrule',
+            '\\end{longtable}',
+        )))
+        self.assertEqual(spec.required_packages, ('booktabs', 'longtable'))
+        self.assertTrue(spec.uses_repeated_header)
+
+    def test_plain_longtable_can_skip_repeated_header(self):
+        spec = TableSpec(
+            rows=2,
+            columns=1,
+            cells=(('First',), ('Second',)),
+            environment=ENVIRONMENT_LONGTABLE,
+            use_table_environment=False,
+            header_row=True,
+            repeat_header=False,
+        )
+
+        self.assertEqual(spec.render(), '\n'.join((
+            '\\begin{longtable}{l}',
+            '\\hline',
+            r'First \\',
+            '\\hline',
+            r'Second \\',
+            '\\hline',
+            '\\end{longtable}',
+        )))
+        self.assertNotIn('\\endfirsthead', spec.render())
+        self.assertFalse(spec.uses_repeated_header)
+        self.assertEqual(spec.required_packages, ('longtable',))
+
+    def test_longtable_rejects_table_float_wrapper(self):
+        with self.assertRaises(ValueError):
+            TableSpec(environment=ENVIRONMENT_LONGTABLE)
+
     def test_forced_h_table_requests_float_package(self):
         forced_table = TableSpec(rows=1, columns=1, placement='H')
         forced_booktabs_table = TableSpec(rows=1, columns=1, placement='H', style=STYLE_BOOKTABS)
@@ -129,6 +189,8 @@ class TableGeneratorTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             TableSpec(style='grid')
         with self.assertRaises(ValueError):
+            TableSpec(environment='tabularx')
+        with self.assertRaises(ValueError):
             TableSpec(placement='x')
         with self.assertRaises(ValueError):
             TableSpec(columns=2, alignments=('l',))
@@ -157,6 +219,10 @@ class TableGeneratorTest(unittest.TestCase):
         shortcut_source = Path(
             os.path.join(REPO, 'setzer/keyboard_shortcuts/shortcut_controller_app.py')).read_text(encoding='utf-8')
         self.assertIn("self._register_configurable('insert_table_dialog'", shortcut_source)
+        table_controller_source = Path(
+            os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_controller.py')).read_text(encoding='utf-8')
+        self.assertIn("self.view.copy_button.connect('clicked', self._on_copy)", table_controller_source)
+        self.assertIn("self.document.add_packages(spec.required_packages)", table_controller_source)
 
     def test_plain_style_constant_is_the_default(self):
         self.assertEqual(TableSpec().style, STYLE_PLAIN)

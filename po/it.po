@@ -7087,3 +7087,39 @@ msgstr "Colonna {column}"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
 msgid "Center"
 msgstr "Centro"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:77
+msgid "_Copy LaTeX"
+msgstr "_Copia LaTeX"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:78
+msgid "Copy the generated LaTeX without changing the document"
+msgstr "Copia il codice LaTeX generato senza modificare il documento"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
+msgid "Repeat header on following pages"
+msgstr "Ripeti l’intestazione nelle pagine successive"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Repeat the first row when a long table continues on a new page"
+msgstr "Ripeti la prima riga quando una tabella lunga continua in una nuova pagina"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "Output environment"
+msgstr "Ambiente di output"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:162
+msgid "Long tables may continue across pages and are not floating tables"
+msgstr "Le tabelle lunghe possono continuare su più pagine e non sono tabelle flottanti"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:164
+msgid "Standard table"
+msgstr "Tabella standard"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Long table (multiple pages)"
+msgstr "Tabella lunga (più pagine)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
+msgid "Long tables cannot use a table float"
+msgstr "Le tabelle lunghe non possono usare un float table"

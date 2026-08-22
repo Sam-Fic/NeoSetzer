@@ -16,8 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import gi
+gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gdk, Gtk
 
 from setzer.dialogs.insert_table.insert_table_viewgtk import InsertTableView
 from setzer.dialogs.insert_table.table_generator import TableSpec, resize_cells
@@ -36,11 +37,14 @@ class InsertTableController:
 
     def _connect_static_signals(self):
         self.view.cancel_button.connect('clicked', self._on_cancel)
+        self.view.copy_button.connect('clicked', self._on_copy)
         self.view.insert_button.connect('clicked', self._on_insert)
         self.view.rows_row.connect('notify::value', self._on_size_changed)
         self.view.columns_row.connect('notify::value', self._on_size_changed)
         self.view.style_row.connect('notify::selected', self._on_options_changed)
-        self.view.header_switch.connect('notify::active', self._on_options_changed)
+        self.view.header_switch.connect('notify::active', self._on_header_changed)
+        self.view.repeat_header_switch.connect('notify::active', self._on_options_changed)
+        self.view.environment_row.connect('notify::selected', self._on_environment_changed)
         self.view.table_switch.connect('notify::active', self._on_table_switch_changed)
         self.view.placement_row.connect('notify::selected', self._on_options_changed)
         self.view.center_switch.connect('notify::active', self._on_options_changed)
@@ -62,7 +66,7 @@ class InsertTableController:
         self.view.reset()
         self._resizing = False
         self._connect_grid_signals()
-        self.view.set_wrapper_sensitive()
+        self.view.set_environment_sensitive()
         self._refresh_preview()
         self.view.present(self.main_window)
         if self.view.cell_entries:
@@ -88,6 +92,15 @@ class InsertTableController:
         self.view.set_cells(cells, rows, columns, alignments)
         self._resizing = False
         self._connect_grid_signals()
+        self.view.set_environment_sensitive()
+        self._refresh_preview()
+
+    def _on_header_changed(self, row, pspec):
+        self.view.set_environment_sensitive()
+        self._refresh_preview()
+
+    def _on_environment_changed(self, row, pspec):
+        self.view.set_environment_sensitive()
         self._refresh_preview()
 
     def _on_table_switch_changed(self, row, pspec):
@@ -105,7 +118,9 @@ class InsertTableController:
             cells=self.view.get_cells(),
             alignments=self.view.get_alignments(),
             style=self.view.get_style(),
+            environment=self.view.get_environment(),
             header_row=self.view.header_switch.get_active(),
+            repeat_header=self.view.repeat_header_switch.get_active(),
             use_table_environment=self.view.table_switch.get_active(),
             placement=self.view.get_placement(),
             centered=self.view.center_switch.get_active(),
@@ -115,6 +130,11 @@ class InsertTableController:
 
     def _refresh_preview(self):
         self.view.set_preview(self._get_spec().render())
+
+    def _on_copy(self, button):
+        display = Gdk.Display.get_default()
+        if display is not None:
+            display.get_clipboard().set(self._get_spec().render())
 
     def _on_insert(self, button):
         if self.document is None:

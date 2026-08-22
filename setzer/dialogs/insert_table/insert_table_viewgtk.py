@@ -23,6 +23,8 @@ from gi.repository import Gtk, Adw
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 from setzer.dialogs.insert_table.table_generator import (
     ALIGNMENTS,
+    ENVIRONMENT_LONGTABLE,
+    ENVIRONMENT_TABULAR,
     MAX_COLUMNS,
     MAX_ROWS,
     PLACEMENTS,
@@ -42,6 +44,10 @@ class InsertTableView(DialogView):
         ('l', 'Left'),
         ('c', 'Center'),
         ('r', 'Right'),
+    )
+    ENVIRONMENT_OPTIONS = (
+        (ENVIRONMENT_TABULAR, 'Standard table'),
+        (ENVIRONMENT_LONGTABLE, 'Long table (multiple pages)'),
     )
     PLACEMENT_OPTIONS = (
         ('htbp', 'htbp (here, top, bottom, page) — default'),
@@ -68,6 +74,9 @@ class InsertTableView(DialogView):
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
         self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
+        self.copy_button = Gtk.Button.new_with_mnemonic(_('_Copy LaTeX'))
+        self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
+        self.headerbar.pack_end(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
         self.insert_button.set_tooltip_text(_('Generate the LaTeX code and insert it at the cursor'))
@@ -139,10 +148,28 @@ class InsertTableView(DialogView):
         self.header_switch.set_subtitle(_('Add a separating rule below the first row with Booktabs'))
         self.header_switch.set_active(True)
         appearance_group.add(self.header_switch)
+        self.repeat_header_switch = Adw.SwitchRow()
+        self.repeat_header_switch.set_title(_('Repeat header on following pages'))
+        self.repeat_header_switch.set_subtitle(_('Repeat the first row when a long table continues on a new page'))
+        self.repeat_header_switch.set_active(True)
+        appearance_group.add(self.repeat_header_switch)
         content.append(appearance_group)
 
         wrapper_group = Adw.PreferencesGroup()
         wrapper_group.set_title(_('Table Environment'))
+        self.environment_row = Adw.ComboRow()
+        self.environment_row.set_title(_('Output environment'))
+        self.environment_row.set_subtitle(_('Long tables may continue across pages and are not floating tables'))
+        self.environment_row.set_model(Gtk.StringList.new([
+            _('Standard table'),
+            _('Long table (multiple pages)'),
+        ]))
+        wrapper_group.add(self.environment_row)
+        self.longtable_note = Adw.ActionRow()
+        self.longtable_note.set_title(_('Long tables cannot use a table float'))
+        self.longtable_note.set_subtitle(_('Caption and label are placed inside longtable; float placement and centering are unavailable.'))
+        self.longtable_note.add_css_class('property')
+        wrapper_group.add(self.longtable_note)
         self.table_switch = Adw.SwitchRow()
         self.table_switch.set_title(_('Use table environment'))
         self.table_switch.set_subtitle(_('Wrap tabular in a floating table with caption and label support'))
@@ -206,12 +233,15 @@ class InsertTableView(DialogView):
         self.columns_row.set_value(3)
         self.style_row.set_selected(0)
         self.header_switch.set_active(True)
+        self.repeat_header_switch.set_active(True)
+        self.environment_row.set_selected(0)
         self.table_switch.set_active(True)
         self.placement_row.set_selected(0)
         self.center_switch.set_active(True)
         self.caption_row.set_text('')
         self.label_row.set_text('tab:')
         self.set_cells((), 3, 3)
+        self.set_environment_sensitive()
         self.set_preview('')
 
     def set_cells(self, cells, rows, columns, alignments=()):
@@ -283,15 +313,30 @@ class InsertTableView(DialogView):
     def get_style(self):
         return self.STYLE_OPTIONS[self.style_row.get_selected()][0]
 
+    def get_environment(self):
+        return self.ENVIRONMENT_OPTIONS[self.environment_row.get_selected()][0]
+
     def get_placement(self):
         return PLACEMENTS[self.placement_row.get_selected()]
 
     def set_preview(self, text):
         self.preview.get_buffer().set_text(text)
 
+    def set_environment_sensitive(self):
+        longtable = self.get_environment() == ENVIRONMENT_LONGTABLE
+        if longtable:
+            self.table_switch.set_active(False)
+        self.table_switch.set_sensitive(not longtable)
+        self.longtable_note.set_visible(longtable)
+        self.set_wrapper_sensitive()
+
     def set_wrapper_sensitive(self):
-        enabled = self.table_switch.get_active()
-        self.placement_row.set_sensitive(enabled)
-        self.center_switch.set_sensitive(enabled)
-        self.caption_row.set_sensitive(enabled)
-        self.label_row.set_sensitive(enabled)
+        longtable = self.get_environment() == ENVIRONMENT_LONGTABLE
+        wrapper_enabled = not longtable and self.table_switch.get_active()
+        self.placement_row.set_sensitive(wrapper_enabled)
+        self.center_switch.set_sensitive(wrapper_enabled)
+        self.caption_row.set_sensitive(longtable or wrapper_enabled)
+        self.label_row.set_sensitive(longtable or wrapper_enabled)
+        self.repeat_header_switch.set_sensitive(
+            longtable and self.header_switch.get_active()
+            and int(self.rows_row.get_value()) > 1)

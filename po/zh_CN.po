@@ -5911,3 +5911,39 @@ msgstr "第 {column} 列"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
 msgid "Center"
 msgstr "居中"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:77
+msgid "_Copy LaTeX"
+msgstr "复制 LaTeX(_C)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:78
+msgid "Copy the generated LaTeX without changing the document"
+msgstr "复制生成的 LaTeX 代码，而不修改文档"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
+msgid "Repeat header on following pages"
+msgstr "在后续页面重复表头"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Repeat the first row when a long table continues on a new page"
+msgstr "长表格续到新页面时重复第一行"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "Output environment"
+msgstr "输出环境"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:162
+msgid "Long tables may continue across pages and are not floating tables"
+msgstr "长表格可跨页续排，且不是浮动表格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:164
+msgid "Standard table"
+msgstr "标准表格"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Long table (multiple pages)"
+msgstr "长表格（跨多页）"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
+msgid "Long tables cannot use a table float"
+msgstr "长表格不能使用 table 浮动环境"

@@ -34,6 +34,9 @@ ALIGNMENTS = ('l', 'c', 'r')
 STYLE_PLAIN = 'plain'
 STYLE_BOOKTABS = 'booktabs'
 STYLES = (STYLE_PLAIN, STYLE_BOOKTABS)
+ENVIRONMENT_TABULAR = 'tabular'
+ENVIRONMENT_LONGTABLE = 'longtable'
+ENVIRONMENTS = (ENVIRONMENT_TABULAR, ENVIRONMENT_LONGTABLE)
 PLACEMENTS = ('htbp', 'ht', 'h', 't', 'b', 'p', 'H', 'h!')
 
 
@@ -60,7 +63,9 @@ class TableSpec:
     cells: tuple[tuple[str, ...], ...] = ()
     alignments: tuple[str, ...] = ()
     style: str = STYLE_PLAIN
+    environment: str = ENVIRONMENT_TABULAR
     header_row: bool = True
+    repeat_header: bool = True
     use_table_environment: bool = True
     placement: str = 'htbp'
     centered: bool = True
@@ -71,8 +76,12 @@ class TableSpec:
         _validate_dimensions(self.rows, self.columns)
         if self.style not in STYLES:
             raise ValueError(f'Unknown table style: {self.style}')
+        if self.environment not in ENVIRONMENTS:
+            raise ValueError(f'Unknown table environment: {self.environment}')
         if self.placement not in PLACEMENTS:
             raise ValueError(f'Unknown table placement: {self.placement}')
+        if self.environment == ENVIRONMENT_LONGTABLE and self.use_table_environment:
+            raise ValueError('longtable cannot be wrapped in a table environment')
 
         normalized_cells = resize_cells(self.cells, self.rows, self.columns)
         if self.alignments:
@@ -98,10 +107,19 @@ class TableSpec:
         return ''.join(self.alignments)
 
     @property
+    def uses_repeated_header(self) -> bool:
+        return (self.environment == ENVIRONMENT_LONGTABLE
+                and self.header_row
+                and self.repeat_header
+                and self.rows > 1)
+
+    @property
     def required_packages(self) -> tuple[str, ...]:
         packages = []
         if self.style == STYLE_BOOKTABS:
             packages.append('booktabs')
+        if self.environment == ENVIRONMENT_LONGTABLE:
+            packages.append('longtable')
         if self.use_table_environment and self.placement == 'H':
             packages.append('float')
         return tuple(packages)
@@ -114,6 +132,11 @@ class TableSpec:
         the generated source under the author's control.
         '''
 
+        if self.environment == ENVIRONMENT_LONGTABLE:
+            return self._render_longtable()
+        return self._render_tabular()
+
+    def _render_tabular(self) -> str:
         lines = []
         if self.use_table_environment:
             lines.append(f'\\begin{{table}}[{self.placement}]')
@@ -125,25 +148,66 @@ class TableSpec:
                 lines.append(f'\\label{{{self.label}}}')
 
         lines.append(f'\\begin{{tabular}}{{{self.column_specification}}}')
-        if self.style == STYLE_BOOKTABS:
-            lines.append('\\toprule')
-        else:
-            lines.append('\\hline')
-
-        for row_index, row in enumerate(self.cells):
-            lines.append(' & '.join(row) + r' \\')
-            if self.style == STYLE_PLAIN:
-                lines.append('\\hline')
-            elif self.header_row and row_index == 0 and self.rows > 1:
-                lines.append('\\midrule')
-
-        if self.style == STYLE_BOOKTABS:
-            lines.append('\\bottomrule')
+        lines.extend(self._render_rules_before_rows())
+        lines.extend(self._render_rows())
+        lines.extend(self._render_rules_after_rows())
         lines.append('\\end{tabular}')
 
         if self.use_table_environment:
             lines.append('\\end{table}')
         return '\n'.join(lines)
+
+    def _render_longtable(self) -> str:
+        lines = [f'\\begin{{longtable}}{{{self.column_specification}}}']
+        if self.caption:
+            caption = f'\\caption{{{self.caption}}}'
+            if self.label:
+                caption += f'\\label{{{self.label}}}'
+            lines.append(caption + r' \\')
+        elif self.label:
+            lines.append(f'\\label{{{self.label}}}')
+
+        lines.extend(self._render_rules_before_rows())
+        if self.uses_repeated_header:
+            lines.append(self._render_row(self.cells[0]))
+            lines.extend(self._render_separator_after_header())
+            lines.append('\\endfirsthead')
+            lines.extend(self._render_rules_before_rows())
+            lines.append(self._render_row(self.cells[0]))
+            lines.extend(self._render_separator_after_header())
+            lines.append('\\endhead')
+            row_start = 1
+        else:
+            row_start = 0
+
+        lines.extend(self._render_rows(row_start))
+        lines.extend(self._render_rules_after_rows())
+        lines.append('\\end{longtable}')
+        return '\n'.join(lines)
+
+    def _render_rules_before_rows(self) -> list[str]:
+        return ['\\toprule'] if self.style == STYLE_BOOKTABS else ['\\hline']
+
+    def _render_rules_after_rows(self) -> list[str]:
+        return ['\\bottomrule'] if self.style == STYLE_BOOKTABS else []
+
+    def _render_separator_after_header(self) -> list[str]:
+        if self.style == STYLE_PLAIN:
+            return ['\\hline']
+        return ['\\midrule']
+
+    def _render_row(self, row: Sequence[str]) -> str:
+        return ' & '.join(row) + r' \\'
+
+    def _render_rows(self, start: int = 0) -> list[str]:
+        lines = []
+        for row_index in range(start, self.rows):
+            lines.append(self._render_row(self.cells[row_index]))
+            if self.style == STYLE_PLAIN:
+                lines.append('\\hline')
+            elif self.header_row and row_index == 0 and self.rows > 1:
+                lines.extend(self._render_separator_after_header())
+        return lines
 
 
 def _validate_dimensions(rows: int, columns: int):

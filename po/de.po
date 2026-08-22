@@ -7146,3 +7146,39 @@ msgstr "Spalte {column}"
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
 msgid "Center"
 msgstr "Zentriert"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:77
+msgid "_Copy LaTeX"
+msgstr "_LaTeX kopieren"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:78
+msgid "Copy the generated LaTeX without changing the document"
+msgstr "Den generierten LaTeX-Code kopieren, ohne das Dokument zu ändern"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
+msgid "Repeat header on following pages"
+msgstr "Kopfzeile auf Folgeseiten wiederholen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
+msgid "Repeat the first row when a long table continues on a new page"
+msgstr "Die erste Zeile wiederholen, wenn eine lange Tabelle auf einer neuen Seite fortgesetzt wird"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
+msgid "Output environment"
+msgstr "Ausgabeumgebung"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:162
+msgid "Long tables may continue across pages and are not floating tables"
+msgstr "Lange Tabellen können über Seiten hinweg fortgesetzt werden und sind keine Gleittabellen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:164
+msgid "Standard table"
+msgstr "Standardtabelle"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:165
+msgid "Long table (multiple pages)"
+msgstr "Lange Tabelle (mehrere Seiten)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:169
+msgid "Long tables cannot use a table float"
+msgstr "Lange Tabellen können nicht als table-Gleitobjekt verwendet werden"
