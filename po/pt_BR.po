@@ -6637,3 +6637,43 @@ msgstr "insira um título para continuar"
 #: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
 msgid "not set"
 msgstr "não definido"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Common document classes"
+msgstr "Classes de documento comuns"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Advanced KOMA-Script classes"
+msgstr "Classes KOMA-Script avançadas"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Article"
+msgstr "Artigo"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Report"
+msgstr "Relatório"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Book"
+msgstr "Livro"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Letter"
+msgstr "Carta"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Article (scrartcl)"
+msgstr "Artigo KOMA-Script (scrartcl)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Report (scrreprt)"
+msgstr "Relatório KOMA-Script (scrreprt)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Book (scrbook)"
+msgstr "Livro KOMA-Script (scrbook)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Letter (scrlttr2)"
+msgstr "Carta KOMA-Script (scrlttr2)"

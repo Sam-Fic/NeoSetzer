@@ -21,6 +21,10 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.dialogs.document_wizard.wizard_state import (
+    default_sectioning_for_document_class,
+    sectioning_options_for_document_class,
+)
 
 
 # KOMA-Script 类 → 标准类 settings_key 映射
@@ -81,6 +85,14 @@ class StandardSettingsPage(Page):
         if option_name != None:
             self.current_values[self.settings_key]['option_' + option_name] = row.get_active()
 
+    def _configure_sectioning_options(self, preferred=None):
+        document_class = self.current_values.get('document_class', 'article')
+        options = sectioning_options_for_document_class(document_class)
+        if preferred not in options:
+            preferred = default_sectioning_for_document_class(document_class)
+        self.view.set_sectioning_options(options, preferred)
+        self.current_values['sectioning'] = preferred
+
     def load_presets(self, presets):
         for setter_function, value_name in [
             (self.view.font_size_entry.set_value, 'font_size'),
@@ -104,23 +116,20 @@ class StandardSettingsPage(Page):
             value = self.current_values[self.settings_key]['page_format']
         self.view.page_format_combo.set_selected(self.view.page_format_names.index(value))
 
-        # 章节层级
+        # 章节层级跟随文档类；历史预设中不再适用的值安全回退。
         try:
             sectioning = presets['sectioning']
         except (TypeError, KeyError):
-            sectioning = self.current_values.get('sectioning', 'section')
-        if sectioning in self.view.sectioning_names:
-            self.view.sectioning_combo.set_selected(self.view.sectioning_names.index(sectioning))
+            sectioning = self.current_values.get('sectioning')
+        self._configure_sectioning_options(sectioning)
 
         self.option_default_margins_toggled(self.view.option_default_margins)
 
     def on_activation(self):
-        pass
+        self._configure_sectioning_options(self.current_values.get('sectioning'))
 
 
 class StandardSettingsPageView(PageView):
-
-    sectioning_names = ['section', 'chapter', 'none']
 
     def __init__(self):
         PageView.__init__(self)
@@ -139,15 +148,13 @@ class StandardSettingsPageView(PageView):
             '"section" for articles (\\section{}), '
             '"chapter" for reports and books (\\chapter{}), '
             '"none" for no sectioning commands.'))
-        sectioning_model = Gtk.StringList()
-        sectioning_labels = {
+        self.sectioning_labels = {
             'section': _('Section (\\section{})'),
             'chapter': _('Chapter (\\chapter{})'),
             'none': _('None'),
         }
-        for name in self.sectioning_names:
-            sectioning_model.append(sectioning_labels[name])
-        self.sectioning_combo.set_model(sectioning_model)
+        self.sectioning_names = list()
+        self.set_sectioning_options(('section', 'none'), 'section')
         self.group_sectioning.add(self.sectioning_combo)
 
         self.group_page_format = Adw.PreferencesGroup()
@@ -180,3 +187,12 @@ class StandardSettingsPageView(PageView):
         self.content.append(self.group_margins)
 
         self.append(self.wrap_content(self.content))
+
+    def set_sectioning_options(self, options, selected):
+        '''Refresh labels and selection after the document class changes.'''
+        self.sectioning_names = list(options)
+        model = Gtk.StringList()
+        for name in self.sectioning_names:
+            model.append(self.sectioning_labels[name])
+        self.sectioning_combo.set_model(model)
+        self.sectioning_combo.set_selected(self.sectioning_names.index(selected))

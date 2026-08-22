@@ -6482,3 +6482,43 @@ msgstr "输入标题后即可继续"
 #: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
 msgid "not set"
 msgstr "未设置"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Common document classes"
+msgstr "常用文档类"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Advanced KOMA-Script classes"
+msgstr "高级 KOMA-Script 文档类"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Article"
+msgstr "文章"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Report"
+msgstr "报告"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Book"
+msgstr "书籍"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Letter"
+msgstr "信件"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Article (scrartcl)"
+msgstr "KOMA-Script 文章 (scrartcl)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Report (scrreprt)"
+msgstr "KOMA-Script 报告 (scrreprt)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Book (scrbook)"
+msgstr "KOMA-Script 书籍 (scrbook)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Letter (scrlttr2)"
+msgstr "KOMA-Script 信件 (scrlttr2)"

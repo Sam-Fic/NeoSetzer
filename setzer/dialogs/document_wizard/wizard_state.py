@@ -38,6 +38,8 @@ PAGE_FORMATS = frozenset((
 ))
 
 SECTIONING_LEVELS = frozenset(('section', 'chapter', 'none'))
+ARTICLE_STYLE_CLASSES = frozenset(('article', 'scrartcl'))
+CHAPTER_STYLE_CLASSES = frozenset(('report', 'book', 'scrreprt', 'scrbook'))
 FONT_PACKAGES = frozenset(('lmodern', 'fontspec', 'none'))
 BEAMER_THEMES = frozenset((
     'Warsaw', 'Malmoe', 'Luebeck', 'Copenhagen', 'Szeged', 'Singapore',
@@ -161,6 +163,20 @@ def normalise_wizard_state(candidate, defaults):
                                  include_letter_text=(key == 'letter'))
     _normalise_beamer(candidate.get('beamer'), result['beamer'])
     return result
+
+
+def sectioning_options_for_document_class(document_class):
+    '''Return sectioning commands that make sense for the selected class.'''
+    if document_class in ARTICLE_STYLE_CLASSES:
+        return ('section', 'none')
+    if document_class in CHAPTER_STYLE_CLASSES:
+        return ('chapter', 'section', 'none')
+    return ('none',)
+
+
+def default_sectioning_for_document_class(document_class):
+    '''Return the least surprising first sectioning command for a document class.'''
+    return sectioning_options_for_document_class(document_class)[0]
 
 
 def _copy_enum(candidate, result, key, permitted):

@@ -39,9 +39,11 @@ class DocumentClassPage(Page):
 
     def observe_view(self):
         def row_selected(box, row, user_data=None):
-            child_name = row.get_title().lower()
-            self.current_values['document_class'] = child_name
-            self.view.preview_container.set_visible_child_name(child_name)
+            if row is None or not hasattr(row, 'document_class'):
+                return
+            document_class = row.document_class
+            self.current_values['document_class'] = document_class
+            self.view.preview_container.set_visible_child_name(document_class)
 
         def template_selected(combo, pspec):
             # 索引 0 为"不加载"；其余对应已保存模板。
@@ -131,12 +133,34 @@ class DocumentClassPageView(PageView):
         self.list.set_can_focus(True)
         self.list.add_css_class('boxed-list')
         self.list_rows = dict()
-        for document_class in ['beamer', 'letter', 'book', 'report', 'article',
-                               'scrbook', 'scrreprt', 'scrartcl', 'scrlttr2']:
-            row = Adw.ActionRow()
-            row.set_title(document_class.title())
-            self.list_rows[row.get_title().lower()] = row
-            self.list.prepend(row)
+        class_groups = [
+            (_('Common document classes'), [
+                ('article', _('Article')), ('report', _('Report')),
+                ('book', _('Book')), ('letter', _('Letter')),
+                ('beamer', _('Beamer')),]),
+            (_('Advanced KOMA-Script classes'), [
+                ('scrartcl', _('KOMA-Script Article (scrartcl)')),
+                ('scrreprt', _('KOMA-Script Report (scrreprt)')),
+                ('scrbook', _('KOMA-Script Book (scrbook)')),
+                ('scrlttr2', _('KOMA-Script Letter (scrlttr2)')),]),
+        ]
+        for group_title, classes in class_groups:
+            header = Gtk.ListBoxRow()
+            header.set_selectable(False)
+            header.set_activatable(False)
+            label = Gtk.Label(label=group_title)
+            label.set_xalign(0)
+            label.add_css_class('heading')
+            label.set_margin_top(12)
+            label.set_margin_bottom(6)
+            header.set_child(label)
+            self.list.append(header)
+            for document_class, title in classes:
+                row = Adw.ActionRow()
+                row.set_title(title)
+                row.document_class = document_class
+                self.list_rows[document_class] = row
+                self.list.append(row)
 
         self.list.set_vexpand(False)
 

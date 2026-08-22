@@ -9,7 +9,9 @@ import unittest
 from setzer.dialogs.document_wizard.wizard_state import (
     WIZARD_STATE_VERSION,
     build_default_wizard_state,
+    default_sectioning_for_document_class,
     normalise_wizard_state,
+    sectioning_options_for_document_class,
 )
 
 
@@ -41,6 +43,27 @@ class TestDefaultWizardState(unittest.TestCase):
 
         self.assertNotIn('french', LANGUAGES)
         self.assertEqual(state['report']['page_format'], 'A4')
+
+
+class TestSectioningSemantics(unittest.TestCase):
+
+    def test_article_style_classes_offer_section_or_none(self):
+        for document_class in ('article', 'scrartcl'):
+            self.assertEqual(
+                sectioning_options_for_document_class(document_class),
+                ('section', 'none'))
+            self.assertEqual(default_sectioning_for_document_class(document_class), 'section')
+
+    def test_chapter_style_classes_default_to_chapter(self):
+        for document_class in ('report', 'book', 'scrreprt', 'scrbook'):
+            self.assertEqual(
+                sectioning_options_for_document_class(document_class),
+                ('chapter', 'section', 'none'))
+            self.assertEqual(default_sectioning_for_document_class(document_class), 'chapter')
+
+    def test_non_standard_classes_do_not_expose_standard_sectioning(self):
+        self.assertEqual(sectioning_options_for_document_class('beamer'), ('none',))
+        self.assertEqual(sectioning_options_for_document_class('letter'), ('none',))
 
 
 class TestNormaliseWizardState(unittest.TestCase):

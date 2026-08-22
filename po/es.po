@@ -7491,3 +7491,39 @@ msgstr "introduzca un título para continuar"
 #: setzer/dialogs/document_wizard/document_wizard.py setzer/dialogs/document_wizard/pages/page_general_settings.py
 msgid "not set"
 msgstr "sin configurar"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Common document classes"
+msgstr "Clases de documento habituales"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Advanced KOMA-Script classes"
+msgstr "Clases avanzadas de KOMA-Script"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Article"
+msgstr "Artículo"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Report"
+msgstr "Informe"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "Letter"
+msgstr "Carta"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Article (scrartcl)"
+msgstr "Artículo KOMA-Script (scrartcl)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Report (scrreprt)"
+msgstr "Informe KOMA-Script (scrreprt)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Book (scrbook)"
+msgstr "Libro KOMA-Script (scrbook)"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py
+msgid "KOMA-Script Letter (scrlttr2)"
+msgstr "Carta KOMA-Script (scrlttr2)"
