@@ -714,6 +714,9 @@ class Gutter(object):
         if self.line_numbers_visible:
             self.draw_line_number(ctx, line, is_current, offset, line_height, width, scroll_base)
 
+        # 折叠符号始终按首显示行（第一行）竖直居中：普通单行即整行居中；
+        # 自动换行行则落在第一行中心（而非整逻辑行中间，否则会偏下）。
+        # offset / line_height 由主循环对首显示行传入，直接复用即可。
         if self.code_folding_visible:
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
 
@@ -877,26 +880,28 @@ class Gutter(object):
         folding_region = self.document.code_folding.get_region_by_line(line)
         if folding_region == None: return
 
-        cw = self.char_width
         lnw = self.line_numbers_width
-        # 用 draw() 主循环传来的真实行高（含行距，来自 get_line_yrange），
-        # 而非 self.line_height（ascent+descent，不含行距）。两者不等时
-        # 用后者做居中会把图标算得偏下。
+        # offset / line_height 由 draw_line 对首显示行（第一行）传入。折叠符号
+        # 始终按第一显示行竖直居中：普通单行即整行居中；自动换行行则落在
+        # 第一行中心（而非整逻辑行中间，否则会偏下）。
         lh = line_height
+        # 图标尺寸与换行符号保持一致（line_height * 0.3），避免比其它 gutter
+        # 图标偏大；原先 cw * 1.5 在高分屏下会明显显得过大。
+        size = max(6, round(lh * 0.3))
 
         # 用系统自带 symbolic 箭头替换原先手绘的三角形：
         #   is_folded=True  → 区域被折叠、"可展开"，显示右指箭头 pan-end-symbolic
         #   is_folded=False → 区域已展开，显示下指箭头 pan-down-symbolic
         # 颜色随主题（symbolic 默认前景色），与系统其它控件风格一致。
         icon_name = 'pan-end-symbolic' if folding_region['is_folded'] else 'pan-down-symbolic'
-        size = max(8, round(cw * 1.5))
         node = self._get_folding_icon_node(icon_name, size)
         if node is not None:
-            # 行高方向居中：图标中心对齐到行中心（offset + lh/2）。
-            # 用 round 对齐到整数像素，避免半像素 translate 被 cairo 四舍五入
-            # 到像素网格，导致图标视觉上偏上/偏下、看起来不居中。
+            # 行高方向居中：图标中心对齐到行中心（offset + lh/2）。symbolic 纹理
+            # 视觉重心略偏下，故整体向上微调 size*0.15 像素（相对 size，保证
+            # 不同字号观感一致），消除"偏下"感。用 round 对齐到整数像素，
+            # 避免半像素 translate 被 cairo 四舍五入到像素网格导致视觉偏移。
             x = round(lnw + (self.code_folding_width - size) / 2)
-            y = round(offset + (lh - size) / 2)
+            y = round(offset + (lh - size) / 2 - size * 0.5)
             ctx.save()
             ctx.translate(x, y)
             node.draw(ctx)
