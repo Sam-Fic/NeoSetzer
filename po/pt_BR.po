@@ -7111,3 +7111,174 @@ msgstr "Remover logotipo"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "No logo selected"
 msgstr "Nenhum logotipo selecionado"
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:71
+msgid "Delete snippet?"
+msgstr "Excluir trecho?"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:72
+msgid "The snippet “{}” will be permanently removed."
+msgstr "O trecho “{}” será removido permanentemente."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:100
+msgid "Snippets"
+msgstr "Trechos"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:104
+msgid "LaTeX Snippets"
+msgstr "Trechos do LaTeX"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:106
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
+msgstr ""
+"Crie texto LaTeX reutilizável e expanda-o pela lista de conclusão do editor."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:110
+msgid "Add snippet"
+msgstr "Adicionar trecho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:120
+msgid "No snippets yet"
+msgstr "Ainda não há trechos"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:122
+msgid "Add a snippet to expand a custom LaTeX command while writing."
+msgstr ""
+"Adicione um trecho para expandir um comando LaTeX personalizado durante a "
+"escrita."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:145
+msgid "Delete snippet"
+msgstr "Excluir trecho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Edit Snippet"
+msgstr "Editar trecho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Add Snippet"
+msgstr "Adicionar trecho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:191
+msgid "Trigger"
+msgstr "Gatilho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:196
+msgid "Snippet Body"
+msgstr "Corpo do trecho"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:217
+msgid "Use • to place the cursor after inserting the snippet."
+msgstr "Use • para posicionar o cursor após inserir o trecho."
+
+
+#: setzer/snippets/user_snippets.py:77
+msgid "Snippet name must be text"
+msgstr "O nome do trecho deve ser texto"
+
+
+#: setzer/snippets/user_snippets.py:80
+msgid "Snippet name cannot be empty"
+msgstr "O nome do trecho não pode ficar vazio"
+
+
+#: setzer/snippets/user_snippets.py:82
+msgid "Snippet name is too long"
+msgstr "O nome do trecho é muito longo"
+
+
+#: setzer/snippets/user_snippets.py:84
+msgid "Snippet name contains unsupported characters"
+msgstr "O nome do trecho contém caracteres sem suporte"
+
+
+#: setzer/snippets/user_snippets.py:90
+msgid "Snippet trigger must be text"
+msgstr "O gatilho do trecho deve ser texto"
+
+
+#: setzer/snippets/user_snippets.py:94
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr ""
+"O gatilho do trecho deve começar com uma barra invertida e usar letras, "
+"números ou @"
+
+
+#: setzer/snippets/user_snippets.py:96
+msgid "Snippet trigger is too long"
+msgstr "O gatilho do trecho é muito longo"
+
+
+#: setzer/snippets/user_snippets.py:102
+msgid "Snippet body must be text"
+msgstr "O corpo do trecho deve ser texto"
+
+
+#: setzer/snippets/user_snippets.py:107
+msgid "Snippet body must be valid UTF-8 text"
+msgstr "O corpo do trecho deve ser texto UTF-8 válido"
+
+
+#: setzer/snippets/user_snippets.py:109
+msgid "Snippet body cannot be empty"
+msgstr "O corpo do trecho não pode ficar vazio"
+
+
+#: setzer/snippets/user_snippets.py:111
+msgid "Snippet body is too large"
+msgstr "O corpo do trecho é muito grande"
+
+
+#: setzer/snippets/user_snippets.py:182
+msgid "A snippet with this trigger already exists"
+msgstr "Já existe um trecho com este gatilho"
+
+
+#: setzer/snippets/user_snippets.py:191 setzer/snippets/user_snippets.py:230
+msgid "Snippet identifier is invalid"
+msgstr "O identificador do trecho é inválido"
+
+
+#: setzer/snippets/user_snippets.py:195
+msgid "The selected snippet no longer exists"
+msgstr "O trecho selecionado não existe mais"
+
+
+#: setzer/snippets/user_snippets.py:204
+msgid "The snippet library could not be read"
+msgstr "Não foi possível ler a biblioteca de trechos"
+
+
+#: setzer/snippets/user_snippets.py:207
+msgid "The snippet library has an unsupported format"
+msgstr "A biblioteca de trechos tem um formato sem suporte"
+
+
+#: setzer/snippets/user_snippets.py:210
+msgid "The snippet library is invalid"
+msgstr "A biblioteca de trechos é inválida"
+
+
+#: setzer/snippets/user_snippets.py:224 setzer/snippets/user_snippets.py:237
+msgid "Snippet metadata is invalid"
+msgstr "Os metadados do trecho são inválidos"
+
+
+#: setzer/snippets/user_snippets.py:263
+msgid "The snippet library could not be written"
+msgstr "Não foi possível gravar a biblioteca de trechos"

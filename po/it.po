@@ -8130,3 +8130,175 @@ msgstr "Rimuovi logo"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "No logo selected"
 msgstr "Nessun logo selezionato"
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:71
+msgid "Delete snippet?"
+msgstr "Eliminare il frammento?"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:72
+msgid "The snippet “{}” will be permanently removed."
+msgstr "Il frammento «{}» verrà rimosso definitivamente."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:100
+msgid "Snippets"
+msgstr "Frammenti"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:104
+msgid "LaTeX Snippets"
+msgstr "Frammenti LaTeX"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:106
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
+msgstr ""
+"Crea testo LaTeX riutilizzabile ed espandilo dall’elenco di completamento "
+"dell’editor."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:110
+msgid "Add snippet"
+msgstr "Aggiungi frammento"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:120
+msgid "No snippets yet"
+msgstr "Nessun frammento ancora"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:122
+msgid "Add a snippet to expand a custom LaTeX command while writing."
+msgstr ""
+"Aggiungi un frammento per espandere un comando LaTeX personalizzato durante "
+"la scrittura."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:145
+msgid "Delete snippet"
+msgstr "Elimina frammento"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Edit Snippet"
+msgstr "Modifica frammento"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Add Snippet"
+msgstr "Aggiungi frammento"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:191
+msgid "Trigger"
+msgstr "Attivatore"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:196
+msgid "Snippet Body"
+msgstr "Corpo del frammento"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:217
+msgid "Use • to place the cursor after inserting the snippet."
+msgstr "Usa • per posizionare il cursore dopo l’inserimento del frammento."
+
+
+#: setzer/snippets/user_snippets.py:77
+msgid "Snippet name must be text"
+msgstr "Il nome del frammento deve essere testo"
+
+
+#: setzer/snippets/user_snippets.py:80
+msgid "Snippet name cannot be empty"
+msgstr "Il nome del frammento non può essere vuoto"
+
+
+#: setzer/snippets/user_snippets.py:82
+msgid "Snippet name is too long"
+msgstr "Il nome del frammento è troppo lungo"
+
+
+#: setzer/snippets/user_snippets.py:84
+msgid "Snippet name contains unsupported characters"
+msgstr "Il nome del frammento contiene caratteri non supportati"
+
+
+#: setzer/snippets/user_snippets.py:90
+msgid "Snippet trigger must be text"
+msgstr "L’attivatore del frammento deve essere testo"
+
+
+#: setzer/snippets/user_snippets.py:94
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr ""
+"L’attivatore del frammento deve iniziare con una barra rovesciata e usare "
+"lettere, numeri o @"
+
+
+#: setzer/snippets/user_snippets.py:96
+msgid "Snippet trigger is too long"
+msgstr "L’attivatore del frammento è troppo lungo"
+
+
+#: setzer/snippets/user_snippets.py:102
+msgid "Snippet body must be text"
+msgstr "Il corpo del frammento deve essere testo"
+
+
+#: setzer/snippets/user_snippets.py:107
+msgid "Snippet body must be valid UTF-8 text"
+msgstr "Il corpo del frammento deve essere testo UTF-8 valido"
+
+
+#: setzer/snippets/user_snippets.py:109
+msgid "Snippet body cannot be empty"
+msgstr "Il corpo del frammento non può essere vuoto"
+
+
+#: setzer/snippets/user_snippets.py:111
+msgid "Snippet body is too large"
+msgstr "Il corpo del frammento è troppo grande"
+
+
+#: setzer/snippets/user_snippets.py:182
+msgid "A snippet with this trigger already exists"
+msgstr "Esiste già un frammento con questo attivatore"
+
+
+#: setzer/snippets/user_snippets.py:191 setzer/snippets/user_snippets.py:230
+msgid "Snippet identifier is invalid"
+msgstr "L’identificatore del frammento non è valido"
+
+
+#: setzer/snippets/user_snippets.py:195
+msgid "The selected snippet no longer exists"
+msgstr "Il frammento selezionato non esiste più"
+
+
+#: setzer/snippets/user_snippets.py:204
+msgid "The snippet library could not be read"
+msgstr "Impossibile leggere la libreria dei frammenti"
+
+
+#: setzer/snippets/user_snippets.py:207
+msgid "The snippet library has an unsupported format"
+msgstr "La libreria dei frammenti ha un formato non supportato"
+
+
+#: setzer/snippets/user_snippets.py:210
+msgid "The snippet library is invalid"
+msgstr "La libreria dei frammenti non è valida"
+
+
+#: setzer/snippets/user_snippets.py:224 setzer/snippets/user_snippets.py:237
+msgid "Snippet metadata is invalid"
+msgstr "I metadati del frammento non sono validi"
+
+
+#: setzer/snippets/user_snippets.py:263
+msgid "The snippet library could not be written"
+msgstr "Impossibile scrivere la libreria dei frammenti"

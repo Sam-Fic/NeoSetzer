@@ -34,6 +34,8 @@ def _get_icon_name(item):
     - 其他 → 通用文本图标
     '''
     command = item['command']
+    if item.get('is_snippet'):
+        return 'text-x-generic-symbolic'
     if command.startswith(('\\begin{', '\\end{')):
         return 'view-list-ordered-symbolic'
     if command.startswith(_REF_COMMANDS) or command.startswith(_CITE_COMMANDS):
@@ -49,6 +51,8 @@ def _get_detail_text(item):
     目前来源为 dotlabels 参数名：\\dfrac{•}{•} + "num###den###" →
     "num, den"。无参数名（如 \\section、\\ref{sec:intro}）返回空串。
     '''
+    if item.get('is_snippet'):
+        return item.get('description', '')
     dotlabels = [d for d in item['dotlabels'].split('###') if d]
     return ', '.join(dotlabels)
 

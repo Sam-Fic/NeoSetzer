@@ -7074,3 +7074,169 @@ msgstr "移除標誌"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "No logo selected"
 msgstr "未選擇標誌"
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:71
+msgid "Delete snippet?"
+msgstr "刪除程式片段？"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:72
+msgid "The snippet “{}” will be permanently removed."
+msgstr "程式片段「{}」將被永久刪除。"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:100
+msgid "Snippets"
+msgstr "程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:104
+msgid "LaTeX Snippets"
+msgstr "LaTeX 程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:106
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
+msgstr "建立可重複使用的 LaTeX 文字，並從編輯器的補全清單中展開。"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:110
+msgid "Add snippet"
+msgstr "新增程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:120
+msgid "No snippets yet"
+msgstr "尚無程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:122
+msgid "Add a snippet to expand a custom LaTeX command while writing."
+msgstr "新增程式片段，以便在寫作時展開自訂 LaTeX 指令。"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:145
+msgid "Delete snippet"
+msgstr "刪除程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Edit Snippet"
+msgstr "編輯程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Add Snippet"
+msgstr "新增程式片段"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:191
+msgid "Trigger"
+msgstr "觸發詞"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:196
+msgid "Snippet Body"
+msgstr "片段內容"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:217
+msgid "Use • to place the cursor after inserting the snippet."
+msgstr "使用 • 在插入程式片段後定位游標。"
+
+
+#: setzer/snippets/user_snippets.py:77
+msgid "Snippet name must be text"
+msgstr "程式片段名稱必須是文字"
+
+
+#: setzer/snippets/user_snippets.py:80
+msgid "Snippet name cannot be empty"
+msgstr "程式片段名稱不可為空白"
+
+
+#: setzer/snippets/user_snippets.py:82
+msgid "Snippet name is too long"
+msgstr "程式片段名稱過長"
+
+
+#: setzer/snippets/user_snippets.py:84
+msgid "Snippet name contains unsupported characters"
+msgstr "程式片段名稱包含不支援的字元"
+
+
+#: setzer/snippets/user_snippets.py:90
+msgid "Snippet trigger must be text"
+msgstr "程式片段觸發詞必須是文字"
+
+
+#: setzer/snippets/user_snippets.py:94
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr "程式片段觸發詞必須以反斜線開頭，且只能使用字母、數字或 @"
+
+
+#: setzer/snippets/user_snippets.py:96
+msgid "Snippet trigger is too long"
+msgstr "程式片段觸發詞過長"
+
+
+#: setzer/snippets/user_snippets.py:102
+msgid "Snippet body must be text"
+msgstr "程式片段內容必須是文字"
+
+
+#: setzer/snippets/user_snippets.py:107
+msgid "Snippet body must be valid UTF-8 text"
+msgstr "程式片段內容必須是有效的 UTF-8 文字"
+
+
+#: setzer/snippets/user_snippets.py:109
+msgid "Snippet body cannot be empty"
+msgstr "程式片段內容不可為空白"
+
+
+#: setzer/snippets/user_snippets.py:111
+msgid "Snippet body is too large"
+msgstr "程式片段內容過大"
+
+
+#: setzer/snippets/user_snippets.py:182
+msgid "A snippet with this trigger already exists"
+msgstr "已存在使用此觸發詞的程式片段"
+
+
+#: setzer/snippets/user_snippets.py:191 setzer/snippets/user_snippets.py:230
+msgid "Snippet identifier is invalid"
+msgstr "程式片段識別碼無效"
+
+
+#: setzer/snippets/user_snippets.py:195
+msgid "The selected snippet no longer exists"
+msgstr "所選程式片段已不存在"
+
+
+#: setzer/snippets/user_snippets.py:204
+msgid "The snippet library could not be read"
+msgstr "無法讀取程式片段庫"
+
+
+#: setzer/snippets/user_snippets.py:207
+msgid "The snippet library has an unsupported format"
+msgstr "程式片段庫格式不受支援"
+
+
+#: setzer/snippets/user_snippets.py:210
+msgid "The snippet library is invalid"
+msgstr "程式片段庫無效"
+
+
+#: setzer/snippets/user_snippets.py:224 setzer/snippets/user_snippets.py:237
+msgid "Snippet metadata is invalid"
+msgstr "程式片段中繼資料無效"
+
+
+#: setzer/snippets/user_snippets.py:263
+msgid "The snippet library could not be written"
+msgstr "無法寫入程式片段庫"

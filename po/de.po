@@ -8192,3 +8192,177 @@ msgstr "Logo entfernen"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py
 msgid "No logo selected"
 msgstr "Kein Logo ausgewählt"
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:71
+msgid "Delete snippet?"
+msgstr "Snippet löschen?"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:72
+msgid "The snippet “{}” will be permanently removed."
+msgstr "Das Snippet „{}“ wird dauerhaft gelöscht."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:100
+msgid "Snippets"
+msgstr "Snippets"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:104
+msgid "LaTeX Snippets"
+msgstr "LaTeX-Snippets"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:106
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
+msgstr ""
+"Erstellen Sie wiederverwendbaren LaTeX-Text und erweitern Sie ihn über die "
+"Vervollständigungsliste des Editors."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:110
+msgid "Add snippet"
+msgstr "Snippet hinzufügen"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:120
+msgid "No snippets yet"
+msgstr "Noch keine Snippets"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:122
+msgid "Add a snippet to expand a custom LaTeX command while writing."
+msgstr ""
+"Fügen Sie ein Snippet hinzu, um beim Schreiben einen eigenen LaTeX-Befehl zu"
+" erweitern."
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:145
+msgid "Delete snippet"
+msgstr "Snippet löschen"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Edit Snippet"
+msgstr "Snippet bearbeiten"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:166
+msgid "Add Snippet"
+msgstr "Snippet hinzufügen"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:191
+msgid "Trigger"
+msgstr "Auslöser"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:196
+msgid "Snippet Body"
+msgstr "Snippet-Inhalt"
+
+
+#: setzer/dialogs/preferences/pages/page_snippets.py:217
+msgid "Use • to place the cursor after inserting the snippet."
+msgstr ""
+"Verwenden Sie •, um den Cursor nach dem Einfügen des Snippets zu "
+"positionieren."
+
+
+#: setzer/snippets/user_snippets.py:77
+msgid "Snippet name must be text"
+msgstr "Der Snippet-Name muss Text sein"
+
+
+#: setzer/snippets/user_snippets.py:80
+msgid "Snippet name cannot be empty"
+msgstr "Der Snippet-Name darf nicht leer sein"
+
+
+#: setzer/snippets/user_snippets.py:82
+msgid "Snippet name is too long"
+msgstr "Der Snippet-Name ist zu lang"
+
+
+#: setzer/snippets/user_snippets.py:84
+msgid "Snippet name contains unsupported characters"
+msgstr "Der Snippet-Name enthält nicht unterstützte Zeichen"
+
+
+#: setzer/snippets/user_snippets.py:90
+msgid "Snippet trigger must be text"
+msgstr "Der Snippet-Auslöser muss Text sein"
+
+
+#: setzer/snippets/user_snippets.py:94
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr ""
+"Der Snippet-Auslöser muss mit einem Backslash beginnen und darf nur "
+"Buchstaben, Zahlen oder @ enthalten"
+
+
+#: setzer/snippets/user_snippets.py:96
+msgid "Snippet trigger is too long"
+msgstr "Der Snippet-Auslöser ist zu lang"
+
+
+#: setzer/snippets/user_snippets.py:102
+msgid "Snippet body must be text"
+msgstr "Der Snippet-Inhalt muss Text sein"
+
+
+#: setzer/snippets/user_snippets.py:107
+msgid "Snippet body must be valid UTF-8 text"
+msgstr "Der Snippet-Inhalt muss gültiger UTF-8-Text sein"
+
+
+#: setzer/snippets/user_snippets.py:109
+msgid "Snippet body cannot be empty"
+msgstr "Der Snippet-Inhalt darf nicht leer sein"
+
+
+#: setzer/snippets/user_snippets.py:111
+msgid "Snippet body is too large"
+msgstr "Der Snippet-Inhalt ist zu groß"
+
+
+#: setzer/snippets/user_snippets.py:182
+msgid "A snippet with this trigger already exists"
+msgstr "Ein Snippet mit diesem Auslöser existiert bereits"
+
+
+#: setzer/snippets/user_snippets.py:191 setzer/snippets/user_snippets.py:230
+msgid "Snippet identifier is invalid"
+msgstr "Die Snippet-Kennung ist ungültig"
+
+
+#: setzer/snippets/user_snippets.py:195
+msgid "The selected snippet no longer exists"
+msgstr "Das ausgewählte Snippet existiert nicht mehr"
+
+
+#: setzer/snippets/user_snippets.py:204
+msgid "The snippet library could not be read"
+msgstr "Die Snippet-Bibliothek konnte nicht gelesen werden"
+
+
+#: setzer/snippets/user_snippets.py:207
+msgid "The snippet library has an unsupported format"
+msgstr "Die Snippet-Bibliothek hat ein nicht unterstütztes Format"
+
+
+#: setzer/snippets/user_snippets.py:210
+msgid "The snippet library is invalid"
+msgstr "Die Snippet-Bibliothek ist ungültig"
+
+
+#: setzer/snippets/user_snippets.py:224 setzer/snippets/user_snippets.py:237
+msgid "Snippet metadata is invalid"
+msgstr "Die Snippet-Metadaten sind ungültig"
+
+
+#: setzer/snippets/user_snippets.py:263
+msgid "The snippet library could not be written"
+msgstr "Die Snippet-Bibliothek konnte nicht geschrieben werden"

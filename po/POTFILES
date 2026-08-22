@@ -96,6 +96,7 @@
 ./setzer/dialogs/preferences/pages/page_build_system.py
 ./setzer/dialogs/preferences/pages/page_editor.py
 ./setzer/dialogs/preferences/pages/page_shortcuts.py
+./setzer/dialogs/preferences/pages/page_snippets.py
 ./setzer/dialogs/preferences/preferences.py
 ./setzer/dialogs/preferences/preferences_viewgtk.py
 ./setzer/dialogs/replace_confirmation/__init__.py
@@ -109,6 +110,8 @@
 ./setzer/document/autocomplete/autocomplete_widget.py
 ./setzer/document/autocomplete/autocomplete_widget_viewgtk.py
 ./setzer/document/autocomplete/__init__.py
+./setzer/snippets/__init__.py
+./setzer/snippets/user_snippets.py
 ./setzer/document/begin_end_highlight/begin_end_highlight.py
 ./setzer/document/begin_end_highlight/__init__.py
 ./setzer/document/bookmarks/bookmarks.py

@@ -27,6 +27,7 @@ import setzer.document.autocomplete.autocomplete_widget as autocomplete_widget
 from setzer.app.latex_db import LaTeXDB
 from setzer.document.autocomplete.environment_templates import get_environment_completion_tail
 from setzer.app.service_locator import ServiceLocator
+from setzer.snippets.user_snippets import UserSnippetStore
 
 
 # activate_if_possible 在每次单字符插入时调用（打字热路径），预编译避免
@@ -93,6 +94,7 @@ class Autocomplete(object):
         # 动态查询时为 True。view 据此在补全列表底部显示"标签数据库不可用"
         # 提示行（UX 报告 #8）。items 为空时也保持激活，使提示行可见。
         self.db_error = False
+        self.snippet_store = UserSnippetStore(ServiceLocator.get_config_folder())
 
         # suggestions 缓存键 + idle 去抖。
         # 1) 缓存：update_suggestions 在 is_active 时由 on_document_change +
@@ -296,7 +298,14 @@ class Autocomplete(object):
             if self.context == 'begin':
                 self.items = LaTeXDB.get_environment_items(self.current_word)
             else:
-                self.items = LaTeXDB.get_items(self.current_word, self.last_tabbed_item, onlymath=(self.context == 'math'))
+                latex_items = LaTeXDB.get_items(
+                    self.current_word, self.last_tabbed_item, onlymath=(self.context == 'math'))
+                # User snippets share the normal command completion context.  They
+                # intentionally precede static commands so a user-defined trigger
+                # remains discoverable even when it overlaps a LaTeX command name.
+                snippet_items = ([] if self.context == 'math' else
+                                 self.snippet_store.proposals_for(self.current_word))
+                self.items = snippet_items + latex_items
             # 文档体（\begin{document} 之后）隐藏仅 preamble 命令（报告 #7）。
             if self.context != 'begin':
                 preamble_end = self._get_preamble_end()
@@ -455,12 +464,20 @@ class Autocomplete(object):
         if self.items == None or len(self.items) == 0: return
         if self.selected_item_index == None: return
 
+        item = self.items[self.selected_item_index]
+        # A complete snippet trigger is a request to expand, unlike a complete
+        # static command where submit only moves over already-inserted text.
+        if item.get('is_snippet'):
+            self.replace_current_word_with_snippet(item['insert_text'])
+            self.deactivate()
+            return
+
         result = self.match_current_command_with_buffer()
         if result != None:
             start, end = result
             self.move_cursor_to_offset(end)
         else:
-            command = self.items[self.selected_item_index]['command']
+            command = item['command']
             if command.startswith('\\begin{'):
                 bracket_pos = command.find('}') + 1
                 end_name = command[7:bracket_pos]
@@ -517,6 +534,24 @@ class Autocomplete(object):
         self.document.select_first_dot_around_cursor(1, 0)
         self.document.scroll_cursor_onscreen()
         return True
+
+    def replace_current_word_with_snippet(self, text):
+        '''Replace the active trigger with a user snippet body as one undo action.'''
+        start_iter = self.source_buffer.get_iter_at_offset(self.current_word_offset)
+        insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        text = self.document.replace_tabs_with_spaces_if_set(text)
+        text = self.document.indent_text_with_whitespace_at_iter(text, start_iter)
+
+        self.source_buffer.begin_user_action()
+        try:
+            self.source_buffer.delete(start_iter, insert_iter)
+            self.source_buffer.place_cursor(start_iter)
+            self.source_buffer.insert_at_cursor(text)
+        finally:
+            self.source_buffer.end_user_action()
+
+        self.document.select_first_dot_around_cursor(offset_before=len(text), offset_after=0)
+        self.document.scroll_cursor_onscreen()
 
     def match_current_command_with_buffer(self):
         command = self.items[self.selected_item_index]['command']
