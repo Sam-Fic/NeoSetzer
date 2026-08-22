@@ -472,179 +472,33 @@ bottom of the page.\footnote{Another footnote with a citation:
 \cite{knuth1986}.}
 
 % ============================================================
-\section{NeoSetzer Features and Tips}
-\label{sec:setzer}
-
-This section highlights features that make NeoSetzer a comfortable
-environment for writing \LaTeX{} on Linux.
-All shortcuts shown are the defaults; they can be customized in
-\menu{Preferences}.
-
-\subsection{Editing Comfort}
-\label{sec:setzer:editing}
-
-\begin{itemize}[noitemsep]
-    \item \textbf{Syntax highlighting} with automatic dark/light theme
-          support.
-    \item \textbf{Code folding} for \texttt{\textbackslash begin\ldots
-          \textbackslash end} blocks; folding state is preserved between
-          sessions.
-    \item \textbf{Smart brackets}: typing \texttt{\textbraceleft\textbraceright}, (, [, \$ inserts
-          the matching closing bracket. Select text first to wrap it.
-    \item \textbf{Auto-indent} and line operations:
-          \menu{Alt+Up / Alt+Down} moves lines,
-          \menu{Ctrl+Shift+K} deletes a line,
-          \menu{Alt+Shift+D} duplicates it.
-\end{itemize}
-
-\subsection{Completion and Snippets}
-\label{sec:setzer:completion}
-
-Setzer offers context-aware completion:
-type \texttt{\textbackslash} to open the command list, or
-\texttt{Ctrl+Space} to trigger it manually.
-In math mode, only math-relevant commands are shown.
-The \textbf{LaTeXDB} index scans your open documents for
-\texttt{\textbackslash label}, \texttt{\textbackslash ref},
-\texttt{\textbackslash cite}, and \texttt{\textbackslash bibitem}
-commands, so cross-references and citations are completed dynamically.
-
-\subsection{Shortcuts Bar}
-\label{sec:setzer:shortcuts}
-
-The sidebar shortcuts bar gives quick access to common insertions
-without memorizing every command:
-\begin{itemize}[noitemsep]
-    \item \textbf{Text menu}: font styles, sections, lists, quotes,
-          cross-references.
-    \item \textbf{Math menu}: environments, operators, Greek letters,
-          accents, fractions.
-    \item \textbf{Document menu}: \texttt{\textbackslash documentclass},
-          packages, title metadata, TOC.
-    \item \textbf{Bibliography menu}: \texttt{\textbackslash bibliography},
-          \texttt{\textbackslash bibliographystyle}, \texttt{\textbackslash nocite}.
-\end{itemize}
-
-\subsection{Build and Preview}
-\label{sec:setzer:build}
-
-Setzer supports PDFLaTeX, XeLaTeX, LuaLaTeX, Tectonic, and \texttt{latexmk}.
-Key shortcuts:
-\begin{itemize}[noitemsep]
-    \item \textbf{F5}: save and build.
-    \item \textbf{F6}: build only.
-    \item \textbf{F7}: SyncTeX forward search (preview $\to$ source).
-    \item \textbf{Ctrl+click} in the preview jumps back to the source.
-\end{itemize}
-
-The build log parser categorizes errors, warnings, and bad boxes;
-click a log entry to jump to the offending line.
-
-\subsection{AI Fix}
-\label{sec:setzer:ai-fix}
-
-Setzer can connect to external AI agent CLIs to suggest fixes for
-\LaTeX{} build errors directly from the build log.
-When an error is selected, Setzer assembles a prompt containing the
-error message and a snippet of surrounding source code, then hands it
-off to an agent such as \texttt{opencode}, \texttt{claude},
-\texttt{codex}, \texttt{gemini}, or \texttt{aider}.
-The agent runs in a real terminal window so you can watch every step;
-Setzer saves the document first, then reloads it automatically after
-the agent finishes.
-For trusted project directories, the hand-off happens without any
-extra confirmation dialogs.
-
-\subsection{Session Management}
-\label{sec:setzer:session}
-
-Setzer can restore your previous session with
-\menu{Ctrl+Shift+J}.
-Auto-save writes unsaved changes to a temporary location every few
-seconds, and a recovery dialog appears after a crash.
-You can also reopen a recently closed document with
-\menu{Ctrl+Shift+T}.
-
-\subsection{AI-Driven Workflow}
-\label{sec:setzer:ai-workflow}
-
-For an AI-driven writing and compilation workflow, combine
-\textbf{AI Fix} with two editor preferences:
-\begin{enumerate}[noitemsep]
-    \item Open \menu{Preferences} and go to the
-          \menu{Editor $\rightarrow$ External Changes} group.
-          Enable \menu{Automatically reload changed files} so that
-          Setzer picks up edits made by external AI agents without
-          prompting.
-    \item Then enable \menu{Auto Build} in the
-          \menu{Build System} preferences.
-          The document will be saved and rebuilt automatically
-          shortly after you stop typing.
-\end{enumerate}
-With these settings, an external AI agent can edit your \LaTeX{}
-source and Setzer will immediately reload and recompile the
-document, giving you a smooth AI-assisted authoring loop.
-
-\subsection{Tips for New Users}
-\label{sec:setzer:tips}
-
-\begin{enumerate}[noitemsep]
-    \item Use the \textbf{document wizard} from the welcome screen to
-          generate a preamble with sensible defaults.
-    \item Set a \textbf{root document} for multi-file projects so that
-          \menu{Build} always compiles the right entry point.
-    \item Enable \textbf{auto-build} in preferences to rebuild
-          automatically after you stop typing.
-    \item Explore the built-in \textbf{LaTeX help panel} (F1) for
-          searchable LaTeX2e documentation.
-    \item Use \textbf{pinned recent documents} to keep important files
-          at the top of the welcome screen list.
-\end{enumerate}
-
-
-\subsection{More Shortcuts}
-\label{sec:setzer:shortcuts-more}
-
-A quick reference for common shortcuts:
-
-\begin{itemize}[noitemsep]
-    \item \textbf{Undo / Redo}: \menu{Ctrl+Z} and \menu{Ctrl+Shift+Z}.
-    \item \textbf{Comment / Uncomment}: \menu{Ctrl+/} toggles line comments.
-    \item \textbf{Duplicate line}: \menu{Alt+Shift+D} copies the current line.
-    \item \textbf{Jump to line}: open the jump dialog from the menu.
-    \item \textbf{Full screen}: \menu{F11} toggles full-screen mode.
-    \item \textbf{Zoom editor}: \menu{Ctrl+Plus}, \menu{Ctrl+Minus}, and \menu{Ctrl+0}.
-    \item \textbf{Help panel}: \menu{F1} opens the built-in LaTeX help browser.
-    \item \textbf{Document structure}: \menu{Ctrl+Shift+B} shows the section outline.
-    \item \textbf{Symbols panel}: \menu{F8} opens the math symbols sidebar.
-\end{itemize}
-
+\input{chapters/05-feature-atlas}
 
 % ============================================================
-\section{About This Fork}
+\section{About NeoSetzer}
 \label{sec:about}
 
-This example document is maintained as part of a fork of Setzer.
+NeoSetzer is maintained as a continuation fork of the Setzer project. This
+example project follows NeoSetzer's current workflows and links to the
+repositories where development and discussion take place.
 
 \begin{itemize}[noitemsep]
-    \item \textbf{Fork repository}: \url{https://github.com/Sam-Fic/NeoSetzer}
-    \item \textbf{Upstream project}: \url{https://github.com/cvfosammmm/setzer}
+    \item \textbf{NeoSetzer repository}: \url{https://github.com/Sam-Fic/NeoSetzer}
+    \item \textbf{Original Setzer project}: \url{https://github.com/cvfosammmm/Setzer}
 \end{itemize}
-
-Development and discussion for this fork take place on GitHub.
-For the original upstream project, see the link above.
 
 % ============================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-This example demonstrates the core elements of a \LaTeX{} document.
-From here you can:
+This example demonstrates the core elements of a \LaTeX{} document and a
+practical map of NeoSetzer. From here you can:
 
 \begin{enumerate}[noitemsep]
-    \item Open the source and change sections, labels, or captions.
-    \item Add your own packages and environments.
-    \item Export to PDF and inspect the rendered output.
+    \item Open the source and change sections, labels, captions, or data.
+    \item Use the feature map to find one editor or workspace tool to try.
+    \item Build the project, inspect the PDF and structure sidebar, and keep
+          the user-owned copy as a starting point for your own work.
 \end{enumerate}
 
 Happy \TeX ing!

@@ -113,6 +113,7 @@ class ExampleProjectStoreTest(unittest.TestCase):
         self.assertEqual(parse_magic_comments(main_source).program, 'pdflatex')
         self.assertIn('\\input{chapters/01-getting-started}', main_source)
         self.assertIn('\\input{chapters/appendix-structure}', main_source)
+        self.assertIn('\\input{chapters/05-feature-atlas}', main_source)
         self.assertIn('\\bibliography{references}', main_source)
         self.assertIn('\\appendix', main_source)
         self.assertTrue((project_root / 'data' / 'example-table.csv').is_file())
@@ -137,6 +138,15 @@ class ExampleProjectStoreTest(unittest.TestCase):
             encoding='utf-8')
         self.assertIn('\\todo{', navigation_source)
         self.assertIn('\\subsection{A \\textit{nested} heading title}', navigation_source)
+
+        feature_atlas = (project_root / 'chapters' / '05-feature-atlas.tex').read_text(
+            encoding='utf-8')
+        for topic in (
+                'Command Palette', 'Spell checking', 'Document Statistics',
+                'PDF preview', 'user document templates', 'AI Fix',
+                'Keyboard Shortcuts'):
+            self.assertIn(topic, feature_atlas)
+        self.assertNotIn('Setzer supports', main_source)
 
     def test_copy_failure_removes_reserved_partial_directory(self):
         store = ExampleProjectStore(str(self.source), str(self.destination))

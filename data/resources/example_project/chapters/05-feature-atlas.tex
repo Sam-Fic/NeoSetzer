@@ -1,0 +1,131 @@
+% !TEX root = ../main.tex
+
+\section{NeoSetzer Feature Map}
+\label{sec:feature-map}
+
+This chapter is a map for readers who want to understand NeoSetzer beyond the
+basic edit--build--preview loop. It is organized by task rather than by every
+menu item. Settings, installed TeX tools, dictionaries, and keyboard shortcuts
+can differ between systems, so use \menu{Preferences} and the Command Palette
+as the live source of truth for your own installation.
+
+\subsection{Find and run actions}
+\label{sec:feature-map:actions}
+
+Use the \textbf{Command Palette} when you know what you want to do but not
+where the action lives. It groups commands by area, searches by name and
+keywords, and explains when a command is unavailable in the current document
+or view. This is often the fastest way to discover an operation before deciding
+whether you want to assign or change a shortcut.
+
+The welcome screen provides the other high-level entry points: create a blank
+LaTeX or BibTeX document, open a file, start the Document Wizard, reopen recent
+work, or create another writable example-project copy.
+
+\subsection{Write efficiently}
+\label{sec:feature-map:editing}
+
+The editor combines syntax highlighting, automatic matching brackets,
+auto-indentation, line operations, code folding, search and replace, and
+context-aware completion. Completion adapts to LaTeX context: commands,
+references, citations, labels, environments, symbols, enumerate items, and
+Beamer frames are examples of suggestions that can be offered when the source
+makes them meaningful. The \textbf{Shortcuts Bar} and \textbf{Symbols} sidebar
+provide discoverable insertions when you prefer not to memorize commands.
+
+Spell checking depends on an available dictionary and the language settings on
+your system. It is best treated as a writing aid rather than a LaTeX validator:
+use the build log for typesetting or package errors. Editor appearance, font,
+line wrapping, indentation, current-line highlighting, and related behaviour
+can be adjusted in the Appearance and Editor preference pages.
+
+\subsection{Navigate, inspect, and organize}
+\label{sec:feature-map:navigation}
+
+The \textbf{Document Structure} sidebar lists headings, labels, project files,
+and TODO entries. It shows ordinary section numbers when they are reliably
+available from the source, including common appendices and literal counter
+changes such as the sample in Appendix~\ref{sec:appendix-structure}. It does
+not execute arbitrary TeX macros, so exotic number redefinitions may differ
+from the final PDF.
+
+Use the \textbf{Document Statistics} view when you need counts and reading
+information, and use source labels and references to keep large documents
+connected. The project and structure views are particularly useful with the
+child files in this example project: opening a child does not prevent you from
+building the root document.
+
+\subsection{Build, diagnose, and review PDF output}
+\label{sec:feature-map:build-preview}
+
+NeoSetzer can use configured LaTeX build systems such as PDFLaTeX, XeLaTeX,
+LuaLaTeX, Tectonic, and \texttt{latexmk} when they are installed. Save and
+build is a common starting action, but shortcuts are configurable; inspect the
+Keyboard Shortcuts preference page instead of relying on one fixed key.
+
+The PDF preview supports zooming, searching within the PDF, and SyncTeX source
+navigation when the selected engine produces the required synchronization data.
+The build log groups diagnostics and lets you jump to reported source lines. If
+a PDF changes outside NeoSetzer, the preview shows a persistent reload prompt
+rather than silently leaving you with an old result.
+
+\subsection{Keep projects safe and recoverable}
+\label{sec:feature-map:recovery}
+
+Auto-save can preserve recoverable editor state after a crash, while session
+management and the recent-documents list help restore a working set. Recent
+documents can be pinned. The Editor preferences also control how NeoSetzer
+responds when source files change outside the application; enable automatic
+reload only when that behaviour fits your workflow.
+
+Auto-build can rebuild after editing stops, but it is deliberately a preference
+rather than an assumption. It is most useful when the selected builder is fast
+and the document is already in a healthy state.
+
+\subsection{Tables, templates, and structured starting points}
+\label{sec:feature-map:structured-tools}
+
+The Document Wizard creates a new source document from configuration choices.
+Its lightweight presets are separate from \textbf{user document templates},
+which store complete LaTeX source snapshots for later preview, selection, and
+reuse. The Insert Table dialog generates editable LaTeX grids, supports
+constrained cell merges and longtable choices, and can import or paste UTF-8
+CSV/TSV data. Chapter~\ref{sec:tables-data} contains a safe practice input.
+
+\subsection{External tools and AI Fix}
+\label{sec:feature-map:external-tools}
+
+\textbf{AI Fix} is optional. When configured, it can hand a selected build
+error and nearby source context to an external agent command. That agent runs
+outside NeoSetzer and can modify files, so review its permissions, use trusted
+project directories only, and keep ordinary backup or version-control habits.
+Combining automatic external-file reload with auto-build can create a fast
+workflow, but it also means external edits may be incorporated and rebuilt
+quickly; enable that combination only when you understand the consequences.
+
+\subsection{Where to tune behaviour}
+\label{sec:feature-map:preferences}
+
+\begin{description}[style=nextline]
+    \item[Appearance]
+        Select application and editor appearance, including themes and fonts.
+    \item[Editor]
+        Tune indentation, wrapping, matching behaviour, auto-save, external
+        changes, and other writing-time behaviour.
+    \item[Autocomplete]
+        Choose completion behaviour and related suggestion settings.
+    \item[Build System]
+        Choose an installed builder and configure build-related behaviour such
+        as automatic builds.
+    \item[Keyboard Shortcuts]
+        Inspect current bindings and change them to fit your workflow.
+\end{description}
+
+\subsection{A deliberate exploration path}
+\label{sec:feature-map:explore}
+
+For a complete first tour, use the Command Palette to find Document Structure,
+Document Statistics, Symbols, Insert Table, Build Log, and Preferences. Then
+return to this project, make one small change in each feature area, and build
+again. The safest way to learn an editor is to connect each interface control
+to a visible source or PDF result.

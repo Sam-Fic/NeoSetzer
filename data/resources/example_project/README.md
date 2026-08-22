@@ -20,6 +20,7 @@ example_project/
 │   ├── 02-writing-and-navigation.tex
 │   ├── 03-project-workflows.tex
 │   ├── 04-tables-and-data.tex
+│   ├── 05-feature-atlas.tex
 │   └── appendix-structure.tex
 └── data/
     └── example-table.csv
@@ -33,4 +34,4 @@ example_project/
 
 Use **Save and Build** in NeoSetzer after making a small edit. If you want to keep a clean starting point, create another example project from the welcome screen or first-run tutorial; NeoSetzer creates a new numbered directory instead of overwriting an existing copy.
 
-Suggested experiments are embedded in the source: open a child chapter directly, inspect the nested heading and TODO in Document Structure, import the CSV grid, follow a cross-reference, then build the project again. The appendix also demonstrates ordinary article appendix numbering and a literal subsection counter change.
+Suggested experiments are embedded in the source: open a child chapter directly, inspect the nested heading and TODO in Document Structure, import the CSV grid, follow a cross-reference, then build the project again. The appendix also demonstrates ordinary article appendix numbering and a literal subsection counter change. Finally, use `05-feature-atlas.tex` as a task-oriented directory for NeoSetzer's command discovery, editing aids, sidebars, build and preview tools, preferences, recovery behaviour, and optional external tools.
