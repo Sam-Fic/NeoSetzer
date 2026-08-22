@@ -36,6 +36,10 @@ from setzer.dialogs.document_wizard.user_document_templates import (
     TemplateStoreError,
     UserDocumentTemplateStore,
 )
+from setzer.dialogs.document_wizard.wizard_state import (
+    build_default_wizard_state,
+    normalise_wizard_state,
+)
 
 # KOMA-Script 文档类复用对应标准类的设置页与 current_values 键
 # （scrartcl/article、scrreprt/report、scrbook/book、scrlttr2/letter）。键用于查设置，
@@ -123,132 +127,28 @@ class DocumentWizard(object):
 
         self.view.close()
 
-    def init_current_values(self):
-        # 默认纸张按 locale 选：美加墨用 US Letter，其余（绝大多数地区）
-        # 用 A4。报告 #13 要求"按系统语言选默认纸张"。
-        default_format = self._default_page_format()
+    def _build_default_wizard_state(self):
+        """Return a complete schema-versioned state for this wizard session."""
+        return build_default_wizard_state(
+            self._default_page_format(), LaTeXDB.get_languages_dict())
 
-        self.current_values['document_class'] = 'article'
-        self.current_values['title'] = ''
-        self.current_values['author'] = ''
-        self.current_values['date'] = '\\today'
-        self.current_values['custom_packages'] = ''
-        self.current_values['languages'] = LaTeXDB.get_languages_dict()
-        # 章节层级：section（\\section{}）/ chapter（\\chapter{}）/ none
-        self.current_values['sectioning'] = 'section'
-        # Problem 5: 字体包选择。lmodern（默认，pdfLaTeX 推荐）、
-        # fontspec（XeLaTeX/LuaLaTeX）、none（用户自行处理）。
-        self.current_values['font_package'] = 'lmodern'
-        self.current_values['packages'] = dict()
-        self.current_values['packages']['ams'] = True
-        self.current_values['packages']['graphicx'] = True
-        self.current_values['packages']['color'] = False
-        self.current_values['packages']['xcolor'] = False
-        self.current_values['packages']['url'] = False
-        self.current_values['packages']['theorem'] = False
-        self.current_values['packages']['textcomp'] = False
-        self.current_values['packages']['listings'] = False
-        self.current_values['packages']['hyperref'] = False
-        self.current_values['packages']['glossaries'] = False
-        self.current_values['packages']['parskip'] = True
-        self.current_values['article'] = dict()
-        self.current_values['article']['page_format'] = default_format
-        self.current_values['article']['font_size'] = 10
-        self.current_values['article']['option_twocolumn'] = False
-        self.current_values['article']['option_default_margins'] = True
-        self.current_values['article']['margin_left'] = 3.5
-        self.current_values['article']['margin_right'] = 3.5
-        self.current_values['article']['margin_top'] = 3.5
-        self.current_values['article']['margin_bottom'] = 3.5
-        self.current_values['article']['is_landscape'] = False
-        self.current_values['report'] = dict()
-        self.current_values['report']['page_format'] = default_format
-        self.current_values['report']['font_size'] = 10
-        self.current_values['report']['option_twocolumn'] = False
-        self.current_values['report']['option_default_margins'] = True
-        self.current_values['report']['margin_left'] = 3.5
-        self.current_values['report']['margin_right'] = 3.5
-        self.current_values['report']['margin_top'] = 3.5
-        self.current_values['report']['margin_bottom'] = 3.5
-        self.current_values['report']['is_landscape'] = False
-        self.current_values['book'] = dict()
-        self.current_values['book']['page_format'] = default_format
-        self.current_values['book']['font_size'] = 10
-        self.current_values['book']['option_twocolumn'] = False
-        self.current_values['book']['option_default_margins'] = True
-        self.current_values['book']['margin_left'] = 3.5
-        self.current_values['book']['margin_right'] = 3.5
-        self.current_values['book']['margin_top'] = 3.5
-        self.current_values['book']['margin_bottom'] = 3.5
-        self.current_values['book']['is_landscape'] = False
-        self.current_values['letter'] = dict()
-        self.current_values['letter']['page_format'] = default_format
-        self.current_values['letter']['font_size'] = 10
-        self.current_values['letter']['option_twocolumn'] = False
-        self.current_values['letter']['is_landscape'] = False
-        self.current_values['letter']['option_default_margins'] = True
-        self.current_values['letter']['margin_left'] = 3.5
-        self.current_values['letter']['margin_right'] = 3.5
-        self.current_values['letter']['margin_top'] = 3.5
-        self.current_values['letter']['margin_bottom'] = 3.5
-        self.current_values['letter']['sender_name'] = ''
-        self.current_values['letter']['sender_address'] = ''
-        self.current_values['letter']['sender_phone'] = ''
-        self.current_values['letter']['recipient_name'] = ''
-        self.current_values['letter']['recipient_address'] = ''
-        self.current_values['letter']['recipient_phone'] = ''
-        self.current_values['letter']['signature'] = ''
-        self.current_values['letter']['opening'] = ''
-        self.current_values['letter']['closing'] = ''
-        # scrlttr2 envelope defaults: retain the established output while
-        # allowing the Letter page to expose each KOMA-Script option.
-        self.current_values['letter']['option_window_address'] = True
-        self.current_values['letter']['option_backaddress'] = True
-        self.current_values['letter']['option_foldmarks'] = True
-        self.current_values['beamer'] = dict()
-        self.current_values['beamer']['theme'] = 'default'
-        self.current_values['beamer']['option_show_navigation'] = True
-        self.current_values['beamer']['option_top_align'] = True
+    def init_current_values(self):
+        self.current_values = self._build_default_wizard_state()
+
+    def _normalise_current_values(self):
+        """Fill missing historical fields without changing valid user choices."""
+        self.current_values = normalise_wizard_state(
+            self.current_values, self._build_default_wizard_state())
+        return self.current_values
 
     def _normalise_letter_settings(self):
-        '''Fill fields missing from historical Letter presets without replacing values.
+        """Compatibility wrapper for direct Letter template generation.
 
-        Named wizard presets predate several Letter fields. They are loaded as
-        full snapshots, so replacing ``current_values`` with an old snapshot
-        would otherwise make the Letter page and template generators index a
-        missing key. This method is intentionally idempotent: it only supplies
-        safe defaults for absent or malformed Letter settings.
-        '''
-        defaults = {
-            'page_format': 'A4',
-            'font_size': 10,
-            'option_twocolumn': False,
-            'is_landscape': False,
-            'option_default_margins': True,
-            'margin_left': 3.5,
-            'margin_right': 3.5,
-            'margin_top': 3.5,
-            'margin_bottom': 3.5,
-            'sender_name': '',
-            'sender_address': '',
-            'sender_phone': '',
-            'recipient_name': '',
-            'recipient_address': '',
-            'recipient_phone': '',
-            'signature': '',
-            'opening': '',
-            'closing': '',
-            'option_window_address': True,
-            'option_backaddress': True,
-            'option_foldmarks': True,
-        }
-        letter = self.current_values.get('letter')
-        if not isinstance(letter, dict):
-            letter = dict()
-            self.current_values['letter'] = letter
-        for key, value in defaults.items():
-            letter.setdefault(key, value)
-        return letter
+        Template generators can be called by tests or extensions without a full
+        wizard run. Normalising the complete state keeps those callers as safe
+        as restored presets while preserving their valid values.
+        """
+        return self._normalise_current_values()['letter']
 
     def _default_page_format(self):
         '''按 locale 选默认纸张：美加墨用 US Letter，其余用 A4（报告 #13）。'''
@@ -329,10 +229,11 @@ class DocumentWizard(object):
                 except (pickle.UnpicklingError, EOFError, ValueError,
                         AttributeError, TypeError):
                     presets = None
-            # 类型校验：必须是 dict。None / 非 dict 一律回退到默认预设。
-            if not isinstance(presets, dict):
-                presets = None
-            self.presets = presets
+            # 历史预设可缺少后来加入的嵌套字段。正常化只补齐合法默认值，
+            # 保留已保存的用户选择，并避免页面/生成器直接索引缺失键。
+            self.presets = (
+                normalise_wizard_state(presets, self._build_default_wizard_state())
+                if isinstance(presets, dict) else None)
 
         # 不再在此遍历 self.pages 调用 page.load_presets：懒构造下每页在
         # _ensure_page_built 首次进入时各自应用 self.presets。此处若遍历，
@@ -363,9 +264,10 @@ class DocumentWizard(object):
         blob = self.get_templates().get(name)
         if not isinstance(blob, dict):
             return False
-        # 深拷贝避免后续编辑污染存储的模板。
-        self.current_values = copy.deepcopy(blob)
-        self._normalise_letter_settings()
+        # 历史命名预设是用户数据。深拷贝后按当前 schema 正常化，
+        # 只补齐缺失或无效值，避免新字段使旧预设失效。
+        self.current_values = normalise_wizard_state(
+            copy.deepcopy(blob), self._build_default_wizard_state())
         # 强制建完所有页，但 apply_presets=False：避免 _ensure_page_built 内的
         # load_presets(self.presets) 用「保存的预设」经 set_* 信号回写污染
         # current_values（模板值会被预设值覆盖）。随后统一用 current_values

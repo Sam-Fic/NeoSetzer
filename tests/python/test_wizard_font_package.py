@@ -25,6 +25,11 @@ import types
 import unittest
 import xml.etree.ElementTree as ET
 
+from setzer.dialogs.document_wizard.wizard_state import (
+    build_default_wizard_state,
+    normalise_wizard_state,
+)
+
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # 桩 gettext (setzer.in 在运行时注入 _, 测试环境手动注入)
@@ -61,6 +66,8 @@ def _load_document_wizard_class():
         'pickle': __import__('pickle'),
         'copy': copy,
         'os': os,
+        'build_default_wizard_state': build_default_wizard_state,
+        'normalise_wizard_state': normalise_wizard_state,
         'Gdk': types.SimpleNamespace(keyval_from_name=lambda name: 0),
     }
     exec(compile(ast.Module(body=[cls_node], type_ignores=[]),
