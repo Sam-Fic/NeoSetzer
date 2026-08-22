@@ -32,6 +32,8 @@ foreach t : [
   ['test_stats_markup',           'test_stats_markup.py'],
   ['test_matching_blocks_regex',  'test_matching_blocks_regex.py'],
   ['test_latex_braces',           'test_latex_braces.py'],
+  ['test_smart_list',             'test_smart_list.py'],
+  ['test_smart_list_controller',  'test_smart_list_controller.py'],
   ['test_project_file_dependencies', 'test_project_file_dependencies.py'],
   ['test_help_search',            'test_help_search.py'],
   ['test_latex_db_error_flag',    'test_latex_db_error_flag.py'],

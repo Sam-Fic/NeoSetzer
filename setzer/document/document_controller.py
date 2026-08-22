@@ -27,6 +27,10 @@ from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.settings.document_settings import DocumentSettings
+from setzer.document.smart_list import (
+    SmartListNewlineKind,
+    get_smart_list_newline_action,
+)
 
 
 # on_keypress 每次按键都跑，Gdk.keyval_from_name 模块级预计算避免每次 C 查表。
@@ -447,6 +451,15 @@ class DocumentController(object):
 
         # --- Normal key handling (original code) ---
 
+        if keyval in [_KEYVAL_RETURN, _KEYVAL_KP_ENTER]:
+            has_default_modifier = bool(state & modifiers)
+            if (not has_default_modifier
+                    and not has_multi
+                    and not self.document.source_buffer.get_has_selection()
+                    and self.document.is_latex_document()
+                    and self.handle_smart_list_newline()):
+                return True
+
         if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB]:
             if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
                 # Shift+Tab：选区存在时反缩进，否则回退到 previous placeholder。
@@ -486,6 +499,36 @@ class DocumentController(object):
                 return True
 
         return False
+
+    def handle_smart_list_newline(self):
+        '''Continue or exit a literal LaTeX ``\\item`` at the current line end.
+
+        Returning ``False`` leaves Return to GtkSourceView, preserving ordinary
+        newline, selection, and non-list behaviour. The actual text change is
+        one user action so a single Undo restores the exact prior list state.
+        '''
+        buffer = self.document.source_buffer
+        insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        line_text = self.document.get_line(insert_iter.get_line())
+        action = get_smart_list_newline_action(
+            line_text, insert_iter.get_line_offset())
+        if action is None:
+            return False
+
+        buffer.begin_user_action()
+        try:
+            if action.kind == SmartListNewlineKind.CONTINUE:
+                buffer.insert_at_cursor('\n' + action.indentation + '\\item ')
+            else:
+                line_start = buffer.get_iter_at_line(insert_iter.get_line())[1]
+                buffer.delete(line_start, insert_iter)
+                # The deletion moves the insertion mark to the empty line start.
+                # Inserting only a newline leaves one blank line and moves the
+                # cursor outside the list on the next line.
+                buffer.insert_at_cursor('\n')
+        finally:
+            buffer.end_user_action()
+        return True
 
     def _multi_cursor_indent(self, outdent=False):
         """多光标模式下的缩进/反缩进：对每个光标所在行执行操作。"""
