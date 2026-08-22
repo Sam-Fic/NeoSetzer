@@ -1140,6 +1140,22 @@ class Document(Observable):
             self.source_buffer.get_insert(), 0.0, True, 0.0, 0.0)
         self.view.scrolled_window.set_kinetic_scrolling(True)
 
+    def scroll_cursor_with_context(self, context_lines=2):
+        '''Place the cursor near the top while retaining preceding text context.
+
+        Labels and TODO markers often live inside prose, equations or figures.
+        Unlike heading navigation, their preceding lines can be essential to
+        understanding the destination, so the scroll anchor is moved upward
+        while the actual cursor remains at the selected target.
+        '''
+
+        cursor_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
+        anchor_iter = cursor_iter.copy()
+        anchor_iter.backward_lines(max(0, context_lines))
+        self.view.scrolled_window.set_kinetic_scrolling(False)
+        self.source_view.scroll_to_iter(anchor_iter, 0.0, True, 0.0, 0.0)
+        self.view.scrolled_window.set_kinetic_scrolling(True)
+
     def scroll_cursor_onscreen(self, margin_lines=5):
         height = self.view.scrolled_window.get_allocated_height()
         if height > 0:

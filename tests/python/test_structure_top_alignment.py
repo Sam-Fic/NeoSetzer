@@ -23,9 +23,34 @@ def _load_method(path, class_name, method_name):
 _SCROLL_TO_TOP = _load_method(
     os.path.join(REPO, 'setzer/document/document.py'),
     'Document', 'scroll_cursor_to_top')
-_ROW_ACTIVATED = _load_method(
+_SCROLL_WITH_CONTEXT = _load_method(
+    os.path.join(REPO, 'setzer/document/document.py'),
+    'Document', 'scroll_cursor_with_context')
+_STRUCTURE_ROW_ACTIVATED = _load_method(
     os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/structure.py'),
     'StructureSection', 'on_row_activated')
+_LABEL_ROW_ACTIVATED = _load_method(
+    os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/labels.py'),
+    'LabelsSection', 'on_row_activated')
+_TODO_JUMP = _load_method(
+    os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/todos.py'),
+    'TodosSection', 'jump_to_todo')
+
+
+class _FakeIter:
+
+    def __init__(self, label, calls):
+        self.label = label
+        self.calls = calls
+
+    def copy(self):
+        return _FakeIter(f'{self.label}-copy', self.calls)
+
+    def backward_lines(self, count):
+        self.calls.append(('backward-lines', self.label, count))
+
+    def get_line(self):
+        return 37
 
 
 class _ScrolledWindow:
@@ -43,7 +68,10 @@ class _SourceView:
         self.calls = calls
 
     def scroll_to_mark(self, mark, within_margin, use_align, xalign, yalign):
-        self.calls.append(('scroll', mark, within_margin, use_align, xalign, yalign))
+        self.calls.append(('scroll-mark', mark, within_margin, use_align, xalign, yalign))
+
+    def scroll_to_iter(self, text_iter, within_margin, use_align, xalign, yalign):
+        self.calls.append(('scroll-iter', text_iter.label, within_margin, use_align, xalign, yalign))
 
     def grab_focus(self):
         self.calls.append(('focus',))
@@ -51,8 +79,20 @@ class _SourceView:
 
 class _SourceBuffer:
 
+    def __init__(self, calls):
+        self.calls = calls
+        self.cursor_iter = _FakeIter('cursor', calls)
+
     def get_insert(self):
         return 'insert-mark'
+
+    def get_iter_at_mark(self, mark):
+        self.calls.append(('get-iter-at-mark', mark))
+        return self.cursor_iter
+
+    def get_iter_at_offset(self, offset):
+        self.calls.append(('get-iter-at-offset', offset))
+        return _FakeIter('offset', self.calls)
 
 
 class _Document:
@@ -64,12 +104,13 @@ class _Document:
             'scrolled_window': _ScrolledWindow(calls),
             'source_view': self.source_view,
         })()
-        self.source_buffer = _SourceBuffer()
+        self.source_buffer = _SourceBuffer(calls)
 
     def place_cursor(self, line_number):
         self.calls.append(('cursor', line_number))
 
     scroll_cursor_to_top = _SCROLL_TO_TOP
+    scroll_cursor_with_context = _SCROLL_WITH_CONTEXT
 
 
 class _Workspace:
@@ -89,6 +130,10 @@ class _Workspace:
         return self.open_result
 
 
+def _section(data_provider):
+    return type('Section', (), {'data_provider': data_provider})()
+
+
 class StructureTopAlignmentTest(unittest.TestCase):
 
     def test_scroll_cursor_to_top_uses_explicit_vertical_top_alignment(self):
@@ -99,7 +144,21 @@ class StructureTopAlignmentTest(unittest.TestCase):
 
         self.assertEqual(calls, [
             ('kinetic', False),
-            ('scroll', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+        ])
+
+    def test_scroll_cursor_with_context_anchors_two_lines_before_cursor(self):
+        calls = []
+        document = _Document(calls)
+
+        document.scroll_cursor_with_context()
+
+        self.assertEqual(calls, [
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.0),
             ('kinetic', True),
         ])
 
@@ -107,20 +166,59 @@ class StructureTopAlignmentTest(unittest.TestCase):
         calls = []
         document = _Document(calls)
         workspace = _Workspace(document, calls)
-        section = type('Section', (), {
-            'data_provider': type('Provider', (), {'workspace': workspace})(),
-        })()
+        section = _section(type('Provider', (), {'workspace': workspace})())
         row = type('Row', (), {
             'item_data': {'item': [document, 37, 'view-list-symbolic', 'Results']},
         })()
 
-        _ROW_ACTIVATED(section, row)
+        _STRUCTURE_ROW_ACTIVATED(section, row)
 
         self.assertEqual(calls, [
             ('activate', document),
             ('cursor', 37),
             ('kinetic', False),
-            ('scroll', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+            ('focus',),
+        ])
+
+    def test_label_activation_uses_context_scroll(self):
+        calls = []
+        document = _Document(calls)
+        workspace = _Workspace(document, calls)
+        section = _section(type('Provider', (), {'workspace': workspace})())
+        row = type('Row', (), {'item_data': ['fig:workflow', 123, document]})()
+
+        _LABEL_ROW_ACTIVATED(section, row)
+
+        self.assertEqual(calls, [
+            ('get-iter-at-offset', 123),
+            ('activate', document),
+            ('cursor', 37),
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+            ('focus',),
+        ])
+
+    def test_todo_activation_uses_context_scroll(self):
+        calls = []
+        document = _Document(calls)
+        workspace = _Workspace(document, calls)
+        section = _section(type('Provider', (), {'workspace': workspace})())
+
+        _TODO_JUMP(section, ['Rewrite conclusion', 456, document])
+
+        self.assertEqual(calls, [
+            ('get-iter-at-offset', 456),
+            ('activate', document),
+            ('cursor', 37),
+            ('get-iter-at-mark', 'insert-mark'),
+            ('backward-lines', 'cursor-copy', 2),
+            ('kinetic', False),
+            ('scroll-iter', 'cursor-copy', 0.0, True, 0.0, 0.0),
             ('kinetic', True),
             ('focus',),
         ])
@@ -130,14 +228,12 @@ class StructureTopAlignmentTest(unittest.TestCase):
         document = _Document(calls)
         workspace = _Workspace(document, calls)
         workspace.open_result = None
-        section = type('Section', (), {
-            'data_provider': type('Provider', (), {'workspace': workspace})(),
-        })()
+        section = _section(type('Provider', (), {'workspace': workspace})())
         row = type('Row', (), {
             'item_data': {'item': [None, 0, 'text-x-generic-symbolic', '/missing.tex']},
         })()
 
-        _ROW_ACTIVATED(section, row)
+        _STRUCTURE_ROW_ACTIVATED(section, row)
 
         self.assertEqual(calls, [('open', '/missing.tex')])
 

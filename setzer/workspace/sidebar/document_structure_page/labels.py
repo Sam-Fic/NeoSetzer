@@ -44,7 +44,7 @@ class LabelsSection(object):
         line_number = document.source_buffer.get_iter_at_offset(label[1]).get_line()
         self.data_provider.workspace.set_active_document(document)
         document.place_cursor(line_number)
-        document.scroll_cursor_onscreen(margin_lines=0)
+        document.scroll_cursor_with_context()
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
 
     #@timer
