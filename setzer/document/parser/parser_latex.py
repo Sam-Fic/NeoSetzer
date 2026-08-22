@@ -22,6 +22,7 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
+from setzer.document.parser.latex_braces import scan_balanced_braced_argument
 from setzer.document.parser.structure_numbering import (
     AppendixStart,
     CounterChange,
@@ -43,8 +44,10 @@ _OTHER_SYMBOLS_REGEX_PATTERN = (r'\\(label|include|input|subfile|subimport|bibli
 # 该规则与 _OTHER_SYMBOLS_REGEX_PATTERN 分离，以保持后者的 group 编号稳定。
 _PROJECT_DEPENDENCIES_REGEX_PATTERN = r'\\(LoadLetterOption|documentclass)\s*(?:\[[^\[\]]*\]\s*)?\{([^{}\s]+)\}'
 
-# 块级符号正则：换行 / \begin{} / \end{} / 章节命令。
-_BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(\*)?\{([^\{]*)\}'
+# 块级符号正则只处理换行和环境边界。章节标题由轻量定位正则配合
+# 平衡花括号扫描器读取，以支持 \textit{...} 等嵌套 LaTeX 命令。
+_BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}'
+_SECTION_COMMAND_REGEX_PATTERN = r'\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(\*)?\s*\{'
 _SECTION_NUMBERING_REGEX_PATTERN = r'\\(setcounter|addtocounter)\s*\{\s*(secnumdepth|part|chapter|section|subsection|subsubsection|paragraph|subparagraph)\s*\}\s*\{\s*(-?\d+)\s*\}'
 _APPENDIX_REGEX_PATTERN = r'\\appendix(?![A-Za-z@])'
 _DOCUMENT_CLASS_REGEX_PATTERN = r'\\documentclass\s*(?:\[[^\[\]]*\]\s*)?\{\s*([^,}\s]+)'
@@ -94,6 +97,7 @@ class ParserLaTeX(Observable):
         self._other_symbols_regex = ServiceLocator.get_regex_object(_OTHER_SYMBOLS_REGEX_PATTERN)
         self._project_dependencies_regex = ServiceLocator.get_regex_object(_PROJECT_DEPENDENCIES_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
+        self._section_command_regex = ServiceLocator.get_regex_object(_SECTION_COMMAND_REGEX_PATTERN)
         self._section_numbering_regex = ServiceLocator.get_regex_object(_SECTION_NUMBERING_REGEX_PATTERN)
         self._appendix_regex = ServiceLocator.get_regex_object(_APPENDIX_REGEX_PATTERN)
         self._document_class_regex = ServiceLocator.get_regex_object(_DOCUMENT_CLASS_REGEX_PATTERN)
@@ -158,12 +162,44 @@ class ParserLaTeX(Observable):
         for match in self._block_symbols_regex.finditer(text):
             if match.group(1) != None:
                 block_symbol_matches['begin_or_end'].append((match, counter, match.start() + offset_line_start))
-            elif match.group(3) != None:
-                block_symbol_matches['others'].append((match, counter, match.start() + offset_line_start))
-                counter += len(match.group(0).splitlines()) - 1
             if match.group(0) == '\n':
                 counter += 1
+
+        # Standard regexes cannot select an arbitrary matching closing brace.
+        # Locate just the command/opening brace, then consume its literal braced
+        # title in a single balanced scan. Advancing to argument_end skips any
+        # section-like command nested inside the title itself.
+        title_ranges = list()
+        search_offset = 0
+        while True:
+            match = self._section_command_regex.search(text, search_offset)
+            if match is None:
+                break
+            title_start = match.end() - 1
+            scanned_title = scan_balanced_braced_argument(text, title_start)
+            if scanned_title is None:
+                # The document may be mid-edit with an unfinished outer title.
+                # Its remaining text is ambiguous, so do not let a literal
+                # section-like command inside it become a false structure node.
+                break
+            title, argument_end = scanned_title
+            command_start = match.start()
+            block_symbol_matches['others'].append((
+                match.group(1),
+                match.group(2) is not None,
+                title,
+                line_start + text.count('\n', 0, command_start),
+                command_start + offset_line_start,
+            ))
+            title_ranges.append((command_start, argument_end))
+            search_offset = argument_end
+
+        def is_inside_section_title(offset):
+            return any(start <= offset < end for start, end in title_ranges)
+
         for match in self._section_numbering_regex.finditer(text):
+            if is_inside_section_title(match.start()):
+                continue
             operation = match.group(1)
             counter_name = match.group(2)
             value = int(match.group(3))
@@ -181,6 +217,8 @@ class ParserLaTeX(Observable):
         document_class = document_class_match.group(1) if document_class_match else ''
         appendix_root = 'chapter' if document_class in _CHAPTER_DOCUMENT_CLASSES else 'section'
         for match in self._appendix_regex.finditer(text):
+            if is_inside_section_title(match.start()):
+                continue
             block_symbol_matches['appendices'].append((
                 match.start() + offset_line_start,
                 appendix_root,
@@ -259,14 +297,11 @@ class ParserLaTeX(Observable):
         # （如 subsubparagraph）时只改 levels 一处即可。
         levels = {'part': 0, 'chapter': 1, 'section': 2, 'subsection': 3, 'subsubsection': 4, 'paragraph': 5, 'subparagraph': 6}
         relevant_following_blocks = [list() for _ in range(len(levels))]
-        for (match, line_number, offset) in reversed(self.block_symbol_matches['others']):
+        for command, starred, title, line_number, offset in reversed(self.block_symbol_matches['others']):
             if line_number == 0:
                 add_preamble_folding = False
 
-            # group(3) 原本在循环中调用 2 次（levels 查表 + append），
-            # 缓存到局部变量避免重复 C 边界调用。
-            group3 = match.group(3)
-            level = levels[group3]
+            level = levels[command]
             block = [offset, None, line_number, None]
 
             if len(relevant_following_blocks[level]) >= 1:
@@ -282,8 +317,8 @@ class ParserLaTeX(Observable):
                     block[1] = self.text_length
                     block[3] = self.number_of_lines
 
-            block.append(group3)
-            block.append(match.group(5))
+            block.append(command)
+            block.append(title)
             blocks_list.append(block)
             # range 上界用 len(levels) 替代硬编码 7：与 levels 字典长度
             # 绑定，未来新增层级无需同步修改此循环。
@@ -296,10 +331,10 @@ class ParserLaTeX(Observable):
         sectioning_commands = [
             SectioningCommand(
                 offset=offset,
-                command=match.group(3),
-                starred=match.group(4) is not None,
+                command=command,
+                starred=starred,
             )
-            for match, _, offset in self.block_symbol_matches['others']
+            for command, starred, _, _, offset in self.block_symbol_matches['others']
         ]
         secnumdepth_changes = [
             SecnumDepthChange(offset=offset, value=value)

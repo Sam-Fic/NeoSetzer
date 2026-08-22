@@ -14,6 +14,7 @@ import types
 import unittest
 
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
+from setzer.document.parser.latex_braces import scan_balanced_braced_argument
 from setzer.document.parser.structure_numbering import (
     AppendixStart,
     CounterChange,
@@ -60,6 +61,7 @@ def _load_parser_class():
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
         'extract_beamer_frame_titles': extract_beamer_frame_titles,
+        'scan_balanced_braced_argument': scan_balanced_braced_argument,
         'AppendixStart': AppendixStart,
         'CounterChange': CounterChange,
         'SectioningCommand': SectioningCommand,
@@ -170,6 +172,48 @@ class TestProjectFileDependencyParsing(unittest.TestCase):
         sections = [block for block in parser.symbols['blocks'] if block[4] in ('section', 'subsection')]
         self.assertEqual([block[5] for block in sections],
                          ['One', 'One One', 'Unnumbered', 'Hidden', 'Two'])
+
+    def test_nested_section_titles_are_kept_without_creating_inner_sections(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\section{The \\textit{quick settings} menu}\n'
+            '\\section{A \\href{https://example.test/{path}}{linked title}}\n'
+            '\\section{Outer \\texttt{\\section{not a heading}} title}\n'
+        )
+        parser.initial_parse(text)
+
+        sections = [block for block in parser.symbols['blocks'] if block[4] == 'section']
+        self.assertEqual(
+            [block[5] for block in sections],
+            [
+                'The \\textit{quick settings} menu',
+                'A \\href{https://example.test/{path}}{linked title}',
+                'Outer \\texttt{\\section{not a heading}} title',
+            ],
+        )
+        self.assertEqual(
+            parser.symbols['block_metadata'],
+            {
+                text.index('\\section{The'): {'number': '1', 'starred': False},
+                text.index('\\section{A'): {'number': '2', 'starred': False},
+                text.index('\\section{Outer'): {'number': '3', 'starred': False},
+            },
+        )
+
+    def test_unclosed_nested_section_title_is_ignored_until_edit_is_complete(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\section{Visible}\n'
+            '\\section{Still editing \\textit{nested title} \\section{not real}\n'
+        )
+        parser.initial_parse(text)
+
+        sections = [block for block in parser.symbols['blocks'] if block[4] == 'section']
+        self.assertEqual([block[5] for block in sections], ['Visible'])
+        self.assertEqual(
+            parser.symbols['block_metadata'],
+            {text.index('\\section{Visible}'): {'number': '1', 'starred': False}},
+        )
 
     def test_article_appendix_uses_sections_as_the_alphabetic_root(self):
         parser = ParserLaTeX(_ParserDocument())
