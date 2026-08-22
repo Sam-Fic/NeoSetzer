@@ -7384,3 +7384,23 @@ msgstr "{count} verbundene Bereiche wurden entfernt, da sie nicht mehr in die ve
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr "Verbundener Bereich wird bearbeitet: Zeile {row}, Spalte {column}."
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr "Zuletzt verwendete Befehle"
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr "Alle Befehle"
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr "Verfügbare Befehle"
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr "Im aktuellen Kontext nicht verfügbar"
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr "Im aktuellen Dokument oder in der aktuellen Ansicht nicht verfügbar"

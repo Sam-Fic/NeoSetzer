@@ -6274,3 +6274,23 @@ msgstr "已移除 {count} 個不再適用於調整後表格大小的合併範圍
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr "正在編輯合併範圍：第 {row} 列、第 {column} 欄。"
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr "最近使用的命令"
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr "所有命令"
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr "可用命令"
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr "在目前內容中無法使用"
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr "在目前文件或檢視中無法使用"

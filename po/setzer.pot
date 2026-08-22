@@ -7363,3 +7363,39 @@ msgstr ""
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr ""
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:68
+msgid "Command Palette"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:80
+msgid "Search commands"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:99
+msgid "No commands found"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:105
+msgid "Use ↑ and ↓ to select, Enter to run"
+msgstr ""
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr ""

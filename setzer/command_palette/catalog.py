@@ -58,6 +58,15 @@ class CommandDescriptor:
         return self.shortcut_key or self.action_name.replace('-', '_')
 
 
+@dataclass(frozen=True)
+class CommandResultGroup:
+    '''A command-palette section with a homogeneous executable state.'''
+
+    identifier: str
+    commands: tuple[CommandDescriptor, ...]
+    available: bool
+
+
 # Keep labels in one place so they can be localized together when the dialog is
 # added to the translation template.  The English source strings are also useful
 # fallbacks before the locale is initialized.
@@ -234,18 +243,53 @@ class CommandCatalog:
     def get_action(self, command: CommandDescriptor):
         return self.actions.actions.get(command.action_name)
 
+    def is_available(self, command: CommandDescriptor) -> bool:
+        action = self.get_action(command)
+        return action is not None and action.get_enabled()
+
     def available(self) -> list[CommandDescriptor]:
-        return [
-            command for command in self.commands
-            if (action := self.get_action(command)) is not None and action.get_enabled()
-        ]
+        return [command for command in self.commands if self.is_available(command)]
+
+    def search_groups(self, query: str,
+                      recent_identifiers: Iterable[str] = ()) -> tuple[CommandResultGroup, ...]:
+        '''Return grouped matches without making unavailable commands executable.'''
+
+        matches = search(self.commands, query)
+        available = tuple(command for command in matches if self.is_available(command))
+        unavailable = tuple(command for command in matches if not self.is_available(command))
+        if not normalize(query):
+            available_by_id = {command.identifier: command for command in available}
+            actual_recent = []
+            seen = set()
+            for identifier in recent_identifiers:
+                command = available_by_id.get(identifier)
+                if command is not None and identifier not in seen:
+                    actual_recent.append(command)
+                    seen.add(identifier)
+            remaining = tuple(command for command in available if command.identifier not in seen)
+            groups = []
+            if actual_recent:
+                groups.append(CommandResultGroup('recent', tuple(actual_recent), True))
+            if remaining:
+                groups.append(CommandResultGroup('all', remaining, True))
+            return tuple(groups)
+        groups = []
+        if available:
+            groups.append(CommandResultGroup('available', available, True))
+        if unavailable:
+            groups.append(CommandResultGroup('unavailable', unavailable, False))
+        return tuple(groups)
 
     def search(self, query: str,
                recent_identifiers: Iterable[str] = ()) -> list[CommandDescriptor]:
-        commands = search(self.available(), query)
-        if not normalize(query):
-            return prioritize_recent(commands, recent_identifiers)
-        return commands
+        '''Return only executable commands for legacy callers and direct tests.'''
+
+        return [
+            command
+            for group in self.search_groups(query, recent_identifiers)
+            if group.available
+            for command in group.commands
+        ]
 
     def execute(self, command: CommandDescriptor) -> bool:
         """Activate a currently enabled parameter-free action safely."""

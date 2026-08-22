@@ -7325,3 +7325,23 @@ msgstr "Sono stati rimossi {count} intervalli uniti che non rientrano più nella
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr "Modifica intervallo unito: riga {row}, colonna {column}."
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr "Comandi recenti"
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr "Tutti i comandi"
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr "Comandi disponibili"
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr "Non disponibile nel contesto attuale"
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr "Non disponibile nel documento o nella vista attuale"

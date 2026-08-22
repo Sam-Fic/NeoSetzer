@@ -6755,7 +6755,7 @@ msgstr "Conmutar marcador"
 
 #: setzer/command_palette/dialog.py:79
 msgid "Use ↑ and ↓ to select, Enter to run"
-msgstr "Use ↑ y ↓ para seleccionar; Intro para ejecutar"
+msgstr "Usa ↑ y ↓ para seleccionar; Intro para ejecutar"
 
 
 #: setzer/command_palette/catalog.py:94 setzer/command_palette/catalog.py:95
@@ -7158,3 +7158,23 @@ msgstr "Se eliminaron {count} rangos combinados que ya no caben en la tabla redi
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr "Editando rango combinado: fila {row}, columna {column}."
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr "Comandos recientes"
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr "Todos los comandos"
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr "Comandos disponibles"
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr "No disponible en el contexto actual"
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr "No disponible en el documento o la vista actual"

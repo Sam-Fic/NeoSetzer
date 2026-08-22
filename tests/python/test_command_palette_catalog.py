@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+import os
+from pathlib import Path
 import unittest
 
 from setzer.command_palette.catalog import (
@@ -34,6 +36,9 @@ class FakeActions:
         self.actions = actions
 
 
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+
 class CommandPaletteCatalogTest(unittest.TestCase):
 
     def setUp(self):
@@ -59,9 +64,24 @@ class CommandPaletteCatalogTest(unittest.TestCase):
         self.assertEqual(search((self.build, self.preferences), 'compile'), [self.build])
         self.assertEqual(search((self.build, self.preferences), 'application'), [self.preferences])
 
-    def test_catalog_hides_disabled_actions(self):
+    def test_catalog_hides_disabled_actions_from_executable_search(self):
         self.assertEqual(self.catalog.available(), [self.build, self.save_build])
         self.assertNotIn(self.preferences, self.catalog.search(''))
+
+    def test_empty_query_groups_available_recent_and_all_commands(self):
+        groups = self.catalog.search_groups('', ('save-build', 'missing', 'build', 'save-build'))
+
+        self.assertEqual([group.identifier for group in groups], ['recent'])
+        self.assertTrue(groups[0].available)
+        self.assertEqual(groups[0].commands, (self.save_build, self.build))
+
+    def test_query_shows_unavailable_matches_without_making_them_executable(self):
+        groups = self.catalog.search_groups('preferences')
+
+        self.assertEqual([group.identifier for group in groups], ['unavailable'])
+        self.assertFalse(groups[0].available)
+        self.assertEqual(groups[0].commands, (self.preferences,))
+        self.assertEqual(self.catalog.search('preferences'), [])
 
     def test_execute_activates_enabled_action_without_parameter(self):
         self.assertTrue(self.catalog.execute(self.build))
@@ -98,6 +118,9 @@ class CommandPaletteCatalogTest(unittest.TestCase):
             self.catalog.search('build', ('save-build',)),
             [self.build, self.save_build],
         )
+        groups = self.catalog.search_groups('build', ('save-build',))
+        self.assertEqual([group.identifier for group in groups], ['available'])
+        self.assertEqual(groups[0].commands, (self.build, self.save_build))
 
     def test_global_catalog_includes_searchable_insert_table_command(self):
         table_command = next(command for command in COMMANDS if command.identifier == 'insert-table')
@@ -105,6 +128,18 @@ class CommandPaletteCatalogTest(unittest.TestCase):
         self.assertEqual(table_command.category, 'LaTeX')
         self.assertEqual(search((table_command,), 'booktabs'), [table_command])
         self.assertEqual(search((table_command,), 'tabular'), [table_command])
+
+    def test_dialog_renders_groups_and_refreshes_shortcuts_while_open(self):
+        source = Path(
+            os.path.join(REPO, 'setzer/command_palette/dialog.py')).read_text(encoding='utf-8')
+
+        self.assertIn("'recent': _('Recent Commands')", source)
+        self.assertIn("'unavailable': _('Unavailable in Current Context')", source)
+        self.assertIn("row.set_activatable(available)", source)
+        self.assertIn("row.set_sensitive(False)", source)
+        self.assertIn("Unavailable in the current document or view", source)
+        self.assertIn("self.settings.connect('settings_changed', self._on_settings_changed)", source)
+        self.assertIn("self.settings.disconnect(self._settings_handler)", source)
 
     def test_execute_refuses_disabled_action(self):
         self.assertFalse(self.catalog.execute(self.preferences))

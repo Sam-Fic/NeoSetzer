@@ -6304,3 +6304,23 @@ msgstr "Foram removidos {count} intervalos mesclados que não cabem mais na tabe
 #, python-brace-format
 msgid "Editing merged range: row {row}, column {column}."
 msgstr "Editando intervalo mesclado: linha {row}, coluna {column}."
+
+#: setzer/command_palette/dialog.py:47
+msgid "Recent Commands"
+msgstr "Comandos recentes"
+
+#: setzer/command_palette/dialog.py:48
+msgid "All Commands"
+msgstr "Todos os comandos"
+
+#: setzer/command_palette/dialog.py:49
+msgid "Available Commands"
+msgstr "Comandos disponíveis"
+
+#: setzer/command_palette/dialog.py:50
+msgid "Unavailable in Current Context"
+msgstr "Indisponível no contexto atual"
+
+#: setzer/command_palette/dialog.py:263
+msgid "Unavailable in the current document or view"
+msgstr "Indisponível no documento ou na visualização atual"
