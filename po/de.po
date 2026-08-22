@@ -7354,3 +7354,33 @@ msgstr "Im importierten Text wurden keine Tabellendaten gefunden."
 #: setzer/dialogs/insert_table/insert_table_controller.py:197
 msgid "The imported TSV/CSV data is invalid."
 msgstr "Die importierten TSV/CSV-Daten sind ungültig."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:194
+msgid "_Update Merge"
+msgstr "Verbindung _aktualisieren"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+msgid "Replace the selected merged range with the values above"
+msgstr "Den ausgewählten verbundenen Bereich durch die obigen Werte ersetzen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:199
+msgid "_Cancel Merge Edit"
+msgstr "Bearbeitung der Verbindung _abbrechen"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+msgid "Stop editing the selected merged range"
+msgstr "Die Bearbeitung des ausgewählten verbundenen Bereichs beenden"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+msgid "Edit this merged range"
+msgstr "Diesen verbundenen Bereich bearbeiten"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:233
+#, python-brace-format
+msgid "Removed {count} merged ranges that no longer fit the resized table."
+msgstr "{count} verbundene Bereiche wurden entfernt, da sie nicht mehr in die verkleinerte Tabelle passen."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:253
+#, python-brace-format
+msgid "Editing merged range: row {row}, column {column}."
+msgstr "Verbundener Bereich wird bearbeitet: Zeile {row}, Spalte {column}."

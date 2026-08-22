@@ -165,6 +165,15 @@ def resize_cells(cells: Sequence[Sequence[str]], rows: int, columns: int) -> tup
     return tuple(result)
 
 
+def merges_removed_by_resize(merges: Sequence[CellMerge], rows: int,
+                            columns: int) -> tuple[CellMerge, ...]:
+    '''Return complete merge ranges that cannot survive a resize unchanged.'''
+
+    _validate_dimensions(rows, columns)
+    return tuple(merge for merge in merges
+                 if merge.end_row > rows or merge.end_column > columns)
+
+
 def resize_merges(merges: Sequence[CellMerge], rows: int, columns: int) -> tuple[CellMerge, ...]:
     '''Drop merge ranges that no longer fit after a table resize.
 
@@ -175,6 +184,18 @@ def resize_merges(merges: Sequence[CellMerge], rows: int, columns: int) -> tuple
     _validate_dimensions(rows, columns)
     return tuple(merge for merge in merges
                  if merge.end_row <= rows and merge.end_column <= columns)
+
+
+def replace_cell_merge(merges: Sequence[CellMerge], previous: CellMerge,
+                       replacement: CellMerge, rows: int,
+                       columns: int) -> tuple[CellMerge, ...]:
+    '''Atomically replace one merge range while preserving all validations.'''
+
+    current = tuple(merges)
+    if previous not in current:
+        raise ValueError('The merge range to update no longer exists')
+    remaining = tuple(merge for merge in current if merge != previous)
+    return _validate_cell_merges(remaining + (replacement,), rows, columns)
 
 
 @dataclass(frozen=True)

@@ -26,7 +26,9 @@ from setzer.dialogs.insert_table.insert_table_viewgtk import InsertTableView
 from setzer.dialogs.insert_table.table_generator import (
     TableImportError,
     TableSpec,
+    merges_removed_by_resize,
     parse_table_text,
+    replace_cell_merge,
     resize_cells,
     resize_merges,
 )
@@ -44,6 +46,7 @@ class InsertTableController:
         self.view = InsertTableView(main_window)
         self.document = None
         self.cell_merges = ()
+        self.editing_merge = None
         self._resizing = False
         self._file_chooser = None
         self._connect_static_signals()
@@ -58,6 +61,8 @@ class InsertTableController:
         self.view.rows_row.connect('notify::value', self._on_size_changed)
         self.view.columns_row.connect('notify::value', self._on_size_changed)
         self.view.add_merge_button.connect('clicked', self._on_add_merge)
+        self.view.edit_merge_button.connect('clicked', self._on_update_merge)
+        self.view.cancel_merge_edit_button.connect('clicked', self._on_cancel_merge_edit)
         self.view.style_row.connect('notify::selected', self._on_options_changed)
         self.view.header_switch.connect('notify::active', self._on_header_changed)
         self.view.repeat_header_switch.connect('notify::active', self._on_repeat_header_changed)
@@ -81,6 +86,7 @@ class InsertTableController:
         self.document = document
         self._resizing = True
         self.cell_merges = ()
+        self.editing_merge = None
         self.view.reset()
         self._resizing = False
         self._connect_grid_signals()
@@ -175,6 +181,7 @@ class InsertTableController:
         self.view.set_cells(imported.cells, imported.rows, imported.columns)
         self.view.set_merge_limits(imported.rows, imported.columns)
         self.cell_merges = ()
+        self.editing_merge = None
         self._resizing = False
         self._connect_grid_signals()
         self._sync_merge_view()
@@ -208,7 +215,10 @@ class InsertTableController:
             else ('l' if column_index == 0 else 'c')
             for column_index in range(columns)
         )
+        removed_merges = merges_removed_by_resize(self.cell_merges, rows, columns)
         self.cell_merges = resize_merges(self.cell_merges, rows, columns)
+        if self.editing_merge in removed_merges:
+            self.editing_merge = None
         self._resizing = True
         self.view.set_cells(cells, rows, columns, alignments)
         self.view.set_merge_limits(rows, columns)
@@ -218,6 +228,10 @@ class InsertTableController:
         self.view.set_environment_sensitive()
         self._ensure_merge_compatibility()
         self._refresh_preview()
+        if removed_merges:
+            self.view.set_merge_status(_(
+                'Removed {count} merged ranges that no longer fit the resized table.').format(
+                    count=len(removed_merges)))
 
     def _on_add_merge(self, button):
         try:
@@ -232,14 +246,57 @@ class InsertTableController:
         self._sync_merge_view()
         self._refresh_preview()
 
+    def _on_start_merge_edit(self, merge):
+        self.editing_merge = merge
+        self.view.set_merge_editor(merge)
+        self.view.set_merge_status(_(
+            'Editing merged range: row {row}, column {column}.').format(
+                row=merge.row + 1, column=merge.column + 1))
+
+    def _on_update_merge(self, button):
+        if self.editing_merge is None:
+            return
+        try:
+            candidate = self.view.get_merge_draft()
+            updated_merges = replace_cell_merge(
+                self.cell_merges,
+                self.editing_merge,
+                candidate,
+                int(self.view.rows_row.get_value()),
+                int(self.view.columns_row.get_value()),
+            )
+            spec = self._get_spec(updated_merges)
+        except (TypeError, ValueError):
+            self.view.set_merge_error(_(
+                'The selected range must fit inside the table, span at least two cells, and not overlap another merged range.'))
+            return
+        self.cell_merges = spec.cell_merges
+        self.editing_merge = None
+        self.view.set_merge_editor()
+        self.view.set_merge_error()
+        self._sync_merge_view()
+        self._refresh_preview()
+
+    def _on_cancel_merge_edit(self, button):
+        self.editing_merge = None
+        self.view.set_merge_editor()
+        self.view.set_merge_error()
+
     def _on_remove_merge(self, merge):
         self.cell_merges = tuple(item for item in self.cell_merges if item != merge)
+        if self.editing_merge == merge:
+            self.editing_merge = None
+            self.view.set_merge_editor()
         self.view.set_merge_error()
         self._sync_merge_view()
         self._refresh_preview()
 
     def _sync_merge_view(self):
-        self.view.set_cell_merges(self.cell_merges, self._on_remove_merge)
+        self.view.set_cell_merges(
+            self.cell_merges,
+            self._on_remove_merge,
+            self._on_start_merge_edit,
+        )
         self.view.set_merge_coverage(self.cell_merges)
 
     def _on_header_changed(self, row, pspec):

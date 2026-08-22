@@ -7295,3 +7295,33 @@ msgstr "Nel testo importato non sono stati trovati dati tabellari."
 #: setzer/dialogs/insert_table/insert_table_controller.py:197
 msgid "The imported TSV/CSV data is invalid."
 msgstr "I dati TSV/CSV importati non sono validi."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:194
+msgid "_Update Merge"
+msgstr "_Aggiorna unione"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+msgid "Replace the selected merged range with the values above"
+msgstr "Sostituisci l’intervallo unito selezionato con i valori sopra"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:199
+msgid "_Cancel Merge Edit"
+msgstr "_Annulla modifica unione"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+msgid "Stop editing the selected merged range"
+msgstr "Interrompi la modifica dell’intervallo unito selezionato"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+msgid "Edit this merged range"
+msgstr "Modifica questo intervallo unito"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:233
+#, python-brace-format
+msgid "Removed {count} merged ranges that no longer fit the resized table."
+msgstr "Sono stati rimossi {count} intervalli uniti che non rientrano più nella tabella ridimensionata."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:253
+#, python-brace-format
+msgid "Editing merged range: row {row}, column {column}."
+msgstr "Modifica intervallo unito: riga {row}, colonna {column}."

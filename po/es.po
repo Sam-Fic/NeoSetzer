@@ -7128,3 +7128,33 @@ msgstr "No se encontraron datos de tabla en el texto importado."
 #: setzer/dialogs/insert_table/insert_table_controller.py:197
 msgid "The imported TSV/CSV data is invalid."
 msgstr "Los datos TSV/CSV importados no son válidos."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:194
+msgid "_Update Merge"
+msgstr "_Actualizar combinación"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+msgid "Replace the selected merged range with the values above"
+msgstr "Reemplazar el rango combinado seleccionado con los valores de arriba"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:199
+msgid "_Cancel Merge Edit"
+msgstr "_Cancelar edición de combinación"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+msgid "Stop editing the selected merged range"
+msgstr "Dejar de editar el rango combinado seleccionado"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+msgid "Edit this merged range"
+msgstr "Editar este rango combinado"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:233
+#, python-brace-format
+msgid "Removed {count} merged ranges that no longer fit the resized table."
+msgstr "Se eliminaron {count} rangos combinados que ya no caben en la tabla redimensionada."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:253
+#, python-brace-format
+msgid "Editing merged range: row {row}, column {column}."
+msgstr "Editando rango combinado: fila {row}, columna {column}."

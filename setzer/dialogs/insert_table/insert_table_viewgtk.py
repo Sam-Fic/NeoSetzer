@@ -191,6 +191,16 @@ class InsertTableView(DialogView):
         self.add_merge_button.set_margin_top(6)
         self.add_merge_button.set_tooltip_text(_('Add the selected cell range to the table'))
         self.merges_group.add(self.add_merge_button)
+        self.edit_merge_button = Gtk.Button.new_with_mnemonic(_('_Update Merge'))
+        self.edit_merge_button.set_halign(Gtk.Align.START)
+        self.edit_merge_button.set_margin_top(6)
+        self.edit_merge_button.set_tooltip_text(_('Replace the selected merged range with the values above'))
+        self.merges_group.add(self.edit_merge_button)
+        self.cancel_merge_edit_button = Gtk.Button.new_with_mnemonic(_('_Cancel Merge Edit'))
+        self.cancel_merge_edit_button.set_halign(Gtk.Align.START)
+        self.cancel_merge_edit_button.set_margin_top(6)
+        self.cancel_merge_edit_button.set_tooltip_text(_('Stop editing the selected merged range'))
+        self.merges_group.add(self.cancel_merge_edit_button)
         self.merge_status = Gtk.Label()
         self.merge_status.set_halign(Gtk.Align.START)
         self.merge_status.set_wrap(True)
@@ -314,6 +324,7 @@ class InsertTableView(DialogView):
         self.set_cells((), 3, 3)
         self.set_merge_limits(3, 3)
         self.set_cell_merges(())
+        self.set_merge_editor()
         self.set_environment_sensitive()
         self.set_preview('')
 
@@ -392,7 +403,7 @@ class InsertTableView(DialogView):
             column_span=int(self.merge_column_span_row.get_value()),
         )
 
-    def set_cell_merges(self, merges, on_remove=None):
+    def set_cell_merges(self, merges, on_remove=None, on_edit=None):
         child = self.merge_list.get_first_child()
         while child is not None:
             next_child = child.get_next_sibling()
@@ -411,6 +422,11 @@ class InsertTableView(DialogView):
                 row=merge.row + 1, column=merge.column + 1))
             row.set_subtitle(_('{rows} rows × {columns} columns').format(
                 rows=merge.row_span, columns=merge.column_span))
+            edit_button = Gtk.Button.new_from_icon_name('document-edit-symbolic')
+            edit_button.set_tooltip_text(_('Edit this merged range'))
+            if on_edit is not None:
+                edit_button.connect('clicked', lambda button, item=merge: on_edit(item))
+            row.add_suffix(edit_button)
             remove_button = Gtk.Button.new_from_icon_name('user-trash-symbolic')
             remove_button.set_tooltip_text(_('Remove this merged range'))
             if on_remove is not None:
@@ -419,9 +435,28 @@ class InsertTableView(DialogView):
             self.merge_list.append(row)
             self.merge_rows.append(row)
 
-    def set_merge_error(self, message=''):
+    def set_merge_editor(self, merge=None):
+        editing = merge is not None
+        self.add_merge_button.set_visible(not editing)
+        self.edit_merge_button.set_visible(editing)
+        self.cancel_merge_edit_button.set_visible(editing)
+        if editing:
+            self.merge_row_row.set_value(merge.row + 1)
+            self.merge_column_row.set_value(merge.column + 1)
+            self.merge_row_span_row.set_value(merge.row_span)
+            self.merge_column_span_row.set_value(merge.column_span)
+
+    def set_merge_status(self, message='', is_error=False):
         self.merge_status.set_text(message)
         self.merge_status.set_visible(bool(message))
+        if is_error:
+            self.merge_status.add_css_class('error')
+        else:
+            self.merge_status.remove_css_class('error')
+            self.merge_status.add_css_class('dim-label')
+
+    def set_merge_error(self, message=''):
+        self.set_merge_status(message, is_error=bool(message))
 
     def set_merge_coverage(self, merges):
         for row_index, entries in enumerate(self.cell_entries):

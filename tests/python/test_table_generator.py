@@ -20,7 +20,9 @@ from setzer.dialogs.insert_table.table_generator import (
     STYLE_PLAIN,
     TableImportError,
     TableSpec,
+    merges_removed_by_resize,
     parse_table_text,
+    replace_cell_merge,
     resize_cells,
     resize_merges,
 )
@@ -283,6 +285,18 @@ class TableGeneratorTest(unittest.TestCase):
         merges = (CellMerge(0, 0, column_span=2), CellMerge(1, 1, row_span=2))
         self.assertEqual(resize_merges(merges, 3, 3), merges)
         self.assertEqual(resize_merges(merges, 2, 3), (CellMerge(0, 0, column_span=2),))
+        self.assertEqual(merges_removed_by_resize(merges, 2, 3), (CellMerge(1, 1, row_span=2),))
+
+    def test_replace_cell_merge_validates_after_removing_edited_range(self):
+        first = CellMerge(0, 0, column_span=2)
+        second = CellMerge(1, 0, column_span=2)
+        updated = replace_cell_merge((first, second), first, CellMerge(0, 1, column_span=2), 3, 3)
+
+        self.assertEqual(updated, (CellMerge(0, 1, column_span=2), second))
+        with self.assertRaises(ValueError):
+            replace_cell_merge((first, second), first, CellMerge(1, 1, column_span=2), 3, 3)
+        with self.assertRaises(ValueError):
+            replace_cell_merge((first,), second, CellMerge(1, 0, column_span=2), 3, 3)
 
     def test_longtable_rejects_table_float_wrapper(self):
         with self.assertRaises(ValueError):
@@ -362,11 +376,14 @@ class TableGeneratorTest(unittest.TestCase):
         self.assertIn("self.view.import_file_button.connect('clicked', self._on_import_file)", table_controller_source)
         self.assertIn("self.view.add_merge_button.connect('clicked', self._on_add_merge)", table_controller_source)
         self.assertIn('self.cell_merges = resize_merges(self.cell_merges, rows, columns)', table_controller_source)
+        self.assertIn('replace_cell_merge', table_controller_source)
+        self.assertIn('merges_removed_by_resize', table_controller_source)
         self.assertIn('cell_merges=self.cell_merges if cell_merges is None else cell_merges', table_controller_source)
         self.assertIn("self.document.add_packages(spec.required_packages)", table_controller_source)
         table_view_source = Path(
             os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_viewgtk.py')).read_text(encoding='utf-8')
         self.assertIn("self.merges_group.set_title(_('Merge Cells'))", table_view_source)
+        self.assertIn("self.edit_merge_button = Gtk.Button.new_with_mnemonic(_('_Update Merge'))", table_view_source)
         self.assertIn("self.paste_data_button = Gtk.Button.new_with_mnemonic(_('_Paste TSV/CSV'))", table_view_source)
         self.assertIn("self.import_file_button = Gtk.Button.new_with_mnemonic(_('_Import CSV/TSV File'))", table_view_source)
         self.assertIn('def set_merge_coverage(self, merges):', table_view_source)

@@ -6119,3 +6119,33 @@ msgstr "导入文本中未找到表格数据。"
 #: setzer/dialogs/insert_table/insert_table_controller.py:197
 msgid "The imported TSV/CSV data is invalid."
 msgstr "导入的 TSV/CSV 数据无效。"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:194
+msgid "_Update Merge"
+msgstr "更新合并(_U)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+msgid "Replace the selected merged range with the values above"
+msgstr "使用上方的值替换所选合并范围"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:199
+msgid "_Cancel Merge Edit"
+msgstr "取消编辑合并(_C)"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+msgid "Stop editing the selected merged range"
+msgstr "停止编辑所选合并范围"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+msgid "Edit this merged range"
+msgstr "编辑此合并范围"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:233
+#, python-brace-format
+msgid "Removed {count} merged ranges that no longer fit the resized table."
+msgstr "已移除 {count} 个不再适配调整后表格大小的合并范围。"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:253
+#, python-brace-format
+msgid "Editing merged range: row {row}, column {column}."
+msgstr "正在编辑合并范围：第 {row} 行，第 {column} 列。"

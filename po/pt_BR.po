@@ -6274,3 +6274,33 @@ msgstr "Nenhum dado tabular foi encontrado no texto importado."
 #: setzer/dialogs/insert_table/insert_table_controller.py:197
 msgid "The imported TSV/CSV data is invalid."
 msgstr "Os dados TSV/CSV importados não são válidos."
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:194
+msgid "_Update Merge"
+msgstr "_Atualizar mesclagem"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+msgid "Replace the selected merged range with the values above"
+msgstr "Substituir o intervalo mesclado selecionado pelos valores acima"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:199
+msgid "_Cancel Merge Edit"
+msgstr "_Cancelar edição de mesclagem"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+msgid "Stop editing the selected merged range"
+msgstr "Parar de editar o intervalo mesclado selecionado"
+
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+msgid "Edit this merged range"
+msgstr "Editar este intervalo mesclado"
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:233
+#, python-brace-format
+msgid "Removed {count} merged ranges that no longer fit the resized table."
+msgstr "Foram removidos {count} intervalos mesclados que não cabem mais na tabela redimensionada."
+
+#: setzer/dialogs/insert_table/insert_table_controller.py:253
+#, python-brace-format
+msgid "Editing merged range: row {row}, column {column}."
+msgstr "Editando intervalo mesclado: linha {row}, coluna {column}."
