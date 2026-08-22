@@ -1140,6 +1140,20 @@ class Document(Observable):
             self.source_buffer.get_insert(), 0.0, True, 0.0, 0.0)
         self.view.scrolled_window.set_kinetic_scrolling(True)
 
+    def scroll_cursor_to_center(self):
+        '''Align the cursor line with the vertical center of the editor view.
+
+        Diagnostic navigation and explicit line-number jumps need balanced
+        context on both sides of the target, unlike reading-oriented headings
+        or in-paragraph labels.  Gtk naturally clamps alignment near either
+        end of the document where a full half-viewport is unavailable.
+        '''
+
+        self.view.scrolled_window.set_kinetic_scrolling(False)
+        self.source_view.scroll_to_mark(
+            self.source_buffer.get_insert(), 0.0, True, 0.0, 0.5)
+        self.view.scrolled_window.set_kinetic_scrolling(True)
+
     def scroll_cursor_with_context(self, context_lines=2):
         '''Place the cursor near the top while retaining preceding text context.
 

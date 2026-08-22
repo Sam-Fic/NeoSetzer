@@ -667,7 +667,7 @@ class Actions(object):
 
         insert_iter = buffer.get_iter_at_line(line - 1)[1]
         buffer.place_cursor(insert_iter)
-        document.scroll_cursor_onscreen()
+        document.scroll_cursor_to_center()
         document.view.source_view.grab_focus()
 
     def toggle_bookmark(self, action=None, parameter=None):

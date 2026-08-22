@@ -23,6 +23,9 @@ def _load_method(path, class_name, method_name):
 _SCROLL_TO_TOP = _load_method(
     os.path.join(REPO, 'setzer/document/document.py'),
     'Document', 'scroll_cursor_to_top')
+_SCROLL_TO_CENTER = _load_method(
+    os.path.join(REPO, 'setzer/document/document.py'),
+    'Document', 'scroll_cursor_to_center')
 _SCROLL_WITH_CONTEXT = _load_method(
     os.path.join(REPO, 'setzer/document/document.py'),
     'Document', 'scroll_cursor_with_context')
@@ -110,6 +113,7 @@ class _Document:
         self.calls.append(('cursor', line_number))
 
     scroll_cursor_to_top = _SCROLL_TO_TOP
+    scroll_cursor_to_center = _SCROLL_TO_CENTER
     scroll_cursor_with_context = _SCROLL_WITH_CONTEXT
 
 
@@ -145,6 +149,18 @@ class StructureTopAlignmentTest(unittest.TestCase):
         self.assertEqual(calls, [
             ('kinetic', False),
             ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.0),
+            ('kinetic', True),
+        ])
+
+    def test_scroll_cursor_to_center_uses_explicit_vertical_center_alignment(self):
+        calls = []
+        document = _Document(calls)
+
+        document.scroll_cursor_to_center()
+
+        self.assertEqual(calls, [
+            ('kinetic', False),
+            ('scroll-mark', 'insert-mark', 0.0, True, 0.0, 0.5),
             ('kinetic', True),
         ])
 
@@ -222,6 +238,25 @@ class StructureTopAlignmentTest(unittest.TestCase):
             ('kinetic', True),
             ('focus',),
         ])
+
+    def test_go_to_line_and_build_log_use_centered_navigation(self):
+        targets = (
+            (os.path.join(REPO, 'setzer/workspace/actions/actions.py'),
+             'Actions', 'go_to_line_callback'),
+            (os.path.join(REPO, 'setzer/dialogs/build_log/build_log_dialog_controller.py'),
+             'BuildLogDialogController', 'on_row_activated'),
+        )
+        for path, class_name, method_name in targets:
+            with open(path, encoding='utf-8') as source_file:
+                tree = ast.parse(source_file.read())
+            class_node = next(node for node in tree.body
+                              if isinstance(node, ast.ClassDef) and node.name == class_name)
+            method = next(node for node in class_node.body
+                          if isinstance(node, ast.FunctionDef) and node.name == method_name)
+            calls = [node.func.attr for node in ast.walk(method)
+                     if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)]
+            self.assertIn('scroll_cursor_to_center', calls, f'{class_name}.{method_name}')
+            self.assertNotIn('scroll_cursor_onscreen', calls, f'{class_name}.{method_name}')
 
     def test_unopenable_include_stops_before_cursor_or_scroll_access(self):
         calls = []
