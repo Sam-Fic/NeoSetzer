@@ -197,6 +197,11 @@ class StructureSection(object):
         '''
         if inc['document'] is not None:
             for block_included in inc['document'].parser.symbols['blocks']:
+                # block 固定 6 个元素，document 引用统一放在索引 6（最后一位）。
+                # 少数 block（如 preamble）长度 < 6，先把缺失的中间槽位补齐到 6，
+                # 再在 6 处写入 document，绝不能覆盖 block[5]（标题文本）。
+                if len(block_included) < 6:
+                    block_included.extend([None] * (6 - len(block_included)))
                 if len(block_included) < 7:
                     block_included.append(inc['document'])
                 blocks.append(block_included)
@@ -224,6 +229,11 @@ class StructureSection(object):
             while include_idx < include_count and includes[include_idx]['offset'] < block[0]:
                 self._append_include_blocks(includes[include_idx], blocks)
                 include_idx += 1
+            # block 固定 6 个元素，document 引用统一放在索引 6（最后一位）。
+            # 少数 block（如 preamble）长度 < 6，先把缺失的中间槽位补齐到 6，
+            # 再在 6 处写入 document，绝不能覆盖 block[5]（标题文本）。
+            if len(block) < 6:
+                block.extend([None] * (6 - len(block)))
             if len(block) < 7:
                 block.append(self.data_provider.document)
             blocks.append(block)
@@ -257,7 +267,8 @@ class StructureSection(object):
             metadata = (document.parser.symbols.get('block_metadata', {})
                         if document is not None else {})
             number = metadata.get(section['offset_start'], {}).get('number')
-            title = ' '.join(section['block'][5].splitlines())
+            # 保留本地修复：block[5] 可能为 None（如 preamble），需加保护避免崩溃。
+            title = ' '.join((section['block'][5] or '').splitlines())
             node = {
                 'item': [
                     document,
@@ -344,7 +355,7 @@ class StructureSection(object):
         document = self._get_document_for_node(node)
         if document is None:
             return
-        old_title = block[5]
+        old_title = block[5] or ''
         label_name = self.find_label_for_node(node)
 
         dialog = Gtk.Dialog(title=_('Rename Section'), parent=self.view.get_root())
