@@ -21,6 +21,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gdk
 
 import setzer.workspace.sidebar.document_structure_page.structure_viewgtk as structure_section_view
+from setzer.document.parser.structure_numbering import format_structure_title
 
 
 class StructureSection(object):
@@ -252,7 +253,22 @@ class StructureSection(object):
         for section in sections.values():
             section_type = section['block'][4]
             level = self.levels[section_type]
-            node = {'item': [section['document'], section['starting_line'], self.icon_map.get(section_type, 'text-x-generic-symbolic'), ' '.join(section['block'][5].splitlines())], 'children': list(), 'offset': section['offset_start'], 'block': section['block']}
+            document = section['document']
+            metadata = (document.parser.symbols.get('block_metadata', {})
+                        if document is not None else {})
+            number = metadata.get(section['offset_start'], {}).get('number')
+            title = ' '.join(section['block'][5].splitlines())
+            node = {
+                'item': [
+                    document,
+                    section['starting_line'],
+                    self.icon_map.get(section_type, 'text-x-generic-symbolic'),
+                    format_structure_title(title, number),
+                ],
+                'children': list(),
+                'offset': section['offset_start'],
+                'block': section['block'],
+            }
             if predecessor[level] == None:
                 nodes.append(node)
             else:

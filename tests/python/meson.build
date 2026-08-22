@@ -40,6 +40,7 @@ foreach t : [
   ['test_external_pdf_monitor',    'test_external_pdf_monitor.py'],
   ['test_external_pdf_preview_integration', 'test_external_pdf_preview_integration.py'],
   ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
+  ['test_structure_numbering', 'test_structure_numbering.py'],
 ]
   test(
     t[0],

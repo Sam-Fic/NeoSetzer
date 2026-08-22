@@ -275,6 +275,16 @@ class StructureTopAlignmentTest(unittest.TestCase):
             ('kinetic', True),
         ])
 
+    def test_structure_sidebar_formats_titles_from_parser_number_metadata(self):
+        with open(
+                os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/structure.py'),
+                encoding='utf-8') as source_file:
+            source = source_file.read()
+        self.assertIn('from setzer.document.parser.structure_numbering import format_structure_title', source)
+        self.assertIn("document.parser.symbols.get('block_metadata', {})", source)
+        self.assertIn("metadata.get(section['offset_start'], {}).get('number')", source)
+        self.assertIn('format_structure_title(title, number)', source)
+
     def test_structure_activation_places_cursor_then_aligns_heading_to_top(self):
         calls = []
         document = _Document(calls)

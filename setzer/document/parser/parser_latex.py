@@ -22,6 +22,11 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
+from setzer.document.parser.structure_numbering import (
+    SectioningCommand,
+    SecnumDepthChange,
+    calculate_structure_numbers,
+)
 
 
 # 文档级符号正则：label/include/input/subfile/subimport/bibliography/
@@ -37,7 +42,8 @@ _OTHER_SYMBOLS_REGEX_PATTERN = (r'\\(label|include|input|subfile|subimport|bibli
 _PROJECT_DEPENDENCIES_REGEX_PATTERN = r'\\(LoadLetterOption|documentclass)\s*(?:\[[^\[\]]*\]\s*)?\{([^{}\s]+)\}'
 
 # 块级符号正则：换行 / \begin{} / \end{} / 章节命令。
-_BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(?:\*){0,1}\{([^\{]*)\}'
+_BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(\*)?\{([^\{]*)\}'
+_SECTION_NUMBERING_REGEX_PATTERN = r'\\setcounter\s*\{\s*secnumdepth\s*\}\s*\{\s*(-?\d+)\s*\}'
 
 
 class ParserLaTeX(Observable):
@@ -64,6 +70,9 @@ class ParserLaTeX(Observable):
         self.symbols['packages'] = set()
         self.symbols['packages_detailed'] = dict()
         self.symbols['blocks'] = list()
+        # 以结构 block 的起始 offset 为键，保存不改变既有 block list 索引的
+        # 章节编号/星号元数据。侧栏、折叠和导航仍可使用旧 block 形状。
+        self.symbols['block_metadata'] = dict()
 
         self.last_edit = None
 
@@ -80,6 +89,7 @@ class ParserLaTeX(Observable):
         self._other_symbols_regex = ServiceLocator.get_regex_object(_OTHER_SYMBOLS_REGEX_PATTERN)
         self._project_dependencies_regex = ServiceLocator.get_regex_object(_PROJECT_DEPENDENCIES_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
+        self._section_numbering_regex = ServiceLocator.get_regex_object(_SECTION_NUMBERING_REGEX_PATTERN)
 
         self.document.source_buffer.connect('insert-text', self.on_insert_text)
         self.document.source_buffer.connect('delete-range', self.on_text_deleted)
@@ -129,7 +139,12 @@ class ParserLaTeX(Observable):
         self.initial_parse(text)
 
     def parse_for_blocks(self, text, line_start, offset_line_start):
-        block_symbol_matches = {'begin_or_end': list(), 'others': list(), 'beamer_frames': list()}
+        block_symbol_matches = {
+            'begin_or_end': list(),
+            'others': list(),
+            'beamer_frames': list(),
+            'secnumdepth': list(),
+        }
         counter = line_start
         for match in self._block_symbols_regex.finditer(text):
             if match.group(1) != None:
@@ -139,6 +154,11 @@ class ParserLaTeX(Observable):
                 counter += len(match.group(0).splitlines()) - 1
             if match.group(0) == '\n':
                 counter += 1
+        for match in self._section_numbering_regex.finditer(text):
+            block_symbol_matches['secnumdepth'].append((
+                match.start() + offset_line_start,
+                int(match.group(1)),
+            ))
         # Frame titles are parsed separately from generic begin/end blocks so
         # their optional overlay/options syntax does not complicate the hot
         # block-symbol regex.  Keep absolute source offsets and line numbers
@@ -237,7 +257,7 @@ class ParserLaTeX(Observable):
                     block[3] = self.number_of_lines
 
             block.append(group3)
-            block.append(match.group(4))
+            block.append(match.group(5))
             blocks_list.append(block)
             # range 上界用 len(levels) 替代硬编码 7：与 levels 字典长度
             # 绑定，未来新增层级无需同步修改此循环。
@@ -247,6 +267,26 @@ class ParserLaTeX(Observable):
         if add_preamble_folding and begin_document_offset and begin_document_line:
             blocks_list.append([0, begin_document_offset - 1, 0, begin_document_line - 1, 'preamble'])
 
+        sectioning_commands = [
+            SectioningCommand(
+                offset=offset,
+                command=match.group(3),
+                starred=match.group(4) is not None,
+            )
+            for match, _, offset in self.block_symbol_matches['others']
+        ]
+        secnumdepth_changes = [
+            SecnumDepthChange(offset=offset, value=value)
+            for offset, value in self.block_symbol_matches.get('secnumdepth', [])
+        ]
+        numbers = calculate_structure_numbers(sectioning_commands, secnumdepth_changes)
+        self.symbols['block_metadata'] = {
+            command.offset: {
+                'number': numbers[command.offset],
+                'starred': command.starred,
+            }
+            for command in sectioning_commands
+        }
         self.symbols['blocks'] = sorted(blocks_list, key=lambda block: block[0])
 
     #@timer

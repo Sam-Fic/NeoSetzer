@@ -14,6 +14,11 @@ import types
 import unittest
 
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
+from setzer.document.parser.structure_numbering import (
+    SectioningCommand,
+    SecnumDepthChange,
+    calculate_structure_numbers,
+)
 
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -53,6 +58,9 @@ def _load_parser_class():
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
         'extract_beamer_frame_titles': extract_beamer_frame_titles,
+        'SectioningCommand': SectioningCommand,
+        'SecnumDepthChange': SecnumDepthChange,
+        'calculate_structure_numbers': calculate_structure_numbers,
     })
 
 
@@ -132,6 +140,32 @@ class TestProjectFileDependencyParsing(unittest.TestCase):
         parser = ParserLaTeX(_ParserDocument())
         parser.initial_parse('\\documentclass{scrlttr2}\n')
         self.assertEqual(parser.symbols['included_project_files'], [('scrlttr2.cls', 0)])
+
+    def test_section_blocks_keep_titles_and_store_number_metadata(self):
+        parser = ParserLaTeX(_ParserDocument())
+        text = (
+            '\\section{One}\n'
+            '\\subsection{One One}\n'
+            '\\section*{Unnumbered}\n'
+            '\\setcounter{secnumdepth}{1}\n'
+            '\\subsection{Hidden}\n'
+            '\\section{Two}\n'
+        )
+        parser.initial_parse(text)
+
+        self.assertEqual(
+            parser.symbols['block_metadata'],
+            {
+                text.index('\\section{One}'): {'number': '1', 'starred': False},
+                text.index('\\subsection{One One}'): {'number': '1.1', 'starred': False},
+                text.index('\\section*{Unnumbered}'): {'number': None, 'starred': True},
+                text.index('\\subsection{Hidden}'): {'number': None, 'starred': False},
+                text.index('\\section{Two}'): {'number': '2', 'starred': False},
+            },
+        )
+        sections = [block for block in parser.symbols['blocks'] if block[4] in ('section', 'subsection')]
+        self.assertEqual([block[5] for block in sections],
+                         ['One', 'One One', 'Unnumbered', 'Hidden', 'Two'])
 
     def test_titled_beamer_frames_become_structure_blocks(self):
         parser = ParserLaTeX(_ParserDocument())
