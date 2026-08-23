@@ -66,8 +66,8 @@ class AutosaveRecoveryDialog(object):
                 time_str = dt.format('%x %H:%M') if dt is not None else ''
             else:
                 time_str = ''
-            names.append('• {name}  <span alpha="50%">{ts}</span>'.format(
-                name=displayname, ts=time_str))
+            names.append('• {}  <span alpha="50%">{}</span>'.format(
+                GLib.markup_escape_text(displayname), time_str))
 
         n = len(entries)
         self.view = Adw.AlertDialog(
