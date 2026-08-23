@@ -961,9 +961,6 @@ msgid "Load template"
 msgstr "Carica modello"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— Nessuno —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "Impostazioni generali documento"
@@ -7466,8 +7463,8 @@ msgid "Delete selected document template"
 msgstr "Elimina il modello di documento selezionato"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— Usa le impostazioni della procedura guidata —"
+msgid "Use wizard settings"
+msgstr "Usa le impostazioni della procedura guidata"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -8302,3 +8299,11 @@ msgstr "I metadati del frammento non sono validi"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "Impossibile scrivere la libreria dei frammenti"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "Mostra le preimpostazioni salvate. Aggiungine una dal menù ⋮ → «Salva come preimpostazione»; altrimenti è disponibile solo «Nessuno»."
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "Mostra i modelli di documento salvati. Aggiungine uno dal menù ⋮ → «Salva modello di documento»; altrimenti è disponibile solo «Usa le impostazioni della procedura guidata»."

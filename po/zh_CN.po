@@ -950,9 +950,6 @@ msgid "Load template"
 msgstr "加载模板"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— 无 —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "常规文档设置"
@@ -6290,8 +6287,8 @@ msgid "Delete selected document template"
 msgstr "删除所选文档模板"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— 使用向导设置 —"
+msgid "Use wizard settings"
+msgstr "使用向导设置"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -7115,3 +7112,11 @@ msgstr "代码片段元数据无效"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "无法写入代码片段库"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "显示已保存的预设。通过 ⋮ 菜单的“保存为预设”添加；未保存过时仅提供“无”。"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "显示已保存的文档模板。通过 ⋮ 菜单的“保存文档模板”添加；否则仅提供“使用向导设置”。"

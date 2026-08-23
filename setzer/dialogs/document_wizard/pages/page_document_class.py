@@ -210,6 +210,10 @@ class DocumentClassPageView(PageView):
         self.group_templates.set_title(_('Templates'))
         self.templates_combo = Adw.ComboRow()
         self.templates_combo.set_title(_('Load template'))
+        # 空状态说明：只有先保存过命名预设，这里才会有选项。
+        self.templates_combo.set_tooltip_text(_(
+            'Shows your saved presets. Use the ⋮ menu → “Save as Preset” '
+            'to add one — otherwise only “None” is listed.'))
         self.templates_combo.set_model(Gtk.StringList())  # 占位，on_activation 填充
         self.template_names = list()
         self.group_templates.add(self.templates_combo)
@@ -219,6 +223,11 @@ class DocumentClassPageView(PageView):
         self.group_document_templates.set_title(_('Document templates'))
         self.document_templates_combo = Adw.ComboRow()
         self.document_templates_combo.set_title(_('Use document template'))
+        # 空状态说明：只有先保存过源模板快照，这里才会有选项。
+        self.document_templates_combo.set_tooltip_text(_(
+            'Shows your saved document templates. Use the ⋮ menu → '
+            '“Save Document Template” to add one — otherwise only '
+            '“Use wizard settings” is listed.'))
         self.document_templates_combo.set_model(Gtk.StringList())
         self.document_template_ids = list()
         self.group_document_templates.add(self.document_templates_combo)

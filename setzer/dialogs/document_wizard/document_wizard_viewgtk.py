@@ -30,8 +30,12 @@ class DocumentWizardView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
-        # 让 Adw.Dialog 按内容和可用窗口空间协商尺寸；各页面使用 Clamp 和
-        # 滚动容器处理宽/窄窗口，而不是固定为单一桌面尺寸。
+        # 内容自然高度会把对话框压得很矮（如文档类页），这里用
+        # content_width/height 给出一个舒适的初始/最小尺寸。注意这只设定
+        # 下限：对话框仍可被用户拖拽缩放，窄屏时由窗口管理器裁剪，各页面
+        # 内部继续靠 Clamp、BreakpointBin 和滚动容器自适应宽窄窗口。
+        self.set_content_width(840)
+        self.set_content_height(900)
         self.headerbar.set_title_widget(Gtk.Label(label=_('Create a template document')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)

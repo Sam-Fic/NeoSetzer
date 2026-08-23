@@ -962,9 +962,6 @@ msgid "Load template"
 msgstr "Carregar modelo"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— Nenhuma —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "Configurações gerais de documento"
@@ -6445,8 +6442,8 @@ msgid "Delete selected document template"
 msgstr "Excluir o modelo de documento selecionado"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— Usar configurações do assistente —"
+msgid "Use wizard settings"
+msgstr "Usar configurações do assistente"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -7282,3 +7279,11 @@ msgstr "Os metadados do trecho são inválidos"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "Não foi possível gravar a biblioteca de trechos"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "Mostra as predefinições salvas. Adicione uma pelo menu ⋮ → «Salvar como predefinição»; sem nenhuma salva, apenas «Nenhuma» é exibida."
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "Mostra os modelos de documento salvos. Adicione um pelo menu ⋮ → «Salvar modelo de documento»; sem nenhum salvo, apenas «Usar configurações do assistente» é exibida."

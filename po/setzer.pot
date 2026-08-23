@@ -1188,9 +1188,6 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr ""
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
@@ -7865,4 +7862,12 @@ msgstr ""
 
 #: setzer/document/bibtex/file_session.py:82
 msgid "The bibliography changed outside Setzer"
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr ""
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
 msgstr ""

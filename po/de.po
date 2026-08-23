@@ -963,9 +963,6 @@ msgid "Load template"
 msgstr "Vorlage laden"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— Keine —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "Allgemeine Einstellungen"
@@ -7525,8 +7522,8 @@ msgid "Delete selected document template"
 msgstr "Ausgewählte Dokumentvorlage löschen"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— Assistenteneinstellungen verwenden —"
+msgid "Use wizard settings"
+msgstr "Assistenteneinstellungen verwenden"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -8366,3 +8363,11 @@ msgstr "Die Snippet-Metadaten sind ungültig"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "Die Snippet-Bibliothek konnte nicht geschrieben werden"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "Zeigt Ihre gespeicherten Voreinstellungen. Über das ⋮-Menü → „Als Voreinstellung speichern“ hinzufügen – andernfalls wird nur „Keine“ angeboten."
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "Zeigt Ihre gespeicherten Dokumentvorlagen. Über das ⋮-Menü → „Dokumentvorlage speichern“ hinzufügen – andernfalls wird nur „Assistenteneinstellungen verwenden“ angeboten."

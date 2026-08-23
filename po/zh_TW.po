@@ -962,9 +962,6 @@ msgid "Load template"
 msgstr "載入範本"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— 無 —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "一般文件設定"
@@ -6415,8 +6412,8 @@ msgid "Delete selected document template"
 msgstr "刪除所選文件範本"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— 使用精靈設定 —"
+msgid "Use wizard settings"
+msgstr "使用精靈設定"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -7240,3 +7237,11 @@ msgstr "程式片段中繼資料無效"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "無法寫入程式片段庫"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "顯示已儲存的預設值。透過 ⋮ 選單的「儲存為預設值」新增；未儲存過時僅提供「無」。"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "顯示已儲存的文件範本。透過 ⋮ 選單的「儲存文件範本」新增；否則僅提供「使用精靈設定」。"

@@ -968,9 +968,6 @@ msgid "Load template"
 msgstr "Cargar plantilla"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:146
-msgid "— None —"
-msgstr "— Ninguna —"
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:170
 msgid "General document settings"
 msgstr "Configuración general del documento"
@@ -7299,8 +7296,8 @@ msgid "Delete selected document template"
 msgstr "Eliminar la plantilla de documento seleccionada"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
-msgid "— Use wizard settings —"
-msgstr "— Usar configuración del asistente —"
+msgid "Use wizard settings"
+msgstr "Usar configuración del asistente"
 
 #: setzer/dialogs/document_wizard/user_document_templates.py
 msgid "Select a saved LaTeX source template to preview it here."
@@ -8133,3 +8130,11 @@ msgstr "Los metadatos del fragmento no son válidos"
 #: setzer/snippets/user_snippets.py:263
 msgid "The snippet library could not be written"
 msgstr "No se pudo escribir la biblioteca de fragmentos"
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
+msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgstr "Muestra los valores predefinidos guardados. Añada uno con el menú ⋮ → «Guardar como valor predefinido»; si no hay ninguno, solo aparece «Ninguna»."
+
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr "Muestra las plantillas de documento guardadas. Añada una con el menú ⋮ → «Guardar plantilla de documento»; si no hay ninguna, solo aparece «Usar configuración del asistente»."
