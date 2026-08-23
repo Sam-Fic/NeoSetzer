@@ -5,10 +5,68 @@
 ### 主要改进
 
 - **新增矩阵创建对话框（#152）**：仿照插入表格对话框实现，提供 pmatrix、bmatrix、Bmatrix、vmatrix、Vmatrix、matrix、matrix* 共 7 种 amsmath/mathtools 矩阵环境；支持自定义行数/列数（1–20）、matrix* 对齐方式（居中/左/右）；空单元格渲染为编辑器占位符，插入后可通过 Tab 键依次填写。所需 amsmath / mathtools 包会自动添加到文档中。入口包括对象菜单、命令面板和可配置快捷键。
+- **新增原生命令面板**：基于 GTK4 构建，支持 Ctrl+Period 快捷键唤起；可搜索全部菜单命令、显示最近使用和可用快捷键；通过键盘选择结果并直接执行。
+- **新增 LaTeX 实时拼写检查与词表管理**：支持防抖式实时检查、拼写错误波浪线提示、替换建议、会话忽略和用户词典持久化；能够识别 LaTeX 命令、数学环境、引用与路径，避免误报。
+- **新增原生 LaTeX 表格生成器**：提供完整的表格对话框，支持多行多列网格编辑、单元格合并与拆分、表格样式（Plain rules / Booktabs）、长表格（longtable）跨页支持、导入/粘贴 TSV/CSV 数据；插入后可自动添加所需宏包。
+- **新增用户自定义 LaTeX 代码片段**：允许用户创建、编辑和删除自定义的 LaTeX 片段，在命令面板和符号面板中可搜索并插入。
+- **新增文献管理器**：支持创建和管理 `.bib` 文件，提供条目类型选择、字段编辑和导入/导出功能。
+- **新增插入图片对话框**：支持从文件或剪贴板插入图片，保存常用设置，并为关键控件补充工具提示；未保存文档会先提示保存以获取目标目录。
+- **增强文档向导**：改进文档类型页面布局与模板选择器；新增 scrlttr2 信头字段、KOMA 信函模板选项（#170）和 Beamer 主题搜索功能；支持窄窗口自适应布局；新增用户自定义文档模板；在文档创建前显示待确认信息。
+- **增强文档大纲**：显示章节编号，支持附录和计数器，新增 Beamer 帧导航；修复嵌套章节标题解析和短文档块保护。
+- **增强导航与粘性滚动**：为诊断信息目标（标签、引用、待办）保留上下文并居中显示；修复粘性滚动标题下方的上下文保留和阅读边距。
+- **优化编辑器滚动、行号栏与粘性滚动**：以 FrameClock 驱动惯性滚动；改进行号栏离屏缓存、HiDPI/分数缩放下的文字与图标清晰度，以及粘性滚动的行高和绘制一致性。
+- **新增直接打印功能**：替换打印对话框为直接调用 Gtk.PrintJob 打印，简化打印流程。
+- **新增预览 PDF 外部监控**：当 PDF 文件在外部被修改时自动检测并更新预览。
+- **支持 TeX 魔术注释**：允许通过魔术注释指定编译引擎和命令。
+- **刷新首次运行教程**：重新设计初次运行引导界面，提供更好的入门体验。
+- **新增交互式示例项目**：提供可写的示例项目副本和高级功能导图，方便新用户快速了解编辑器功能。
+- **继续列表项输入**：按 Enter 时自动插入新 `\item`，无需手动输入。
+- **改善常用交互与界面细节**：打开文件时默认定位到当前活动文档目录；优化自动补全背景、预览菜单、搜索展开图标和光标滚动行为。
+- **修复构建、同步与文档处理稳定性问题**：修复正向/反向同步与构建中止冲突、非 LaTeX 文档导致的属性错误和构建挂起，以及文本编辑后的迭代器失效问题。
+- **修复预览面板样式**：调整预览卡片宽度、圆角和间距以保持视觉一致性。
+- **修复自动保存恢复**：在恢复的文件名中转义 Markup 字符，防止 XML 解析错误。
+- **修复编辑器折叠**：调整折叠符号居中逻辑和图标尺寸。
+- **修复命令面板样式**：使用扁平列表样式并修复空状态显示。
+- **修复自动补全**：修复 preamble 过滤未生效问题并预计算命令基础名；修复补全弹窗背景透明问题。
+- **修复插入图片对话框**：在粘贴图片前先提示保存未保存文档。
+- **修复 LaTeX 数据库崩溃**：修复未初始化文件的解析崩溃。
+- **建立跨平台打包与发布支持**：新增 Debian、Windows x64 和 macOS Apple Silicon 自动打包；Windows 与 macOS 包内置 Adwaita symbolic 图标主题，保证非 GNOME 平台上的图标一致性；同时加入持续集成测试。
+- **重构偏好设置**：将 LaTeX 代码片段折叠到编辑器页面；将实验性功能设置移至编辑器页面。
+- **重构构建日志对话框**：替换 GLib 排序为 Python 内置排序，添加错误/警告/badbox 类型过滤器，优化行激活跳转逻辑。
+- **更新翻译与文档**：补全中文、德语、西班牙语及繁体中文翻译；更新 README 项目名称与仓库引用；更新版权声明。
 
 ### Improvements
 
-- **feat**: Add Insert Matrix dialog (#152): offer 7 amsmath/mathtools matrix environments (pmatrix, bmatrix, Bmatrix, vmatrix, Vmatrix, matrix, matrix*), adjustable rows/columns (1–20), and column alignment for matrix*. Empty cells render as the editor's • placeholder for Tab navigation. Required packages (amsmath or mathtools) are added automatically. Entry points include the object menu, command palette, and configurable keyboard shortcut.
+- **feat**: Add Insert Matrix dialog (#152) — 7 amsmath/mathtools matrix environments (pmatrix, bmatrix, Bmatrix, vmatrix, Vmatrix, matrix, matrix*), adjustable rows/columns (1–20), column alignment for matrix*. Empty cells render as • placeholder for Tab navigation. Required packages added automatically.
+- **feat**: Add native GTK4 command palette — Ctrl+Period to invoke, searchable across all menu commands, shows recently used and available shortcuts, keyboard-selectable results.
+- **feat**: Add real-time LaTeX-aware spellchecking with debounced diagnostics, replacement suggestions, session ignore, persistent user dictionaries, and exclusions for commands, math, citations, and file paths.
+- **feat**: Add native LaTeX table generator dialog — full grid editing, cell merges, plain/booktabs styles, longtable support, TSV/CSV import/paste.
+- **feat**: Add user-defined LaTeX snippets — create, edit, and delete custom snippets searchable in the command palette and symbols panel.
+- **feat**: Add bibliography manager for creating and managing .bib files with entry type selection, field editing, and import/export.
+- **feat**: Add insert-image dialog with file and clipboard support, saved defaults, and improved control tooltips; prompt to save unsaved documents before pasting images.
+- **feat**: Improve document wizard — better document-class page layout and template choosers, scrlttr2 letterhead fields, KOMA letter template options (#170), Beamer theme search, narrow-window adaptation, user document templates, and pending document creation confirmation.
+- **feat**: Improve document outline — show section numbers, support appendices and counters, add Beamer frame navigation; fix nested section title parsing and guard against short blocks.
+- **feat**: Improve navigation and sticky scrolling — preserve context for label, reference, and todo jumps with centering; fix sticky scroll reading margin and context below sticky headers.
+- **perf**: Drive inertial scrolling with FrameClock; improve gutter off-screen caching, HiDPI/fractional-scaling text and icon rendering, and sticky-scroll line-height and drawing consistency.
+- **feat**: Replace print dialog with direct Gtk.PrintJob printing.
+- **feat**: Monitor externally changed PDFs for automatic preview updates.
+- **feat**: Support TeX magic comments for specifying compile engine and command.
+- **feat**: Refresh first-run tutorial with improved onboarding.
+- **feat**: Add interactive example project with writable copies and advanced feature map.
+- **feat**: Auto-continue LaTeX list items on Enter.
+- **improvements**: Open the file chooser in the active document directory; refine autocomplete backgrounds, preview context menus, search disclosure icons, and cursor scrolling behavior.
+- **fix**: Resolve forward/backward SyncTeX and build-cancellation conflicts, non-LaTeX document property errors and build hangs, and invalid iterators after text-buffer edits.
+- **fix**: Match preview card width, rounded corners, and spacing.
+- **fix**: Escape markup in autosave recovery file names.
+- **fix**: Adjust gutter fold symbol centering and icon size; fix HiDPI/fractional-scaling line number and icon blurriness; fix gutter off-screen cache blank on upward scroll.
+- **fix**: Use flat list style and fix empty state in command palette.
+- **fix**: Fix preamble filtering not applying and precompute command base names in autocomplete; fix autocomplete popup background transparency.
+- **fix**: Prompt to save unsaved documents before pasting images.
+- **fix**: Fix LaTeX database parse crash on uninitialized files.
+- **ci**: Add automated Debian, Windows x64, and macOS Apple Silicon packaging with continuous tests; bundle Adwaita symbolic icon theme for non-GNOME platforms.
+- **refactor**: Fold LaTeX snippets into Editor page; move experimental feature settings into Editor page.
+- **refactor**: Replace GLib sorting with Python built-in sorting in build log dialog; add error/warning/badbox type filter checkboxes; optimize row activation jump logic.
+- **i18n/docs**: Complete all bundled translations (zh_CN, de, es, zh_TW); update README project name and repository references; update copyright notices.
 
 ---
 
