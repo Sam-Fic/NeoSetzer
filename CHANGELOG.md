@@ -1,5 +1,17 @@
 # Changelog
 
+## v78 — 2026-08-24
+
+### 主要改进
+
+- **新增矩阵创建对话框（#152）**：仿照插入表格对话框实现，提供 pmatrix、bmatrix、Bmatrix、vmatrix、Vmatrix、matrix、matrix* 共 7 种 amsmath/mathtools 矩阵环境；支持自定义行数/列数（1–20）、matrix* 对齐方式（居中/左/右）；空单元格渲染为编辑器占位符，插入后可通过 Tab 键依次填写。所需 amsmath / mathtools 包会自动添加到文档中。入口包括对象菜单、命令面板和可配置快捷键。
+
+### Improvements
+
+- **feat**: Add Insert Matrix dialog (#152): offer 7 amsmath/mathtools matrix environments (pmatrix, bmatrix, Bmatrix, vmatrix, Vmatrix, matrix, matrix*), adjustable rows/columns (1–20), and column alignment for matrix*. Empty cells render as the editor's • placeholder for Tab navigation. Required packages (amsmath or mathtools) are added automatically. Entry points include the object menu, command palette, and configurable keyboard shortcut.
+
+---
+
 ## v77 — 2026-08-21
 
 ### 主要改进
