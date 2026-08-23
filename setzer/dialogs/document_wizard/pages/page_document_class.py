@@ -91,7 +91,8 @@ class DocumentClassPage(Page):
             dialog.connect('response', on_response)
             dialog.present(self.view.get_root())
 
-        self.view.list.connect('row-selected', row_selected)
+        for group_list in self.view.group_lists:
+            group_list.connect('row-selected', row_selected)
         self.view.templates_combo.connect('notify::selected', template_selected)
         self.view.document_templates_combo.connect('notify::selected', document_template_selected)
         self.view.delete_document_template_button.connect('clicked', delete_document_template)
@@ -101,7 +102,7 @@ class DocumentClassPage(Page):
             row = self.view.list_rows[presets['document_class']]
         except (TypeError, KeyError):
             row = self.view.list_rows[self.current_values['document_class']]
-        self.view.list.select_row(row)
+        row.get_parent().select_row(row)
 
     def refresh_document_templates(self):
         if getattr(self, 'controller', None) is None:
@@ -127,12 +128,11 @@ class DocumentClassPageView(PageView):
 
         self.headerbar_subtitle = _('Step') + ' 1: ' + _('Choose a document class')
 
-        self.list = Gtk.ListBox()
-        self.list.set_selection_mode(Gtk.SelectionMode.BROWSE)
-        self.list.set_size_request(348, -1)
-        self.list.set_can_focus(True)
-        self.list.add_css_class('boxed-list')
         self.list_rows = dict()
+        self.group_lists = list()
+        self.group_headings = list()
+        self.class_groups_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
         class_groups = [
             (_('Common document classes'), [
                 ('article', _('Article')), ('report', _('Report')),
@@ -145,24 +145,35 @@ class DocumentClassPageView(PageView):
                 ('scrlttr2', _('KOMA-Script Letter (scrlttr2)')),]),
         ]
         for group_title, classes in class_groups:
-            header = Gtk.ListBoxRow()
-            header.set_selectable(False)
-            header.set_activatable(False)
-            label = Gtk.Label(label=group_title)
-            label.set_xalign(0)
-            label.add_css_class('heading')
-            label.set_margin_top(12)
-            label.set_margin_bottom(6)
-            header.set_child(label)
-            self.list.append(header)
+            # 分组标题是普通的标题标签，而不是塞进 ListBox 的行——这样它才真正
+            # 是“标题”，不会跟列表项在滚动 / 样式上混在一起。
+            heading = Gtk.Label(label=group_title)
+            heading.set_xalign(0)
+            heading.add_css_class('heading')
+            heading.set_margin_top(12)
+            heading.set_margin_bottom(6)
+
+            group_list = Gtk.ListBox()
+            group_list.set_selection_mode(Gtk.SelectionMode.BROWSE)
+            group_list.set_size_request(348, -1)
+            group_list.set_can_focus(True)
+            group_list.add_css_class('boxed-list')
             for document_class, title in classes:
                 row = Adw.ActionRow()
                 row.set_title(title)
                 row.document_class = document_class
                 self.list_rows[document_class] = row
-                self.list.append(row)
+                group_list.append(row)
+            group_list.set_vexpand(False)
 
-        self.list.set_vexpand(False)
+            self.group_headings.append(heading)
+            self.group_lists.append(group_list)
+            self.class_groups_box.append(heading)
+            self.class_groups_box.append(group_list)
+
+        # 保留首个分组列表作为主要可聚焦控件，供键盘导航 / grab_focus 契约使用。
+        self.list = self.group_lists[0]
+        self.list.set_can_focus(True)
 
         self.preview_container = Gtk.Stack()
         self.preview_container.set_size_request(366, -1)
@@ -216,11 +227,20 @@ class DocumentClassPageView(PageView):
         self.document_template_preview.set_cursor_visible(False)
         self.document_template_preview.set_monospace(True)
         self.document_template_preview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.document_template_preview.set_top_margin(8)
+        self.document_template_preview.set_bottom_margin(8)
+        self.document_template_preview.set_left_margin(8)
+        self.document_template_preview.set_right_margin(8)
         self.document_template_preview.add_css_class('view')
         preview_scroller = Gtk.ScrolledWindow()
+        preview_scroller.set_hexpand(True)
+        preview_scroller.set_margin_top(6)
+        preview_scroller.set_margin_bottom(6)
         preview_scroller.set_min_content_height(110)
         preview_scroller.set_max_content_height(220)
         preview_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        preview_scroller.add_css_class('preview-card')
+        preview_scroller.set_overflow(Gtk.Overflow.HIDDEN)
         preview_scroller.set_child(self.document_template_preview)
         self.group_document_templates.add(preview_scroller)
         self.delete_document_template_button = Gtk.Button.new_with_mnemonic(
@@ -233,27 +253,17 @@ class DocumentClassPageView(PageView):
         self.group_document_templates.add(self.delete_document_template_button)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
-        self.class_chooser = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
-        self.class_chooser.append(self.list)
-        self.class_chooser.append(self.preview_container)
-
-        # 选择器在桌面上并排比较类别与预览；窄窗口自动改为纵向，
-        # 防止固定双栏压缩标题或让模板区横向溢出。
-        self.class_chooser_breakpoint_bin = Adw.BreakpointBin()
-        breakpoint = Adw.Breakpoint.new(
-            Adw.BreakpointCondition.parse('max-width: 620px'))
-        breakpoint.add_setter(
-            self.class_chooser, 'orientation', Gtk.Orientation.VERTICAL)
-        breakpoint.add_setter(self.list, 'width-request', -1)
-        breakpoint.add_setter(self.preview_container, 'width-request', -1)
-        self.class_chooser_breakpoint_bin.add_breakpoint(breakpoint)
-        self.class_chooser_breakpoint_bin.set_child(self.class_chooser)
-
-        self.content.append(self.class_chooser_breakpoint_bin)
+        inner = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        inner.append(self.class_groups_box)
+        inner.append(self.preview_container)
+        self.content.append(inner)
         self.content.append(self.group_templates)
         self.content.append(self.group_document_templates)
 
+        # 把内容放入滚动容器（ScrolledWindow + Clamp），这样 Step 1 的高度也被
+        # 收进和其它步骤一致的 520px 对话框高度，内容超长时滚动而不是撑大窗口。
+        # Clamp 最大宽 760 让并排的文档类列表（348）+ 预览（366）+ 间距 24
+        # （共 738）刚好在 840px 对话框里并排，窄屏则收缩/滚动。
         self.append(self.wrap_content(
             self.content, maximum_size=760, tightening_threshold=520))
 
@@ -261,7 +271,7 @@ class DocumentClassPageView(PageView):
         '''Populate the source-template chooser with validated store metadata.'''
         self.document_template_ids = [template.identifier for template in templates]
         model = Gtk.StringList()
-        model.append(_('— Use wizard settings —'))
+        model.append(_('Use wizard settings'))
         for template in templates:
             model.append(template.name)
         self.document_templates_combo.set_model(model)
@@ -275,7 +285,7 @@ class DocumentClassPageView(PageView):
         '''用已保存模板名填充下拉；索引 0 为"不加载"。'''
         self.template_names = list(names)
         model = Gtk.StringList()
-        model.append(_('— None —'))
+        model.append(_('None'))
         for name in self.template_names:
             model.append(name)
         self.templates_combo.set_model(model)

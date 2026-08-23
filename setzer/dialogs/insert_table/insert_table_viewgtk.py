@@ -297,6 +297,7 @@ class InsertTableView(DialogView):
         self.preview.set_right_margin(8)
         preview_scrolled = Gtk.ScrolledWindow()
         preview_scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        preview_scrolled.set_hexpand(True)
         preview_scrolled.set_min_content_height(160)
         preview_scrolled.set_max_content_height(260)
         preview_scrolled.set_child(self.preview)
