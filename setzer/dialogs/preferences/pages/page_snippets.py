@@ -6,7 +6,7 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-'''Preferences UI for user-defined LaTeX snippets.'''
+'''Editor-page group and dialogs for user-defined LaTeX snippets.'''
 
 from __future__ import annotations
 
@@ -20,13 +20,13 @@ from setzer.snippets.user_snippets import UserSnippet, UserSnippetStore, Snippet
 
 
 class PageSnippets:
-    '''Controller for the user snippet preference page.'''
+    '''Controller for the user snippet preference group.'''
 
-    def __init__(self, preferences, settings):
+    def __init__(self, preferences, settings, view=None):
         self.preferences = preferences
         self.settings = settings
         self.store = UserSnippetStore(ServiceLocator.get_config_folder())
-        self.view = SnippetsPageView()
+        self.view = view if view is not None else SnippetsGroupView()
         self._editor = None
         self._delete_identifier = None
 
@@ -92,36 +92,31 @@ class PageSnippets:
         self.refresh()
 
 
-class SnippetsPageView(Adw.PreferencesPage):
-    '''List-style preferences page showing the current user snippet library.'''
+class SnippetsGroupView(Adw.PreferencesGroup):
+    '''Group embedded in the Editor page listing the user snippet library.'''
 
     def __init__(self):
-        Adw.PreferencesPage.__init__(self)
-        self.set_title(_('Snippets'))
-        self.set_icon_name('insert-text-symbolic')
-
-        self.group = Adw.PreferencesGroup()
-        self.group.set_title(_('LaTeX Snippets'))
-        self.group.set_description(_(
+        Adw.PreferencesGroup.__init__(self)
+        self.set_title(_('LaTeX Snippets'))
+        self.set_description(_(
             'Create reusable LaTeX text and expand it from the editor completion list.'))
-        self.add(self.group)
 
         self.add_button = Gtk.Button.new_from_icon_name('list-add-symbolic')
         self.add_button.set_tooltip_text(_('Add snippet'))
         self.add_button.set_valign(Gtk.Align.CENTER)
-        self.group.set_header_suffix(self.add_button)
+        self.set_header_suffix(self.add_button)
 
         self.error_row = Adw.ActionRow()
         self.error_row.add_css_class('error')
         self.error_row.set_visible(False)
-        self.group.add(self.error_row)
+        self.add(self.error_row)
 
         self.empty_row = Adw.ActionRow()
         self.empty_row.set_title(_('No snippets yet'))
         self.empty_row.set_subtitle(_(
             'Add a snippet to expand a custom LaTeX command while writing.'))
         self.empty_row.set_activatable(False)
-        self.group.add(self.empty_row)
+        self.add(self.empty_row)
         self.rows = []
 
     def set_error(self, message):
@@ -130,7 +125,7 @@ class SnippetsPageView(Adw.PreferencesPage):
 
     def populate(self, snippets, on_edit, on_delete):
         for row in self.rows:
-            self.group.remove(row)
+            self.remove(row)
         self.rows = []
         self.empty_row.set_visible(not snippets)
 
@@ -147,7 +142,7 @@ class SnippetsPageView(Adw.PreferencesPage):
             delete_button.add_css_class('flat')
             delete_button.connect('clicked', on_delete, snippet)
             row.add_suffix(delete_button)
-            self.group.add(row)
+            self.add(row)
             self.rows.append(row)
 
     @staticmethod

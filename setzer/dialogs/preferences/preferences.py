@@ -55,13 +55,15 @@ class PreferencesDialog(object):
         self.page_editor = page_editor.PageEditor(self, self.settings, main_window=self.main_window)
         self.page_build_system = page_build_system.PageBuildSystem(self, self.settings)
         self.page_shortcuts = page_shortcuts.PageShortcuts(self, self.settings)
-        self.page_snippets = page_snippets.PageSnippets(self, self.settings)
+        # 片段管理不再占用独立 tab：视图组已嵌入 Editor 页（紧随补全设置），
+        # 控制器仅负责数据与增删改逻辑。
+        self.page_snippets = page_snippets.PageSnippets(
+            self, self.settings, view=self.page_editor.view.snippets_group)
 
         self.view.add(self.page_appearance.view)
         self.view.add(self.page_editor.view)
         self.view.add(self.page_build_system.view)
         self.view.add(self.page_shortcuts.view)
-        self.view.add(self.page_snippets.view)
 
         self.page_appearance.init()
         self.page_editor.init()

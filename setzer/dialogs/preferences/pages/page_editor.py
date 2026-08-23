@@ -28,6 +28,7 @@ from gi.repository import Pango
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.document.spellchecking.spellchecking import SpellChecker
+from setzer.dialogs.preferences.pages.page_snippets import SnippetsGroupView
 
 
 # 编辑器配色方案预览样例：用 LaTeX 代码（而非 Markdown），因为 Setzer 是
@@ -1062,6 +1063,12 @@ class PageEditorView(Adw.PreferencesPage):
         self.nav_group.set_description(_('Keys used to move and confirm within the completion popup.'))
         self.add(self.nav_group)
         self.nav_buttons = dict()
+
+        # LaTeX Snippets：用户自定义片段管理（原独立偏好页并入此处，与补全
+        # 设置相邻——片段经由编辑器补全列表展开）。控制器由 preferences.py
+        # 创建并绑定到 self.snippets_group。
+        self.snippets_group = SnippetsGroupView()
+        self.add(self.snippets_group)
 
         group_brackets = Adw.PreferencesGroup()
         group_brackets.set_title(_('Brackets and Blocks'))
