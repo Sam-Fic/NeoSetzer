@@ -597,6 +597,11 @@ class StructureSection(object):
             new_command_text = '\\' + new_type
 
         document.source_buffer.begin_user_action()
+        # 记录偏移后重新取迭代器：buffer 被修改后既有迭代器失效
+        # （GTK 会报 "Invalid text buffer iterator" 警告），不能复用。
+        delete_offset = start_iter.get_offset()
         document.source_buffer.delete(start_iter, end_iter)
-        document.source_buffer.insert(start_iter, new_command_text)
+        document.source_buffer.insert(
+            document.source_buffer.get_iter_at_offset(delete_offset),
+            new_command_text)
         document.source_buffer.end_user_action()

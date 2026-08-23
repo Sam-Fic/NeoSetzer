@@ -89,24 +89,33 @@ class TodosSection(object):
 
         if depth == 0:
             close_brace.backward_char()
-            document.source_buffer.begin_user_action()
-            document.source_buffer.delete(start_iter, close_brace)
-            # Delete the closing } and any trailing newline
-            end_iter = close_brace.copy()
-            after_close = close_brace.copy()
-            after_close.forward_char()
-            next_char = after_close.get_char()
-            if next_char == '\r':
-                end_iter.forward_char()
-                after_close.forward_char()
-                if after_close.get_char() == '\n':
-                    end_iter.forward_char()
-            elif next_char == '\n':
-                end_iter.forward_char()
-            else:
-                end_iter.forward_char()
-            document.source_buffer.delete(close_brace, end_iter)
-            document.source_buffer.end_user_action()
+            buffer = document.source_buffer
+            buffer.begin_user_action()
+            try:
+                # 全程用偏移量定位：buffer 每次删除都会使既有迭代器失效
+                # （GTK 报 "Invalid text buffer iterator" 警告），不能跨删除复用。
+                start_offset = start_iter.get_offset()
+                close_offset = close_brace.get_offset()
+                # 删除 "\todo{内容"（不含结尾的 }）。删除后其后的字符整体
+                # 前移：'}' 现位于 start_offset（原 \todo 起始处）。
+                buffer.delete(buffer.get_iter_at_offset(start_offset),
+                              buffer.get_iter_at_offset(close_offset))
+                # 再删除结尾的 } 及其后可能的换行（\r\n / \n / \r）
+                tail = buffer.get_slice(
+                    buffer.get_iter_at_offset(start_offset),
+                    buffer.get_iter_at_offset(min(start_offset + 3,
+                                                  buffer.get_char_count())),
+                    True)
+                if tail.startswith('}\r\n'):
+                    end_offset = start_offset + 3
+                elif tail.startswith('}\n') or tail.startswith('}\r'):
+                    end_offset = start_offset + 2
+                else:
+                    end_offset = start_offset + 1
+                buffer.delete(buffer.get_iter_at_offset(start_offset),
+                              buffer.get_iter_at_offset(end_offset))
+            finally:
+                buffer.end_user_action()
 
     def toggle_show_all(self, show_all):
         '''切换是否显示所有打开文档的 todos。同时持久化到 settings。'''

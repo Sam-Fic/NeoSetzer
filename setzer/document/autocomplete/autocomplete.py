@@ -513,18 +513,27 @@ class Autocomplete(object):
 
         source_buffer.begin_user_action()
         try:
-            source_buffer.delete(begin_start_iter, close_iter)
-            source_buffer.insert(begin_start_iter, '\\begin{' + end_name + '}')
-            # begin_start_iter 现位于尾串起始（\begin{name} 之后），把已插入的 \end{} 环境名同步为 name
-            found, end_bs_iter, _ = begin_start_iter.forward_search('\\end{', Gtk.TextSearchFlags(0), None)
+            # 全程用偏移量定位：buffer 每次删除/插入都会使既有迭代器失效
+            # （GTK 报 "Invalid text buffer iterator" 警告），不能跨修改复用。
+            insert_offset = begin_start_iter.get_offset()
+            close_offset = close_iter.get_offset()
+            source_buffer.delete(source_buffer.get_iter_at_offset(insert_offset),
+                                 source_buffer.get_iter_at_offset(close_offset))
+            source_buffer.insert(source_buffer.get_iter_at_offset(insert_offset),
+                                 '\\begin{' + end_name + '}')
+            # 新插入内容之后即为已存在的 \end{}，把其环境名同步为 end_name
+            found, end_bs_iter, _ = source_buffer.get_iter_at_offset(
+                insert_offset).forward_search('\\end{', Gtk.TextSearchFlags(0), None)
             if found:
                 name_start = end_bs_iter.copy()
                 name_start.forward_chars(5)
                 name_end = name_start.copy()
                 while not name_end.get_char() == '}' and not name_end.is_end():
                     name_end.forward_char()
+                name_offset = name_start.get_offset()
                 source_buffer.delete(name_start, name_end)
-                source_buffer.insert(name_start, end_name)
+                source_buffer.insert(source_buffer.get_iter_at_offset(name_offset),
+                                     end_name)
         finally:
             source_buffer.end_user_action()
 
