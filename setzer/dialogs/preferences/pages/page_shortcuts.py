@@ -168,6 +168,7 @@ class PageShortcuts(object):
                 'show_preferences_dialog': _('Preferences'),
                 'show_about_dialog': _('About'),
                 'insert_table_dialog': _('Insert Table'),
+                'insert_matrix_dialog': _('Insert Matrix'),
                 'close_all_documents': _('Close All Documents'),
                 'restore_session': _('Restore Session'),
                 'reopen_last_closed_document': _('Reopen Last Closed Document')

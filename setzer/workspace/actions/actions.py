@@ -84,6 +84,7 @@ class Actions(object):
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
         self.add_action('insert-image-dialog', self.start_insert_image_dialog, None)
         self.add_action('insert-table-dialog', self.start_insert_table_dialog, None)
+        self.add_action('insert-matrix-dialog', self.start_insert_matrix_dialog, None)
         self.add_action('toggle-comment', self.toggle_comment)
         self.add_action('fold-all', self.fold_all)
         self.add_action('unfold-all', self.unfold_all)
@@ -283,6 +284,7 @@ class Actions(object):
         self.actions['save-all'].set_enabled(len(self.workspace.get_unsaved_documents()) > 0)
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['insert-table-dialog'].set_enabled(document_active_is_latex)
+        self.actions['insert-matrix-dialog'].set_enabled(document_active_is_latex)
         self.actions['redo'].set_enabled(document_active and document.source_buffer.get_can_redo())
         self.actions['undo'].set_enabled(document_active and document.source_buffer.get_can_undo())
         self.actions['cut'].set_enabled(has_selection)
@@ -1188,6 +1190,11 @@ class Actions(object):
         document = self.workspace.get_active_document()
         if document is None or not document.is_latex_document(): return
         DialogLocator.get_dialog('insert_table').open(document)
+
+    def start_insert_matrix_dialog(self, action=None, parameter=None):
+        document = self.workspace.get_active_document()
+        if document is None or not document.is_latex_document(): return
+        DialogLocator.get_dialog('insert_matrix').open(document)
 
     def delete_selection(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

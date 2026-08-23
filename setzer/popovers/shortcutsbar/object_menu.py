@@ -30,6 +30,7 @@ class ObjectMenu(GioMenuBuilder):
 
         self.add_action_button('main', _('Figure (image inside freestanding block)'), 'win.insert-image-dialog')
         self.add_action_button('main', _('Table'), 'win.insert-table-dialog')
+        self.add_action_button('main', _('Matrix'), 'win.insert-matrix-dialog')
         self.add_insert_symbol_item('main', _('Inline Image'), ['\\includegraphics[scale=1]{•}'])
         self.add_menu_button(_('Code Listing'), 'code_listing')
         self.add_separator()

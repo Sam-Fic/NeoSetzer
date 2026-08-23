@@ -308,6 +308,7 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['show_about_dialog'] = ''
         # 表格生成器提供菜单和命令面板入口；不强占默认组合键，用户仍可在偏好设置中绑定。
         self.defaults['keyboard_shortcuts']['insert_table_dialog'] = ''
+        self.defaults['keyboard_shortcuts']['insert_matrix_dialog'] = ''
         self.defaults['keyboard_shortcuts']['close_all_documents'] = '<Control><Shift>w'
         self.defaults['keyboard_shortcuts']['restore_session'] = '<Control><Shift>j'
         # reopen_last_closed_document：默认 Ctrl+Shift+T（浏览器式"重开标签页"惯例）。

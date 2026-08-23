@@ -118,6 +118,7 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('include-latex', _('Include LaTeX File'), _('LaTeX'), 'include-latex-file', ('input', 'include', 'tex')),
     CommandDescriptor('insert-image', _('Insert Image'), _('LaTeX'), 'insert-image-dialog', ('figure', 'graphic', 'image')),
     CommandDescriptor('insert-table', _('Insert Table'), _('LaTeX'), 'insert-table-dialog', ('table', 'tabular', 'booktabs')),
+    CommandDescriptor('insert-matrix', _('Insert Matrix'), _('LaTeX'), 'insert-matrix-dialog', ('matrix', 'pmatrix', 'bmatrix', 'math', 'mathtools')),
     CommandDescriptor('fold-all', _('Fold All'), _('View'), 'fold-all', ('collapse', 'sections')),
     CommandDescriptor('unfold-all', _('Unfold All'), _('View'), 'unfold-all', ('expand', 'sections')),
     CommandDescriptor('zoom-in', _('Zoom In'), _('View'), 'zoom-in', ('font', 'increase')),

@@ -50,6 +50,7 @@ foreach t : [
   ['test_magic_comments',           'test_magic_comments.py'],
   ['test_environment_templates',   'test_environment_templates.py'],
   ['test_table_generator',         'test_table_generator.py'],
+  ['test_matrix_generator',        'test_matrix_generator.py'],
   ['test_beamer_frames',           'test_beamer_frames.py'],
   ['test_beamer_theme_search',     'test_beamer_theme_search.py'],
   ['test_external_pdf_monitor',    'test_external_pdf_monitor.py'],
