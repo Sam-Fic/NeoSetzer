@@ -45,6 +45,8 @@ build
 # Gettext compiled translations
 *.mo
 *.pot
+!po/setzer.pot
+!data/resources/language-specs/language-specs.pot
 
 # Packaging artifacts
 *.deb
