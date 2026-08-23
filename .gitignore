@@ -56,3 +56,4 @@ AppDir/
 
 # Local build helper script (contains machine-specific paths)
 _meson.sh
+docs/UPSTREAM_ISSUES.md
