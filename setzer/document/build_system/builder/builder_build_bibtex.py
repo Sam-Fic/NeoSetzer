@@ -43,7 +43,7 @@ class BuilderBuildBibTeX(builder_build.BuilderBuild):
         query.bibtex_data['ran_on_files'].append(filename)
 
         try:
-            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.path.dirname(tex_filename))
+            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.path.dirname(tex_filename), env=builder_build.build_env())
         except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'bibtex missing')

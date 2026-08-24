@@ -375,6 +375,7 @@ class BuildSystem(Observable):
             magic = parse_magic_comments(text)
             interpreter = magic.program or self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
             use_latexmk = self.settings.get_value('preferences', 'use_latexmk')
+            output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
             build_option_system_commands = self.settings.get_value('preferences', 'build_option_system_commands')
             additional_arguments = ''
 
@@ -390,14 +391,17 @@ class BuildSystem(Observable):
                     additional_arguments += lualatex_prefix + '-shell-escape'
 
             do_cleanup = self.settings.get_value('preferences', 'cleanup_build_files')
+            enable_synctex = self.settings.get_value('preferences', 'enable_synctex')
 
         if mode == 'build':
             query_obj.jobs = ['build_latex']
             query_obj.build_data['text'] = text
             query_obj.build_data['latex_interpreter'] = interpreter
             query_obj.build_data['use_latexmk'] = use_latexmk
+            query_obj.build_data['output_chain'] = output_chain
             query_obj.build_data['additional_arguments'] = additional_arguments
             query_obj.build_data['do_cleanup'] = do_cleanup
+            query_obj.build_data['enable_synctex'] = enable_synctex
         elif mode == 'forward_sync':
             query_obj.jobs = ['forward_sync']
             query_obj.can_sync = True
@@ -419,8 +423,10 @@ class BuildSystem(Observable):
             query_obj.build_data['text'] = text
             query_obj.build_data['latex_interpreter'] = interpreter
             query_obj.build_data['use_latexmk'] = use_latexmk
+            query_obj.build_data['output_chain'] = output_chain
             query_obj.build_data['additional_arguments'] = additional_arguments
             query_obj.build_data['do_cleanup'] = do_cleanup
+            query_obj.build_data['enable_synctex'] = enable_synctex
             query_obj.can_sync = False
             query_obj.forward_sync_data['filename'] = synctex_arguments['filename']
             query_obj.forward_sync_data['line'] = synctex_arguments['line']

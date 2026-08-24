@@ -39,7 +39,7 @@ class BuilderBuildBiber(builder_build.BuilderBuild):
 
         query.biber_data['ran_on_files'].append(filename)
 
-        custom_env = os.environ.copy()
+        custom_env = builder_build.build_env()
         custom_env['BIBINPUTS'] = os.path.dirname(query.tex_filename) + os.pathsep + os.path.dirname(tex_filename)
         try:
             self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.path.dirname(tex_filename), env=custom_env)

@@ -139,6 +139,15 @@ class Settings(Observable):
         # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
         self.defaults['preferences']['on_startup'] = 'last_session'
         self.defaults['preferences']['use_latexmk'] = False
+        # 个人 TeX 树（上游 issue #182）：构建子进程的 TEXMFHOME。空字符串 =
+        # 不覆盖——环境里已有 TEXMFHOME 则沿用；没有（典型：从桌面菜单/Flatpak
+        # 启动，shell 的 export 不生效）则注入 TeX Live 默认 ~/texmf。
+        # 见 builder_build.build_env。
+        self.defaults['preferences']['texmf_home'] = ''
+        # latexmk 输出链（上游 issue #223）：'pdf' 直出 PDF；
+        # 'pdfps' 走 latex → dvips → ps2pdf，让 PSTricks/psfrag 等
+        # 只在 PostScript 阶段生效的宏包工作。仅 use_latexmk 开启时有意义。
+        self.defaults['preferences']['latexmk_output_chain'] = 'pdf'
         self.defaults['preferences']['auto_build'] = False
         self.defaults['preferences']['auto_build_delay'] = 2
         # 自动构建报错时是否自动弹出构建日志。手动构建（F5/F6）始终遵循
@@ -146,6 +155,7 @@ class Settings(Observable):
         # 自动构建，文档可能尚未输完导致报错，频繁弹窗打扰写作。默认开启
         # 保持与原行为一致，用户可在 Build System 偏好中关闭。
         self.defaults['preferences']['auto_build_autoshow_errors'] = True
+        self.defaults['preferences']['enable_synctex'] = True
         self.defaults['preferences']['color_scheme'] = 'default'
         # 编辑器（GtkSourceView）配色方案 ID。空字符串 = 跟随应用深浅色主题
         # （由 ServiceLocator.get_style_scheme 根据 Adw.StyleManager.get_dark

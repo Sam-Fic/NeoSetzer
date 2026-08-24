@@ -22,6 +22,8 @@ import shutil
 import sys
 import subprocess
 
+from setzer.app.service_locator import ServiceLocator
+
 
 def popen_no_window(args, **kwargs):
     '''跨平台 subprocess.Popen 包装：Windows 上设 CREATE_NO_WINDOW
@@ -30,6 +32,37 @@ def popen_no_window(args, **kwargs):
     if sys.platform == 'win32':
         kwargs.setdefault('creationflags', subprocess.CREATE_NO_WINDOW)
     return subprocess.Popen(args, **kwargs)
+
+
+def build_env():
+    '''构建子进程环境（上游 issue #182）：保证个人 TeX 树可见。
+
+    kpathsea 靠 TEXMFHOME 定位用户的 .cls/.sty/.bst 等文件。从终端启动时
+    该变量继承自 shell，一切正常；从桌面菜单/Flatpak 启动时不经过 shell，
+    环境里没有它 → 个人宏包"命令行能编译、Setzer 里找不到"。优先级：
+
+    1. 偏好 texmf_home 非空 → 注入（用户显式指定，~ 会展开）
+    2. 环境已有 TEXMFHOME（终端启动）→ 原样沿用
+    3. 都没有 → 注入 TeX Live 默认值 ~/texmf
+
+    返回 os.environ 的拷贝，绝不原地修改父进程环境。
+    '''
+    env = os.environ.copy()
+    texmf_home = ''
+    try:
+        settings = ServiceLocator.get_settings()
+        if settings is not None:
+            value = settings.get_value('preferences', 'texmf_home')
+            if isinstance(value, str):
+                texmf_home = value.strip()
+    except Exception:
+        # 设置系统尚未初始化（极端时序）→ 退回纯继承行为
+        pass
+    if texmf_home:
+        env['TEXMFHOME'] = os.path.expanduser(texmf_home)
+    elif 'TEXMFHOME' not in env:
+        env['TEXMFHOME'] = os.path.expanduser('~/texmf')
+    return env
 
 
 class BuilderBuild(object):
@@ -51,7 +84,10 @@ class BuilderBuild(object):
         file_endings = ['.aux', '.blg', '.bbl', '.dvi', '.xdv', '.fdb_latexmk', '.fls', '.idx' , '.ilg',
                         '.ind', '.log', '.nav', '.out', '.snm', '.synctex.gz', '.toc',
                         '.ist', '.glo', '.glg', '.acn', '.alg',
-                        '.bcf', '.run.xml', '.out.ps']
+                        '.bcf', '.run.xml', '.out.ps',
+                        # latexmk -pdfps（issue #223）在输出目录留下 jobname.ps
+                        # （.out.ps 是 hyperref 的，覆盖不到它）
+                        '.ps']
         for ending in file_endings:
             try: os.remove(os.path.splitext(query.tex_filename)[0] + ending)
             except FileNotFoundError: pass

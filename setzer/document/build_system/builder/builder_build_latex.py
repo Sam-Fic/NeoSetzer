@@ -42,21 +42,38 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
     def run(self, query):
         build_command_defaults = dict()
-        build_command_defaults['pdflatex'] = 'pdflatex -synctex=1 -interaction=nonstopmode'
-        build_command_defaults['xelatex'] = 'xelatex -synctex=1 -interaction=nonstopmode'
-        build_command_defaults['lualatex'] = 'lualatex --synctex=1 --interaction=nonstopmode'
-        build_command_defaults['tectonic'] = 'tectonic --synctex --keep-logs'
+        enable_synctex = query.build_data.get('enable_synctex', True)
+        if enable_synctex:
+            build_command_defaults['pdflatex'] = 'pdflatex -synctex=1 -interaction=nonstopmode'
+            build_command_defaults['xelatex'] = 'xelatex -synctex=1 -interaction=nonstopmode'
+            build_command_defaults['lualatex'] = 'lualatex --synctex=1 --interaction=nonstopmode'
+            build_command_defaults['tectonic'] = 'tectonic --synctex --keep-logs'
+        else:
+            build_command_defaults['pdflatex'] = 'pdflatex -interaction=nonstopmode'
+            build_command_defaults['xelatex'] = 'xelatex -interaction=nonstopmode'
+            build_command_defaults['lualatex'] = 'lualatex --interaction=nonstopmode'
+            build_command_defaults['tectonic'] = 'tectonic --keep-logs'
 
         latex_interpreter = query.build_data['latex_interpreter']
         if latex_interpreter == 'tectonic':
             build_command = build_command_defaults[latex_interpreter]
             build_command += ' --outdir "' + os.path.dirname(query.tex_filename) + '" "' 
         elif query.build_data['use_latexmk']:
-            if latex_interpreter == 'pdflatex':
+            if query.build_data.get('output_chain') == 'pdfps':
+                # PS 路线（上游 issue #223）：latex → dvips → ps2pdf。
+                # PSTricks/psfrag 等宏包的作图/文字替换代码以 \special{ps:...}
+                # 形式只在 PostScript 阶段被 dvips/ghostscript 解释，直出 PDF
+                # 引擎会静默丢弃它们。此时用户选的引擎被忽略：PS 路线只能从
+                # DVI 出发，latexmk 底层固定用 latex（-pdfps 隐含该编排）。
+                # 最终产物仍是 jobname.pdf（ps2pdf 输出），下游预览/SyncTeX/
+                # 产物校验逻辑无需改动。
+                interpreter_option = 'pdfps'
+            elif latex_interpreter == 'pdflatex':
                 interpreter_option = 'pdf'
             else:
                 interpreter_option = latex_interpreter
-            build_command = 'latexmk -' + interpreter_option + ' -synctex=1 -interaction=nonstopmode'
+            synctex_flag = ' -synctex=1' if enable_synctex else ''
+            build_command = 'latexmk -' + interpreter_option + synctex_flag + ' -interaction=nonstopmode'
             build_command += query.build_data['additional_arguments']
             build_command += ' -output-directory="' + os.path.dirname(query.tex_filename) + '" "'
         else:
@@ -83,15 +100,18 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             self.throw_build_error(query, 'interpreter_not_working', 'log file missing')
             return
 
-        try:
-            query.can_sync = self.copy_synctex_file(query)
-        except OSError as e:
-            # synctex 缓存复制失败（如长文件名导致 OSError: [Errno 36]
-            # File name too long）不得中断构建或让 UI 卡死：synctex 仅用于
-            # 正向/反向同步，PDF 本身已成功。吞掉异常并标记不可同步，让
-            # 构建结果照常返回主线程（否则 _on_query_done 永不被调度，
-            # 编译计数器无限增长 = soft-hang）。
-            print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
+        if enable_synctex:
+            try:
+                query.can_sync = self.copy_synctex_file(query)
+            except OSError as e:
+                # synctex 缓存复制失败（如长文件名导致 OSError: [Errno 36]
+                # File name too long）不得中断构建或让 UI 卡死：synctex 仅用于
+                # 正向/反向同步，PDF 本身已成功。吞掉异常并标记不可同步，让
+                # 构建结果照常返回主线程（否则 _on_query_done 永不被调度，
+                # 编译计数器无限增长 = soft-hang）。
+                print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
+                query.can_sync = False
+        else:
             query.can_sync = False
         self.cleanup_files(query)
 
@@ -145,16 +165,17 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         Unix 用 shlex.split 拆分为参数列表（避免 shell=True 的注入风险）；
         Windows 用 shell=True（cmd.exe 能正确解析双引号包裹的路径）并设
         CREATE_NO_WINDOW 避免弹出控制台窗口。
+        env 经 build_env 注入 TEXMFHOME（issue #182），其余继承父进程。
         '''
         if sys.platform == 'win32':
             return subprocess.Popen(
-                build_command, cwd=cwd,
+                build_command, cwd=cwd, env=builder_build.build_env(),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 shell=True, creationflags=subprocess.CREATE_NO_WINDOW,
                 bufsize=1, text=True, encoding='utf-8', errors='replace')
         else:
             return subprocess.Popen(
-                shlex.split(build_command), cwd=cwd,
+                shlex.split(build_command), cwd=cwd, env=builder_build.build_env(),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 bufsize=1, text=True, encoding='utf-8', errors='replace')
 
