@@ -22,6 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, Gio, Adw
 
 import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+from setzer.app.service_locator import ServiceLocator
 
 
 class TodosSectionView(structure_widget.StructureWidget):
@@ -33,6 +34,10 @@ class TodosSectionView(structure_widget.StructureWidget):
             _('No to-dos'),
             _('Add \\todo{...} to keep track of tasks.')
         )
+        # 右键菜单上下文：被右键的 todo，win.todo-ctx-* action 激活时读取。
+        self._ctx_todo = None
+        # 把上下文 action 注册到主窗口而非 PopoverMenu（见 _register_context_actions）。
+        self._register_context_actions()
 
         # 添加「Show all open documents」toggle
         self.show_all_row = Adw.ActionRow()
@@ -103,44 +108,54 @@ class TodosSectionView(structure_widget.StructureWidget):
 
         # Navigation section
         nav_section = Gio.Menu()
-        nav_section.append_item(Gio.MenuItem.new(_('Jump to'), 'todo.jump-to'))
+        nav_section.append_item(Gio.MenuItem.new(_('Jump to'), 'win.todo-ctx-jump-to'))
         menu.append_section(None, nav_section)
 
         # Actions section
         actions_section = Gio.Menu()
-        actions_section.append_item(Gio.MenuItem.new(_('Copy'), 'todo.copy'))
-        actions_section.append_item(Gio.MenuItem.new(_('Mark as Done'), 'todo.delete'))
+        actions_section.append_item(Gio.MenuItem.new(_('Copy'), 'win.todo-ctx-copy'))
+        actions_section.append_item(Gio.MenuItem.new(_('Mark as Done'), 'win.todo-ctx-delete'))
         menu.append_section(None, actions_section)
 
         return menu
 
-    def _build_action_group(self, todo):
-        action_group = Gio.SimpleActionGroup()
+    def _register_context_actions(self):
+        '''在 main_window 上注册带 win. 前缀的上下文 action。
 
-        jump_action = Gio.SimpleAction.new('jump-to', None)
-        jump_action.connect('activate', lambda a, p: self.model.jump_to_todo(todo))
-        action_group.add_action(jump_action)
+        把 action 注册到窗口而非 PopoverMenu，可避免 Gtk.PopoverMenu 基于
+        menu model 渲染的菜单项在点击时无法解析到 action group 的问题
+        （与 files_viewgtk 的修复相同，见 commit 9c8e0c23）。
+        '''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        if main_window.lookup_action('todo-ctx-jump-to') is not None:
+            return  # 已经注册过
 
-        copy_action = Gio.SimpleAction.new('copy', None)
-        copy_action.connect('activate', lambda a, p: self.model.copy_todo(todo))
-        action_group.add_action(copy_action)
+        def add(name, callback):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect('activate', callback)
+            main_window.add_action(action)
 
-        delete_action = Gio.SimpleAction.new('delete', None)
-        delete_action.connect('activate', lambda a, p: self.model.delete_todo(todo))
-        action_group.add_action(delete_action)
-
-        return action_group
+        add('todo-ctx-jump-to', self._on_action_jump_to)
+        add('todo-ctx-copy', self._on_action_copy)
+        add('todo-ctx-delete', self._on_action_delete)
 
     def _show_context_menu(self, row, todo, x, y):
+        # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
+        # 这里再尝试一次（_register_context_actions 内部幂等）。
+        self._register_context_actions()
+
         menu_model = self._build_menu_model(todo)
-        action_group = self._build_action_group(todo)
+
+        # 记录被右键的 todo，win.todo-ctx-* action 激活时使用。
+        self._ctx_todo = todo
 
         popover = Gtk.PopoverMenu()
         popover.set_parent(row)
         popover.set_has_arrow(False)
         popover.set_size_request(288, -1)
         popover.set_menu_model(menu_model)
-        popover.insert_action_group('todo', action_group)
 
         popover.set_offset(144, 0)
         rect = Gdk.Rectangle()
@@ -151,4 +166,11 @@ class TodosSectionView(structure_widget.StructureWidget):
         popover.set_pointing_to(rect)
         popover.popup()
 
-        popover.connect('closed', lambda p: p.insert_action_group('todo', None))
+    def _on_action_jump_to(self, action, parameter):
+        self.model.jump_to_todo(self._ctx_todo)
+
+    def _on_action_copy(self, action, parameter):
+        self.model.copy_todo(self._ctx_todo)
+
+    def _on_action_delete(self, action, parameter):
+        self.model.delete_todo(self._ctx_todo)

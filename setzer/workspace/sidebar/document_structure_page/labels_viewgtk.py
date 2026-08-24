@@ -21,6 +21,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gdk, Gio
 
 import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+from setzer.app.service_locator import ServiceLocator
 
 
 class LabelsSectionView(structure_widget.StructureWidget):
@@ -32,6 +33,10 @@ class LabelsSectionView(structure_widget.StructureWidget):
             _('No labels'),
             _('Add \\label{...} to create references to figures, sections, and more.')
         )
+        # 右键菜单上下文：被右键的 label，win.label-ctx-* action 激活时读取。
+        self._ctx_label = None
+        # 把上下文 action 注册到主窗口而非 PopoverMenu（见 _register_context_actions）。
+        self._register_context_actions()
 
     def populate(self):
         # 签名 = id(document) + 全部 label 名称元组。按键不动 \label 时签名命中。
@@ -72,42 +77,50 @@ class LabelsSectionView(structure_widget.StructureWidget):
 
         # Navigation section
         nav_section = Gio.Menu()
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\ref{...}'), 'label.copy-ref'))
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\pageref{...}'), 'label.copy-pageref'))
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\autoref{...}'), 'label.copy-autoref'))
+        nav_section.append_item(Gio.MenuItem.new(_('Copy \\ref{...}'), 'win.label-ctx-copy-ref'))
+        nav_section.append_item(Gio.MenuItem.new(_('Copy \\pageref{...}'), 'win.label-ctx-copy-pageref'))
+        nav_section.append_item(Gio.MenuItem.new(_('Copy \\autoref{...}'), 'win.label-ctx-copy-autoref'))
         menu.append_section(None, nav_section)
 
         return menu
 
-    def _build_action_group(self, label):
-        action_group = Gio.SimpleActionGroup()
+    def _register_context_actions(self):
+        '''在 main_window 上注册带 win. 前缀的上下文 action。
 
-        label_name = label[0]
+        把 action 注册到窗口而非 PopoverMenu，可避免 Gtk.PopoverMenu 基于
+        menu model 渲染的菜单项在点击时无法解析到 action group 的问题
+        （与 files_viewgtk 的修复相同，见 commit 9c8e0c23）。
+        '''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        if main_window.lookup_action('label-ctx-copy-ref') is not None:
+            return  # 已经注册过
 
-        copy_ref_action = Gio.SimpleAction.new('copy-ref', None)
-        copy_ref_action.connect('activate', lambda a, p: self._copy_ref(label))
-        action_group.add_action(copy_ref_action)
+        def add(name, callback):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect('activate', callback)
+            main_window.add_action(action)
 
-        copy_pageref_action = Gio.SimpleAction.new('copy-pageref', None)
-        copy_pageref_action.connect('activate', lambda a, p: self._copy_pageref(label))
-        action_group.add_action(copy_pageref_action)
-
-        copy_autoref_action = Gio.SimpleAction.new('copy-autoref', None)
-        copy_autoref_action.connect('activate', lambda a, p: self._copy_autoref(label))
-        action_group.add_action(copy_autoref_action)
-
-        return action_group
+        add('label-ctx-copy-ref', self._copy_ref)
+        add('label-ctx-copy-pageref', self._copy_pageref)
+        add('label-ctx-copy-autoref', self._copy_autoref)
 
     def _show_context_menu(self, row, label, x, y):
+        # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
+        # 这里再尝试一次（_register_context_actions 内部幂等）。
+        self._register_context_actions()
+
         menu_model = self._build_menu_model(label)
-        action_group = self._build_action_group(label)
+
+        # 记录被右键的 label，win.label-ctx-* action 激活时使用。
+        self._ctx_label = label
 
         popover = Gtk.PopoverMenu()
         popover.set_parent(row)
         popover.set_has_arrow(False)
         popover.set_size_request(288, -1)
         popover.set_menu_model(menu_model)
-        popover.insert_action_group('label', action_group)
 
         popover.set_offset(144, 0)
         rect = Gdk.Rectangle()
@@ -118,19 +131,17 @@ class LabelsSectionView(structure_widget.StructureWidget):
         popover.set_pointing_to(rect)
         popover.popup()
 
-        popover.connect('closed', lambda p: p.insert_action_group('label', None))
-
-    def _copy_ref(self, label):
-        label_name = label[0]
+    def _copy_ref(self, action, parameter):
+        label_name = self._ctx_label[0]
         clipboard = Gdk.Display.get_default().get_clipboard()
         clipboard.set('\\ref{' + label_name + '}')
 
-    def _copy_pageref(self, label):
-        label_name = label[0]
+    def _copy_pageref(self, action, parameter):
+        label_name = self._ctx_label[0]
         clipboard = Gdk.Display.get_default().get_clipboard()
         clipboard.set('\\pageref{' + label_name + '}')
 
-    def _copy_autoref(self, label):
-        label_name = label[0]
+    def _copy_autoref(self, action, parameter):
+        label_name = self._ctx_label[0]
         clipboard = Gdk.Display.get_default().get_clipboard()
         clipboard.set('\\autoref{' + label_name + '}')

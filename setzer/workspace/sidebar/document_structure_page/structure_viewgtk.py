@@ -24,6 +24,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, Adw, Gio
 
 import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+from setzer.app.service_locator import ServiceLocator
 
 
 class StructureSectionView(structure_widget.StructureWidget):
@@ -35,6 +36,10 @@ class StructureSectionView(structure_widget.StructureWidget):
             _('No document structure'),
             _('Add \\section{}, \\chapter{}, or other sectioning commands to outline your document.')
         )
+        # 右键菜单上下文：被右键的节点，win.outline-ctx-* action 激活时读取。
+        self._ctx_node = None
+        # 把上下文 action 注册到主窗口而非 PopoverMenu（见 _register_context_actions）。
+        self._register_context_actions()
 
     def populate(self):
         # 签名含 (level, icon, title) 的深度优先序列 + id(document) + 折叠集合。
@@ -187,22 +192,22 @@ class StructureSectionView(structure_widget.StructureWidget):
 
         # Copy section
         copy_section = Gio.Menu()
-        copy_section.append_item(Gio.MenuItem.new(_('Copy Title'), 'outline.copy-title'))
+        copy_section.append_item(Gio.MenuItem.new(_('Copy Title'), 'win.outline-ctx-copy-title'))
         menu.append_section(None, copy_section)
 
         if not is_file:
             label_name = self.model.find_label_for_node(node)
             if label_name is not None:
                 copy_section.append_item(
-                    Gio.MenuItem.new(_('Copy Reference') + f'  \\ref{{{label_name}}}', 'outline.copy-ref'))
+                    Gio.MenuItem.new(_('Copy Reference') + f'  \\ref{{{label_name}}}', 'win.outline-ctx-copy-ref'))
                 copy_section.append_item(
-                    Gio.MenuItem.new(_('Copy Label') + f'  \\label{{{label_name}}}', 'outline.copy-label'))
+                    Gio.MenuItem.new(_('Copy Label') + f'  \\label{{{label_name}}}', 'win.outline-ctx-copy-label'))
 
             if is_editable_section:
                 # Edit section
                 edit_section = Gio.Menu()
-                edit_section.append_item(Gio.MenuItem.new(_('Rename Section…'), 'outline.rename'))
-                edit_section.append_item(Gio.MenuItem.new(_('Delete Section'), 'outline.delete'))
+                edit_section.append_item(Gio.MenuItem.new(_('Rename Section…'), 'win.outline-ctx-rename'))
+                edit_section.append_item(Gio.MenuItem.new(_('Delete Section'), 'win.outline-ctx-delete'))
                 menu.append_section(None, edit_section)
 
                 # Level section
@@ -210,8 +215,8 @@ class StructureSectionView(structure_widget.StructureWidget):
                 can_demote = section_type in self.model.levels and self.model.levels[section_type] < len(self.model.levels) - 1
 
                 level_section = Gio.Menu()
-                promote_item = Gio.MenuItem.new(_('Promote') + '  ←', 'outline.promote')
-                demote_item = Gio.MenuItem.new(_('Demote') + '  →', 'outline.demote')
+                promote_item = Gio.MenuItem.new(_('Promote'), 'win.outline-ctx-promote')
+                demote_item = Gio.MenuItem.new(_('Demote'), 'win.outline-ctx-demote')
                 level_section.append_item(promote_item)
                 level_section.append_item(demote_item)
                 menu.append_section(None, level_section)
@@ -225,43 +230,43 @@ class StructureSectionView(structure_widget.StructureWidget):
 
         return menu
 
-    def _build_action_group(self, node):
-        """Build a Gio.SimpleActionGroup with all outline context actions."""
-        action_group = Gio.SimpleActionGroup()
+    def _register_context_actions(self):
+        '''在 main_window 上注册带 win. 前缀的上下文 action。
 
-        copy_title_action = Gio.SimpleAction.new('copy-title', None)
-        copy_title_action.connect('activate', lambda a, p: self._on_action_copy_title(node))
-        action_group.add_action(copy_title_action)
+        把 action 注册到窗口而非 PopoverMenu，可避免 Gtk.PopoverMenu 基于
+        menu model 渲染的菜单项在点击时无法解析到 action group 的问题
+        （与 files_viewgtk 的修复相同，见 commit 9c8e0c23）。
+        被右键的节点存于 self._ctx_node，激活时由各 handler 读取。
+        '''
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        if main_window.lookup_action('outline-ctx-copy-title') is not None:
+            return  # 已经注册过
 
-        copy_ref_action = Gio.SimpleAction.new('copy-ref', None)
-        copy_ref_action.connect('activate', lambda a, p: self._on_action_copy_ref(node))
-        action_group.add_action(copy_ref_action)
+        def add(name, callback):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect('activate', callback)
+            main_window.add_action(action)
 
-        copy_label_action = Gio.SimpleAction.new('copy-label', None)
-        copy_label_action.connect('activate', lambda a, p: self._on_action_copy_label(node))
-        action_group.add_action(copy_label_action)
-
-        rename_action = Gio.SimpleAction.new('rename', None)
-        rename_action.connect('activate', lambda a, p: self._on_action_rename(node))
-        action_group.add_action(rename_action)
-
-        delete_action = Gio.SimpleAction.new('delete', None)
-        delete_action.connect('activate', lambda a, p: self._on_action_delete(node))
-        action_group.add_action(delete_action)
-
-        promote_action = Gio.SimpleAction.new('promote', None)
-        promote_action.connect('activate', lambda a, p: self._on_action_promote(node))
-        action_group.add_action(promote_action)
-
-        demote_action = Gio.SimpleAction.new('demote', None)
-        demote_action.connect('activate', lambda a, p: self._on_action_demote(node))
-        action_group.add_action(demote_action)
-
-        return action_group
+        add('outline-ctx-copy-title', self._on_action_copy_title)
+        add('outline-ctx-copy-ref', self._on_action_copy_ref)
+        add('outline-ctx-copy-label', self._on_action_copy_label)
+        add('outline-ctx-rename', self._on_action_rename)
+        add('outline-ctx-delete', self._on_action_delete)
+        add('outline-ctx-promote', self._on_action_promote)
+        add('outline-ctx-demote', self._on_action_demote)
 
     def _show_context_menu(self, row, node, x, y):
         block = node.get('block', None)
         if block is None:
+            return
+
+        # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
+        # 这里再尝试一次（_register_context_actions 内部幂等）。
+        self._register_context_actions()
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
             return
 
         section_type = block[4] if len(block) > 4 else None
@@ -274,19 +279,22 @@ class StructureSectionView(structure_widget.StructureWidget):
         if menu_model is None:
             return
 
-        # Build the action group
-        action_group = self._build_action_group(node)
+        # 记录被右键的节点，win.outline-ctx-* action 激活时使用。
+        self._ctx_node = node
 
         # Set action enable states based on capabilities
-        action_group.lookup_action('copy-title').set_enabled(True)
-        action_group.lookup_action('copy-ref').set_enabled(
-            not is_file and self.model.find_label_for_node(node) is not None)
-        action_group.lookup_action('copy-label').set_enabled(
-            not is_file and self.model.find_label_for_node(node) is not None)
-        action_group.lookup_action('rename').set_enabled(is_editable_section)
-        action_group.lookup_action('delete').set_enabled(is_editable_section)
-        action_group.lookup_action('promote').set_enabled(is_editable_section and getattr(self, '_can_promote', False))
-        action_group.lookup_action('demote').set_enabled(is_editable_section and getattr(self, '_can_demote', False))
+        has_label = self.model.find_label_for_node(node) is not None
+        main_window.lookup_action('outline-ctx-copy-title').set_enabled(True)
+        main_window.lookup_action('outline-ctx-copy-ref').set_enabled(
+            not is_file and has_label)
+        main_window.lookup_action('outline-ctx-copy-label').set_enabled(
+            not is_file and has_label)
+        main_window.lookup_action('outline-ctx-rename').set_enabled(is_editable_section)
+        main_window.lookup_action('outline-ctx-delete').set_enabled(is_editable_section)
+        main_window.lookup_action('outline-ctx-promote').set_enabled(
+            is_editable_section and getattr(self, '_can_promote', False))
+        main_window.lookup_action('outline-ctx-demote').set_enabled(
+            is_editable_section and getattr(self, '_can_demote', False))
 
         # Create popover menu
         popover = Gtk.PopoverMenu()
@@ -294,9 +302,6 @@ class StructureSectionView(structure_widget.StructureWidget):
         popover.set_has_arrow(False)
         popover.set_size_request(288, -1)
         popover.set_menu_model(menu_model)
-
-        # Insert the action group at 'outline.xxx' namespace
-        popover.insert_action_group('outline', action_group)
 
         # Set up positioning
         # Standard context menu positioning: cursor lands at a corner of the popover,
@@ -313,29 +318,26 @@ class StructureSectionView(structure_widget.StructureWidget):
         popover.set_pointing_to(rect)
         popover.popup()
 
-        # Clean up when popover is closed
-        popover.connect('closed', lambda p: p.insert_action_group('outline', None))
+    def _on_action_copy_title(self, action, parameter):
+        self.model.copy_title(self._ctx_node)
 
-    def _on_action_copy_title(self, node):
-        self.model.copy_title(node)
+    def _on_action_copy_ref(self, action, parameter):
+        self.model.copy_ref(self._ctx_node)
 
-    def _on_action_copy_ref(self, node):
-        self.model.copy_ref(node)
+    def _on_action_copy_label(self, action, parameter):
+        self.model.copy_label(self._ctx_node)
 
-    def _on_action_copy_label(self, node):
-        self.model.copy_label(node)
+    def _on_action_rename(self, action, parameter):
+        self.model.rename_section(self._ctx_node)
 
-    def _on_action_rename(self, node):
-        self.model.rename_section(node)
+    def _on_action_delete(self, action, parameter):
+        self.model.delete_section(self._ctx_node)
 
-    def _on_action_delete(self, node):
-        self.model.delete_section(node)
+    def _on_action_promote(self, action, parameter):
+        self.model.promote_section(self._ctx_node)
 
-    def _on_action_promote(self, node):
-        self.model.promote_section(node)
-
-    def _on_action_demote(self, node):
-        self.model.demote_section(node)
+    def _on_action_demote(self, action, parameter):
+        self.model.demote_section(self._ctx_node)
 
     def _on_expander_pressed(self, gesture, n_press, x, y, node):
         # 截断事件传播，避免点击展开器时激活行（跳转）。
