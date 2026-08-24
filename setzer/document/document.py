@@ -111,41 +111,37 @@ class Document(Observable):
         if self.is_latex_document(): self.parser = parser_latex.ParserLaTeX(self)
         elif self.is_bibtex_document(): self.parser = parser_bibtex.ParserBibTeX(self)
         else: self.parser = parser_dummy.ParserDummy(self)
-        # BeginEndHighlight 仅对 LaTeX 文档构造：它依赖 parser 的
-        # block_symbol_matches['begin_or_end']（latex parser 才会填充）；
-        # 其它类型 parser 没有此字段，构造会 KeyError。DocumentController
-        # 在 on_primary_buttonpress 中对非 LaTeX 文档已前置守卫不访问
-        # begin_end_highlight（document_controller.py:191），与之对齐。
-        if self.is_latex_document():
-            self.begin_end_highlight = begin_end_highlight.BeginEndHighlight(self)
+        # 首帧同步构造「能编辑」的最小集合。gutter 依赖 code_folding /
+        # bookmarks / build_diagnostics（绘制折叠箭头、书签标记、诊断色条），
+        # 必须晚于这三者；search 不能延迟——shortcutsbar 在文档激活时立即
+        # connect 其 mode_changed 信号；code_folding / bookmarks 需要立刻
+        # 读写会话恢复的折叠 / 书签状态（DocumentSettings.load_document_state
+        # 在 add_document 中同步调用）。
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
         self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
         self.gutter = gutter.Gutter(self, self.view)
-        # 粘性滚动（顶部常驻当前章节标题条）：此前 StickyScroll 类已存在但
-        # 从未被实例化/挂接到任何文档，导致该功能完全不生效。这里在文档构造
-        # 时按文档创建，drawing_area 加进编辑器的 overlay（见 sticky_scroll.py），
-        # 生命周期随文档——shutdown 时由 sticky.shutdown() 从 overlay 移除。
-        self.sticky_scroll = sticky_scroll.StickyScroll(self)
         self.search = search.Search(self, self.view)
-        self.multicursor = multicursor.MultiCursor(self)
-        # 拼写检查（仅 LaTeX 文档）：enchant 后端 + latex.lang 的
-        # no-spell-check 上下文跳过（数学/命令/verbatim 等不检查）。
-        # 非 LaTeX 文档不构造（无 latex 语法引擎），右键菜单与 actions
-        # 用 getattr(document, 'spellchecking', None) 守卫。
-        if self.is_latex_document():
-            self.spellchecking = spellchecking.SpellChecker(self)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
         # 更新行/列、语言、编码、缩进、选区词数。构造后注入 view。
         self.statusbar = statusbar.StatusBar(self)
         self.view.set_statusbar(self.statusbar.view)
 
-        # LaTeX 专属子系统（autocomplete / bracket_completion /
-        # update_matching_blocks）延迟到 idle 构造，避免新建文档时主线程
-        # 阻塞。它们只在用户按键交互时才需要，idle 调度时文档已可见可编辑。
+        # 其余编辑器增强子系统延迟到 idle 构造（_init_deferred_features）：
+        # - 全部文档：sticky_scroll（粘性滚动章节标题条）、multicursor；
+        # - 仅 LaTeX 文档：begin_end_highlight、spellchecking、
+        #   update_matching_blocks、bracket_completion、autocomplete。
+        #   BeginEndHighlight 只对 LaTeX 构造：它依赖 parser 的
+        #   block_symbol_matches['begin_or_end']（latex parser 才会填充），
+        #   其它类型 parser 没有此字段，构造会 KeyError；spellchecking 无
+        #   latex 语法引擎不可用。这些子系统只在用户交互（按键/Ctrl+Click）
+        #   时才需要，idle 调度时文档已可见可编辑。需要完整功能的路径
+        # （激活文档等）调 ensure_editor_features() 同步补齐，避免
+        # AttributeError。
+        self._editor_features_ready = False
         self._latex_features_ready = False
         self._is_shutdown = False
-        self._latex_features_idle_id = None
+        self._deferred_features_idle_id = None
         # 懒加载：会话恢复时非活跃文档不立即读取文件内容，标记 _content_pending
         # 后由 idle 回调或激活时同步加载。_lazy_load_idle_id 跟踪挂起的 idle
         # 以便激活/关闭时取消。详见 populate_from_disk / _load_content_if_pending。
@@ -158,42 +154,78 @@ class Document(Observable):
         # 编辑——auto_build 据此跳过启动即重编。仅 auto_build 读取此标志，
         # parser 等其它 'changed' 观察者仍照常收到通知以初始化文档结构。
         self._loading_from_disk = False
-        if self.is_latex_document():
-            self._latex_features_idle_id = GLib.idle_add(self._init_latex_features)
+        # 延迟子系统 idle 对全部文档类型调度（sticky_scroll / multicursor
+        # 对 bibtex / other 文档同样适用）。
+        self._deferred_features_idle_id = GLib.idle_add(self._init_deferred_features)
 
         self.settings.connect('settings_changed', self.on_settings_changed)
 
         self.style_manager = Adw.StyleManager.get_default()
         self._theme_handler_id = self.style_manager.connect('notify::dark', self.on_theme_colors_changed)
 
-    def _init_latex_features(self):
-        '''延迟构造 LaTeX 专属子系统（autocomplete / bracket_completion /
-        update_matching_blocks）。它们只在用户按键交互时才需要，idle 调度
-        时文档已可见可编辑，从而把构造开销从「新建文档」主帧移到空闲时刻。'''
-        self._latex_features_idle_id = None
-        # 文档可能在 idle 排队期间被关闭（如快速新建后立即关闭）。
-        # 此时不应再构造组件——它们会向已失效的 source_view 挂控制器、
-        # 向主窗口 overlay 挂已失效的补全 widget，造成引用泄漏与报错。
+    def _init_deferred_features(self):
+        '''延迟构造编辑器增强子系统（idle 回调，也可经
+        ensure_editor_features 同步调用）。
+
+        全部文档：sticky_scroll（顶部常驻当前章节标题条；此前 StickyScroll
+        类已存在但从未被实例化，导致功能不生效——drawing_area 挂进编辑器
+        overlay，生命周期随文档）、multicursor。
+        仅 LaTeX：begin_end_highlight、spellchecking（enchant 后端 + latex.lang
+        的 no-spell-check 上下文跳过）、update_matching_blocks、
+        bracket_completion、autocomplete。
+
+        构造前文档可能已被关闭（如快速新建后立即关闭）：此时不再构造——
+        它们会向已失效的 source_view 挂控制器、向主窗口 overlay 挂已失效的
+        补全 widget，造成引用泄漏与报错。
+        '''
+        self._deferred_features_idle_id = None
         if self._is_shutdown:
             return False
 
-        self.update_matching_blocks = update_matching_blocks.UpdateMatchingBlocks(self)
-        self.bracket_completion = bracket_completion.BracketCompletion(self)
-        self.autocomplete = autocomplete.Autocomplete(self)
-        self._latex_features_ready = True
+        if not self._editor_features_ready:
+            self.sticky_scroll = sticky_scroll.StickyScroll(self)
+            self.multicursor = multicursor.MultiCursor(self)
+            self._editor_features_ready = True
 
-        # on_new_active_document 在 idle 之前就已执行，当时 autocomplete
-        # 尚未构造，overlay 挂载被 try/except 跳过。此处补做。
-        workspace = ServiceLocator.get_workspace()
-        is_active = workspace is not None and workspace.active_document is self
-        if is_active:
-            main_window = ServiceLocator.get_main_window()
-            try:
-                main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
-            except AttributeError:
-                pass
+        if self.is_latex_document() and not self._latex_features_ready:
+            self.begin_end_highlight = begin_end_highlight.BeginEndHighlight(self)
+            self.spellchecking = spellchecking.SpellChecker(self)
+            self.update_matching_blocks = update_matching_blocks.UpdateMatchingBlocks(self)
+            self.bracket_completion = bracket_completion.BracketCompletion(self)
+            self.autocomplete = autocomplete.Autocomplete(self)
+            self._latex_features_ready = True
+
+            # on_new_active_document 在 idle 之前就已执行，当时 autocomplete
+            # 尚未构造，overlay 挂载被 try/except 跳过。此处补做。
+            workspace = ServiceLocator.get_workspace()
+            is_active = workspace is not None and workspace.active_document is self
+            if is_active:
+                main_window = ServiceLocator.get_main_window()
+                try:
+                    main_window.preview_paned_overlay.add_overlay(self.autocomplete.widget.view)
+                except AttributeError:
+                    pass
 
         return False
+
+    def ensure_editor_features(self):
+        '''同步补齐延迟构造的编辑器子系统。
+
+        调用时机：workspace.set_active_document 在发出激活信号前调用；
+        其它需要在 idle 完成前访问 sticky_scroll / multicursor /
+        begin_end_highlight 等属性的路径亦可调用。幂等：全部就绪或文档已
+        shutdown 时直接返回；若 idle 尚未执行则取消之（改为同步构造，
+        避免与 idle 双重构造）。
+        '''
+        latex_ready = (self._latex_features_ready or not self.is_latex_document())
+        if self._editor_features_ready and latex_ready:
+            return
+        if self._is_shutdown:
+            return
+        if self._deferred_features_idle_id is not None:
+            GLib.Source.remove(self._deferred_features_idle_id)
+            self._deferred_features_idle_id = None
+        self._init_deferred_features()
 
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用，清理信号连接与
@@ -208,9 +240,9 @@ class Document(Observable):
         self._is_shutdown = True
 
         # 取消尚未执行的 idle 回调；若已执行则 id 已在回调内清为 None。
-        if self._latex_features_idle_id is not None:
-            GLib.Source.remove(self._latex_features_idle_id)
-            self._latex_features_idle_id = None
+        if self._deferred_features_idle_id is not None:
+            GLib.Source.remove(self._deferred_features_idle_id)
+            self._deferred_features_idle_id = None
         # 取消懒加载 idle：文档关闭时内容可能尚未加载，无需再读。
         if self._lazy_load_idle_id is not None:
             GLib.Source.remove(self._lazy_load_idle_id)
@@ -392,11 +424,14 @@ class Document(Observable):
 
         source = None
         workspace = ServiceLocator.get_workspace()
-        if workspace is not None and workspace.root_document is not None and \
-                workspace.root_document.build_system is not None:
-            source = workspace.root_document.build_system.build_log_data['items']
-        elif self.build_system is not None:
-            source = self.build_system.build_log_data['items']
+        root_build_system = None
+        if workspace is not None and workspace.root_document is not None:
+            root_build_system = getattr(workspace.root_document, 'build_system', None)
+        build_system = getattr(self, 'build_system', None)
+        if root_build_system is not None:
+            source = root_build_system.build_log_data['items']
+        elif build_system is not None:
+            source = build_system.build_log_data['items']
 
         if source:
             for item in source:
@@ -558,7 +593,14 @@ class Document(Observable):
         if scroll_offset is not None:
             try:
                 adj = self.view.scrolled_window.get_vadjustment()
-                GLib.idle_add(lambda a=adj, v=scroll_offset: (a.set_value(v), False))
+                # 显式函数返回 False 移除源。不能用返回元组的 lambda——
+                # 非空元组恒为真值，idle 会每轮主循环永久重调度（与
+                # workspace_controller._restore_document_states 中已修复的
+                # 同类问题；此处曾漏改）。
+                def _apply_scroll_offset(a=adj, v=scroll_offset):
+                    a.set_value(v)
+                    return False
+                GLib.idle_add(_apply_scroll_offset)
             except Exception:
                 pass
             self._restore_scroll_offset = None

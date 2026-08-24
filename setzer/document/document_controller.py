@@ -194,9 +194,12 @@ class DocumentController(object):
                             return
 
                         # 在 \begin/\end 命令上:Ctrl+Click 跳转到配对端
+                        # begin_end_highlight 延迟到 idle 构造（见
+                        # Document._init_deferred_features），未就绪时跳过。
                         if active_document.is_latex_document():
                             offset = iter_at_click.get_offset()
-                            pair = active_document.begin_end_highlight.find_pair_at_offset(offset)
+                            beh = getattr(active_document, 'begin_end_highlight', None)
+                            pair = beh.find_pair_at_offset(offset) if beh is not None else None
                             if pair is not None:
                                 _, partner_span = pair
                                 buffer = active_document.source_buffer
@@ -308,9 +311,12 @@ class DocumentController(object):
             self._column_drag_additive = True
         else:
             self._column_drag_additive = False
-            # 清除现有多光标（仅当非加法模式）
+            # 清除现有多光标（仅当非加法模式；multicursor 延迟到 idle 构造，
+            # 未就绪时无现有多光标可清，跳过即可）
             if not self._column_drag_additive:
-                self.document.multicursor.clear_all()
+                multicursor = getattr(self.document, 'multicursor', None)
+                if multicursor is not None:
+                    multicursor.clear_all()
 
         self._column_dragging = True
         # GTK4: get_iter_at_location 返回 (found, iter) 元组，取 [1] 得 TextIter。
@@ -336,9 +342,11 @@ class DocumentController(object):
         self._column_drag_last_x = x
         self._column_drag_last_y = y
 
-        # 更新列选区
-        self.document.multicursor.add_cursors_column(
-            self._column_drag_start_iter, current_iter)
+        # 更新列选区（multicursor 未就绪时无从添加，跳过）
+        multicursor = getattr(self.document, 'multicursor', None)
+        if multicursor is not None:
+            multicursor.add_cursors_column(
+                self._column_drag_start_iter, current_iter)
 
     def _on_column_drag_end(self, controller, x, y):
         """Alt+Drag 结束：完成列选区。"""
