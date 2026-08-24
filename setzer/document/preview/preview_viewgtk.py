@@ -25,6 +25,7 @@ from gi.repository import Gio
 from gi.repository import Adw
 
 from setzer.widgets.scrolling_widget.scrolling_widget import ScrollingWidget
+from setzer.document.preview.preview_magnifier import PreviewMagnifier
 
 
 class PageIndicatorButton(Gtk.Button):
@@ -163,6 +164,12 @@ class PreviewView(Gtk.Box):
             self._apply_indicator_theme()
         # 外部（presenter）注册的点击回调：收到 (page_number_1based,)
         self._on_page_indicator_clicked = None
+
+        # 放大镜浮窗（按住左键显示）：挂在画布 overlay 层，画布坐标定位、
+        # 随滚动平移。can_target=False 不拦截指针事件，交互全部由
+        # PreviewController 驱动（press/hover/release → present/dismiss）。
+        self.magnifier = PreviewMagnifier()
+        self.content.add_overlay_widget(self.magnifier)
 
         # ToastOverlay 仍用于短暂的构建失败反馈；外部 PDF 变更是持续状态，
         # 使用 Adw.Banner 以免提示消失后用户不知预览仍可能是旧版本。

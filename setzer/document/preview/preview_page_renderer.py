@@ -27,6 +27,7 @@ import math
 import numpy as np
 
 from setzer.app.color_manager import ColorManager
+from setzer.document.preview.preview_magnifier import apply_magnifier_transform
 from setzer.helpers.observable import Observable
 
 
@@ -63,6 +64,17 @@ class PreviewPageRenderer(Observable):
         self.render_queue = queue.Queue()
         self.render_queue_low_priority = queue.Queue()
         self.rendered_pages_queue = queue.Queue()
+
+        # 放大镜局部渲染管线：任务复用 render_queue（高优先级，跟手要求），
+        # 结果走独立队列，避免混入整页结果被 rendered_pages_loop 当成整页
+        # 缓存消费。过期判定与整页不同——不用 page_render_count，而用单调
+        # 递增的 request_id：光标移动中连续入队多个请求，只有 id 等于最新值
+        # 的结果会被采用，旧结果在渲染线程内即被丢弃（省渲染）或主线程丢弃。
+        # int 赋值受 GIL 保护，跨线程读写无需额外同步；锁仅保证「取号 +
+        # 入队」的原子性，使 id 单调与队列顺序一致。
+        self.magnified_pages_queue = queue.Queue()
+        self._magnifier_request_lock = threading.Lock()
+        self._magnifier_latest_request_id = 0
 
         # 惰性启动：后台渲染线程与 50ms 轮询定时器推迟到首次 activate() 才创建。
         # 原实现在 __init__ 立即启动，导致每新建一个 LaTeX 文档（即便尚无 PDF、
@@ -123,6 +135,10 @@ class PreviewPageRenderer(Observable):
             self.visible_pages = list()
         self.page_width = None
         self.pdf_date = None
+        # 递增放大镜 request_id 使在途任务全部过期：预览隐藏后不再需要
+        # 放大镜结果，也避免恢复显示时旧结果闪现。
+        with self._magnifier_request_lock:
+            self._magnifier_latest_request_id += 1
 
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器、
@@ -162,6 +178,11 @@ class PreviewPageRenderer(Observable):
                 self.render_queue_low_priority.get_nowait()
         except queue.Empty:
             pass
+        try:
+            while True:
+                self.magnified_pages_queue.get_nowait()
+        except queue.Empty:
+            pass
         self.render_queue.put(None)
         if self._render_thread is not None and self._render_thread.is_alive():
             self._render_thread.join(timeout=2.0)
@@ -194,6 +215,11 @@ class PreviewPageRenderer(Observable):
             # 哨兵 None（shutdown 投递）或 deactivate 期间积压的 None：跳过。
             if todo is None:
                 continue
+            # 放大镜任务走独立的过期判定（request_id）与结果投递路径，
+            # 不读 page_render_count / visible_pages（那些键不存在）。
+            if todo.get('kind') == 'magnifier':
+                self._process_magnifier_todo(todo)
+                continue
             with self.page_render_count_lock:
                 # .get(-1) 哨兵避免 KeyError：on_layout_or_position_changed 在
                 # PDF 切换时清空 page_render_count，若此时仍有 stale todo 在
@@ -218,38 +244,134 @@ class PreviewPageRenderer(Observable):
                 page.render(ctx)
 
                 if colors != None:
-                    # 直接从 cairo surface 取数据到 numpy，跳过 PIL Image 中转。
-                    # 原实现 4 次内存拷贝（12MB/页）：
-                    #   1. np.array(pil_img)：PIL → numpy（拷贝像素）
-                    #   2. np.ubyte(img_data)：numpy → 新数组（Image.fromarray 需要）
-                    #   3. pil_img.tobytes('raw', 'BGRa')：numpy → BGRa 字节（拷贝+重排）
-                    #   4. bytearray(...)：bytes → bytearray（create_for_data 需可变）
-                    # 优化后 2 次：np.frombuffer + .copy()（修改 alpha 需可写）→
-                    # bytearray(tobytes)。半内存、半 CPU 开销。
-                    #
-                    # 正确性：cairo FORMAT_ARGB32 在小端机器上字节序为 BGRA
-                    # （byte0=B, byte1=G, byte2=R, byte3=A）。原 PIL 路径用
-                    # Image.frombuffer("RGBA",...) 误把 B 当 R、R 当 B，但
-                    # 后续 cairo.Operator.IN 用 colors[0] 覆盖全部 RGB 像素，
-                    # 故中间 RGB 内容不影响最终视觉结果——只有 alpha 值重要。
-                    # 此处保持与原实现相同的 alpha 公式（用 byte0/1/2 即
-                    # B/G/R 通道），最终 alpha 值与原实现完全一致。
-                    buf = surface.get_data()
-                    img_data = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4).copy()
-
-                    alpha = 255 - 0.3 * img_data[..., 0] - 0.6 * img_data[..., 1] - 0.1 * img_data[..., 2]
-                    img_data[..., 3] = alpha.astype(np.uint8)
-
-                    im_bytes = bytearray(img_data.tobytes())
-                    surface = cairo.ImageSurface.create_for_data(im_bytes, cairo.FORMAT_ARGB32, width, height)
-                    temp_ctx = cairo.Context(surface)
-
-                    Gdk.cairo_set_source_rgba(temp_ctx, colors[0])
-                    temp_ctx.set_operator(cairo.Operator.IN)
-                    temp_ctx.rectangle(0, 0, width, height)
-                    temp_ctx.fill()
+                    # 直接从 cairo surface 取数据到 numpy 做 alpha 提取 +
+                    # Operator.IN 着色。原实现 4 次内存拷贝（12MB/页），现
+                    # 2 次（np.frombuffer + .copy() → bytearray）。正确性：
+                    # FORMAT_ARGB32 小端字节序为 BGRA，alpha 公式沿用原实现
+                    # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
+                    surface = self._apply_theme_recolor(surface, colors)
 
                 self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_date'], colors]})
+
+    def _apply_theme_recolor(self, surface, colors):
+        '''对 ARGB32 surface 做「深色化」处理并返回新 surface。
+
+        1) numpy 按 BGRA 字节序把亮度映射进 alpha（白底变透明）；
+        2) Gdk 色 colors[0] 以 Operator.IN 着色（保留目标 alpha）。
+        整页渲染与放大镜局部渲染共用；colors[1] 与旧实现一致地不参与着色。'''
+        width = surface.get_width()
+        height = surface.get_height()
+        buf = surface.get_data()
+        img_data = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4).copy()
+
+        alpha = 255 - 0.3 * img_data[..., 0] - 0.6 * img_data[..., 1] - 0.1 * img_data[..., 2]
+        img_data[..., 3] = alpha.astype(np.uint8)
+
+        im_bytes = bytearray(img_data.tobytes())
+        surface = cairo.ImageSurface.create_for_data(im_bytes, cairo.FORMAT_ARGB32, width, height)
+        temp_ctx = cairo.Context(surface)
+
+        Gdk.cairo_set_source_rgba(temp_ctx, colors[0])
+        temp_ctx.set_operator(cairo.Operator.IN)
+        temp_ctx.rectangle(0, 0, width, height)
+        temp_ctx.fill()
+        return surface
+
+    # ---- 放大镜局部渲染 ----
+
+    def request_magnifier_render(self, page_number, center_x_pt, center_y_pt,
+                                 out_css_size, hidpi_factor, density, rotation, colors):
+        '''入队一个放大镜局部渲染任务（主线程调用），返回请求 id。
+
+        任务放 render_queue 高优先级队列——放大镜必须跟手，不能排在整页
+        渲染之后。返回的 request_id 由调用方保存，用于在结果到达时比对；
+        过期任务在渲染线程内即被丢弃（见 _process_magnifier_todo）。
+
+        参数:
+            page_number: 0-based 页号
+            center_x_pt / center_y_pt: 裁剪中心（页面内 top-down PDF 点坐标，
+                与布局映射 get_page_number_and_offsets_by_document_offsets
+                的返回值同约定）
+            out_css_size: 输出方形浮窗边长（css px）
+            hidpi_factor: 设备像素比
+            density: 渲染密度（设备 px / PDF 点，= factor × scale × hidpi）
+            rotation: 预览旋转角（0/90/180/270）
+            colors: 反色主题色元组或 None
+        '''
+        if self.preview.poppler_document == None:
+            return None
+        with self._magnifier_request_lock:
+            self._magnifier_latest_request_id += 1
+            request_id = self._magnifier_latest_request_id
+            task = {
+                'kind': 'magnifier',
+                'request_id': request_id,
+                'page_number': int(page_number),
+                'center_x_pt': float(center_x_pt),
+                'center_y_pt': float(center_y_pt),
+                'out_css_size': max(1, int(out_css_size)),
+                'hidpi_factor': hidpi_factor,
+                'density': float(density),
+                'rotation': rotation,
+                'matching_theme_colors': colors,
+            }
+            self.render_queue.put(task)
+        return request_id
+
+    def _process_magnifier_todo(self, todo):
+        '''渲染线程内处理一个放大镜任务：过期即弃，否则局部渲染后投递到
+        magnified_pages_queue 并通过 idle 回调通知主线程。'''
+        with self._magnifier_request_lock:
+            if todo['request_id'] != self._magnifier_latest_request_id:
+                return
+
+        try:
+            page = self.preview.poppler_document.get_page(todo['page_number'])
+        except Exception:
+            # shutdown / PDF 切换窗口期文档可能已被替换或释放：静默丢弃。
+            return
+
+        size_px = todo['out_css_size'] * todo['hidpi_factor']
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, int(size_px), int(size_px))
+        ctx = cairo.Context(surface)
+
+        density = todo['density']
+        half_pt = size_px / (2 * density)
+        cx = todo['center_x_pt']
+        cy = todo['center_y_pt']
+
+        # 变换链见 apply_magnifier_transform 文档：裁剪中心对到 surface
+        # 中心、密度为整页渲染的 factor 倍；page.render 内部自带的 y 翻转
+        # 负责把 PDF 原生 y-up 内容落进与布局映射一致的 top-down 空间，
+        # 这里绝不能再手动翻（双重翻转 = 镜像）。旋转仅 90° 倍数，轴对齐
+        # 裁剪区经旋转仍轴对齐，top-down 白底矩形可精确覆盖可见区域。
+        apply_magnifier_transform(ctx, size_px, density, todo['rotation'], cx, cy)
+
+        ctx.set_source_rgba(1, 1, 1, 1)
+        ctx.rectangle(cx - half_pt, cy - half_pt, 2 * half_pt, 2 * half_pt)
+        ctx.fill()
+
+        page.render(ctx)
+
+        colors = todo['matching_theme_colors']
+        if colors != None:
+            surface = self._apply_theme_recolor(surface, colors)
+
+        self.magnified_pages_queue.put({
+            'kind': 'magnifier',
+            'request_id': todo['request_id'],
+            'surface': surface,
+        })
+        # 跨线程唤醒主线程消费结果（g_idle_add_full 线程安全）。一次性回调：
+        # 返回 False 自毁；shutdown 后置守卫避免触碰已失效的信号连接。
+        GObject.idle_add(self.on_magnifier_result_produced)
+
+    def on_magnifier_result_produced(self):
+        '''主线程回调：发 change code 让 controller 消费 magnified_pages_queue。'''
+        if self._shutting_down:
+            return False
+        self.add_change_code('magnifier_result_ready')
+        return False
 
     def rendered_pages_loop(self):
         with self.is_active_lock:

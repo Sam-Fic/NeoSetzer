@@ -251,6 +251,7 @@ class PreviewPresenter(object):
         first_page_top = layout.get_page_top(first_page)
         if first_page_top is None:
             return
+        base_matrix = ctx.get_matrix()
         ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page_top))
 
         rotation = self.preview.rotation
@@ -278,6 +279,33 @@ class PreviewPresenter(object):
 
             # per-page advance：每页实际高 + gap（而非统一 page_step）。
             ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_heights[page_number] + page_gap))
+
+        # 放大镜诊断双标记（SETZER_MAGNIFIER_DEBUG=1），画在页面纹理之后
+        # （此前误画在背景层、被不透明页面盖住导致「点没显示」）：
+        # 红十字圆点 = 裁剪中心反算回画布坐标（映射+几何链路）
+        # 蓝色小方块 = 原始输入 doc 坐标（输入链路）
+        # 光标尖为物理基准。三者比对可唯一定位偏差所在段。
+        debug_marker = getattr(self.preview.controller, '_magnifier_debug_pos', None)
+        if debug_marker is not None:
+            ctx.set_matrix(base_matrix)
+            back = debug_marker.get('back')
+            if back is not None:
+                ctx.set_source_rgba(1, 0, 0, 0.95)
+                ctx.set_line_width(1.5)
+                ctx.arc(back[0], back[1], 5, 0, 2 * math.pi)
+                ctx.stroke()
+                ctx.arc(back[0], back[1], 1.5, 0, 2 * math.pi)
+                ctx.fill()
+                ctx.move_to(back[0] - 10, back[1])
+                ctx.line_to(back[0] + 10, back[1])
+                ctx.move_to(back[0], back[1] - 10)
+                ctx.line_to(back[0], back[1] + 10)
+                ctx.stroke()
+            inp = debug_marker.get('input')
+            if inp is not None:
+                ctx.set_source_rgba(0, 0.25, 1, 0.95)
+                ctx.rectangle(inp[0] - 4, inp[1] - 4, 8, 8)
+                ctx.fill()
 
     def draw_background(self, ctx, drawing_area, bg_color):
         # 画布（"桌面"）背景始终跟随视图背景色（view_bg_color），与页面
