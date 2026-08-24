@@ -189,6 +189,9 @@ class Actions(object):
         self.main_window.add_action(self.actions['quit'])
 
         self.workspace.connect('new_document', self.on_new_document)
+        # BuildSystem 可能晚于 new_document 才挂接（会话恢复的非活跃轻量
+        # 文档在激活时才建工具链）：就绪时补连 can_sync_changed。
+        self.workspace.connect('latex_toolchain_ready', self.on_latex_toolchain_ready)
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_inactive_document', self.on_new_inactive_document)
         self.workspace.connect('new_active_document', self.on_new_active_document)
@@ -202,12 +205,27 @@ class Actions(object):
 
     def on_new_document(self, workspace, document):
         if document.is_latex_document():
-            document.build_system.connect('can_sync_changed', self.on_can_sync_changed)
+            # 工具链可能尚未挂接：无 build_system 则跳过，等
+            # latex_toolchain_ready 补连。两个入口互斥（创建即挂接时
+            # ready 不再发出），不会双连。
+            if getattr(document, 'build_system', None) is not None:
+                document.build_system.connect('can_sync_changed', self.on_can_sync_changed)
         self.update_actions()
+
+    def on_latex_toolchain_ready(self, workspace, document):
+        '''延迟挂接的工具链就绪：补连 can_sync_changed，使 forward sync
+        动作的可用性随编译状态实时更新。'''
+        if document.is_latex_document():
+            build_system = getattr(document, 'build_system', None)
+            if build_system is not None:
+                build_system.connect('can_sync_changed', self.on_can_sync_changed)
 
     def on_document_removed(self, workspace, document):
         if document.is_latex_document():
-            document.build_system.disconnect('can_sync_changed', self.on_can_sync_changed)
+            # 从未激活过的轻量文档没有工具链，无需断连。
+            build_system = getattr(document, 'build_system', None)
+            if build_system is not None:
+                build_system.disconnect('can_sync_changed', self.on_can_sync_changed)
         self.update_actions()
 
     def on_new_inactive_document(self, workspace, document):
@@ -369,8 +387,9 @@ class Actions(object):
     def new_latex_document(self, action=None, parameter=None):
         main_window = ServiceLocator.get_main_window()
         main_window.show_loading_spinner()
-        # 延迟 200ms 再创建文档，让 spinner 先渲染并动画几帧，避免立即卡顿
-        GLib.timeout_add(200, self._do_new_latex_document)
+        # 延迟约一帧（16ms ≈ 60Hz）再创建文档：spinner 能画出第一帧即可，
+        # 不再固定多等 200ms。
+        GLib.timeout_add(16, self._do_new_latex_document)
 
     def _do_new_latex_document(self):
         document = self.workspace.create_latex_document()
@@ -381,7 +400,8 @@ class Actions(object):
     def new_bibtex_document(self, action=None, parameter=None):
         main_window = ServiceLocator.get_main_window()
         main_window.show_loading_spinner()
-        GLib.timeout_add(200, self._do_new_bibtex_document)
+        # 延迟约一帧，让 spinner 先画出来（同 new_latex_document）。
+        GLib.timeout_add(16, self._do_new_bibtex_document)
 
     def _do_new_bibtex_document(self):
         document = self.workspace.create_bibtex_document()

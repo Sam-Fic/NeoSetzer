@@ -34,6 +34,9 @@ class PreviewPanelPresenter(object):
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # Preview 可能晚于 new_document 才挂接（会话恢复的非活跃文档在激活
+        # 时才建工具链）：latex_toolchain_ready 时补做 stack 挂载。
+        self.workspace.connect('latex_toolchain_ready', self.on_latex_toolchain_ready)
         # 弹出/收回时刷新 detach 按钮可见性（popped_out 时隐藏——独立窗口已 detached）。
         self.workspace.connect('preview_pop_state_changed', self.on_preview_pop_state_changed)
 
@@ -63,11 +66,33 @@ class PreviewPanelPresenter(object):
 
     def on_new_document(self, workspace, document):
         if document.is_latex_document():
-            self.stack.add_child(document.preview.view)
+            # 工具链可能尚未挂接（会话恢复的非活跃轻量文档）：无 preview 则
+            # 跳过，等 latex_toolchain_ready 再补挂 stack。
+            doc_preview = getattr(document, 'preview', None)
+            if doc_preview is not None:
+                self.stack.add_child(doc_preview.view)
+
+    def on_latex_toolchain_ready(self, workspace, document):
+        '''延迟挂接的工具链就绪：补做 new_document 时被跳过的 stack 挂载。
+
+        若该文档正是当前展示目标（如会话恢复时根文档在 set_active_document
+        中补挂），还需刷新可见 child 与信号连接——set_preview_document 统一
+        处理。'''
+        if not document.is_latex_document():
+            return
+        doc_preview = getattr(document, 'preview', None)
+        if doc_preview is not None and doc_preview.view.get_parent() is None:
+            self.stack.add_child(doc_preview.view)
+        if self.document is document:
+            self.set_preview_document()
 
     def on_document_removed(self, workspace, document):
         if document.is_latex_document():
-            self.stack.remove(document.preview.view)
+            # preview 可能不存在（从未激活过的轻量文档）或 view 从未加入
+            # stack：两种情况都无需（也不能）从 stack 移除。
+            doc_preview = getattr(document, 'preview', None)
+            if doc_preview is not None and doc_preview.view.get_parent() is not None:
+                self.stack.remove(doc_preview.view)
 
     def on_new_active_document(self, workspace, document):
         self.set_preview_document()
@@ -86,15 +111,22 @@ class PreviewPanelPresenter(object):
 
     def set_preview_document(self):
         if self.document != None:
-            self.document.preview.disconnect('pdf_changed', self.on_pdf_changed)
-            self.document.preview.disconnect('position_changed', self.on_position_changed)
-            self.document.preview.disconnect('layout_changed', self.on_layout_changed)
-            self.document.preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
-            self.document.preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
-            self.document.preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
+            # 旧文档的 preview 理应存在（本方法 connect 过才会成为展示目标），
+            # 但 self.document 也可能被 update_buttons 直接重赋值，此处仍守卫。
+            old_preview = getattr(self.document, 'preview', None)
+            if old_preview is not None:
+                old_preview.disconnect('pdf_changed', self.on_pdf_changed)
+                old_preview.disconnect('position_changed', self.on_position_changed)
+                old_preview.disconnect('layout_changed', self.on_layout_changed)
+                old_preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
+                old_preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
+                old_preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
 
         self.document = self.workspace.get_root_or_active_latex_document()
-        if self.document == None:
+        # 工具链未挂接的文档视同无预览（正常流程不会发生：激活/根文档都会
+        # 先挂工具链，这里仅防御）。
+        doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
+        if self.document == None or doc_preview is None:
             self.stack.set_visible_child(self.view.empty_placeholder)
             self.update_label()
             self.update_buttons()
@@ -145,7 +177,10 @@ class PreviewPanelPresenter(object):
         fit_action = self.workspace.actions.actions.get('preview-fit-mode')
         if self.document is None:
             return
-        zoom_manager = self.document.preview.zoom_manager
+        zoom_manager = getattr(self.document, 'preview', None)
+        if zoom_manager is None:
+            return
+        zoom_manager = zoom_manager.zoom_manager
         zoom_level = zoom_manager.get_zoom_level()
         mode = zoom_manager.zoom_mode
 
@@ -205,7 +240,13 @@ class PreviewPanelPresenter(object):
             self.view.paging_of_label.set_visible(False)
             self.view.stale_label.set_text('')
         else:
-            preview = self.document.preview
+            preview = getattr(self.document, 'preview', None)
+            if preview is None:
+                # 工具链未挂接：与「无文档」同样显示占位。
+                self.view.page_spin.set_visible(False)
+                self.view.paging_of_label.set_visible(False)
+                self.view.stale_label.set_text('')
+                return
             if preview.pdf_is_stale:
                 self.view.stale_label.set_text(_('Build failed — showing the previous PDF'))
             else:
@@ -227,7 +268,8 @@ class PreviewPanelPresenter(object):
 
     def update_buttons(self):
         self.document = self.workspace.get_root_or_active_latex_document()
-        has_pdf = self.document != None and self.document.preview.poppler_document != None
+        doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
+        has_pdf = doc_preview is not None and doc_preview.poppler_document != None
 
         self.view.toolbar.set_visible(True)
         self.view.external_viewer_button.set_visible(True)
@@ -250,21 +292,24 @@ class PreviewPanelPresenter(object):
         self.view.page_spin.set_sensitive(has_pdf)
 
         if has_pdf:
-            zoom_level = self.document.preview.zoom_manager.get_zoom_level()
+            zoom_level = doc_preview.zoom_manager.get_zoom_level()
             self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
             self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
 
     def update_zoom_level(self):
-        zoom_level = self.document.preview.zoom_manager.get_zoom_level()
+        doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
+        if doc_preview is None:
+            return
+        zoom_level = doc_preview.zoom_manager.get_zoom_level()
 
         if zoom_level != None:
             self.view.zoom_level_label.set_text('{0:.1f}%'.format(zoom_level * 100))
 
     def _on_page_spin_activate(self, spin_button):
         page_number = int(spin_button.get_value())
-        if self.document == None:
+        preview = getattr(self.document, 'preview', None) if self.document != None else None
+        if preview is None:
             return
-        preview = self.document.preview
         if preview.layout == None or preview.poppler_document == None:
             return
         total = preview.poppler_document.get_n_pages()
@@ -279,7 +324,10 @@ class PreviewPanelPresenter(object):
     def _on_fit_width_clicked(self, button):
         if self.document == None:
             return
-        self.document.preview.zoom_manager.set_zoom_fit_to_width_auto_offset()
+        doc_preview = getattr(self.document, 'preview', None)
+        if doc_preview is None:
+            return
+        doc_preview.zoom_manager.set_zoom_fit_to_width_auto_offset()
 
     def _sync_switch_icons(self):
         '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。

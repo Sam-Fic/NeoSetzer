@@ -38,6 +38,9 @@ class ShortcutsBar(object):
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('show_build_log_state_change', self.update_buttons)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # BuildSystem 可能晚于 new_document 才挂接（会话恢复的非活跃文档）：
+        # 就绪时若正是当前文档，刷新 Log 按钮错误样式。
+        self.workspace.connect('latex_toolchain_ready', self.on_latex_toolchain_ready)
 
         # Pass-10: build_log_paned 已移除（build_log 改为弹窗）。原 width-changed
         # 监听早已无操作（注释说明），此处一并清理。
@@ -83,6 +86,16 @@ class ShortcutsBar(object):
 
     def on_root_state_change(self, workspace, state):
         self.update_buttons()
+
+    def on_latex_toolchain_ready(self, workspace, document):
+        '''延迟挂接的工具链就绪：若正是当前跟踪的文档，按其（恢复出的）
+        编译结果刷新 Log 按钮错误样式。
+
+        build_state 信号连接无需在此补连——shortcutsbar 只连接「活跃文档」
+        的 build_system，而激活路径（workspace.set_active_document）保证
+        工具链先于 new_active_document 挂接完成。'''
+        if self.document is document:
+            self._refresh_build_log_error_style(document)
 
     def update_wizard_button(self, animate=False):
         if self.document == None: return
@@ -136,8 +149,12 @@ class ShortcutsBar(object):
         - 文档上次编译产生了 error（error_count > 0）：显示红色
         用于文档切换与初始构造，使按钮状态始终跟随当前活动文档，
         而非残留上一个文档的视觉状态。'''
+        # build_system 可能尚未挂接（延迟工具链的文档在激活前不可能成为
+        # 本方法的 document 参数，这里仅防御），无编译结果即无 error。
+        build_system = getattr(document, 'build_system', None) if document is not None else None
         has_error = (document is not None and document.is_latex_document()
-                     and document.build_system.get_error_count() > 0)
+                     and build_system is not None
+                     and build_system.get_error_count() > 0)
         if has_error:
             self.view.button_build_log.add_css_class('build-log-error')
         else:
