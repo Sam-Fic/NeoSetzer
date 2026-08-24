@@ -178,8 +178,8 @@ def build_prompt_for_item(document, item):
     parts.append('Relevant source context:')
     parts.append(source_block if source_block else '(source unavailable)')
     parts.append('')
-    parts.append('Please fix the error by editing the file(s) directly. '
-                 'Only change what is necessary to resolve the reported error.')
+    parts.append('Please diagnose and fix this error. Note: the cause may not be '
+                 'in the source -- check for missing packages or other environment issues too.')
     return '\n'.join(parts)
 
 
@@ -266,6 +266,6 @@ def build_prompt_for_items(document, items):
             total_chars += len(block)
         parts.append('')
 
-    parts.append('Please fix all the errors listed above by editing the file(s) directly. '
-                 'Only change what is necessary to resolve the reported errors.')
+    parts.append('Please diagnose and fix all the errors listed above. Note: the causes may not be '
+                 'in the sources -- check for missing packages or other environment issues too.')
     return '\n'.join(parts)

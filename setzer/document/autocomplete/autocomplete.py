@@ -37,6 +37,19 @@ _ACTIVATE_REGEX = re.compile(r'\\[a-zA-Z0-9@]+\Z')
 # \begin{...} 上下文：光标在 \begin{ 的花括号内时补全环境名而非 LaTeX 命令。
 _BEGIN_REGEX = re.compile(r'\\begin\{([a-zA-Z]*)\Z')
 
+# cite 类命令 + 方括号可选项 + 花括号的激活形态（上游 issue #312）：行尾为
+# \autocite[34]{en 时 _ACTIVATE_REGEX 失配（行尾不是纯 \命令名），补全静默
+# 不触发。白名单直接取 LaTeXDB.dynamic_commands['citations']（类级属性，
+# import 时即就绪），保证不误伤 \textcolor[RGB]{、\includegraphics[width=]{
+# 等同样带可选参数的普通命令；按长度降序排列使长命令名优先匹配。花括号内
+# 允许零字符（输入 '{' 的瞬间即激活，正是 issue #312 的原始诉求），排除
+# 空白/花括号/注释符等不可能出现在 bib key 中的字符——误命中也会因提案
+# 过滤为空而自动失活（update_suggestions 的空 items 分支）。
+_CITE_OPTARG_REGEX = re.compile(
+    '(?:' + '|'.join(re.escape(c) for c in
+                     sorted(LaTeXDB.dynamic_commands['citations'], key=len, reverse=True))
+    + r')\[[^\]\n]*\]\{[^\s{}%\[\]\\]*\Z')
+
 # math mode 检测：光标前奇数个未转义 $ 视为 math mode。
 def _is_in_math_mode(text_before_cursor):
     count = 0
@@ -220,6 +233,19 @@ class Autocomplete(object):
         if begin_match:
             self.context = 'begin'
             self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + begin_match.start()
+            self.is_active = True
+            self.update_suggestions()
+            self.widget.queue_draw()
+            return
+
+        # cite 命令带页码可选项：行尾 \autocite[34]{en 形态（上游 issue #312）。
+        # 词起点定在命令的 '\'，current_word 含完整前缀；LaTeXDB 的提案以同
+        # 一前缀开头（见 LaTeXDB._compile_dynamic_regexes），tab/submit 只追加
+        # 缺失后缀，[34] 因此保留。
+        cite_opt_match = _CITE_OPTARG_REGEX.search(line_before_cursor)
+        if cite_opt_match:
+            self.context = None
+            self.current_word_offset = insert_iter.get_offset() - len(line_before_cursor) + cite_opt_match.start()
             self.is_active = True
             self.update_suggestions()
             self.widget.queue_draw()

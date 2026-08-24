@@ -77,16 +77,32 @@ class LaTeXDB():
     def init(resources_path):
         LaTeXDB.resources_path = resources_path
         # 预编译 ref/cite 前缀正则（dynamic_commands 在此刻已就绪）。
-        ref_pattern = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['references'])).replace('\\|', '|') + ')'
-        cite_pattern = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['citations'])).replace('\\|', '|') + ')'
-        LaTeXDB._ref_regex = re.compile(ref_pattern)
-        LaTeXDB._cite_regex = re.compile(cite_pattern)
+        LaTeXDB._compile_dynamic_regexes()
         LaTeXDB.generate_static_proposals()
         LaTeXDB.parse_included_files()
         # 不再注册 3 秒常驻轮询。改为事件驱动：文档打开/关闭/构建完成时
         # 由 workspace / build_system 显式调用 LaTeXDB.schedule_parse_included_files()。
         # LaTeXDB 的数据用于 autocomplete 的 \ref/\cite 补全，仅在用户
         # 打字时查询；文档加载/构建完成时刷新一次即覆盖所有场景。
+
+    def _compile_dynamic_regexes():
+        r'''预编译 ref/cite 前缀正则（init 时调用；测试可直接调用以避免
+        依赖 resources/workspace）。
+
+        cite 模式在命令名与 '{' 之间允许方括号可选项（biblatex 页码等，
+        上游 issue #312）：可选项并入捕获组，使 get_dynamic_proposals 的
+        prefix 携带 '[34]'，提案形如 '\autocite[34]{key}'——补全替换从词起点
+        （'\' 处）开始，选项因此不被吞掉。仅接受闭合的 [...]：用户尚在输入
+        页码时（'\autocite[34'）补全短暂失活属预期，']' 输入后重新满足激活
+        形态即恢复。
+        '''
+        ref_pattern = '(' + re.escape('|'.join(LaTeXDB.dynamic_commands['references'])).replace('\\|', '|') + ')'
+        # 注意：交替式必须先包一层非捕获组——'|' 优先级最低，若直接写
+        # (A|B|C(?:\[..\])?)，可选项只粘到最后一个分支 \cite 上。
+        cite_pattern = ('((?:' + re.escape('|'.join(LaTeXDB.dynamic_commands['citations'])).replace('\\|', '|')
+                        + r')(?:\[[^\]\n]*\])?)')
+        LaTeXDB._ref_regex = re.compile(ref_pattern)
+        LaTeXDB._cite_regex = re.compile(cite_pattern)
 
     def schedule_parse_included_files():
         '''去抖调度 parse_included_files：连续多次调用只触发一次实际刷新。
