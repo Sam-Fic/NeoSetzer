@@ -91,14 +91,13 @@ class AutocompleteWidget(object):
             opaque_color.green = bg_color.green
             opaque_color.blue = bg_color.blue
             opaque_color.alpha = 1.0
-            
+
             # 转换为 #rrggbb 格式（不带 alpha），避免 CSS 变量可能带的透明度
             r = int(round(opaque_color.red * 255))
             g = int(round(opaque_color.green * 255))
             b = int(round(opaque_color.blue * 255))
             hex_color = f'#{r:02x}{g:02x}{b:02x}'
-            
-            css_provider = Gtk.CssProvider()
+
             css = f'''
             .autocomplete-widget {{
                 background-color: {hex_color};
@@ -112,11 +111,16 @@ class AutocompleteWidget(object):
                 background-color: alpha(@theme_selected_bg_color, 0.25);
             }}
             '''
-            css_provider.load_from_data(css.encode())
-            self.view.get_style_context().add_provider(
-                css_provider,
-                Gtk.STYLE_PROVIDER_PRIORITY_USER
-            )
+            # Provider 只注册一次（display 级），主题切换时重载 CSS 即可，
+            # 避免重复 add_provider_for_display 造成 provider 堆积。
+            if getattr(self, '_opaque_css_provider', None) is None:
+                self._opaque_css_provider = Gtk.CssProvider()
+                Gtk.StyleContext.add_provider_for_display(
+                    Gdk.Display.get_default(),
+                    self._opaque_css_provider,
+                    Gtk.STYLE_PROVIDER_PRIORITY_USER
+                )
+            self._opaque_css_provider.load_from_data(css.encode())
 
     def _on_theme_changed(self, style_manager, pspec):
         '''主题切换时重新应用不透明背景。'''
