@@ -49,6 +49,9 @@ class WorkspacePresenter(object):
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('new_inactive_document', self.on_new_inactive_document)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # BuildSystem 可能晚于 new_document 才挂接（会话恢复的非活跃文档在
+        # 激活时才建工具链）：latex_toolchain_ready 时补连 build_state。
+        self.workspace.connect('latex_toolchain_ready', self.on_latex_toolchain_ready)
         self.workspace.connect('set_show_symbols_or_document_structure', self.on_set_show_symbols_or_document_structure)
         self.workspace.connect('set_show_preview_or_help', self.on_set_show_preview_or_help)
         self.workspace.connect('show_build_log_state_change', self.on_show_build_log_state_change)
@@ -83,7 +86,22 @@ class WorkspacePresenter(object):
         # （show_preview=True），之前因「从未编译」而被抑制的预览侧栏
         # 需要重新评估显隐——此时文档已有 PDF，预览有内容可展示。
         if document.is_latex_document():
-            document.build_system.connect('build_state', self.on_build_state)
+            # 工具链可能尚未挂接（会话恢复的非活跃轻量文档）：无
+            # build_system 则跳过，等 latex_toolchain_ready 再补连。
+            # 两个入口互斥：创建即挂接时 new_document 能看到 build_system、
+            # latex_toolchain_ready 不会发出（挂接幂等）；延迟挂接时
+            # new_document 看不到 build_system、由 ready 补连。不会双连。
+            build_system = getattr(document, 'build_system', None)
+            if build_system is not None:
+                document.build_system.connect('build_state', self.on_build_state)
+
+    def on_latex_toolchain_ready(self, workspace, document):
+        '''延迟挂接的工具链就绪：补连 build_state（编译成功后重估预览显隐）。'''
+        if not document.is_latex_document():
+            return
+        build_system = getattr(document, 'build_system', None)
+        if build_system is not None:
+            build_system.connect('build_state', self.on_build_state)
 
     def on_build_state(self, build_system, message):
         # 编译成功后重新评估预览侧栏显隐。用 idle 延迟到当前 build_state
@@ -144,7 +162,7 @@ class WorkspacePresenter(object):
                 self.main_window.document_stack.add_child(view)
             self.main_window.document_stack.set_visible_child(view)
             # 激活文档后，若 autocomplete 已就绪（如切换回已有文档），挂载 overlay。
-            # 首次新建文档时 autocomplete 由 _init_latex_features 的 idle 回调处理。
+            # 首次新建文档时 autocomplete 由 _init_deferred_features 的 idle 回调处理。
             document = self.workspace.get_active_document()
             if document is not None and document.is_latex_document():
                 autocomplete = getattr(document, 'autocomplete', None)
@@ -287,7 +305,13 @@ class WorkspacePresenter(object):
             # 用户手动点预览按钮时传 suppress_unbuilt=False，始终展开（显示占位提示
             # 用户去编译）。help 侧栏与编译无关，始终尊重用户设置，不受此抑制影响。
             if suppress_unbuilt and preview_help_visible and show_preview and not show_help:
-                if not target_doc.build_system.document_has_been_built and target_doc.preview.poppler_document is None:
+                # target_doc 可能是未挂接工具链的根文档（会话恢复后从未激活）：
+                # 无 build_system / preview 视同「从未编译且无 PDF」，抑制自动展开。
+                doc_build_system = getattr(target_doc, 'build_system', None)
+                doc_preview = getattr(target_doc, 'preview', None)
+                if doc_build_system is None or doc_preview is None or (
+                        not doc_build_system.document_has_been_built
+                        and doc_preview.poppler_document is None):
                     preview_help_visible = False
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。

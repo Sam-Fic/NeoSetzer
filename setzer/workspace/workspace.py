@@ -141,11 +141,12 @@ class Workspace(Observable):
         self.controller = workspace_controller.WorkspaceController(self)
 
     def open_document_by_filename_with_spinner(self, filename):
-        '''用户触发的打开文档：先显示 spinner，延迟 200ms 再执行实际打开。
+        '''用户触发的打开文档：先显示 spinner，延迟约一帧再执行实际打开。
 
         与直接调用 open_document_by_filename 的区别：
         - 显示 spinner 后用 timeout 延迟，确保 spinner 渲染出来再执行重操作
           （create_document_from_filename 会读盘 + 创建 GTK 组件，阻塞主线程）。
+          16ms ≈ 60Hz 下一帧：spinner 能画出第一帧即可，不再固定多等 200ms。
         - fire-and-forget：不返回 document（用户交互场景无需同步拿返回值）。
         供对话框、最近文档、拖放、欢迎页等用户入口调用。编程式打开
         （sidebar include 跳转、build log 反向同步等）仍用同步的
@@ -154,7 +155,7 @@ class Workspace(Observable):
         main_window = ServiceLocator.get_main_window()
         if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
             main_window.show_loading_spinner()
-            GLib.timeout_add(200, self._do_open_document_by_filename, filename)
+            GLib.timeout_add(16, self._do_open_document_by_filename, filename)
         else:
             self.open_document_by_filename(filename)
 
@@ -223,7 +224,7 @@ class Workspace(Observable):
             print(f'Warning: document.controller.shutdown() failed: {e}')
 
         # 断开 settings / style_manager 单例信号连接 + 取消挂起的
-        # _init_latex_features idle 回调。详见 Document.shutdown 文档。
+        # _init_deferred_features idle 回调。详见 Document.shutdown 文档。
         try:
             document.shutdown()
         except Exception as e:
@@ -232,16 +233,22 @@ class Workspace(Observable):
         self.open_documents.remove(document)
         if document.is_latex_document():
             self.open_latex_documents.remove(document)
-            try:
-                document.build_system.shutdown()
-            except Exception as e:
-                print(f'Warning: document.build_system.shutdown() failed: {e}')
+            # build_system / preview 可能尚未挂接（会话恢复的非活跃文档在
+            # 激活前不建 toolchain），用 getattr 守卫避免 AttributeError。
+            doc_build_system = getattr(document, 'build_system', None)
+            if doc_build_system is not None:
+                try:
+                    doc_build_system.shutdown()
+                except Exception as e:
+                    print(f'Warning: document.build_system.shutdown() failed: {e}')
             # 释放预览渲染器的 50ms 轮询定时器（后台线程靠 is_active=False 空转，
             # 随进程退出）。避免关闭文档后定时器常驻泄漏。
-            try:
-                document.preview.page_renderer.shutdown()
-            except Exception as e:
-                print(f'Warning: document.preview.page_renderer.shutdown() failed: {e}')
+            doc_preview = getattr(document, 'preview', None)
+            if doc_preview is not None:
+                try:
+                    doc_preview.page_renderer.shutdown()
+                except Exception as e:
+                    print(f'Warning: document.preview.page_renderer.shutdown() failed: {e}')
         if self.active_document == document:
             candidate = self.get_last_active_document()
             if candidate == None:
@@ -259,8 +266,40 @@ class Workspace(Observable):
         if self.preview_popped_out and self.get_root_or_active_latex_document() is None:
             self.pop_in_preview()
 
-    def create_latex_document(self):
+    def create_latex_document(self, attach_preview=True):
+        '''创建 LaTeX 文档。
+
+        attach_preview=True（默认）：立即挂接 BuildSystem / BuildWidget /
+        Preview 工具链——新建文档、打开当前文件等「马上要用」的路径。
+        attach_preview=False：只建轻量 Document，不建工具链——会话恢复的
+        非活跃文档用；用户切到该文档时由 set_active_document 经
+        _attach_latex_toolchain 补挂。Preview 会拉起整套 GTK 控件
+        （布局器、页面渲染器、缩放管理器、右键菜单……），一次恢复 N 个
+        文件就省下 N 套构造成本。
+        '''
         document = Document('latex')
+        # 设置加载回调，使文档读盘时能通知 workspace 显示/隐藏 spinner
+        document._loading_callback = lambda action: self._on_document_loading(document, action)
+        if attach_preview:
+            self._attach_latex_toolchain(document)
+        return document
+
+    def _attach_latex_toolchain(self, document):
+        '''为 LaTeX 文档挂接 BuildSystem / BuildWidget / Preview（幂等）。
+
+        - 已挂接（document.preview 存在）或文档已 shutdown：直接返回。
+        - 若有 _pending_document_data（DocumentSettings 在 toolchain 未就绪时
+          暂存的 build log / PDF 状态），先应用再发通知，保证观察者在
+          latex_toolchain_ready 时看到的是已恢复完整状态的文档。
+        - 若文档已在 open_documents（会话恢复后补挂），发 latex_toolchain_ready
+          让 preview panel / shortcutsbar 等补做 add_child 与信号连接；创建即
+          挂接的场景不发（此时 new_document 信号自会携带完整文档）。
+        '''
+        if getattr(document, 'preview', None) is not None:
+            return
+        if getattr(document, '_is_shutdown', False):
+            return
+
         # preview 的 presenter 在构造时即访问 document.build_system，
         # 故须先于 preview 创建 build_system / build_widget。
         document.build_system = build_system.BuildSystem(document)
@@ -269,9 +308,23 @@ class Workspace(Observable):
         # BuildSystem.__init__ 内原本在此连接 preview 的 pdf_changed 信号，
         # 因构造时 preview 尚不存在而推迟到此处（两者均已就绪）。
         document.preview.connect('pdf_changed', document.build_system.update_can_sync)
-        # 设置加载回调，使文档读盘时能通知 workspace 显示/隐藏 spinner
-        document._loading_callback = lambda action: self._on_document_loading(document, action)
-        return document
+
+        pending = getattr(document, '_pending_document_data', None)
+        if pending is not None:
+            document._pending_document_data = None
+            try:
+                DocumentSettings.apply_pending_latex_state(document, pending)
+            except (KeyError, TypeError, ValueError, AttributeError) as e:
+                # 收窄捕获范围：状态文件字段缺失/类型异常不应中断挂接流程，
+                # 也不应吞掉编程错误（如 NameError）。
+                print(f'Warning: could not apply pending latex state: {e}')
+
+        if document in self.open_documents:
+            self.add_change_code('latex_toolchain_ready', document)
+            # 新挂接的工具链可能带有恢复出的编译日志（会话恢复路径），
+            # 立即同步诊断高亮并刷新预览渲染器的激活状态。
+            document.update_build_diagnostics()
+            self.update_preview_visibility(document)
 
     def create_bibtex_document(self):
         document = Document('bibtex')
@@ -283,13 +336,13 @@ class Workspace(Observable):
         document._loading_callback = lambda action: self._on_document_loading(document, action)
         return document
 
-    def create_document_from_filename(self, filename, lazy=False, with_loading_indicator=True):
+    def create_document_from_filename(self, filename, lazy=False, with_loading_indicator=True, attach_preview=True):
         # 文件名可能短于 4 字符（极端但合法），[-4:] 会返回整个字符串，
         # endswith 在此情形下仍能正确比较，且语义更清晰。
         if filename.endswith(('.tex', '.cls', '.sty', '.lco', '.loc')):
             # 类、样式及 KOMA Letter Option 文件都是 LaTeX 项目文件：以 LaTeX
             # 文档打开可让其 parser 参与项目侧栏、结构和跳转，而不会成为 root。
-            document = self.create_latex_document()
+            document = self.create_latex_document(attach_preview=attach_preview)
         elif filename.endswith('.bib'):
             document = self.create_bibtex_document()
         else:
@@ -338,15 +391,25 @@ class Workspace(Observable):
         if self.active_document is document:
             return
 
-        # 懒加载同步兜底：用户切换到尚未加载内容的文档时，取消其 idle 回调
-        # 并立即读取文件内容。idle 后台加载虽已调度，但用户主动切换意味着
-        # 要立即查看该文档——不能等 idle 排到它。
-        if document is not None and getattr(document, '_content_pending', False):
-            self._loading_start()
-            try:
-                document._load_content_if_pending()
-            finally:
-                self._loading_finish()
+        if document is not None:
+            # 激活前确保延迟构造的编辑器子系统（sticky_scroll / multicursor /
+            # autocomplete 等）已就绪：激活信号会触发 shortcutsbar、presenter
+            # 等观察者访问这些属性，不能等到 idle。
+            document.ensure_editor_features()
+            # LaTeX 工具链同理：preview panel / headerbar / build_log 都在
+            # 激活信号路径上访问 document.preview / build_system。幂等，
+            # 已挂接时立即返回。会话恢复的非活跃文档在此补挂工具链。
+            if document.is_latex_document():
+                self._attach_latex_toolchain(document)
+            # 懒加载同步兜底：用户切换到尚未加载内容的文档时，取消其 idle 回调
+            # 并立即读取文件内容。idle 后台加载虽已调度，但用户主动切换意味着
+            # 要立即查看该文档——不能等 idle 排到它。
+            if getattr(document, '_content_pending', False):
+                self._loading_start()
+                try:
+                    document._load_content_if_pending()
+                finally:
+                    self._loading_finish()
 
         if self.active_document != None:
             self.add_change_code('new_inactive_document', self.active_document)
@@ -486,13 +549,15 @@ class Workspace(Observable):
             # 排序保持原序（按 last_activated），活跃文档仍可能非末尾。
             for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
                 is_active = (item['filename'] == active_filename)
-                document = self.create_document_from_filename(item['filename'], lazy=not is_active, with_loading_indicator=False)
+                # 非活跃文档：lazy 读盘 + 不挂 Preview/Build 工具链（激活时
+                # set_active_document 补挂），把启动成本从 O(N) 降到 O(1)。
+                document = self.create_document_from_filename(item['filename'], lazy=not is_active, with_loading_indicator=False, attach_preview=is_active)
                 if document != None:
                     self._restore_document_state(document, item, root_document_filename)
             # 恢复未命名文档（临时内容文件）
             for item in sorted(data.get('untitled_documents', {}).values(), key=lambda val: val['last_activated']):
                 is_active = (item.get('untitled_id') == active_filename)
-                document = self._restore_untitled_document(item)
+                document = self._restore_untitled_document(item, attach_preview=is_active)
                 if document is not None and is_active:
                     self._restore_active_filename = item.get('untitled_id')
             for item in data['recently_opened_documents'].values():
@@ -523,11 +588,14 @@ class Workspace(Observable):
         finally:
             self._loading_finish()
 
-    def _restore_untitled_document(self, item):
+    def _restore_untitled_document(self, item, attach_preview=True):
         '''从 workspace.json 的 untitled_documents 条目恢复一个未命名文档。
 
         读取之前保存的临时内容文件，创建对应类型的文档并填充内容。
         如果临时文件不存在或读取失败，则静默跳过（不阻塞启动）。
+
+        attach_preview：非活跃的 untitled 文档同样延迟挂接 Preview/Build
+        工具链（与命名文档的会话恢复策略一致），激活时补挂。
         '''
         untitled_id = item.get('untitled_id')
         if not untitled_id:
@@ -539,7 +607,7 @@ class Workspace(Observable):
 
         doc_type = item.get('type', 'latex')
         if doc_type == 'latex':
-            document = self.create_latex_document()
+            document = self.create_latex_document(attach_preview=attach_preview)
         elif doc_type == 'bibtex':
             document = self.create_bibtex_document()
         else:
@@ -615,11 +683,12 @@ class Workspace(Observable):
                 print(f'Warning: could not remove untitled content: {e}')
 
     def load_documents_from_session_file_with_spinner(self, filename):
-        '''用户触发的 .stzs 会话文件打开：先显示 spinner，延迟执行实际加载。'''
+        '''用户触发的 .stzs 会话文件打开：先显示 spinner，延迟约一帧再实际加载
+        （16ms ≈ 60Hz 一帧，spinner 能画出第一帧即可）。'''
         main_window = ServiceLocator.get_main_window()
         if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
             main_window.show_loading_spinner()
-            GLib.timeout_add(200, self._do_load_documents_from_session_file, filename)
+            GLib.timeout_add(16, self._do_load_documents_from_session_file, filename)
         else:
             self.load_documents_from_session_file(filename)
 
@@ -653,7 +722,11 @@ class Workspace(Observable):
             active_filename = data.get('active_document_filename')
             opened_count = 0
             for item in sorted(data['open_documents'].values(), key=lambda val: val['last_activated']):
-                document = self.create_document_from_filename(item['filename'], with_loading_indicator=False)
+                is_active = (item['filename'] == active_filename)
+                # 与 populate_from_disk 一致：非活跃文档 lazy 读盘且不挂
+                # Preview/Build 工具链，激活时补挂；避免打开会话文件时为
+                # 每个文档同步构造一整套 Preview GTK 控件。
+                document = self.create_document_from_filename(item['filename'], lazy=not is_active, with_loading_indicator=False, attach_preview=is_active)
                 if document is None:
                     continue
                 opened_count += 1
@@ -728,6 +801,12 @@ class Workspace(Observable):
         # 未命名文档的 item 中无 'filename' 键（只有 'untitled_id'），
         # 且未命名文档不可能被设为 root，故跳过 root 匹配检查。
         if 'filename' in item and item['filename'] == root_document_filename:
+            # 根文档即使非活跃也必须挂接 Build/Preview 工具链：headerbar
+            # （build 按钮）、build_log、预览面板都以「根文档优先」取对象，
+            # 而这些访问不经 set_active_document。先挂接再设 root，保证
+            # root_state_change 的观察者（preview_panel.set_preview_document
+            # 等）看到的是带 preview 的完整文档。
+            self._attach_latex_toolchain(document)
             self.set_one_document_root(document)
 
     def _collect_open_documents_data(self):
@@ -957,6 +1036,9 @@ class Workspace(Observable):
 
         for candidate in self.open_latex_documents:
             if candidate.get_filename() == root_filename:
+                # 候选可能是会话恢复后从未激活的轻量文档（无工具链）：
+                # 构建前补挂 BuildSystem / Preview。
+                self._attach_latex_toolchain(candidate)
                 return candidate
 
         # Match the manual "Set as root" loading behavior only at build time,
@@ -970,12 +1052,18 @@ class Workspace(Observable):
 
     def update_preview_visibility(self, document):
         if document != None and document.is_latex_document():
+            # preview 可能尚未挂接（会话恢复的非活跃文档），无渲染器则无
+            # 激活/停用可言，直接跳过——挂接时 _attach_latex_toolchain 会
+            # 再调一次本方法补齐状态。
+            doc_preview = getattr(document, 'preview', None)
+            if doc_preview is None:
+                return
             if document == self.root_document:
-                document.preview.page_renderer.activate()
+                doc_preview.page_renderer.activate()
             elif document == self.active_document and self.root_document == None:
-                document.preview.page_renderer.activate()
+                doc_preview.page_renderer.activate()
             else:
-                document.preview.page_renderer.deactivate()
+                doc_preview.page_renderer.deactivate()
 
     def is_preview_popped_out(self):
         return self.preview_popped_out

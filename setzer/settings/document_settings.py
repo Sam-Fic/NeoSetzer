@@ -39,6 +39,7 @@ class DocumentSettings():
         'auto_build_delay',
         'use_latexmk',
         'cleanup_build_files',
+        'enable_synctex',
     )
 
     def get_document_override(document, preference_key):
@@ -118,32 +119,31 @@ class DocumentSettings():
         # restore recent symbols
         document.recent_symbols = list(document_data.get('recent_symbols', []))
 
-    def update_document(document, document_data):
-        # 加载 per-document 偏好覆盖（统一容器）。
-        # 缺失时默认空 dict，不影响已有行为。
-        document._per_document_overrides = dict(
-            document_data.get('per_document_overrides', {})
-        )
+    def _has_latex_toolchain(document):
+        '''LaTeX 工具链（BuildSystem / Preview）是否已挂接。
 
-        # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
-        # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
-        document.recent_symbols = list(document_data.get('recent_symbols', []))
+        会话恢复的非活跃文档走轻量构造，两者在激活（set_active_document →
+        _attach_latex_toolchain）前不存在。'''
+        return (getattr(document, 'build_system', None) is not None
+                and getattr(document, 'preview', None) is not None)
 
-        # restore bookmarks (general editor feature for all document types)
-        bookmark_lines = document_data.get('bookmarks', [])
-        if bookmark_lines:
-            document.bookmarks.load_bookmarks_from_data(bookmark_lines)
+    @staticmethod
+    def _is_save_date_stale(document, document_data):
+        '''save_date 守卫：文件自状态保存后被改动则返回 True（跳过位置相关
+        状态：折叠区域、预览滚动位置等）。save_date 为 None 时不判过期。'''
+        if document_data.get('save_date') is None:
+            return False
+        try:
+            return document_data['save_date'] <= os.stat(document.filename).st_mtime - 0.001
+        except OSError:
+            return False
 
-        # 恢复文档结构折叠状态：list → set。放在 save_date 检查之前，
-        # 确保即便后续因文件修改等提前 return，折叠状态也已恢复。
-        document.collapsed_sections = set(document_data.get('structure_collapsed', []))
+    def _restore_build_log_state(document, document_data):
+        '''恢复持久化的编译日志 / SyncTeX 状态到 document.build_system。
 
-        # save_date 可能为 None（极端情况：文档状态在文件已被删除后保存）。
-        # None <= number 在 Python 3 中抛 TypeError，用 is None 守卫跳过比较，
-        # 直接恢复其余状态（折叠区域等不依赖 save_date）。
-        # —— 诊断高亮：独立于 save_date 守卫，按「编译时刻的 .tex mtime」判断新鲜度 ——
-        # 只要 .tex 自该次构建后未被改动，就恢复错误/警告行号并重绘高亮，实现与编译
-        # 日志本体一起持久化；文件若已改动则行号可能错位，跳过以免误导，等下次编译重建。
+        仅当「编译时刻的 .tex mtime」与当前一致时才恢复——诊断高亮行号
+        依赖行号不漂移；文件已改动则跳过，等下次编译重建。
+        '''
         build_log_mtime = document_data.get('build_log_mtime')
         try:
             tex_mtime = os.stat(document.filename).st_mtime
@@ -160,15 +160,8 @@ class DocumentSettings():
                 document.build_system.build_log_mtime = build_log_mtime
                 document.build_system.update_can_sync()
 
-        # save_date 守卫：文件自状态保存后被改动则跳过位置相关状态（折叠/预览）。
-        if document_data.get('save_date') is not None:
-            try:
-                if document_data['save_date'] <= os.stat(document.filename).st_mtime - 0.001: return
-            except OSError:
-                pass
-
-        document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
-
+    def _restore_preview_state(document, document_data):
+        '''恢复持久化的 PDF 预览状态（文件、缩放模式、滚动位置）。'''
         pdf_filename = document_data['pdf_filename']
         pdf_date = document_data['pdf_date']
         xoffset = document_data['xoffset']
@@ -218,6 +211,67 @@ class DocumentSettings():
                     manager.update_dynamic_zoom_levels()
                     manager.on_layout_changed()
 
+    def apply_pending_latex_state(document, document_data):
+        '''应用延迟的 LaTeX 状态（build log / 折叠 / PDF 预览）。
+
+        由 workspace._attach_latex_toolchain 在 BuildSystem / Preview 就绪后
+        调用，处理 load_document_state 时因工具链未挂接而暂存到
+        document._pending_document_data 的整份状态数据。逻辑与
+        update_document 的尾部完全一致（build log → save_date 守卫 → 折叠
+        区域 → 预览），抽出共用以防行为漂移。
+        '''
+        DocumentSettings._restore_build_log_state(document, document_data)
+        if DocumentSettings._is_save_date_stale(document, document_data):
+            return
+        document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
+        DocumentSettings._restore_preview_state(document, document_data)
+
+    def update_document(document, document_data):
+        # 加载 per-document 偏好覆盖（统一容器）。
+        # 缺失时默认空 dict，不影响已有行为。
+        document._per_document_overrides = dict(
+            document_data.get('per_document_overrides', {})
+        )
+
+        # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
+        # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
+        document.recent_symbols = list(document_data.get('recent_symbols', []))
+
+        # restore bookmarks (general editor feature for all document types)
+        bookmark_lines = document_data.get('bookmarks', [])
+        if bookmark_lines:
+            document.bookmarks.load_bookmarks_from_data(bookmark_lines)
+
+        # 恢复文档结构折叠状态：list → set。放在 save_date 检查之前，
+        # 确保即便后续因文件修改等提前 return，折叠状态也已恢复。
+        document.collapsed_sections = set(document_data.get('structure_collapsed', []))
+
+        # LaTeX 文档且工具链未挂接（会话恢复的非活跃轻量文档）：build log /
+        # 预览状态的恢复目标（document.build_system / document.preview）尚不
+        # 存在。把整份 document_data 暂存到 _pending_document_data，等
+        # _attach_latex_toolchain 挂上工具链后经 apply_pending_latex_state 补用。
+        # 不依赖工具链的部分（书签/覆盖项/结构折叠集合，见上）已在前面恢复；
+        # 折叠区域受 save_date 守卫约束，此处按同一守卫先行恢复，保证文档即使
+        # 从未被激活，其折叠状态也已可用于读写与再次持久化。
+        if document.is_latex_document() and not DocumentSettings._has_latex_toolchain(document):
+            document._pending_document_data = document_data
+            if not DocumentSettings._is_save_date_stale(document, document_data):
+                document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
+            return
+
+        # —— 编译日志诊断：独立于 save_date 守卫，按「编译时刻的 .tex mtime」
+        # 判断新鲜度 —— 只要 .tex 自该次构建后未被改动，就恢复错误/警告行号
+        # 并重绘高亮；文件若已改动则行号可能错位，跳过以免误导。
+        DocumentSettings._restore_build_log_state(document, document_data)
+
+        # save_date 守卫：文件自状态保存后被改动则跳过位置相关状态（折叠/预览）。
+        if DocumentSettings._is_save_date_stale(document, document_data):
+            return
+
+        document.code_folding.set_initial_folded_regions(document_data['folded_regions'])
+
+        DocumentSettings._restore_preview_state(document, document_data)
+
     def save_document_state(document):
         if document.filename == None: return
 
@@ -236,29 +290,65 @@ class DocumentSettings():
                 pass
             return
 
-        # LaTeX 文档保存完整状态
+        # LaTeX 文档保存完整状态。
         document_data['save_date'] = document.save_date
         # 折叠区域状态：含内容锚点（起始/结束行文本 + 跨度）与绝对行号，
         # 按内容锚点恢复以抵抗文档他处增删行导致的行号偏移错位。
         document_data['folded_regions'] = document.code_folding.get_folded_regions()
-        document_data['build_log_data'] = document.build_system.build_log_data
-        document_data['has_been_built'] = document.build_system.document_has_been_built
-        document_data['build_time'] = document.build_system.build_time
-        document_data['latex_interpreter'] = document.build_system.latex_interpreter
-        document_data['has_synctex_file'] = document.build_system.has_synctex_file
-        document_data['build_log_mtime'] = document.build_system.build_log_mtime
+        # build_system / preview 可能尚未挂接（会话恢复的非活跃轻量文档）。
+        # 此时优先回写 _pending_document_data 中暂存的旧状态——那是该文档
+        # 上次持久化的真实状态，原样写回不丢信息；没有 pending 数据才写
+        # 默认空状态。若直接用空状态覆盖，用户重启后未激活过的文档会丢失
+        # 编译日志与 PDF 预览位置。
+        build_system = getattr(document, 'build_system', None)
+        pending_data = getattr(document, '_pending_document_data', None)
+        if build_system is not None:
+            document_data['build_log_data'] = build_system.build_log_data
+            document_data['has_been_built'] = build_system.document_has_been_built
+            document_data['build_time'] = build_system.build_time
+            document_data['latex_interpreter'] = build_system.latex_interpreter
+            document_data['has_synctex_file'] = build_system.has_synctex_file
+            document_data['build_log_mtime'] = build_system.build_log_mtime
+        elif pending_data is not None and 'build_log_data' in pending_data:
+            for key in ('build_log_data', 'has_been_built', 'build_time',
+                        'latex_interpreter', 'has_synctex_file', 'build_log_mtime'):
+                if key in pending_data:
+                    document_data[key] = pending_data[key]
+        else:
+            # 与 BuildSystem.__init__ 的初始值保持一致。
+            document_data['build_log_data'] = {'items': list(), 'error_count': 0, 'warning_count': 0, 'badbox_count': 0}
+            document_data['has_been_built'] = False
+            document_data['build_time'] = None
+            document_data['latex_interpreter'] = None
+            document_data['has_synctex_file'] = False
+            document_data['build_log_mtime'] = None
 
         # 保存 per-document 偏好覆盖。空 dict 不写入以减小文件体积。
         overrides = getattr(document, '_per_document_overrides', {})
         if overrides:
             document_data['per_document_overrides'] = dict(overrides)
 
-        document_data['pdf_filename'] = document.preview.pdf_filename
-        document_data['pdf_date'] = document.preview.get_pdf_date()
-        document_data['xoffset'] = document.preview.view.content.scrolling_offset_x
-        document_data['yoffset'] = document.preview.view.content.scrolling_offset_y
-        document_data['zoom_level'] = document.preview.zoom_manager.zoom_level
-        document_data['zoom_mode'] = document.preview.zoom_manager.zoom_mode
+        doc_preview = getattr(document, 'preview', None)
+        if doc_preview is not None:
+            document_data['pdf_filename'] = doc_preview.pdf_filename
+            document_data['pdf_date'] = doc_preview.get_pdf_date()
+            document_data['xoffset'] = doc_preview.view.content.scrolling_offset_x
+            document_data['yoffset'] = doc_preview.view.content.scrolling_offset_y
+            document_data['zoom_level'] = doc_preview.zoom_manager.zoom_level
+            document_data['zoom_mode'] = doc_preview.zoom_manager.zoom_mode
+        elif pending_data is not None and 'pdf_filename' in pending_data:
+            for key in ('pdf_filename', 'pdf_date', 'xoffset', 'yoffset',
+                        'zoom_level', 'zoom_mode'):
+                if key in pending_data:
+                    document_data[key] = pending_data[key]
+        else:
+            # 与 Preview 初始状态一致：无 PDF、无滚动偏移。
+            document_data['pdf_filename'] = None
+            document_data['pdf_date'] = None
+            document_data['xoffset'] = 0.0
+            document_data['yoffset'] = 0.0
+            document_data['zoom_level'] = None
+            document_data['zoom_mode'] = ServiceLocator.get_settings().get_value('preferences', 'preview_zoom')
         # 文档结构折叠状态：set → list 便于 JSON 序列化。
         document_data['structure_collapsed'] = list(document.collapsed_sections)
 
