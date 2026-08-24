@@ -7,6 +7,7 @@
 # 本地 document class（.cls），并仅把实际位于项目目录中的配置文件加入侧栏。
 
 import ast
+import bisect
 import os
 import re
 import tempfile
@@ -60,6 +61,7 @@ def _load_parser_class():
         'ServiceLocator': _RegexServiceLocator,
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
+        'bisect': bisect,
         'extract_beamer_frame_titles': extract_beamer_frame_titles,
         'scan_balanced_braced_argument': scan_balanced_braced_argument,
         'AppendixStart': AppendixStart,
