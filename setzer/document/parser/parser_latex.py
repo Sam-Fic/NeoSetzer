@@ -107,12 +107,15 @@ class ParserLaTeX(Observable):
 
     #@timer
     def on_text_deleted(self, buffer, start_iter, end_iter):
-        self.last_edit = ('delete', start_iter, end_iter)
+        # 立即把位置固化为整数 offset：Gtk.TextIter 在 buffer 被后续编辑修改后
+        # 即失效，跨信号持有 iter 会在之后读取时触发
+        # "Invalid text buffer iterator" 警告并返回过期数值。
+        self.last_edit = ('delete', start_iter.get_offset(), end_iter.get_offset())
         self._schedule_parsing(start_iter.get_line(), start_iter.get_offset())
 
     #@timer
     def on_insert_text(self, buffer, location_iter, text, text_length):
-        self.last_edit = ('insert', location_iter, text, text_length)
+        self.last_edit = ('insert', location_iter.get_offset(), text, text_length)
         self._schedule_parsing(location_iter.get_line(), location_iter.get_offset())
 
     def stop(self):

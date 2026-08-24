@@ -63,7 +63,8 @@ class PdfPreviewWindow(Adw.Window):
         # 随 preview_panel 一起 reparent 进 content 区，不需在 headerbar 重复。
         self.toolbar_view = Adw.ToolbarView()
         self.headerbar = Adw.HeaderBar()
-        self.headerbar.set_title_widget(Gtk.Label(label='PDF Preview'))
+        self.document_title = Adw.WindowTitle(title='PDF Preview')
+        self.headerbar.set_title_widget(self.document_title)
         self.toolbar_view.add_top_bar(self.headerbar)
 
         # 内容区：pop_out 时把 preview_panel 放进这里。
@@ -222,7 +223,8 @@ class PdfPreviewWindow(Adw.Window):
             self._update_title(doc)
         else:
             self._preview = None
-            self.headerbar.get_title_widget().set_label('PDF Preview')
+            self.document_title.set_title('PDF Preview')
+            self.set_title('PDF Preview')
 
     def _disconnect_active_preview(self):
         if self._preview is not None:
@@ -254,11 +256,13 @@ class PdfPreviewWindow(Adw.Window):
             self.main_window.present()
 
     def _update_title(self, doc):
-        '''标题跟随活动文档的 PDF 文件名；无 PDF 时用显示名。'''
-        label = self.headerbar.get_title_widget()
+        '''标题跟随活动文档的 PDF 文件名；无 PDF 时用显示名。
+        HeaderBar 内嵌标题与窗口标题（任务栏/WM 显示）同步更新。'''
         pdf = getattr(doc.preview, 'pdf_filename', None)
         if pdf:
-            label.set_label(os.path.basename(pdf))
+            title = os.path.basename(pdf)
         else:
             name = doc.get_displayname()
-            label.set_label(name if name else 'PDF Preview')
+            title = name if name else 'PDF Preview'
+        self.document_title.set_title(title)
+        self.set_title(title)

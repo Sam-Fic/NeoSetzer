@@ -53,11 +53,11 @@ class CodeFolding(Observable):
 
         folding_regions = dict()
         if parser.last_edit[0] == 'insert':
-            _, location_iter, text, text_length = parser.last_edit
+            _, location_offset, text, text_length = parser.last_edit
             length = len(text)
-            # location_iter.get_offset() 是 insert-text 信号触发时（插入前）的
-            # 位置（记为 P）。旧 region 的偏移基于插入前的文档，取值范围
-            # [0, old_doc_length]。正确的平移规则：
+            # location_offset 是 insert-text 信号触发时（插入前）的位置（记为 P）。
+            # 旧 region 的偏移基于插入前的文档，取值范围 [0, old_doc_length]。
+            # 正确的平移规则：
             #   index < P  → 保持原偏移（region 在插入点之前，不受影响）
             #   index >= P → 平移 +length（region 在插入点及之后，内容后移）
             # 因此 offset_start = P - 1（使 index <= offset_start 等价于 index < P），
@@ -69,12 +69,12 @@ class CodeFolding(Observable):
             # 大段文本时 length 很，[P, min(P+length, old_doc_length)] 内的所有
             # 旧 region 都会被丢弃，导致这些区域的折叠状态丢失（被后续 unfold
             # 循环展开）。修复后所有旧 region 都能正确保留并平移。
-            offset_start = location_iter.get_offset() - 1
-            offset_end = location_iter.get_offset()
+            offset_start = location_offset - 1
+            offset_end = location_offset
         elif parser.last_edit[0] == 'delete':
-            _, start_iter, end_iter = parser.last_edit
-            offset_start = start_iter.get_offset()
-            offset_end = end_iter.get_offset()
+            _, start_offset, end_offset = parser.last_edit
+            offset_start = start_offset
+            offset_end = end_offset
             length = offset_start - offset_end
         for index, region in self.folding_regions.items():
             if index <= offset_start:

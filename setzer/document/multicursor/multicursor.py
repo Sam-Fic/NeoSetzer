@@ -766,8 +766,11 @@ class MultiCursor(object):
 
         # Create a unique tag for this selection
         tag_name = f'mc-selection-{len(self._selection_tags)}'
-        tag = self.buffer.create_tag(tag_name, background='#3584e4',
-                                     background_set=True)
+        # 读主题 accent 色（明暗/高对比主题下自动跟随），不写死 Adwaita 蓝。
+        tag = self.buffer.create_tag(
+            tag_name,
+            background=ColorManager.get_ui_color_string('accent_bg_color'),
+            background_set=True)
         # Make it semi-transparent - GTK doesn't support alpha in tags directly,
         # so we draw selections manually in _on_draw instead
 

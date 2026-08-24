@@ -512,6 +512,8 @@ toolbarview > * > * > * {
     background-color: transparent;
     background-image: none;
     box-shadow: none;
+    color: inherit;
+}
 
 /*
  * 插入表格对话框 LaTeX 预览卡片：圆角 + 内边距。
@@ -523,8 +525,6 @@ toolbarview > * > * > * {
     border: 1px solid @borders;
     background: @card_bg_color;
     padding: 2px;
-}
-    color: inherit;
 }
 
 /*
