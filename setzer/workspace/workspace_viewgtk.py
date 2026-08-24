@@ -611,7 +611,8 @@ class MainWindow(Adw.ApplicationWindow):
             return False
         # 始终消费拖放（返回 True），避免文本视图接管并插入路径。
         # 仅打开白名单内的文件，其余静默忽略。
-        # 收集可接受路径，显示 spinner 后延迟 200ms 批量打开，让 spinner 先渲染。
+        # 收集可接受路径，显示 spinner 后延迟约一帧（16ms）批量打开，
+        # 让 spinner 先画出第一帧。
         if workspace is not None:
             paths = []
             for file in files:
@@ -620,7 +621,7 @@ class MainWindow(Adw.ApplicationWindow):
                     paths.append(path)
             if paths:
                 self.show_loading_spinner()
-                GLib.timeout_add(200, self._do_open_dropped_files, workspace, paths)
+                GLib.timeout_add(16, self._do_open_dropped_files, workspace, paths)
         return True
 
     def _do_open_dropped_files(self, workspace, paths):

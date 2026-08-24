@@ -69,8 +69,8 @@ class OpenDocumentDialog(object):
         if files is None:
             return
 
-        # 收集所有路径，显示 spinner 后延迟 200ms 批量打开，
-        # 让 spinner 先渲染再执行重操作（读盘 + 创建 GTK 组件）。
+        # 收集所有路径，显示 spinner 后延迟约一帧（16ms）批量打开，
+        # 让 spinner 先画出第一帧再执行重操作（读盘 + 创建 GTK 组件）。
         paths = []
         for file in files:
             path = file.get_path()
@@ -82,7 +82,7 @@ class OpenDocumentDialog(object):
 
         if hasattr(self.main_window, 'show_loading_spinner'):
             self.main_window.show_loading_spinner()
-            GLib.timeout_add(200, self._do_open_files, paths)
+            GLib.timeout_add(16, self._do_open_files, paths)
         else:
             self._do_open_files(paths)
 

@@ -245,11 +245,11 @@ class HamburgerMenu(object):
             # 先尝试加载；仅当加载成功才关闭旧文档，避免坏 session 文件导致
             # 旧文档被关、用户两手空空。加载失败（load 已弹 toast）则回滚加载
             # 过程中可能已部分添加的文档，保持旧文档不变。
-            # 显示 spinner 并延迟 200ms 执行重操作，让 spinner 先渲染。
+            # 显示 spinner 并延迟约一帧（16ms）执行重操作，让 spinner 先画出来。
             main_window = ServiceLocator_get_main_window()
             if main_window is not None and hasattr(main_window, 'show_loading_spinner'):
                 main_window.show_loading_spinner()
-                GLib.timeout_add(200, self._do_restore_session, filename)
+                GLib.timeout_add(16, self._do_restore_session, filename)
             else:
                 self._do_restore_session(filename)
 

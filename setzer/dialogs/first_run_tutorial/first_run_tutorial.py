@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, GLib
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.example_project.opener import ExampleProjectOpener
@@ -110,8 +110,10 @@ class FirstRunTutorialDialog(object):
         box.append(listbox)
         for icon_name, title, subtitle in tips:
             row = Adw.ActionRow()
-            row.set_title(title)
-            row.set_subtitle(subtitle)
+            # AdwPreferencesRow 默认按 Pango markup 解析 title/subtitle，
+            # 快捷键标签（如 <Control>period）与含 & 的译文会破坏解析，需转义。
+            row.set_title(GLib.markup_escape_text(title))
+            row.set_subtitle(GLib.markup_escape_text(subtitle))
             image = Gtk.Image.new_from_icon_name(icon_name)
             image.set_pixel_size(28)
             row.add_prefix(image)
