@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GLib, Gdk, GdkPixbuf
+from gi.repository import Adw, Gtk, Gio, GLib, Gdk, GdkPixbuf
 
 import os
 
@@ -52,38 +52,31 @@ class DocumentWizardView(DialogView):
         self.title_widget = Adw.WindowTitle(title=_('Create a template document'))
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-
-        # 既有入口只保存向导配置预设（文档类、页边距、包等）。
-        self.save_template_button = Gtk.Button.new_with_mnemonic(_('Save as _Preset'))
-        # #205：完整保存当前 LaTeX 缓冲区的源文本快照，供后续新建文档使用。
-        self.save_document_template_button = Gtk.Button.new_with_mnemonic(
-            _('Save _Document Template'))
+        self.cancel_button.set_tooltip_text(_('Close the dialog without creating a document'))
 
         self.back_button = Gtk.Button.new_with_mnemonic(_('_Back'))
+        self.back_button.set_tooltip_text(_('Go to the previous wizard page'))
 
-        # 保存预设与保存完整源模板是较少使用的模板管理操作。放入同一个
-        # popover 后，标题栏只保留导航和创建这两个主任务。
+        # 使用 Gio.Menu + Gtk.PopoverMenu，与汉堡菜单使用同样的组件。
         self.template_actions_button = Gtk.MenuButton()
         self.template_actions_button.set_icon_name('view-more-symbolic')
         self.template_actions_button.set_tooltip_text(_('Template actions'))
-        template_actions_popover = Gtk.Popover()
-        template_actions_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        template_actions_box.set_margin_top(6)
-        template_actions_box.set_margin_bottom(6)
-        template_actions_box.set_margin_start(6)
-        template_actions_box.set_margin_end(6)
-        self.save_template_button.set_halign(Gtk.Align.FILL)
-        self.save_document_template_button.set_halign(Gtk.Align.FILL)
-        template_actions_box.append(self.save_template_button)
-        template_actions_box.append(self.save_document_template_button)
-        template_actions_popover.set_child(template_actions_box)
-        self.template_actions_button.set_popover(template_actions_popover)
+        self._wizard_actions = Gio.SimpleActionGroup()
+        self.template_actions_button.insert_action_group(
+            'wizard', self._wizard_actions)
+        template_menu_model = Gio.Menu()
+        template_menu_model.append(
+            _('Save as _Preset'), 'wizard.save-as-preset')
+        template_menu_model.append(
+            _('Save _Document Template'), 'wizard.save-document-template')
+        self.template_actions_button.set_menu_model(template_menu_model)
 
         self.next_button = Gtk.Button.new_with_mnemonic(_('_Next'))
+        self.next_button.set_tooltip_text(_('Go to the next wizard page'))
         self.next_button.add_css_class('suggested-action')
 
         self.create_button = Gtk.Button.new_with_mnemonic(_('_Create'))
+        self.create_button.set_tooltip_text(_('Create the document with the selected options'))
         self.create_button.add_css_class('suggested-action')
 
         self.headerbar.set_title_widget(self.title_widget)

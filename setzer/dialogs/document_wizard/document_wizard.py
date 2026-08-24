@@ -87,7 +87,8 @@ class DocumentWizard(object):
         self.presets = None
         self.load_presets()
         self.setup()
-        self.view.save_document_template_button.set_visible(
+        self.view._wizard_actions.lookup_action(
+            'save-document-template').set_enabled(
             document.is_latex_document())
 
         self.current_page = -1
@@ -181,9 +182,14 @@ class DocumentWizard(object):
 
         self.view.cancel_button.connect('clicked', self.on_cancel_button_clicked)
         self.view.create_button.connect('clicked', self.on_create_button_clicked)
-        self.view.save_template_button.connect('clicked', self.open_save_template_dialog)
-        self.view.save_document_template_button.connect(
-            'clicked', self.open_save_document_template_dialog)
+
+        save_preset_action = Gio.SimpleAction.new('save-as-preset', None)
+        save_preset_action.connect('activate', lambda *_: self.open_save_template_dialog())
+        self.view._wizard_actions.add_action(save_preset_action)
+
+        save_doc_template_action = Gio.SimpleAction.new('save-document-template', None)
+        save_doc_template_action.connect('activate', lambda *_: self.open_save_document_template_dialog())
+        self.view._wizard_actions.add_action(save_doc_template_action)
 
         key_controller = Gtk.EventControllerKey()
         key_controller.connect('key-pressed', self.on_keypress)

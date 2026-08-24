@@ -37,10 +37,14 @@ class TestWizardAdaptiveLayout(unittest.TestCase):
             'setzer/dialogs/document_wizard/document_wizard_viewgtk.py',
             'DocumentWizardView')
         self.assertIn('Gtk.MenuButton()', source)
-        self.assertIn('template_actions_box.append(self.save_template_button)', source)
-        self.assertIn(
-            'template_actions_box.append(self.save_document_template_button)', source)
+        self.assertIn('Gio.Menu()', source)
+        self.assertIn('set_menu_model', source)
+        self.assertIn("'wizard.save-as-preset'", source)
+        self.assertIn("'wizard.save-document-template'", source)
         self.assertIn('self.headerbar.pack_start(self.template_actions_button)', source)
+        self.assertNotIn('template_actions_box.append(self.save_template_button)', source)
+        self.assertNotIn(
+            'template_actions_box.append(self.save_document_template_button)', source)
         self.assertNotIn('self.headerbar.pack_start(self.save_template_button)', source)
         self.assertNotIn(
             'self.headerbar.pack_start(self.save_document_template_button)', source)
