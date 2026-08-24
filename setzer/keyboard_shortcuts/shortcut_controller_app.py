@@ -143,8 +143,8 @@ class ShortcutControllerApp(ShortcutController):
         return True
 
     def shortcut_show_document_chooser(self):
-        if self.main_window.headerbar.open_document_button.get_visible():
-            PopoverManager.get_popover('open_document').open()
+        if self.main_window.headerbar.center_button.get_sensitive():
+            PopoverManager.get_popover('document_switcher').open()
 
     def shortcut_show_open_docs(self):
         if self.main_window.headerbar.center_button.get_sensitive():

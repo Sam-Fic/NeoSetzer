@@ -58,10 +58,8 @@ class PopoverManager():
         # Pre-create the popovers referenced through get_popover() by the
         # headerbar (open-doc / new-doc / document-switcher buttons).
         from setzer.popovers.new_document.new_document import NewDocument
-        from setzer.popovers.document_chooser.document_chooser import DocumentChooser
         from setzer.popovers.document_switcher.document_switcher import DocumentSwitcher
         PopoverManager.popovers['new_document'] = NewDocument()
-        PopoverManager.popovers['open_document'] = DocumentChooser(PopoverManager.workspace)
         PopoverManager.popovers['document_switcher'] = DocumentSwitcher(PopoverManager.workspace)
 
     def get_popover(name):

@@ -215,7 +215,6 @@ class MainWindow(Adw.ApplicationWindow):
         #      即被置 True，延时回调会跳过隐藏。
         self.headerbar.sidebar_toggle.connect('clicked', self._on_headerbar_clicked)
         self.headerbar.open_document_button.connect('clicked', self._on_headerbar_clicked)
-        self.headerbar.open_document_button.connect('activate', self._on_split_button_activate)
         self.headerbar.new_document_button.connect('clicked', self._on_headerbar_clicked)
         self.headerbar.new_document_button.connect('activate', self._on_split_button_activate)
         self.headerbar.center_button.connect('clicked', self._on_headerbar_clicked)
@@ -224,7 +223,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.headerbar.menu_button.connect('activate', self._on_menu_button_activate)
 
         # 预创建阶段 popover 已存在则直接连接；不存在则等首次激活时再连。
-        self._track_popover(self.headerbar.open_document_button.get_popover())
         self._track_popover(self.headerbar.new_document_button.get_popover())
         self._track_popover(self.headerbar.menu_button.get_popover())
 

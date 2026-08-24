@@ -74,7 +74,6 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('new-latex', _('New LaTeX Document'), _('File'), 'new-latex-document', ('new', 'document', 'tex')),
     CommandDescriptor('new-bibtex', _('New BibTeX Document'), _('File'), 'new-bibtex-document', ('new', 'bibliography', 'bib')),
     CommandDescriptor('open', _('Open Document'), _('File'), 'open-document-dialog', ('file', 'open')),
-    CommandDescriptor('recent', _('Open Recent Documents'), _('File'), 'open-recent-documents', ('recent', 'file')),
     CommandDescriptor('save', _('Save'), _('File'), 'save', ('write', 'document')),
     CommandDescriptor('save-as', _('Save As'), _('File'), 'save-as', ('write', 'rename', 'document')),
     CommandDescriptor('save-all', _('Save All'), _('File'), 'save-all', ('write', 'documents')),

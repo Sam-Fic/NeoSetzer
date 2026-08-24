@@ -147,8 +147,6 @@ class HeaderBar(object):
         if self.workspace.active_document is None:
             self.view.open_document_button.set_visible(False)
             return
-        # 合并后的单一 SplitButton 总是可见；主操作（Ctrl+O）始终打开文件选择
-        # 对话框，不受最近文档有无影响。下拉箭头中的"最近文档"项仍可展示空列表。
         self.view.open_document_button.set_visible(True)
 
     def set_build_button_state(self):

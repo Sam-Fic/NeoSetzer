@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Gtk, Adw
 
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
@@ -47,26 +47,15 @@ class HeaderBar(object):
 
         self.widget.pack_start(self.sidebar_toggle)
 
-        # open document: 单一 SplitButton，合并原先两个共用 document-open-symbolic
-        # 图标、却绑定不同快捷键（Ctrl+O / Shift+Ctrl+O）的互斥按钮——它们随
-        # 最近文档有无切换显隐，对用户而言是同一个"打开"按钮却有两种行为，易混淆。
-        # 现在：主操作（点击 / Ctrl+O）打开文件选择对话框；下拉箭头展开"最近文档"
-        # 对话框。SplitButton 自带的下拉箭头从视觉上区分了两种行为，不再共用
-        # 同一图标的纯按钮。
-        self.open_document_button = Adw.SplitButton()
+        # open document: 点击打开文件选择对话框（Ctrl+O）。
+        # 最近文档已融合进标题栏大标题的 DocumentSwitcher 对话框中。
+        self.open_document_button = Gtk.Button()
         self.open_document_button.set_child(Gtk.Image(icon_name='document-open-symbolic'))
         self.open_document_button.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
         self.open_document_button.set_action_name('win.open-document-dialog')
         self.open_document_button.add_css_class('headerbar-plain')
         self.open_document_button.add_css_class('headerbar-icon')
-        # 下拉菜单：仅含"最近文档"一项，点击展开 DocumentChooser 对话框。
-        open_menu = Gio.Menu()
-        open_menu.append(_('Recent Documents'), 'win.open-recent-documents')
-        self.open_document_button.set_menu_model(open_menu)
-        open_popover = self.open_document_button.get_popover()
-        if open_popover is not None:
-            open_popover.add_css_class('menu')
 
         # new document: Adw.SplitButton — 左半部分默认新建 LaTeX 文档，
         # 右侧箭头展开气泡选择文档类型（LaTeX / BibTeX）。

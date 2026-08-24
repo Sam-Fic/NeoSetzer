@@ -30,43 +30,64 @@ from setzer.app.service_locator import ServiceLocator
 class DocumentSwitcherView(object):
 
     def __init__(self):
-        # 标准 Libadwaita 对话框：自带标题栏、Esc 关闭、自适应宽度。
         self.dialog = Adw.PreferencesDialog()
         self.dialog.set_title(_('Open Documents'))
-        self.dialog.set_content_width(400)
+        self.dialog.set_content_width(420)
         self.dialog.set_content_height(480)
 
         self.page = Adw.PreferencesPage()
 
-        # 顶部 fuzzy 搜索框：按文件名/路径子序列过滤已打开文档。
-        # Adw.PreferencesPage.add() 只接受 PreferencesGroup，故需包一层。
+        # 搜索框：同时过滤已打开和最近文档。
         self.search_group = Adw.PreferencesGroup()
         self.search_entry = Gtk.SearchEntry()
-        self.search_entry.set_placeholder_text(_('Search open documents…'))
+        self.search_entry.set_placeholder_text(_('Search documents…'))
         self.search_entry.set_hexpand(True)
         self.search_entry.set_margin_bottom(6)
         self.query = ''
         self.search_group.add(self.search_entry)
         self.page.add(self.search_group)
 
-        # 根文档说明：在 selection 模式下显示的描述 group。
+        # 已打开文档列表。
+        self.open_group = Adw.PreferencesGroup()
+        self.page.add(self.open_group)
+
+        # 最近文档列表（自动排除已打开的文档）。
+        self.recent_group = Adw.PreferencesGroup()
+        self.page.add(self.recent_group)
+
+        # 根文档操作：仅在 selection 模式下显示。
+        self.root_group = Adw.PreferencesGroup()
+        self.set_root_document_row = Adw.ActionRow()
+        self.set_root_document_row.set_activatable(True)
+        self.set_root_document_row.set_title(_('Set one Document as Root'))
+        self.set_root_document_row.set_icon_name('document-properties-symbolic')
+        self.set_root_document_row.set_tooltip_text(_('Designate a document as the build root'))
+        self.root_group.add(self.set_root_document_row)
+
+        self.unset_root_document_row = Adw.ActionRow()
+        self.unset_root_document_row.set_activatable(True)
+        self.unset_root_document_row.set_title(_('Unset Root Document'))
+        self.unset_root_document_row.set_icon_name('edit-clear-symbolic')
+        self.unset_root_document_row.set_tooltip_text(_('Remove the root document designation'))
+        self.root_group.add(self.unset_root_document_row)
+        self.root_group.set_visible(False)
+        self.page.add(self.root_group)
+
+        # 选择模式说明 + 取消按钮。
         self.explanation_group = Adw.PreferencesGroup()
         self.explanation_label = Gtk.Label(label=_('Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements.'))
         self.explanation_label.set_wrap(True)
         self.explanation_label.set_xalign(0)
         self.explanation_label.add_css_class('dim-label')
         self.explanation_label.add_css_class('caption')
-        # 直接放入 PreferencesGroup，不用 ListBoxRow 包裹（避免 Libadwaita
-        # 给行绘制的边框/背景外框），用 margin 匹配标准行内边距。
         self.explanation_label.set_margin_start(12)
         self.explanation_label.set_margin_end(12)
         self.explanation_label.set_margin_top(10)
         self.explanation_label.set_margin_bottom(6)
         self.explanation_group.add(self.explanation_label)
 
-        # 选择模式下的显式退出路径：独立的「取消」按钮，避免只能靠 Esc 关闭。
-        # 它随 explanation_group 一起显隐，常驻底部、居中对齐。
         self.cancel_button = Gtk.Button(label=_('Cancel'))
+        self.cancel_button.set_tooltip_text(_('Exit root document selection mode'))
         self.cancel_button.set_halign(Gtk.Align.CENTER)
         self.cancel_button.set_margin_top(10)
         self.cancel_button.set_margin_bottom(6)
@@ -74,30 +95,20 @@ class DocumentSwitcherView(object):
         self.cancel_button.set_margin_start(12)
         self.cancel_button.set_margin_end(12)
         self.explanation_group.add(self.cancel_button)
-
         self.explanation_group.set_visible(False)
         self.page.add(self.explanation_group)
 
-        # 已打开文档列表：标准 Adw.PreferencesGroup + Adw.ActionRow。
-        self.group = Adw.PreferencesGroup()
-        self.page.add(self.group)
+        # 其他文档按钮。
+        self.other_group = Adw.PreferencesGroup()
+        self.other_documents_row = Adw.ActionRow()
+        self.other_documents_row.set_activatable(True)
+        self.other_documents_row.set_title(_('Other Documents') + '...')
+        self.other_documents_row.set_icon_name('document-open-symbolic')
+        self.other_documents_row.set_tooltip_text(_('Open a document not in the recent list'))
+        self.other_group.add(self.other_documents_row)
+        self.page.add(self.other_group)
 
-        # 底部动作：Set as Root / Unset Root（独立 PreferencesGroup + ActionRow）。
-        self.root_group = Adw.PreferencesGroup()
-        self.set_root_document_row = Adw.ActionRow()
-        self.set_root_document_row.set_activatable(True)
-        self.set_root_document_row.set_title(_('Set one Document as Root'))
-        self.set_root_document_row.set_icon_name('document-properties-symbolic')
-        self.root_group.add(self.set_root_document_row)
-
-        self.unset_root_document_row = Adw.ActionRow()
-        self.unset_root_document_row.set_activatable(True)
-        self.unset_root_document_row.set_title(_('Unset Root Document'))
-        self.unset_root_document_row.set_icon_name('edit-clear-symbolic')
-        self.root_group.add(self.unset_root_document_row)
-        self.page.add(self.root_group)
-
-        # 搜索过滤为空时的占位提示（同样需包在 PreferencesGroup 中）。
+        # 空状态。
         self.empty_group = Adw.PreferencesGroup()
         self.empty_label = Gtk.Label(label=_('No matching documents'))
         self.empty_label.add_css_class('dim-label')
@@ -108,50 +119,66 @@ class DocumentSwitcherView(object):
 
         self.dialog.add(self.page)
 
-        self.items = []
-        self.rows = []
+        self.open_rows = []
+        self.recent_rows = []
 
-    def update_items(self, documents, root_selection_mode=False, active_document=None):
-        visible_documents = [d for d in documents if (not root_selection_mode or d.is_latex_document())]
-        visible_documents.sort(key=lambda val: -val.get_last_activated())
-
-        # fuzzy 过滤（仅当搜索框有内容时）：匹配文件名或完整路径的子序列。
-        query = self.query
+    def update_open_items(self, documents, root_selection_mode=False, active_document=None, query=''):
+        visible = [d for d in documents if (not root_selection_mode or d.is_latex_document())]
+        visible.sort(key=lambda val: -val.get_last_activated())
         if query:
-            visible_documents = [d for d in visible_documents if self._fuzzy_match(query, d)]
+            visible = [d for d in visible if self._fuzzy_match(query, d)]
 
-        for row in self.rows:
-            self.group.remove(row)
-        self.rows = []
-        for document in visible_documents:
-            row = self.create_row(document, root_selection_mode, document is active_document, query)
-            self.group.add(row)
-            self.rows.append(row)
+        for row in self.open_rows:
+            self.open_group.remove(row)
+        self.open_rows = []
+        for document in visible:
+            row = self._create_open_row(document, root_selection_mode, document is active_document, query)
+            self.open_group.add(row)
+            self.open_rows.append(row)
 
-        self.empty_group.set_visible(bool(query) and len(self.rows) == 0)
+        self.open_group.set_title(_('Open Documents') if visible else '')
+        self.open_group.set_visible(True)
+        self._update_empty_state(query)
 
-    def _fuzzy_match(self, query, document):
-        '''大小写不敏感的子序列匹配：query 的每个字符按序出现在
-        displayname 或完整路径中即视为命中。适合按文件名快速定位。'''
-        q = query.lower()
-        if self._subseq(q, document.get_displayname().lower()):
-            return True
-        fn = document.get_filename()
-        if fn and self._subseq(q, fn.lower()):
-            return True
-        return False
+    def update_recent_items(self, recently_opened_documents, open_documents, query=''):
+        open_filenames = set()
+        for doc in open_documents:
+            fn = doc.get_filename()
+            if fn:
+                open_filenames.add(fn)
 
-    @staticmethod
-    def _subseq(query, text):
-        i = 0
-        for ch in query:
-            i = text.find(ch, i)
-            if i == -1:
-                return False
-            i += 1
-        return True
+        items = []
+        for item in recently_opened_documents.values():
+            fn = item['filename']
+            if fn not in open_filenames and os.path.isfile(fn):
+                items.append(item)
+        items.sort(key=lambda val: -val['date'])
 
-    def create_row(self, document, root_selection_mode, is_active=False, query=''):
+        if query:
+            q = query.lower()
+            items = [item for item in items
+                     if q in os.path.basename(item['filename']).lower()
+                     or q in os.path.dirname(item['filename']).lower()]
+
+        for row in self.recent_rows:
+            self.recent_group.remove(row)
+        self.recent_rows = []
+        for item in items:
+            row = self._create_recent_row(item['filename'], query)
+            self.recent_group.add(row)
+            self.recent_rows.append(row)
+
+        self.recent_group.set_title(_('Recent Documents') if items else '')
+        self.recent_group.set_visible(len(self.recent_rows) > 0)
+        self._update_empty_state(query)
+
+    def _update_empty_state(self, query=''):
+        total = len(self.open_rows) + len(self.recent_rows)
+        self.empty_group.set_visible(bool(query) and total == 0)
+
+    # ---- row builders ----
+
+    def _create_open_row(self, document, root_selection_mode, is_active=False, query=''):
         row = Adw.ActionRow()
         row.set_activatable(True)
         row.document = document
@@ -165,15 +192,10 @@ class DocumentSwitcherView(object):
         modified_suffix = '*' if document.source_buffer.get_modified() else ''
         displayname = document.get_displayname()
         basename = os.path.basename(displayname)
-        # use-markup 让标题/副标题渲染 Pango markup，供模糊命中加粗使用。
         row.set_use_markup(True)
-        # 搜索命中高亮：模糊匹配命中的字符加粗（标题=文件名，子标题=目录）。
         row.set_title(highlight_fuzzy(basename + modified_suffix, query))
 
-        # 8.3：重名文件时 tooltip 显示完整路径，便于区分。
         row.set_tooltip_text(document.get_filename() or displayname)
-        # 始终显示所在目录：标题只有 basename，路径信息否则会完全丢失。
-        # 未保存文档没有路径，此时保持无副标题。
         directory = os.path.dirname(document.get_filename() or displayname)
         if directory:
             row.set_subtitle(highlight_fuzzy(directory, query))
@@ -200,3 +222,39 @@ class DocumentSwitcherView(object):
             row.add_suffix(select_icon)
 
         return row
+
+    def _create_recent_row(self, filename, query=''):
+        row = Adw.ActionRow()
+        row.set_activatable(True)
+        row.set_use_markup(True)
+        row.filename = filename
+
+        basename = os.path.basename(filename)
+        directory = os.path.dirname(filename)
+        row.set_title(highlight_fuzzy(basename, query))
+        if directory:
+            row.set_subtitle(highlight_fuzzy(directory, query))
+        row.set_tooltip_text(filename)
+
+        return row
+
+    # ---- search helpers ----
+
+    def _fuzzy_match(self, query, document):
+        q = query.lower()
+        if self._subseq(q, document.get_displayname().lower()):
+            return True
+        fn = document.get_filename()
+        if fn and self._subseq(q, fn.lower()):
+            return True
+        return False
+
+    @staticmethod
+    def _subseq(query, text):
+        i = 0
+        for ch in query:
+            i = text.find(ch, i)
+            if i == -1:
+                return False
+            i += 1
+        return True

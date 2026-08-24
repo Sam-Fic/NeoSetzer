@@ -46,7 +46,6 @@ class Actions(object):
         self.add_action('new-latex-document', self.new_latex_document)
         self.add_action('new-bibtex-document', self.new_bibtex_document)
         self.add_action('open-document-dialog', self.open_document_dialog)
-        self.add_action('open-recent-documents', self.open_recent_documents)
         self.add_action('build', self.build)
         self.add_action('save-and-build', self.save_and_build)
         self.add_action('show-build-log', self.show_build_log)
@@ -411,9 +410,6 @@ class Actions(object):
 
     def open_document_dialog(self, action=None, parameter=None):
         DialogLocator.get_dialog('open_document').run()
-
-    def open_recent_documents(self, action=None, parameter=None):
-        PopoverManager.get_popover('open_document').open()
 
     def save_and_build(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
