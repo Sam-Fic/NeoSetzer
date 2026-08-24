@@ -18,6 +18,8 @@
 
 from gi.repository import GLib
 
+import bisect
+
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
@@ -174,6 +176,12 @@ class ParserLaTeX(Observable):
         # section-like command nested inside the title itself.
         title_ranges = list()
         search_offset = 0
+        # 行号递增统计：原实现每个 section 命令都调 text.count('\n', 0, command_start)，
+        # 每次 O(全文) 重扫，M 个节 → O(M·n) 二次复杂度（大文档/章节多时拖慢打开与
+        # 每次防抖全文重算）。search_offset 只增不减，故各节 command_start 单调不减，
+        # 改成逐段统计上一节到本节的换行增量，全程合计一次 O(n)。
+        running_line = 0
+        prev_command_start = 0
         while True:
             match = self._section_command_regex.search(text, search_offset)
             if match is None:
@@ -187,18 +195,27 @@ class ParserLaTeX(Observable):
                 break
             title, argument_end = scanned_title
             command_start = match.start()
+            running_line += text.count('\n', prev_command_start, command_start)
+            prev_command_start = command_start
             block_symbol_matches['others'].append((
                 match.group(1),
                 match.group(2) is not None,
                 title,
-                line_start + text.count('\n', 0, command_start),
+                line_start + running_line,
                 command_start + offset_line_start,
             ))
             title_ranges.append((command_start, argument_end))
             search_offset = argument_end
 
+        # title_ranges 按 command_start 递增且互不重叠（search 只前移），
+        # 可用二分在 O(log M) 内判断 offset 是否落在某个标题内，替代对每个
+        # 编号匹配遍历全部 title_ranges 的 O(K×M) 二次查询。
+        title_starts = [range_start for range_start, _ in title_ranges]
+        title_ends = [range_end for _, range_end in title_ranges]
+
         def is_inside_section_title(offset):
-            return any(start <= offset < end for start, end in title_ranges)
+            index = bisect.bisect_right(title_starts, offset) - 1
+            return index >= 0 and offset < title_ends[index]
 
         for match in self._section_numbering_regex.finditer(text):
             if is_inside_section_title(match.start()):
