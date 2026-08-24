@@ -35,6 +35,7 @@ class PageBuildSystem(object):
 
     autoshow_values = ['errors', 'errors_warnings', 'all', 'never']
     shell_values = ['disable', 'restricted', 'enable']
+    output_chain_values = ['pdf', 'pdfps']
 
     def __init__(self, preferences, settings):
         self.view = PageBuildSystemView()
@@ -51,6 +52,9 @@ class PageBuildSystem(object):
     def init(self):
         self.view.option_cleanup_build_files.set_active(self.settings.get_value('preferences', 'cleanup_build_files'))
         self.view.option_cleanup_build_files.connect('notify::active', self.on_switch_toggled, 'cleanup_build_files')
+
+        self.view.option_enable_synctex.set_active(self.settings.get_value('preferences', 'enable_synctex'))
+        self.view.option_enable_synctex.connect('notify::active', self.on_switch_toggled, 'enable_synctex')
 
         # LaTeX interpreter combo
         self.view.option_latex_interpreter.connect('notify::selected', self.on_interpreter_selected)
@@ -71,6 +75,16 @@ class PageBuildSystem(object):
         self.view.option_auto_build_delay.set_property('value', self.settings.get_value('preferences', 'auto_build_delay'))
         self.view.option_auto_build_delay.connect('notify::value', self.on_delay_changed, 'auto_build_delay')
         self.update_auto_build_delay_sensitivity()
+
+        # 输出链（issue #223，仅 latexmk 生效）与个人 TeX 树（issue #182）
+        output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
+        if output_chain not in self.output_chain_values:
+            output_chain = 'pdf'
+        self.view.option_output_chain.set_selected(self.output_chain_values.index(output_chain))
+        self.view.option_output_chain.connect('notify::selected', self.on_output_chain_selected)
+        self.view.option_texmf_home.set_text(self.settings.get_value('preferences', 'texmf_home') or '')
+        # set_text 在 connect 之前调用：初始化回填不触发写入
+        self.view.option_texmf_home.connect('changed', self.on_texmf_home_changed)
 
         # Auto-build error popup：仅在 auto_build 开启时有意义，故 sensitivity 跟随。
         self.view.option_auto_build_autoshow_errors.set_active(
@@ -140,6 +154,19 @@ class PageBuildSystem(object):
             return
         self.settings.set_value('preferences', 'build_option_system_commands', self.shell_values[selected])
 
+    def on_output_chain_selected(self, combo, pspec):
+        selected = combo.get_selected()
+        if selected == Gtk.INVALID_LIST_POSITION:
+            return
+        self.settings.set_value('preferences', 'latexmk_output_chain', self.output_chain_values[selected])
+
+    def on_texmf_home_changed(self, entry):
+        self.settings.set_value('preferences', 'texmf_home', entry.get_text().strip())
+
+    def update_output_chain_sensitivity(self):
+        # 输出链只在 latexmk 路线下有意义（直接引擎路线硬编码直出 PDF）
+        self.view.option_output_chain.set_sensitive(self.view.option_use_latexmk.get_active())
+
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
             heading=_('Reset to Defaults?'),
@@ -166,6 +193,10 @@ class PageBuildSystem(object):
             self.view.option_auto_build_autoshow_errors.set_active(defaults['auto_build_autoshow_errors'])
             if self.latexmk_available:
                 self.view.option_use_latexmk.set_active(defaults['use_latexmk'])
+            self.view.option_output_chain.set_selected(
+                self.output_chain_values.index(defaults['latexmk_output_chain']))
+            # set_text 触发 changed 回调 → 自动写回设置
+            self.view.option_texmf_home.set_text(defaults['texmf_home'])
 
             # AI Fix 合并重置
             for key in ('ai_fix_enabled', 'ai_fix_active_tool',
@@ -237,11 +268,16 @@ class PageBuildSystem(object):
 
             if self.latexmk_available:
                 self.view.option_use_latexmk.set_visible(True)
+                self.view.option_output_chain.set_visible(True)
             else:
                 self.view.option_use_latexmk.set_visible(False)
+                self.view.option_output_chain.set_visible(False)
                 self.settings.set_value('preferences', 'use_latexmk', False)
             self.view.option_use_latexmk.set_active(self.settings.get_value('preferences', 'use_latexmk'))
             self.view.option_use_latexmk.connect('notify::active', self.on_switch_toggled, 'use_latexmk')
+            # 输出链置灰跟随 latexmk 开关（顺序：先同步一次初值，再挂回调）
+            self.update_output_chain_sensitivity()
+            self.view.option_use_latexmk.connect('notify::active', lambda *args: self.update_output_chain_sensitivity())
 
             # 填充 interpreter 下拉列表
             string_list = Gtk.StringList()
@@ -262,10 +298,13 @@ class PageBuildSystem(object):
             self.view.tectonic_warning_label.set_visible(True)
             self.view.option_use_latexmk.set_visible(False)
             self.view.option_system_commands.set_visible(False)
+            self.view.option_output_chain.set_visible(False)
         else:
             self.view.tectonic_warning_label.set_visible(False)
             self.view.option_use_latexmk.set_visible(True)
             self.view.option_system_commands.set_visible(True)
+            # tectonic 不参与 latexmk 路线；latexmk 不可用时同样隐藏
+            self.view.option_output_chain.set_visible(self.latexmk_available)
 
     # ---------- AI Fix（合并自 page_ai_fix） ----------
 
@@ -498,6 +537,24 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         self.option_use_latexmk.set_title(_('Use latexmk'))
         group_options.add(self.option_use_latexmk)
 
+        # 输出链（上游 issue #223）：仅 latexmk 路线可切换。'pdfps' 让 latexmk
+        # 编排 latex → dvips → ps2pdf，PSTricks/psfrag 等只在 PostScript 阶段
+        # 生效的宏包才能工作；最终产物仍是 PDF，预览不受影响。
+        self.option_output_chain = Adw.ComboRow()
+        self.option_output_chain.set_title(_('Output chain'))
+        self.option_output_chain.set_subtitle(_('PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; your interpreter choice is ignored on this route.'))
+        output_chain_model = Gtk.StringList()
+        for label in [_('Direct PDF'),
+                      _('PDF via PostScript (DVI → dvips → ps2pdf)')]:
+            output_chain_model.append(label)
+        self.option_output_chain.set_model(output_chain_model)
+        group_options.add(self.option_output_chain)
+
+        self.option_enable_synctex = Adw.SwitchRow()
+        self.option_enable_synctex.set_title(_('Generate SyncTeX for preview sync'))
+        self.option_enable_synctex.set_subtitle(_('Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster.'))
+        group_options.add(self.option_enable_synctex)
+
         group_auto_build = Adw.PreferencesGroup()
         group_auto_build.set_title(_('Auto Build'))
         self.add(group_auto_build)
@@ -573,6 +630,17 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
             shell_model.append(label)
         self.option_system_commands.set_model(shell_model)
         group_shell_escape.add(self.option_system_commands)
+
+        # —— 个人 TeX 树（上游 issue #182）——
+        group_texmf = Adw.PreferencesGroup()
+        group_texmf.set_title(_('Personal TeX tree'))
+        group_texmf.set_description(_('Directory with your own packages, classes and bibliography styles (kpathsea TEXMFHOME). Applied to every build; leave empty to use your environment or the TeX Live default (~/texmf).'))
+        self.add(group_texmf)
+
+        self.option_texmf_home = Adw.EntryRow()
+        self.option_texmf_home.set_title(_('TEXMFHOME directory'))
+        self.option_texmf_home.set_tooltip_text(_('A leading "~" is expanded to your home folder. Example: ~/.texmf'))
+        group_texmf.add(self.option_texmf_home)
 
         # ---- AI Fix（合并自 page_ai_fix：服务于构建报错修复） ----
         group_ai_main = Adw.PreferencesGroup()
