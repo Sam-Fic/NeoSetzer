@@ -7,9 +7,10 @@
 # 本地 document class（.cls），并仅把实际位于项目目录中的配置文件加入侧栏。
 
 import ast
-import bisect
+import importlib
 import os
 import re
+import sys
 import tempfile
 import types
 import unittest
@@ -44,9 +45,38 @@ class _RegexServiceLocator:
         return re.compile(pattern)
 
 
+def _inject_stdlib_imports(tree, namespace):
+    # Execute top-level imports of standard-library modules so the extracted
+    # class can freely use them (e.g. ``bisect``) without this harness having
+    # to inject each one by hand.  Non-stdlib imports (gi.repository,
+    # setzer.*, ...) are expected to be provided as stubs in `namespace` and
+    # are skipped here.
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                root = alias.name.split('.')[0]
+                if root not in sys.stdlib_module_names:
+                    continue
+                name = alias.asname or alias.name.split('.')[0]
+                if name in namespace:
+                    continue
+                namespace[name] = importlib.import_module(alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            if node.module.split('.')[0] not in sys.stdlib_module_names:
+                continue
+            module = importlib.import_module(node.module)
+            for alias in node.names:
+                if alias.name == '*':
+                    namespace.update({key: value for key, value in vars(module).items()
+                                      if not key.startswith('_') and key not in namespace})
+                elif alias.asname or alias.name not in namespace:
+                    namespace[alias.asname or alias.name] = getattr(module, alias.name)
+
+
 def _extract_class(path, class_name, namespace):
     tree = ast.parse(open(path, encoding='utf-8').read())
     constants = [node for node in tree.body if isinstance(node, ast.Assign)]
+    _inject_stdlib_imports(tree, namespace)
     cls_node = next(node for node in tree.body
                     if isinstance(node, ast.ClassDef) and node.name == class_name)
     exec(compile(ast.Module(body=constants + [cls_node], type_ignores=[]),
@@ -61,7 +91,6 @@ def _load_parser_class():
         'ServiceLocator': _RegexServiceLocator,
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
                                       source_remove=lambda *args: None),
-        'bisect': bisect,
         'extract_beamer_frame_titles': extract_beamer_frame_titles,
         'scan_balanced_braced_argument': scan_balanced_braced_argument,
         'AppendixStart': AppendixStart,
