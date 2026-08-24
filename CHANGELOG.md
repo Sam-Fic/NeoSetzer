@@ -10,6 +10,7 @@
 - **新增原生 LaTeX 表格生成器**：提供完整的表格对话框，支持多行多列网格编辑、单元格合并与拆分、表格样式（Plain rules / Booktabs）、长表格（longtable）跨页支持、导入/粘贴 TSV/CSV 数据；插入后可自动添加所需宏包。
 - **新增用户自定义 LaTeX 代码片段**：允许用户创建、编辑和删除自定义的 LaTeX 片段，在命令面板和符号面板中可搜索并插入。
 - **新增文献管理器**：支持创建和管理 `.bib` 文件，提供条目类型选择、字段编辑和导入/导出功能。
+- **新增文献格式化（#229）**：文献管理器对话框新增 "Format Bibliography" 按钮，可将 `.bib` 文件中的所有条目重写为统一风格——字段按规范顺序排列、等号对齐、缩进统一；注释、`@string`/`@preamble`、条目顺序及所有条目外内容逐字节保留；裸宏值（如 `month = jun`）保持原样不被加大括号。改写前需确认，文件在 Setzer 中打开时可通过撤销栈回退。
 - **新增插入图片对话框**：支持从文件或剪贴板插入图片，保存常用设置，并为关键控件补充工具提示；未保存文档会先提示保存以获取目标目录。
 - **增强文档向导**：改进文档类型页面布局与模板选择器；新增 scrlttr2 信头字段、KOMA 信函模板选项（#170）和 Beamer 主题搜索功能；支持窄窗口自适应布局；新增用户自定义文档模板；在文档创建前显示待确认信息。
 - **增强文档大纲**：显示章节编号，支持附录和计数器，新增 Beamer 帧导航；修复嵌套章节标题解析和短文档块保护。
@@ -43,6 +44,7 @@
 - **feat**: Add native LaTeX table generator dialog — full grid editing, cell merges, plain/booktabs styles, longtable support, TSV/CSV import/paste.
 - **feat**: Add user-defined LaTeX snippets — create, edit, and delete custom snippets searchable in the command palette and symbols panel.
 - **feat**: Add bibliography manager for creating and managing .bib files with entry type selection, field editing, and import/export.
+- **feat**: Add bibliography formatting (#229) — a "Format Bibliography" button in the manager dialog rewrites all entries in a .bib file to a canonical style: fields in a consistent order, aligned equals signs, uniform indentation. Comments, @string/@preamble, entry order, and everything outside entries are preserved byte-for-byte; bare macro values (e.g. month = jun) stay unbraced. Requires confirmation and remains undoable via the undo stack when the file is open in Setzer.
 - **feat**: Add insert-image dialog with file and clipboard support, saved defaults, and improved control tooltips; prompt to save unsaved documents before pasting images.
 - **feat**: Improve document wizard — better document-class page layout and template choosers, scrlttr2 letterhead fields, KOMA letter template options (#170), Beamer theme search, narrow-window adaptation, user document templates, and pending document creation confirmation.
 - **feat**: Improve document outline — show section numbers, support appendices and counters, add Beamer frame navigation; fix nested section title parsing and guard against short blocks.

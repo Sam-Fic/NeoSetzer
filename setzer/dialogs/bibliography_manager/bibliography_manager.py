@@ -115,14 +115,23 @@ class BibliographyManagerDialog(DialogView):
 
         self.open_button = Gtk.Button(label=_('Open BibTeX File…'))
         self.open_button.set_icon_name('document-open-symbolic')
+        self.open_button.set_tooltip_text(_('Open an existing BibTeX file'))
         self.open_button.connect('clicked', self._on_open_file)
         header.append(self.open_button)
 
         self.add_button = Gtk.Button(label=_('Add Entry'))
         self.add_button.set_icon_name('list-add-symbolic')
+        self.add_button.set_tooltip_text(_('Create a new bibliography entry'))
         self.add_button.add_css_class('suggested-action')
         self.add_button.connect('clicked', self._on_add_entry)
         header.append(self.add_button)
+
+        self.format_button = Gtk.Button(label=_('Format Bibliography'))
+        self.format_button.set_icon_name('format-justify-fill-symbolic')
+        self.format_button.set_tooltip_text(
+            _('Rewrite all entries with sorted fields and aligned values'))
+        self.format_button.connect('clicked', self._on_format_bibliography)
+        header.append(self.format_button)
 
         self.paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.paned.set_wide_handle(True)
@@ -197,24 +206,33 @@ class BibliographyManagerDialog(DialogView):
         self.details_view.set_cursor_visible(False)
         self.details_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.details_view.set_monospace(True)
+        self.details_view.set_top_margin(8)
+        self.details_view.set_bottom_margin(8)
+        self.details_view.set_left_margin(8)
+        self.details_view.set_right_margin(8)
         details_scroller = Gtk.ScrolledWindow()
         details_scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         details_scroller.set_vexpand(True)
         details_scroller.set_child(self.details_view)
+        details_scroller.add_css_class('preview-card')
+        details_scroller.set_overflow(Gtk.Overflow.HIDDEN)
         self.details_box.append(details_scroller)
 
         actions = Gtk.Box(spacing=8)
         actions.set_halign(Gtk.Align.END)
         self.insert_button = Gtk.Button(label=_('Insert Citation'))
         self.insert_button.set_icon_name('insert-text-symbolic')
+        self.insert_button.set_tooltip_text(_('Insert a \\cite command for this entry'))
         self.insert_button.connect('clicked', self._on_insert_citation)
         actions.append(self.insert_button)
         self.edit_button = Gtk.Button(label=_('Edit Entry'))
         self.edit_button.set_icon_name('document-edit-symbolic')
+        self.edit_button.set_tooltip_text(_('Edit the selected bibliography entry'))
         self.edit_button.connect('clicked', self._on_edit_entry)
         actions.append(self.edit_button)
         self.delete_button = Gtk.Button(label=_('Delete Entry'))
         self.delete_button.set_icon_name('user-trash-symbolic')
+        self.delete_button.set_tooltip_text(_('Remove the selected bibliography entry'))
         self.delete_button.add_css_class('destructive-action')
         self.delete_button.connect('clicked', self._on_delete_entry)
         actions.append(self.delete_button)
@@ -313,6 +331,7 @@ class BibliographyManagerDialog(DialogView):
             self.source_model.append(source['label'])
         self.source_selector.set_sensitive(bool(self.sources))
         self.add_button.set_sensitive(bool(self.sources))
+        self.format_button.set_sensitive(bool(self.sources))
         if self.sources:
             self.source_selector.set_selected(0)
             self._load_source(self.sources[0])
@@ -373,6 +392,7 @@ class BibliographyManagerDialog(DialogView):
                 self._show_message('\n'.join(self.store.diagnostics), True)
             self._refresh_entry_rows()
             self.add_button.set_sensitive(True)
+            self.format_button.set_sensitive(True)
         except (OSError, UnicodeError, BibTeXEntryError) as error:
             self._clear_source()
             self._show_message(str(error), True)
@@ -387,6 +407,7 @@ class BibliographyManagerDialog(DialogView):
         self._set_detail_visibility(False)
         self.empty_page.set_visible(True)
         self.add_button.set_sensitive(False)
+        self.format_button.set_sensitive(False)
 
     def _refresh_entry_rows(self):
         self._clear_entry_rows()
@@ -569,6 +590,40 @@ class BibliographyManagerDialog(DialogView):
         try:
             self._apply_text(self.store.delete_entry(key))
             self._load_source(self.selected_source)
+        except (BibTeXEntryError, BibTeXExternalChangeError, OSError, UnicodeError) as error:
+            self._show_message(str(error), True)
+
+    def _on_format_bibliography(self, button):
+        if self.store is None:
+            return
+        confirmation = Adw.AlertDialog(
+            heading=_('Format Bibliography?'),
+            body=_('Rewrite every entry with fields in a consistent order and aligned values. Comments and everything outside entries stay unchanged. This can be undone when the file is open in Setzer.'),
+        )
+        confirmation.add_response('cancel', _('Cancel'))
+        confirmation.add_response('format', _('Format'))
+        confirmation.set_response_appearance('format', Adw.ResponseAppearance.SUGGESTED)
+        confirmation.set_default_response('cancel')
+        confirmation.set_close_response('cancel')
+        confirmation.connect('response', self._on_format_response)
+        confirmation.present(self)
+
+    def _on_format_response(self, dialog, response):
+        if response != 'format' or self.store is None:
+            return
+        try:
+            formatted = self.store.format_bibliography()
+            if formatted == self.loaded_text:
+                self._show_message(_('The bibliography already uses the canonical entry style'), False)
+                return
+            selected_key = self.selected_entry.key if self.selected_entry is not None else None
+            self._apply_text(formatted)
+            self._load_source(self.selected_source)
+            if selected_key is not None:
+                for row in self.entry_rows:
+                    if row.entry.key == selected_key:
+                        self.entry_list.select_row(row)
+                        break
         except (BibTeXEntryError, BibTeXExternalChangeError, OSError, UnicodeError) as error:
             self._show_message(str(error), True)
 

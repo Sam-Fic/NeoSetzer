@@ -20,7 +20,8 @@
 This module intentionally does not serialize a complete bibliography.  It scans
 literal entry ranges and creates patches for one chosen entry, so comments,
 strings, preambles, entry order, and hand-written formatting outside that range
-remain untouched.
+remain untouched.  Whole-file formatting rewrites exactly the safely parsed
+entry ranges, keeping every other byte of source intact.
 '''
 
 from __future__ import annotations
@@ -66,6 +67,7 @@ class BibTeXEntry:
     start: int
     end: int
     raw: str
+    field_kinds: tuple[tuple[str, str], ...] = ()
 
     @property
     def field_map(self) -> dict[str, str]:
@@ -215,6 +217,30 @@ class BibTeXEntryStore:
                                 line_ending=_line_ending_for(entry.raw))
         return self.text[:entry.start] + rendered + self.text[entry.end:]
 
+    def format_bibliography(self) -> str:
+        '''Return text with every safely parsed entry rewritten in canonical style.
+
+        Fields are reordered into :data:`common_fields` order (unknown fields
+        follow alphabetically), names and equals signs are aligned, and each
+        entry is re-indented.  Values keep their original form: bare macro
+        references such as ``journal`` stay bare, quoted values become braced.
+        Unparsable blocks, comments, ``@string``, ``@preamble``, entry order,
+        and all surrounding whitespace are left byte-for-byte unchanged, so
+        formatting is safe even when diagnostics were reported.
+        '''
+        pieces: list[str] = []
+        cursor = 0
+        for entry in self.entries:
+            pieces.append(self.text[cursor:entry.start])
+            pieces.append(render_entry(
+                entry.entry_type, entry.key, entry.field_map,
+                line_ending=_line_ending_for(entry.raw), align_names=True,
+                value_kinds=dict(entry.field_kinds),
+            ))
+            cursor = entry.end
+        pieces.append(self.text[cursor:])
+        return ''.join(pieces)
+
     def delete_entry(self, key: str) -> str:
         '''Return text without one entry and one adjacent separator if present.'''
         matching_entries = [entry for entry in self.entries if entry.key == key]
@@ -240,18 +266,41 @@ class BibTeXEntryStore:
 
 
 def render_entry(entry_type: str, key: str, fields: Mapping[str, str],
-                 line_ending: str = '\n') -> str:
-    '''Render one validated entry using predictable, local formatting only.'''
+                 line_ending: str = '\n', align_names: bool = False,
+                 value_kinds: Mapping[str, str] | None = None) -> str:
+    '''Render one validated entry using predictable, local formatting only.
+
+    With ``align_names`` the field names are padded so equals signs line up.
+    ``value_kinds`` maps a field name to its source form; bare macro values
+    are re-emitted without braces while every other value becomes braced.
+    '''
     normalized_type = _validate_entry_type(entry_type)
     normalized_key = _validate_key(key)
-    normalized_fields = _normalize_fields(fields)
+    normalized_fields = _ordered_fields(fields)
+    if not normalized_fields:
+        return f'@{normalized_type}{{{normalized_key}}}'
+    kinds = dict(value_kinds) if value_kinds else {}
+    width = max(len(name) for name in normalized_fields) if align_names else 0
     body = [f'@{normalized_type}{{{normalized_key},']
     field_items = list(normalized_fields.items())
     for index, (name, value) in enumerate(field_items):
         comma = ',' if index < len(field_items) - 1 else ''
-        body.append(f'  {name} = {{{value}}}{comma}')
+        label = name.ljust(width) if align_names else name
+        if kinds.get(name) == 'bare':
+            rendered_value = value
+        else:
+            rendered_value = f'{{{value}}}'
+        body.append(f'  {label} = {rendered_value}{comma}')
     body.append('}')
     return line_ending.join(body)
+
+
+def _ordered_fields(fields: Mapping[str, str]) -> dict[str, str]:
+    '''Return validated fields in canonical order, unknown names alphabetically.'''
+    normalized = _normalize_fields(fields)
+    known = [name for name in _COMMON_FIELDS if name in normalized]
+    unknown = sorted(name for name in normalized if name not in _COMMON_FIELDS)
+    return {name: normalized[name] for name in known + unknown}
 
 
 def _scan_balanced_block(text: str, opening_offset: int, opening: str,
@@ -292,12 +341,14 @@ def _parse_entry(raw: str, start: int, entry_type: str, delimiter: str) -> BibTe
     key = body[:comma].strip()
     try:
         key = _validate_key(key)
-        fields = _parse_fields(body[comma + 1:])
+        parsed = _parse_fields(body[comma + 1:])
     except BibTeXEntryError as error:
         return _('The entry at character {position} cannot be edited safely: {reason}').format(
             position=start + 1, reason=str(error),
         )
-    return BibTeXEntry(key, entry_type, tuple(fields.items()), start, start + len(raw), raw)
+    fields = tuple((name, value) for name, (value, _) in parsed.items())
+    kinds = tuple((name, kind) for name, (_, kind) in parsed.items())
+    return BibTeXEntry(key, entry_type, fields, start, start + len(raw), raw, kinds)
 
 
 def _find_unquoted_comma(text: str) -> int | None:
@@ -323,8 +374,9 @@ def _find_unquoted_comma(text: str) -> int | None:
     return None
 
 
-def _parse_fields(text: str) -> dict[str, str]:
-    fields: dict[str, str] = {}
+def _parse_fields(text: str) -> dict[str, tuple[str, str]]:
+    '''Return each lowercased field name mapped to its value and source form.'''
+    fields: dict[str, tuple[str, str]] = {}
     offset = 0
     length = len(text)
     while offset < length:
@@ -343,32 +395,33 @@ def _parse_fields(text: str) -> dict[str, str]:
         offset = _skip_whitespace(text, offset + 1)
         if offset >= length:
             raise BibTeXEntryError(_('The field “{field}” has no value').format(field=name))
-        value, offset = _read_field_value(text, offset)
+        value, kind, offset = _read_field_value(text, offset)
         if name in fields:
             raise BibTeXEntryError(_('The field “{field}” occurs more than once').format(field=name))
-        fields[name] = value
+        fields[name] = (value, kind)
     return fields
 
 
-def _read_field_value(text: str, offset: int) -> tuple[str, int]:
+def _read_field_value(text: str, offset: int) -> tuple[str, str, int]:
+    '''Return a field value with its form: braced, quoted, or bare.'''
     character = text[offset]
     if character == '{':
         end = _scan_balanced_block(text, offset, '{', '}')
         if end is None:
             raise BibTeXEntryError(_('A braced field value is not closed'))
-        return text[offset + 1:end - 1], end
+        return text[offset + 1:end - 1], 'braced', end
     if character == '"':
         end = _scan_quoted_value(text, offset)
         if end is None:
             raise BibTeXEntryError(_('A quoted field value is not closed'))
-        return text[offset + 1:end - 1], end
+        return text[offset + 1:end - 1], 'quoted', end
     end = offset
     while end < len(text) and text[end] not in ',\r\n':
         end += 1
     value = text[offset:end].strip()
     if not value:
         raise BibTeXEntryError(_('A field value is empty'))
-    return value, end
+    return value, 'bare', end
 
 
 def _scan_quoted_value(text: str, opening_offset: int) -> int | None:

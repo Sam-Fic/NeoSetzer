@@ -520,12 +520,7 @@ toolbarview > * > * > * {
  * 覆盖上方 .preview scrolledwindow 的清描边规则，单独赋予圆角与背景，
  * 让只读预览呈现卡片外观（GTK4 无 CSS overflow，由代码 set_overflow(HIDDEN) 裁剪）。
  */
-.preview-card {
-    border-radius: 12px;
-    border: 1px solid @borders;
-    background: @card_bg_color;
-    padding: 2px;
-}
+/* 插入表格对话框 LaTeX 预览卡片样式复用 .preview-card，与 Insert Matrix 一致。 */
 
 /*
  * 文档内搜索栏（Gtk.SearchBar）：GTK 会自行为 searchbar 包裹

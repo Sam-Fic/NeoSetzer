@@ -117,6 +117,59 @@ class BibTeXEntryStoreTest(unittest.TestCase):
             render_entry('custom-type', 'item', {'title': 'Title', 'empty': '', 'extra': 'Value'}),
             '@custom-type{item,\n  title = {Title},\n  extra = {Value}\n}',
         )
+        self.assertEqual(render_entry('misc', 'solo', {}), '@misc{solo}')
+
+    def test_format_rewrites_entries_and_preserves_everything_else(self):
+        store = BibTeXEntryStore(self.text)
+        formatted = store.format_bibliography()
+        expected = (
+            '% Keep this heading exactly as written.\n'
+            '@string{journal = "Journal of Tests"}\n\n'
+            '@article{doe2024,\n'
+            '  author  = {Doe, Jane and Roe, Richard},\n'
+            '  title   = {A {Nested} \\emph{LaTeX} Title},\n'
+            '  year    = {2024},\n'
+            '  journal = journal,\n'
+            '  note    = {A quoted value with \\"quote\\"}\n'
+            '}\n\n'
+            '@book{smith2020,\n'
+            '  title = {Book Title},\n'
+            '  year  = {2020}\n'
+            '}\n'
+            '% Keep this footer exactly as written.\n'
+        )
+        self.assertEqual(formatted, expected)
+
+    def test_format_is_idempotent(self):
+        store = BibTeXEntryStore(self.text)
+        self.assertEqual(store.format_bibliography(), store.format_bibliography())
+
+    def test_format_keeps_unparsable_blocks_byte_for_byte(self):
+        text = ('@article{safe, title = {Safe}}\n'
+                '@book{unfinished, title = {No end @article{not-real, title = {Fake}}\n')
+        store = BibTeXEntryStore(text)
+        formatted = store.format_bibliography()
+        self.assertTrue(formatted.startswith('@article{safe,\n  title = {Safe}\n}\n'))
+        self.assertIn(
+            '@book{unfinished, title = {No end @article{not-real, title = {Fake}}\n',
+            formatted,
+        )
+
+    def test_format_preserves_bare_macro_values_and_crlf(self):
+        text = '@techreport(iea2019,\r\n  institution = "IEA",\r\n  month = jun,\r\n  volume = 12,\r\n)\r\n'
+        store = BibTeXEntryStore(text)
+        self.assertEqual(store.diagnostics, ())
+        self.assertEqual(store.format_bibliography(),
+                         '@techreport{iea2019,\r\n'
+                         '  volume      = 12,\r\n'
+                         '  month       = jun,\r\n'
+                         '  institution = {IEA}\r\n'
+                         '}\r\n')
+
+    def test_format_renders_fieldless_entries_on_one_line(self):
+        store = BibTeXEntryStore('@misc{solo,}\n')
+        self.assertEqual([entry.key for entry in store.entries], ['solo'])
+        self.assertEqual(store.format_bibliography(), '@misc{solo}\n')
 
 
 if __name__ == '__main__':
