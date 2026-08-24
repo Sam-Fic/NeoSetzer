@@ -48,7 +48,6 @@ class InsertTableController:
         self.cell_merges = ()
         self.editing_merge = None
         self._resizing = False
-        self._file_chooser = None
         self._connect_static_signals()
         self._connect_grid_signals()
 
@@ -120,30 +119,24 @@ class InsertTableController:
         self._apply_import_text(text)
 
     def _on_import_file(self, button):
-        chooser = Gtk.FileChooserNative.new(
-            _('Import CSV/TSV File'),
-            self.main_window,
-            Gtk.FileChooserAction.OPEN,
-            _('_Import'),
-            _('_Cancel'),
-        )
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_('Import CSV/TSV File'))
         filter = Gtk.FileFilter()
         filter.set_name(_('CSV and TSV files'))
         filter.add_pattern('*.csv')
         filter.add_pattern('*.tsv')
         filter.add_pattern('*.txt')
-        chooser.add_filter(filter)
-        chooser.connect('response', self._on_import_file_response)
-        self._file_chooser = chooser
-        chooser.show()
+        filters_model = Gio.ListStore.new(Gtk.FileFilter)
+        filters_model.append(filter)
+        dialog.set_filters(filters_model)
+        dialog.set_default_filter(filter)
+        dialog.open(self.main_window, None, self._on_import_file_response)
 
-    def _on_import_file_response(self, chooser, response):
-        self._file_chooser = None
-        if response != Gtk.ResponseType.ACCEPT:
-            chooser.destroy()
+    def _on_import_file_response(self, dialog, result):
+        try:
+            file = dialog.open_finish(result)
+        except GLib.Error:
             return
-        file = chooser.get_file()
-        chooser.destroy()
         if file is None:
             self.view.set_import_status(_('No file was selected for table import.'), is_error=True)
             return

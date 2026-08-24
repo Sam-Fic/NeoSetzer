@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, GLib
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 from setzer.dialogs.insert_table.table_generator import (
@@ -80,7 +80,10 @@ class InsertTableView(DialogView):
         self.alignment_rows = []
         self.merge_rows = []
 
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Table')))
+        self.title_widget = Adw.WindowTitle()
+        self.title_widget.set_title(_('Insert Table'))
+        self.title_widget.set_subtitle('')
+        self.headerbar.set_title_widget(self.title_widget)
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
 
@@ -272,7 +275,7 @@ class InsertTableView(DialogView):
         content.append(wrapper_group)
 
         text_group = Adw.PreferencesGroup()
-        text_group.set_title(_('Caption & Label'))
+        text_group.set_title(GLib.markup_escape_text(_('Caption & Label')))
         self.caption_row = Adw.EntryRow()
         self.caption_row.set_title(_('Caption'))
         self.caption_row.set_tooltip_text(_('Text displayed above the table; leave empty to omit it'))

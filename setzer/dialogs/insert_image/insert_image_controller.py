@@ -125,39 +125,40 @@ class InsertImageController():
         self.view.insert_button.set_sensitive(self.view._has_image())
 
     def _on_choose_file(self, button):
-        dialog = Gtk.FileChooserDialog(
-            title=_('Select Image'),
-            transient_for=self.main_window,
-            action=Gtk.FileChooserAction.OPEN,
-        )
-        dialog.add_buttons(_('_Cancel'), Gtk.ResponseType.CANCEL,
-                           _('_Open'), Gtk.ResponseType.ACCEPT)
+        dialog = Gtk.FileDialog()
+        dialog.set_modal(True)
+        dialog.set_title(_('Select Image'))
         img_filter = Gtk.FileFilter()
         img_filter.set_name(_('Images'))
         for mime in ['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/svg+xml', 'image/webp']:
             img_filter.add_mime_type(mime)
-        dialog.add_filter(img_filter)
-        dialog.connect('response', self._on_file_chosen)
-        dialog.present()
+        filters_model = Gio.ListStore.new(Gtk.FileFilter)
+        filters_model.append(img_filter)
+        dialog.set_filters(filters_model)
+        dialog.set_default_filter(img_filter)
+        dialog.open(self.main_window, None, self._on_file_chosen)
 
-    def _on_file_chosen(self, dialog, response):
-        if response == Gtk.ResponseType.ACCEPT:
-            file = dialog.get_file()
-            if file is not None:
-                path = file.get_path()
-                self.source_file_path = path
-                self.view.set_source_file(os.path.basename(path))
-                # 用文件名（去扩展名）作为默认保存名
-                base = os.path.splitext(os.path.basename(path))[0]
-                if not self.view.filename_row.get_text():
-                    self.view.set_filename(base)
-                # 预览
-                try:
-                    texture = Gdk.Texture.new_from_file(file)
-                    self.view.set_preview_texture(texture)
-                except Exception:
-                    self.view.set_preview_texture(None)
-        dialog.destroy()
+    def _on_file_chosen(self, dialog, result):
+        try:
+            file = dialog.open_finish(result)
+        except GLib.Error:
+            # 用户取消了对话框。
+            return
+
+        if file is not None:
+            path = file.get_path()
+            self.source_file_path = path
+            self.view.set_source_file(os.path.basename(path))
+            # 用文件名（去扩展名）作为默认保存名
+            base = os.path.splitext(os.path.basename(path))[0]
+            if not self.view.filename_row.get_text():
+                self.view.set_filename(base)
+            # 预览
+            try:
+                texture = Gdk.Texture.new_from_file(file)
+                self.view.set_preview_texture(texture)
+            except Exception:
+                self.view.set_preview_texture(None)
 
     def _on_cancel(self, button):
         self.view.close()

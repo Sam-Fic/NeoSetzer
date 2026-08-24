@@ -18,7 +18,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GLib
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, GLib, Adw
 from gi.repository import Gdk, GdkPixbuf
 
 import os
@@ -36,7 +37,7 @@ class IncludeLaTeXFileView(DialogView):
         self.set_can_focus(False)
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Include LaTeX file')))
+        self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Include LaTeX file')))
         self.topbox.set_size_request(400, -1)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))

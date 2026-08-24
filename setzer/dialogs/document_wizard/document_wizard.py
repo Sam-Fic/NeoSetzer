@@ -441,7 +441,7 @@ class DocumentWizard(object):
         if self.current_page != page_number:
             self.current_page = page_number
             self.view.page_stack.set_visible_child(self.pages[page_number].view)
-            self.view.subtitle_label.set_text(self.pages[page_number].view.headerbar_subtitle)
+            self.view.title_widget.set_subtitle(self.pages[page_number].view.headerbar_subtitle)
 
             self.pages[page_number].on_activation()
 

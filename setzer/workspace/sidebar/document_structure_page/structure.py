@@ -18,7 +18,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+gi.require_version('Adw', '1')
+from gi.repository import Adw, Gtk, Gdk
 
 import setzer.workspace.sidebar.document_structure_page.structure_viewgtk as structure_section_view
 from setzer.document.parser.structure_numbering import format_structure_title
@@ -357,59 +358,49 @@ class StructureSection(object):
             return
         old_title = block[5] or ''
         label_name = self.find_label_for_node(node)
+        old_label = label_name
 
-        dialog = Gtk.Dialog(title=_('Rename Section'), parent=self.view.get_root())
-        dialog.set_modal(True)
-        dialog.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
-        dialog.add_button(_('Rename'), Gtk.ResponseType.OK)
-        dialog.set_default_response(Gtk.ResponseType.OK)
+        dialog = Adw.AlertDialog(heading=_('Rename Section'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('rename', _('Rename'))
+        dialog.set_response_appearance('rename', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response('rename')
+        dialog.set_close_response('cancel')
 
-        content_area = dialog.get_content_area()
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
 
         title_label = Gtk.Label(label=_('Title:'))
         title_label.set_halign(Gtk.Align.START)
-        content_area.append(title_label)
+        content_box.append(title_label)
 
         title_entry = Gtk.Entry()
         title_entry.set_text(old_title)
         title_entry.set_activates_default(True)
-        content_area.append(title_entry)
+        content_box.append(title_entry)
 
         label_entry = None
         if label_name is not None:
             label_label = Gtk.Label(label=_('Label:'))
             label_label.set_halign(Gtk.Align.START)
-            content_area.append(label_label)
+            content_box.append(label_label)
 
             label_entry = Gtk.Entry()
             label_entry.set_text(label_name)
-            content_area.append(label_entry)
+            content_box.append(label_entry)
 
-        dialog.title_entry = title_entry
-        dialog.label_entry = label_entry
-        dialog.block = block
-        dialog.document = document
-        dialog.old_title = old_title
-        dialog.old_label = label_name
+        dialog.set_extra_child(content_box)
 
-        dialog.connect('response', self._on_rename_response)
-        dialog.present()
+        dialog.choose(
+            self.view.get_root(), None,
+            lambda d, result: self._on_rename_response(
+                d, result, title_entry, label_entry, block, document, old_title, old_label))
 
-    def _on_rename_response(self, dialog, response):
-        title_entry = dialog.title_entry
-        label_entry = dialog.label_entry
-        block = dialog.block
-        document = dialog.document
-        old_title = dialog.old_title
-        old_label = dialog.old_label
+    def _on_rename_response(self, dialog, result, title_entry, label_entry, block, document, old_title, old_label):
+        if dialog.choose_finish(result) != 'rename':
+            return
 
         new_title = title_entry.get_text().strip()
         new_label = label_entry.get_text().strip() if label_entry is not None else None
-
-        dialog.destroy()
-
-        if response != Gtk.ResponseType.OK:
-            return
 
         # Rename label FIRST (offsets are still valid before title edit)
         if new_label is not None and old_label is not None and new_label != old_label:
@@ -522,21 +513,21 @@ class StructureSection(object):
         start_offset = block[0]
         end_offset = block[1] if block[1] is not None else document.source_buffer.get_end_iter().get_offset()
 
-        dialog = Gtk.MessageDialog(
-            parent=self.view.get_root(),
-            message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            text=_('Delete Section?'),
-        )
-        dialog.set_modal(True)
-        dialog.format_secondary_text(_('Remove the entire section including its content. This action cannot be undone.'))
+        dialog = Adw.AlertDialog(
+            heading=_('Delete Section?'),
+            body=_('Remove the entire section including its content. This action cannot be undone.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('delete', _('Delete'))
+        dialog.set_response_appearance('delete', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
 
-        dialog.connect('response', lambda d, response: self._on_delete_response(d, response, document, start_offset, end_offset))
-        dialog.present()
+        dialog.choose(
+            self.view.get_root(), None,
+            lambda d, result: self._on_delete_response(d, result, document, start_offset, end_offset))
 
-    def _on_delete_response(self, dialog, response, document, start_offset, end_offset):
-        dialog.destroy()
-        if response != Gtk.ResponseType.OK:
+    def _on_delete_response(self, dialog, result, document, start_offset, end_offset):
+        if dialog.choose_finish(result) != 'delete':
             return
 
         document.source_buffer.begin_user_action()

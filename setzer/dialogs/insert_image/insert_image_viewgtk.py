@@ -45,7 +45,7 @@ class InsertImageView(DialogView):
         self.set_content_height(680)
 
         # 工具栏
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Image')))
+        self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Insert Image')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
 

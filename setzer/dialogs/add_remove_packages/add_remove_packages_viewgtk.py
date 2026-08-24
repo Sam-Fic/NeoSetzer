@@ -31,7 +31,7 @@ class AddRemovePackagesDialogView(DialogView):
 
         self.set_content_width(650)
         self.set_can_focus(False)
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Add / Remove Packages')))
+        self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Add / Remove Packages')))
 
         self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content_box.set_margin_start(12)

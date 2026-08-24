@@ -35,7 +35,7 @@ class SpellCheckingWordsView(DialogView):
 
         self.set_content_width(440)
         self.set_content_height(560)
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Spell Checking Words')))
+        self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Spell Checking Words')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
 

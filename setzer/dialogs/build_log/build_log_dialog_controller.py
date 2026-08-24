@@ -157,33 +157,34 @@ class BuildLogDialogController(object):
         if not self.build_log.has_items():
             self.view.toast_overlay.add_toast(Adw.Toast.new(_('The log is empty, nothing to save')))
             return
-        dialog = Gtk.FileChooserNative(
-            title=_('Save Build Log As'),
-            transient_for=self.view.get_root(),
-            action=Gtk.FileChooserAction.SAVE,
-            accept_label=_('Save'),
-            cancel_label=_('Cancel'))
-        dialog.set_current_name('build_log.txt')
+        dialog = Gtk.FileDialog()
+        dialog.set_title(_('Save Build Log As'))
+        dialog.set_initial_name('build_log.txt')
 
         # 过滤器：文本文件
         filter_text = Gtk.FileFilter()
         filter_text.set_name(_('Text files'))
         filter_text.add_mime_type('text/plain')
-        dialog.add_filter(filter_text)
 
         filter_all = Gtk.FileFilter()
         filter_all.set_name(_('All files'))
         filter_all.add_pattern('*')
-        dialog.add_filter(filter_all)
 
-        dialog.connect('response', self.on_save_log_response)
-        dialog.show()
+        filters_model = Gio.ListStore.new(Gtk.FileFilter)
+        filters_model.append(filter_text)
+        filters_model.append(filter_all)
+        dialog.set_filters(filters_model)
+        dialog.set_default_filter(filter_text)
 
-    def on_save_log_response(self, dialog, response):
+        dialog.save(self.view.get_root(), None, self.on_save_log_response)
+
+    def on_save_log_response(self, dialog, result):
         '''处理文件保存对话框的响应。'''
-        if response != Gtk.ResponseType.ACCEPT:
+        try:
+            file = dialog.save_finish(result)
+        except GLib.Error:
+            # 用户取消了对话框。
             return
-        file = dialog.get_file()
         if file is None:
             return
         lines = self._get_filtered_lines()

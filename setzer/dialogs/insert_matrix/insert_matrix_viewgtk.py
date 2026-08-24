@@ -54,7 +54,10 @@ class InsertMatrixView(DialogView):
         self.set_content_width(560)
         self.set_content_height(520)
 
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Insert Matrix')))
+        self.title_widget = Adw.WindowTitle()
+        self.title_widget.set_title(_('Insert Matrix'))
+        self.title_widget.set_subtitle('')
+        self.headerbar.set_title_widget(self.title_widget)
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
 

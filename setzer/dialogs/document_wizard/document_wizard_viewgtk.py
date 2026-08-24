@@ -18,7 +18,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GLib, Gdk, GdkPixbuf
+gi.require_version('Adw', '1')
+from gi.repository import Adw, Gtk, GLib, Gdk, GdkPixbuf
 
 import os
 
@@ -36,7 +37,6 @@ class DocumentWizardView(DialogView):
         # 内部继续靠 Clamp、BreakpointBin 和滚动容器自适应宽窄窗口。
         self.set_content_width(840)
         self.set_content_height(900)
-        self.headerbar.set_title_widget(Gtk.Label(label=_('Create a template document')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
 
@@ -49,18 +49,7 @@ class DocumentWizardView(DialogView):
         self.center_box.set_vexpand(True)
         self.pages = list()
 
-        self.title_label = Gtk.Label(label=_('Create a template document'))
-        self.title_label.add_css_class('title')
-        self.subtitle_label = Gtk.Label(label='')
-        self.subtitle_label.add_css_class('subtitle')
-
-        self.title_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.title_box.append(self.title_label)
-        self.title_box.append(self.subtitle_label)
-
-        self.title_widget = Gtk.CenterBox()
-        self.title_widget.set_orientation(Gtk.Orientation.VERTICAL)
-        self.title_widget.set_center_widget(self.title_box)
+        self.title_widget = Adw.WindowTitle(title=_('Create a template document'))
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
 
