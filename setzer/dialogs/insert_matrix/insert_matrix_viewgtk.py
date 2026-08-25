@@ -52,7 +52,7 @@ class InsertMatrixView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
         self.set_content_width(560)
-        self.set_content_height(520)
+        self.set_content_height(640)
 
         self.title_widget = Adw.WindowTitle()
         self.title_widget.set_title(_('Insert Matrix'))

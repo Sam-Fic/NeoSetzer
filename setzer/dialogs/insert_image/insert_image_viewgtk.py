@@ -53,8 +53,10 @@ class InsertImageView(DialogView):
         self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
 
-        self.save_defaults_button = Gtk.Button.new_with_mnemonic(_('Save as _Default'))
+        self.save_defaults_button = Gtk.Button(icon_name='document-save-symbolic')
         self.save_defaults_button.set_tooltip_text(_('Store the current options to be used next time'))
+        self.save_defaults_button.add_css_class('flat')
+        self.save_defaults_button.set_can_focus(False)
         self.headerbar.pack_start(self.save_defaults_button)
 
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
