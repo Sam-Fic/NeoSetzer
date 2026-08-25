@@ -73,6 +73,50 @@ _PROFILE_KEYS = (
     'additional_arguments',
 )
 
+# White-lists for free-form string values. Anything outside these sets is
+# dropped to None when a profile is saved or loaded, so a hostile project
+# file cannot steer the build towards arbitrary engines or shells.
+_INTERPRETERS = frozenset(('pdflatex', 'xelatex', 'lualatex', 'tectonic'))
+_SHELL_MODES = frozenset(('disable', 'restricted', 'enable'))
+_BIBLIOGRAPHY_BACKENDS = frozenset(('auto', 'bibtex', 'biber'))
+
+# additional_arguments hardening: cap count/length and block engine flags
+# that escape the project or enable shell execution. A compiler argument
+# starting with one of these prefixes is rejected entirely.
+_MAX_ARGUMENTS = 24
+_MAX_ARGUMENT_LENGTH = 256
+_ARGUMENT_PREFIXES_BLOCKED = (
+    '-output-directory', '--output-directory', '-jobname', '--jobname',
+    '-shell-escape', '--shell-escape', '-shell-restricted',
+    '--shell-restricted', '-no-shell-escape', '--no-shell-escape',
+)
+
+
+def project_relative_path(project_root, path):
+    '''Normalize a user-supplied path to project-relative form.
+
+    Absolute paths that live inside the project root are converted to
+    relative form (file-chooser dialogs return absolute paths); absolute
+    paths that escape the project are dropped (None) so the save-side
+    sanitizer keeps rejecting them. Relative paths pass through unchanged
+    and are validated later by ``effective_path``.
+
+    Designed for the dialog layer, which must not silently lose a valid
+    selection just because the user picked it with a chooser.
+    '''
+    if path is None or not isinstance(path, str) or not path.strip():
+        return path
+    folder = os.path.abspath(project_root)
+    if not os.path.isabs(path):
+        return path
+    candidate = os.path.abspath(path)
+    try:
+        if os.path.commonpath((folder, candidate)) == folder:
+            return os.path.relpath(candidate, folder)
+    except ValueError:
+        pass
+    return None
+
 
 class ProjectBuildConfiguration:
     '''Reads and writes ``build.json`` for a project root directory.'''
@@ -99,7 +143,9 @@ class ProjectBuildConfiguration:
             candidate = os.path.join(directory, cls.CONFIG_DIRECTORY,
                                      cls.CONFIG_FILE)
             if os.path.isfile(candidate):
-                return cls(os.path.dirname(candidate))
+                # candidate 是 <dir>/.neosetzer/build.json，项目根是 directory
+                # 本身（不是 dirname(candidate)，那会多剥一层到 .neosetzer）。
+                return cls(directory)
             if directory == root:
                 break
             parent = os.path.dirname(directory)
@@ -129,11 +175,22 @@ class ProjectBuildConfiguration:
         if value is None:
             return ()
         if isinstance(value, (list, tuple)):
-            return tuple(str(argument) for argument in value)
-        if isinstance(value, str):
+            raw = value
+        elif isinstance(value, str):
             text = value.strip()
-            return tuple(shlex.split(text)) if text else ()
-        return ()
+            raw = shlex.split(text) if text else ()
+        else:
+            return ()
+        safe = []
+        for argument in raw[:_MAX_ARGUMENTS]:
+            if (isinstance(argument, str) and argument.strip()
+                    and len(argument) <= _MAX_ARGUMENT_LENGTH
+                    and '\x00' not in argument and '\n' not in argument
+                    and '\r' not in argument
+                    and not argument.lstrip().startswith(
+                        _ARGUMENT_PREFIXES_BLOCKED)):
+                safe.append(argument)
+        return tuple(safe)
 
     def _validate_profiles(self, content):
         '''Return (profiles_list, active_name) from raw content dict.
@@ -144,9 +201,7 @@ class ProjectBuildConfiguration:
         raw_profiles = content.get('profiles')
         active = content.get('active_profile')
         if not isinstance(raw_profiles, list) or not raw_profiles:
-            legacy = {key: content.get(key) for key in _PROFILE_KEYS}
-            legacy['additional_arguments'] = self._validate_arguments(
-                content.get('additional_arguments'))
+            legacy = self._sanitize_values(content)
             legacy['name'] = DEFAULT_PROFILE_NAME
             legacy['tasks'] = list(DEFAULT_TASKS)
             return [legacy], DEFAULT_PROFILE_NAME
@@ -156,9 +211,7 @@ class ProjectBuildConfiguration:
         for raw in raw_profiles:
             if not isinstance(raw, dict):
                 continue
-            profile = {key: raw.get(key) for key in _PROFILE_KEYS}
-            profile['additional_arguments'] = self._validate_arguments(
-                raw.get('additional_arguments'))
+            profile = dict(self._sanitize_values(raw))
             name = (raw.get('name') or DEFAULT_PROFILE_NAME)
             if name in seen:
                 # De-duplicate silently; names must stay unique for switching.
@@ -203,14 +256,20 @@ class ProjectBuildConfiguration:
                 'tasks': list(DEFAULT_TASKS),
                 **{key: None for key in _PROFILE_KEYS},
             }
-        profiles = self.values['profiles']
-        active = self.values['active_profile']
+        profiles = self.values['profiles'] or []
+        active = self.values['active_profile'] or DEFAULT_PROFILE_NAME
         for profile in profiles:
             if profile['name'] == active:
                 data = dict(profile)
                 data['active_profile'] = active
                 return data
-        # Active profile disappeared; fall back to the first one.
+        # Active profile disappeared / no profiles; fall back to the first one.
+        if not profiles:
+            return {
+                'active_profile': DEFAULT_PROFILE_NAME,
+                'tasks': list(DEFAULT_TASKS),
+                **{key: None for key in _PROFILE_KEYS},
+            }
         data = dict(profiles[0])
         data['active_profile'] = profiles[0]['name']
         return data
@@ -225,14 +284,71 @@ class ProjectBuildConfiguration:
             }], DEFAULT_PROFILE_NAME
         return list(self.values['profiles']), self.values['active_profile']
 
+    def _sanitize_values(self, values):
+        '''White-list / black-list a profile's free-form fields.
+
+        Runs on save (writers) to keep hostile input out of build.json.
+        Values outside the white-lists collapse to None; blocked compiler
+        arguments are dropped; paths are kept project-relative and
+        verified not to escape the project root.
+
+        ``name`` / ``tasks`` are intentionally left untouched (handled by
+        the callers via _validate_tasks / name de-dup).
+        '''
+        if not isinstance(values, dict):
+            values = {}
+        sanitized = {}
+        for key in _PROFILE_KEYS:
+            value = values.get(key)
+            if key == 'root_document':
+                if (isinstance(value, str) and value
+                        and value.lower().endswith('.tex')
+                        and self.effective_path(value)):
+                    sanitized[key] = self._portable_path(value)
+                else:
+                    sanitized[key] = None
+            elif key == 'output_directory':
+                if (isinstance(value, str) and value
+                        and self.effective_path(value)):
+                    sanitized[key] = self._portable_path(value)
+                else:
+                    sanitized[key] = None
+            elif key == 'interpreter':
+                sanitized[key] = value if value in _INTERPRETERS else None
+            elif key in ('use_latexmk', 'cleanup_build_files'):
+                sanitized[key] = value if isinstance(value, bool) else None
+            elif key == 'shell_mode':
+                sanitized[key] = value if value in _SHELL_MODES else None
+            elif key == 'bibliography_backend':
+                sanitized[key] = (value if value in _BIBLIOGRAPHY_BACKENDS
+                                  else None)
+            elif key == 'additional_arguments':
+                sanitized[key] = self._validate_arguments(value)
+            else:
+                sanitized[key] = value
+        return sanitized
+
+    def _portable_path(self, path):
+        '''Return the project-relative form of a project-contained path.
+
+        Re-resolves through effective_path first (mirrors the legacy
+        helper), so callers may pass either a raw relative path or the
+        absolute path returned by effective_path.
+        '''
+        return os.path.relpath(self.effective_path(path),
+                               os.path.abspath(self.folder))
+
     def save(self, data):
         '''Persist a single legacy-style configuration (backward compatible).
 
         ``data`` uses the original flat keys. It is stored as the Default
-        profile so mixed usage keeps working.
+        profile so mixed usage keeps working. Values are sanitized before
+        they hit disk.
         '''
-        self._write_profile({**data, 'name': DEFAULT_PROFILE_NAME},
-                            DEFAULT_PROFILE_NAME)
+        profile = dict(self._sanitize_values(data))
+        profile['name'] = DEFAULT_PROFILE_NAME
+        profile['tasks'] = list(DEFAULT_TASKS)
+        self._write_profile(profile, DEFAULT_PROFILE_NAME)
 
     def save_profiles(self, profiles, active_name):
         '''Persist a list of profiles and the active profile name.'''
@@ -246,9 +362,8 @@ class ProjectBuildConfiguration:
                     index += 1
                 name = f'{name} ({index})'
             seen.add(name)
-            entry = {'name': name}
-            for key in _PROFILE_KEYS:
-                entry[key] = profile.get(key)
+            entry = dict(self._sanitize_values(profile))
+            entry['name'] = name
             entry['tasks'] = self._validate_tasks(profile.get('tasks'))
             cleaned.append(entry)
         if active_name not in seen:
@@ -272,7 +387,24 @@ class ProjectBuildConfiguration:
         self.values = self._validate(content)
 
     def effective_path(self, path):
-        '''Resolve a project-relative path against the project root.'''
-        if not path:
+        '''Resolve a project-relative path inside the project root.
+
+        Returns ``None`` when the path is unusable or would escape the
+        project folder. Configuration paths are deliberately relative to the
+        project root: this keeps the file portable and blocks directory
+        traversal, including absolute paths (which os.path.join would
+        otherwise let through).
+        '''
+        if (path is None
+                or not isinstance(path, str)
+                or not path.strip()
+                or os.path.isabs(path)):
             return None
-        return os.path.normpath(os.path.join(self.folder, path))
+        folder = os.path.abspath(self.folder)
+        candidate = os.path.abspath(os.path.join(folder, path))
+        try:
+            if os.path.commonpath((folder, candidate)) != folder:
+                return None
+        except ValueError:
+            return None
+        return candidate

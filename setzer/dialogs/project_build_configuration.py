@@ -29,6 +29,7 @@ from setzer.project.build_configuration import (
     TASK_TYPE_MAKEINDEX,
     TASK_TYPE_GLOSSARIES,
     DEFAULT_PROFILE_NAME,
+    project_relative_path,
 )
 
 
@@ -79,7 +80,7 @@ class ProjectBuildConfigurationDialog():
             'interpreter': None,
             'use_latexmk': True,
             'cleanup_build_files': True,
-            'shell_mode': False,
+            'shell_mode': 'disable',
             'bibliography_backend': 'bibtex',
             'additional_arguments': (),
             'tasks': [TASK_TYPE_LATEX],
@@ -150,7 +151,8 @@ class ProjectBuildConfigurationDialog():
             ' '.join(profile.get('additional_arguments') or ()))
         self.view.latexmk_switch.set_active(bool(profile.get('use_latexmk', True)))
         self.view.cleanup_switch.set_active(bool(profile.get('cleanup_build_files', True)))
-        self.view.shell_mode_switch.set_active(bool(profile.get('shell_mode', False)))
+        self.view.shell_mode_switch.set_active(
+            profile.get('shell_mode') in ('enable', 'restricted'))
         self.view.bib_backend_combo.set_active_id(
             profile.get('bibliography_backend') or 'bibtex')
         self._refresh_tasks(profile)
@@ -346,12 +348,22 @@ class ProjectBuildConfigurationDialog():
         profile = self._selected_profile()
         if profile is None:
             return
-        profile['root_document'] = self.view.root_document_entry.get_text().strip() or None
-        profile['output_directory'] = self.view.output_directory_entry.get_text().strip() or None
+        # 文件/目录选择器返回绝对路径：先归一为项目相对路径（项目外路径
+        # 返回 None，由持久化层保持为空），保证合法选择不会被保存层丢弃。
+        profile['root_document'] = project_relative_path(
+            self.configuration.folder,
+            self.view.root_document_entry.get_text().strip() or None)
+        profile['output_directory'] = project_relative_path(
+            self.configuration.folder,
+            self.view.output_directory_entry.get_text().strip() or None)
         profile['interpreter'] = self.view.interpreter_combo.get_active_id()
         profile['use_latexmk'] = self.view.latexmk_switch.get_active()
         profile['cleanup_build_files'] = self.view.cleanup_switch.get_active()
-        profile['shell_mode'] = self.view.shell_mode_switch.get_active()
+        # UI 是开关，持久化层与 builder 用 'disable'/'restricted'/'enable'
+        # 三态字符串：映射为开关的最简两态，保证项目级开关真正生效。
+        profile['shell_mode'] = (
+            'enable' if self.view.shell_mode_switch.get_active()
+            else 'disable')
         profile['bibliography_backend'] = self.view.bib_backend_combo.get_active_id()
         args_text = self.view.additional_arguments_entry.get_text().strip()
         profile['additional_arguments'] = tuple(args_text.split()) if args_text else ()
