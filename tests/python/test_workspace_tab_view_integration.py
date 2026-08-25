@@ -253,6 +253,7 @@ class TabViewClosePageGuardTests(unittest.TestCase):
     def _harness(self, page_to_doc=None, actions=None):
         sentinel = Mock()
         sentinel._selecting = 0
+        sentinel._closing_pages = set()
         sentinel._page_to_doc = page_to_doc if page_to_doc is not None else {}
         sentinel.workspace = Mock()
         sentinel.workspace._confirmed_closes = set()
@@ -279,8 +280,9 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         # not in our mapping, so we have nothing to lose.
         sentinel, bound = self._harness(page_to_doc={})
         tab_view = Mock()
-        bound(tab_view, 'GHOST')
-        tab_view.close_page_finish.assert_called_once_with('GHOST', True)
+        ghost = object()  # weak-referenceable, not in _page_to_doc
+        bound(tab_view, ghost)
+        tab_view.close_page_finish.assert_called_once_with(ghost, True)
         sentinel.workspace.actions.close_document.assert_not_called()
 
     def test_known_page_unmodified_routes_to_workspace_remove_document(self):
@@ -290,15 +292,36 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         # close-page protocol, not in actions.close_document anymore).
         actions = Mock()
         doc = self._mock_document(modified=False)
+        page = object()  # weak-referenceable page object (str is not)
         sentinel, bound = self._harness(
-            page_to_doc={'PAGE_A': doc},
+            page_to_doc={page: doc},
             actions=actions,
         )
         tab_view = Mock()
-        bound(tab_view, 'PAGE_A')
-        tab_view.close_page_finish.assert_called_once_with('PAGE_A', True)
+        bound(tab_view, page)
+        tab_view.close_page_finish.assert_called_once_with(page, True)
         sentinel.workspace.remove_document.assert_called_once_with(doc)
         actions.close_document.assert_not_called()
+
+    def test_duplicate_close_page_signal_is_deduplicated(self):
+        # The same page's close-page signal can fire twice (user clicks X
+        # → adw close_page, plus a programmatic remove_document →
+        # on_document_removed → close_page). The second finish would hit
+        # adw's 'page_belongs_to_this_view' assertion because the page is
+        # already removed. The handler must dedupe via _closing_pages so
+        # close_page_finish is called exactly once.
+        actions = Mock()
+        doc = self._mock_document(modified=False)
+        page = object()
+        sentinel, bound = self._harness(
+            page_to_doc={page: doc},
+            actions=actions,
+        )
+        tab_view = Mock()
+        bound(tab_view, page)              # first signal
+        bound(tab_view, page)              # duplicate signal (same page)
+        tab_view.close_page_finish.assert_called_once_with(page, True)
+        sentinel.workspace.remove_document.assert_called_once_with(doc)
 
     def test_close_path_uses_selecting_guard(self):
         # The handler must increment _selecting around the call to
@@ -308,8 +331,9 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         # loop.
         actions = Mock()
         doc = self._mock_document(modified=False)
+        page = object()
         sentinel, bound = self._harness(
-            page_to_doc={'PAGE_A': doc},
+            page_to_doc={page: doc},
             actions=actions,
         )
         # Replace the Mock's _selecting with a plain int we can capture.
@@ -322,7 +346,7 @@ class TabViewClosePageGuardTests(unittest.TestCase):
             observed.append(sentinel._selecting)
         sentinel.workspace.remove_document.side_effect = capture_value
         tab_view = Mock()
-        bound(tab_view, 'PAGE_A')
+        bound(tab_view, page)
         # Handler entered with 0, must set it to 1 before invoking
         # close_page_finish + remove_document (side_effect observes 1),
         # then reset to 0 after.

@@ -18,6 +18,8 @@
 
 from gi.repository import Gio, GLib, Adw
 
+import weakref
+
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -46,6 +48,13 @@ class WorkspacePresenter(object):
         # workspace.set_active_document → presenter.on_new_active_document
         # → set_selected_page → notify → set_active_document。
         self._selecting = 0
+        # 正在 / 已经处理 close 协议的 page 集合（WeakSet：page 被 adw 释放
+        # 后自动从集合移除，无需手动清理，避免强引用泄漏）。用于去重：同一
+        # page 的 close-page signal 可能因「用户点 X（adw 内部 close_page）」
+        # 与「程序路径 on_document_removed 再 close_page」两路并发而触发两次；
+        # 第二次若已 finish 移除则该 page 不再 belong to view，
+        # close_page_finish 会断言失败。拦截重复 signal 即可消除断言。
+        self._closing_pages = weakref.WeakSet()
 
         # 拖动分隔条时 notify::sidebar-width-fraction 每像素触发一次。
         # 原实现每帧调 set_value → add_change_code('settings_changed') →
@@ -591,6 +600,15 @@ class WorkspacePresenter(object):
            Cancel → finish(False) 取消关闭（page 保留）。
         '''
         document = self._page_to_doc.get(page)
+
+        # 去重：同一 page 的 close-page signal 可能因「用户点 X（adw 内部
+        # close_page）」与「程序路径 on_document_removed 再 close_page」两路
+        # 并发而触发两次。第二次到达时该 page 往往已被第一次 finish 移除，
+        # 不再 belong to view，close_page_finish 会断言失败。拦截重复 signal。
+        if page in self._closing_pages:
+            return
+        self._closing_pages.add(page)
+
         if document is None:
             # 找不到对应文档：放行让 adw 走默认 close（不会无限挂起页面）。
             tab_view.close_page_finish(page, True)
@@ -610,6 +628,9 @@ class WorkspacePresenter(object):
                 self._selecting -= 1
 
         def _cancel():
+            # 用户取消关闭：page 仍 belong to view，需从 _closing_pages 移除，
+            # 否则之后再次点 X 会被去重拦截、永远关不掉该标签。
+            self._closing_pages.discard(page)
             tab_view.close_page_finish(page, False)
 
         # 已确认关闭（程序批量路径如会话恢复 discard）直接移除，不再弹 confirm。
