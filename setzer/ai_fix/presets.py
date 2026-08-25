@@ -78,6 +78,12 @@ BUILTIN_TOOLS = [
         'headed_template': ['aider', '--message', '{prompt}', '--no-auto-commits'],
         'builtin': True,
     },
+    {
+        'name': 'pi',
+        'executable': 'pi',
+        'headed_template': ['pi', '--', '{prompt}'],
+        'builtin': True,
+    },
 ]
 
 
