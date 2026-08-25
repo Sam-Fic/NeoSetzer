@@ -257,11 +257,11 @@ class HamburgerMenu(object):
         '''timeout 回调：spinner 渲染后执行会话加载 + 旧文档清理。'''
         old_documents = set(self.workspace.get_all_documents())
         if self.workspace.load_documents_from_session_file(filename):
-            for document in old_documents:
-                self.workspace.remove_document(document)
+        for document in old_documents:
+            self.workspace.remove_document(document, confirmed=True)
         else:
-            for document in set(self.workspace.get_all_documents()) - old_documents:
-                self.workspace.remove_document(document)
+        for document in set(self.workspace.get_all_documents()) - old_documents:
+            self.workspace.remove_document(document, confirmed=True)
             # 加载失败：未触发 set_active_document，显式 hide 兜底。
             main_window = ServiceLocator_get_main_window()
             if main_window is not None and hasattr(main_window, 'hide_loading_spinner'):
@@ -276,11 +276,11 @@ class HamburgerMenu(object):
         response = parameters['response']
 
         if response == 0:  # discard (单)：移除当前，继续恢复会话
-            self.workspace.remove_document(document)
+            self.workspace.remove_document(document, confirmed=True)
             self.restore_session_cb(session_filename)
         elif response == 4:  # discard_all (批量)：移除所有未保存，继续恢复会话
             for d in list(unsaved_documents):
-                self.workspace.remove_document(d)
+                self.workspace.remove_document(d, confirmed=True)
             self.restore_session_cb(session_filename)
         elif response == 2:  # save (单)
             if document.get_filename() == None:

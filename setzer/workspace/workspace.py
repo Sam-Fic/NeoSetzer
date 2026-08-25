@@ -75,6 +75,12 @@ class Workspace(Observable):
 
         self.active_document = None
 
+        # 已确认关闭的文档集合：程序批量关闭路径（如 hamburger 会话恢复
+        # 的 discard_all / 单文档 discard）已让用户确认过，调 remove_document
+        # 时传 confirmed=True 标记，WorkspacePresenter 的 close-page handler
+        # 见到会直接移除而不再弹 confirm 对话框，避免重复确认。
+        self._confirmed_closes = set()
+
         self.recently_opened_session_files = dict()
         self.session_file_opened = None
 
@@ -217,7 +223,9 @@ class Workspace(Observable):
         LaTeXDB.schedule_parse_included_files()
         self.schedule_persistence()
 
-    def remove_document(self, document):
+    def remove_document(self, document, confirmed=False):
+        if confirmed:
+            self._confirmed_closes.add(document)
         self._unwatch_document_state(document)
         if document == self.root_document:
             self.unset_root_document()

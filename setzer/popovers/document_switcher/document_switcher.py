@@ -35,6 +35,12 @@ class DocumentSwitcher(Observable):
         self.main_window = ServiceLocator.get_main_window()
         self.view = DocumentSwitcherView()
         self.view.search_entry.connect('search-changed', self.on_search_changed)
+        # Gtk.SearchEntry 用 widget-class binding 在冒泡阶段拦截 Escape（发
+        # stop-search 并消费事件），而 Adw.Dialog 内建 Esc shortcut 同为冒泡
+        # 阶段、挂在更高层——焦点在搜索框时事件到不了 dialog，Esc 关不掉弹窗。
+        # 借 GTK 为此场景设计的 stop-search 信号关闭弹窗（搜索在此弹窗是常驻
+        # 功能而非模式，"停止搜索"即关闭）；焦点不在搜索框时仍走原生 Esc 关闭。
+        self.view.search_entry.connect('stop-search', self.on_stop_search)
 
         self.root_selection_mode = False
         self._is_visible = False
@@ -197,6 +203,21 @@ class DocumentSwitcher(Observable):
             self._dirty = False
             self._rebuild_rows()
         self.view.dialog.present(self.main_window)
+        if __import__('os').environ.get('SETZER_DEBUG_FOCUS'):
+            import os
+            def _dbg(label):
+                focus = self.main_window.get_focus()
+                inside = False
+                w = focus
+                while w is not None:
+                    if w is self.view.dialog:
+                        inside = True
+                        break
+                    w = w.get_parent()
+                print(f'[DBG {label}] focus={type(focus).__name__ if focus else None} inside_dialog={inside}', flush=True)
+                return False
+            GLib.timeout_add(300, _dbg, 't+0.3s')
+            GLib.timeout_add(1000, _dbg, 't+1.0s')
 
     def on_dialog_closed(self, dialog=None):
         self._is_visible = False
@@ -248,6 +269,10 @@ class DocumentSwitcher(Observable):
     def on_search_changed(self, entry):
         self.view.query = entry.get_text().strip().lower()
         self._rebuild_rows()
+
+    def on_stop_search(self, entry):
+        '''搜索框内按 Esc：关闭弹窗，与 Adw.Dialog 原生 Esc 关闭语义一致。'''
+        self.view.dialog.close()
 
     def on_new_document(self, workspace, document):
         document.connect('filename_change', self.on_name_change)
@@ -306,40 +331,13 @@ class DocumentSwitcher(Observable):
     def on_close_button_clicked(self, button):
         row = button.row
         document = row.document
-        self.workspace.actions.push_closed_document(document.get_filename())
-        if document.source_buffer.get_modified():
-            is_active = (document == self.workspace.get_active_document())
+        # 统一走 workspace.remove_document → WorkspacePresenter.on_document_removed
+        # → Adw.TabView close-page 协议（presenter 里统一做 push_closed_document
+        # + modified 检查 + confirm 对话框）。这里不自行 push/confirm，避免
+        # 与 tab view 关闭链路重复弹框。
+        if document == self.workspace.get_active_document():
             self.view.dialog.close()
-            dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': document, 'is_active': is_active}, self.on_close_document_callback)
-        else:
-            if document == self.workspace.get_active_document():
-                self.view.dialog.close()
-            self.workspace.remove_document(document)
-
-    def on_close_document_callback(self, parameters):
-        is_active = parameters['is_active']
-
-        if parameters['response'] == 0:
-            self.workspace.remove_document(parameters['unsaved_document'])
-        elif parameters['response'] == 2:
-            document = parameters['unsaved_document']
-            if document.get_filename() is None:
-                self.workspace.set_active_document(document)
-                DialogLocator.get_dialog('save_document').run(
-                    document, self._on_save_new_document_callback, parameters)
-                return
-            else:
-                if document.save_to_disk():
-                    self.workspace.remove_document(document)
-                else:
-                    if is_active:
-                        self.workspace.set_active_document(document)
-                    self._show_switcher()
-                    return
-
-        if not is_active or parameters['response'] == 1:
-            self._show_switcher()
+        self.workspace.remove_document(document)
 
     def _on_save_new_document_callback(self, parameters):
         self._show_switcher()

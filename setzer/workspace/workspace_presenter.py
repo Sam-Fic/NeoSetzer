@@ -20,6 +20,7 @@ from gi.repository import Gio, GLib, Adw
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
+from setzer.dialogs.dialog_locator import DialogLocator
 
 import os.path
 
@@ -163,17 +164,36 @@ class WorkspacePresenter(object):
             GLib.idle_add(self.update_preview_help_visibility)
 
     def on_document_removed(self, workspace, document):
-        # 从 Adw.TabView 拆 page：close_page_finish(page, confirm=False) 立即
-        # 移除（已通过 workspace 内部的 confirm 校验，adw 不要再问）。
-        # Adw.TabView 没有 remove_page 公开方法，只能走 close_page / finish 协议。
+        # 文档已从 workspace 移除。这里只做 UI 清理 + 关闭 adw 的 page。
+        #
+        # 关键：Adw.TabView 的 close 协议要求先 close_page(page)（adw 内部
+        # 置 page->closing 标记并 emit close-page signal），之后才能
+        # close_page_finish(page, confirm)。直接调 close_page_finish 会触发
+        # 'page->closing' / 'page_belongs_to_this_view' 断言失败。
+        #
+        # 两条移除路径：
+        # (A) 用户点 X / 中键：adw 内部已自动 close_page → emit close-page
+        #     → _on_tab_view_close_page 已从 _doc_to_page pop 掉 page 并
+        #     finish + remove_document。此时本回调里 pop 返回 None，跳过。
+        # (B) 程序直接 workspace.remove_document（Ctrl+W / files_view /
+        #     document_switcher / welcome_screen 等）：page 仍在映射，这里
+        #     主动 close_page(page) 发起协议 → 同步触发 close-page signal →
+        #     _on_tab_view_close_page 处理 confirm + finish + remove。
+        #     remove 重入本回调时 page 已 pop → 跳过，无循环。
         page = self._doc_to_page.pop(document, None)
         if page is not None:
             self._page_to_doc.pop(page, None)
-            # 抑制 selected-page::notify（拆掉当前选中 page 时会发空页），
-            # 避免触发 workspace.set_active_document(None) 引发循环。
+            # 压入重开栈：仅当文档已保存（有 filename）才能安全重开。
+            # 所有移除路径都经过本回调，统一在此 push，避免 handler /
+            # actions.close_document 双重 push。
+            filename = document.get_filename()
+            if filename is not None:
+                self.workspace.actions.push_closed_document(filename)
+            # 发起 adw 关闭协议（同步 emit close-page）。抑制
+            # selected-page::notify（拆掉当前选中 page 时会发空页）。
             self._selecting += 1
             try:
-                self.main_window.document_stack.close_page_finish(page, False)
+                self.main_window.document_stack.close_page(page)
             finally:
                 self._selecting -= 1
 
@@ -556,21 +576,56 @@ class WorkspacePresenter(object):
         self.workspace.set_active_document(document)
 
     def _on_tab_view_close_page(self, tab_view, page):
-        '''用户点关闭按钮 / 中键标签 / Alt+W 触发。
-        委派给 actions.close_document(document)，统一走 push_closed_document
-        + modified 检查 + confirm 对话框。
+        '''Adw.TabView close-page signal 处理器——关闭协议的唯一切口。
+
+        触发时机：
+        - 用户点 X / 中键标签 / Alt+W：adw 内部已 close_page(page)（设
+          page->closing=True），同步 emit 本 signal。
+        - 程序路径（on_document_removed 调 close_page(page)）：同样 emit。
+
+        处理流程（务必先 pop 映射再 remove_document，否则重入循环）：
+        1. 未知 page → close_page_finish(page, True) 放行。
+        2. 已知 document 且未修改 → finish(True) + pop 映射 + remove_document。
+        3. 已知 document 且已修改 → 弹 close_confirmation 对话框：
+           Save/Discard → finish(True) + pop 映射 + remove_document；
+           Cancel → finish(False) 取消关闭（page 保留）。
         '''
         document = self._page_to_doc.get(page)
         if document is None:
             # 找不到对应文档：放行让 adw 走默认 close（不会无限挂起页面）。
             tab_view.close_page_finish(page, True)
             return
-        # 抑制 selected-page::notify（拆掉当前选中 page 时 adw 会发空 selected）。
-        self._selecting += 1
-        try:
-            self.workspace.actions.close_document(document)
-        finally:
-            self._selecting -= 1
+
+        def _do_remove():
+            # 先从双向映射移除，再 remove_document，避免 on_document_removed
+            # 重入时再次 close_page 造成循环。
+            self._doc_to_page.pop(document, None)
+            self._page_to_doc.pop(page, None)
+            # 抑制 selected-page::notify（拆掉当前选中 page 时 adw 会发空 selected）。
+            self._selecting += 1
+            try:
+                tab_view.close_page_finish(page, True)
+                self.workspace.remove_document(document)
+            finally:
+                self._selecting -= 1
+
+        def _cancel():
+            tab_view.close_page_finish(page, False)
+
+        # 已确认关闭（程序批量路径如会话恢复 discard）直接移除，不再弹 confirm。
+        if document in self.workspace._confirmed_closes:
+            self.workspace._confirmed_closes.discard(document)
+            _do_remove()
+            return
+
+        # push_closed_document 已在 on_document_removed 统一处理。
+        if document.source_buffer.get_modified():
+            dialog = DialogLocator.get_dialog('close_confirmation')
+            # 对话框回调：根据按钮决定 _do_remove / _cancel。
+            dialog.run({'unsaved_document': document},
+                       lambda response: _do_remove() if response else _cancel())
+        else:
+            _do_remove()
 
     def _refresh_page_label(self, document):
         '''把 document 的 displayname / modified 状态推到 Adw.TabPage.title。

@@ -266,12 +266,8 @@ class FilesSectionView(structure_widget.StructureWidget):
         if document is None:
             return
         workspace = self.model.data_provider.workspace
-        # 与 actions.close_active_document 一致：先压入重开栈（Ctrl+Shift+T），
-        # 有未保存修改时弹确认对话框，复用 actions 的回调处理保存/丢弃。
-        workspace.actions.push_closed_document(document.get_filename())
-        if document.source_buffer.get_modified():
-            from setzer.dialogs.dialog_locator import DialogLocator
-            dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': document}, workspace.actions.close_document_callback)
-        else:
-            workspace.remove_document(document)
+        # 统一走 workspace.remove_document → WorkspacePresenter.on_document_removed
+        # → Adw.TabView close-page 协议（在 presenter 里统一做
+        # push_closed_document + modified 检查 + confirm 对话框）。这里不
+        # 再自行 push/confirm，避免与 tab view 关闭链路重复弹框。
+        workspace.remove_document(document)

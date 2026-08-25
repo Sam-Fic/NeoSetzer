@@ -255,11 +255,22 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         sentinel._selecting = 0
         sentinel._page_to_doc = page_to_doc if page_to_doc is not None else {}
         sentinel.workspace = Mock()
+        sentinel.workspace._confirmed_closes = set()
         sentinel.workspace.actions = actions if actions is not None else Mock()
         bound = _bound(
             presenter_methods['_on_tab_view_close_page'],
             sentinel)
         return sentinel, bound
+
+    def _mock_document(self, modified=False, filename='/tmp/foo.tex'):
+        # The real handler reads document.source_buffer.get_modified()
+        # and document.get_filename(); mirror those on a Mock so the
+        # extracted method can run unmodified.
+        doc = Mock()
+        doc.source_buffer = Mock()
+        doc.source_buffer.get_modified = Mock(return_value=modified)
+        doc.get_filename = Mock(return_value=filename)
+        return doc
 
     def test_unknown_page_finishes_with_confirm_true(self):
         # adw requires close_page_finish to be called or the page
@@ -272,50 +283,57 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         tab_view.close_page_finish.assert_called_once_with('GHOST', True)
         sentinel.workspace.actions.close_document.assert_not_called()
 
-    def test_known_page_routes_to_actions_close_document(self):
+    def test_known_page_unmodified_routes_to_workspace_remove_document(self):
+        # For an unmodified document the handler calls
+        # close_page_finish(page, True) and workspace.remove_document(doc)
+        # directly (push + confirm live in on_document_removed / the
+        # close-page protocol, not in actions.close_document anymore).
         actions = Mock()
+        doc = self._mock_document(modified=False)
         sentinel, bound = self._harness(
-            page_to_doc={'PAGE_A': 'DOC_A'},
+            page_to_doc={'PAGE_A': doc},
             actions=actions,
         )
         tab_view = Mock()
         bound(tab_view, 'PAGE_A')
-        actions.close_document.assert_called_once_with('DOC_A')
+        tab_view.close_page_finish.assert_called_once_with('PAGE_A', True)
+        sentinel.workspace.remove_document.assert_called_once_with(doc)
+        actions.close_document.assert_not_called()
 
     def test_close_path_uses_selecting_guard(self):
         # The handler must increment _selecting around the call to
-        # actions.close_document. If it forgets, the cascade
-        # workspace.remove_document → on_document_removed →
-        # close_page_finish → notify::selected-page → set_active_document
-        # would loop.
+        # close_page_finish + workspace.remove_document. If it forgets,
+        # the cascade workspace.remove_document → on_document_removed →
+        # close_page → notify::selected-page → set_active_document would
+        # loop.
         actions = Mock()
+        doc = self._mock_document(modified=False)
         sentinel, bound = self._harness(
-            page_to_doc={'PAGE_A': 'DOC_A'},
+            page_to_doc={'PAGE_A': doc},
             actions=actions,
         )
-        # Replace the Mock's _selecting with a plain int that we can
-        # capture via Python's ``int`` semantics. Use a list as a
-        # mutable container so the side_effect inside close_document
-        # can read the current value mid-call.
+        # Replace the Mock's _selecting with a plain int we can capture.
+        # The side_effect on workspace.remove_document reads the current
+        # value mid-call (after close_page_finish, while _selecting is
+        # still 1), proving the guard wraps both calls.
         observed = []
         sentinel._selecting = 0
-        def capture_value():
+        def capture_value(d):
             observed.append(sentinel._selecting)
-        actions.close_document.side_effect = lambda doc: capture_value()
+        sentinel.workspace.remove_document.side_effect = capture_value
         tab_view = Mock()
         bound(tab_view, 'PAGE_A')
-        # The handler must set _selecting=1 BEFORE invoking
-        # actions.close_document (so the side_effect observes 1),
-        # and reset to 0 AFTER. The first (and only) observation
-        # must be 1, not 0.
+        # Handler entered with 0, must set it to 1 before invoking
+        # close_page_finish + remove_document (side_effect observes 1),
+        # then reset to 0 after.
         self.assertEqual(observed, [1],
                          'handler must set _selecting to 1 before '
-                         'calling actions.close_document, but observed '
+                         'calling workspace.remove_document, but observed '
                          '{}'.format(observed))
         # After the call, _selecting must be back to 0.
         self.assertEqual(sentinel._selecting, 0,
                          'handler must decrement _selecting to 0 after '
-                         'actions.close_document returns')
+                         'workspace.remove_document returns')
 
 
 if __name__ == '__main__':

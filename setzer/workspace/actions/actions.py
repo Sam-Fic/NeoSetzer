@@ -767,25 +767,19 @@ class Actions(object):
     def close_document(self, document):
         '''关闭指定文档的统一入口。
 
-        替代原来只在 close_active_document 里的硬编码，使标签条关闭
-        按钮 / document_switcher 关闭按钮 / Ctrl+W 都走同一路径：
-        push_closed_document → modified 检查 → confirm 对话框 →
-        workspace.remove_document。close_active_document 现为薄封装。
+        所有移除路径（标签条 X 按钮 / document_switcher 关闭 / Ctrl+W /
+        files_view 关闭等）最终都汇聚到 workspace.remove_document，经由
+        WorkspacePresenter.on_document_removed → Adw.TabView close-page
+        协议（在 presenter 的 _on_tab_view_close_page 里统一做 modified
+        检查 + close_confirmation 对话框 + close_page_finish）。
 
-        confirm 路径对 modified=True 的文档弹 close_confirmation 对话框；
-        用户 Save/Discard 后 close_document_callback 会再调 workspace.remove_document
-        （已有逻辑）。
+        因此本方法只负责「从 workspace 移除」这一件事；push_closed_document
+        与 confirm 都在 presenter 侧统一处理，避免 UI 关闭链路双重弹框 /
+        双重 push。
         '''
         if document is None or document not in self.workspace.open_documents:
             return
-        # 仅当文档已保存（有 filename 且磁盘文件仍存在）才压入重开栈，
-        # 未保存文档无法安全重开。
-        self.push_closed_document(document.get_filename())
-        if document.source_buffer.get_modified():
-            dialog = DialogLocator.get_dialog('close_confirmation')
-            dialog.run({'unsaved_document': document}, self.close_document_callback)
-        else:
-            self.workspace.remove_document(document)
+        self.workspace.remove_document(document)
 
     def reopen_last_closed_document(self, action=None, parameter=None):
         if len(self._closed_document_stack) == 0: return
@@ -1010,18 +1004,6 @@ class Actions(object):
         document.controller.indent_selection(outdent=outdent)
         document.scroll_cursor_onscreen()
 
-
-    def close_document_callback(self, parameters):
-        if parameters['response'] == 0:
-            self.workspace.remove_document(parameters['unsaved_document'])
-        elif parameters['response'] == 2:
-            document = parameters['unsaved_document']
-            if document.get_filename() == None:
-                DialogLocator.get_dialog('save_document').run(document)
-            else:
-                if document.save_to_disk():
-                    self.workspace.remove_document(parameters['unsaved_document'])
-                # 保存失败：不移除文档，toast 已弹出
 
     def start_wizard(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
