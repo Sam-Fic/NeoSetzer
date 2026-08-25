@@ -39,6 +39,7 @@ foreach t : [
   ['test_latex_braces',           'test_latex_braces.py'],
   ['test_bibtex_entry_store',     'test_bibtex_entry_store.py'],
   ['test_bibtex_file_session',    'test_bibtex_file_session.py'],
+  ['test_bibtex_text_utils',      'test_bibtex_text_utils.py'],
   ['test_parser_bibtex',          'test_parser_bibtex.py'],
   ['test_smart_list',             'test_smart_list.py'],
   ['test_smart_list_controller',  'test_smart_list_controller.py'],
