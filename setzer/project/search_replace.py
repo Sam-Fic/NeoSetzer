@@ -107,23 +107,24 @@ class ProjectSearchReplace:
                                 whole_word=False, blocked_files=()):
         pattern = _compile_pattern(query, case_sensitive, regex, whole_word)
         if pattern is None:
-            return ReplacementPlan(query, replacement, (), tuple(sorted(blocked_files)))
+            return ReplacementPlan(query, replacement, (), ())
         blocked = {os.path.abspath(filename) for filename in blocked_files}
-        files = []
+        candidates = []
         for filename in self._text_filenames():
-            if filename in blocked:
-                continue
             text = _read_project_text(filename)
             if text is None:
                 continue
             replacement_text, replacement_count = _replace_nonempty_matches(
                 pattern, replacement, text)
             if replacement_count:
-                files.append(ReplacementFile(
+                candidates.append(ReplacementFile(
                     filename, _digest(text), text, replacement_text,
                     replacement_count))
-        return ReplacementPlan(query, replacement, tuple(files),
-                               tuple(sorted(blocked)))
+        blocked = {candidate.filename for candidate in candidates
+                   if candidate.filename in blocked}
+        files = tuple(candidate for candidate in candidates
+                      if candidate.filename not in blocked)
+        return ReplacementPlan(query, replacement, files, tuple(sorted(blocked)))
 
     def _text_filenames(self):
         filenames = set(ProjectFileResolver(

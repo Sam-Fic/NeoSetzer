@@ -48,6 +48,27 @@ class ProjectSearchReplaceTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 plan.apply()
 
+    def test_blocks_only_modified_files_with_replacements(self):
+        with tempfile.TemporaryDirectory() as parent:
+            project = os.path.join(parent, 'project')
+            os.mkdir(project)
+            main = self._write(project, 'main.tex', 'target')
+            unchanged = self._write(project, 'notes.tex', 'no matching text')
+            unrelated = self._write(parent, 'unrelated.tex', 'target')
+            search = ProjectSearchReplace(main, project)
+
+            plan = search.create_replacement_plan(
+                'target', 'replacement', blocked_files=(unrelated, unchanged))
+            self.assertEqual(plan.blocked_files, ())
+            self.assertEqual(plan.replacement_count, 1)
+            self.assertEqual([item.filename for item in plan.files], [main])
+
+            blocked_plan = search.create_replacement_plan(
+                'target', 'replacement', blocked_files=(main, unrelated))
+            self.assertEqual(blocked_plan.blocked_files, (main,))
+            self.assertEqual(blocked_plan.replacement_count, 0)
+            self.assertEqual(blocked_plan.files, ())
+
     def test_ignores_zero_length_regex_matches_in_preview_and_plan(self):
         with tempfile.TemporaryDirectory() as project:
             main = self._write(project, 'main.tex', 'abc')
