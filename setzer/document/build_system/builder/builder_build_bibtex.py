@@ -41,16 +41,22 @@ class BuilderBuildBibTeX(builder_build.BuilderBuild):
         arguments.append(filename + '.aux')
 
         query.bibtex_data['ran_on_files'].append(filename)
+        output_directory = self.get_output_directory(query)
+        custom_env = builder_build.build_env()
+        source_directory = os.path.dirname(tex_filename)
+        custom_env['BIBINPUTS'] = source_directory + os.pathsep + custom_env.get('BIBINPUTS', '')
 
         try:
-            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.path.dirname(tex_filename), env=builder_build.build_env())
+            self.process = builder_build.popen_no_window(
+                arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                cwd=output_directory, env=custom_env)
         except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'bibtex missing')
             return
         self.process.wait()
 
-        self.parse_bibtex_log(query, os.path.splitext(tex_filename)[0] + '.blg')
+        self.parse_bibtex_log(query, self.get_output_filename(query, '.blg'))
         query.jobs.insert(0, 'build_latex')
 
     def stop_running(self):

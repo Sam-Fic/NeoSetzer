@@ -20,7 +20,7 @@ import gi
 from gi.repository import GObject, GLib, Adw
 
 import threading, queue
-import time, re, difflib, unicodedata, os
+import time, re, difflib, unicodedata, os, shlex
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -36,6 +36,7 @@ import setzer.document.build_system.builder.builder_backward_sync as builder_bac
 import setzer.document.build_system.query.query as query
 from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers.observable import Observable
+from setzer.project.build_configuration import ProjectBuildConfiguration
 
 
 class BuildSystem(Observable):
@@ -87,6 +88,49 @@ class BuildSystem(Observable):
         self.builders['build_glossaries'] = builder_build_glossaries.BuilderBuildGlossaries()
         self.builders['forward_sync'] = builder_forward_sync.BuilderForwardSync()
         self.builders['backward_sync'] = builder_backward_sync.BuilderBackwardSync()
+
+    def _project_build_data(self):
+        '''Return validated project settings for this document, if any.
+
+        Loading a malformed project file must never stop a build; the
+        configuration service returns an all-``None`` dictionary in that case.
+        '''
+        if self.document.filename is None:
+            return None, {}
+        configuration = ProjectBuildConfiguration.discover(self.document.filename)
+        if configuration is None:
+            return None, {}
+        return configuration, configuration.load()
+
+    def _effective_build_value(self, preference_key, project_data,
+                               project_key=None):
+        '''Resolve document override > project configuration > global setting.'''
+        override = DocumentSettings.get_document_override(
+            self.document, preference_key)
+        if override is not None:
+            return override
+        project_value = project_data.get(project_key or preference_key)
+        if project_value is not None:
+            return project_value
+        return self.settings.get_value('preferences', preference_key)
+
+    def _set_query_build_data(self, query_obj, text, interpreter, use_latexmk,
+                              output_chain, additional_arguments, do_cleanup,
+                              enable_synctex, project_configuration,
+                              project_data):
+        query_obj.build_data['text'] = text
+        query_obj.build_data['latex_interpreter'] = interpreter
+        query_obj.build_data['use_latexmk'] = use_latexmk
+        query_obj.build_data['output_chain'] = output_chain
+        query_obj.build_data['additional_arguments'] = additional_arguments
+        query_obj.build_data['do_cleanup'] = do_cleanup
+        query_obj.build_data['enable_synctex'] = enable_synctex
+        query_obj.build_data['output_directory'] = (
+            project_configuration.effective_path(project_data['output_directory'])
+            if project_configuration is not None
+            and project_data.get('output_directory') else None)
+        query_obj.build_data['bibliography_backend'] = (
+            project_data.get('bibliography_backend') or 'auto')
 
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用。
@@ -373,10 +417,18 @@ class BuildSystem(Observable):
             # parse_magic_comments 只返回 NeoSetzer 已支持的引擎名，故绝不会
             # 将注释文本当作命令执行。
             magic = parse_magic_comments(text)
-            interpreter = magic.program or self.latex_interpreter or self.settings.get_value('preferences', 'latex_interpreter')
-            use_latexmk = self.settings.get_value('preferences', 'use_latexmk')
+            project_configuration, project_data = self._project_build_data()
+            interpreter = (magic.program or self.latex_interpreter
+                           or self._effective_build_value(
+                               'latex_interpreter', project_data,
+                               'interpreter'))
+            use_latexmk = self._effective_build_value(
+                'use_latexmk', project_data)
             output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
-            build_option_system_commands = self.settings.get_value('preferences', 'build_option_system_commands')
+            build_option_system_commands = (project_data.get('shell_mode')
+                                            or self.settings.get_value(
+                                                'preferences',
+                                                'build_option_system_commands'))
             additional_arguments = ''
 
             if interpreter == 'tectonic':
@@ -390,18 +442,21 @@ class BuildSystem(Observable):
                 elif build_option_system_commands == 'enable':
                     additional_arguments += lualatex_prefix + '-shell-escape'
 
-            do_cleanup = self.settings.get_value('preferences', 'cleanup_build_files')
-            enable_synctex = self.settings.get_value('preferences', 'enable_synctex')
+            project_arguments = project_data.get('additional_arguments', ())
+            if project_arguments:
+                additional_arguments += ' ' + ' '.join(
+                    shlex.quote(argument) for argument in project_arguments)
+            do_cleanup = self._effective_build_value(
+                'cleanup_build_files', project_data)
+            enable_synctex = self._effective_build_value(
+                'enable_synctex', project_data)
 
         if mode == 'build':
             query_obj.jobs = ['build_latex']
-            query_obj.build_data['text'] = text
-            query_obj.build_data['latex_interpreter'] = interpreter
-            query_obj.build_data['use_latexmk'] = use_latexmk
-            query_obj.build_data['output_chain'] = output_chain
-            query_obj.build_data['additional_arguments'] = additional_arguments
-            query_obj.build_data['do_cleanup'] = do_cleanup
-            query_obj.build_data['enable_synctex'] = enable_synctex
+            self._set_query_build_data(
+                query_obj, text, interpreter, use_latexmk, output_chain,
+                additional_arguments, do_cleanup, enable_synctex,
+                project_configuration, project_data)
         elif mode == 'forward_sync':
             query_obj.jobs = ['forward_sync']
             query_obj.can_sync = True
@@ -420,13 +475,10 @@ class BuildSystem(Observable):
             query_obj.backward_sync_data['pdf_line_text'] = self.backward_sync_data.get('pdf_line_text')
         else:
             query_obj.jobs = ['build_latex', 'forward_sync']
-            query_obj.build_data['text'] = text
-            query_obj.build_data['latex_interpreter'] = interpreter
-            query_obj.build_data['use_latexmk'] = use_latexmk
-            query_obj.build_data['output_chain'] = output_chain
-            query_obj.build_data['additional_arguments'] = additional_arguments
-            query_obj.build_data['do_cleanup'] = do_cleanup
-            query_obj.build_data['enable_synctex'] = enable_synctex
+            self._set_query_build_data(
+                query_obj, text, interpreter, use_latexmk, output_chain,
+                additional_arguments, do_cleanup, enable_synctex,
+                project_configuration, project_data)
             query_obj.can_sync = False
             query_obj.forward_sync_data['filename'] = synctex_arguments['filename']
             query_obj.forward_sync_data['line'] = synctex_arguments['line']

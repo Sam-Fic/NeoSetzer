@@ -21,6 +21,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 import setzer.dialogs.document_properties.document_properties_viewgtk as view
+from setzer.dialogs.project_build_configuration import ProjectBuildConfigurationDialog
 from setzer.settings.document_settings import DocumentSettings
 from setzer.app.service_locator import ServiceLocator
 
@@ -77,12 +78,19 @@ class DocumentPropertiesDialog(object):
         self._switch_auto_build = self.view.switch_auto_build
         self._switch_use_latexmk = self.view.switch_use_latexmk
         self._switch_cleanup = self.view.switch_cleanup
+        self.view.project_configuration_button.connect(
+            'clicked', self._on_project_configuration_clicked)
 
         # Editor group
         self._combo_indent_mode = self.view.combo_indent_mode
         self._combo_tab_width = self.view.combo_tab_width
 
         self._switch_override_build.connect('notify::active', self._on_build_override_toggled)
+
+    def _on_project_configuration_clicked(self, *_args):
+        if self.document is None or self.document.filename is None:
+            return
+        ProjectBuildConfigurationDialog(self.main_window, self.document).present()
 
     def _on_build_override_toggled(self, switch, pspec):
         self._sync_build_switches()

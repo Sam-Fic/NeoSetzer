@@ -7579,3 +7579,250 @@ msgstr "O destino selecionado não é um arquivo local."
 #: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
 msgid "New Document from Template"
 msgstr "Novo documento a partir de modelo"
+
+
+#: setzer/command_palette/catalog.py:81
+#, fuzzy
+msgid "Export Project Package"
+msgstr "Exportar pacote do projeto"
+
+#: setzer/command_palette/catalog.py:100
+#: setzer/dialogs/project_search_replace.py:37
+#, fuzzy
+msgid "Search and Replace in Project"
+msgstr "Localizar e substituir no projeto"
+
+#: setzer/command_palette/catalog.py:117
+#: setzer/dialogs/preamble_assistant.py:35
+#: setzer/dialogs/preamble_assistant.py:45
+msgid "Preamble Assistant"
+msgstr "Assistente de preâmbulo"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:113
+#: setzer/dialogs/project_build_configuration.py:33
+#: setzer/dialogs/project_build_configuration.py:49
+msgid "Project Build Configuration"
+msgstr "Configuração de compilação do projeto"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:115
+msgid "Configure shared settings in .neosetzer/build.json"
+msgstr "Configurar opções compartilhadas em .neosetzer/build.json"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:117
+msgid "_Configure"
+msgstr ""
+
+#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
+#: setzer/dialogs/preamble_assistant.py:60
+#, fuzzy
+msgid "_Close"
+msgstr "Fechar"
+
+#: setzer/dialogs/project_build_configuration.py:50
+msgid "Stored in .neosetzer/build.json for this project"
+msgstr "Armazenado em .neosetzer/build.json para este projeto"
+
+#: setzer/dialogs/project_build_configuration.py:56
+msgid "Leave a setting on “Follow global default” to inherit it."
+msgstr "Deixe uma opção em “Seguir padrão global” para herdá-la."
+
+#: setzer/dialogs/project_build_configuration.py:64
+msgid "Relative .tex path, for example main.tex"
+msgstr "Caminho .tex relativo, por exemplo main.tex"
+
+#: setzer/dialogs/project_build_configuration.py:68
+#, fuzzy
+msgid "Output directory"
+msgstr "Diretório de saída"
+
+#: setzer/dialogs/project_build_configuration.py:72
+#, fuzzy
+msgid "Relative path, for example build"
+msgstr "Caminho relativo, por exemplo build"
+
+#: setzer/dialogs/project_build_configuration.py:76
+#, fuzzy
+msgid "LaTeX interpreter"
+msgstr "Interpretador LaTeX"
+
+#: setzer/dialogs/project_build_configuration.py:83
+#: setzer/dialogs/project_build_configuration.py:88
+#: setzer/dialogs/project_build_configuration.py:94
+#, fuzzy
+msgid "Enabled"
+msgstr "Ativado"
+
+#: setzer/dialogs/project_build_configuration.py:92
+#, fuzzy
+msgid "Shell commands"
+msgstr "Comandos de shell"
+
+#: setzer/dialogs/project_build_configuration.py:93
+#, fuzzy
+msgid "Restricted"
+msgstr "Restrito"
+
+#: setzer/dialogs/project_build_configuration.py:98
+#, fuzzy
+msgid "Bibliography backend"
+msgstr "Mecanismo bibliográfico"
+
+#: setzer/dialogs/project_build_configuration.py:99
+#, fuzzy
+msgid "Follow log detection"
+msgstr "Seguir detecção do registro"
+
+#: setzer/dialogs/project_build_configuration.py:99
+#, fuzzy
+msgid "Automatic"
+msgstr "Automático"
+
+#: setzer/dialogs/project_build_configuration.py:103
+#, fuzzy
+msgid "Additional arguments"
+msgstr "Argumentos adicionais"
+
+#: setzer/dialogs/project_build_configuration.py:106
+msgid ""
+"Space-separated compiler arguments; output and shell flags are controlled "
+"above."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:26
+#, fuzzy
+msgid "Save a LaTeX document before exporting its project."
+msgstr "Salve um documento LaTeX antes de exportar seu projeto."
+
+#: setzer/dialogs/export_project_package.py:32
+#, python-brace-format
+msgid "Project package will record {count} missing dependency file(s)."
+msgstr "O pacote do projeto registrará {count} arquivo(s) de dependência ausente(s)."
+
+#: setzer/dialogs/export_project_package.py:36
+#, fuzzy
+msgid "Export Project Package As…"
+msgstr "Exportar pacote do projeto como…"
+
+#: setzer/dialogs/export_project_package.py:42
+msgid "ZIP Archives"
+msgstr "Arquivos ZIP"
+
+#: setzer/dialogs/export_project_package.py:59
+#, fuzzy
+msgid "A file with that name already exists; choose a new name."
+msgstr "Já existe um arquivo com esse nome; escolha outro nome."
+
+#: setzer/dialogs/export_project_package.py:61
+#, fuzzy, python-brace-format
+msgid "Could not export project package: {error}"
+msgstr "Não foi possível exportar o pacote do projeto: {error}"
+
+#: setzer/dialogs/export_project_package.py:64
+#, fuzzy, python-brace-format
+msgid "Project package exported to: {filename}"
+msgstr "Pacote do projeto exportado para: {filename}"
+
+#: setzer/dialogs/project_search_replace.py:27
+#, fuzzy
+msgid "Save a LaTeX document before searching its project."
+msgstr "Salve um documento LaTeX antes de pesquisar em seu projeto."
+
+#: setzer/dialogs/project_search_replace.py:50
+#, fuzzy
+msgid "Replace with"
+msgstr "Substituir por"
+
+#: setzer/dialogs/project_search_replace.py:56
+#, fuzzy
+msgid "Match whole word"
+msgstr "Corresponder palavra inteira"
+
+#: setzer/dialogs/project_search_replace.py:58
+#, fuzzy
+msgid "Regular expression"
+msgstr "Expressão regular"
+
+#: setzer/dialogs/project_search_replace.py:79
+#, fuzzy
+msgid "_Preview"
+msgstr "_Visualizar"
+
+#: setzer/dialogs/project_search_replace.py:81
+#: setzer/dialogs/project_search_replace.py:140
+#, fuzzy
+msgid "_Apply replacements"
+msgstr "_Aplicar substituições"
+
+#: setzer/dialogs/project_search_replace.py:114
+#, python-brace-format
+msgid "Preview: {count} replacement(s) in {files} file(s)."
+msgstr "Visualização: {count} substituição(ões) em {files} arquivo(s)."
+
+#: setzer/dialogs/project_search_replace.py:124
+msgid "Only the first 250 matches are shown."
+msgstr "Somente as primeiras 250 correspondências são exibidas."
+
+#: setzer/dialogs/project_search_replace.py:127
+msgid "Replacement is disabled because these open files have unsaved changes:"
+msgstr "A substituição está desativada porque estes arquivos abertos têm alterações não salvas:"
+
+#: setzer/dialogs/project_search_replace.py:136
+msgid "Apply project-wide replacements?"
+msgstr "Aplicar substituições em todo o projeto?"
+
+#: setzer/dialogs/project_search_replace.py:137
+#, python-brace-format
+msgid "This writes the reviewed replacement plan to {count} file(s)."
+msgstr "Isto grava o plano de substituição revisado em {count} arquivo(s)."
+
+#: setzer/dialogs/project_search_replace.py:160
+#, fuzzy, python-brace-format
+msgid "Applied replacements to {count} file(s)."
+msgstr "Substituições aplicadas a {count} arquivo(s)."
+
+#: setzer/dialogs/preamble_assistant.py:46
+msgid ""
+"Suggestions are based on commands in the document; nothing changes until you "
+"confirm."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:62
+#, fuzzy
+msgid "_Add suggested packages"
+msgstr "_Adicionar pacotes sugeridos"
+
+#: setzer/dialogs/preamble_assistant.py:73
+msgid "No missing package suggestions were found in this document."
+msgstr "Nenhuma sugestão de pacote ausente foi encontrada neste documento."
+
+#: setzer/dialogs/preamble_assistant.py:78
+msgid "available in NeoSetzer’s package database"
+msgstr "disponível no banco de dados de pacotes do NeoSetzer"
+
+#: setzer/dialogs/preamble_assistant.py:80
+msgid "not listed in NeoSetzer’s package database"
+msgstr "não listado no banco de dados de pacotes do NeoSetzer"
+
+#: setzer/dialogs/preamble_assistant.py:91
+#, fuzzy
+msgid "Add suggested packages?"
+msgstr "Adicionar pacotes sugeridos?"
+
+#: setzer/dialogs/preamble_assistant.py:92
+#, python-brace-format
+msgid "This inserts {count} package declaration(s) into the document preamble."
+msgstr "Isto insere {count} declaração(ões) de pacote no preâmbulo do documento."
+
+#: setzer/dialogs/preamble_assistant.py:95
+#, fuzzy
+msgid "_Add packages"
+msgstr "_Adicionar pacotes"
+
+#: setzer/dialogs/preamble_assistant.py:110
+#, python-brace-format
+msgid "Added {count} suggested package(s)."
+msgstr "{count} pacote(s) sugerido(s) adicionado(s)."
+
+#: setzer/dialogs/project_build_configuration.py:114
+msgid "_Save configuration"
+msgstr "_Salvar configuração"

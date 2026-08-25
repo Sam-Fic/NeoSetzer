@@ -26,6 +26,7 @@ import uuid
 
 from setzer.document.document import Document
 from setzer.document.magic_comments import parse_magic_comments, resolve_root_filename
+from setzer.project.build_configuration import ProjectBuildConfiguration
 import setzer.document.build_system.build_system as build_system
 import setzer.document.build_widget.build_widget as build_widget
 import setzer.document.preview.preview as preview
@@ -1092,6 +1093,32 @@ class Workspace(Observable):
             return self.active_document
         return None
 
+    def _get_project_root_filename(self, document):
+        if document is None or document.get_filename() is None:
+            return None
+        configuration = ProjectBuildConfiguration.discover(document.get_filename())
+        if configuration is None:
+            return None
+        root_document = configuration.load().get('root_document')
+        root_filename = configuration.effective_path(root_document)
+        if root_filename and os.path.isfile(root_filename):
+            return root_filename
+        return None
+
+    def _open_build_root_if_needed(self, root_filename, active_document):
+        if root_filename is None or root_filename == os.path.abspath(
+                active_document.get_filename()):
+            return active_document
+        for candidate in self.open_latex_documents:
+            if candidate.get_filename() == root_filename:
+                self._attach_latex_toolchain(candidate)
+                return candidate
+        root_document = self.open_document_by_filename(root_filename)
+        if root_document is not None and root_document.is_latex_document():
+            self.set_active_document(active_document)
+            return root_document
+        return active_document
+
     def get_magic_root_or_active_latex_document(self):
         """Resolve the active file's valid Magic Comment root for a build only.
 
@@ -1104,26 +1131,14 @@ class Workspace(Observable):
             return document
 
         active_document = self.active_document
+        project_root_filename = self._get_project_root_filename(active_document)
+        if project_root_filename is not None:
+            return self._open_build_root_if_needed(
+                project_root_filename, active_document)
+
         magic = parse_magic_comments(active_document.get_all_text())
         root_filename = resolve_root_filename(active_document.get_filename(), magic.root)
-        if root_filename is None or root_filename == os.path.abspath(active_document.get_filename()):
-            return active_document
-
-        for candidate in self.open_latex_documents:
-            if candidate.get_filename() == root_filename:
-                # 候选可能是会话恢复后从未激活的轻量文档（无工具链）：
-                # 构建前补挂 BuildSystem / Preview。
-                self._attach_latex_toolchain(candidate)
-                return candidate
-
-        # Match the manual "Set as root" loading behavior only at build time,
-        # then restore the child file as active for forward SyncTeX.  This does
-        # not change ``root_document`` or persist a project-level root choice.
-        root_document = self.open_document_by_filename(root_filename)
-        if root_document is not None and root_document.is_latex_document():
-            self.set_active_document(active_document)
-            return root_document
-        return active_document
+        return self._open_build_root_if_needed(root_filename, active_document)
 
     def update_preview_visibility(self, document):
         if document != None and document.is_latex_document():

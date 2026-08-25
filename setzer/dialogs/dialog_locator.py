@@ -38,6 +38,9 @@ from setzer.dialogs.open_session.open_session import OpenSessionDialog
 from setzer.dialogs.preferences.preferences import PreferencesDialog
 from setzer.dialogs.replace_confirmation.replace_confirmation import ReplaceConfirmationDialog
 from setzer.dialogs.export_pdf.export_pdf import ExportPdfDialog
+from setzer.dialogs.export_project_package import ExportProjectPackageDialog
+from setzer.dialogs.project_search_replace import ProjectSearchReplaceDialog
+from setzer.dialogs.preamble_assistant import PreambleAssistantDialog
 from setzer.dialogs.save_document.save_document import SaveDocumentDialog
 from setzer.dialogs.save_session.save_session import SaveSessionDialog
 from setzer.dialogs.insert_image.insert_image_controller import InsertImageController
@@ -71,6 +74,9 @@ class DialogLocator():
         dialogs['preferences'] = PreferencesDialog(main_window)
         dialogs['replace_confirmation'] = ReplaceConfirmationDialog(main_window)
         dialogs['export_pdf'] = ExportPdfDialog(main_window, workspace)
+        dialogs['export_project_package'] = ExportProjectPackageDialog(main_window, workspace)
+        dialogs['project_search_replace'] = ProjectSearchReplaceDialog(main_window, workspace)
+        dialogs['preamble_assistant'] = PreambleAssistantDialog(main_window)
         dialogs['save_document'] = SaveDocumentDialog(main_window, workspace)
         dialogs['save_session'] = SaveSessionDialog(main_window, workspace)
         dialogs['insert_image'] = InsertImageController(main_window)

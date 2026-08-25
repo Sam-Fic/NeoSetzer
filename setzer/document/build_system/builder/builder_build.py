@@ -75,6 +75,17 @@ class BuilderBuild(object):
             query.build_result = {'error': error,
                                  'error_arg': error_arg}
 
+    def get_output_directory(self, query):
+        '''Return the validated project output directory or the source folder.'''
+        output_directory = query.build_data.get('output_directory')
+        if isinstance(output_directory, str) and output_directory:
+            return output_directory
+        return os.path.dirname(query.tex_filename)
+
+    def get_output_filename(self, query, ending):
+        basename = os.path.splitext(os.path.basename(query.tex_filename))[0]
+        return os.path.join(self.get_output_directory(query), basename + ending)
+
     def cleanup_files(self, query):
         if query.build_data['do_cleanup']:
             self.cleanup_build_files(query)
@@ -89,12 +100,12 @@ class BuilderBuild(object):
                         # （.out.ps 是 hyperref 的，覆盖不到它）
                         '.ps']
         for ending in file_endings:
-            try: os.remove(os.path.splitext(query.tex_filename)[0] + ending)
+            try: os.remove(self.get_output_filename(query, ending))
             except FileNotFoundError: pass
 
     def cleanup_glossaries_files(self, query):
         for ending in ['.gls', '.acr']:
-            try: os.remove(os.path.splitext(query.tex_filename)[0] + ending)
+            try: os.remove(self.get_output_filename(query, ending))
             except FileNotFoundError: pass
 
 

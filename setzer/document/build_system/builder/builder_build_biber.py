@@ -40,16 +40,19 @@ class BuilderBuildBiber(builder_build.BuilderBuild):
         query.biber_data['ran_on_files'].append(filename)
 
         custom_env = builder_build.build_env()
-        custom_env['BIBINPUTS'] = os.path.dirname(query.tex_filename) + os.pathsep + os.path.dirname(tex_filename)
+        source_directory = os.path.dirname(tex_filename)
+        custom_env['BIBINPUTS'] = source_directory + os.pathsep + custom_env.get('BIBINPUTS', '')
         try:
-            self.process = builder_build.popen_no_window(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=os.path.dirname(tex_filename), env=custom_env)
+            self.process = builder_build.popen_no_window(
+                arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                cwd=self.get_output_directory(query), env=custom_env)
         except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'biber missing')
             return
         self.process.wait()
 
-        self.parse_biber_log(query, os.path.splitext(tex_filename)[0] + '.blg')
+        self.parse_biber_log(query, self.get_output_filename(query, '.blg'))
 
         query.jobs.insert(0, 'build_latex')
 

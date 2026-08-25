@@ -7176,3 +7176,250 @@ msgstr "所选目标不是本地文件。"
 #: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
 msgid "New Document from Template"
 msgstr "从模板新建文档"
+
+
+#: setzer/command_palette/catalog.py:81
+#, fuzzy
+msgid "Export Project Package"
+msgstr "导出项目包"
+
+#: setzer/command_palette/catalog.py:100
+#: setzer/dialogs/project_search_replace.py:37
+#, fuzzy
+msgid "Search and Replace in Project"
+msgstr "在项目中搜索和替换"
+
+#: setzer/command_palette/catalog.py:117
+#: setzer/dialogs/preamble_assistant.py:35
+#: setzer/dialogs/preamble_assistant.py:45
+msgid "Preamble Assistant"
+msgstr "导言区助手"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:113
+#: setzer/dialogs/project_build_configuration.py:33
+#: setzer/dialogs/project_build_configuration.py:49
+msgid "Project Build Configuration"
+msgstr "项目构建配置"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:115
+msgid "Configure shared settings in .neosetzer/build.json"
+msgstr "配置 .neosetzer/build.json 中的共享设置"
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:117
+msgid "_Configure"
+msgstr ""
+
+#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
+#: setzer/dialogs/preamble_assistant.py:60
+#, fuzzy
+msgid "_Close"
+msgstr "关闭"
+
+#: setzer/dialogs/project_build_configuration.py:50
+msgid "Stored in .neosetzer/build.json for this project"
+msgstr "此项目的设置存储在 .neosetzer/build.json 中"
+
+#: setzer/dialogs/project_build_configuration.py:56
+msgid "Leave a setting on “Follow global default” to inherit it."
+msgstr "将设置保留为“跟随全局默认值”即可继承该值。"
+
+#: setzer/dialogs/project_build_configuration.py:64
+msgid "Relative .tex path, for example main.tex"
+msgstr "相对 .tex 路径，例如 main.tex"
+
+#: setzer/dialogs/project_build_configuration.py:68
+#, fuzzy
+msgid "Output directory"
+msgstr "输出目录"
+
+#: setzer/dialogs/project_build_configuration.py:72
+#, fuzzy
+msgid "Relative path, for example build"
+msgstr "相对路径，例如 build"
+
+#: setzer/dialogs/project_build_configuration.py:76
+#, fuzzy
+msgid "LaTeX interpreter"
+msgstr "LaTeX 解释器"
+
+#: setzer/dialogs/project_build_configuration.py:83
+#: setzer/dialogs/project_build_configuration.py:88
+#: setzer/dialogs/project_build_configuration.py:94
+#, fuzzy
+msgid "Enabled"
+msgstr "启用"
+
+#: setzer/dialogs/project_build_configuration.py:92
+#, fuzzy
+msgid "Shell commands"
+msgstr "Shell 命令"
+
+#: setzer/dialogs/project_build_configuration.py:93
+#, fuzzy
+msgid "Restricted"
+msgstr "受限"
+
+#: setzer/dialogs/project_build_configuration.py:98
+#, fuzzy
+msgid "Bibliography backend"
+msgstr "参考文献后端"
+
+#: setzer/dialogs/project_build_configuration.py:99
+#, fuzzy
+msgid "Follow log detection"
+msgstr "遵循日志检测"
+
+#: setzer/dialogs/project_build_configuration.py:99
+#, fuzzy
+msgid "Automatic"
+msgstr "自动"
+
+#: setzer/dialogs/project_build_configuration.py:103
+#, fuzzy
+msgid "Additional arguments"
+msgstr "附加参数"
+
+#: setzer/dialogs/project_build_configuration.py:106
+msgid ""
+"Space-separated compiler arguments; output and shell flags are controlled "
+"above."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:26
+#, fuzzy
+msgid "Save a LaTeX document before exporting its project."
+msgstr "导出项目之前，请先保存 LaTeX 文档。"
+
+#: setzer/dialogs/export_project_package.py:32
+#, python-brace-format
+msgid "Project package will record {count} missing dependency file(s)."
+msgstr "项目包将记录 {count} 个缺失的依赖文件。"
+
+#: setzer/dialogs/export_project_package.py:36
+#, fuzzy
+msgid "Export Project Package As…"
+msgstr "导出项目包为…"
+
+#: setzer/dialogs/export_project_package.py:42
+msgid "ZIP Archives"
+msgstr "ZIP 压缩包"
+
+#: setzer/dialogs/export_project_package.py:59
+#, fuzzy
+msgid "A file with that name already exists; choose a new name."
+msgstr "同名文件已存在；请选择新名称。"
+
+#: setzer/dialogs/export_project_package.py:61
+#, fuzzy, python-brace-format
+msgid "Could not export project package: {error}"
+msgstr "无法导出项目包：{error}"
+
+#: setzer/dialogs/export_project_package.py:64
+#, fuzzy, python-brace-format
+msgid "Project package exported to: {filename}"
+msgstr "项目包已导出到：{filename}"
+
+#: setzer/dialogs/project_search_replace.py:27
+#, fuzzy
+msgid "Save a LaTeX document before searching its project."
+msgstr "搜索项目之前，请先保存 LaTeX 文档。"
+
+#: setzer/dialogs/project_search_replace.py:50
+#, fuzzy
+msgid "Replace with"
+msgstr "替换为"
+
+#: setzer/dialogs/project_search_replace.py:56
+#, fuzzy
+msgid "Match whole word"
+msgstr "匹配整个词"
+
+#: setzer/dialogs/project_search_replace.py:58
+#, fuzzy
+msgid "Regular expression"
+msgstr "正则表达式"
+
+#: setzer/dialogs/project_search_replace.py:79
+#, fuzzy
+msgid "_Preview"
+msgstr "预览(_P)"
+
+#: setzer/dialogs/project_search_replace.py:81
+#: setzer/dialogs/project_search_replace.py:140
+#, fuzzy
+msgid "_Apply replacements"
+msgstr "应用替换(_A)"
+
+#: setzer/dialogs/project_search_replace.py:114
+#, python-brace-format
+msgid "Preview: {count} replacement(s) in {files} file(s)."
+msgstr "预览：将在 {files} 个文件中执行 {count} 处替换。"
+
+#: setzer/dialogs/project_search_replace.py:124
+msgid "Only the first 250 matches are shown."
+msgstr "仅显示前 250 个匹配项。"
+
+#: setzer/dialogs/project_search_replace.py:127
+msgid "Replacement is disabled because these open files have unsaved changes:"
+msgstr "由于以下打开的文件包含未保存的更改，替换已被禁用："
+
+#: setzer/dialogs/project_search_replace.py:136
+msgid "Apply project-wide replacements?"
+msgstr "应用项目范围的替换吗？"
+
+#: setzer/dialogs/project_search_replace.py:137
+#, python-brace-format
+msgid "This writes the reviewed replacement plan to {count} file(s)."
+msgstr "这会将已审阅的替换计划写入 {count} 个文件。"
+
+#: setzer/dialogs/project_search_replace.py:160
+#, fuzzy, python-brace-format
+msgid "Applied replacements to {count} file(s)."
+msgstr "已对 {count} 个文件应用替换。"
+
+#: setzer/dialogs/preamble_assistant.py:46
+msgid ""
+"Suggestions are based on commands in the document; nothing changes until you "
+"confirm."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:62
+#, fuzzy
+msgid "_Add suggested packages"
+msgstr "添加建议的宏包(_A)"
+
+#: setzer/dialogs/preamble_assistant.py:73
+msgid "No missing package suggestions were found in this document."
+msgstr "未在此文档中发现缺失宏包建议。"
+
+#: setzer/dialogs/preamble_assistant.py:78
+msgid "available in NeoSetzer’s package database"
+msgstr "在 NeoSetzer 宏包数据库中可用"
+
+#: setzer/dialogs/preamble_assistant.py:80
+msgid "not listed in NeoSetzer’s package database"
+msgstr "未列在 NeoSetzer 宏包数据库中"
+
+#: setzer/dialogs/preamble_assistant.py:91
+#, fuzzy
+msgid "Add suggested packages?"
+msgstr "添加建议的宏包吗？"
+
+#: setzer/dialogs/preamble_assistant.py:92
+#, python-brace-format
+msgid "This inserts {count} package declaration(s) into the document preamble."
+msgstr "这会在文档导言区中插入 {count} 条宏包声明。"
+
+#: setzer/dialogs/preamble_assistant.py:95
+#, fuzzy
+msgid "_Add packages"
+msgstr "添加宏包(_A)"
+
+#: setzer/dialogs/preamble_assistant.py:110
+#, python-brace-format
+msgid "Added {count} suggested package(s)."
+msgstr "已添加 {count} 个建议的宏包。"
+
+#: setzer/dialogs/project_build_configuration.py:114
+msgid "_Save configuration"
+msgstr "保存配置(_S)"

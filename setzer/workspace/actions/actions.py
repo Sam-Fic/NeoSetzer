@@ -67,6 +67,7 @@ class Actions(object):
         self.add_action('save-all', self.save_all)
         self.add_action('save-session', self.save_session)
         self.add_action('export-pdf-as', self.export_pdf_as)
+        self.add_action('export-project-package', self.export_project_package)
         self.add_action('print', self.print_document)
         self.add_action('close-all-documents', self.close_all)
         self.add_action('close-active-document', self.close_active_document)
@@ -96,6 +97,7 @@ class Actions(object):
         self.add_action('manage-bibliography', self.start_bibliography_manager, None)
         self.add_action('include-latex-file', self.start_include_latex_file_dialog, None)
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
+        self.add_action('show-preamble-assistant', self.show_preamble_assistant, None)
         self.add_action('insert-image-dialog', self.start_insert_image_dialog, None)
         self.add_action('insert-table-dialog', self.start_insert_table_dialog, None)
         self.add_action('insert-matrix-dialog', self.start_insert_matrix_dialog, None)
@@ -118,6 +120,7 @@ class Actions(object):
 
         self.add_action('start-search', self.start_search)
         self.add_action('start-search-and-replace', self.start_search_and_replace)
+        self.add_action('project-search-and-replace', self.project_search_and_replace)
         self.add_action('find-next', self.find_next)
         self.add_action('find-previous', self.find_previous)
         self.add_action('stop-search', self.stop_search)
@@ -587,6 +590,30 @@ class Actions(object):
             return
 
         DialogLocator.get_dialog('export_pdf').run(document)
+
+    def export_project_package(self, action=None, parameter=None):
+        if self.workspace.get_active_document() is None:
+            return
+        document = self.workspace.get_magic_root_or_active_latex_document()
+        if document is None or document.get_filename() is None:
+            return
+        DialogLocator.get_dialog('export_project_package').run(document)
+
+    def show_preamble_assistant(self, action=None, parameter=None):
+        if self.workspace.get_active_document() is None:
+            return
+        document = self.workspace.get_magic_root_or_active_latex_document()
+        if document is None or document.get_filename() is None:
+            return
+        DialogLocator.get_dialog('preamble_assistant').present(document)
+
+    def project_search_and_replace(self, action=None, parameter=None):
+        if self.workspace.get_active_document() is None:
+            return
+        document = self.workspace.get_magic_root_or_active_latex_document()
+        if document is None or document.get_filename() is None:
+            return
+        DialogLocator.get_dialog('project_search_replace').present(document)
 
     def print_document(self, action=None, parameter=None):
         preview = self._get_preview()

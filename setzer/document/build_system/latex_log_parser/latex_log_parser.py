@@ -35,8 +35,11 @@ class LaTeXLogParser():
         self.badbox_line_number_regex = ServiceLocator.get_regex_object(r'lines ([0-9]+)--([0-9]+)')
         self.other_line_number_regex = ServiceLocator.get_regex_object(r'(l\.| input line \n| input line )([0-9]+)( |\.)')
 
-    def parse_build_log(self, tex_filename):
-        log_filename = os.path.join(os.path.dirname(tex_filename), os.path.splitext(os.path.basename(tex_filename))[0] + '.log')
+    def parse_build_log(self, tex_filename, output_directory=None):
+        output_directory = output_directory or os.path.dirname(tex_filename)
+        log_filename = os.path.join(
+            output_directory,
+            os.path.splitext(os.path.basename(tex_filename))[0] + '.log')
         try: file = open(log_filename, 'rb')
         except FileNotFoundError as e: raise e
         else:
@@ -58,11 +61,15 @@ class LaTeXLogParser():
         # （rsplit('.',1)[0].rsplit('/',1)[1] 与 rsplit('/',1)[1][:-4] 各算
         # 多遍，二者结果相同）。提到循环外只算一次，N 条日志省 2N 次字符串切分。
         tex_basename = os.path.splitext(os.path.basename(query.tex_filename))[0]
+        bibliography_backend = query.build_data.get('bibliography_backend', 'auto')
         for filename, items in log_items.items():
             for item in items['error'] + items['warning']:
 
                 if item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and item[2].find('.bbl.') >= 0:
-                    if not tex_basename in query.bibtex_data['ran_on_files']:
+                    if bibliography_backend == 'biber':
+                        if tex_basename not in query.biber_data['ran_on_files']:
+                            jobs |= {'build_biber'}
+                    elif tex_basename not in query.bibtex_data['ran_on_files']:
                         jobs |= {'build_bibtex'}
 
                 elif item[2].startswith('No file ') and item[2].find(tex_basename) >= 0 and item[2].find('.ind.') >= 0:
@@ -71,9 +78,10 @@ class LaTeXLogParser():
 
                 elif item[2] == 'Please (re)run Biber on the file:':
                     line = item[3]
-                    if line.find(tex_basename) >= 0:
-                        if not tex_basename in query.biber_data['ran_on_files']:
-                            jobs |= {'build_biber'}
+                    if (line.find(tex_basename) >= 0
+                            and bibliography_backend != 'bibtex'
+                            and tex_basename not in query.biber_data['ran_on_files']):
+                        jobs |= {'build_biber'}
 
                 elif item[2] == 'File `' + tex_basename + '.out\' has changed.':
                     jobs |= {'build_latex'}

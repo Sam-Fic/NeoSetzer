@@ -109,6 +109,17 @@ class DocumentPropertiesView(DialogView):
         self.switch_cleanup = cleanup_row
         build_group.add(cleanup_row)
 
+        project_configuration_row = Adw.ActionRow()
+        project_configuration_row.set_title(_('Project Build Configuration'))
+        project_configuration_row.set_subtitle(
+            _('Configure shared settings in .neosetzer/build.json'))
+        self.project_configuration_button = Gtk.Button.new_with_mnemonic(
+            _('_Configure'))
+        project_configuration_row.add_suffix(self.project_configuration_button)
+        project_configuration_row.set_activatable_widget(
+            self.project_configuration_button)
+        build_group.add(project_configuration_row)
+
         content.append(build_group)
 
         # --- Editor group ---

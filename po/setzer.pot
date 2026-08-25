@@ -7871,3 +7871,248 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:223
 msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
 msgstr ""
+
+#: setzer/command_palette/catalog.py:74 setzer/command_palette/catalog.py:75
+#: setzer/command_palette/catalog.py:76 setzer/command_palette/catalog.py:77
+#: setzer/command_palette/catalog.py:78 setzer/command_palette/catalog.py:79
+#: setzer/command_palette/catalog.py:80 setzer/command_palette/catalog.py:81
+#: setzer/command_palette/catalog.py:82 setzer/command_palette/catalog.py:83
+#: setzer/command_palette/catalog.py:84 setzer/command_palette/catalog.py:85
+msgid "File"
+msgstr ""
+
+#: setzer/command_palette/catalog.py:81
+msgid "Export Project Package"
+msgstr ""
+
+#: setzer/command_palette/catalog.py:91 setzer/command_palette/catalog.py:92
+#: setzer/command_palette/catalog.py:93 setzer/command_palette/catalog.py:94
+#: setzer/command_palette/catalog.py:95 setzer/command_palette/catalog.py:96
+#: setzer/command_palette/catalog.py:97 setzer/command_palette/catalog.py:98
+#: setzer/command_palette/catalog.py:99 setzer/command_palette/catalog.py:100
+#: setzer/command_palette/catalog.py:101 setzer/command_palette/catalog.py:102
+#: setzer/command_palette/catalog.py:103 setzer/command_palette/catalog.py:104
+#: setzer/command_palette/catalog.py:105 setzer/command_palette/catalog.py:106
+#: setzer/command_palette/catalog.py:107 setzer/command_palette/catalog.py:108
+#: setzer/command_palette/catalog.py:109 setzer/command_palette/catalog.py:110
+#: setzer/command_palette/catalog.py:111 setzer/command_palette/catalog.py:112
+#: setzer/command_palette/catalog.py:113 setzer/command_palette/catalog.py:114
+msgid "Edit"
+msgstr ""
+
+#: setzer/command_palette/catalog.py:100
+#: setzer/dialogs/project_search_replace.py:37
+msgid "Search and Replace in Project"
+msgstr ""
+
+#: setzer/command_palette/catalog.py:117
+#: setzer/dialogs/preamble_assistant.py:35
+#: setzer/dialogs/preamble_assistant.py:45
+msgid "Preamble Assistant"
+msgstr ""
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:113
+#: setzer/dialogs/project_build_configuration.py:33
+#: setzer/dialogs/project_build_configuration.py:49
+msgid "Project Build Configuration"
+msgstr ""
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:115
+msgid "Configure shared settings in .neosetzer/build.json"
+msgstr ""
+
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:117
+msgid "_Configure"
+msgstr ""
+
+#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
+#: setzer/dialogs/preamble_assistant.py:60
+msgid "_Close"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:50
+msgid "Stored in .neosetzer/build.json for this project"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:56
+msgid "Leave a setting on “Follow global default” to inherit it."
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:64
+msgid "Relative .tex path, for example main.tex"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:68
+msgid "Output directory"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:72
+msgid "Relative path, for example build"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:76
+msgid "LaTeX interpreter"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:83
+#: setzer/dialogs/project_build_configuration.py:88
+#: setzer/dialogs/project_build_configuration.py:94
+msgid "Enabled"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:92
+msgid "Shell commands"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:93
+msgid "Restricted"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:98
+msgid "Bibliography backend"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:99
+msgid "Follow log detection"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:99
+msgid "Automatic"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:103
+msgid "Additional arguments"
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:106
+msgid ""
+"Space-separated compiler arguments; output and shell flags are controlled "
+"above."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:26
+msgid "Save a LaTeX document before exporting its project."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:32
+#, python-brace-format
+msgid "Project package will record {count} missing dependency file(s)."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:36
+msgid "Export Project Package As…"
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:42
+msgid "ZIP Archives"
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:59
+msgid "A file with that name already exists; choose a new name."
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:61
+#, python-brace-format
+msgid "Could not export project package: {error}"
+msgstr ""
+
+#: setzer/dialogs/export_project_package.py:64
+#, python-brace-format
+msgid "Project package exported to: {filename}"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:27
+msgid "Save a LaTeX document before searching its project."
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:50
+msgid "Replace with"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:56
+msgid "Match whole word"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:58
+msgid "Regular expression"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:79
+msgid "_Preview"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:81
+#: setzer/dialogs/project_search_replace.py:140
+msgid "_Apply replacements"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:114
+#, python-brace-format
+msgid "Preview: {count} replacement(s) in {files} file(s)."
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:124
+msgid "Only the first 250 matches are shown."
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:127
+msgid "Replacement is disabled because these open files have unsaved changes:"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:136
+msgid "Apply project-wide replacements?"
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:137
+#, python-brace-format
+msgid "This writes the reviewed replacement plan to {count} file(s)."
+msgstr ""
+
+#: setzer/dialogs/project_search_replace.py:160
+#, python-brace-format
+msgid "Applied replacements to {count} file(s)."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:46
+msgid ""
+"Suggestions are based on commands in the document; nothing changes until you "
+"confirm."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:62
+msgid "_Add suggested packages"
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:73
+msgid "No missing package suggestions were found in this document."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:78
+msgid "available in NeoSetzer’s package database"
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:80
+msgid "not listed in NeoSetzer’s package database"
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:91
+msgid "Add suggested packages?"
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:92
+#, python-brace-format
+msgid "This inserts {count} package declaration(s) into the document preamble."
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:95
+msgid "_Add packages"
+msgstr ""
+
+#: setzer/dialogs/preamble_assistant.py:110
+#, python-brace-format
+msgid "Added {count} suggested package(s)."
+msgstr ""
+
+#: setzer/dialogs/project_build_configuration.py:114
+msgid "_Save configuration"
+msgstr ""

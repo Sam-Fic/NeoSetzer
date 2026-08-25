@@ -55,9 +55,16 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             build_command_defaults['tectonic'] = 'tectonic --keep-logs'
 
         latex_interpreter = query.build_data['latex_interpreter']
+        output_directory = self.get_output_directory(query)
+        try:
+            os.makedirs(output_directory, exist_ok=True)
+        except OSError:
+            self.throw_build_error(query, 'interpreter_not_working',
+                                   'output directory unavailable')
+            return
         if latex_interpreter == 'tectonic':
             build_command = build_command_defaults[latex_interpreter]
-            build_command += ' --outdir "' + os.path.dirname(query.tex_filename) + '" "' 
+            build_command += ' --outdir "' + output_directory + '" "'
         elif query.build_data['use_latexmk']:
             if query.build_data.get('output_chain') == 'pdfps':
                 # PS 路线（上游 issue #223）：latex → dvips → ps2pdf。
@@ -75,11 +82,11 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             synctex_flag = ' -synctex=1' if enable_synctex else ''
             build_command = 'latexmk -' + interpreter_option + synctex_flag + ' -interaction=nonstopmode'
             build_command += query.build_data['additional_arguments']
-            build_command += ' -output-directory="' + os.path.dirname(query.tex_filename) + '" "'
+            build_command += ' -output-directory="' + output_directory + '" "'
         else:
             build_command = build_command_defaults[latex_interpreter]
             build_command += query.build_data['additional_arguments']
-            build_command += ' -output-directory="' + os.path.dirname(query.tex_filename) + '" "'
+            build_command += ' -output-directory="' + output_directory + '" "'
         build_command += query.tex_filename + '"'
 
         try:
@@ -115,7 +122,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             query.can_sync = False
         self.cleanup_files(query)
 
-        pdf_filename = os.path.splitext(query.tex_filename)[0] + '.pdf'
+        pdf_filename = self.get_output_filename(query, '.pdf')
         if query.error_count > 0:
             if os.path.isfile(pdf_filename):
                 os.remove(pdf_filename)
@@ -264,7 +271,8 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         query.log_messages = list()
         query.error_count = 0
 
-        log_items = self.latex_log_parser.parse_build_log(query.tex_filename)
+        log_items = self.latex_log_parser.parse_build_log(
+            query.tex_filename, self.get_output_directory(query))
         additional_jobs = self.latex_log_parser.get_additional_jobs(log_items, query)
         file_no = 0
 
@@ -282,7 +290,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         return False
 
     def copy_synctex_file(self, query):
-        move_from = os.path.splitext(query.tex_filename)[0] + '.synctex.gz'
+        move_from = self.get_output_filename(query, '.synctex.gz')
         folder = synctex_folder(self.config_folder, query.tex_filename)
         move_to = os.path.join(folder, os.path.splitext(os.path.basename(query.tex_filename))[0] + '.synctex.gz')
 
@@ -325,7 +333,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         xelatex 的 xdvipdfmx 致命错误不会出现在 LaTeX 日志的 `!` 错误里，
         但会写进 .log 末尾（"xdvipdfmx:fatal: ..."）。在无 .log 或
         无匹配时回落到通用提示，避免用户面对一个空错误。'''
-        log_path = os.path.splitext(query.tex_filename)[0] + '.log'
+        log_path = self.get_output_filename(query, '.log')
         try:
             with open(log_path, 'rb') as f:
                 # 只读末尾 8KB 避免大日志拖累
