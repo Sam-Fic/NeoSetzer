@@ -94,6 +94,8 @@ class BuildSystem(Observable):
 
         Loading a malformed project file must never stop a build; the
         configuration service returns an all-``None`` dictionary in that case.
+        The returned dict also carries ``active_profile`` and ``tasks`` so the
+        build pipeline and UI can reflect the active named profile.
         '''
         if self.document.filename is None:
             return None, {}
@@ -101,6 +103,40 @@ class BuildSystem(Observable):
         if configuration is None:
             return None, {}
         return configuration, configuration.load()
+
+    def get_active_profile_name(self):
+        '''Name of the active build profile for the current document, or None.'''
+        configuration, project_data = self._project_build_data()
+        if configuration is None:
+            return None
+        return project_data.get('active_profile')
+
+    @staticmethod
+    def _tasks_to_jobs(tasks, follow_with_forward_sync=False):
+        '''Map an ordered task list to internal builder job names.
+
+        Only whitelisted task types are accepted (see
+        ProjectBuildConfiguration.ALLOWED_TASK_TYPES); anything else is skipped.
+        This is the single point that turns a profile's declared steps into the
+        trusted builder pipeline — no arbitrary command is ever introduced.
+        '''
+        job_for_task = {
+            'latex': 'build_latex',
+            'bibtex': 'build_bibtex',
+            'biber': 'build_biber',
+            'makeindex': 'build_makeindex',
+            'glossaries': 'build_glossaries',
+        }
+        jobs = []
+        for task in tasks:
+            job = job_for_task.get(task)
+            if job is not None:
+                jobs.append(job)
+        if not jobs:
+            jobs.append('build_latex')
+        if follow_with_forward_sync:
+            jobs.append('forward_sync')
+        return jobs
 
     def _effective_build_value(self, preference_key, project_data,
                                project_key=None):
@@ -452,7 +488,8 @@ class BuildSystem(Observable):
                 'enable_synctex', project_data)
 
         if mode == 'build':
-            query_obj.jobs = ['build_latex']
+            query_obj.jobs = self._tasks_to_jobs(
+                project_data.get('tasks', []))
             self._set_query_build_data(
                 query_obj, text, interpreter, use_latexmk, output_chain,
                 additional_arguments, do_cleanup, enable_synctex,
@@ -474,7 +511,8 @@ class BuildSystem(Observable):
             query_obj.backward_sync_data['pdf_line_offset'] = self.backward_sync_data.get('pdf_line_offset')
             query_obj.backward_sync_data['pdf_line_text'] = self.backward_sync_data.get('pdf_line_text')
         else:
-            query_obj.jobs = ['build_latex', 'forward_sync']
+            query_obj.jobs = self._tasks_to_jobs(
+                project_data.get('tasks', []), follow_with_forward_sync=True)
             self._set_query_build_data(
                 query_obj, text, interpreter, use_latexmk, output_chain,
                 additional_arguments, do_cleanup, enable_synctex,

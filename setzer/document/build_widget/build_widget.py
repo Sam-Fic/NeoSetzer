@@ -76,6 +76,8 @@ class BuildWidget(Observable):
         self.document.build_system.connect('build_stage', self.on_build_stage)
         # 每文档/全局解释器变化时刷新“保存并构建”按钮的 tooltip（含引擎名，见项 15）。
         self.document.build_system.connect('latex_interpreter_changed', self.update_build_button_tooltip)
+        # 项目构建 profile 变化时（对话框保存）刷新 tooltip 显示生效配置。
+        self.document.build_system.connect('project_profile_changed', self.update_build_button_tooltip)
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
         self._settings_callback = self.on_settings_changed
         self.settings.connect('settings_changed', self._settings_callback)
@@ -249,6 +251,10 @@ class BuildWidget(Observable):
         text = _('Save and build .pdf-file from document')
         if engine:
             text = text + '  ·  ' + engine
+        # 显示当前项目生效的构建 profile 名（多发行物/arXiv/出版社/幻灯片等）。
+        profile = self.document.build_system.get_active_profile_name()
+        if profile:
+            text = text + '  ·  [' + profile + ']'
         # 经注册处设置：快捷键后缀随设置实时渲染，用户改键后自动刷新
         shortcut_tooltips.set_tooltip(self.view.build_button, text, 'save_and_build')
 
