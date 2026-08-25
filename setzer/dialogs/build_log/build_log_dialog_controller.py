@@ -48,6 +48,12 @@ class BuildLogDialogController(object):
         # 搜索框：输入文本实时过滤日志项。
         self.view.search_entry.connect('changed', self.on_search_changed)
 
+        # 搜索框内按 Esc：Gtk.SearchEntry 会拦截 Escape（发 stop-search 并消费
+        # 事件），Adw.Dialog 内建 Esc shortcut（冒泡阶段）收不到。按 GTK 惯例
+        # （同 Adw.PreferencesDialog 自家实现）先退出搜索模式；焦点回到弹窗后
+        # 再按 Esc 走原生关闭。
+        self.view.search_entry.connect('stop-search', self.on_stop_search)
+
         # 过滤器信号（存储 handler_id 以便 presenter 更新下拉框时屏蔽信号）
         self.view._file_filter_handler_id = self.view.file_filter_combo.connect('changed', self.on_filter_changed)
         self.view._type_filter_handler_id = self.view.type_filter_combo.connect('changed', self.on_filter_changed)
@@ -275,6 +281,10 @@ class BuildLogDialogController(object):
 
     def on_search_changed(self, search_entry):
         self.presenter.set_search_text(search_entry.get_text())
+
+    def on_stop_search(self, search_entry):
+        '''Esc 在搜索框内：收起搜索栏（stop-search 的 GTK 惯例语义），弹窗保持打开。'''
+        self.view.search_button.set_active(False)
 
     @staticmethod
     def _format_item(item):
