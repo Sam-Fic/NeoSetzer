@@ -478,7 +478,7 @@ class PreviewPageRenderer(Observable):
         vp_lo, vp_hi = visible_pages[0], visible_pages[1]
         for page_number in range(lo, hi + 1):
             page_data = rendered_pages.get(page_number)
-            if page_data is None or page_data[1] != page_width or page_data[2] != pdf_date:
+            if page_data is None or page_data[1] != page_width or page_data[3] != pdf_date:
                 with self.page_render_count_lock:
                     try:
                         page_render_count[page_number] += 1

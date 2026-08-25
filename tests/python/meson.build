@@ -68,6 +68,7 @@ foreach t : [
   ['test_external_pdf_preview_integration', 'test_external_pdf_preview_integration.py'],
   ['test_magnifier_geometry', 'test_magnifier_geometry.py'],
   ['test_preview_magnifier_lifecycle', 'test_preview_magnifier_lifecycle.py'],
+  ['test_preview_page_cache', 'test_preview_page_cache.py'],
   ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
   ['test_structure_numbering', 'test_structure_numbering.py'],
 ]
