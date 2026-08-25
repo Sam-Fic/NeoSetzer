@@ -37,6 +37,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 import cairo
+import math
 
 from setzer.app.color_manager import ColorManager
 from setzer.document.preview.magnifier_geometry import (
