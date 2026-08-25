@@ -31,6 +31,7 @@ foreach t : [
   ['test_wizard_page_map',        'test_wizard_page_map.py'],
   ['test_wizard_font_package',    'test_wizard_font_package.py'],
   ['test_user_document_templates', 'test_user_document_templates.py'],
+  ['test_file_templates', 'test_file_templates.py'],
   ['test_user_snippets', 'test_user_snippets.py'],
   ['test_first_run_tutorial', 'test_first_run_tutorial.py'],
   ['test_example_project', 'test_example_project.py'],

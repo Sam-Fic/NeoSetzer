@@ -7194,3 +7194,74 @@ msgstr "無法開啟此類型的檔案"
 
 #~ msgid "Snippets"
 #~ msgstr "程式片段"
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination must be different from the template file"
+msgstr "目標檔案必須與範本檔案不同"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file already exists"
+msgstr "目標檔案已存在"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder could not be written"
+msgstr "無法寫入目標資料夾"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Could not create the document from this template"
+msgstr "無法根據此範本建立文件"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is missing"
+msgstr "範本檔案遺失"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Template files must use the .tex extension"
+msgstr "範本檔案必須使用 .tex 副檔名"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file could not be read"
+msgstr "無法讀取範本檔案"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is not a supported LaTeX file"
+msgstr "範本檔案不是受支援的 LaTeX 檔案"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a destination for the new document"
+msgstr "請選擇新文件的儲存位置"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file must use the .tex extension"
+msgstr "目標檔案必須使用 .tex 副檔名"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder does not exist"
+msgstr "目標資料夾不存在"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is too large"
+msgstr "範本檔案過大"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "No .tex files were found in your Templates folder."
+msgstr "在「範本」資料夾中找不到 .tex 檔案。"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Create document from template"
+msgstr "從範本建立文件"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a LaTeX template, then choose where to create its new copy."
+msgstr "請選擇一個 LaTeX 範本，然後選擇建立新副本的位置。"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose location"
+msgstr "選擇位置"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The selected destination is not a local file."
+msgstr "所選目標不是本機檔案。"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "New Document from Template"
+msgstr "從範本新增文件"

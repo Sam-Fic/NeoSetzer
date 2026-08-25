@@ -8596,3 +8596,74 @@ msgstr "Dieser Dateityp kann nicht geöffnet werden"
 
 #~ msgid "Snippets"
 #~ msgstr "Snippets"
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination must be different from the template file"
+msgstr "Das Ziel muss sich von der Vorlagendatei unterscheiden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file already exists"
+msgstr "Die Zieldatei existiert bereits"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder could not be written"
+msgstr "In den Zielordner konnte nicht geschrieben werden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Could not create the document from this template"
+msgstr "Das Dokument konnte nicht aus dieser Vorlage erstellt werden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is missing"
+msgstr "Die Vorlagendatei fehlt"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Template files must use the .tex extension"
+msgstr "Vorlagendateien müssen die Erweiterung .tex verwenden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file could not be read"
+msgstr "Die Vorlagendatei konnte nicht gelesen werden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is not a supported LaTeX file"
+msgstr "Die Vorlagendatei ist keine unterstützte LaTeX-Datei"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a destination for the new document"
+msgstr "Wählen Sie ein Ziel für das neue Dokument"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file must use the .tex extension"
+msgstr "Die Zieldatei muss die Erweiterung .tex verwenden"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder does not exist"
+msgstr "Der Zielordner existiert nicht"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is too large"
+msgstr "Die Vorlagendatei ist zu groß"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "No .tex files were found in your Templates folder."
+msgstr "Im Vorlagenordner wurden keine .tex-Dateien gefunden."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Create document from template"
+msgstr "Dokument aus Vorlage erstellen"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a LaTeX template, then choose where to create its new copy."
+msgstr "Wählen Sie eine LaTeX-Vorlage und danach den Speicherort für die neue Kopie."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose location"
+msgstr "Speicherort wählen"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The selected destination is not a local file."
+msgstr "Das ausgewählte Ziel ist keine lokale Datei."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "New Document from Template"
+msgstr "Neues Dokument aus Vorlage"

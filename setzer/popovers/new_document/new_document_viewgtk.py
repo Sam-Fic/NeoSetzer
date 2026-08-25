@@ -34,3 +34,4 @@ class NewDocumentView(object):
         self.model = Gio.Menu()
         self.model.append(_('New LaTeX Document'), 'win.new-latex-document')
         self.model.append(_('New BibTeX Document'), 'win.new-bibtex-document')
+        self.model.append(_('New Document from Template'), 'win.new-from-file-template')

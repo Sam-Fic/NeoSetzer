@@ -19,7 +19,8 @@
 import os
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GLib, Gio, Gtk, Gdk, Pango
+gi.require_version('Adw', '1')
+from gi.repository import GLib, Gio, Gtk, Gdk, Pango, Adw
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -30,6 +31,11 @@ from setzer.document.bibtex.text_utils import (
     latex_to_unicode,
     protect_cases,
     unicode_to_latex,
+)
+from setzer.dialogs.document_wizard.file_templates import (
+    FileTemplateError,
+    copy_file_template,
+    list_file_templates,
 )
 
 
@@ -50,6 +56,7 @@ class Actions(object):
         self._update_actions_idle_id = None
         self.add_action('new-latex-document', self.new_latex_document)
         self.add_action('new-bibtex-document', self.new_bibtex_document)
+        self.add_action('new-from-file-template', self.new_from_file_template)
         self.add_action('open-document-dialog', self.open_document_dialog)
         self.add_action('build', self.build)
         self.add_action('save-and-build', self.save_and_build)
@@ -403,6 +410,85 @@ class Actions(object):
         self.workspace.add_document(document)
         self.workspace.set_active_document(document)
         return False
+
+    def new_from_file_template(self, action=None, parameter=None):
+        '''Create and open a new document from one top-level user .tex template.'''
+        templates = list_file_templates(self._get_templates_directory())
+        if not templates:
+            self._show_file_template_toast(
+                _('No .tex files were found in your Templates folder.'))
+            return
+
+        selector = Gtk.DropDown.new_from_strings(
+            [template.name for template in templates])
+        selector.set_hexpand(True)
+        dialog = Adw.AlertDialog(
+            heading=_('Create document from template'),
+            body=_('Choose a LaTeX template, then choose where to create its new copy.'))
+        dialog.set_extra_child(selector)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('choose', _('Choose location'))
+        dialog.set_default_response('choose')
+        dialog.set_response_appearance('choose', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_close_response('cancel')
+
+        def on_response(response_dialog, response):
+            if response != 'choose':
+                return
+            selected = selector.get_selected()
+            if selected < 0 or selected >= len(templates):
+                return
+            self._choose_file_template_destination(templates[selected].path)
+
+        dialog.connect('response', on_response)
+        dialog.present(self.main_window)
+
+    def _get_templates_directory(self):
+        '''Return the user's XDG Templates folder, with ~/Templates as fallback.'''
+        directory = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_TEMPLATES)
+        if directory:
+            return directory
+        return os.path.join(os.path.expanduser('~'), 'Templates')
+
+    def _choose_file_template_destination(self, source_path):
+        dialog = Gtk.FileDialog()
+        dialog.set_modal(True)
+        dialog.set_title(_('Create document from template'))
+        dialog.set_initial_name(os.path.basename(source_path))
+        active_document = self.workspace.get_active_document()
+        initial_directory = active_document.get_dirname() if active_document is not None else ''
+        if not initial_directory:
+            initial_directory = os.path.expanduser('~')
+        dialog.set_initial_folder(Gio.File.new_for_path(initial_directory))
+        dialog.save(self.main_window, None,
+                    lambda save_dialog, result: self._on_file_template_destination_chosen(
+                        save_dialog, result, source_path))
+
+    def _on_file_template_destination_chosen(self, dialog, result, source_path):
+        try:
+            destination_file = dialog.save_finish(result)
+        except GLib.Error:
+            return
+        if destination_file is None:
+            return
+        destination_path = destination_file.get_path()
+        if destination_path is None:
+            self._show_file_template_toast(
+                _('The selected destination is not a local file.'))
+            return
+        try:
+            copy_file_template(source_path, destination_path)
+        except FileTemplateError as error:
+            self._show_file_template_toast(str(error))
+            return
+        self.workspace.open_document_by_filename(destination_path)
+
+    def _show_file_template_toast(self, message):
+        if self.main_window is None or not hasattr(self.main_window, 'toast_overlay'):
+            return
+        toast = Adw.Toast.new(message)
+        toast.set_timeout(5)
+        self.main_window.toast_overlay.add_toast(toast)
 
     def new_bibtex_document(self, action=None, parameter=None):
         main_window = ServiceLocator.get_main_window()

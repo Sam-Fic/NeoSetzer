@@ -8538,3 +8538,74 @@ msgstr "Impossibile aprire questo tipo di file"
 
 #~ msgid "Snippets"
 #~ msgstr "Frammenti"
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination must be different from the template file"
+msgstr "La destinazione deve essere diversa dal file modello"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file already exists"
+msgstr "Il file di destinazione esiste già"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder could not be written"
+msgstr "Non è stato possibile scrivere nella cartella di destinazione"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Could not create the document from this template"
+msgstr "Non è stato possibile creare il documento da questo modello"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is missing"
+msgstr "Il file modello è mancante"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Template files must use the .tex extension"
+msgstr "I file modello devono usare l’estensione .tex"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file could not be read"
+msgstr "Non è stato possibile leggere il file modello"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is not a supported LaTeX file"
+msgstr "Il file modello non è un file LaTeX supportato"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a destination for the new document"
+msgstr "Scegli una destinazione per il nuovo documento"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination file must use the .tex extension"
+msgstr "Il file di destinazione deve usare l’estensione .tex"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The destination folder does not exist"
+msgstr "La cartella di destinazione non esiste"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The template file is too large"
+msgstr "Il file modello è troppo grande"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "No .tex files were found in your Templates folder."
+msgstr "Non sono stati trovati file .tex nella cartella Modelli."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Create document from template"
+msgstr "Crea documento da modello"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose a LaTeX template, then choose where to create its new copy."
+msgstr "Scegli un modello LaTeX, quindi dove creare la nuova copia."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "Choose location"
+msgstr "Scegli posizione"
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "The selected destination is not a local file."
+msgstr "La destinazione selezionata non è un file locale."
+
+#: setzer/dialogs/document_wizard/file_templates.py setzer/workspace/actions/actions.py setzer/popovers/new_document/new_document_viewgtk.py
+msgid "New Document from Template"
+msgstr "Nuovo documento da modello"
