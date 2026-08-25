@@ -616,16 +616,30 @@ class MainWindow(Adw.ApplicationWindow):
         导致标签条拖拽排序失效（只激活标签、不排序）。因此必须只在拖入物
         确实含文件时认领，其余一律放行给更内层的原生处理器。
 
-        优先用拖放提供的内容类型（Gdk.ContentFormats）判断——它不依赖
-        preload 是否已解析出 value，对文件拖放总是成立，而对标签条内部排序
-        DnD（携带自定义内容类型）则不成立，可干净放行。
+        优先用「拖拽源实际提供」的内容类型（Gdk.Drop.get_formats()）判断——
+        注意：不能用 Gtk.DropTarget.get_formats()，那返回的是本 target 自己
+        声明的、恒为 file 类型的 formats（因为 set_gtypes([FileList, File])），
+        会令任何 DnD 都误判为「有文件」从而继续劫持标签条排序。必须用真实
+        drop 的 formats：文件拖放含 Gio.File / Gdk.FileList，而标签条内部排序
+        DnD 携带的是自定义类型，不含文件，可干净放行。
         '''
-        formats = target.get_formats()
-        if formats is not None:
-            if hasattr(Gdk, 'FileList') and formats.contain_gtype(Gdk.FileList):
-                return True
-            if formats.contain_gtype(Gio.File):
-                return True
+        # 取真实拖拽源提供的 formats（drop 优先，否则从 target 取当前 drop）。
+        drop = kwargs.get('drop')
+        if drop is None:
+            try:
+                drop = target.get_drop()
+            except Exception:
+                drop = None
+        if drop is not None:
+            formats = drop.get_formats()
+            if formats is not None:
+                if hasattr(Gdk, 'FileList') and formats.contain_gtype(Gdk.FileList):
+                    return True
+                if formats.contain_gtype(Gio.File):
+                    return True
+                # 真实 formats 已知且不含文件 → 直接判定为非文件拖放，
+                # 避免再走 get_value 兜底（get_value 在 enter 阶段常为空）。
+                return False
         # 兜底：preload 已解析出文件值也算。
         try:
             value = target.get_value()
@@ -672,7 +686,7 @@ class MainWindow(Adw.ApplicationWindow):
         否决该目标，导致 enter/motion/drop 永远不触发。文件类型已由 gtypes 限定，
         这里只对真正含文件内容的拖放接收；标签条内部排序 DnD 等内容不含文件，
         返回 False 放行给 Adw.TabView 原生排序处理器。'''
-        if not self._drag_has_files(target):
+        if not self._drag_has_files(target, drop=drop):
             return False
         self._update_drop_feedback(target)
         return True

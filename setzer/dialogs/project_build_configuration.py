@@ -129,6 +129,10 @@ class ProjectBuildConfigurationDialog():
             _('Active') if is_active else _('Set active'))
 
     def _select_profile(self, name):
+        # 切换前先把当前选中 profile 的 UI 改动写回，避免编辑 A 后切到 B 时
+        # A 的未保存修改被无声丢弃（data-loss bug）。
+        if name != self.selected_name and self._selected_profile() is not None:
+            self._commit_selected_profile()
         self.selected_name = name
         index = 0
         for i, profile in enumerate(self.profiles):

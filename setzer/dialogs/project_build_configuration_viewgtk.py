@@ -28,7 +28,6 @@ class ProjectBuildConfigurationView(Adw.Window):
         header.set_margin_top(12)
         header.set_margin_bottom(6)
         profile_label = Gtk.Label(label=_('Profile'))
-        profile_label.set_mnemonic_widget(None)
         self.profile_combo = Gtk.ComboBoxText()
         self.profile_combo.set_hexpand(True)
         header.append(profile_label)
