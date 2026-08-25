@@ -13,7 +13,9 @@ import os
 import pickle
 import tempfile
 import unittest
+from unittest.mock import patch
 
+import setzer.helpers.persistence as persistence
 from setzer.helpers.persistence import (
     load_json, save_json,
     load_pickle_trusted, load_pickle_restricted, RestrictedUnpickler,
@@ -74,6 +76,27 @@ class TestJSONRoundTrip(unittest.TestCase):
             # 不应含 \\uXXXX 转义
             self.assertNotIn(b'\\u', content)
             self.assertEqual(load_json(p), data)
+
+    def test_save_flushes_written_file_and_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'f.json')
+            with patch.object(persistence.os, 'fsync', wraps=os.fsync) as fsync:
+                save_json(p, {'durable': True})
+            # File fsync is mandatory; POSIX also fsyncs its parent directory.
+            self.assertGreaterEqual(fsync.call_count, 1)
+            self.assertEqual(load_json(p), {'durable': True})
+
+    def test_encoding_error_preserves_existing_file_without_temp_artifact(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'f.json')
+            save_json(p, {'previous': True})
+            with self.assertRaises(TypeError):
+                save_json(p, {'not_json': object()})
+            self.assertEqual(load_json(p), {'previous': True})
+            self.assertEqual(
+                [name for name in os.listdir(d)
+                 if name.startswith('.f.json.') and name.endswith('.tmp')],
+                [])
 
 
 class TestRestrictedUnpickler(unittest.TestCase):

@@ -43,6 +43,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import GObject, GLib
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.persistence import atomic_write_bytes, save_json
 
 
 class AutoSave(object):
@@ -147,8 +148,6 @@ class AutoSave(object):
             text = text.replace('\n', line_ending)
         temp_path = self.get_temp_filename(document)
         try:
-            # 原子写入：先写 .tmp 再 os.replace，避免崩溃时读到半写文件
-            tmp = temp_path + '.tmp'
             # 使用文档的原编码保存（保留 BOM 状态，fallback 到 utf-8）
             encoding = getattr(document, 'file_encoding', 'utf-8')
             has_bom = getattr(document, 'has_bom', False)
@@ -158,9 +157,7 @@ class AutoSave(object):
                     encoded = self._prepend_bom_for_autosave(encoded, encoding)
             except (UnicodeEncodeError, LookupError):
                 encoded = text.encode('utf-8', errors='replace')
-            with open(tmp, 'wb') as f:
-                f.write(encoded)
-            os.replace(tmp, temp_path)
+            atomic_write_bytes(temp_path, encoded)
         except OSError:
             return
         self.update_manifest(document, temp_path)
@@ -183,10 +180,7 @@ class AutoSave(object):
 
     def save_manifest(self, manifest):
         try:
-            tmp = self.manifest_path + '.tmp'
-            with open(tmp, 'w', encoding='utf-8') as f:
-                json.dump(manifest, f, ensure_ascii=False, indent=2)
-            os.replace(tmp, self.manifest_path)
+            save_json(self.manifest_path, manifest, indent=2)
         except OSError:
             pass
 

@@ -30,10 +30,58 @@
 import json
 import os
 import pickle
+import tempfile
 
 
 JSON_ENSURE_ASCII = False  # 直接 UTF-8，便于 .stzs/diff 可读
 JSON_INDENT = None         # 紧凑写，文件已不大；如需人读可改 2
+
+
+def _fsync_directory(directory):
+    '''Best-effort flush of a directory entry after ``os.replace``.
+
+    POSIX requires syncing the containing directory for an atomic rename to be
+    durable across a sudden power loss.  Directory descriptors are unavailable
+    or unsupported on some platforms, where the file-level fsync remains the
+    strongest portable guarantee.
+    '''
+    directory_flag = getattr(os, 'O_DIRECTORY', 0)
+    try:
+        descriptor = os.open(directory, os.O_RDONLY | directory_flag)
+    except OSError:
+        return
+    try:
+        os.fsync(descriptor)
+    except OSError:
+        pass
+    finally:
+        os.close(descriptor)
+
+
+def atomic_write_bytes(path, data):
+    '''Durably replace ``path`` with bytes using a unique sibling temp file.'''
+    directory = os.path.dirname(os.path.abspath(path))
+    basename = os.path.basename(path)
+    descriptor, temporary = tempfile.mkstemp(
+        prefix=f'.{basename}.', suffix='.tmp', dir=directory)
+    try:
+        with os.fdopen(descriptor, 'wb') as file:
+            file.write(data)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary, path)
+        _fsync_directory(directory)
+    except Exception:
+        try:
+            os.unlink(temporary)
+        except OSError:
+            pass
+        raise
+
+
+def atomic_write_text(path, text, encoding='utf-8'):
+    '''Durably replace ``path`` with encoded text using ``atomic_write_bytes``.'''
+    atomic_write_bytes(path, text.encode(encoding))
 
 
 # .stzs 是用户交换文件，可能含恶意 pickle payload。受限 Unpickler
@@ -92,12 +140,14 @@ def load_json(path, fallback=None):
         return fallback
 
 
-def save_json(path, data):
-    '''原子写入 JSON：先写 .tmp 再 os.replace，避免崩溃留下半写文件。'''
-    tmp = path + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=JSON_ENSURE_ASCII, indent=JSON_INDENT)
-    os.replace(tmp, path)
+def save_json(path, data, *, indent=JSON_INDENT):
+    '''Durably save JSON using file and parent-directory fsyncs.
+
+    JSON is serialized before any temporary file is created, so encoding errors
+    cannot leave a stale replacement candidate beside the destination.
+    '''
+    serialized = json.dumps(data, ensure_ascii=JSON_ENSURE_ASCII, indent=indent)
+    atomic_write_text(path, serialized)
 
 
 def migrate_pickle_to_json(json_path, pickle_path, migrate_value=None):

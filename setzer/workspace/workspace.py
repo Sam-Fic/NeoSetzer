@@ -32,7 +32,7 @@ import setzer.document.build_widget.build_widget as build_widget
 import setzer.document.preview.preview as preview
 from setzer.helpers.observable import Observable
 from setzer.helpers.persistence import (
-    load_json, save_json, migrate_pickle_to_json,
+    atomic_write_text, load_json, save_json, migrate_pickle_to_json,
     try_migrate_session_file_pickle,
 )
 import setzer.workspace.workspace_presenter as workspace_presenter
@@ -668,10 +668,7 @@ class Workspace(Observable):
                 False
             )
             path = self._untitled_content_path(untitled_id)
-            tmp_path = path + '.tmp'
-            with open(tmp_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            os.replace(tmp_path, path)
+            atomic_write_text(path, content)
             return True
         except Exception as e:
             print(f'Warning: could not save untitled content: {e}')
