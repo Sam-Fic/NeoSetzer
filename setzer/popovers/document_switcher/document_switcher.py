@@ -203,21 +203,23 @@ class DocumentSwitcher(Observable):
             self._dirty = False
             self._rebuild_rows()
         self.view.dialog.present(self.main_window)
-        if __import__('os').environ.get('SETZER_DEBUG_FOCUS'):
-            import os
-            def _dbg(label):
-                focus = self.main_window.get_focus()
-                inside = False
-                w = focus
-                while w is not None:
-                    if w is self.view.dialog:
-                        inside = True
-                        break
-                    w = w.get_parent()
-                print(f'[DBG {label}] focus={type(focus).__name__ if focus else None} inside_dialog={inside}', flush=True)
-                return False
-            GLib.timeout_add(300, _dbg, 't+0.3s')
-            GLib.timeout_add(1000, _dbg, 't+1.0s')
+        # 焦点确定性：Adw.Dialog 的 map_tick_cb 焦点抓取经 move_focus(TAB_FORWARD)
+        # 委托给窗口 tab 链，第二次及以后 present 时实测焦点会落在弹窗 subtree
+        # 之外（focus=None），ESC 随之失效（sheet_bin 的 Esc shortcut 与搜索框的
+        # stop-search 都收不到事件）。present 后显式把焦点交给搜索框（打字即过滤，
+        # 也符合此类 switcher 的惯例）；首次 present 映射是异步的，未映射时短暂重试。
+        GLib.idle_add(self._grab_search_focus)
+
+    def _grab_search_focus(self, tries=0):
+        '''present 后把焦点交给搜索框（见 open() 中注释）。未映射时短暂重试。'''
+        if not self._is_visible:
+            return False
+        if self.view.search_entry.get_mapped():
+            self.view.search_entry.grab_focus()
+            return False
+        if tries < 10:
+            GLib.timeout_add(16, self._grab_search_focus, tries + 1)
+        return False
 
     def on_dialog_closed(self, dialog=None):
         self._is_visible = False
@@ -232,6 +234,8 @@ class DocumentSwitcher(Observable):
             self._dirty = False
             self._rebuild_rows()
         self.view.dialog.present(self.main_window)
+        # 与 open() 一致：present 后焦点确定性交给搜索框，保证 Esc 可关。
+        GLib.idle_add(self._grab_search_focus)
 
     # ---- rebuild ----
 
