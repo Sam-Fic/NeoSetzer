@@ -281,5 +281,22 @@ class ContextMenuView(Gtk.PopoverMenu):
             self.latex_section.append_item(
                 _action_item(_('Show in Preview'), 'win.forward-sync', 'F7'))
 
+            # -- Text transformations -----------------------------------------
+            # Useful for both LaTeX prose and BibTeX field bodies; exposed
+            # from the editor right-click menu so users do not need to open
+            # the bibliography manager for one-shot edits.
+            transform_section = Gio.Menu()
+            transform_section.append_item(
+                _action_item(_('Protect Upper-Case'),
+                             'win.transform-text::protect'))
+            transform_section.append_item(
+                _action_item(_('Unicode → LaTeX'),
+                             'win.transform-text::unicode-to-latex'))
+            transform_section.append_item(
+                _action_item(_('LaTeX → Unicode'),
+                             'win.transform-text::latex-to-unicode'))
+            self.latex_section.append_submenu(
+                _('Transform Selection'), transform_section)
+
     def on_map(self, popover):
         popover.grab_focus()

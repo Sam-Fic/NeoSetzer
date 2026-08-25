@@ -26,6 +26,11 @@ from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.font_manager import FontManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.settings.document_settings import DocumentSettings
+from setzer.document.bibtex.text_utils import (
+    latex_to_unicode,
+    protect_cases,
+    unicode_to_latex,
+)
 
 
 class Actions(object):
@@ -74,6 +79,9 @@ class Actions(object):
         self.add_action('show-document-wizard', self.start_wizard, None)
         self.add_action('insert-before-after', self.insert_before_after, GLib.VariantType('as'))
         self.add_action('insert-symbol', self.insert_symbol, GLib.VariantType('as'))
+        # Text transformations (right-click submenu, parameter is the
+        # transform name: "protect" / "unicode-to-latex" / "latex-to-unicode").
+        self.add_action('transform-text', self.transform_text, GLib.VariantType('s'))
         self.add_action('insert-after-packages', self.insert_after_packages, GLib.VariantType('as'))
         self.add_action('insert-before-document-end', self.insert_before_document_end, GLib.VariantType('as'))
         self.add_action('add-packages', self.add_packages, GLib.VariantType('as'))
@@ -941,6 +949,52 @@ class Actions(object):
         document.source_buffer.insert_at_cursor(text)
         document.select_first_dot_around_cursor(offset_before=len(text), offset_after=0)
         document.source_buffer.end_user_action()
+
+    def transform_text(self, action=None, parameter=None):
+        '''Apply a text transformation to the active document selection.
+
+        The transformation name is supplied as the GAction ``s`` parameter
+        and must be one of ``protect``, ``unicode-to-latex`` or
+        ``latex-to-unicode``.  When nothing is selected the transformation
+        operates on the whole buffer; when a selection exists only the
+        selected range is rewritten.  The whole change is wrapped in a
+        single user action so one Ctrl+Z undoes it.
+        '''
+        if self.workspace.get_active_document() is None:
+            return
+        if parameter is None:
+            return
+        name = parameter.get_string() if hasattr(parameter, 'get_string') else str(parameter)
+        transforms = {
+            'protect': protect_cases,
+            'unicode-to-latex': unicode_to_latex,
+            'latex-to-unicode': latex_to_unicode,
+        }
+        transform = transforms.get(name)
+        if transform is None:
+            return
+        document = self.workspace.get_active_document()
+        buffer = document.source_buffer
+        buffer.begin_user_action()
+        try:
+            bounds = buffer.get_selection_bounds()
+            if len(bounds) > 1:
+                start, end = bounds
+                selected = buffer.get_text(start, end, False)
+                rewritten = transform(selected)
+                if rewritten != selected:
+                    buffer.delete(start, end)
+                    buffer.insert(buffer.get_iter_at_mark(buffer.get_insert()), rewritten)
+            else:
+                start, end = buffer.get_bounds()
+                full = buffer.get_text(start, end, False)
+                rewritten = transform(full)
+                if rewritten != full:
+                    replace_start, replace_end = buffer.get_bounds()
+                    buffer.delete(replace_start, replace_end)
+                    buffer.insert_at_cursor(rewritten)
+        finally:
+            buffer.end_user_action()
 
     def insert_after_packages(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return
