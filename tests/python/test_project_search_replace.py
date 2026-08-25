@@ -101,6 +101,26 @@ class ProjectSearchReplaceTest(unittest.TestCase):
             self.assertEqual([match.filename for match in matches], [main])
             self.assertNotIn(outside, [match.filename for match in matches])
 
+    def test_ignores_project_symlink_to_external_text_file(self):
+        with tempfile.TemporaryDirectory() as parent:
+            project = os.path.join(parent, 'project')
+            os.mkdir(project)
+            main = self._write(project, 'main.tex', 'inside target')
+            outside = self._write(parent, 'outside.tex', 'outside target')
+            linked = os.path.join(project, 'linked.tex')
+            os.symlink(outside, linked)
+
+            search = ProjectSearchReplace(main, project)
+            matches = search.search('target')
+            plan = search.create_replacement_plan('target', 'replacement')
+
+            self.assertEqual([match.filename for match in matches], [main])
+            self.assertEqual([file.filename for file in plan.files], [main])
+            self.assertNotIn(linked, [match.filename for match in matches])
+            self.assertNotIn(linked, [file.filename for file in plan.files])
+            with open(outside, encoding='utf-8') as file:
+                self.assertEqual(file.read(), 'outside target')
+
 
 if __name__ == '__main__':
     unittest.main()
