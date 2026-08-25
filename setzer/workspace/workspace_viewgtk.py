@@ -606,7 +606,44 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.drop_highlight.add_css_class('drop-reject')
 
+    def _drag_has_files(self, target):
+        '''判断当前拖放是否为「文件拖入」（而非 Adw.TabView 的标签条内部
+        拖拽排序 DnD 等其它来源）。
+
+        document_stack_overlay 是 Adw.TabView 的祖先控件，且本 DropTarget
+        处于 CAPTURE 阶段。若对「任何拖放」都返回 COPY / accept=True，会抢在
+        Adw.TabView 内部排序处理器之前把「拖动标签页」也当成文件拖入消费掉，
+        导致标签条拖拽排序失效（只激活标签、不排序）。因此必须只在拖入物
+        确实含文件时认领，其余一律放行给更内层的原生处理器。
+
+        优先用拖放提供的内容类型（Gdk.ContentFormats）判断——它不依赖
+        preload 是否已解析出 value，对文件拖放总是成立，而对标签条内部排序
+        DnD（携带自定义内容类型）则不成立，可干净放行。
+        '''
+        formats = target.get_formats()
+        if formats is not None:
+            if hasattr(Gdk, 'FileList') and formats.contain_gtype(Gdk.FileList):
+                return True
+            if formats.contain_gtype(Gio.File):
+                return True
+        # 兜底：preload 已解析出文件值也算。
+        try:
+            value = target.get_value()
+        except Exception:
+            value = None
+        if value is None:
+            return False
+        if hasattr(Gdk, 'FileList') and isinstance(value, Gdk.FileList):
+            return bool(value.get_files())
+        if isinstance(value, Gio.File):
+            return True
+        return False
+
     def on_drag_enter(self, target, x, y):
+        # 非文件拖放（如标签条内部排序 DnD）不认领，直接放行（返回 0 =
+        # GDK_ACTION_NONE），让 Adw.TabView 原生排序接管。
+        if not self._drag_has_files(target):
+            return Gdk.DragAction.NONE
         self._set_dnd_indicator(True)
         self._set_dnd_blank(True)
         self.drop_highlight.set_visible(True)
@@ -618,6 +655,8 @@ class MainWindow(Adw.ApplicationWindow):
         return Gdk.DragAction.COPY
 
     def on_drag_motion(self, target, x, y):
+        if not self._drag_has_files(target):
+            return Gdk.DragAction.NONE
         self._update_drop_feedback(target)
         return Gdk.DragAction.COPY
 
@@ -631,8 +670,10 @@ class MainWindow(Adw.ApplicationWindow):
     def on_drag_accept(self, target, drop):
         '''必须返回 True 才能被 GTK 选为拖放目标。一旦返回 False，GTK 会直接
         否决该目标，导致 enter/motion/drop 永远不触发。文件类型已由 gtypes 限定，
-        这里始终接收；红框/计数等视觉状态统一由 _update_drop_feedback 根据已读取
-        的文件列表同步，拖放仍由 on_drop 消费掉。'''
+        这里只对真正含文件内容的拖放接收；标签条内部排序 DnD 等内容不含文件，
+        返回 False 放行给 Adw.TabView 原生排序处理器。'''
+        if not self._drag_has_files(target):
+            return False
         self._update_drop_feedback(target)
         return True
 
