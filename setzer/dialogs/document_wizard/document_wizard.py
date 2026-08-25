@@ -616,9 +616,12 @@ class DocumentWizard(object):
         sender_name = letter.get('sender_name', '') or _('Your name')
         sender_address = letter.get('sender_address', '') or _('Your address')
         sender_phone = letter.get('sender_phone', '') or _('Your phone number')
+        sender_fax = letter.get('sender_fax', '').strip()
         sender_email = letter.get('sender_email', '').strip()
         sender_url = letter.get('sender_url', '').strip()
         sender_logo_path = letter.get('sender_logo_path', '').strip()
+        place = letter.get('place', '').strip()
+        backaddress = letter.get('backaddress', '').strip()
         recipient_name = letter.get('recipient_name', '') or _('Destination')
         recipient_address = letter.get('recipient_address', '') or _('Address of the destination')
         recipient_phone = letter.get('recipient_phone', '') or _('Phone number of the destination')
@@ -671,6 +674,13 @@ class DocumentWizard(object):
                 koma_option_pairs.append(('fromurl', 'true'))
             if sender_logo_path:
                 koma_option_pairs.append(('fromlogo', 'true'))
+            if sender_fax:
+                koma_option_pairs.append(('fromfax', 'true'))
+            if letter.get('option_hlines'):
+                koma_option_pairs.append(('headsepline', 'true'))
+                koma_option_pairs.append(('footsepline', 'true'))
+            if letter.get('option_numericaldate'):
+                koma_option_pairs.append(('numericaldate', 'false'))
             koma_options = (
                 '\\KOMAoptions{\n'
                 + ',\n'.join('\t' + key + '=' + value
@@ -679,11 +689,21 @@ class DocumentWizard(object):
             )
             subject_line = ('\\setkomavar{subject}{' + self.current_values['title'] + '}\n'
                             if self.current_values['title'] else '')
+            backaddress_var = (
+                '\\setkomavar{backaddress}{' + latex_lines(backaddress) + '}\n'
+                if letter.get('option_backaddress') and backaddress else ''
+            )
+            place_var = ('\\setkomavar{place}{' + latex_lines(place) + '}\n'
+                         if place else '')
+            fromfax_var = ('\\setkomavar{fromfax}{' + latex_lines(sender_fax) + '}\n'
+                           if sender_fax else '')
             body = (
                 '\n' + koma_options
                 + '\\setkomavar{fromname}{' + latex_lines(sender_name) + '}\n'
                 + '\\setkomavar{fromaddress}{' + latex_lines(sender_address) + '}\n'
+                + place_var
                 + '\\setkomavar{fromphone}{' + latex_lines(sender_phone) + '}\n'
+                + fromfax_var
                 + ('\\setkomavar{fromemail}{' + latex_lines(sender_email) + '}\n'
                    if sender_email else '')
                 + ('\\setkomavar{fromurl}{' + latex_lines(sender_url) + '}\n'
@@ -694,7 +714,9 @@ class DocumentWizard(object):
                 + '\\setkomavar{signature}{' + latex_lines(signature) + '}\n'
                 + '\\setkomavar{date}{' + self.current_values['date'] + '}\n'
                 + subject_line
-                + '\\begin{document}\n\n'
+                + backaddress_var
+                + '\\begin{document}\n'
+                + '\\pagestyle{headings}\n\n'
                 + '\\begin{letter}{' + recipient_arg + '}\n\n'
                 + '\\opening{' + opening + '}\n\n'
             )

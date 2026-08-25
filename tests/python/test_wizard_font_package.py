@@ -378,6 +378,100 @@ class TestScrlttr2AdvancedLetterTemplate(unittest.TestCase):
         self.assertIn('\\setkomavar{fromaddress}{1 Main Street\\\\Example City}', template)
         self.assertIn('\\begin{letter}{Destination\\\\42 Office Road\\\\Example Town', template)
 
+    def test_hlines_and_numericaldate_switches_emit_koma_options(self):
+        '''#170 补充: headsepline/footsepline 与 numericaldate 开关默认关闭,
+        打开时 KOMAoptions 须追加对应键值。'''
+        inst = _make_instance()
+        # 默认两个开关均为 False, 模板不应包含这些键
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertNotIn('headsepline', template)
+        self.assertNotIn('footsepline', template)
+        self.assertNotIn('numericaldate', template)
+
+        inst.current_values['letter'].update({
+            'option_hlines': True,
+            'option_numericaldate': True,
+        })
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        # headsepline 在前 (中间项), 后接逗号; footsepline/numericaldate 是最后项
+        self.assertIn('\theadsepline=true,\n\tfootsepline=true,\n\tnumericaldate=false\n}', template)
+        self.assertIn('headsepline=true', template)
+        self.assertIn('footsepline=true', template)
+        self.assertIn('numericaldate=false', template)
+
+    def test_place_and_fax_vars_emitted_when_set(self):
+        '''#170 补充: place 与 fromfax 在字段非空时输出对应 \\setkomavar,
+        fromfax=true 仅在 sender_fax 非空时加入 KOMAoptions。'''
+        inst = _make_instance()
+        # 默认空: 不应出现
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertNotIn('\\setkomavar{place}', template)
+        self.assertNotIn('fromfax', template)
+        self.assertNotIn('\\setkomavar{fromfax}', template)
+
+        inst.current_values['letter'].update({
+            'place': 'Berlin',
+            'sender_fax': '+49 30 1234567',
+        })
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertIn('\\setkomavar{place}{Berlin}', template)
+        # fromfax 是 KOMAoptions 列表的当前最后项
+        self.assertIn('\tfromfax=true\n}', template)
+        self.assertIn('\\setkomavar{fromfax}{+49 30 1234567}', template)
+
+    def test_backaddress_content_only_when_enabled_and_filled(self):
+        '''#170 补充: backaddress 文本仅在开关打开且文本非空时生成。'''
+        inst = _make_instance()
+        inst.current_values['letter']['option_backaddress'] = False
+        inst.current_values['letter']['backaddress'] = 'Hidden return addr'
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertNotIn('\\setkomavar{backaddress}', template)
+
+        # 开关开但文本空: 仍不输出
+        inst.current_values['letter']['option_backaddress'] = True
+        inst.current_values['letter']['backaddress'] = ''
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertNotIn('\\setkomavar{backaddress}', template)
+
+        # 开关开且文本非空: 必须输出
+        inst.current_values['letter']['backaddress'] = 'PO Box 1234'
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertIn('\\setkomavar{backaddress}{PO Box 1234}', template)
+
+    def test_pagestyle_headings_emitted(self):
+        '''#170 补充: scrlttr2 模板固定输出 \\pagestyle{headings}。'''
+        inst = _make_instance()
+        start, end = inst.get_insert_text_scrlttr2()
+        template = start + end
+        self.assertIn('\\begin{document}', template)
+        # \\pagestyle 紧随 \\begin{document} 之后
+        begin_idx = template.find('\\begin{document}')
+        pagestyle_idx = template.find('\\pagestyle{headings}')
+        self.assertGreater(pagestyle_idx, begin_idx)
+        self.assertLess(pagestyle_idx - begin_idx, 40)
+        # 在 \\begin{letter} 之前
+        letter_idx = template.find('\\begin{letter}')
+        self.assertLess(pagestyle_idx, letter_idx)
+
+    def test_standard_letter_still_clean(self):
+        '''#170 补充回归防护: 标准 letter 模板不应被误伤, 仍不含任何
+        KOMA 专属指令或 \\pagestyle{headings}。'''
+        inst = _make_instance()
+        start, end = inst.get_insert_text_letter()
+        template = start + end
+        self.assertNotIn('\\KOMAoptions{', template)
+        self.assertNotIn('\\pagestyle{headings}', template)
+        self.assertNotIn('\\setkomavar{', template)
+        self.assertIn('\\address{', template)
+        self.assertIn('\\begin{letter}{', template)
+
 
 if __name__ == '__main__':
     unittest.main()

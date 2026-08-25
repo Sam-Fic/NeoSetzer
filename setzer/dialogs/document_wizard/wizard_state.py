@@ -73,6 +73,7 @@ _STRING_KEYS = frozenset((
 _LETTER_TEXT_KEYS = frozenset((
     'sender_name', 'sender_address', 'sender_phone',
     'sender_email', 'sender_url', 'sender_logo_path',
+    'sender_fax', 'place', 'backaddress',
     'recipient_name', 'recipient_address', 'recipient_phone',
     'signature', 'opening', 'closing',
 ))
@@ -110,6 +111,8 @@ def build_default_wizard_state(default_page_format, languages):
         'option_window_address': True,
         'option_backaddress': True,
         'option_foldmarks': True,
+        'option_hlines': False,
+        'option_numericaldate': False,
     })
 
     return {
@@ -230,7 +233,8 @@ def _normalise_page_settings(candidate, result, include_letter_text=False):
 
     if include_letter_text:
         _copy_strings(candidate, result, _LETTER_TEXT_KEYS)
-        for key in ('option_window_address', 'option_backaddress', 'option_foldmarks'):
+        for key in ('option_window_address', 'option_backaddress', 'option_foldmarks',
+                    'option_hlines', 'option_numericaldate'):
             value = candidate.get(key)
             if isinstance(value, bool):
                 result[key] = value

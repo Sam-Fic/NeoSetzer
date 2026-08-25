@@ -67,7 +67,9 @@ class LetterSettingsPage(Page):
 
         self.view.sender_name_entry.connect('changed', text_changed, 'sender_name')
         self.view.sender_address_buffer.connect('changed', address_changed, 'sender_address')
+        self.view.sender_place_entry.connect('changed', text_changed, 'place')
         self.view.sender_phone_entry.connect('changed', text_changed, 'sender_phone')
+        self.view.sender_fax_entry.connect('changed', text_changed, 'sender_fax')
         self.view.sender_email_entry.connect('changed', text_changed, 'sender_email')
         self.view.sender_url_entry.connect('changed', text_changed, 'sender_url')
         self.view.logo_choose_button.connect('clicked', self.choose_logo)
@@ -77,8 +79,11 @@ class LetterSettingsPage(Page):
         self.view.recipient_phone_entry.connect('changed', text_changed, 'recipient_phone')
         self.view.signature_entry.connect('changed', text_changed, 'signature')
         self.view.option_window_address.connect('notify::active', option_toggled, 'option_window_address')
-        self.view.option_backaddress.connect('notify::active', option_toggled, 'option_backaddress')
+        self.view.option_backaddress.connect('notify::active', self._on_backaddress_toggled)
+        self.view.backaddress_entry.connect('changed', text_changed, 'backaddress')
         self.view.option_foldmarks.connect('notify::active', option_toggled, 'option_foldmarks')
+        self.view.option_hlines.connect('notify::active', option_toggled, 'option_hlines')
+        self.view.option_numericaldate.connect('notify::active', option_toggled, 'option_numericaldate')
         self.view.opening_entry.connect('changed', text_changed, 'opening')
         self.view.closing_entry.connect('changed', text_changed, 'closing')
 
@@ -89,6 +94,14 @@ class LetterSettingsPage(Page):
                 spinrow.set_value(3.5)
         if option_name != None:
             self.current_values['letter']['option_' + option_name] = row.get_active()
+
+    def _on_backaddress_toggled(self, row, pspec=None):
+        self.current_values['letter']['option_backaddress'] = row.get_active()
+        self._update_backaddress_entry_sensitivity()
+
+    def _update_backaddress_entry_sensitivity(self):
+        self.view.backaddress_entry.set_sensitive(
+            self.current_values['letter'].get('option_backaddress', False))
 
     def load_presets(self, presets):
         for setter_function, value_name in [
@@ -103,6 +116,8 @@ class LetterSettingsPage(Page):
             (self.view.option_window_address.set_active, 'option_window_address'),
             (self.view.option_backaddress.set_active, 'option_backaddress'),
             (self.view.option_foldmarks.set_active, 'option_foldmarks'),
+            (self.view.option_hlines.set_active, 'option_hlines'),
+            (self.view.option_numericaldate.set_active, 'option_numericaldate'),
         ]:
             try:
                 value = presets['letter'][value_name]
@@ -117,10 +132,12 @@ class LetterSettingsPage(Page):
         self.view.page_format_combo.set_selected(self.view.page_format_names.index(value))
 
         # 信件专用字段
-        for field_name in ['sender_name', 'sender_address', 'sender_phone',
+        for field_name in ['sender_name', 'sender_address', 'sender_place',
+                           'sender_phone', 'sender_fax',
                            'sender_email', 'sender_url',
                            'recipient_name', 'recipient_address', 'recipient_phone',
-                           'signature', 'opening', 'closing']:
+                           'signature', 'opening', 'closing',
+                           'backaddress']:
             try:
                 text = presets['letter'][field_name]
             except (TypeError, KeyError):
@@ -137,6 +154,7 @@ class LetterSettingsPage(Page):
         self.view.set_logo_path(logo_path)
 
         self.option_default_margins_toggled(self.view.option_default_margins)
+        self._update_backaddress_entry_sensitivity()
         self._update_scrlttr2_options_visibility()
 
     def choose_logo(self, button=None):
@@ -180,6 +198,7 @@ class LetterSettingsPage(Page):
 
     def on_activation(self):
         self._update_scrlttr2_options_visibility()
+        self._update_backaddress_entry_sensitivity()
 
 
 class LetterSettingsPageView(PageView):
@@ -222,12 +241,22 @@ class LetterSettingsPageView(PageView):
         self.sender_name_entry.set_tooltip_text(_('Your name as it appears in the address block.'))
         self.sender_address_row, self.sender_address_buffer = self._make_address_row(
             _('Address'), _('Your street address or PO box. Use a new line for each address line.'))
+        self.sender_place_entry = Adw.EntryRow()
+        self.sender_place_entry.set_title(_('Place'))
+        self.sender_place_entry.set_tooltip_text(
+            _('Location printed above the date, e.g. "Berlin". Only used by scrlttr2.'))
         self.sender_phone_entry = Adw.EntryRow()
         self.sender_phone_entry.set_title(_('Phone'))
         self.sender_phone_entry.set_tooltip_text(_('Your phone number.'))
+        self.sender_fax_entry = Adw.EntryRow()
+        self.sender_fax_entry.set_title(_('Fax'))
+        self.sender_fax_entry.set_tooltip_text(
+            _('Your fax number. Only used by scrlttr2; enable "Show return address" to make it appear.'))
         self.group_sender.add(self.sender_name_entry)
         self.group_sender.add(self.sender_address_row)
+        self.group_sender.add(self.sender_place_entry)
         self.group_sender.add(self.sender_phone_entry)
+        self.group_sender.add(self.sender_fax_entry)
 
         # ---- scrlttr2 letterhead ----
         self.group_letterhead = Adw.PreferencesGroup()
@@ -294,13 +323,28 @@ class LetterSettingsPageView(PageView):
         self.option_backaddress.set_title(_('Show return address'))
         self.option_backaddress.set_tooltip_text(_(
             'Show the sender address above the recipient address field.'))
+        self.backaddress_entry = Adw.EntryRow()
+        self.backaddress_entry.set_title(_('Return address text'))
+        self.backaddress_entry.set_tooltip_text(_(
+            'Text used for the return address. Leave empty to use the sender block.'))
         self.option_foldmarks = Adw.SwitchRow()
         self.option_foldmarks.set_title(_('Show fold marks'))
         self.option_foldmarks.set_tooltip_text(_(
             'Show marks that help fold the letter for a windowed envelope.'))
+        self.option_hlines = Adw.SwitchRow()
+        self.option_hlines.set_title(_('Show header and footer rules'))
+        self.option_hlines.set_tooltip_text(_(
+            'Draw horizontal rules under the header and above the footer.'))
+        self.option_numericaldate = Adw.SwitchRow()
+        self.option_numericaldate.set_title(_('Use letter-style date'))
+        self.option_numericaldate.set_tooltip_text(_(
+            'Print the date in the spelled-out letter style instead of the numeric ISO form.'))
         self.group_envelope.add(self.option_window_address)
         self.group_envelope.add(self.option_backaddress)
+        self.group_envelope.add(self.backaddress_entry)
         self.group_envelope.add(self.option_foldmarks)
+        self.group_envelope.add(self.option_hlines)
+        self.group_envelope.add(self.option_numericaldate)
 
         # ---- Page format ----
         self.group_page_format = Adw.PreferencesGroup()
