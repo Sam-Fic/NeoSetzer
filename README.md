@@ -60,7 +60,7 @@ NeoSetzer is developed and tested on Ubuntu.
 
    ```bash
    # Run in a Linux terminal
-   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0
+   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-numpy gir1.2-xdp-1.0
    ```
 
    > Note: `gir1.2-xdp-1.0` (the libportal GIR) is only used for Linux/Flatpak detection. It is not needed on Windows (see note below).
@@ -163,12 +163,7 @@ pacman -S --needed \
 
 Then install the **pure-Python** libraries that are not packaged by pacman. MSYS2's Python is externally managed (PEP 668), so the `--break-system-packages` flag is required:
 
-```bash
-# Run in the MSYS2 MINGW64 shell
-python -m pip install --break-system-packages bibtexparser
-```
-
-> **`numpy` comes from pacman, not pip.** The MSYS2 MinGW Python reports the platform tag `mingw_x86_64_msvcrt_gnu`, so upstream `win_amd64` wheels (including numpy's) do **not** match — `pip install numpy` falls back to a source build and fails/succeeds only after a very long compile. Always install `numpy` (and any other C-extension package such as `scipy`, `pillow`, …) via pacman as `mingw-w64-x86_64-python-<name>` instead. `bibtexparser` is pure-Python, so it is fine via `pip`.
+> **`numpy` comes from pacman, not pip.** The MSYS2 MinGW Python reports the platform tag `mingw_x86_64_msvcrt_gnu`, so upstream `win_amd64` wheels (including numpy's) do **not** match — `pip install numpy` falls back to a source build and fails/succeeds only after a very long compile. Always install `numpy` (and any other C-extension package such as `scipy`, `pillow`, …) via pacman as `mingw-w64-x86_64-python-<name>` instead.
 >
 > **Use the MinGW Python, not the MSYS one.** Make sure `python` resolves to `/mingw64/bin/python` (`python -c "import sys; print(sys.platform)"` should print `win32`). If `pip`/`python` point at the `msys` interpreter instead, PyGObject and the pacman-installed `numpy` won't be found. Prefer `python -m pip …` to be explicit.
 

@@ -31,7 +31,6 @@ jobs:
             python3-cairo \
             python3-gi-cairo \
             python3-numpy \
-            python3-bibtexparser \
             gir1.2-gtk-4.0 \
             gir1.2-adw-1 \
             gir1.2-gtksource-5 \

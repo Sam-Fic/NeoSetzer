@@ -46,9 +46,6 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v5
 
-      - name: Install pure-Python dependency
-        run: python -m pip install --break-system-packages bibtexparser
-
       - name: Verify tag and project version agree
         if: startsWith(github.ref, 'refs/tags/v')
         env:

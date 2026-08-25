@@ -37,7 +37,6 @@ pacman -S --needed \
   mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
   mingw-w64-x86_64-python-gobject mingw-w64-x86_64-python-numpy \
   mingw-w64-x86_64-unzip gettext zip
-python -m pip install --break-system-packages bibtexparser
 
 meson setup builddir
 meson compile -C builddir

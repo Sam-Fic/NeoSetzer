@@ -60,7 +60,7 @@ NeoSetzer 在 Ubuntu 上开发和测试。
 
    ```bash
    # 在 Linux 终端中执行
-   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-bibtexparser python3-numpy gir1.2-xdp-1.0
+   apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-numpy gir1.2-xdp-1.0
    ```
 
    > 注：`gir1.2-xdp-1.0` 仅用于 Linux/Flatpak 检测（即 libportal 的 GIR）。Windows 上不需要它（见下文说明）。
@@ -161,14 +161,9 @@ pacman -S --needed \
 
 > **不需要 `libportal`：** MSYS2 中**不存在** `mingw-w64-x86_64-libportal` 这个包——libportal 只在 `msys` 子系统中打包，不提供 `mingw64` 版本。NeoSetzer 仅在 Flatpak 检测时用到它（`Xdp`），且已被 `try/except` 包裹，因此在 Windows 上直接省略即可。
 
-然后安装 pacman 未提供的 **纯 Python** 库。MSYS2 的 Python 是 externally-managed（PEP 668），必须加 `--break-system-packages` 参数：
+所有运行时 Python 依赖都通过 pacman 安装，没有需要再额外 `pip install` 的包。
 
-```bash
-# 在 MSYS2 MINGW64 终端中执行
-python -m pip install --break-system-packages bibtexparser
-```
-
-> **`numpy` 要用 pacman 安装，而不是 pip。** MSYS2 的 MinGW Python 平台标签是 `mingw_x86_64_msvcrt_gnu`，与上游 `win_amd64` 的 wheel（包括 numpy 的）**不匹配**——`pip install numpy` 会回退到源码编译，要么失败、要么编译很久。凡是带 C 扩展的包（如 `numpy`、`scipy`、`pillow` 等）都应通过 pacman 以 `mingw-w64-x86_64-python-<name>` 安装。`bibtexparser` 是纯 Python，用 pip 即可。
+> **`numpy` 要用 pacman 安装，而不是 pip。** MSYS2 的 MinGW Python 平台标签是 `mingw_x86_64_msvcrt_gnu`，与上游 `win_amd64` 的 wheel（包括 numpy 的）**不匹配**——`pip install numpy` 会回退到源码编译，要么失败、要么编译很久。凡是带 C 扩展的包（如 `numpy`、`scipy`、`pillow` 等）都应通过 pacman 以 `mingw-w64-x86_64-python-<name>` 安装。
 >
 > **务必使用 MinGW 的 Python，而不是 MSYS 的。** 请确认 `python` 解析到 `/mingw64/bin/python`（`python -c "import sys; print(sys.platform)"` 应输出 `win32`）。如果 `pip`/`python` 指向的是 `msys` 解释器，PyGObject 与通过 pacman 安装的 `numpy` 都会找不到。建议显式使用 `python -m pip …`。
 
