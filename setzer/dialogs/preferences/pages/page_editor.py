@@ -147,6 +147,9 @@ class PageEditor(object):
         self.view.option_show_shortcuts_bar.set_active(self.settings.get_value('preferences', 'show_shortcuts_bar'))
         self.view.option_show_shortcuts_bar.connect('notify::active', self.on_switch_toggled, 'show_shortcuts_bar')
 
+        self.view.option_show_tab_bar.set_active(self.settings.get_value('preferences', 'show_tab_bar'))
+        self.view.option_show_tab_bar.connect('notify::active', self.on_switch_toggled, 'show_tab_bar')
+
         self.view.option_line_wrapping.set_active(self.settings.get_value('preferences', 'enable_line_wrapping'))
         self.view.option_line_wrapping.connect('notify::active', self.on_switch_toggled, 'enable_line_wrapping')
 
@@ -599,6 +602,7 @@ class PageEditor(object):
         self.view.option_show_right_margin.set_active(defaults['show_right_margin'])
         self.view.right_margin_position_row.set_value(defaults['right_margin_position'])
         self.view.option_show_shortcuts_bar.set_active(defaults['show_shortcuts_bar'])
+        self.view.option_show_tab_bar.set_active(defaults['show_tab_bar'])
         self.view.option_line_wrapping.set_active(defaults['enable_line_wrapping'])
         self.view.option_code_folding.set_active(defaults['enable_code_folding'])
         self.view.option_sticky_scroll.set_active(defaults['enable_sticky_scroll'])
@@ -845,6 +849,18 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_show_shortcuts_bar.set_tooltip_text(_(
             'Display a bar of keyboard shortcuts above the editor.'))
         group_shortcuts_bar.add(self.option_show_shortcuts_bar)
+
+        group_tab_bar = Adw.PreferencesGroup()
+        group_tab_bar.set_title(_('Tab Bar'))
+        self.add(group_tab_bar)
+
+        self.option_show_tab_bar = Adw.SwitchRow()
+        self.option_show_tab_bar.set_title(_('Show tab bar'))
+        self.option_show_tab_bar.set_subtitle(_('Display the multi-document tab bar above the shortcuts bar.'))
+        self.option_show_tab_bar.set_tooltip_text(_(
+            'Display a bar of open documents above the shortcuts bar. '
+            'When enabled, a single open document hides the bar automatically.'))
+        group_tab_bar.add(self.option_show_tab_bar)
 
         group_line_wrapping = Adw.PreferencesGroup()
         group_line_wrapping.set_title(_('Line Wrapping'))

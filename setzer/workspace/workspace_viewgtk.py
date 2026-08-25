@@ -108,10 +108,14 @@ class MainWindow(Adw.ApplicationWindow):
         # Adw.TabBar 是 Adw.TabView 的可视化标签条。
         # view=document_stack 把数据源绑到上面的 TabView。
         # autohide=True 实现 gedit 规则：1 个文档时整条隐藏，≥2 时显示。
-        # shortcuts 设为 ALL：Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+Alt+Home/End
-        # / Alt+1..9 / Alt+W 等 Adw 自带快捷键全部启用（替代我们之前在
-        # shortcut_controller_app.py 里手写的 shortcut_switch_document）。
+        # add_css_class('inline')：adw 默认 .tabbar 走 @headerbar_bg_color，
+        # 视觉上比 shortcutsbar 深一档（shortcutsbar 是普通 Gtk.Box，走
+        # @view_bg_color）。.inline 移除默认 headerbar 背景，让 tabbar
+        # 与 shortcutsbar 同色，组成一条连续的工具带。这是 libadwaita
+        # 文档对"非 headerbar 上下文"的明确建议。
+        # shortcuts 设为 ALL（去掉 Ctrl+Tab/Ctrl+Shift+Tab，保留其余）。
         self.document_tabs = Adw.TabBar()
+        self.document_tabs.add_css_class('inline')
         self.document_tabs.set_view(self.document_stack)
         self.document_tabs.set_autohide(True)
         # end_action_widget 与 start_action_widget 留空（保留为后续接

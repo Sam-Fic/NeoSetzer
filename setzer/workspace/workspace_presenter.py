@@ -86,6 +86,7 @@ class WorkspacePresenter(object):
         self.update_font()
         self.update_colors()
         self.update_shortcuts_bar_visibility()
+        self.update_tab_bar_visibility()
         self.setup_paneds()
 
     def on_settings_changed(self, settings, parameter):
@@ -99,6 +100,9 @@ class WorkspacePresenter(object):
 
         if item == 'show_shortcuts_bar':
             self.update_shortcuts_bar_visibility()
+
+        if item == 'show_tab_bar':
+            self.update_tab_bar_visibility()
 
     def on_new_document(self, workspace, document):
         # 把文档视图挂到 Adw.TabView（替换原 Gtk.Stack）：
@@ -430,6 +434,29 @@ class WorkspacePresenter(object):
     def update_shortcuts_bar_visibility(self):
         show = self.settings.get_value('preferences', 'show_shortcuts_bar')
         self.main_window.shortcutsbar.set_visible(show)
+
+    def update_tab_bar_visibility(self):
+        '''按 show_tab_bar 偏好设置 Adw.TabBar 的可见性。
+
+        两条路径：
+        - 用户关闭：set_autohide(False) + set_visible(False) — 强制隐藏，
+          1+ 个文档都不显示。
+        - 用户打开：set_autohide(True) — 把显隐决定权交回 adw 自身（1 文档
+          时自动隐藏、≥2 显示）。
+
+        为什么不用 set_visible(True) 显式打开：autohide=True 时 adw 内部
+        会根据页数自动 set_visible；外部再 set_visible(True) 会被 adw 的
+        后续自动调整覆盖，反而引入闪烁。直接 set_autohide(True) 让 adw
+        自己管，与文档数变化同步最干净。
+        '''
+        show = self.settings.get_value('preferences', 'show_tab_bar')
+        tab_bar = self.main_window.document_tabs
+        if show:
+            tab_bar.set_autohide(True)
+            # 不调 set_visible，让 autohide 自己根据页数决定。
+        else:
+            tab_bar.set_autohide(False)
+            tab_bar.set_visible(False)
 
     def setup_paneds(self):
         sidebar_visible_for_latex_docs = self.workspace.show_symbols or self.workspace.show_document_structure

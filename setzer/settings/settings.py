@@ -182,6 +182,10 @@ class Settings(Observable):
         self.defaults['preferences']['show_right_margin'] = True
         self.defaults['preferences']['right_margin_position'] = 80
         self.defaults['preferences']['show_shortcuts_bar'] = True
+        # 多文档标签条（Adw.TabBar）的显隐偏好。True 时按 adw autohide
+        # 决定（1 个文档隐藏、≥2 显示）；False 时强制隐藏，1+ 个文档都看不到
+        # 标签条。与 show_shortcuts_bar 平级，可由用户独立关闭。
+        self.defaults['preferences']['show_tab_bar'] = True
         # 行距（像素）：每行之间的额外垂直间距。均分到 pixels_above_lines /
         # pixels_below_lines 使文本在行 slot 中竖直居中；pixels_inside_wrap
         # 设为完整值使自动换行续行间距与段落间一致。get_line_yrange().height
