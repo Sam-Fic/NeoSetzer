@@ -25,7 +25,11 @@ The crucial invariants we want to keep:
    removing a document not in the view is a no-op).
 4. ``set_active_document`` flows to ``set_selected_page`` and only
    emits ``notify::selected-page`` while it is the driver (the
-   ``_selecting`` re-entrancy guard).
+   ``_selecting`` re-entrancy guard). The reverse direction is
+   BYPASSED: a user click's ``notify::selected-page`` does NOT forward
+   to ``set_active_document`` synchronously (that would break the
+   TabBox's pressed_tab reference and kill drag-reorder); the sync is
+   deferred to ``_do_release_sync`` after mouse-up.
 5. ``close-page`` signal routed through ``actions.close_document``
    (so push_closed_document + modified-check + confirm dialog are
    reused); close_active_document is now a thin wrapper that closes
@@ -96,7 +100,8 @@ actions_methods = _extract_methods_from_class(
 presenter_methods = _extract_methods_from_class(
     PRESENTER_SRC, 'WorkspacePresenter',
     '_on_tab_view_selected_page_changed',
-    '_on_tab_view_close_page')
+    '_on_tab_view_close_page',
+    '_do_release_sync')
 
 
 # ---- Tests ----
@@ -159,7 +164,12 @@ class TabViewSelectedPageGuardTests(unittest.TestCase):
     - BAIL when the page is unknown (``_page_to_doc.get(page) is None``)
       so a stray adw internal signal can't cause spurious state changes.
     - BAIL when the page is already the active document (no-op).
-    - Otherwise forward to ``workspace.set_active_document``.
+    - BYPASS: NOT forward to ``workspace.set_active_document`` directly.
+      libadwaita's tab-bar calls set_selected_page synchronously on
+      press; forwarding here would run 8+ observers mid-press and break
+      the TabBox's internal pressed_tab reference, killing drag-reorder.
+      The active-document sync happens after mouse-up via
+      ``_do_release_sync`` (scheduled by ``setup_tab_bar_release_sync``).
     '''
 
     def _harness(self, selecting=0, page_to_doc=None, active_doc=None,
@@ -222,9 +232,12 @@ class TabViewSelectedPageGuardTests(unittest.TestCase):
         bound(tab_view, Mock())
         sentinel.workspace.set_active_document.assert_not_called()
 
-    def test_forwards_to_workspace_set_active_document(self):
-        # The happy path: user clicks a non-active tab. The handler
-        # must call workspace.set_active_document(doc) exactly once.
+    def test_clicks_non_active_tab_are_bypassed(self):
+        # The happy path: user clicks a non-active tab. The selected-page
+        # handler must NOT call workspace.set_active_document directly —
+        # that would run observers synchronously mid-press and break the
+        # TabBox pressed_tab reference (drag-reorder). The sync happens
+        # after mouse-up via _do_release_sync (see below).
         sentinel, bound = self._harness(
             selecting=0,
             page_to_doc={'PAGE_A': 'DOC_A', 'PAGE_B': 'DOC_B'},
@@ -234,7 +247,56 @@ class TabViewSelectedPageGuardTests(unittest.TestCase):
         tab_view = Mock()
         tab_view.get_selected_page = Mock(return_value='PAGE_B')
         bound(tab_view, Mock())
+        sentinel.workspace.set_active_document.assert_not_called()
+
+    def test_release_sync_forwards_to_workspace_set_active_document(self):
+        # The compensating path: after mouse-up (click or drag end),
+        # setup_tab_bar_release_sync schedules _do_release_sync via idle.
+        # It reads the final selected page and forwards exactly once,
+        # wrapped in the _selecting guard to suppress the re-entrant
+        # notify::selected-page that set_active_document triggers.
+        sentinel = Mock()
+        sentinel._selecting = 0
+        sentinel._page_to_doc = {'PAGE_B': 'DOC_B'}
+        sentinel.workspace = Mock()
+        sentinel.workspace.get_active_document = Mock(return_value='DOC_A')
+        sentinel.main_window = Mock()
+        sentinel.main_window.document_stack = Mock()
+        sentinel.main_window.document_stack.get_selected_page = Mock(
+            return_value='PAGE_B')
+        bound = _bound(presenter_methods['_do_release_sync'], sentinel)
+        self.assertEqual(bound(), False)  # idle callback: return False stops
         sentinel.workspace.set_active_document.assert_called_once_with('DOC_B')
+        # The guard was raised around the call and reset afterwards.
+        self.assertEqual(sentinel._selecting, 0)
+
+    def test_release_sync_is_noop_on_unknown_page(self):
+        sentinel = Mock()
+        sentinel._selecting = 0
+        sentinel._page_to_doc = {}
+        sentinel.workspace = Mock()
+        sentinel.workspace.get_active_document = Mock(return_value='DOC_A')
+        sentinel.main_window = Mock()
+        sentinel.main_window.document_stack = Mock()
+        sentinel.main_window.document_stack.get_selected_page = Mock(
+            return_value='GHOST')
+        bound = _bound(presenter_methods['_do_release_sync'], sentinel)
+        self.assertEqual(bound(), False)
+        sentinel.workspace.set_active_document.assert_not_called()
+
+    def test_release_sync_is_noop_when_already_active(self):
+        sentinel = Mock()
+        sentinel._selecting = 0
+        sentinel._page_to_doc = {'PAGE_A': 'DOC_A'}
+        sentinel.workspace = Mock()
+        sentinel.workspace.get_active_document = Mock(return_value='DOC_A')
+        sentinel.main_window = Mock()
+        sentinel.main_window.document_stack = Mock()
+        sentinel.main_window.document_stack.get_selected_page = Mock(
+            return_value='PAGE_A')
+        bound = _bound(presenter_methods['_do_release_sync'], sentinel)
+        self.assertEqual(bound(), False)
+        sentinel.workspace.set_active_document.assert_not_called()
 
 
 class TabViewClosePageGuardTests(unittest.TestCase):
