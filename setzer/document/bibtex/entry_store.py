@@ -35,7 +35,8 @@ from typing import Iterable, Mapping
 _ENTRY_START = re.compile(r'@(?P<entry_type>[A-Za-z][A-Za-z0-9_-]*)\s*(?P<delimiter>[{(])')
 _KEY_PATTERN = re.compile(r'^[^\s,{}()]+$')
 _IDENTIFIER_PATTERN = re.compile(r'^[A-Za-z][A-Za-z0-9_-]*$')
-_SPECIAL_BLOCK_TYPES = frozenset(('comment', 'preamble', 'string'))
+_SPECIAL_BLOCK_TYPES = frozenset(('comment', 'preamble'))
+_STRING_VALUE_KINDS = ('braced', 'quoted', 'bare')
 _COMMON_FIELDS = (
     'author', 'title', 'year', 'journal', 'booktitle', 'publisher', 'volume',
     'number', 'pages', 'doi', 'url', 'editor', 'edition', 'address', 'month',
@@ -78,11 +79,36 @@ class BibTeXEntry:
 
 
 @dataclass(frozen=True)
+class BibTeXString:
+    '''One source-backed @string definition, including its exact text range.
+
+    ``value_kind`` records the source form: ``braced`` (``{...}``), ``quoted``
+    (``"..."``) or ``bare`` (a single identifier such as ``jun``).  ``raw`` is
+    the verbatim block text (including the leading ``@string``); it is byte-
+    preserved when this string is not the target of an edit.
+    '''
+
+    name: str
+    value: str
+    start: int
+    end: int
+    raw: str
+    value_kind: str = 'braced'
+
+    @property
+    def line(self) -> str:
+        '''A short, single-line summary suitable for list rows.'''
+        rendered = self.value if len(self.value) <= 80 else self.value[:77] + '…'
+        return f'{self.name} = {rendered}'
+
+
+@dataclass(frozen=True)
 class BibTeXParseResult:
     '''The safely indexed entries and non-fatal parsing diagnostics for text.'''
 
     entries: tuple[BibTeXEntry, ...]
     diagnostics: tuple[str, ...]
+    strings: tuple[BibTeXString, ...] = ()
 
     @property
     def has_errors(self) -> bool:
@@ -106,6 +132,10 @@ class BibTeXEntryStore:
     def diagnostics(self) -> tuple[str, ...]:
         return self.result.diagnostics
 
+    @property
+    def strings(self) -> tuple[BibTeXString, ...]:
+        return self.result.strings
+
     @staticmethod
     def common_entry_types() -> tuple[str, ...]:
         return _COMMON_ENTRY_TYPES
@@ -119,6 +149,7 @@ class BibTeXEntryStore:
         '''Index safe entry blocks while leaving malformed content untouched.'''
         entries: list[BibTeXEntry] = []
         diagnostics: list[str] = []
+        strings: list[BibTeXString] = []
         offset = 0
         while True:
             match = _ENTRY_START.search(text, offset)
@@ -140,6 +171,13 @@ class BibTeXEntryStore:
             offset = end
             if entry_type in _SPECIAL_BLOCK_TYPES:
                 continue
+            if entry_type == 'string':
+                string = _parse_string(raw, start)
+                if isinstance(string, str):
+                    diagnostics.append(string)
+                    continue
+                strings.append(string)
+                continue
             entry = _parse_entry(raw, start, entry_type, opening)
             if isinstance(entry, str):
                 diagnostics.append(entry)
@@ -151,7 +189,7 @@ class BibTeXEntryStore:
             if entry.key in keys:
                 diagnostics.append(_('The citation key “{key}” is used more than once').format(key=entry.key))
             keys.add(entry.key)
-        return BibTeXParseResult(tuple(entries), tuple(diagnostics))
+        return BibTeXParseResult(tuple(entries), tuple(diagnostics), tuple(strings))
 
     def list_entries(self, query: str = '', sort_by: str = 'key') -> tuple[BibTeXEntry, ...]:
         '''Return filtered entries with deterministic key, title, author, or year order.'''
@@ -240,6 +278,133 @@ class BibTeXEntryStore:
             cursor = entry.end
         pieces.append(self.text[cursor:])
         return ''.join(pieces)
+
+    def list_strings(self, query: str = '') -> tuple[BibTeXString, ...]:
+        '''Return strings matching ``query`` ordered by casefolded name.'''
+        needle = (query or '').casefold().strip()
+        result = []
+        for string in self.strings:
+            if not needle or needle in string.name.casefold() or needle in string.value.casefold():
+                result.append(string)
+        return tuple(sorted(result, key=lambda s: (s.name.casefold(), s.name)))
+
+    def get_string(self, name: str) -> BibTeXString | None:
+        '''Return the first string with the given case-insensitive name, if any.'''
+        target = name.casefold()
+        for string in self.strings:
+            if string.name.casefold() == target:
+                return string
+        return None
+
+    def add_string(self, name: str, value: str) -> str:
+        '''Return text with one new ``@string`` definition appended.
+
+        Existing byte content is preserved.  Re-raises
+        :class:`BibTeXEntryError` for invalid names, empty values or duplicates
+        (matched case-insensitively, like BibTeX itself).
+        '''
+        normalized_name = _validate_string_name(name)
+        normalized_value, value_kind = _validate_string_value(value)
+        if self.get_string(normalized_name) is not None:
+            raise BibTeXEntryError(_('The string “{name}” already exists').format(name=normalized_name))
+        rendered = render_string(normalized_name, normalized_value, value_kind)
+        if not self.text:
+            return rendered + '\n'
+        separator = '' if self.text.endswith(('\n', '\r')) else '\n'
+        if self.text.rstrip('\r\n'):
+            separator += '\n'
+        return self.text + separator + rendered + _line_ending_for(self.text)
+
+    def update_string(self, name: str, new_name: str, new_value: str) -> str:
+        '''Return text with exactly one existing string range replaced.
+
+        Renames and revalues the matching string; preserves all other bytes.
+        '''
+        existing = self.get_string(name)
+        if existing is None:
+            raise BibTeXEntryError(_('The string “{name}” no longer exists').format(name=name))
+        normalized_name = _validate_string_name(new_name)
+        normalized_value, value_kind = _validate_string_value(new_value)
+        if normalized_name.casefold() != existing.name.casefold() \
+                and self.get_string(normalized_name) is not None:
+            raise BibTeXEntryError(_('The string “{name}” already exists').format(name=normalized_name))
+        rendered = render_string(
+            normalized_name, normalized_value, value_kind,
+            line_ending=_line_ending_for(existing.raw),
+        )
+        return self.text[:existing.start] + rendered + self.text[existing.end:]
+
+    def delete_string(self, name: str) -> str:
+        '''Return text without one ``@string`` and one adjacent separator if present.'''
+        existing = self.get_string(name)
+        if existing is None:
+            raise BibTeXEntryError(_('The string “{name}” no longer exists').format(name=name))
+        start, end = existing.start, existing.end
+        end = _skip_separator_after(self.text, end)
+        start = _skip_separator_before(self.text, start)
+        return self.text[:start] + self.text[end:]
+
+    def import_strings(self, text: str) -> tuple[str, dict[str, str]]:
+        '''Merge ``@string`` blocks parsed from ``text`` into the current document.
+
+        The strategy is **skip on duplicate**: names that already exist
+        (case-insensitive) are left untouched in the current document and
+        reported under ``skipped`` in the returned summary.  New names are
+        appended to the end of the current document, preserving its line
+        ending.  The return value is ``(updated_text, summary)`` where
+        ``summary`` is a small dict with at least the keys ``imported``,
+        ``skipped`` and ``errors`` (lists of names or messages).  Malformed
+        entries or invalid names in the source text are not raised but
+        reported under ``errors`` so the import is never aborted by a single
+        bad row.
+        '''
+        if not isinstance(text, str):
+            raise TypeError('text must be a string')
+        source_store = BibTeXEntryStore(text)
+        summary = {'imported': [], 'skipped': [], 'errors': []}
+        if source_store.diagnostics:
+            summary['errors'].extend(source_store.diagnostics)
+        additions: list[BibTeXString] = []
+        for candidate in source_store.list_strings():
+            if self.get_string(candidate.name) is not None:
+                summary['skipped'].append(candidate.name)
+                continue
+            # Preserve the source value's kind (braced/quoted/bare) so
+            # the imported @string blocks look the same as the originals.
+            if candidate.value_kind in _STRING_VALUE_KINDS:
+                value_kind = candidate.value_kind
+            else:
+                value_kind = 'braced'
+            try:
+                if value_kind == 'braced':
+                    normalized_value = _validate_string_value('{' + candidate.value + '}')[0]
+                elif value_kind == 'quoted':
+                    normalized_value = _validate_string_value('"' + candidate.value + '"')[0]
+                else:
+                    normalized_value, _ = _validate_string_value(candidate.value)
+            except BibTeXEntryError as error:
+                summary['errors'].append(
+                    _('Cannot import “{name}”: {reason}').format(name=candidate.name, reason=str(error))
+                )
+                continue
+            additions.append(BibTeXString(
+                name=candidate.name, value=normalized_value,
+                start=0, end=0, raw='',
+                value_kind=value_kind,
+            ))
+        if not additions:
+            return self.text, summary
+        rendered = ''.join(
+            render_string(item.name, item.value, item.value_kind) + _line_ending_for(self.text)
+            for item in additions
+        )
+        summary['imported'] = [item.name for item in additions]
+        if not self.text:
+            return rendered, summary
+        separator = '' if self.text.endswith(('\n', '\r')) else '\n'
+        if self.text.rstrip('\r\n'):
+            separator += '\n'
+        return self.text + separator + rendered, summary
 
     def delete_entry(self, key: str) -> str:
         '''Return text without one entry and one adjacent separator if present.'''
@@ -484,3 +649,158 @@ def _validate_entry_type(entry_type: str) -> str:
 
 def _line_ending_for(text: str) -> str:
     return '\r\n' if '\r\n' in text else '\n'
+
+
+def render_string(name: str, value: str, value_kind: str = 'braced',
+                  line_ending: str = '\n') -> str:
+    '''Render a single ``@string`` definition with a predictable style.
+
+    ``value_kind`` is one of ``braced`` (default), ``quoted`` or ``bare``.
+    Bare values are emitted without surrounding braces or quotes so the
+    macro reference (e.g. ``jun``) is preserved verbatim.  Empty values
+    are not allowed; callers must validate first.
+    '''
+    normalized_name = _validate_string_name(name)
+    normalized_value, kind = _validate_string_value(value)
+    if value_kind not in _STRING_VALUE_KINDS:
+        kind = 'braced'
+    elif value_kind in ('braced', 'quoted') and kind == 'bare':
+        kind = value_kind
+    if kind == 'bare':
+        rendered_value = normalized_value
+    elif kind == 'quoted':
+        rendered_value = f'"{normalized_value}"'
+    else:
+        rendered_value = f'{{{normalized_value}}}'
+    return f'@string{{{normalized_name} = {rendered_value}}}'
+
+
+def _parse_string(raw: str, start: int) -> BibTeXString | str:
+    '''Parse a single ``@string`` block of the form ``@string{name = value}``.
+
+    Returns a :class:`BibTeXString` for well-formed blocks, or a translated
+    error message string for malformed ones.  ``value`` may be braced, quoted
+    or a bare identifier (BibTeX macros such as ``jun``).
+    '''
+    if not raw.startswith('@string'):
+        return _('The string at character {position} is not an @string block').format(position=start + 1)
+    body = raw[len('@string'):]
+    opening = body[0] if body else ''
+    if opening not in '{(':
+        return _('The string at character {position} is missing an opening brace').format(position=start + 1)
+    closing = '}' if opening == '{' else ')'
+    if not body.endswith(closing):
+        return _('The string at character {position} is not closed').format(position=start + 1)
+    inner = body[1:-1]
+    comma = _find_unquoted_equals(inner)
+    if comma is None:
+        return _('The string at character {position} has no “=” between name and value').format(position=start + 1)
+    name = inner[:comma].strip()
+    try:
+        normalized_name = _validate_string_name(name)
+    except BibTeXEntryError as error:
+        return _('The string at character {position} cannot be edited safely: {reason}').format(
+            position=start + 1, reason=str(error),
+        )
+    raw_value = inner[comma + 1:].strip()
+    try:
+        value, value_kind = _validate_string_value(raw_value)
+    except BibTeXEntryError as error:
+        return _('The string at character {position} cannot be edited safely: {reason}').format(
+            position=start + 1, reason=str(error),
+        )
+    return BibTeXString(
+        name=normalized_name, value=value,
+        start=start, end=start + len(raw), raw=raw, value_kind=value_kind,
+    )
+
+
+def _find_unquoted_equals(text: str) -> int | None:
+    '''Return the offset of an ``=`` outside braces, quotes, or escaped chars.
+
+    Used by :func:`_parse_string` to split ``name = value``.  Mirrors the
+    brace/quote discipline of :func:`_find_unquoted_comma` so that a value
+    containing ``=`` (such as an inner brace) is not mistaken for a separator.
+    '''
+    depth = 0
+    quote = False
+    escaped = False
+    for offset, character in enumerate(text):
+        if escaped:
+            escaped = False
+        elif character == '\\':
+            escaped = True
+        elif quote:
+            if character == '"':
+                quote = False
+        elif character == '"':
+            quote = True
+        elif character == '{':
+            depth += 1
+        elif character == '}' and depth:
+            depth -= 1
+        elif character == '=' and depth == 0:
+            return offset
+    return None
+
+
+def _validate_string_name(name: str) -> str:
+    '''Validate a ``@string`` macro name; raise :class:`BibTeXEntryError` on failure.'''
+    normalized = str(name).strip()
+    if not normalized or not _IDENTIFIER_PATTERN.fullmatch(normalized):
+        raise BibTeXEntryError(_('A string name must be a plain identifier'))
+    return normalized
+
+
+def _validate_string_value(value: str) -> tuple[str, str]:
+    '''Return a (value, kind) pair for a user-supplied ``@string`` value.
+
+    ``value`` may be supplied bare (``jun``) or already wrapped in braces
+    (``{June}``) or quotes (``"June"``).  When the user-supplied text does
+    not look like a bare identifier (because it contains spaces or other
+    non-identifier characters) the value is interpreted as a braced form
+    so plain prose strings work out of the box.  The returned value is
+    always the unwrapped inner text; ``kind`` records the canonical form
+    that :func:`render_string` should reproduce.  Empty values raise
+    :class:`BibTeXEntryError`.
+    '''
+    text = str(value).strip()
+    if not text:
+        raise BibTeXEntryError(_('A string value is empty'))
+    if '\x00' in text:
+        raise BibTeXEntryError(_('A string value contains an invalid character'))
+    if text.startswith('{'):
+        end = _scan_balanced_block(text, 0, '{', '}')
+        if end is None or end != len(text):
+            raise BibTeXEntryError(_('A braced string value is not closed'))
+        return text[1:-1], 'braced'
+    if text.startswith('"'):
+        end = _scan_quoted_value(text, 0)
+        if end is None or end != len(text):
+            raise BibTeXEntryError(_('A quoted string value is not closed'))
+        return text[1:-1], 'quoted'
+    if not _IDENTIFIER_PATTERN.fullmatch(text):
+        return text, 'braced'
+    return text, 'bare'
+
+
+def _skip_separator_after(text: str, end: int) -> int:
+    '''Consume up to one blank line of separator whitespace after ``end`` (in place).'''
+    if text[end:end + 2] == '\r\n':
+        end += 2
+        if text[end:end + 2] == '\r\n':
+            end += 2
+    elif text[end:end + 1] == '\n':
+        end += 1
+        if text[end:end + 1] == '\n':
+            end += 1
+    return end
+
+
+def _skip_separator_before(text: str, start: int) -> int:
+    '''Consume up to one trailing newline of separator whitespace before ``start``.'''
+    if start > 0 and text[start - 2:start] == '\r\n':
+        start -= 2
+    elif start > 0 and text[start - 1:start] == '\n':
+        start -= 1
+    return start

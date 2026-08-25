@@ -171,6 +171,155 @@ class BibTeXEntryStoreTest(unittest.TestCase):
         self.assertEqual([entry.key for entry in store.entries], ['solo'])
         self.assertEqual(store.format_bibliography(), '@misc{solo}\n')
 
+    def test_parses_strings_with_braced_quoted_and_bare_values(self):
+        text = (
+            '@string{journal = "Journal of Tests"}\n'
+            '@string{month = jun}\n'
+            '@string{publisher = {Acme Publishing}}\n'
+            '@article{a, title = {A}, journal = journal}\n'
+        )
+        store = BibTeXEntryStore(text)
+        self.assertEqual(store.diagnostics, ())
+        self.assertEqual(
+            [(s.name, s.value, s.value_kind) for s in store.strings],
+            [
+                ('journal', 'Journal of Tests', 'quoted'),
+                ('month', 'jun', 'bare'),
+                ('publisher', 'Acme Publishing', 'braced'),
+            ],
+        )
+        self.assertTrue(store.get_string('Journal') is not None)
+        self.assertIsNone(store.get_string('missing'))
+
+    def test_list_strings_filters_and_sorts_case_insensitively(self):
+        text = (
+            '@string{zeta = "z"}\n'
+            '@string{alpha = "a"}\n'
+            '@string{mixed = "mix"}\n'
+        )
+        store = BibTeXEntryStore(text)
+        self.assertEqual(
+            [s.name for s in store.list_strings()],
+            ['alpha', 'mixed', 'zeta'],
+        )
+        self.assertEqual(
+            [s.name for s in store.list_strings('alp')],
+            ['alpha'],
+        )
+        self.assertEqual(
+            [s.name for s in store.list_strings('MIX')],
+            ['mixed'],
+        )
+
+    def test_add_string_appends_without_mutating_existing_text(self):
+        text = '@article{a, title = {A}}\n'
+        store = BibTeXEntryStore(text)
+        changed = store.add_string('journal', 'Journal of Tests')
+        self.assertIn('@article{a, title = {A}}\n', changed)
+        self.assertIn('@string{journal = {Journal of Tests}}\n', changed)
+        self.assertTrue(changed.startswith(text.rstrip('\n')))
+        # Re-parsing the result sees the new string, so a duplicate add
+        # against the new store raises.
+        updated_store = BibTeXEntryStore(changed)
+        with self.assertRaisesRegex(BibTeXEntryError, 'already exists'):
+            updated_store.add_string('journal', 'Another')
+        with self.assertRaisesRegex(BibTeXEntryError, 'plain identifier'):
+            store.add_string('bad name', 'v')
+
+    def test_add_string_treats_single_identifier_as_bare_value(self):
+        store = BibTeXEntryStore('')
+        changed = store.add_string('month', 'jun')
+        self.assertEqual(changed, '@string{month = jun}\n')
+
+    def test_add_string_treats_braced_input_as_braced_value(self):
+        store = BibTeXEntryStore('')
+        changed = store.add_string('month', '{June}')
+        self.assertEqual(changed, '@string{month = {June}}\n')
+
+    def test_update_string_replaces_only_target_range(self):
+        text = (
+            '% preamble kept as written\n'
+            '@string{journal = "Old Name"}\n'
+            '@article{a, title = {A}}\n'
+        )
+        store = BibTeXEntryStore(text)
+        changed = store.update_string('journal', 'journal', 'New Name')
+        self.assertIn('% preamble kept as written', changed)
+        self.assertIn('@article{a, title = {A}}\n', changed)
+        self.assertIn('@string{journal = {New Name}}', changed)
+        with self.assertRaisesRegex(BibTeXEntryError, 'no longer exists'):
+            store.update_string('missing', 'journal', 'X')
+
+    def test_update_string_can_rename_case_insensitively(self):
+        text = '@string{journal = "Old"}\n@article{a, title = {A}}\n'
+        store = BibTeXEntryStore(text)
+        changed = store.update_string('journal', 'JOURNAL', '{New}')
+        self.assertIn('@string{JOURNAL = {New}}', changed)
+        self.assertNotIn('"Old"', changed)
+
+    def test_delete_string_removes_only_target_range(self):
+        text = (
+            '@string{journal = "X"}\n\n'
+            '@string{month = "Y"}\n\n'
+            '@article{a, title = {A}}\n'
+        )
+        store = BibTeXEntryStore(text)
+        changed = store.delete_string('month')
+        self.assertIn('@string{journal = "X"}', changed)
+        self.assertNotIn('month = "Y"', changed)
+        self.assertIn('@article{a, title = {A}}\n', changed)
+
+    def test_format_bibliography_keeps_strings_byte_for_byte(self):
+        text = (
+            '@string{journal = "J"}\n'
+            '@string{month = jun}\n'
+            '@article{a, title = {A}}\n'
+        )
+        store = BibTeXEntryStore(text)
+        formatted = store.format_bibliography()
+        self.assertIn('@string{journal = "J"}', formatted)
+        self.assertIn('@string{month = jun}', formatted)
+        # Entries are reformatted by format_bibliography, but the
+        # @string blocks are passed through verbatim.  Confirm the
+        # entry is reformatted and the strings survive untouched.
+        self.assertIn('@article{a,', formatted)
+
+    def test_import_strings_skips_duplicates_and_appends_new_ones(self):
+        text = '@string{journal = "J"}\n@article{a, title = {A}}\n'
+        external = (
+            '@string{journal = "Other"}\n'
+            '@string{publisher = "P"}\n'
+            '@string{month = jan}\n'
+        )
+        store = BibTeXEntryStore(text)
+        updated, summary = store.import_strings(external)
+        self.assertEqual(summary['skipped'], ['journal'])
+        self.assertEqual(set(summary['imported']), {'publisher', 'month'})
+        self.assertIn('@string{journal = "J"}', updated)
+        self.assertIn('@string{publisher = "P"}', updated)
+        self.assertIn('@string{month = jan}', updated)
+        self.assertNotIn('"Other"', updated)
+        self.assertIn('@article{a, title = {A}}', updated)
+
+    def test_import_strings_on_empty_document(self):
+        store = BibTeXEntryStore('')
+        updated, summary = store.import_strings('@string{journal = "J"}\n')
+        self.assertEqual(summary['imported'], ['journal'])
+        self.assertIn('@string{journal = "J"}', updated)
+
+    def test_import_strings_with_no_new_macros_is_a_noop(self):
+        text = '@string{journal = "J"}\n'
+        store = BibTeXEntryStore(text)
+        updated, summary = store.import_strings('@string{journal = "Other"}\n')
+        self.assertEqual(updated, text)
+        self.assertEqual(summary['skipped'], ['journal'])
+        self.assertEqual(summary['imported'], [])
+
+    def test_add_string_on_empty_document(self):
+        store = BibTeXEntryStore('')
+        changed = store.add_string('journal', '{J}')
+        self.assertIn('@string{journal = {J}}', changed)
+
 
 if __name__ == '__main__':
     unittest.main()
