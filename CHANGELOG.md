@@ -1,5 +1,29 @@
 # Changelog
 
+## v79 — 2026-08-25
+
+### 主要改进
+
+- **修复新建文档 / 打开文件 / 会话恢复卡顿数秒的真正元凶**：每个 LaTeX 文档构造时都会重复注册 16 个窗口级全局快捷键加速器（实测每次注册阻塞 20-90ms，合计 0.6-2s，会话恢复 N 个文档重复 N 遍）。现改为应用启动时一次性注册，键位偏好变更时重新注册并即时全局生效（旧实现中已打开文档从不跟随新键位）。实测：`add_document` 从 ~1540ms 降至 ~1ms；连续打开 7 个文件（含一个 380KB 文档）共 ~220ms。
+- **大幅优化打开文件 / 新建文档 / 会话恢复的加载耗时**（此前大文档可达数秒）：
+  - 消灭双重全文解析：程序化读盘时抑制 parser 防抖调度，`set_text` + 显式 `initial_parse` 只触发一次 `finished_parsing`，所有下游观察者（代码折叠、粘性滚动、结构侧栏等）不再各执行两遍。
+  - 修复代码折叠展开风暴：解析更新后只对真正失配且处于折叠态的区域做展开操作，批量路径合并为一次 `folding_state_changed` 通知，消除 O(B²) 的逐区域全表扫描；程序化整篇载入（`last_edit=None`）显式走"原偏移匹配"分支——修复重载时用陈旧偏移平移导致折叠丢失/静默崩溃的问题，同内容重载现在完整保留折叠。
+  - 新增回归测试 `test_code_folding_programmatic_load.py`（覆盖 last_edit=None 首开与同内容重载场景，headless 环境自动跳过）。
+  - 粘性滚动章节可见性改为排序 + 栈式扫描一次预计算（含同行嵌套命令的平局语义），替代每章节沿父链全量回溯的 O(n²) 实现。
+  - `.bib` 文献解析改用轻量正则提取条目 key，移除 bibtexparser 依赖：3000 条目实测从 ~4100ms 降至 <5ms，且不再在主线程 idle 中长时间冻结 UI。
+  - 编码检测改用 chardet UniversalDetector 增量喂入、高置信度提前退出：检测结果与全量 detect 一致，超大非 UTF-8 文件实测 3MB 从 ~3200ms 降至 ~140ms。
+  - 新增打开路径基准（benchmarks H5）：覆盖单次解析断言、打开端到端耗时随规模趋势、全折叠后重解析的折叠保留率。
+
+### Improvements
+
+- **perf**: Register LaTeX document-level global accels once at startup instead of per document (each registration blocked 20-90ms; ~0.6-2s per new/opened/restored document). `add_document` drops from ~1540ms to ~1ms; opening 7 files including a 380KB one takes ~220ms in total. Re-register on keybinding preference changes so all documents update immediately.
+- **perf**: Eliminate double full-document parse on open/session-restore — suppress parser debounce scheduling during programmatic disk loads so `set_text` + explicit `initial_parse` emit exactly one `finished_parsing`; all downstream observers run once instead of twice.
+- **perf**: Fix code-folding unfold storm — only actually-folded mismatched regions are unfolded, bulk operations batch a single `folding_state_changed`, removing the O(B²) rescan; programmatic whole-file loads (`last_edit=None`) now take an explicit offset-preserving match path, fixing silent crashes and fold-state loss on reload.
+- **perf**: Precompute sticky-scroll section visibility with a sort + stack sweep (identical tie-breaking for same-line nesting), replacing the per-section O(n²) parent-chain walk.
+- **perf**: Replace bibtexparser with a lightweight regex entry-key extractor (~4100ms → <5ms for 3000 entries) and drop the dependency from packaging, CI, and docs; also make `LaTeXDB.get_file_dict` reachable as a static method.
+- **perf**: Feed chardet via UniversalDetector with early exit at high confidence — identical results to full detection, 3MB non-UTF-8 detection ~3200ms → ~140ms.
+- **bench**: Add open-path benchmark (H5) covering single-parse assertion, end-to-end open scaling, and fold-state preservation across reparse.
+
 ## v78 — 2026-08-24
 
 ### 主要改进

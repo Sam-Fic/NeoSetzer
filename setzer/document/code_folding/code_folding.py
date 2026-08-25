@@ -40,8 +40,14 @@ class CodeFolding(Observable):
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
         if item == 'enable_code_folding' and value == False:
+            changed = False
             for region in self.folding_regions.values():
-                self.unfold(region)
+                if region['is_folded']:
+                    region['is_folded'] = False
+                    self._show_region(region)
+                    changed = True
+            if changed:
+                self.add_change_code('folding_state_changed')
 
     def on_parser_update(self, parser):
         # this method updates the dict of folding regions after the
@@ -52,35 +58,42 @@ class CodeFolding(Observable):
         # will be used in the algorithm further below.
 
         folding_regions = dict()
-        if parser.last_edit[0] == 'insert':
-            _, location_offset, text, text_length = parser.last_edit
-            length = len(text)
-            # location_offset 是 insert-text 信号触发时（插入前）的位置（记为 P）。
-            # 旧 region 的偏移基于插入前的文档，取值范围 [0, old_doc_length]。
-            # 正确的平移规则：
-            #   index < P  → 保持原偏移（region 在插入点之前，不受影响）
-            #   index >= P → 平移 +length（region 在插入点及之后，内容后移）
-            # 因此 offset_start = P - 1（使 index <= offset_start 等价于 index < P），
-            # offset_end = P（使 index >= offset_end 等价于 index >= P）。
-            #
-            # 原代码 offset_start = P + length - 1, offset_end = P + length 把
-            # [P, P+length) 范围内的旧 region 当成"既不在前也不在后"而丢弃。
-            # 单字符输入时该范围只含 P 本身，仅丢失插入点处的 region；但粘贴
-            # 大段文本时 length 很，[P, min(P+length, old_doc_length)] 内的所有
-            # 旧 region 都会被丢弃，导致这些区域的折叠状态丢失（被后续 unfold
-            # 循环展开）。修复后所有旧 region 都能正确保留并平移。
-            offset_start = location_offset - 1
-            offset_end = location_offset
-        elif parser.last_edit[0] == 'delete':
-            _, start_offset, end_offset = parser.last_edit
-            offset_start = start_offset
-            offset_end = end_offset
-            length = offset_start - offset_end
-        for index, region in self.folding_regions.items():
-            if index <= offset_start:
-                folding_regions[index] = region
-            elif index >= offset_end:
-                folding_regions[index + length] = region
+        if parser.last_edit is None:
+            # 整篇程序化载入（打开文件 / 会话恢复 / 重载）：没有增量编辑
+            # 信息可做偏移平移。旧区域按原偏移原样带入下方按位置匹配——
+            # 内容未变的区域（重载场景）折叠状态完整保留，内容变化处自然
+            # 失配并走展开流程。新文档首次载入时本 dict 为空，无额外代价。
+            folding_regions = dict(self.folding_regions)
+        else:
+            if parser.last_edit[0] == 'insert':
+                _, location_offset, text, text_length = parser.last_edit
+                length = len(text)
+                # location_offset 是 insert-text 信号触发时（插入前）的位置（记为 P）。
+                # 旧 region 的偏移基于插入前的文档，取值范围 [0, old_doc_length]。
+                # 正确的平移规则：
+                #   index < P  → 保持原偏移（region 在插入点之前，不受影响）
+                #   index >= P → 平移 +length（region 在插入点及之后，内容后移）
+                # 因此 offset_start = P - 1（使 index <= offset_start 等价于 index < P），
+                # offset_end = P（使 index >= offset_end 等价于 index >= P）。
+                #
+                # 原代码 offset_start = P + length - 1, offset_end = P + length 把
+                # [P, P+length) 范围内的旧 region 当成"既不在前也不在后"而丢弃。
+                # 单字符输入时该范围只含 P 本身，仅丢失插入点处的 region；但粘贴
+                # 大段文本时 length 很，[P, min(P+length, old_doc_length)] 内的所有
+                # 旧 region 都会被丢弃，导致这些区域的折叠状态丢失（被后续 unfold
+                # 循环展开）。修复后所有旧 region 都能正确保留并平移。
+                offset_start = location_offset - 1
+                offset_end = location_offset
+            elif parser.last_edit[0] == 'delete':
+                _, start_offset, end_offset = parser.last_edit
+                offset_start = start_offset
+                offset_end = end_offset
+                length = offset_start - offset_end
+            for index, region in self.folding_regions.items():
+                if index <= offset_start:
+                    folding_regions[index] = region
+                elif index >= offset_end:
+                    folding_regions[index + length] = region
 
         # now update the folding regions w.r.t. the new parsing results.
         # if the offset of a region matches a previously included region,
@@ -117,8 +130,20 @@ class CodeFolding(Observable):
         # in a last step, the regions that are no longer
         # included, but were previously, are unfolded.
 
+        # 只处理真正处于折叠态的失配区域：未折叠的旧区域无需任何 buffer 操作。
+        # 打开文件时（首次解析后 folding_regions 为空）与常规编辑时，该循环通常
+        # 为空集——此前对每个失配 region 无条件 unfold→show_region，而 show_region
+        # 内部还要全表扫描嵌套区域并逐个发 folding_state_changed，大文档上构成
+        # O(B²) 展开风暴。变更通知合并为一次批量发射。
+        changed = False
         for region in folding_regions.values():
-            self.unfold(region)
+            if region['is_folded']:
+                region['is_folded'] = False
+                self._show_region(region)
+                changed = True
+
+        if changed:
+            self.add_change_code('folding_state_changed')
 
         self.initial_folding()
 
@@ -130,19 +155,31 @@ class CodeFolding(Observable):
     def unfold_region_containing_line(self, line):
         '''展开包含指定行的所有已折叠区域（含嵌套祖先），使该行可见。
         用于错误跳转等场景：目标行若落在折叠区内会被隐藏，跳转前先展开。'''
+        changed = False
         for region in self.folding_regions.values():
             if region['is_folded'] and region['starting_line'] < line <= region['ending_line']:
-                self.unfold(region)
+                region['is_folded'] = False
+                self._show_region(region)
+                changed = True
+        if changed:
+            self.add_change_code('folding_state_changed')
 
     def fold(self, region):
         region['is_folded'] = True
-        self.hide_region(region)
+        self._hide_region(region)
+        self.add_change_code('folding_state_changed')
 
     def unfold(self, region):
         region['is_folded'] = False
-        self.show_region(region)
+        self._show_region(region)
+        self.add_change_code('folding_state_changed')
 
-    def show_region(self, region):
+    def _show_region(self, region):
+        '''移除隐形 tag 使区域内容可见，并重新隐藏嵌套其中的已折叠区域。
+
+        不发射 folding_state_changed——由公开入口（fold/unfold/批量操作）决定
+        发射时机，批量路径只在末尾发一次，避免 N 次通知触发下游（sticky_scroll
+        全量重算）N 遍。'''
         offset_start = region['offset_start']
         start_iter = self.source_buffer.get_iter_at_offset(offset_start)
         start_iter.forward_to_line_end()
@@ -152,13 +189,14 @@ class CodeFolding(Observable):
             end_iter.forward_to_line_end()
         end_iter.forward_char()
         self.source_buffer.remove_tag(self.tag, start_iter, end_iter)
-        for some_region in self.folding_regions.values():
-            if some_region['is_folded']:
-                if some_region['starting_line'] >= region['starting_line'] and some_region['ending_line'] <= region['ending_line']:
-                    self.hide_region(some_region)
-        self.add_change_code('folding_state_changed')
+        # 先收集再遍历：无任何已折叠区域时退化为一次轻量扫描，
+        # 而非对每个候选做行比较 + tag 操作。
+        folded_regions = [r for r in self.folding_regions.values() if r['is_folded']]
+        for some_region in folded_regions:
+            if some_region['starting_line'] >= region['starting_line'] and some_region['ending_line'] <= region['ending_line']:
+                self._hide_region(some_region)
 
-    def hide_region(self, region):
+    def _hide_region(self, region):
         offset_start = region['offset_start']
         start_iter = self.source_buffer.get_iter_at_offset(offset_start)
         start_iter.forward_to_line_end()
@@ -168,17 +206,28 @@ class CodeFolding(Observable):
             end_iter.forward_to_line_end()
         end_iter.forward_char()
         self.source_buffer.apply_tag(self.tag, start_iter, end_iter)
-        self.add_change_code('folding_state_changed')
 
     def fold_all(self):
         '''折叠所有有效的折叠区域。'''
+        changed = False
         for region in self.folding_regions.values():
-            self.fold(region)
+            if not region['is_folded']:
+                region['is_folded'] = True
+                self._hide_region(region)
+                changed = True
+        if changed:
+            self.add_change_code('folding_state_changed')
 
     def unfold_all(self):
         '''展开所有折叠区域。'''
+        changed = False
         for region in self.folding_regions.values():
-            self.unfold(region)
+            if region['is_folded']:
+                region['is_folded'] = False
+                self._show_region(region)
+                changed = True
+        if changed:
+            self.add_change_code('folding_state_changed')
 
     def _line_text(self, line):
         '''返回第 line 行（0-based）的文本内容（不含换行符）；越界返回 None。'''
@@ -217,11 +266,17 @@ class CodeFolding(Observable):
 
     def initial_folding(self):
         if self.initial_folded_regions != None:
-            for anchor in self.initial_folded_regions:
+            anchors = self.initial_folded_regions
+            self.initial_folded_regions = None
+            changed = False
+            for anchor in anchors:
                 region = self._find_region_by_anchor(anchor)
-                if region != None:
-                    self.fold(region)
-        self.initial_folded_regions = None
+                if region != None and not region['is_folded']:
+                    region['is_folded'] = True
+                    self._hide_region(region)
+                    changed = True
+            if changed:
+                self.add_change_code('folding_state_changed')
 
     def _find_region_by_anchor(self, anchor):
         '''按保存的锚点定位应折叠的区域。

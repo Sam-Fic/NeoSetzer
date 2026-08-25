@@ -24,7 +24,7 @@ from setzer.app.service_locator import ServiceLocator
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
 from setzer.keyboard_shortcuts.shortcut_controller_document import ShortcutControllerDocument
-from setzer.keyboard_shortcuts.shortcut_controller_latex import ShortcutControllerLaTeX
+from setzer.keyboard_shortcuts.shortcut_controller_latex import ShortcutControllerLaTeX, register_global_accels
 
 
 class Shortcuts(object):
@@ -36,6 +36,15 @@ class Shortcuts(object):
         self.shortcut_controller_app = ShortcutControllerApp()
 
         self.main_window.add_controller(self.shortcut_controller_app)
+        # LaTeX 带参动作的加速器（textbf/italic/fraction 等）是窗口级全局
+        # 注册，与具体文档无关：应用启动时执行一次即可。此前随每个新建/
+        # 打开的文档重复注册，实测每次 0.6-1s——是「新建文档 / 打开文件 /
+        # 会话恢复卡顿数秒」的主要来源。
+        self.settings = ServiceLocator.get_settings()
+        register_global_accels(self.settings)
+        # 键位偏好变化时重新注册，全局即时生效（旧实现里已存在的文档
+        # 从不更新，只有之后新建的文档才用新键位）。
+        self.settings.connect('settings_changed', self.on_settings_changed)
         for document in self.workspace.open_documents: self.setup_document_shortcuts(document)
         self.workspace.connect('new_document', self.on_new_document)
 
@@ -50,6 +59,11 @@ class Shortcuts(object):
 
     def on_new_document(self, workspace, document):
         self.setup_document_shortcuts(document)
+
+    def on_settings_changed(self, settings, parameter):
+        section, item, value = parameter
+        if section == 'keyboard_shortcuts':
+            register_global_accels(settings)
 
     def setup_document_shortcuts(self, document):
         document.view.source_view.add_controller(ShortcutControllerDocument())

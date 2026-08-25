@@ -564,16 +564,22 @@ class Document(Observable):
         # 用 try/finally 保证异常路径也能复位，否则该文档后续真实编辑会被永久忽略。
         self._loading_from_disk = True
         try:
+            # 清除上一份内容的编辑记录：程序化载入没有增量编辑语义，若残留
+            # 旧值（同一文档对象重载时），code_folding 等观察者会拿陈旧
+            # offset 做平移，破坏折叠状态。观察者以 None 判别"整篇载入"。
+            if hasattr(self.parser, 'last_edit'):
+                self.parser.last_edit = None
             self.source_buffer.begin_irreversible_action()
             self.source_buffer.set_text(text)
             self.source_buffer.end_irreversible_action()
             self.source_buffer.set_modified(False)
 
-            # 文档通过 set_text 加载时不会逐段发射 insert-text，而 parser 的
-            # on_insert_text/on_text_deleted 是 blocks/符号的唯一增量解析入口，
-            # 导致打开后、首次编辑前 symbols['blocks'] 始终为空，使 sticky scroll、
-            # 文档结构侧边栏、代码折叠在“刚打开还没改过字”的文档上完全不生效。
-            # 这里触发一次全量解析（仅 LaTeX parser 实现该方法，其他类型忽略）。
+            # set_text 会以单次 insert-text 信号提交全部内容，若不拦截，
+            # parser 的防抖器会在 ~200ms 后再跑一遍全量解析并 emit
+            # 'finished_parsing'——所有下游观察者（code_folding、sticky_scroll
+            # 等）在打开路径上各执行两遍。_loading_from_disk 使 on_insert_text/
+            # on_text_deleted 跳过调度；这里显式触发一次全量解析（仅 LaTeX
+            # parser 实现该方法，其他类型忽略），保证打开后立即可用。
             initial_parse = getattr(self.parser, 'initial_parse', None)
             if callable(initial_parse):
                 initial_parse(text)

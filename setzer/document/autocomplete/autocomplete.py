@@ -177,9 +177,12 @@ class Autocomplete(object):
             self.deactivate_if_necessary()
             if self.is_active:
                 self._schedule_update_suggestions()
-        elif self.document.parser.last_edit[0] == 'insert':
-            if len(self.document.parser.last_edit[2]) == 1:
-                self.activate_if_possible()
+        elif getattr(self.document.parser, 'last_edit', None) is not None:
+            # last_edit 为 None 表示程序化整篇载入（打开/会话恢复），非用户
+            # 输入，不触发补全。
+            if self.document.parser.last_edit[0] == 'insert':
+                if len(self.document.parser.last_edit[2]) == 1:
+                    self.activate_if_possible()
         # else: 多字符插入或删除操作，不触发补全
 
     def on_cursor_position_change(self, buffer, position):

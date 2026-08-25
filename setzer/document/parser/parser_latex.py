@@ -107,8 +107,14 @@ class ParserLaTeX(Observable):
         self.document.source_buffer.connect('insert-text', self.on_insert_text)
         self.document.source_buffer.connect('delete-range', self.on_text_deleted)
 
+    def _is_loading_from_disk(self):
+        '''程序化读盘（打开文件 / 会话恢复 / 懒加载）期间为 True。'''
+        return getattr(self.document, '_loading_from_disk', False)
+
     #@timer
     def on_text_deleted(self, buffer, start_iter, end_iter):
+        if self._is_loading_from_disk():
+            return
         # 立即把位置固化为整数 offset：Gtk.TextIter 在 buffer 被后续编辑修改后
         # 即失效，跨信号持有 iter 会在之后读取时触发
         # "Invalid text buffer iterator" 警告并返回过期数值。
@@ -117,6 +123,8 @@ class ParserLaTeX(Observable):
 
     #@timer
     def on_insert_text(self, buffer, location_iter, text, text_length):
+        if self._is_loading_from_disk():
+            return
         self.last_edit = ('insert', location_iter.get_offset(), text, text_length)
         self._schedule_parsing(location_iter.get_line(), location_iter.get_offset())
 

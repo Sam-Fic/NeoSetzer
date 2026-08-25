@@ -284,12 +284,120 @@ def show_method_breakdown():
     print(f"    └─ 其余(增量迁移/GTK iter): {t_total - t_blocks - t_symbols:7.3f} ms")
 
 
+# ---------- H5: 打开文件/会话恢复路径 ----------
+
+def bench_open_path():
+    """打开路径端到端：set_text(+_loading_from_disk)+initial_parse，挂接
+    code_folding 与 sticky_scroll 可见性计算（headless 最小接线）。
+
+    验证点：
+      O1 — 程序化载入只触发一次 finished_parsing（防抖不再二次全量解析）
+      O2 — 打开耗时随规模的增长趋势（修复前 code_folding 展开风暴 O(B²)、
+           sticky_scroll 父链回溯 O(S×B×d) 曾主导该路径）
+      O3 — 全部区域折叠后重解析的代价（失配区域批量展开，无逐个通知）
+    """
+    print("\n" + "=" * 78)
+    print("H5 — 打开文件/会话恢复路径(set_text + initial_parse + 折叠/粘性滚动)")
+    print("=" * 78)
+
+    import setzer.app.service_locator as _sl
+
+    class _FakeSettings:
+        def get_value(self, *a):
+            return True
+        def connect(self, *a):
+            return None
+
+    _sl.ServiceLocator.settings = _FakeSettings()
+
+    from setzer.document.code_folding.code_folding import CodeFolding
+    from setzer.document.sticky_scroll.sticky_scroll import StickyScroll
+
+    class ObservableStub:
+        """最小 Observable 替身：只实现 CodeFolding 用到的事件接口。"""
+        def __init__(self):
+            self._observers = {}
+        def connect(self, code, cb):
+            self._observers.setdefault(code, []).append(cb)
+        def disconnect(self, code, cb):
+            pass
+        def add_change_code(self, code, parameter=None):
+            for cb in self._observers.get(code, []):
+                cb(self)
+
+    class FoldableDoc(MockDocument):
+        def __init__(self):
+            MockDocument.__init__(self)
+            self._loading_from_disk = False
+
+    class _FoldHost(ObservableStub):
+        pass
+
+    results = {}
+    for n_sections in [200, 1000, 4000]:
+        doc = FoldableDoc()
+        doc._loading_from_disk = True
+        parser = ParserLaTeX(doc)
+        doc.parser = parser
+
+        host = _FoldHost()
+        host.source_buffer = doc.source_buffer
+        host.parser = parser
+        folding = CodeFolding(host)
+
+        ss = object.__new__(StickyScroll)
+        ss.document = host
+
+        emissions = []
+        parser.connect('finished_parsing', lambda p: emissions.append(1))
+
+        text = build_doc(n_sections)
+
+        t0 = time.perf_counter()
+        doc.source_buffer.set_text(text)   # _loading_from_disk=True: 不调度防抖
+        parser.initial_parse(text)
+        open_ms = (time.perf_counter() - t0) * 1000.0
+        open_emissions = len(emissions)    # 打开路径应恰好 1 次
+
+        n_blocks = len(parser.symbols['blocks'])
+
+        # sticky scroll 可见性单独计时
+        t0 = time.perf_counter()
+        vis = ss._compute_section_visibility(parser.symbols['blocks'])
+        sticky_ms = (time.perf_counter() - t0) * 1000.0
+
+        # O3: 全部折叠后重解析(旧实现此处为 O(B²) 展开风暴)。
+        # 直接调用 on_parser_update 而非经信号分发：Observable 会吞掉回调
+        # 异常，静默失败曾让此处的"折叠保留"断言形同虚设。
+        folding.fold_all()
+        t0 = time.perf_counter()
+        folding.on_parser_update(parser)
+        reparse_folded_ms = (time.perf_counter() - t0) * 1000.0
+        still_folded = sum(1 for r in folding.folding_regions.values() if r['is_folded'])
+
+        print(f"  [{n_sections:5d} sections, {n_blocks} blocks]")
+        print(f"    O1 打开路径 finished_parsing 次数 : {open_emissions} (应为 1)")
+        print(f"    O2 打开(set_text+initial_parse)   : {open_ms:8.1f} ms")
+        print(f"       └ sticky_scroll 可见性预计算    : {sticky_ms:8.1f} ms")
+        print(f"    O3 全折叠后重解析                  : {reparse_folded_ms:8.1f} ms"
+              f"  (重解析保留折叠 {still_folded}/{n_blocks})")
+        results[n_sections] = open_ms
+
+    print("\n  增长趋势:")
+    prev = None
+    for n, ms in results.items():
+        ratio = f"  (×{ms/prev:.2f})" if prev else ""
+        print(f"    {n:5d} sections -> {ms:8.1f} ms{ratio}")
+        prev = ms
+
+
 def main():
     Gtk.init()  # 某些 GtkSource 操作需要主循环初始化
     show_method_breakdown()
     bench_keystroke_scaling()
     bench_regex_pathology()
     bench_preview_busy_wait()
+    bench_open_path()
     print("\n" + "=" * 78)
     print("基准完成。")
     print("=" * 78)
