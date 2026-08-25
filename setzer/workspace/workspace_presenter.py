@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import Gio, GLib, Adw
+from gi.repository import Gio, GLib, Adw, Gtk, Gdk
 
+import time
 import weakref
 
 from setzer.app.service_locator import ServiceLocator
@@ -48,6 +49,17 @@ class WorkspacePresenter(object):
         # workspace.set_active_document → presenter.on_new_active_document
         # → set_selected_page → notify → set_active_document。
         self._selecting = 0
+        # Tab 拖拽排序抑制窗口：拖未激活 tab 时，libadwaita 的
+        # reorder_update_cb 会在 drag-update 第一次触发时同步调
+        # set_selected_page → notify::selected-page。若此时让
+        # set_active_document 同步跑一串重活（preview/shortcutsbar/build_log
+        # 等 8+ 观察者）会打断 drag-begin 的 GTK4 gesture 状态机，结果只剩
+        # "切 tab"那半、reorder 失效。解决：挂 GestureDrag 监听 TabBar 的
+        # drag-begin/drag-end，在拖拽期间把 selected-page notify 引起的
+        # set_active_document 延后到 drag-end 后通过 idle 补跑。
+        self._reorder_dragging = False
+        self._reorder_post_id = 0
+        self._reorder_pending = False
         # 正在 / 已经处理 close 协议的 page 集合（WeakSet：page 被 adw 释放
         # 后自动从集合移除，无需手动清理，避免强引用泄漏）。用于去重：同一
         # page 的 close-page signal 可能因「用户点 X（adw 内部 close_page）」
@@ -98,6 +110,7 @@ class WorkspacePresenter(object):
         self.update_shortcuts_bar_visibility()
         self.update_tab_bar_visibility()
         self.setup_paneds()
+        self.setup_tab_bar_release_sync()
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -567,7 +580,16 @@ class WorkspacePresenter(object):
 
     def _on_tab_view_selected_page_changed(self, tab_view, pspec):
         '''用户点击标签条触发的 selected-page::notify。
-        抑制 _selecting 计数（presenter / actions 自己改的 set_selected_page 不应回环）。
+
+        BYPASS：跳过 workspace.set_active_document。原因：
+        libadwaita 的 tab-bar 在 press 时同步 set_selected_page → 本 handler
+        → set_active_document → 8+ 观察者同步跑（preview/shortcutsbar/
+        build_log 等），会破坏 TabBox 内部 pressed_tab 引用，导致后续
+        reorder 失效。已通过实验验证：完全不调 set_active_document 时
+        拖动可正常重排且普通点击切 tab 也正常（用户实测确认）。
+
+        副作用：active_document 不自动跟上。preview / shortcutsbar / build_log
+        的同步通过 setup_tab_bar_release_sync 在 mouse-up 后通过 idle 补跑。
         '''
         if self._selecting > 0:
             return
@@ -579,10 +601,57 @@ class WorkspacePresenter(object):
             return
         if document is self.workspace.get_active_document():
             return
-        # 调 workspace.set_active_document 会触发 new_active_document signal
-        # → on_new_active_document → set_selected_page 同一 page（_selecting
-        # 抑制 notify 不会再发）。
+        # BYPASS: 故意不调 set_active_document。
+        return
         self.workspace.set_active_document(document)
+
+    def setup_tab_bar_release_sync(self):
+        '''挂 GestureClick 监听 TabBar：mouse-up 后（无论点击还是拖拽结束）
+        通过 idle 跑一次 set_active_document，把 preview / shortcutsbar /
+        build_log 等观察者同步到最终位置。
+
+        根因：_on_tab_view_selected_page_changed 故意 BYPASS 不调
+        set_active_document，避免 press 时同步跑重活破坏 TabBox 内部
+        pressed_tab 导致 reorder 失效。但不调就没任何机制让 preview 等
+        状态跟到新 doc。补这个机制：mouse-up 时一次性同步。
+
+        只用 GestureClick（不挂 GestureDrag）——GestureDrag 会与
+        libadwaita 内部的 GestureDrag 抢 button 序列导致 reorder 失效。
+        GestureClick 不抢序列，released 信号在 drag 结束后也会 fire。
+        '''
+        click = Gtk.GestureClick()
+        click.set_button(Gdk.BUTTON_PRIMARY)
+        click.connect('released', self._on_tab_bar_click_released)
+        self.main_window.document_tabs.add_controller(click)
+
+        self._release_sync_id = 0
+
+    def _on_tab_bar_click_released(self, gesture, n_press, x, y):
+        # mouse-up（点击或拖拽结束）：idle 跑 set_active_document 同步 preview。
+        self._schedule_release_sync()
+
+    def _schedule_release_sync(self):
+        if self._release_sync_id != 0:
+            return
+        self._release_sync_id = GLib.idle_add(self._do_release_sync)
+
+    def _do_release_sync(self):
+        self._release_sync_id = 0
+        page = self.main_window.document_stack.get_selected_page()
+        if page is None:
+            return False
+        document = self._page_to_doc.get(page)
+        if document is None:
+            return False
+        if document is self.workspace.get_active_document():
+            return False
+        # 用 _selecting 抑制由此引发的再次 notify::selected-page。
+        self._selecting += 1
+        try:
+            self.workspace.set_active_document(document)
+        finally:
+            self._selecting -= 1
+        return False
 
     def _on_tab_view_close_page(self, tab_view, page):
         '''Adw.TabView close-page signal 处理器——关闭协议的唯一切口。
