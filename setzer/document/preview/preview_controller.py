@@ -31,7 +31,7 @@ import os
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
 from setzer.dialogs.go_to_page.go_to_page import GoToPageDialog
-from setzer.document.preview.preview_magnifier import (
+from setzer.document.preview.magnifier_geometry import (
     compute_magnifier_params,
     compute_magnifier_placement,
 )
@@ -50,6 +50,10 @@ class PreviewController(object):
         self.zoom_buffer = 1
         self.cursor_default = Gdk.Cursor.new_from_name('default')
         self.cursor_pointer = Gdk.Cursor.new_from_name('pointer')
+        # Standard GTK cursor; fall back gracefully on themes that do not
+        # provide it.  Links retain the pointer cursor and page gaps/default
+        # canvas retain the normal cursor.
+        self.cursor_magnifier = Gdk.Cursor.new_from_name('zoom-in') or self.cursor_default
         # 缓存上次的 cursor / link_target：update_cursor 由
         # 滚动 + 鼠标移动每帧触发，原每次都无条件 set_cursor / set_link_target_string。
         # 鼠标在无链接区域移动时三者恒定，却每帧触发 GtkWidget cursor 属性设置 +
@@ -69,6 +73,12 @@ class PreviewController(object):
         self.view.content.connect('zoom_request', self.on_zoom_request)
         self.view.content.connect('pinch_zoom', self.on_pinch_zoom)
         self.preview.page_renderer.connect('magnifier_result_ready', self.on_magnifier_result_ready)
+        # A held pointer can outlive a rebuild triggered by a new PDF, a
+        # rotation/zoom layout rebuild, or recolouring.  Cancel immediately
+        # instead of waiting for the next motion event to notice stale state.
+        self.preview.connect('pdf_changed', self.on_magnifier_context_changed)
+        self.preview.connect('layout_changed', self.on_magnifier_context_changed)
+        self.preview.connect('recolor_pdf_changed', self.on_magnifier_context_changed)
 
         self._pinch_baseline_zoom = None
 
@@ -251,6 +261,22 @@ class PreviewController(object):
         if self._magnifier_active:
             self._update_magnifier()
 
+    def on_magnifier_context_changed(self, *arguments):
+        '''Cancel a held lens as soon as its PDF pixels or layout may change.'''
+        self._cancel_magnifier('preview-context-changed')
+
+    def _set_hover_feedback(self, cursor, link_target='', tooltip=''):
+        '''Apply hover feedback only when values change, including on leave.'''
+        if cursor is not self._current_cursor:
+            self._current_cursor = cursor
+            self.view.set_cursor(cursor)
+        if link_target != self._current_link_target:
+            self._current_link_target = link_target
+            self.view.set_link_target_string(link_target)
+        if tooltip != self._current_tooltip:
+            self._current_tooltip = tooltip
+            self.view.drawing_area.set_tooltip_text(tooltip)
+
     def _get_link_at(self, x_offset, y_offset):
         '''返回鼠标位置命中的链接 [rect, target, type]，未命中返回 None。
 
@@ -274,18 +300,27 @@ class PreviewController(object):
         return None
 
     def update_cursor(self):
-        if self.preview.layout == None: return True
+        if self.preview.layout == None:
+            self._set_hover_feedback(self.cursor_default)
+            return True
 
         content = self.view.content
-        x_offset = content.scrolling_offset_x + (content.cursor_x if content.cursor_x != None else 0)
-        y_offset = content.scrolling_offset_y + (content.cursor_y if content.cursor_y != None else 0)
+        # Motion controllers report None on leave.  Do not map that sentinel to
+        # canvas (0, 0), because an action cursor/tooltip could then get stuck.
+        if content.cursor_x is None or content.cursor_y is None:
+            self._set_hover_feedback(self.cursor_default)
+            return True
+        x_offset = content.scrolling_offset_x + content.cursor_x
+        y_offset = content.scrolling_offset_y + content.cursor_y
 
         window_width = content.width
         data = self.preview.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
-        if data == None: return True
+        if data == None:
+            self._set_hover_feedback(self.cursor_default)
+            return True
 
         page_number, x_offset, y_offset = data
-        cursor = self.cursor_default
+        cursor = self.cursor_magnifier
         link_target = ''
         tooltip = ''
         # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
@@ -303,19 +338,7 @@ class PreviewController(object):
                     link_target = _('Go to page ') + str(link[1].page_num)
                 break
 
-        # 仅在变化时设置：set_cursor 触发 GtkWidget cursor 属性流程，
-        # set_link_target_string 触发 Gtk.Revealer 动画，set_tooltip_text
-        # 影响 GTK 内部 tooltip 状态。鼠标在无链接区移动时三者恒定，
-        # 避免每帧重复设置。
-        if cursor is not self._current_cursor:
-            self._current_cursor = cursor
-            self.view.set_cursor(cursor)
-        if link_target != self._current_link_target:
-            self._current_link_target = link_target
-            self.view.set_link_target_string(link_target)
-        if tooltip != self._current_tooltip:
-            self._current_tooltip = tooltip
-            self.view.drawing_area.set_tooltip_text(tooltip)
+        self._set_hover_feedback(cursor, link_target, tooltip)
 
     def on_primary_button_press(self, content, data):
         if self.preview.layout == None: return True
@@ -379,22 +402,23 @@ class PreviewController(object):
         self._magnifier_last_enqueue_pos = None
         self._update_magnifier(doc_x=doc_x, doc_y=doc_y, page_data=(page_number, x_pt, y_pt))
 
-    def _end_magnifier(self):
-        '''结束放大镜模式：隐藏浮窗、作废在途请求（递增 pending id 使
-        迟到结果不匹配）。'''
+    def _cancel_magnifier(self, reason):
+        '''End a held lens and invalidate all renderer work belonging to it.'''
+        if not self._magnifier_active:
+            return False
         self._magnifier_active = False
         self._magnifier_layout_ref = None
         self._magnifier_pending_request_id += 1
         self._magnifier_last_enqueue_pos = None
         self._magnifier_debug_pos = None
+        self.preview.page_renderer.invalidate_magnifier_requests()
         self.view.magnifier.dismiss()
         self.view.content.queue_draw()
-        # 排空残留结果，防止下次激活时消费到陈旧 surface。
-        q = self.preview.page_renderer.magnified_pages_queue
-        try:
-            while True: q.get_nowait()
-        except queue.Empty:
-            pass
+        return True
+
+    def _end_magnifier(self):
+        '''End the lens after its primary-button gesture finishes.'''
+        return self._cancel_magnifier('primary-button-release')
 
     def _update_magnifier(self, doc_x=None, doc_y=None, page_data=None):
         '''跟手主循环入口：换算光标文档坐标 → 节流入队渲染 → 定位浮窗。
@@ -610,6 +634,9 @@ class PreviewController(object):
         ↑ / ↓        — 微调滚动（50px）
         Ctrl+G       — 跳转到指定页面
         '''
+        if keyval == Gdk.KEY_Escape and self._magnifier_active:
+            self._cancel_magnifier('escape')
+            return True
         if self.preview.layout == None or self.preview.poppler_document == None:
             return False
 

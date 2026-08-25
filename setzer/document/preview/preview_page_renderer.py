@@ -27,7 +27,7 @@ import math
 import numpy as np
 
 from setzer.app.color_manager import ColorManager
-from setzer.document.preview.preview_magnifier import apply_magnifier_transform
+from setzer.document.preview.magnifier_geometry import apply_magnifier_transform
 from setzer.helpers.observable import Observable
 
 
@@ -127,6 +127,16 @@ class PreviewPageRenderer(Observable):
         if self._rendered_pages_timeout_id is None:
             self._rendered_pages_timeout_id = GObject.timeout_add(50, self.rendered_pages_loop)
 
+    def invalidate_magnifier_requests(self):
+        '''Discard active and queued lens work after a preview context change.'''
+        with self._magnifier_request_lock:
+            self._magnifier_latest_request_id += 1
+        try:
+            while True:
+                self.magnified_pages_queue.get_nowait()
+        except queue.Empty:
+            pass
+
     def deactivate(self):
         with self.is_active_lock:
             self.is_active = False
@@ -135,10 +145,8 @@ class PreviewPageRenderer(Observable):
             self.visible_pages = list()
         self.page_width = None
         self.pdf_date = None
-        # 递增放大镜 request_id 使在途任务全部过期：预览隐藏后不再需要
-        # 放大镜结果，也避免恢复显示时旧结果闪现。
-        with self._magnifier_request_lock:
-            self._magnifier_latest_request_id += 1
+        # Preview hiding invalidates all in-flight lens surfaces as well.
+        self.invalidate_magnifier_requests()
 
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器、

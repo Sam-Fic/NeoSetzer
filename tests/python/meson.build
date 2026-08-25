@@ -66,6 +66,8 @@ foreach t : [
   ['test_beamer_theme_search',     'test_beamer_theme_search.py'],
   ['test_external_pdf_monitor',    'test_external_pdf_monitor.py'],
   ['test_external_pdf_preview_integration', 'test_external_pdf_preview_integration.py'],
+  ['test_magnifier_geometry', 'test_magnifier_geometry.py'],
+  ['test_preview_magnifier_lifecycle', 'test_preview_magnifier_lifecycle.py'],
   ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
   ['test_structure_numbering', 'test_structure_numbering.py'],
 ]

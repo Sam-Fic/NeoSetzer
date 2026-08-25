@@ -38,88 +38,16 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 import cairo
 
-import math
-
 from setzer.app.color_manager import ColorManager
+from setzer.document.preview.magnifier_geometry import (
+    MAGNIFICATION_FACTOR,
+    apply_magnifier_transform,
+    compute_magnifier_params,
+    compute_magnifier_placement,
+)
 
 
-MAGNIFICATION_FACTOR = 2.0
 DEFAULT_DIAMETER = 240
-
-
-def compute_magnifier_params(diameter_css, hidpi_factor, layout_scale_factor, factor=MAGNIFICATION_FACTOR):
-    '''由浮窗直径推导局部渲染的全部几何参数。
-
-    单位链：PDF 点 --(scale_factor=zoom*hidpi)--> 画布 css px --(hidpi)--> 设备 px。
-    放大镜把光标周围 region_css 见方的画布区域放大 factor 倍铺满直径
-    diameter_css 的圆窗，因此：
-
-    - region_css   = diameter / factor        （可见画布区域边长，css px）
-    - region_pt    = region_css / layout_scale_factor （对应 PDF 点数）
-    - density      = surface_px / region_pt = factor * scale * hidpi
-                   （渲染密度：设备 px / PDF 点，是整页渲染的 factor 倍）
-    - surface_px   = diameter * hidpi         （输出方形 surface 边长）
-
-    参数:
-        diameter_css: 浮窗直径（css px）
-        hidpi_factor: 显示器缩放（view.get_scale_factor()）
-        layout_scale_factor: layout.scale_factor（含 hidpi）
-        factor: 相对当前显示的放大倍数
-    返回:
-        dict(region_css, region_pt, density, surface_px)
-    '''
-    region_css = diameter_css / factor
-    region_pt = region_css / layout_scale_factor
-    surface_px = diameter_css * hidpi_factor
-    density = factor * layout_scale_factor * hidpi_factor
-    return {
-        'region_css': region_css,
-        'region_pt': region_pt,
-        'density': density,
-        'surface_px': surface_px,
-    }
-
-
-def compute_magnifier_placement(cursor_x, cursor_y, diameter, viewport_x, viewport_y, viewport_w, viewport_h, gap=14.0):
-    '''计算浮窗左上角的画布坐标：默认在光标右下方 gap 处；越出视口右/下缘
-    时翻到光标左/上方；翻转后仍越界（贴角）则 clamp 进视口。
-
-    全部坐标为画布坐标系（与 overlay 子控件的 margin 同系）。viewport_*
-    为当前视口的画布坐标矩形（scrolling_offset + viewport size）。纯函数，
-    无 GTK 依赖。
-    '''
-    x = cursor_x + gap
-    if x + diameter > viewport_x + viewport_w:
-        x = cursor_x - gap - diameter
-    y = cursor_y + gap
-    if y + diameter > viewport_y + viewport_h:
-        y = cursor_y - gap - diameter
-    if x < viewport_x:
-        x = viewport_x
-    if y < viewport_y:
-        y = viewport_y
-    return (x, y)
-
-
-def apply_magnifier_transform(ctx, size_px, density, rotation, center_x_pt, center_y_pt):
-    '''把 ctx 变换为「top-down 页面点坐标 → 浮窗 surface 设备像素」。
-
-    输入坐标约定（易错点，有单测锁定）：center_x_pt / center_y_pt 是布局
-    映射 get_page_number_and_offsets_by_document_offsets 返回的页面内
-    top-down 点坐标（原点=页面左上角，y 向下）。
-
-    变换自外向内：surface 中心 ← 旋转(与 presenter 画整页纹理一致，
-    同为 ctx.rotate 正角) ← density 密度 ← 裁剪中心平移。
-
-    ⚠ 不要在此处再做 y 翻转：page.render(ctx) 内部自带一次「PDF y-up →
-    top-down」翻转（主渲染路径仅用正缩放即可出正立页面正是依赖它），
-    外层再翻会双重翻转、内容上下镜像。同理，本函数返回后 ctx 仍消费
-    top-down 坐标，手动绘制（如白底矩形）直接用 top-down 即可。'''
-    ctx.translate(size_px / 2, size_px / 2)
-    if rotation:
-        ctx.rotate(math.radians(rotation))
-    ctx.scale(density, density)
-    ctx.translate(-center_x_pt, -center_y_pt)
 
 
 class PreviewMagnifier(Gtk.DrawingArea):
