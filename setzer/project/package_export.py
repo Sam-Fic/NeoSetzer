@@ -122,7 +122,9 @@ def _sha256(filename):
 
 
 def _inside(root, filename):
+    '''Return whether a path resolves inside ``root``, not merely below its name.'''
     try:
-        return os.path.commonpath((root, filename)) == root
+        real_root = os.path.realpath(root)
+        return os.path.commonpath((real_root, os.path.realpath(filename))) == real_root
     except ValueError:
         return False

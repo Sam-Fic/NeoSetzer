@@ -54,6 +54,24 @@ class ProjectPackageExporterTest(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 ProjectPackageExporter(main, project).export(destination, plan)
 
+    def test_does_not_archive_dependency_symlink_to_an_external_target(self):
+        with tempfile.TemporaryDirectory() as parent:
+            project = os.path.join(parent, 'project')
+            os.mkdir(project)
+            external = self._write(parent, 'external.tex', 'external content')
+            linked = os.path.join(project, 'linked.tex')
+            os.symlink(external, linked)
+            main = self._write(project, 'main.tex', r'\input{linked}')
+
+            exporter = ProjectPackageExporter(main, project)
+            plan = exporter.create_plan()
+            self.assertNotIn(linked, plan.files)
+            destination = os.path.join(parent, 'project.zip')
+            exporter.export(destination, plan)
+            with zipfile.ZipFile(destination) as archive:
+                names = set(archive.namelist())
+            self.assertNotIn(os.path.basename(project) + '/linked.tex', names)
+
     def test_reports_missing_local_dependencies_without_external_escape(self):
         with tempfile.TemporaryDirectory() as parent:
             project = os.path.join(parent, 'project')

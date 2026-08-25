@@ -37,6 +37,7 @@ class ProjectFileResolver:
             raise ValueError('A root filename is required')
         self.root_filename = os.path.abspath(root_filename)
         self.project_root = os.path.abspath(project_root or os.path.dirname(self.root_filename))
+        self._real_project_root = os.path.realpath(self.project_root)
 
     def collect(self):
         pending = [self.root_filename]
@@ -109,7 +110,10 @@ class ProjectFileResolver:
         return ''
 
     def _inside_project(self, filename):
+        '''Return whether ``filename`` resolves to a target inside the project.'''
         try:
-            return os.path.commonpath((self.project_root, filename)) == self.project_root
+            return (os.path.commonpath((self._real_project_root,
+                                       os.path.realpath(filename)))
+                    == self._real_project_root)
         except ValueError:
             return False

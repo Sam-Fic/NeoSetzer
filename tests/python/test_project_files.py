@@ -45,6 +45,21 @@ class ProjectFileResolverTest(unittest.TestCase):
                              {'main.tex', 'intro.tex', 'methods.tex', 'references.bib',
                               'localclass.cls', 'localstyle.sty', 'letterhead.lco'})
 
+    def test_ignores_dependency_symlink_to_an_external_target(self):
+        with tempfile.TemporaryDirectory() as parent:
+            project = os.path.join(parent, 'project')
+            os.mkdir(project)
+            external = self._write(parent, 'external.tex', 'outside')
+            linked = os.path.join(project, 'linked.tex')
+            os.symlink(external, linked)
+            main = self._write(project, 'main.tex', r'\input{linked}')
+
+            project_files = ProjectFileResolver(main, project).collect()
+
+            self.assertEqual(project_files.files, (main,))
+            self.assertNotIn(linked, project_files.files)
+            self.assertNotIn(external, project_files.files)
+
     def test_reports_missing_and_refuses_paths_above_project_root(self):
         with tempfile.TemporaryDirectory() as parent:
             project = os.path.join(parent, 'project')
