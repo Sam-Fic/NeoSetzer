@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 from gi.repository import Pango
 import os
 import os.path
@@ -33,10 +33,16 @@ from setzer.helpers.persistence import (
 class Settings(Observable):
     ''' Settings controller for saving application state. '''
 
+    # 设置变更通常会在同一轮 UI 交互中成批发生（例如连续调整多个偏好）。
+    # 以一秒去抖合并为一次原子 JSON 替换，既缩短崩溃窗口，又避免每次控件
+    # 值变更都产生同步磁盘 I/O。
+    PERSISTENCE_DELAY_MS = 1000
+
     def __init__(self, pathname):
         Observable.__init__(self)
 
         self.pathname = pathname
+        self._persistence_source_id = None
         # JSON 是首选持久化格式；旧 settings.pickle 一次性迁移到 settings.json。
         # 保留 .pickle 文件作为备份，不删除（用户可手动清理）。
         self._json_path = os.path.join(self.pathname, 'settings.json')
@@ -454,7 +460,35 @@ class Settings(Observable):
             self.data[section] = value
         else:
             section_dict[item] = value
+        self.schedule_persistence()
         self.add_change_code('settings_changed', (section, item, value))
+
+    def schedule_persistence(self):
+        '''在短暂空闲后保存设置；连续变更只保留最后一次定时器。'''
+        self._cancel_scheduled_persistence()
+        self._persistence_source_id = GLib.timeout_add(
+            self.PERSISTENCE_DELAY_MS, self._flush_scheduled_persistence)
+
+    def _cancel_scheduled_persistence(self):
+        source_id = getattr(self, '_persistence_source_id', None)
+        self._persistence_source_id = None
+        if source_id is not None:
+            try:
+                GLib.Source.remove(source_id)
+            except (ValueError, RuntimeError):
+                # GLib 在回调已触发或应用退出过程中可能已释放 source；此时
+                # 无需将一次正常的最终保存升级为错误。
+                pass
+
+    def _flush_scheduled_persistence(self):
+        self._persistence_source_id = None
+        self.pickle()
+        return False
+
+    def flush_persistence(self):
+        '''取消挂起的去抖定时器并立即落盘，供正常退出路径调用。'''
+        self._cancel_scheduled_persistence()
+        return self.pickle()
 
     def unpickle(self):
         ''' Load settings from home folder.
@@ -480,8 +514,10 @@ class Settings(Observable):
         ''' Save settings in home folder.
 
         写入 settings.json（原子替换）。保留方法名以兼容 setzer.in 入口
-        中 `self.settings.pickle()` 的调用。
+        中 `self.settings.pickle()` 的调用。显式写入也会取消已排队的写入，
+        避免在导入、重启或关闭后重复落盘。
         '''
+        self._cancel_scheduled_persistence()
         try:
             save_json(self._json_path, self.data)
         except (OSError, TypeError, ValueError):
@@ -491,4 +527,5 @@ class Settings(Observable):
     def reset_preferences(self):
         '''Reset all preferences to default values.'''
         self.data['preferences'] = dict(self.defaults['preferences'])
+        self.schedule_persistence()
         self.add_change_code('settings_changed', ('preferences', None, None))

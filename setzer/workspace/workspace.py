@@ -56,9 +56,15 @@ from setzer.app.latex_db import LaTeXDB
 class Workspace(Observable):
     ''' A workspace contains a user's open documents. '''
 
+    # 工作区变化常成批出现（会话恢复、连续切换文档、滚动），将其合并为
+    # 一次原子 JSON 快照，既减少 I/O 又显著缩短异常退出时的状态丢失窗口。
+    PERSISTENCE_DELAY_MS = 1000
+
     def __init__(self):
         Observable.__init__(self)
         self.pathname = ServiceLocator.get_config_folder()
+        self._persistence_source_id = None
+        self._document_state_handlers = dict()
 
         self.open_documents = list()
         self.open_latex_documents = list()
@@ -196,6 +202,7 @@ class Workspace(Observable):
         self.open_documents.append(document)
         if document.is_latex_document():
             self.open_latex_documents.append(document)
+        self._watch_document_state(document)
         DocumentSettings.load_document_state(document)
         self.add_change_code('new_document', document)
         # 新打开的 LaTeX 文档若已有根文档日志（如会话恢复后），立即同步其
@@ -207,8 +214,10 @@ class Workspace(Observable):
         # 去抖：会话恢复连续打开 N 个文档时，N 次 schedule 仅触发 1 次
         # parse_included_files（idle 合并），避免 N 次全量 stat/read 扫描。
         LaTeXDB.schedule_parse_included_files()
+        self.schedule_persistence()
 
     def remove_document(self, document):
+        self._unwatch_document_state(document)
         if document == self.root_document:
             self.unset_root_document()
         DocumentSettings.save_document_state(document)
@@ -261,6 +270,7 @@ class Workspace(Observable):
         # 文档列表已变，刷新 LaTeXDB（事件驱动，替代原 3 秒轮询）。
         # 去抖：连续关闭多个文档时合并为一次刷新。
         LaTeXDB.schedule_parse_included_files()
+        self.schedule_persistence()
         # 弹出状态下若已无 LaTeX 文档（全关 / 只剩 bibtex），自动收回独立窗口：
         # status page 无内容可显示，独立留着空窗口无意义。
         if self.preview_popped_out and self.get_root_or_active_latex_document() is None:
@@ -424,6 +434,7 @@ class Workspace(Observable):
             self.update_preview_visibility(self.active_document)
             self.add_change_code('new_active_document', document)
             self.set_build_log()
+        self.schedule_persistence()
 
     def set_build_log(self):
         document = self.get_root_or_active_latex_document()
@@ -476,6 +487,7 @@ class Workspace(Observable):
             target_dict[filename] = {'filename': filename, 'date': date}
         if notify:
             self.add_change_code(change_code, target_dict)
+            self.schedule_persistence()
 
     def update_recently_opened_document(self, filename, date=None, notify=True):
         self._update_recently_opened(
@@ -491,12 +503,14 @@ class Workspace(Observable):
         self.pinned_recent_documents.discard(filename)
         if notify:
             self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+            self.schedule_persistence()
 
     def clear_recently_opened_documents(self):
         '''Remove all entries from the recently-opened list and notify listeners.'''
         self.recently_opened_documents = dict()
         self.pinned_recent_documents = set()
         self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+        self.schedule_persistence()
 
     def toggle_pinned_recent_document(self, filename):
         '''置顶/取消置顶某个最近文档。变更通过 update_recently_opened_documents
@@ -507,6 +521,7 @@ class Workspace(Observable):
         else:
             self.pinned_recent_documents.add(filename)
         self.add_change_code('update_recently_opened_documents', self.recently_opened_documents)
+        self.schedule_persistence()
 
     def is_pinned_recent_document(self, filename):
         return filename in self.pinned_recent_documents
@@ -644,7 +659,7 @@ class Workspace(Observable):
         return os.path.join(self._untitled_dir(), f'{untitled_id}.content')
 
     def _save_untitled_content(self, document, untitled_id):
-        '''将未命名文档的内容保存到临时文件。'''
+        '''将未命名文档的内容原子写入临时恢复文件。'''
         try:
             content = document.source_buffer.get_text(
                 document.source_buffer.get_start_iter(),
@@ -652,8 +667,10 @@ class Workspace(Observable):
                 False
             )
             path = self._untitled_content_path(untitled_id)
-            with open(path, 'w', encoding='utf-8') as f:
+            tmp_path = path + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as f:
                 f.write(content)
+            os.replace(tmp_path, path)
             return True
         except Exception as e:
             print(f'Warning: could not save untitled content: {e}')
@@ -887,8 +904,62 @@ class Workspace(Observable):
                 untitled_documents[untitled_id] = doc_data
         return open_documents, untitled_documents
 
+    def schedule_persistence(self):
+        '''在短暂空闲后保存工作区快照；连续状态变更只保留最后一次写入。'''
+        self._cancel_scheduled_persistence()
+        self._persistence_source_id = GLib.timeout_add(
+            self.PERSISTENCE_DELAY_MS, self._flush_scheduled_persistence)
+
+    def _cancel_scheduled_persistence(self):
+        source_id = self._persistence_source_id
+        self._persistence_source_id = None
+        if source_id is not None:
+            try:
+                GLib.Source.remove(source_id)
+            except (ValueError, RuntimeError):
+                pass
+
+    def _flush_scheduled_persistence(self):
+        self._persistence_source_id = None
+        self.save_to_disk()
+        return False
+
+    def flush_persistence(self):
+        '''取消挂起的去抖保存并立即写入，供正常退出路径调用。'''
+        self._cancel_scheduled_persistence()
+        return self.save_to_disk()
+
+    def _watch_document_state(self, document):
+        '''监听会话恢复所需的低成本视图状态，不监听正文内容。'''
+        handlers = []
+        try:
+            handlers.append((document.source_buffer,
+                             document.source_buffer.connect(
+                                 'notify::cursor-position',
+                                 self._on_document_state_changed)))
+        except (AttributeError, TypeError):
+            pass
+        try:
+            adjustment = document.view.scrolled_window.get_vadjustment()
+            handlers.append((adjustment, adjustment.connect(
+                'value-changed', self._on_document_state_changed)))
+        except (AttributeError, TypeError):
+            pass
+        self._document_state_handlers[document] = handlers
+
+    def _unwatch_document_state(self, document):
+        for target, handler_id in self._document_state_handlers.pop(document, []):
+            try:
+                target.disconnect(handler_id)
+            except (TypeError, ValueError, RuntimeError):
+                pass
+
+    def _on_document_state_changed(self, *args):
+        self.schedule_persistence()
+
     def save_to_disk(self):
         # 写入 workspace.json（原子替换）。旧 workspace.pickle 保留作备份。
+        self._cancel_scheduled_persistence()
         json_path = os.path.join(self.pathname, 'workspace.json')
         open_documents, untitled_documents = self._collect_open_documents_data()
         data = {
@@ -912,8 +983,10 @@ class Workspace(Observable):
             save_json(json_path, data)
         except (OSError, TypeError, ValueError) as e:
             self._show_persistence_warning(_('Could not save workspace state: {error}').format(error=str(e)))
+            return False
         else:
             self._persistence_warning_shown = False
+            return True
 
     _persistence_warning_shown = False
 
@@ -980,6 +1053,7 @@ class Workspace(Observable):
                 self.update_preview_visibility(document)
             self.add_change_code('root_state_change', 'one_document')
             self.set_build_log()
+            self.schedule_persistence()
             # 根文档切换后，重新分发编译诊断高亮（例如会话恢复后根文档已带日志）。
             self.distribute_build_diagnostics()
 
@@ -996,6 +1070,7 @@ class Workspace(Observable):
         self.update_preview_visibility(self.active_document)
         self.add_change_code('root_state_change', 'no_root_document')
         self.set_build_log()
+        self.schedule_persistence()
 
     def get_root_document(self):
         return self.root_document

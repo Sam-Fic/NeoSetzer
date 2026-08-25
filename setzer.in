@@ -303,7 +303,7 @@ class MainApplicationController(Adw.Application):
         self.settings.set_value('window_state', 'show_symbols', self.workspace.show_symbols)
         self.settings.set_value('window_state', 'show_document_structure', self.workspace.show_document_structure)
         self.settings.set_value('window_state', 'sidebar_width_fraction', main_window.sidebar_split.get_sidebar_width_fraction())
-        self.settings.pickle()
+        self.settings.flush_persistence()
 
     def on_window_close(self, window=None, parameter=None):
         self.save_quit()

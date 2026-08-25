@@ -54,6 +54,30 @@ def install():
 
     repository.Pango = types.ModuleType('Pango')
 
+    # GLib：Settings 的去抖持久化在测试中仅需要能登记 timeout 和移除 source。
+    # 生产测试可自行 monkeypatch timeout_add 以检查精确时序；默认桩不执行回调。
+    glib = types.ModuleType('GLib')
+    glib._next_source_id = 0
+    glib._sources = {}
+
+    def timeout_add(delay_ms, callback, *args):
+        glib._next_source_id += 1
+        source_id = glib._next_source_id
+        glib._sources[source_id] = (delay_ms, callback, args)
+        return source_id
+
+    class Source:
+        @staticmethod
+        def remove(source_id):
+            if source_id not in glib._sources:
+                raise ValueError('source does not exist')
+            del glib._sources[source_id]
+            return True
+
+    glib.timeout_add = timeout_add
+    glib.Source = Source
+    repository.GLib = glib
+
     gi.repository = repository
     sys.modules['gi'] = gi
     sys.modules['gi.repository'] = repository
