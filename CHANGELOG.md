@@ -24,6 +24,8 @@
 - **perf**: Feed chardet via UniversalDetector with early exit at high confidence — identical results to full detection, 3MB non-UTF-8 detection ~3200ms → ~140ms.
 - **bench**: Add open-path benchmark (H5) covering single-parse assertion, end-to-end open scaling, and fold-state preservation across reparse.
 
+---
+
 ## v78 — 2026-08-24
 
 ### 主要改进
