@@ -606,7 +606,7 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.drop_highlight.add_css_class('drop-reject')
 
-    def _drag_has_files(self, target):
+    def _drag_has_files(self, target, drop=None):
         '''判断当前拖放是否为「文件拖入」（而非 Adw.TabView 的标签条内部
         拖拽排序 DnD 等其它来源）。
 
@@ -622,9 +622,10 @@ class MainWindow(Adw.ApplicationWindow):
         会令任何 DnD 都误判为「有文件」从而继续劫持标签条排序。必须用真实
         drop 的 formats：文件拖放含 Gio.File / Gdk.FileList，而标签条内部排序
         DnD 携带的是自定义类型，不含文件，可干净放行。
-        '''
+
+        drop 参数由 on_drag_accept 传入；enter/motion 阶段没有该参数，则从
+        target.get_drop() 取当前关联的真实 drop。'''
         # 取真实拖拽源提供的 formats（drop 优先，否则从 target 取当前 drop）。
-        drop = kwargs.get('drop')
         if drop is None:
             try:
                 drop = target.get_drop()
