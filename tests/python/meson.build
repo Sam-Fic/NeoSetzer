@@ -23,6 +23,7 @@ foreach t : [
   ['test_settings_migration',     'test_settings_migration.py'],
   ['test_settings_realtime_persistence', 'test_settings_realtime_persistence.py'],
   ['test_workspace_session',      'test_workspace_session.py'],
+  ['test_workspace_realtime_persistence', 'test_workspace_realtime_persistence.py'],
   ['test_wizard_presets',         'test_wizard_presets.py'],
   ['test_wizard_state',           'test_wizard_state.py'],
   ['test_wizard_creation_plan',   'test_wizard_creation_plan.py'],
