@@ -68,14 +68,14 @@ class TestCiteDynamicProposals(unittest.TestCase):
                             f'{command!r} must keep the optional argument')
 
     def test_empty_key_still_lists_all(self):
-        """issue 原文形态：刚打到 \autocite[34]{ 时列出全部 key。"""
+        r"""issue 原文形态：刚打到 \autocite[34]{ 时列出全部 key。"""
         commands = [p['command'] for p in LaTeXDB.get_dynamic_proposals(r'\autocite[34]{')]
         # bibitems 是 set，迭代顺序随哈希种子变化，比较前排序。
         self.assertEqual(sorted(commands),
                          sorted([r'\autocite[34]{endsley2011}', r'\autocite[34]{smith2020}']))
 
     def test_insertion_suffix_alignment_invariant(self):
-        """补全替换从词起点起算（追加后缀 = proposal[len(word):]），因此
+        r"""补全替换从词起点起算（追加后缀 = proposal[len(word):]），因此
         对齐的提案必须存在且排名第一；key 尚未输入时所有提案都必须严格
         以 current_word 开头。
 
