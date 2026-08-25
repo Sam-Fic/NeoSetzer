@@ -87,9 +87,7 @@ class ProjectSearchReplace:
             text = _read_project_text(filename)
             if text is None:
                 continue
-            for match in pattern.finditer(text):
-                if match.start() == match.end():
-                    continue
+            for match in _nonempty_matches(pattern, text):
                 line = text.count('\n', 0, match.start()) + 1
                 line_start = text.rfind('\n', 0, match.start()) + 1
                 preview_start = max(line_start, match.start() - 48)
@@ -118,7 +116,8 @@ class ProjectSearchReplace:
             text = _read_project_text(filename)
             if text is None:
                 continue
-            replacement_text, replacement_count = pattern.subn(replacement, text)
+            replacement_text, replacement_count = _replace_nonempty_matches(
+                pattern, replacement, text)
             if replacement_count:
                 files.append(ReplacementFile(
                     filename, _digest(text), text, replacement_text,
@@ -150,6 +149,29 @@ def _compile_pattern(query, case_sensitive, regex, whole_word):
         return re.compile(expression, 0 if case_sensitive else re.IGNORECASE)
     except re.error:
         return None
+
+
+def _nonempty_matches(pattern, text):
+    '''Yield matches that replace visible source text rather than empty positions.'''
+    for match in pattern.finditer(text):
+        if match.start() != match.end():
+            yield match
+
+
+def _replace_nonempty_matches(pattern, replacement, text):
+    '''Apply a regular-expression replacement while ignoring zero-length matches.'''
+    parts = []
+    offset = 0
+    count = 0
+    for match in _nonempty_matches(pattern, text):
+        parts.append(text[offset:match.start()])
+        parts.append(match.expand(replacement))
+        offset = match.end()
+        count += 1
+    if not count:
+        return text, 0
+    parts.append(text[offset:])
+    return ''.join(parts), count
 
 
 def _read_project_text(filename):

@@ -48,6 +48,16 @@ class ProjectSearchReplaceTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 plan.apply()
 
+    def test_ignores_zero_length_regex_matches_in_preview_and_plan(self):
+        with tempfile.TemporaryDirectory() as project:
+            main = self._write(project, 'main.tex', 'abc')
+            search = ProjectSearchReplace(main, project)
+
+            self.assertEqual(search.search(r'(?=b)', regex=True), ())
+            plan = search.create_replacement_plan(r'(?=b)', 'X', regex=True)
+            self.assertEqual(plan.replacement_count, 0)
+            self.assertEqual(plan.files, ())
+
     def test_replacement_refuses_changed_file_after_preview(self):
         with tempfile.TemporaryDirectory() as project:
             main = self._write(project, 'main.tex', 'alpha alpha\n')
