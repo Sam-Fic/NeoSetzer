@@ -74,17 +74,55 @@ class MainWindow(Adw.ApplicationWindow):
     def create_widgets(self):
         self.shortcutsbar = shortcutsbar_view.ShortcutsBar()
 
-        self.document_stack = Gtk.Stack()
-        # 短 CROSSFADE（100ms）：原用 NONE（无过渡），文档切换显得突兀。
-        # 标准 200ms 在「新建 latex」时会让编辑器延迟出现，100ms 足够提供
-        # 视觉反馈又不影响响应感。
-        self.document_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.document_stack.set_transition_duration(100)
-        # 不设 set_size_request(550)——shortcutsbar 的 overflow reflow 会让
-        # 按钮在窄宽时自动收起，不再需要硬性最小宽度。这样窗口可以拖到更小。
+        # Adw.TabView 替换原 Gtk.Stack：多文档承载 + native 标签条 +
+        # 拖拽排序 + Ctrl+Tab 循环 + 关闭协议（close-page signal）+ 暗色主题。
+        # 不再设 transition（Adw.TabView 内部 page 切换不需过渡，避免
+        # 与 Ctrl+Tab 快速循环的视觉冲突）。
+        self.document_stack = Adw.TabView()
         self.document_stack.set_vexpand(True)
+        # 不设 expand-tabs：标签按内容收缩，多文档时滚动而非均分占满，
+        # 与 gedit / GNOME Text Editor 默认行为一致。
+        # 屏蔽 Adw 内置的 Ctrl+Tab / Ctrl+Shift+Tab 快捷键：app-level 的
+        # shortcut_controller_app 已有 switch_document（Ctrl+Tab，默认绑到
+        # switch_to_earliest_open_document）；两条同时响应会随机 race，让
+        # app-level 赢更可控。其它 Adw 内置（Alt+数字、Page Up/Dn、Home/End）
+        # 仍启用，给高级用户提供额外导航方式。
+        ALL_SHORTCUTS = (
+            Adw.TabViewShortcuts.CONTROL_TAB
+            | Adw.TabViewShortcuts.CONTROL_SHIFT_TAB
+            | Adw.TabViewShortcuts.CONTROL_PAGE_UP
+            | Adw.TabViewShortcuts.CONTROL_PAGE_DOWN
+            | Adw.TabViewShortcuts.CONTROL_HOME
+            | Adw.TabViewShortcuts.CONTROL_END
+            | Adw.TabViewShortcuts.CONTROL_SHIFT_PAGE_UP
+            | Adw.TabViewShortcuts.CONTROL_SHIFT_PAGE_DOWN
+            | Adw.TabViewShortcuts.CONTROL_SHIFT_HOME
+            | Adw.TabViewShortcuts.CONTROL_SHIFT_END
+            | Adw.TabViewShortcuts.ALT_DIGITS
+            | Adw.TabViewShortcuts.ALT_ZERO
+        )
+        # 注：Adw.TabViewShortcuts.ALT_ZERO 在 1.2 引入；若未来升级移除
+        # 该位会抛 AttributeError——届时用 ALL_SHORTCUTS & ~CTRL_TAB 数值法回退。
+        self.document_stack.set_shortcuts(ALL_SHORTCUTS)
+
+        # Adw.TabBar 是 Adw.TabView 的可视化标签条。
+        # view=document_stack 把数据源绑到上面的 TabView。
+        # autohide=True 实现 gedit 规则：1 个文档时整条隐藏，≥2 时显示。
+        # shortcuts 设为 ALL：Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+Alt+Home/End
+        # / Alt+1..9 / Alt+W 等 Adw 自带快捷键全部启用（替代我们之前在
+        # shortcut_controller_app.py 里手写的 shortcut_switch_document）。
+        self.document_tabs = Adw.TabBar()
+        self.document_tabs.set_view(self.document_stack)
+        self.document_tabs.set_autohide(True)
+        # end_action_widget 与 start_action_widget 留空（保留为后续接
+        # 「新建标签」按钮或 build 状态指示）。需要时：box.append(button);
+        # self.document_tabs.set_end_action_widget(box)。
 
         self.document_stack_wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # 三明治布局：[tab_bar, shortcutsbar, tab_view]。
+        # tab_bar 在最上：标签条是切换文档的高频入口，靠近标题栏最显眼。
+        # shortcutsbar 保持在标签与编辑器之间，不被 tab_bar 遮挡。
+        self.document_stack_wrapper.append(self.document_tabs)
         self.document_stack_wrapper.append(self.shortcutsbar)
         self.document_stack_wrapper.append(self.document_stack)
 

@@ -759,9 +759,25 @@ class Actions(object):
         self.workspace.add_change_code('update_closed_documents', self._closed_document_stack)
 
     def close_active_document(self, action=None, parameter=None):
+        '''关当前活跃文档。保留为旧 API（菜单、Ctrl+W 绑的就是它）。
+        标签条关闭按钮走 close_selected_tab（允许关非活跃）。'''
         if self.workspace.get_active_document() == None: return
+        self.close_document(self.workspace.get_active_document())
 
-        document = self.workspace.get_active_document()
+    def close_document(self, document):
+        '''关闭指定文档的统一入口。
+
+        替代原来只在 close_active_document 里的硬编码，使标签条关闭
+        按钮 / document_switcher 关闭按钮 / Ctrl+W 都走同一路径：
+        push_closed_document → modified 检查 → confirm 对话框 →
+        workspace.remove_document。close_active_document 现为薄封装。
+
+        confirm 路径对 modified=True 的文档弹 close_confirmation 对话框；
+        用户 Save/Discard 后 close_document_callback 会再调 workspace.remove_document
+        （已有逻辑）。
+        '''
+        if document is None or document not in self.workspace.open_documents:
+            return
         # 仅当文档已保存（有 filename 且磁盘文件仍存在）才压入重开栈，
         # 未保存文档无法安全重开。
         self.push_closed_document(document.get_filename())
