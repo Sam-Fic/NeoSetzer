@@ -24,7 +24,7 @@ import builtins
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gdk, Gtk, Pango
+from gi.repository import Adw, Gdk, Gtk
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.command_palette.catalog import (
@@ -61,7 +61,7 @@ class CommandPaletteDialog(DialogView):
         self.catalog = CommandCatalog(workspace.actions)
         self.settings = ServiceLocator.get_settings()
         self.commands: list[CommandDescriptor] = []
-        self.command_rows: list[Gtk.ListBoxRow] = []
+        self.command_rows: list[Adw.ActionRow] = []
         self._previous_focus = None
         self._settings_handler = None
 
@@ -226,47 +226,28 @@ class CommandPaletteDialog(DialogView):
         return row
 
     def create_row(self, command: CommandDescriptor, available: bool):
-        row = Gtk.ListBoxRow()
+        row = Adw.ActionRow()
         row.command = command if available else None
         row.set_activatable(available)
         row.set_selectable(available)
         if not available:
             row.set_sensitive(False)
             row.add_css_class('command-palette-unavailable')
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        box.set_margin_top(8)
-        box.set_margin_bottom(8)
-        box.set_margin_start(12)
-        box.set_margin_end(12)
-
-        primary = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        title = Gtk.Label(label=_(command.title))
-        title.set_halign(Gtk.Align.START)
-        title.set_hexpand(True)
-        title.set_ellipsize(Pango.EllipsizeMode.END)
-        primary.append(title)
+            row.set_subtitle(_('Unavailable in the current document or view'))
+        row.set_title(_(command.title))
 
         shortcut = get_action_label(command.settings_shortcut_key)
         if shortcut:
             shortcut_label = Gtk.Label(label=shortcut)
             shortcut_label.add_css_class('dim-label')
             shortcut_label.set_halign(Gtk.Align.END)
-            primary.append(shortcut_label)
+            row.add_suffix(shortcut_label)
 
         category = Gtk.Label(label=_(command.category))
         category.add_css_class('dim-label')
         category.set_halign(Gtk.Align.END)
-        primary.append(category)
-        box.append(primary)
+        row.add_suffix(category)
 
-        if not available:
-            subtitle = Gtk.Label(label=_('Unavailable in the current document or view'))
-            subtitle.add_css_class('dim-label')
-            subtitle.set_halign(Gtk.Align.START)
-            subtitle.set_ellipsize(Pango.EllipsizeMode.END)
-            box.append(subtitle)
-
-        row.set_child(box)
         return row
 
     def select_relative(self, offset: int):
