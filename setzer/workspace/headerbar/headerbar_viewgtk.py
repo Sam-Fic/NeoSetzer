@@ -24,7 +24,6 @@ from gi.repository import Gtk, Adw
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
 
-
 class HeaderBar(object):
     '''组合持有 Adw.HeaderBar（Adw.HeaderBar 是 final 类型，不能被子类化）。
 
@@ -42,8 +41,6 @@ class HeaderBar(object):
         self.sidebar_toggle.set_can_focus(False)
         # tooltip 中的快捷键随设置动态渲染（原先写死 "(F2)"，早已与实际绑定脱节）
         shortcut_tooltips.set_tooltip(self.sidebar_toggle, _('Toggle sidebar (Document Structure / Symbols)'), 'document_structure', 'symbols')
-        self.sidebar_toggle.add_css_class('headerbar-plain')
-        self.sidebar_toggle.add_css_class('headerbar-icon')
 
         self.widget.pack_start(self.sidebar_toggle)
 
@@ -54,8 +51,6 @@ class HeaderBar(object):
         self.open_document_button.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
         self.open_document_button.set_action_name('win.open-document-dialog')
-        self.open_document_button.add_css_class('headerbar-plain')
-        self.open_document_button.add_css_class('headerbar-icon')
 
         # new document: Adw.SplitButton — 左半部分默认新建 LaTeX 文档，
         # 右侧箭头展开气泡选择文档类型（LaTeX / BibTeX）。
@@ -64,8 +59,7 @@ class HeaderBar(object):
         self.new_document_button.set_can_focus(False)
         self.new_document_button.set_tooltip_text(_('Create a new LaTeX document'))
         self.new_document_button.set_action_name('win.new-latex-document')
-        self.new_document_button.add_css_class('headerbar-plain')
-        self.new_document_button.add_css_class('headerbar-icon')
+
         # PopoverManager 在 create_widgets() 前已 init，此处直接绑定 menu_model。
         # 原 setup_popovers() 方法从未被调用，导致箭头点不动——这是 bug 根因。
         # 若 popover 为 None（初始化顺序错误），打印警告而非静默失败——
@@ -89,8 +83,6 @@ class HeaderBar(object):
         self.hamburger = PopoverManager.create_popover('hamburger_menu')
         self.menu_button = self.hamburger.get_menu_button()
         self.menu_button.set_can_focus(False)
-        self.menu_button.add_css_class('headerbar-plain')
-        self.menu_button.add_css_class('headerbar-icon')
 
         # preview/help toggle — 合并为单一按钮控制右侧栏显隐
         self.preview_help_toggle = Gtk.ToggleButton()
@@ -98,8 +90,6 @@ class HeaderBar(object):
         self.preview_help_toggle.set_can_focus(False)
         # 原先写死 "(F9)"，实际 preview=Ctrl+Shift+P、help=F1，现随设置动态渲染
         shortcut_tooltips.set_tooltip(self.preview_help_toggle, _('Toggle preview panel (PDF Preview / Help)'), 'preview', 'help')
-        self.preview_help_toggle.add_css_class('headerbar-plain')
-        self.preview_help_toggle.add_css_class('headerbar-icon')
 
         # Build log 按钮（标题栏副本）：仅在用户关闭 Shortcuts Bar
         # （Preferences → Editor → Show Shortcuts Bar = False）时显示，
@@ -109,8 +99,7 @@ class HeaderBar(object):
         self.build_log_toggle.set_child(Gtk.Image(icon_name='build-log-symbolic'))
         self.build_log_toggle.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.build_log_toggle, _('Build log'), 'build_log')
-        self.build_log_toggle.add_css_class('headerbar-plain')
-        self.build_log_toggle.add_css_class('headerbar-icon')
+
         # 默认隐藏；HeaderBar presenter 根据 show_shortcuts_bar 显隐。
         self.build_log_toggle.set_visible(False)
 
@@ -151,8 +140,6 @@ class HeaderBar(object):
         self.center_button.set_can_focus(False)
         self.center_button.set_halign(Gtk.Align.CENTER)
         self.center_button.set_child(self.center_box)
-        self.center_button.add_css_class('headerbar-plain')
-        self.center_button.add_css_class('headerbar-icon')
         self.center_button.add_css_class('flat')
         self.center_button.connect('clicked', self._on_center_button_clicked)
 
