@@ -328,16 +328,21 @@ class BuildLogDialogPresenter(object):
         # 尝试恢复用户的过滤器选择（如果可能的话）
         self._restore_filter_selection(saved_file_filter, saved_type_filter, saved_visible_types)
     
-    def _find_combo_index(self, combo, target_text):
-        '''在 Gtk.ComboBoxText 中查找指定文本的索引位置。
-        
-        GTK4 的 Gtk.ComboBoxText 没有 find_text 方法，需要手动遍历。
+    def _find_combo_row_index(self, combo_row, target_text):
+        '''在 Adw.ComboRow 的 StringList model 中查找指定文本的索引位置。
+
+        取代原 ``_find_combo_index``（用于 Gtk.ComboBoxText）与
+        ``_find_dropdown_index``（用于 Gtk.DropDown）。ComboRow 的 model
+        也是 Gtk.StringList，通过 ``get_selected_item().get_string()`` 取
+        当前选中文字，但 find 仍按索引遍历更直接。
+        找不到返回 -1。
         '''
-        model = combo.get_model()
+        model = combo_row.get_model()
         if model is None:
             return -1
-        for i in range(model.get_n_items()):
-            if model[i][0] == target_text:
+        n = model.get_n_items()
+        for i in range(n):
+            if model.get_string(i) == target_text:
                 return i
         return -1
 
@@ -348,32 +353,32 @@ class BuildLogDialogPresenter(object):
             # 恢复文件过滤器
             if saved_file_filter and saved_file_filter != _('All'):
                 # 尝试找到之前选择的文件
-                found_index = self._find_combo_index(self.view.file_filter_combo, saved_file_filter)
+                found_index = self._find_combo_row_index(self.view.file_combo, saved_file_filter)
                 if found_index >= 0:
-                    self.view.file_filter_combo.set_active(found_index)
+                    self.view.file_combo.set_selected(found_index)
                 else:
                     # 如果找不到，重置为 All
-                    self.view.file_filter_combo.set_active(0)
+                    self.view.file_combo.set_selected(0)
                     self.file_filter = _('All')
             else:
-                self.view.file_filter_combo.set_active(0)
+                self.view.file_combo.set_selected(0)
                 self.file_filter = _('All')
-            
-            # 恢复类型过滤器（下拉框）
+
+            # 恢复类型过滤器（ComboRow）
             if saved_type_filter and saved_type_filter != _('All'):
                 # 尝试找到之前选择的类型
-                found_index = self._find_combo_index(self.view.type_filter_combo, saved_type_filter)
+                found_index = self._find_combo_row_index(self.view.type_combo, saved_type_filter)
                 if found_index >= 0:
-                    self.view.type_filter_combo.set_active(found_index)
+                    self.view.type_combo.set_selected(found_index)
                 else:
                     # 如果找不到，重置为 All
-                    self.view.type_filter_combo.set_active(0)
+                    self.view.type_combo.set_selected(0)
                     self.type_filter = _('All')
             else:
-                self.view.type_filter_combo.set_active(0)
+                self.view.type_combo.set_selected(0)
                 self.type_filter = _('All')
-            
-            # 恢复可见类型过滤器（复选框）
+
+            # 恢复可见类型过滤器（SwitchRow）
             if saved_visible_types is not None:
                 self.visible_types_filter = saved_visible_types
                 self.view.set_selected_types(self.visible_types_filter)

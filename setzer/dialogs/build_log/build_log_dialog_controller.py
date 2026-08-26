@@ -54,16 +54,18 @@ class BuildLogDialogController(object):
         # 再按 Esc 走原生关闭。
         self.view.search_entry.connect('stop-search', self.on_stop_search)
 
-        # 过滤器信号（存储 handler_id 以便 presenter 更新下拉框时屏蔽信号）
-        self.view._file_filter_handler_id = self.view.file_filter_combo.connect('changed', self.on_filter_changed)
-        self.view._type_filter_handler_id = self.view.type_filter_combo.connect('changed', self.on_filter_changed)
+        # 过滤器信号：Adw.ComboRow 用 notify::selected（GObject 属性变化），
+        # Adw.SwitchRow 用 notify::active。presenter._updating_filters 标志
+        # 会在 model 重建期间早退 on_filter_changed，无需 handler_block。
+        self.view.file_combo.connect('notify::selected', self.on_filter_changed)
+        self.view.type_combo.connect('notify::selected', self.on_filter_changed)
         self.view.line_min_spin.connect('value-changed', self.on_filter_changed)
         self.view.line_max_spin.connect('value-changed', self.on_filter_changed)
-        
-        # 类型过滤复选框信号
-        self.view.error_checkbox.connect('toggled', self.on_filter_changed)
-        self.view.warning_checkbox.connect('toggled', self.on_filter_changed)
-        self.view.badbox_checkbox.connect('toggled', self.on_filter_changed)
+
+        # 类型过滤开关：Adw.SwitchRow 没有 'toggled' 信号，使用 notify::active。
+        self.view.error_switch.connect('notify::active', self.on_filter_changed)
+        self.view.warning_switch.connect('notify::active', self.on_filter_changed)
+        self.view.badbox_switch.connect('notify::active', self.on_filter_changed)
 
         # 每个 list 的 row-activated：单击跳转报错行（与原 BuildLogController 一致）。
         # 弹窗内有 3 个 list（Errors / Warnings / Badboxes），全部连同一个回调。
@@ -210,8 +212,8 @@ class BuildLogDialogController(object):
         visible_types = presenter_module.BuildLogDialogPresenter.ALL_TYPES
 
         # 获取过滤器值
-        file_filter = self.view.file_filter_combo.get_active_text()
-        type_filter = self.view.type_filter_combo.get_active_text()
+        file_filter = self.view.filter_popover.get_file_label()
+        type_filter = self.view.filter_popover.get_type_label()
 
         line_min = int(self.view.line_min_spin.get_value())
         line_max = int(self.view.line_max_spin.get_value())
@@ -274,10 +276,10 @@ class BuildLogDialogController(object):
                 self.view.get_selected_types())
 
     def _get_file_filter_value(self):
-        return self.view.file_filter_combo.get_active_text()
+        return self.view.filter_popover.get_file_label()
 
     def _get_type_filter_value(self):
-        return self.view.type_filter_combo.get_active_text()
+        return self.view.filter_popover.get_type_label()
 
     def on_search_changed(self, search_entry):
         self.presenter.set_search_text(search_entry.get_text())

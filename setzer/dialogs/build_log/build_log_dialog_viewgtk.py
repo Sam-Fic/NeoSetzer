@@ -21,6 +21,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gdk, Gio, GObject
 from setzer.widgets.search_highlight import highlight
 from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
+from setzer.dialogs.build_log.build_log_filter_popover import BuildLogFilterPopover
 import os.path
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
@@ -110,69 +111,29 @@ class BuildLogDialogView(DialogView):
         self.headerbar.pack_end(self.restore_button)
         self.on_restore_ignored_callback = None
 
-        self.filter_popover = Gtk.Popover()
-        self.filter_popover.set_autohide(True)
+        # Filter 弹层：包成独立类 BuildLogFilterPopover，内部用
+        #   Adw.ComboRow（外包 Adw.PreferencesGroup）  替代 Gtk.ComboBoxText
+        #   Adw.PreferencesGroup + Adw.SwitchRow×3      替代 Gtk.CheckButton×3
+        # 行号范围的两个 Gtk.SpinButton 归 popover 拥有，view 仍以同名
+        # 属性（line_min_spin / line_max_spin）暴露。
+        # 整体 toggle 行为：仍用 Gtk.ToggleButton + 手动 Popover，原因是
+        # Gtk.MenuButton 与 Adw.Dialog 内的 Popover 偶现无法通过再次点击
+        # 按钮或点击空白处关闭（只能 Esc），手动 popup/popdown 可规避。
+        self.filter_popover = BuildLogFilterPopover()
         self.filter_popover.set_parent(self.filter_button)
         self.filter_button.connect('notify::active', self._on_filter_button_active)
         self.filter_popover.connect('closed', self._on_filter_popover_closed)
-        filter_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        filter_box.set_margin_top(8)
-        filter_box.set_margin_bottom(8)
-        filter_box.set_margin_start(8)
-        filter_box.set_margin_end(8)
-
-        # 文件过滤（使用 Gtk.ComboBoxText，GTK4 中仍可用且无 DropDown 的测量问题）
-        file_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        file_box.append(Gtk.Label(label=_('File:')))
-        self.file_filter_combo = Gtk.ComboBoxText()
-        self.file_filter_combo.append_text(_('All'))
-        self.file_filter_combo.set_active(0)
-        file_box.append(self.file_filter_combo)
-        filter_box.append(file_box)
-
-        # 错误类型过滤
-        type_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        type_box.append(Gtk.Label(label=_('Type:')))
-        self.type_filter_combo = Gtk.ComboBoxText()
-        self.type_filter_combo.append_text(_('All'))
-        self.type_filter_combo.set_active(0)
-        type_box.append(self.type_filter_combo)
-        filter_box.append(type_box)
-
-        # 行号范围过滤
-        line_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        line_box.append(Gtk.Label(label=_('Lines:')))
-        self.line_min_spin = Gtk.SpinButton.new_with_range(0, 999999, 1)
-        line_box.append(self.line_min_spin)
-        line_box.append(Gtk.Label(label=_('–')))
-        self.line_max_spin = Gtk.SpinButton.new_with_range(0, 999999, 1)
-        self.line_max_spin.set_value(999999)
-        line_box.append(self.line_max_spin)
-        filter_box.append(line_box)
-
-        # 类型过滤（复选框：控制显示哪些类型的日志）
-        type_filter_label = Gtk.Label(label=_('Show types:'))
-        type_filter_label.set_halign(Gtk.Align.START)
-        filter_box.append(type_filter_label)
-        
-        type_checkbox_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        type_checkbox_box.set_margin_start(8)
-        
-        self.error_checkbox = Gtk.CheckButton(label=_('Errors'))
-        self.error_checkbox.set_active(True)
-        type_checkbox_box.append(self.error_checkbox)
-        
-        self.warning_checkbox = Gtk.CheckButton(label=_('Warnings'))
-        self.warning_checkbox.set_active(True)
-        type_checkbox_box.append(self.warning_checkbox)
-        
-        self.badbox_checkbox = Gtk.CheckButton(label=_('Badboxes'))
-        self.badbox_checkbox.set_active(True)
-        type_checkbox_box.append(self.badbox_checkbox)
-        
-        filter_box.append(type_checkbox_box)
-
-        self.filter_popover.set_child(filter_box)
+        # 暴露 popover 内常用控件：controller 用 file_combo / type_combo
+        # （Adw.ComboRow）的 notify::selected，error_switch / warning_switch /
+        # badbox_switch（Adw.SwitchRow）的 notify::active。spin button 同名
+        # 暴露（仍是 Gtk.SpinButton，value-changed 信号不变）。
+        self.file_combo = self.filter_popover.file_combo
+        self.type_combo = self.filter_popover.type_combo
+        self.error_switch = self.filter_popover.error_switch
+        self.warning_switch = self.filter_popover.warning_switch
+        self.badbox_switch = self.filter_popover.badbox_switch
+        self.line_min_spin = self.filter_popover.line_min_spin
+        self.line_max_spin = self.filter_popover.line_max_spin
 
         # 搜索按钮（toggle 控制搜索栏显隐）
         self.search_button = Gtk.ToggleButton(icon_name='edit-find-symbolic')
@@ -345,43 +306,28 @@ class BuildLogDialogView(DialogView):
             self.on_restore_ignored_callback()
 
     def update_file_filter(self, filenames):
-        '''更新文件过滤下拉框的选项列表。'''
-        if hasattr(self, '_file_filter_handler_id'):
-            self.file_filter_combo.handler_block(self._file_filter_handler_id)
-        self.file_filter_combo.remove_all()
-        for name in filenames:
-            self.file_filter_combo.append_text(name)
-        self.file_filter_combo.set_active(0)
-        if hasattr(self, '_file_filter_handler_id'):
-            self.file_filter_combo.handler_unblock(self._file_filter_handler_id)
+        '''更新文件过滤下拉框的选项列表。
+
+        presenter 把 "All" 显式塞入首项；popover.set_file_options 容忍这种
+        输入（会自动 dedup 重复的 "All"）。
+
+        信号抑制：presenter 在调用本方法前已置 ``_updating_filters=True``，
+        controller 的 ``on_filter_changed`` 即使收到 ``notify::selected``
+        也会在 ``set_filter_values`` 早退，不需要额外的 handler_block。
+        '''
+        self.filter_popover.set_file_options(filenames)
 
     def update_type_filter(self, error_types):
-        '''更新错误类型过滤下拉框的选项列表。'''
-        if hasattr(self, '_type_filter_handler_id'):
-            self.type_filter_combo.handler_block(self._type_filter_handler_id)
-        self.type_filter_combo.remove_all()
-        for name in error_types:
-            self.type_filter_combo.append_text(name)
-        self.type_filter_combo.set_active(0)
-        if hasattr(self, '_type_filter_handler_id'):
-            self.type_filter_combo.handler_unblock(self._type_filter_handler_id)
+        '''更新错误类型过滤下拉框的选项列表。语义同 update_file_filter。'''
+        self.filter_popover.set_type_options(error_types)
 
     def get_selected_types(self):
-        '''获取当前选中的日志类型集合。'''
-        selected = set()
-        if self.error_checkbox.get_active():
-            selected.add('Error')
-        if self.warning_checkbox.get_active():
-            selected.add('Warning')
-        if self.badbox_checkbox.get_active():
-            selected.add('Badbox')
-        return selected
+        '''获取当前选中的日志类型集合。委托给 popover。'''
+        return self.filter_popover.get_visible_types()
 
     def set_selected_types(self, selected_types):
-        '''设置选中的日志类型（用于恢复过滤器状态）。'''
-        self.error_checkbox.set_active('Error' in selected_types)
-        self.warning_checkbox.set_active('Warning' in selected_types)
-        self.badbox_checkbox.set_active('Badbox' in selected_types)
+        '''设置选中的日志类型（用于恢复过滤器状态）。委托给 popover。'''
+        self.filter_popover.set_visible_types(selected_types)
 
 
 class BuildLogList(Gtk.ListBox):
