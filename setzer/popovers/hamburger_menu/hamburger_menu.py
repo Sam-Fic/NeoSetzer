@@ -116,6 +116,11 @@ class HamburgerMenu(object):
         section_prefs.append_item(prefs)
         doc_props = Gio.MenuItem.new(_('Document Properties'), 'win.show-document-properties')
         section_prefs.append_item(doc_props)
+        # Preamble Assistant 紧跟 Document Properties：两者都是当前文档的 LaTeX
+        # 对话框（查看/分析），而下一段已经接 Application（Fullscreen/Shortcuts/About），
+        # 把 Preamble Assistant 放在这里语义最连贯。Gio.Menu 按添加顺序渲染。
+        preamble_assistant = Gio.MenuItem.new(_('Preamble Assistant'), 'win.show-preamble-assistant')
+        section_prefs.append_item(preamble_assistant)
         self.menu_model.append_section(None, section_prefs)
 
         section_help = Gio.Menu()
