@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v80 — 2026-08-27
 
 ### 修复
 
@@ -23,6 +23,8 @@
 - **refactor**: Rebuild the bibliography manager's entry-edit form on standard libadwaita widgets — the hand-built stack of bold labels + `Gtk.Entry` (×23 fields) is now an `Adw.PreferencesGroup` boxed list of `Adw.EntryRow`s (former placeholder hints kept as tooltips), matching the Insert Citations section and the preferences pages; the multi-line extra-fields editor follows the file's existing chips-row convention inside an `Adw.PreferencesRow`; bottom Cancel/Save buttons move to a standard `Gtk.ActionBar`; the dead `_labeled_widget()` helper is removed. The field right-click menu now targets `Gtk.Editable` (covers EntryRow), which also surfaces two latent fixes: `_field_replace_text` passed an interval length where `delete_text()` expects an end offset (under-deleted when a selection didn't start at 0), and no-selection `get_selection_bounds()` on `Adw.EntryRow` returns `()` instead of `None`, which crashed unpacking (now handled by truthiness check).
 
 - **refactor**: Rebuild the project build configuration dialog on standard libadwaita widgets — `Adw.Dialog` via the shared `DialogView` base (`Adw.HeaderBar` + `Adw.ToolbarView` with Cancel/Save in the titlebar), `Adw.EntryRow`/`Adw.SwitchRow`/`Adw.ComboRow` form rows (thin `TextComboRow`/`IdComboRow` adapters keep the controller's legacy combo API unchanged), and `Adw.AlertDialog` replacing the deprecated `Adw.MessageDialog`. Also fixes a crash when opening the dialog for projects without an existing `build.json` (all-None placeholder profile hit `tuple(None)`).
+
+---
 
 ## v79 — 2026-08-25
 
