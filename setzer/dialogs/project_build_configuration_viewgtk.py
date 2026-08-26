@@ -3,40 +3,183 @@
 
 '''GTK/Adw view for the project build configuration dialog.
 
-Built imperatively so the controller can rebuild widgets (profile combo,
-task list) at runtime. No free-form command entry exists — only the fixed set
-of build settings and whitelisted task types are exposed.
+Standard libadwaita building blocks throughout: ``Adw.Dialog`` (via the
+shared ``DialogView`` base: HeaderBar + ToolbarView), an
+``Adw.PreferencesPage`` with boxed-list ``Adw.PreferencesGroup`` groups,
+``Adw.EntryRow`` / ``Adw.SwitchRow`` form rows and ``Adw.ComboRow``
+selectors. Built imperatively so the controller can rebuild widgets
+(profile combo, task list) at runtime. No free-form command entry exists —
+only the fixed set of build settings and whitelisted task types are exposed.
+
+The two ``Adw.ComboRow`` subclasses below exist solely to adapt the legacy
+``Gtk.ComboBoxText`` convenience API (append_text/set_active/get_active_id,
+'changed' signal) onto standard combo rows, keeping the presenter/controller
+code unchanged while rendering native Adwaita UI.
 '''
 
-import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gtk, GObject
 
+from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 
-class ProjectBuildConfigurationView(Adw.Window):
+
+class TextComboRow(Adw.ComboRow):
+    '''``Adw.ComboRow`` with a ``Gtk.ComboBoxText``-compatible convenience API.
+
+    Backed by a ``Gtk.StringList``; exposes remove_all/append_text/
+    set_active/get_active/get_active_text and re-emits selection changes as
+    the legacy 'changed' signal.
+    '''
+
+    __gsignals__ = {
+        'changed': (GObject.SignalFlags.RUN_FIRST, None, ()),
+    }
 
     def __init__(self):
-        super().__init__(modal=True, default_width=720, default_height=640)
+        super().__init__()
+        self.model = Gtk.StringList()
+        self.set_model(self.model)
+        self.connect('notify::selected', self.on_selection_changed)
+
+    def on_selection_changed(self, *args):
+        self.emit('changed')
+
+    def remove_all(self):
+        self.model.splice(0, self.model.get_n_items(), [])
+
+    def append_text(self, text):
+        self.model.append(text)
+
+    def set_active(self, index):
+        if index is None or index < 0:
+            self.set_selected(Gtk.INVALID_LIST_POSITION)
+        else:
+            self.set_selected(index)
+
+    def get_active(self):
+        selected = self.get_selected()
+        return -1 if selected == Gtk.INVALID_LIST_POSITION else selected
+
+    def get_active_text(self):
+        index = self.get_active()
+        if index < 0:
+            return None
+        return self.model.get_string(index)
+
+
+class IdComboRow(Adw.ComboRow):
+    '''``Adw.ComboRow`` over a fixed (value, label) option list.
+
+    Exposes the legacy ``Gtk.ComboBoxText`` ID API (set_active_id /
+    get_active_id) so callers keep working with semantic values instead of
+    indices.
+    '''
+
+    def __init__(self, options):
+        super().__init__()
+        self.options = list(options)
+        self.model = Gtk.StringList.new([label for _, label in self.options])
+        self.set_model(self.model)
+
+    def set_active_id(self, value):
+        for index, (option_value, _) in enumerate(self.options):
+            if option_value == value:
+                self.set_selected(index)
+                return
+
+    def get_active_id(self):
+        selected = self.get_selected()
+        if selected == Gtk.INVALID_LIST_POSITION or selected >= len(self.options):
+            return None
+        return self.options[selected][0]
+
+
+class TextDropDown(Gtk.DropDown):
+    '''``Gtk.DropDown`` with a ``Gtk.ComboBoxText``-compatible convenience API.
+
+    The native GTK4 dropdown button (selected string + chevron) for use
+    outside preference boxed-lists, where an untitled ``Adw.ComboRow``
+    renders as a bare floating row. Backed by a ``Gtk.StringList``;
+    exposes remove_all/append_text/set_active/get_active_text.
+
+    Note: ``Gtk.DropDown`` auto-selects the first item once the model is
+    non-empty (its internal ``GtkSingleSelection`` has autoselect enabled),
+    so unlike ``Gtk.ComboBoxText`` there is always a valid selection after
+    populate — the controller's trailing ``set_active(0)`` stays harmless.
+    '''
+
+    def __init__(self):
+        super().__init__()
+        self.model = Gtk.StringList()
+        self.set_model(self.model)
+
+    def remove_all(self):
+        self.model.splice(0, self.model.get_n_items(), [])
+
+    def append_text(self, text):
+        self.model.append(text)
+
+    def set_active(self, index):
+        if index is None or index < 0:
+            self.set_selected(Gtk.INVALID_LIST_POSITION)
+        else:
+            self.set_selected(index)
+
+    def get_active(self):
+        selected = self.get_selected()
+        return -1 if selected == Gtk.INVALID_LIST_POSITION else selected
+
+    def get_active_text(self):
+        index = self.get_active()
+        if index < 0:
+            return None
+        return self.model.get_string(index)
+
+
+class ProjectBuildConfigurationView(DialogView):
+
+    def __init__(self, main_window):
+        DialogView.__init__(self, main_window)
         self.set_title(_('Project Build Configuration'))
+        self.set_content_width(680)
+        self.set_content_height(560)
 
-        # ---- 头部：profile 管理 ----
-        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        header.set_margin_start(18)
-        header.set_margin_end(18)
-        header.set_margin_top(12)
-        header.set_margin_bottom(6)
-        profile_label = Gtk.Label(label=_('Profile'))
-        self.profile_combo = Gtk.ComboBoxText()
-        self.profile_combo.set_hexpand(True)
-        header.append(profile_label)
-        header.append(self.profile_combo)
+        self.headerbar.set_title_widget(Adw.WindowTitle(
+            title=_('Project Build Configuration')))
+        # 隐藏 Adw.Dialog 自动塞进 HeaderBar 两端的「窗口控制」按钮（关闭 X 等），
+        # 由我们自己的 Cancel/Save 提供等价的取消/确认操作，避免重复。
+        # 与 document_properties_viewgtk 同款。
+        self.headerbar.set_show_start_title_buttons(False)
+        self.headerbar.set_show_end_title_buttons(False)
 
-        self.add_button = Gtk.Button(label='+')
-        self.add_button.set_tooltip_text(_('Add profile'))
-        self.duplicate_button = Gtk.Button(label='⧉')
-        self.duplicate_button.set_tooltip_text(_('Duplicate profile'))
+        # ---- HeaderBar 动作：Cancel（左） / Save（右，建议操作） ----
+        self.cancel_button = Gtk.Button(label=_('Cancel'))
+        self.headerbar.pack_start(self.cancel_button)
+
+        self.save_button = Gtk.Button(label=_('Save'))
+        self.save_button.add_css_class('suggested-action')
+        self.headerbar.pack_end(self.save_button)
+
+        # ---- 内容：单一 PreferencesPage（自带滚动与限宽） ----
+        prefs = Adw.PreferencesPage()
+        prefs.set_vexpand(True)
+
+        # ---- Profile 管理 ----
+        profiles_group = Adw.PreferencesGroup()
+        profiles_group.set_title(_('Build Profiles'))
+
+        self.profile_combo = TextComboRow()
+        self.profile_combo.set_title(_('Profile'))
+        profiles_group.add(self.profile_combo)
+
+        # Profile 管理按钮行：新增 / 复制 / 重命名 / 删除 / 设为激活。
+        profile_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        profile_buttons.set_halign(Gtk.Align.END)
+        profile_buttons.set_margin_top(6)
+        self.add_button = Gtk.Button(label=_('Add profile'))
+        self.duplicate_button = Gtk.Button(label=_('Duplicate profile'))
         self.rename_button = Gtk.Button(label=_('Rename'))
         self.delete_button = Gtk.Button(label=_('Delete'))
         self.delete_button.add_css_class('destructive-action')
@@ -44,87 +187,68 @@ class ProjectBuildConfigurationView(Adw.Window):
         self.active_button.add_css_class('suggested-action')
         for b in (self.add_button, self.duplicate_button, self.rename_button,
                   self.delete_button, self.active_button):
-            header.append(b)
+            profile_buttons.append(b)
+        profiles_group.add(profile_buttons)
 
-        # ---- 设置字段 ----
+        # ---- 构建设置 ----
         settings_group = Adw.PreferencesGroup()
         settings_group.set_title(_('Build settings'))
 
-        root_row = Adw.ActionRow(title=_('Root document'))
-        self.root_document_entry = Gtk.Entry(hexpand=True, placeholder_text=_('(main document)'))
+        self.root_document_entry = Adw.EntryRow(title=_('Root document'))
         self.file_chooser_button = Gtk.Button(label=_('Browse…'))
-        root_row.add_suffix(self.root_document_entry)
-        root_row.add_suffix(self.file_chooser_button)
-        root_row.set_activatable_widget(self.root_document_entry)
-        settings_group.add(root_row)
+        self.file_chooser_button.set_valign(Gtk.Align.CENTER)
+        self.root_document_entry.add_suffix(self.file_chooser_button)
+        settings_group.add(self.root_document_entry)
 
-        output_row = Adw.ActionRow(title=_('Output directory'))
-        self.output_directory_entry = Gtk.Entry(hexpand=True, placeholder_text=_('(project directory)'))
+        self.output_directory_entry = Adw.EntryRow(title=_('Output directory'))
         self.folder_chooser_button = Gtk.Button(label=_('Browse…'))
-        output_row.add_suffix(self.output_directory_entry)
-        output_row.add_suffix(self.folder_chooser_button)
-        output_row.set_activatable_widget(self.output_directory_entry)
-        settings_group.add(output_row)
+        self.folder_chooser_button.set_valign(Gtk.Align.CENTER)
+        self.output_directory_entry.add_suffix(self.folder_chooser_button)
+        settings_group.add(self.output_directory_entry)
 
-        interp_row = Adw.ActionRow(title=_('Interpreter'))
-        self.interpreter_combo = Gtk.ComboBoxText()
-        for value, label in (('pdflatex', 'PDFLaTeX'), ('xelatex', 'XeLaTeX'),
-                             ('lualatex', 'LuaLaTeX'), ('tectonic', 'Tectonic')):
-            self.interpreter_combo.append(id=value, text=label)
-        self.interpreter_combo.set_active_id('pdflatex')
-        interp_row.add_suffix(self.interpreter_combo)
-        interp_row.set_activatable_widget(self.interpreter_combo)
-        settings_group.add(interp_row)
+        self.interpreter_combo = IdComboRow((
+            ('pdflatex', 'PDFLaTeX'),
+            ('xelatex', 'XeLaTeX'),
+            ('lualatex', 'LuaLaTeX'),
+            ('tectonic', 'Tectonic'),
+        ))
+        self.interpreter_combo.set_title(_('Interpreter'))
+        settings_group.add(self.interpreter_combo)
 
-        bib_row = Adw.ActionRow(title=_('Bibliography backend'))
-        self.bib_backend_combo = Gtk.ComboBoxText()
-        for value, label in (('bibtex', 'BibTeX'), ('biber', 'Biber')):
-            self.bib_backend_combo.append(id=value, text=label)
-        self.bib_backend_combo.set_active_id('bibtex')
-        bib_row.add_suffix(self.bib_backend_combo)
-        bib_row.set_activatable_widget(self.bib_backend_combo)
-        settings_group.add(bib_row)
+        self.bib_backend_combo = IdComboRow((
+            ('bibtex', 'BibTeX'),
+            ('biber', 'Biber'),
+        ))
+        self.bib_backend_combo.set_title(_('Bibliography backend'))
+        settings_group.add(self.bib_backend_combo)
 
-        args_row = Adw.ActionRow(title=_('Additional arguments'))
-        self.additional_arguments_entry = Gtk.Entry(hexpand=True,
-            placeholder_text='-draftmode --shell-escape …')
-        args_row.add_suffix(self.additional_arguments_entry)
-        args_row.set_activatable_widget(self.additional_arguments_entry)
-        settings_group.add(args_row)
+        self.additional_arguments_entry = Adw.EntryRow(title=_('Additional arguments'))
+        self.additional_arguments_entry.set_tooltip_text('-draftmode --shell-escape …')
+        settings_group.add(self.additional_arguments_entry)
 
-        self.latexmk_switch = Gtk.Switch()
-        latexmk_row = Adw.ActionRow(title=_('Runs LaTeX repeatedly (latexmk)'))
-        latexmk_row.add_suffix(self.latexmk_switch)
-        latexmk_row.set_activatable_widget(self.latexmk_switch)
-        settings_group.add(latexmk_row)
+        self.latexmk_switch = Adw.SwitchRow(title=_('Runs LaTeX repeatedly (latexmk)'))
+        settings_group.add(self.latexmk_switch)
 
-        self.cleanup_switch = Gtk.Switch()
-        cleanup_row = Adw.ActionRow(title=_('Clean up build files'))
-        cleanup_row.add_suffix(self.cleanup_switch)
-        cleanup_row.set_activatable_widget(self.cleanup_switch)
-        settings_group.add(cleanup_row)
+        self.cleanup_switch = Adw.SwitchRow(title=_('Clean up build files'))
+        settings_group.add(self.cleanup_switch)
 
-        self.shell_mode_switch = Gtk.Switch()
-        shell_row = Adw.ActionRow(title=_('Allow shell escape'))
-        shell_row.add_suffix(self.shell_mode_switch)
-        shell_row.set_activatable_widget(self.shell_mode_switch)
-        settings_group.add(shell_row)
+        self.shell_mode_switch = Adw.SwitchRow(title=_('Allow shell escape'))
+        settings_group.add(self.shell_mode_switch)
 
         # ---- 任务序列 ----
         tasks_group = Adw.PreferencesGroup()
         tasks_group.set_title(_('Build tasks (in order)'))
 
         tasks_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        tasks_box.set_margin_start(18)
-        tasks_box.set_margin_end(18)
-        tasks_box.set_margin_bottom(6)
         self.tasks_list_box = Gtk.ListBox()
         self.tasks_list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.tasks_list_box.add_css_class('boxed-list')
         tasks_box.append(self.tasks_list_box)
 
         add_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        self.task_add_combo = Gtk.ComboBoxText()
+        # 原生 GTK4 下拉按钮（Gtk.DropDown）：裸 Adw.ComboRow 在列表外
+        # 只会渲染成无标题的浮动行，观感不是下拉控件。
+        self.task_add_combo = TextDropDown()
         self.task_add_combo.set_hexpand(True)
         self.task_add_button = Gtk.Button(label=_('Add task'))
         self.task_add_button.add_css_class('suggested-action')
@@ -133,34 +257,10 @@ class ProjectBuildConfigurationView(Adw.Window):
         tasks_box.append(add_box)
         tasks_group.add(tasks_box)
 
-        # ---- 内容组装 ----
-        prefs = Adw.PreferencesPage()
+        prefs.add(profiles_group)
         prefs.add(settings_group)
         prefs.add(tasks_group)
-
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_vexpand(True)
-        scrolled.set_child(prefs)
-
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        content_box.append(header)
-        content_box.append(scrolled)
-
-        # ---- 底部按钮 ----
-        footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        footer.set_margin_start(18)
-        footer.set_margin_end(18)
-        footer.set_margin_top(6)
-        footer.set_margin_bottom(12)
-        footer.set_halign(Gtk.Align.END)
-        self.cancel_button = Gtk.Button(label=_('Cancel'))
-        self.save_button = Gtk.Button(label=_('Save'))
-        self.save_button.add_css_class('suggested-action')
-        footer.append(self.cancel_button)
-        footer.append(self.save_button)
-        content_box.append(footer)
-
-        self.set_content(content_box)
+        self.topbox.append(prefs)
 
     # ---- 文件/文件夹选择（复用标准文件选择器，杜绝任意脚本） ----
 
@@ -185,29 +285,47 @@ class ProjectBuildConfigurationView(Adw.Window):
             callback(file.get_path())
 
     def show_rename_dialog(self, current_name, callback):
-        dialog = Adw.MessageDialog(transient_for=self,
-                                   heading=_('Rename profile'))
+        dialog = Adw.AlertDialog(heading=_('Rename profile'))
         entry = Gtk.Entry(text=current_name)
+        entry.set_activates_default(True)
+        entry.connect('realize', lambda e: e.select_region(0, -1))
         dialog.set_extra_child(entry)
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('rename', _('Rename'))
         dialog.set_response_appearance('rename', Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response('rename')
-        dialog.connect('response', lambda d, r: (
-            callback(entry.get_text()) if r == 'rename' else None, d.close()))
+        dialog.set_close_response('cancel')
+        dialog.choose(self, None, lambda d, res: self._on_rename_response(
+            d, res, entry, callback))
+
+    def _on_rename_response(self, dialog, result, entry, callback):
+        try:
+            response = dialog.choose_finish(result)
+        except Exception:
+            return
+        if response == 'rename':
+            callback(entry.get_text())
 
     def show_confirm_delete(self, name, callback):
-        dialog = Adw.MessageDialog(transient_for=self,
+        dialog = Adw.AlertDialog(
             heading=_('Delete profile?'),
             body=_('The profile «{}» will be removed.').format(name))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('delete', _('Delete'))
         dialog.set_response_appearance('delete', Adw.ResponseAppearance.DESTRUCTIVE)
-        dialog.connect('response', lambda d, r: (
-            callback() if r == 'delete' else None, d.close()))
+        dialog.set_close_response('cancel')
+        dialog.choose(self, None, lambda d, res: self._on_confirm_delete_response(
+            d, res, callback))
+
+    def _on_confirm_delete_response(self, dialog, result, callback):
+        try:
+            response = dialog.choose_finish(result)
+        except Exception:
+            return
+        if response == 'delete':
+            callback()
 
     def show_message(self, text):
-        dialog = Adw.MessageDialog(transient_for=self, heading=_('Notice'),
-                                   body=text)
+        dialog = Adw.AlertDialog(heading=_('Notice'), body=text)
         dialog.add_response('ok', _('OK'))
-        dialog.present()
+        dialog.present(self)

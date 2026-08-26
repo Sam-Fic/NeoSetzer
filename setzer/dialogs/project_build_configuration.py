@@ -53,7 +53,7 @@ class ProjectBuildConfigurationDialog():
         self.active_name = active
         self.selected_name = active
 
-        self.view = ProjectBuildConfigurationView()
+        self.view = ProjectBuildConfigurationView(self.main_window)
 
         self.view.cancel_button.connect('clicked', self.on_cancel_button_clicked)
         self.view.save_button.connect('clicked', self.on_save_button_clicked)
@@ -63,11 +63,9 @@ class ProjectBuildConfigurationDialog():
         self._build_profile_ui()
         self._select_profile(self.selected_name)
 
-        self.view.set_transient_for(self.main_window)
-        self.view.show()
-
     def present(self):
-        self.view.show()
+        # Adw.Dialog 以 present() 模态呈现（替代旧 Adw.Window + show()）。
+        self.view.present(self.main_window)
 
     # ---- 数据工具 ---------------------------------------------------------
 
@@ -89,8 +87,10 @@ class ProjectBuildConfigurationDialog():
     @staticmethod
     def _copy_profile(profile):
         copy = dict(profile)
-        copy['additional_arguments'] = tuple(profile.get('additional_arguments', ()))
-        copy['tasks'] = list(profile.get('tasks', [TASK_TYPE_LATEX]))
+        # 缺失配置时 load_profiles() 返回各键为 None 的占位 profile，
+        # 此处须容忍 None（不能依赖 .get 的缺省值——键存在但值为 None）。
+        copy['additional_arguments'] = tuple(profile.get('additional_arguments') or ())
+        copy['tasks'] = list(profile.get('tasks') or [TASK_TYPE_LATEX])
         return copy
 
     def _find_profile(self, name):
@@ -176,16 +176,22 @@ class ProjectBuildConfigurationDialog():
         row.set_title(task_type_label(task))
         row.set_activatable(False)
 
-        up = Gtk.Button(label='↑', valign=Gtk.Align.CENTER)
+        # 行内操作按钮：Adwaita 标准符号图标（go-up/down + edit-delete），
+        # flat 无边框样式与 page_build_system 的行内删除按钮一致。
+        up = Gtk.Button(icon_name='go-up-symbolic')
         up.set_tooltip_text(_('Move up'))
         up.connect('clicked', lambda b: self._move_task(profile, position, -1))
-        down = Gtk.Button(label='↓', valign=Gtk.Align.CENTER)
+        down = Gtk.Button(icon_name='go-down-symbolic')
         down.set_tooltip_text(_('Move down'))
         down.connect('clicked', lambda b: self._move_task(profile, position, 1))
-        remove = Gtk.Button(label='✕', valign=Gtk.Align.CENTER)
+        remove = Gtk.Button(icon_name='edit-delete-symbolic')
         remove.add_css_class('destructive-action')
         remove.set_tooltip_text(_('Remove task'))
         remove.connect('clicked', lambda b: self._remove_task(profile, position))
+        for button in (up, down, remove):
+            button.set_has_frame(False)
+            button.set_valign(Gtk.Align.CENTER)
+            button.add_css_class('flat')
 
         up.set_sensitive(position > 0)
         down.set_sensitive(position < len(profile['tasks']) - 1)
