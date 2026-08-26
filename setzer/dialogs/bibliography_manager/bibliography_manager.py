@@ -283,64 +283,85 @@ class BibliographyManagerDialog(DialogView):
         self._build_form()
 
     def _build_form(self):
-        title = Gtk.Label()
-        title.set_markup(f'<b>{_('Entry Details')}</b>')
-        title.set_halign(Gtk.Align.START)
-        self.form_box.append(title)
-
+        # 标准 Adwaita 编辑表单：Adw.PreferencesGroup（boxed list）+ Adw.EntryRow，
+        # 与同文件 Insert Citations 区、偏好设置页、文档向导保持同一行风格；
+        # 取代旧版手拼「<b>粗体 Label + Gtk.Entry」竖排堆叠。EntryRow 的 title
+        # 即字段标签，原 placeholder 提示语转为 tooltip 保留。
         form_scroller = Gtk.ScrolledWindow()
         form_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         form_scroller.set_vexpand(True)
         self.form_box.append(form_scroller)
-        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        form_scroller.set_child(form)
 
-        self.type_entry = Gtk.Entry()
-        self.type_entry.set_placeholder_text(_('Entry type, for example article'))
-        form.append(self._labeled_widget(_('Entry Type'), self.type_entry))
-        self.key_entry = Gtk.Entry()
-        self.key_entry.set_placeholder_text(_('Unique citation key'))
-        form.append(self._labeled_widget(_('Citation Key'), self.key_entry))
+        group = Adw.PreferencesGroup()
+        group.set_title(_('Entry Details'))
+        form_scroller.set_child(group)
+
+        self.type_entry = Adw.EntryRow()
+        self.type_entry.set_title(_('Entry Type'))
+        self.type_entry.set_tooltip_text(_('Entry type, for example article'))
+        group.add(self.type_entry)
+        self.key_entry = Adw.EntryRow()
+        self.key_entry.set_title(_('Citation Key'))
+        self.key_entry.set_tooltip_text(_('Unique citation key'))
+        group.add(self.key_entry)
 
         # Shared field-popover used by the right-click menu on every
-        # field entry and the extra-fields TextView.  The menu is wired
+        # field row and the extra-fields TextView.  The menu is wired
         # after _build_view() returns, so we build it lazily here and
         # connect the gesture controller inside _build_form (the field
-        # entries and extra_fields text view are still being appended
+        # rows and extra_fields text view are still being appended
         # below).
         self._field_popover = self._build_field_popover()
 
         self.field_entries = {}
         for field in BibTeXEntryStore.common_fields():
-            entry = Gtk.Entry()
-            entry.set_placeholder_text(field)
+            entry = Adw.EntryRow()
+            entry.set_title(FIELD_LABELS[field])
+            entry.set_tooltip_text(field)
             self.field_entries[field] = entry
-            form.append(self._labeled_widget(FIELD_LABELS[field], entry))
+            group.add(entry)
             self._attach_field_popover(entry)
 
+        # 多行自由字段编辑器：libadwaita 没有标准多行 EntryRow，沿用本文件
+        # chips_row 的惯例——嵌入一个 Adw.PreferencesRow，内层 box 边距
+        # （6/6/12/12）与其余行对齐，标题用 .heading 样式类。
+        extra_row = Adw.PreferencesRow()
+        extra_column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        extra_column.set_margin_top(6)
+        extra_column.set_margin_bottom(6)
+        extra_column.set_margin_start(12)
+        extra_column.set_margin_end(12)
+        extra_label = Gtk.Label(label=_('Additional Fields'))
+        extra_label.set_halign(Gtk.Align.START)
+        extra_label.add_css_class('heading')
+        extra_column.append(extra_label)
+        extra_hint = Gtk.Label(label=_('One field per line: name = value'))
+        extra_hint.set_halign(Gtk.Align.START)
+        extra_hint.add_css_class('dim-label')
+        extra_hint.set_wrap(True)
+        extra_column.append(extra_hint)
         self.extra_fields = Gtk.TextView()
         self.extra_fields.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.extra_fields.set_monospace(True)
-        self.extra_fields.set_vexpand(True)
         extra_scroller = Gtk.ScrolledWindow()
         extra_scroller.set_min_content_height(110)
         extra_scroller.set_child(self.extra_fields)
-        form.append(self._labeled_widget(
-            _('Additional Fields'), extra_scroller,
-            _('One field per line: name = value'),
-        ))
+        extra_column.append(extra_scroller)
+        extra_row.set_child(extra_column)
+        group.add(extra_row)
         self._attach_field_popover(self.extra_fields)
 
-        buttons = Gtk.Box(spacing=8)
-        buttons.set_halign(Gtk.Align.END)
+        # 底部动作条：Gtk.ActionBar 是 GTK4 标准的「底部动作条」组合控件，
+        # 自动获得顶部分隔线与底栏背景；Cancel 在左，主操作 Save 在右。
+        actions = Gtk.ActionBar()
         cancel = Gtk.Button(label=_('Cancel'))
         cancel.connect('clicked', self._on_cancel_edit)
-        buttons.append(cancel)
+        actions.pack_start(cancel)
         save = Gtk.Button(label=_('Save Entry'))
         save.add_css_class('suggested-action')
         save.connect('clicked', self._on_save_entry)
-        buttons.append(save)
-        self.form_box.append(buttons)
+        actions.pack_end(save)
+        self.form_box.append(actions)
 
     def _build_insert_box(self):
         # 复用 LaTeXDB.dynamic_commands['citations'] 的白名单——这是补全
@@ -458,22 +479,6 @@ class BibliographyManagerDialog(DialogView):
         group.add(actions_row)
 
         return group
-
-    @staticmethod
-    def _labeled_widget(label, widget, description=None):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        heading = Gtk.Label(label=label)
-        heading.set_halign(Gtk.Align.START)
-        heading.add_css_class('heading')
-        box.append(heading)
-        if description:
-            hint = Gtk.Label(label=description)
-            hint.set_halign(Gtk.Align.START)
-            hint.add_css_class('dim-label')
-            hint.set_wrap(True)
-            box.append(hint)
-        box.append(widget)
-        return box
 
     def run(self, document):
         '''Present the manager for the current LaTeX or BibTeX document.'''
@@ -1224,10 +1229,14 @@ class BibliographyManagerDialog(DialogView):
             start_iter, end_iter = buffer.get_bounds()
             text = buffer.get_text(start_iter, end_iter, True)
             return widget, text, start_iter.get_offset(), end_iter.get_offset()
-        if isinstance(widget, Gtk.Entry):
+        if isinstance(widget, Gtk.Editable):
+            # Adw.EntryRow 实现了 GtkEditable 接口（Gtk.Entry 亦然），
+            # 用 Editable 而非 Gtk.Entry 判定即可同时覆盖两类字段行。
             text = widget.get_text()
             selection = widget.get_selection_bounds()
-            if selection is not None:
+            # Gtk.Entry 无选区时返回 None；Adw.EntryRow（GtkEditable 接口）
+            # 返回空元组 ()——统一按真值判断。
+            if selection:
                 start, end = selection
                 return widget, text[start:end], start, end
             return widget, text, 0, len(text)
@@ -1242,8 +1251,10 @@ class BibliographyManagerDialog(DialogView):
             buffer.delete(start_iter, end_iter)
             buffer.insert(buffer.get_iter_at_offset(start), new_text)
             return
-        if isinstance(widget, Gtk.Entry):
-            widget.delete_text(start, end - start)
+        if isinstance(widget, Gtk.Editable):
+            # Editable.delete_text(start, end) 的第二个参数是结束位置
+            # （不含），与 TextView 分支的 [start, end) 语义一致。
+            widget.delete_text(start, end)
             widget.insert_text(new_text, start)
             widget.set_position(start + len(new_text))
 
