@@ -30,6 +30,40 @@ import sys
 import types
 
 
+def make_glib_stub():
+    '''构造一个独立的伪 GLib 实例（timeout 登记 + Source.remove）。
+
+    与 install() 注入的 repository.GLib 行为完全一致，但每次调用返回
+    全新对象，供需要确定性定时器语义的测试直接持有——不依赖 sys.modules
+    里当时是桩还是真实 GLib（全套件运行时，字母序靠前的测试会先加载真实
+    gi，使 install() 让位、后续模块拿到真实 GLib；直接持有工厂实例即可
+    规避该污染）。生产代码在调用时才解引用 GLib.timeout_add /
+    GLib.Source.remove（settings.py / workspace.py 均为模块级名字查找），
+    因此测试只需在 setUp 把被测模块的 GLib 名字指向本实例即可生效。
+    '''
+    glib = types.ModuleType('GLib')
+    glib._next_source_id = 0
+    glib._sources = {}
+
+    def timeout_add(delay_ms, callback, *args):
+        glib._next_source_id += 1
+        source_id = glib._next_source_id
+        glib._sources[source_id] = (delay_ms, callback, args)
+        return source_id
+
+    class Source:
+        @staticmethod
+        def remove(source_id):
+            if source_id not in glib._sources:
+                raise ValueError('source does not exist')
+            del glib._sources[source_id]
+            return True
+
+    glib.timeout_add = timeout_add
+    glib.Source = Source
+    return glib
+
+
 def install():
     '''注入伪 gi / gi.repository 到 sys.modules。幂等。'''
     if 'gi' in sys.modules:
@@ -56,26 +90,7 @@ def install():
 
     # GLib：Settings 的去抖持久化在测试中仅需要能登记 timeout 和移除 source。
     # 生产测试可自行 monkeypatch timeout_add 以检查精确时序；默认桩不执行回调。
-    glib = types.ModuleType('GLib')
-    glib._next_source_id = 0
-    glib._sources = {}
-
-    def timeout_add(delay_ms, callback, *args):
-        glib._next_source_id += 1
-        source_id = glib._next_source_id
-        glib._sources[source_id] = (delay_ms, callback, args)
-        return source_id
-
-    class Source:
-        @staticmethod
-        def remove(source_id):
-            if source_id not in glib._sources:
-                raise ValueError('source does not exist')
-            del glib._sources[source_id]
-            return True
-
-    glib.timeout_add = timeout_add
-    glib.Source = Source
+    glib = make_glib_stub()
     repository.GLib = glib
 
     gi.repository = repository

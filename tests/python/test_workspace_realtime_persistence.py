@@ -13,6 +13,13 @@ Workspace imports the full GTK application graph, while these behaviours only
 need the small scheduling methods.  The test extracts those methods from the
 production AST and runs them with the shared GLib timer stub.  This keeps the
 assertions tied to the production implementation without requiring a display.
+
+GLib 身份说明：本文件刻意不导入任何 gi。全套件运行时，字母序靠前的测试
+（如 test_matrix_generator）会先加载真实 gi；若提取出的方法解析到真实
+GLib，真实 timeout_add 登记的 id 与测试重置的假 _sources 对不上，产生
+KeyError。因此每个用例在 setUp 用 make_glib_stub() 构建独立桩实例，并
+替换进提取代码共享的 globals 字典（exec 出的函数以它为 __globals__，
+调用时才解引用 GLib 名字），桩/真机环境下行为完全一致。
 '''
 
 import ast
@@ -20,8 +27,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import Mock
 
-from tests.python import conftest_stub  # noqa: F401 - installs the GI stub
-from gi.repository import GLib
+from tests.python import conftest_stub
 
 
 WORKSPACE_SOURCE = (
@@ -30,7 +36,11 @@ WORKSPACE_SOURCE = (
 
 
 def _workspace_members(*names):
-    '''Return selected Workspace members compiled from the production source.'''
+    '''Return selected Workspace members compiled from the production source.
+
+    返回 ``(methods, namespace)``：namespace 是 exec 的 globals 字典，其中
+    ``'GLib'`` 键在每次 setUp 时被替换为独立的桩实例（函数调用时动态查找）。
+    '''
     tree = ast.parse(WORKSPACE_SOURCE.read_text(encoding='utf-8'))
     workspace = next(
         node for node in tree.body
@@ -44,9 +54,9 @@ def _workspace_members(*names):
     if missing:
         raise AssertionError('Workspace methods missing from production source: ' + repr(missing))
     module = ast.Module(body=selected, type_ignores=[])
-    namespace = {'GLib': GLib}
+    namespace = {'GLib': None}
     exec(compile(ast.fix_missing_locations(module), str(WORKSPACE_SOURCE), 'exec'), namespace)
-    return {name: namespace[name] for name in names}
+    return {name: namespace[name] for name in names}, namespace
 
 
 def _workspace_persistence_delay():
@@ -64,7 +74,7 @@ def _workspace_persistence_delay():
     raise AssertionError('Workspace.PERSISTENCE_DELAY_MS is missing or not an integer')
 
 
-_PERSISTENCE_METHODS = _workspace_members(
+_PERSISTENCE_METHODS, _PERSISTENCE_NAMESPACE = _workspace_members(
     'schedule_persistence',
     '_cancel_scheduled_persistence',
     '_flush_scheduled_persistence',
@@ -84,8 +94,11 @@ for _name, _method in _PERSISTENCE_METHODS.items():
 class TestWorkspaceRealtimePersistence(unittest.TestCase):
 
     def setUp(self):
-        GLib._next_source_id = 0
-        GLib._sources = {}
+        # 独立 GLib 桩：登记表、自增 id 均为本测试私有，杜绝环境串扰。
+        self.glib = conftest_stub.make_glib_stub()
+        # 提取出的方法以 _PERSISTENCE_NAMESPACE 为 __globals__，调用时才
+        # 解引用 GLib 名字；换入新桩即改变其行为，无需重新 exec。
+        _PERSISTENCE_NAMESPACE['GLib'] = self.glib
         self.workspace = WorkspacePersistenceHarness()
         self.workspace._persistence_source_id = None
         self.workspace.save_to_disk = Mock(return_value=True)
@@ -94,7 +107,7 @@ class TestWorkspaceRealtimePersistence(unittest.TestCase):
         self.workspace._on_document_state_changed()
         first_source_id = self.workspace._persistence_source_id
         self.assertEqual(
-            GLib._sources[first_source_id][0],
+            self.glib._sources[first_source_id][0],
             WorkspacePersistenceHarness.PERSISTENCE_DELAY_MS,
         )
 
@@ -102,15 +115,15 @@ class TestWorkspaceRealtimePersistence(unittest.TestCase):
         second_source_id = self.workspace._persistence_source_id
 
         self.assertNotEqual(first_source_id, second_source_id)
-        self.assertNotIn(first_source_id, GLib._sources)
-        self.assertIn(second_source_id, GLib._sources)
-        self.assertEqual(len(GLib._sources), 1)
+        self.assertNotIn(first_source_id, self.glib._sources)
+        self.assertIn(second_source_id, self.glib._sources)
+        self.assertEqual(len(self.glib._sources), 1)
         self.workspace.save_to_disk.assert_not_called()
 
     def test_scheduled_callback_saves_once_and_clears_timer(self):
         self.workspace.schedule_persistence()
         source_id = self.workspace._persistence_source_id
-        _, callback, callback_args = GLib._sources[source_id]
+        _, callback, callback_args = self.glib._sources[source_id]
 
         self.assertFalse(callback(*callback_args))
         self.assertIsNone(self.workspace._persistence_source_id)
@@ -122,14 +135,14 @@ class TestWorkspaceRealtimePersistence(unittest.TestCase):
 
         self.assertTrue(self.workspace.flush_persistence())
 
-        self.assertNotIn(source_id, GLib._sources)
+        self.assertNotIn(source_id, self.glib._sources)
         self.assertIsNone(self.workspace._persistence_source_id)
         self.workspace.save_to_disk.assert_called_once_with()
 
     def test_cancel_tolerates_a_timer_already_removed_by_glib(self):
         self.workspace.schedule_persistence()
         source_id = self.workspace._persistence_source_id
-        del GLib._sources[source_id]
+        del self.glib._sources[source_id]
 
         self.workspace._cancel_scheduled_persistence()
 

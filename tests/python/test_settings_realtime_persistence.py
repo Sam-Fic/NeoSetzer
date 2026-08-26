@@ -7,13 +7,22 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-'''运行时设置持久化的去抖行为测试。'''
+'''运行时设置持久化的去抖行为测试。
+
+注意：不依赖 sys.modules 里当时的 GLib 身份。全套件运行时，字母序靠前的
+测试（如 test_matrix_generator）会先加载真实 gi，使 conftest_stub.install()
+让位；若直接使用 settings_module.GLib，会拿到真实 GLib——重置过的假
+_sources 字典与真实 timeout_add 登记的 id 对不上，产生 KeyError 污染。
+因此 setUp 显式构建独立桩实例（make_glib_stub）并 patch 进被测模块，
+桩/真机环境下行为完全一致。
+'''
 
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from tests.python import conftest_stub  # noqa: F401  必须先注入伪 gi
+from tests.python import conftest_stub  # noqa: F401  无 GTK 环境时提供 Gtk/Pango 桩
 
 from setzer.helpers.observable import Observable
 from setzer.helpers.persistence import load_json
@@ -24,9 +33,14 @@ from setzer.settings.settings import Settings
 class TestSettingsRealtimePersistence(unittest.TestCase):
 
     def setUp(self):
-        self.glib = settings_module.GLib
-        self.glib._next_source_id = 0
-        self.glib._sources = {}
+        # 独立 GLib 桩：登记表、自增 id 均为本测试私有，杜绝环境串扰。
+        self.glib = conftest_stub.make_glib_stub()
+        # 生产代码在调用时解引用模块级名字 GLib.timeout_add / GLib.Source.remove，
+        # patch settings_module.GLib 即可让被测路径写入上面的桩。
+        patcher = patch.object(settings_module, 'GLib', self.glib)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
         self.tempdir = tempfile.TemporaryDirectory()
 
         # 通过最小实例避开 Gtk.TextView 默认字体探测；本测试只验证运行时

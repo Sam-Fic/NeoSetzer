@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### 修复
+
+- **修复全套件运行时 5 个实时持久化测试的既有污染失败**：`test_settings_realtime_persistence.py` / `test_workspace_realtime_persistence.py` 假设 `conftest_stub` 的伪 GLib 生效，但 pytest 收集阶段字母序靠前的测试（test_cite_optional_arg、test_code_folding_programmatic_load、test_latex_db_error_flag、test_matrix_generator）会先加载真实 gi，使桩让位——被测代码经真实 `timeout_add` 登记的 source id 与测试重置的假 `_sources` 字典对不上，产生 `KeyError`。现两个测试文件不再依赖环境中 GLib 的身份：新增 `conftest_stub.make_glib_stub()` 工厂，setUp 构建独立桩实例并注入调用点（settings 经 `patch.object(settings_module, 'GLib', …)`；workspace 注入 AST 提取函数共享的 globals 字典），断言同步指向私有桩。全套件从 574 passed + 5 failed 恢复为 **579 passed**。
+
+### Improvements
+
+- **fix**: Make the two realtime-persistence test files immune to GLib identity in the environment. They assumed the `conftest_stub` fake GLib was active, but during full-suite collection, alphabetically earlier tests (`test_cite_optional_arg`, `test_code_folding_programmatic_load`, `test_latex_db_error_flag`, `test_matrix_generator`) load the real gi first, so the stub stands down — production code then registered timers via real `timeout_add` while assertions looked into a freshly reset fake `_sources` dict, raising `KeyError`. Both files now build an isolated stub per test via the new `conftest_stub.make_glib_stub()` factory and inject it at the call site (`patch.object(settings_module, 'GLib', …)` for Settings; the AST-extracted methods' shared globals dict for Workspace), with assertions pointed at the private stub. Full suite goes from 574 passed + 5 failed to **579 passed**.
+
 ## v79 — 2026-08-25
 
 ### 主要改进
