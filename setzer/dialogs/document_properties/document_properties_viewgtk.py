@@ -115,6 +115,9 @@ class DocumentPropertiesView(DialogView):
             _('Configure shared settings in .neosetzer/build.json'))
         self.project_configuration_button = Gtk.Button.new_with_mnemonic(
             _('_Configure'))
+        # 行内后缀按钮：保持默认的 raised 外观，仅约束垂直居中以避免
+        # Adw.ActionRow 后缀空间把按钮撑成过高的胶囊（valign 默认是 FILL）。
+        self.project_configuration_button.set_valign(Gtk.Align.CENTER)
         project_configuration_row.add_suffix(self.project_configuration_button)
         project_configuration_row.set_activatable_widget(
             self.project_configuration_button)
