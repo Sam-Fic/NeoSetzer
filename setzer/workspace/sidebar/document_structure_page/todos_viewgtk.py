@@ -40,14 +40,10 @@ class TodosSectionView(structure_widget.StructureWidget):
         self._register_context_actions()
 
         # 添加「Show all open documents」toggle
-        self.show_all_row = Adw.ActionRow()
+        self.show_all_row = Adw.SwitchRow()
         self.show_all_row.set_title(_('Show all open documents'))
-        self.show_all_switch = Gtk.Switch()
-        self.show_all_switch.set_valign(Gtk.Align.CENTER)
-        self.show_all_switch.set_active(self.model._show_all)
-        self.show_all_switch.connect('notify::active', self._on_show_all_toggled)
-        self.show_all_row.add_suffix(self.show_all_switch)
-        self.show_all_row.set_activatable_widget(self.show_all_switch)
+        self.show_all_row.set_active(self.model._show_all)
+        self.show_all_row.connect('notify::active', self._on_show_all_toggled)
 
         # 将 toggle 行插入到列表顶部（在 populate 的 rows 之前）
         # 子类化 StructureWidget 的 ListBox，在 populate 顶部插入
