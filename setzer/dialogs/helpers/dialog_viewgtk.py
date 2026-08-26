@@ -27,6 +27,13 @@ class DialogView(Adw.Dialog):
     def __init__(self, main_window):
         Adw.Dialog.__init__(self)
 
+        # 暴露给子类的真实顶层窗口：FilechooserButton 等子组件需要 Gtk.Window
+        # 作为 FileDialog.open() 的 parent 形参，而 self 是 Adw.Dialog（继承
+        # Gtk.Widget 而非 Gtk.Window），传 self 会在运行期触发
+        # "Expected Gtk.Window, but got ..."。在基类保存主窗口引用，
+        # 子类用 self.main_window 透传，避免各处自己再去 root 找。
+        self.main_window = main_window
+
         self.headerbar = Adw.HeaderBar()
         self.toolbar_view = Adw.ToolbarView()
         self.toolbar_view.add_top_bar(self.headerbar)

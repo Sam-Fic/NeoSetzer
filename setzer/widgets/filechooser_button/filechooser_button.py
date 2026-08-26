@@ -46,6 +46,16 @@ class FilechooserButton(Observable):
     def __init__(self, parent_window):
         Observable.__init__(self)
 
+        # GTK4 Gtk.FileDialog.open() 的 parent 形参类型签名是 Gtk.Window。
+        # 早期版本误把 Adw.Dialog（继承 Gtk.Widget 而非 Gtk.Window）实例传进来，
+        # 会在用户点按钮时才抛 "Expected Gtk.Window, but got ..."，
+        # 调用栈深、定位成本高。这里在构造期就做轻量校验，参数错误立刻失败，
+        # 错误信息直接指明传错了什么类型的对象。
+        if not isinstance(parent_window, Gtk.Window):
+            raise TypeError(
+                'FilechooserButton needs a Gtk.Window (or Adw.ApplicationWindow) '
+                'as parent_window, got {0}'.format(type(parent_window).__name__))
+
         self.parent_window = parent_window
         self.default_folder = None
         self.filename = None
