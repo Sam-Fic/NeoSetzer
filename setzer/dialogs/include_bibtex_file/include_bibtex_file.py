@@ -50,12 +50,10 @@ class IncludeBibTeXFile(object):
         self.view.include_button.connect('clicked', self.on_include_button_clicked)
         self.setup()
 
-        # set_active(True) 在状态由默认 False 变为 True 时已会发射 'toggled'
-        # 信号,从而触发 on_style_chosen / on_natbib_style_chosen 完成预览栈的
-        # 可见子项初始化,无需再手动调用 toggled()(原代码重复触发会导致
-        # 过渡方向判定为 SLIDE_RIGHT,产生轻微视觉瑕疵)。
-        self.view.style_buttons[self.current_values['style']].set_active(True)
-        self.view.natbib_style_buttons[self.current_values['natbib_style']].set_active(True)
+        # 用 ComboRow.set_selected() 初始化选中项；notify::selected 信号
+        # 会在设置后自动触发，完成预览栈的可见子项初始化。
+        self.view.style_row.set_selected(self.styles.index(self.current_values['style']))
+        self.view.natbib_style_row.set_selected(self.natbib_styles.index(self.current_values['natbib_style']))
         self.view.natbib_option.set_active(self.current_values['natbib_toggle'])
         self.update_style_chooser_visibility()
 
@@ -106,62 +104,56 @@ class IncludeBibTeXFile(object):
         file_filter1.set_name(_('BibTeX Files'))
         self.view.file_chooser_button.add_filter(file_filter1)
 
-        first_button = None
-        for name in self.style_names:
-            style = name.lower()
-            self.view.style_buttons[style] = Gtk.ToggleButton()
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            box.append(Gtk.Label(label=name))
-            box.set_margin_end(6)
-            box.set_margin_start(4)
-            self.view.style_buttons[style].set_child(box)
-            if first_button != None:
-                self.view.style_buttons[style].set_group(first_button)
-            self.view.style_switcher.append(self.view.style_buttons[style])
-            self.view.style_buttons[style].connect('toggled', self.on_style_chosen, style)
-            if first_button == None: first_button = self.view.style_buttons[style]
-
+        # 加载预览图片到 stack（先清空，防止 setup 多次调用时重复添加）
+        # GTK 4 中 Gtk.Stack 没有 remove_all_children 和 get_children，
+        # 通过 observe_children() 获取页面列表并逐个 remove。
+        pages = self.view.preview_stack.observe_children()
+        while pages.get_n_items() > 0:
+            child = pages.get_item(0)
+            self.view.preview_stack.remove(child)
+        for style in self.styles:
             image = Gtk.Picture.new_for_filename(os.path.join(ServiceLocator.get_resources_path(), 'bibliography_styles', style + '.png'))
             image.set_can_shrink(False)
             self.view.preview_stack.add_named(image, style)
 
-        first_button = None
-        for name in self.natbib_style_names:
-            style = name.lower()
-            self.view.natbib_style_buttons[style] = Gtk.ToggleButton()
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            box.append(Gtk.Label(label=name))
-            box.set_margin_end(6)
-            box.set_margin_start(4)
-            self.view.natbib_style_buttons[style].set_child(box)
-            if first_button != None:
-                self.view.natbib_style_buttons[style].set_group(first_button)
-            self.view.natbib_style_switcher.append(self.view.natbib_style_buttons[style])
-            self.view.natbib_style_buttons[style].connect('toggled', self.on_natbib_style_chosen, style)
-            if first_button == None: first_button = self.view.natbib_style_buttons[style]
-
+        pages = self.view.natbib_preview_stack.observe_children()
+        while pages.get_n_items() > 0:
+            child = pages.get_item(0)
+            self.view.natbib_preview_stack.remove(child)
+        for style in self.natbib_styles:
             image = Gtk.Picture.new_for_filename(os.path.join(ServiceLocator.get_resources_path(), 'bibliography_styles', style + '.png'))
             image.set_can_shrink(False)
             self.view.natbib_preview_stack.add_named(image, style)
 
+        # ComboRow 的选项在 view 初始化时已通过 set_model 设置，
+        # 预览图片也已通过 add_named 添加到 stack。
+        # 这里只需连接信号。
+        self.view.style_row.connect('notify::selected', self.on_style_changed)
+        self.view.natbib_style_row.connect('notify::selected', self.on_natbib_style_changed)
+
         self.view.file_chooser_button.connect('file-set', self.on_file_chosen)
-        self.view.natbib_option.connect('toggled', self.on_natbib_toggled)
+        # natbib_option 已从 Gtk.CheckButton 换为 Adw.SwitchRow：后者没有
+        # 'toggled' 信号，用 notify::active 等价替代（编程式 set_active()
+        # 同样会触发，与 CheckButton 的 toggled 语义一致）。
+        self.view.natbib_option.connect('notify::active', self.on_natbib_toggled)
 
     def on_file_chosen(self, widget=None):
         self.view.include_button.set_sensitive(True)
         self.current_values['filename'] = self.view.file_chooser_button.get_filename()
 
-    def on_natbib_toggled(self, togglebutton):
+    def on_natbib_toggled(self, row, pspec=None):
         self.update_style_chooser_visibility()
 
     def update_style_chooser_visibility(self):
         self.current_values['natbib_toggle'] = self.view.natbib_option.get_active()
         self.view.preview_stack_wrapper.set_visible(not self.view.natbib_option.get_active())
-        self.view.style_switcher.set_visible(not self.view.natbib_option.get_active())
+        self.view.style_group.set_visible(not self.view.natbib_option.get_active())
         self.view.natbib_preview_stack_wrapper.set_visible(self.view.natbib_option.get_active())
-        self.view.natbib_style_switcher.set_visible(self.view.natbib_option.get_active())
+        self.view.natbib_style_group.set_visible(self.view.natbib_option.get_active())
 
-    def on_natbib_style_chosen(self, button, style):
+    def on_natbib_style_changed(self, row, pspec=None):
+        selected = self.view.natbib_style_row.get_selected()
+        style = self.natbib_styles[selected]
         if self.natbib_styles.index(style) > self.natbib_styles.index(self.current_values['natbib_style']):
             self.view.natbib_preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         else:
@@ -169,7 +161,9 @@ class IncludeBibTeXFile(object):
         self.view.natbib_preview_stack.set_visible_child_name(style)
         self.current_values['natbib_style'] = style
 
-    def on_style_chosen(self, button, style):
+    def on_style_changed(self, row, pspec=None):
+        selected = self.view.style_row.get_selected()
+        style = self.styles[selected]
         if self.styles.index(style) > self.styles.index(self.current_values['style']):
             self.view.preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         else:
@@ -197,5 +191,3 @@ class IncludeBibTeXFile(object):
         self.document.insert_before_document_end('''\\bibliographystyle{''' + self.get_style() + '''}
 \\bibliography{''' + self.get_display_filename() + '''}''')
         self.document.scroll_cursor_onscreen()
-
-
