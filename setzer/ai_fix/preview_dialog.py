@@ -79,15 +79,15 @@ class PreviewDialog(object):
         subtitle = cwd if cwd else _('(unsaved document)')
         self.view.set_header(title, subtitle)
         self.view.set_prompt(prompt)
-        # 默认勾选状态：默认不勾（让用户每次决定是否信任）
-        self.view.dont_ask_check.set_active(False)
-        # 显示复选框（信任目录场景由调用方跳过 present，所以这里恒显示）
+        # 默认开关状态：默认关（让用户每次决定是否信任）
+        self.view.dont_ask_switch.set_active(False)
+        # 显示开关行（信任目录场景由调用方跳过 present，所以这里恒显示）
         self.view.set_dont_ask_visible(True)
 
         self.view.present(parent)
 
     def _on_send_clicked(self, button):
-        '''用户点发送：读 prompt + 复选框状态，回调，关闭弹窗。'''
+        '''用户点发送：读 prompt + 开关状态，回调，关闭弹窗。'''
         cb = self._current_callback
         prompt = self.view.get_prompt()
         dont_ask = self.view.is_dont_ask_checked()

@@ -102,12 +102,16 @@ class PreviewDialogView(DialogView):
         scrolled.set_child(self.prompt_view)
         content_box.append(scrolled)
 
-        # 「此项目不再提示」复选框
-        self.dont_ask_check = Gtk.CheckButton(label=_('Don\'t ask again for this project'))
-        self.dont_ask_check.set_tooltip_text(_('Skip this preview dialog for the current document\'s directory in the future. '
-                                               'You can revoke this in Preferences → AI Fix → Trusted directories.'))
-        self.dont_ask_check.set_can_focus(False)
-        content_box.append(self.dont_ask_check)
+        # 「此项目不再提示」开关：Adw.SwitchRow（外包 Adw.PreferencesGroup
+        # 形成 boxed list，裸 SwitchRow 在列表外会渲染成无边框浮动行）。
+        # 说明文字放标准 subtitle 槽位（原为 tooltip），随主题排版自动换行。
+        dont_ask_group = Adw.PreferencesGroup()
+        self.dont_ask_switch = Adw.SwitchRow(
+            title=_('Don\'t ask again for this project'),
+            subtitle=_('Skip this preview dialog for the current document\'s directory in the future. '
+                       'You can revoke this in Preferences → AI Fix → Trusted directories.'))
+        dont_ask_group.add(self.dont_ask_switch)
+        content_box.append(dont_ask_group)
 
         self.topbox.append(content_box)
 
@@ -169,12 +173,12 @@ class PreviewDialogView(DialogView):
         return self.prompt_buffer.get_text(start, end, True)
 
     def set_dont_ask_visible(self, visible):
-        '''是否显示「不再提示」复选框。
+        '''是否显示「不再提示」开关。
 
         在已信任目录跳过弹窗的情况下根本不会 present，所以本方法仅用于：
-        在某些场景（如临时禁用信任）下隐藏复选框。
+        在某些场景（如临时禁用信任）下隐藏开关行。
         '''
-        self.dont_ask_check.set_visible(visible)
+        self.dont_ask_switch.set_visible(visible)
 
     def is_dont_ask_checked(self):
-        return self.dont_ask_check.get_active()
+        return self.dont_ask_switch.get_active()
