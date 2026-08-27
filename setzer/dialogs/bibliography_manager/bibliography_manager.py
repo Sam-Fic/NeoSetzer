@@ -1302,7 +1302,7 @@ class _StringsDialog(DialogView):
     '''
 
     def __init__(self, parent):
-        DialogView.__init__(parent.main_window)
+        DialogView.__init__(self, parent.main_window)
         self.parent = parent
         self.editing_name = None
         self._build_view()
@@ -1313,7 +1313,7 @@ class _StringsDialog(DialogView):
         self.set_title(_('Manage @string Macros'))
         self.set_content_width(560)
         self.set_content_height(440)
-        self.set_modal(True)
+        # Adw.Dialog 无 set_modal：present() 展示时天然模态
 
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         outer.set_margin_top(12)
