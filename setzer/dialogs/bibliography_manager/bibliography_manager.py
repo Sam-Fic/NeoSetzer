@@ -193,6 +193,10 @@ class BibliographyManagerDialog(DialogView):
         # 当前激活行用于右侧详情面板。
         self.entry_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.entry_list.add_css_class('boxed-list')
+        # boxed-list 即卡片样式，新版 libadwaita 卡片自带阴影；用应用级
+        # CSS 去掉（保留圆角边框的卡片外观）
+        self.entry_list.add_css_class('no-card-shadow')
+        self._load_no_shadow_css()
         # 勾选 toggle 走自定义 button-press 事件控制器，而不是
         # row-activated（需双击/Enter/空格）或 row-selected（SINGLE
         # 模式下重复点同一行不重新触发）——两者都不能提供稳定的
@@ -281,6 +285,26 @@ class BibliographyManagerDialog(DialogView):
         self.form_box.set_visible(False)
         right.append(self.form_box)
         self._build_form()
+
+    _no_shadow_css_loaded = False
+
+    @classmethod
+    def _load_no_shadow_css(cls):
+        '''注册去掉卡片阴影的应用级 CSS（幂等：provider 只加载一次）。'''
+        if cls._no_shadow_css_loaded:
+            return
+        cls._no_shadow_css_loaded = True
+        provider = Gtk.CssProvider()
+        provider.load_from_data(b'''
+            list.no-card-shadow {
+                box-shadow: none;
+            }
+        ''')
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
 
     def _build_form(self):
         # 标准 Adwaita 编辑表单：Adw.PreferencesGroup（boxed list）+ Adw.EntryRow，
