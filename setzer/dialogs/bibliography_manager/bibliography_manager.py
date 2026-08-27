@@ -1294,235 +1294,268 @@ class BibliographyManagerDialog(DialogView):
 class _StringsDialog(DialogView):
     '''A small modal sub-dialog for browsing and editing ``@string`` blocks.
 
-    The dialog re-parses the underlying bibliography every time it is
-    shown, so any external edits the user performed in the parent
-    manager are reflected on first open.  Internal mutations write back
-    through the parent's ``_apply_text`` so the on-disk file, the
-    in-memory editor buffer (when open) and the undo stack stay in sync.
+    Opens with an in-memory copy of every ``@string`` definition in the
+    current source, rendered as one expander row per macro.  Additions,
+    renames, revaluations and deletions stay local until the headerbar
+    Save button writes them back to the bibliography in a single batch;
+    closing with unsaved changes asks for confirmation.  Import writes
+    through immediately and rebuilds the buffer, so it is blocked while
+    unsaved edits exist.
     '''
 
     def __init__(self, parent):
         DialogView.__init__(self, parent.main_window)
         self.parent = parent
-        self.editing_name = None
+        # 编辑缓冲：每项 {'orig': 原名或 None（本次会话新增）, 'name': str,
+        # 'value': str, 'orig_value': str, 'row': ExpanderRow,
+        # 'name_entry'/'value_entry': EntryRow}。保存时与 orig/orig_value
+        # 对比算出增删改，全部成功才一次性写回。
+        self._items = []
+        self._row_widgets = []
+        self._original_names = []
+        self._dirty = False
         self._build_view()
         self.refresh_from_store()
-        self.present()
+        # 必须传父窗口：present() 缺省父窗口时会呈现为独立顶层窗口，
+        # 失去 transient 父子关系（不随父窗口居中、无模态遮罩等对话框效果）
+        self.present(self.parent.main_window)
 
     def _build_view(self):
         self.set_title(_('Manage @string Macros'))
         self.set_content_width(560)
-        self.set_content_height(440)
+        self.set_content_height(520)
         # Adw.Dialog 无 set_modal：present() 展示时天然模态
 
-        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        outer.set_margin_top(12)
-        outer.set_margin_bottom(12)
-        outer.set_margin_start(18)
-        outer.set_margin_end(18)
-        self.topbox.append(outer)
+        # HeaderBar：Close（start）| Import、Save（end，Save 为 suggested）
+        # 隐藏窗口标题按钮：右上角的原生 ✕ 与左上 Close 重复
+        self.headerbar.set_show_start_title_buttons(False)
+        self.headerbar.set_show_end_title_buttons(False)
+        close_button = Gtk.Button.new_with_mnemonic(_('_Close'))
+        close_button.set_can_focus(False)
+        close_button.connect('clicked', self._on_close_requested)
+        self.headerbar.pack_start(close_button)
+
+        self.save_button = Gtk.Button(label=_('Save'))
+        self.save_button.set_can_focus(False)
+        self.save_button.add_css_class('suggested-action')
+        self.save_button.set_sensitive(False)
+        self.save_button.set_tooltip_text(
+            _('Apply all changes to the bibliography file'))
+        self.save_button.connect('clicked', self._on_save)
+        self.headerbar.pack_end(self.save_button)
+
+        import_button = Gtk.Button.new_from_icon_name('document-open-symbolic')
+        import_button.set_tooltip_text(
+            _('Import @string macros from a .bib file'))
+        import_button.connect('clicked', self._on_import_strings)
+        self.headerbar.pack_end(import_button)
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content.set_margin_top(12)
+        content.set_margin_bottom(6)
+        content.set_margin_start(6)
+        content.set_margin_end(6)
+        content.set_vexpand(True)
+        self.topbox.append(content)
 
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_placeholder_text(_('Search string name or value'))
-        self.search_entry.connect('search-changed', self._refresh_rows)
-        outer.append(self.search_entry)
+        self.search_entry.connect('search-changed', self._rebuild_rows)
+        content.append(self.search_entry)
 
-        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        body.set_vexpand(True)
-        outer.append(body)
+        # Adw.PreferencesPage 是官方的偏好设置滚动容器（内部自带
+        # ScrolledWindow + Clamp，展开行高度测量正确）。必须 vexpand(True)
+        # 让它填满剩余空间——若为 False，页面高度=自然高度，窗口偏高时
+        # 下方留白、窗口偏矮时内容被 ToolbarView 裁切且无滚动条。
+        self.prefs_page = Adw.PreferencesPage()
+        self.prefs_page.set_vexpand(True)
+        content.append(self.prefs_page)
 
-        self.list_box = Gtk.ListBox()
-        self.list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        self.list_box.add_css_class('boxed-list')
-        self.list_box.connect('row-selected', self._on_row_selected)
-        list_scroller = Gtk.ScrolledWindow()
-        list_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        list_scroller.set_child(self.list_box)
-        list_scroller.set_size_request(220, -1)
-        body.append(list_scroller)
+        self.group = Adw.PreferencesGroup(title=_('@string Macros'))
+        self.prefs_page.add(self.group)
 
-        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        form.set_hexpand(True)
-        body.append(form)
-
-        self.name_entry = Gtk.Entry()
-        self.name_entry.set_placeholder_text(_('Macro name (e.g. journal)'))
-        form.append(self._labeled_widget_dlg(_('Name'), self.name_entry))
-
-        self.value_entry = Gtk.Entry()
-        self.value_entry.set_placeholder_text(
-            _('Value (plain text or {braced})'))
-        form.append(self._labeled_widget_dlg(_('Value'), self.value_entry))
-
-        list_actions = Gtk.Box(spacing=6)
-        list_actions.set_halign(Gtk.Align.END)
-        new_button = Gtk.Button(label=_('New String'))
-        new_button.set_icon_name('list-add-symbolic')
-        new_button.connect('clicked', self._on_new_string)
-        list_actions.append(new_button)
-        delete_button = Gtk.Button(label=_('Delete'))
-        delete_button.set_icon_name('user-trash-symbolic')
-        delete_button.add_css_class('destructive-action')
-        delete_button.connect('clicked', self._on_delete_string)
-        list_actions.append(delete_button)
-        form.append(list_actions)
-
-        form_actions = Gtk.Box(spacing=6)
-        form_actions.set_halign(Gtk.Align.END)
-        save_button = Gtk.Button(label=_('Save String'))
-        save_button.add_css_class('suggested-action')
-        save_button.connect('clicked', self._on_save_string)
-        form_actions.append(save_button)
-        form.append(form_actions)
-
-        footer = Gtk.Box(spacing=6)
-        footer.set_halign(Gtk.Align.END)
-        import_button = Gtk.Button(label=_('Import from .bib…'))
-        import_button.set_icon_name('document-open-symbolic')
-        import_button.connect('clicked', self._on_import_strings)
-        footer.append(import_button)
-        outer.append(footer)
-
-        self._rows = []
-
-    @staticmethod
-    def _labeled_widget_dlg(label, widget, description=None):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        heading = Gtk.Label(label=label)
-        heading.set_halign(Gtk.Align.START)
-        heading.add_css_class('heading')
-        box.append(heading)
-        if description:
-            hint = Gtk.Label(label=description)
-            hint.set_halign(Gtk.Align.START)
-            hint.add_css_class('dim-label')
-            hint.set_wrap(True)
-            box.append(hint)
-        box.append(widget)
-        return box
+        add_button = Gtk.Button.new_from_icon_name('list-add-symbolic')
+        add_button.set_tooltip_text(_('New String'))
+        add_button.set_valign(Gtk.Align.CENTER)
+        add_button.connect('clicked', self._on_add)
+        self.group.set_header_suffix(add_button)
 
     def refresh_from_store(self):
-        '''Reload the string list from the parent's current store.'''
-        if self.parent.store is None:
-            self._clear_rows()
-            self.name_entry.set_text('')
-            self.value_entry.set_text('')
-            self.editing_name = None
-            return
-        self.parent.store = BibTeXEntryStore(self.parent.loaded_text)
-        self._refresh_rows()
+        '''Rebuild the edit buffer from the parent manager's current text.'''
+        self._items = []
+        if self.parent.store is not None:
+            self.parent.store = BibTeXEntryStore(self.parent.loaded_text)
+            for string in self.parent.store.list_strings():
+                self._items.append(self._make_item(string.name, string.value))
+        self._original_names = [item['orig'] for item in self._items]
+        self._dirty = False
+        self.save_button.set_sensitive(False)
+        self._rebuild_rows()
 
-    def _refresh_rows(self, *args):
-        self._clear_rows()
-        if self.parent.store is None:
+    @staticmethod
+    def _make_item(name, value):
+        return {
+            'orig': name, 'name': name, 'value': value,
+            'orig_value': value,
+            'row': None, 'name_entry': None, 'value_entry': None,
+        }
+
+    def _visible_items(self):
+        needle = self.search_entry.get_text().casefold().strip()
+        if not needle:
+            return list(self._items)
+        return [item for item in self._items
+                if needle in item['name'].casefold()
+                or needle in item['value'].casefold()]
+
+    def _rebuild_rows(self, *args):
+        for row in self._row_widgets:
+            self.group.remove(row)
+        self._row_widgets = []
+        for item in self._visible_items():
+            row = self._make_row(item)
+            self.group.add(row)
+            self._row_widgets.append(row)
+        if not self._row_widgets:
+            empty = Adw.ActionRow(
+                title=_('No @string macros'),
+                subtitle=_('Use the + button to add one.'))
+            self.group.add(empty)
+            self._row_widgets.append(empty)
+
+    def _make_row(self, item):
+        row = Adw.ExpanderRow()
+        item['row'] = row
+
+        # 先 set_text 再 connect，避免重建行时误标 dirty
+        name_entry = Adw.EntryRow(title=_('Name'))
+        name_entry.set_text(item['name'])
+        name_entry.connect('changed', self._on_name_changed, item)
+        row.add_row(name_entry)
+        item['name_entry'] = name_entry
+
+        value_entry = Adw.EntryRow(title=_('Value'))
+        value_entry.set_text(item['value'])
+        value_entry.connect('changed', self._on_value_changed, item)
+        row.add_row(value_entry)
+        item['value_entry'] = value_entry
+
+        delete_button = Gtk.Button.new_from_icon_name('user-trash-symbolic')
+        delete_button.add_css_class('flat')
+        delete_button.add_css_class('destructive-action')
+        delete_button.set_valign(Gtk.Align.CENTER)
+        delete_button.set_tooltip_text(_('Delete'))
+        delete_button.connect('clicked', self._on_delete, item)
+        row.add_suffix(delete_button)
+
+        self._update_row_display(item)
+        return row
+
+    @staticmethod
+    def _update_row_display(item):
+        if item['row'] is None:
             return
-        for string in self.parent.store.list_strings(self.search_entry.get_text()):
-            row = Gtk.ListBoxRow()
-            row.string = string
-            label = Gtk.Label(label=string.line)
-            label.set_halign(Gtk.Align.START)
-            label.set_margin_top(8)
-            label.set_margin_bottom(8)
-            label.set_margin_start(10)
-            label.set_margin_end(10)
-            label.set_ellipsize(3)
-            row.set_child(label)
-            self.list_box.append(row)
-            self._rows.append(row)
-        if self._rows:
-            self.list_box.select_row(self._rows[0])
+        item['row'].set_title(item['name'].strip() or _('(untitled)'))
+        item['row'].set_subtitle(item['value'].strip() or _('No value'))
+
+    def _on_name_changed(self, entry, item):
+        item['name'] = entry.get_text()
+        self._mark_dirty()
+        self._update_row_display(item)
+
+    def _on_value_changed(self, entry, item):
+        item['value'] = entry.get_text()
+        self._mark_dirty()
+        self._update_row_display(item)
+
+    def _mark_dirty(self):
+        self._dirty = True
+        self.save_button.set_sensitive(True)
+
+    def _on_add(self, button):
+        item = self._make_item('', '')
+        item['orig'] = None  # 标记为本次会话新增
+        self._items.append(item)
+        self._mark_dirty()
+        if self.search_entry.get_text():
+            self.search_entry.set_text('')  # 触发一次重建
         else:
-            self.editing_name = None
-            self.name_entry.set_text('')
-            self.value_entry.set_text('')
+            self._rebuild_rows()
+        if item['row'] is not None:
+            item['row'].set_expanded(True)
+            item['name_entry'].grab_focus()
 
-    def _clear_rows(self):
-        child = self.list_box.get_first_child()
-        while child is not None:
-            following = child.get_next_sibling()
-            self.list_box.remove(child)
-            child = following
-        self._rows = []
+    def _on_delete(self, button, item):
+        self._items.remove(item)
+        self._mark_dirty()
+        self._rebuild_rows()
 
-    def _on_row_selected(self, listbox, row):
-        if row is None:
+    def _on_close_requested(self, button):
+        if not self._dirty:
+            self.close()
             return
-        string = row.string
-        self.editing_name = string.name
-        self.name_entry.set_text(string.name)
-        self.value_entry.set_text(string.value)
+        dialog = Adw.AlertDialog(
+            heading=_('Discard unsaved changes?'),
+            body=_('Changes to @string macros have not been saved yet.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('discard', _('Discard'))
+        dialog.set_response_appearance(
+            'discard', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.connect('response', self._on_discard_response)
+        dialog.present(self)
 
-    def _on_new_string(self, button):
-        self.list_box.unselect_all()
-        self.editing_name = None
-        self.name_entry.set_text('')
-        self.value_entry.set_text('')
-        self.name_entry.grab_focus()
+    def _on_discard_response(self, dialog, response):
+        if response == 'discard':
+            self.close()
 
-    def _on_save_string(self, button):
+    def _on_save(self, button):
         if self.parent.store is None:
             return
-        name = self.name_entry.get_text().strip()
-        value = self.value_entry.get_text()
-        if not name:
-            self._show_local_error(_('Enter a macro name first.'))
-            return
-        if not value.strip():
-            self._show_local_error(_('Enter a value for the macro.'))
-            return
-        try:
-            if self.editing_name is None:
-                updated = self.parent.store.add_string(name, value)
-            else:
-                updated = self.parent.store.update_string(
-                    self.editing_name, name, value)
-            self.parent._apply_text(updated)
-            self.parent._load_source(self.parent.selected_source)
-            self.refresh_from_store()
-            self._restore_selection(name)
-        except (BibTeXEntryError, BibTeXExternalChangeError, OSError, UnicodeError) as error:
-            self._show_local_error(str(error))
-
-    def _restore_selection(self, name):
-        target_name = name.casefold()
-        for row in self._rows:
-            if row.string.name.casefold() == target_name:
-                self.list_box.select_row(row)
+        for item in self._items:
+            name = item['name'].strip()
+            if not name:
+                self._show_local_error(_('Enter a macro name first.'))
                 return
-
-    def _on_delete_string(self, button):
-        if self.parent.store is None or self.editing_name is None:
-            return
-        target = self.editing_name
-        confirmation = Adw.AlertDialog(
-            heading=_('Delete @string?'),
-            body=_(
-                'Delete the macro “{name}” from this bibliography? '
-                'This can be undone when the file is open in Setzer.'
-            ).format(name=target),
-        )
-        confirmation.add_response('cancel', _('Cancel'))
-        confirmation.add_response('delete', _('Delete'))
-        confirmation.set_response_appearance(
-            'delete', Adw.ResponseAppearance.DESTRUCTIVE)
-        confirmation.set_default_response('cancel')
-        confirmation.set_close_response('cancel')
-        confirmation.connect('response', self._on_delete_response, target)
-        confirmation.present(self)
-
-    def _on_delete_response(self, dialog, response, name):
-        if response != 'delete' or self.parent.store is None:
-            return
+            if not item['value'].strip():
+                self._show_local_error(
+                    _('Enter a value for the macro “{name}”.').format(name=name))
+                return
         try:
-            updated = self.parent.store.delete_string(name)
-            self.parent._apply_text(updated)
-            self.parent._load_source(self.parent.selected_source)
-            self.refresh_from_store()
+            # store 的增删改方法不修改内部状态、只返回新文本，因此每个
+            # 操作都基于最新文本新建 store；全部成功后才一次性写回。
+            text = self.parent.loaded_text
+            kept = {item['orig'].casefold() for item in self._items
+                    if item['orig'] is not None}
+            for orig in self._original_names:
+                if orig.casefold() not in kept:
+                    text = BibTeXEntryStore(text).delete_string(orig)
+            for item in self._items:
+                name = item['name'].strip()
+                if item['orig'] is None:
+                    text = BibTeXEntryStore(text).add_string(name, item['value'])
+                elif name != item['orig'] or item['value'] != item['orig_value']:
+                    text = BibTeXEntryStore(text).update_string(
+                        item['orig'], name, item['value'])
         except (BibTeXEntryError, BibTeXExternalChangeError, OSError, UnicodeError) as error:
             self._show_local_error(str(error))
+            return
+        try:
+            self.parent._apply_text(text)
+        except (BibTeXEntryError, BibTeXExternalChangeError, OSError, UnicodeError) as error:
+            self._show_local_error(str(error))
+            return
+        self.parent._load_source(self.parent.selected_source)
+        self.refresh_from_store()
 
     def _on_import_strings(self, button):
         if self.parent.store is None:
+            return
+        if self._dirty:
+            # 导入会立即写回并重建缓冲，会丢掉未保存的本地编辑
+            self._show_local_error(
+                _('Save or discard your changes before importing.'))
             return
         chooser = Gtk.FileDialog()
         chooser.set_title(_('Choose a BibTeX File to Import'))
