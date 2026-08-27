@@ -7,12 +7,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -58,7 +58,7 @@ class IncludeBibTeXFile(object):
         self.update_style_chooser_visibility()
 
         self.view.include_button.set_sensitive(False)
-        self.view.file_chooser_button.reset()
+        self.view.set_file(None)
 
         self.view.present(self.main_window)
 
@@ -102,7 +102,8 @@ class IncludeBibTeXFile(object):
         file_filter1 = Gtk.FileFilter()
         file_filter1.add_pattern('*.bib')
         file_filter1.set_name(_('BibTeX Files'))
-        self.view.file_chooser_button.add_filter(file_filter1)
+        # add_filter 缓存在 view 上，打开文件对话框时由 view 应用到 Gtk.FileDialog
+        self.view.add_filter(file_filter1)
 
         # 加载预览图片到 stack（先清空，防止 setup 多次调用时重复添加）
         # GTK 4 中 Gtk.Stack 没有 remove_all_children 和 get_children，
@@ -139,7 +140,8 @@ class IncludeBibTeXFile(object):
 
     def on_file_chosen(self, widget=None):
         self.view.include_button.set_sensitive(True)
-        self.current_values['filename'] = self.view.file_chooser_button.get_filename()
+        # filename 由 view 在文件对话框回调中维护（set_file 会同步更新）
+        self.current_values['filename'] = self.view.filename
 
     def on_natbib_toggled(self, row, pspec=None):
         self.update_style_chooser_visibility()
