@@ -103,7 +103,7 @@ class Settings(Observable):
         self.defaults['window_state']['sidebar_paned_position'] = -1
         self.defaults['window_state']['sidebar_width_fraction'] = 0.20
         self.defaults['window_state']['show_help'] = False
-        self.defaults['window_state']['show_preview'] = False
+        self.defaults['window_state']['show_preview'] = True
         self.defaults['window_state']['show_build_log'] = False
         # todos 侧栏：是否显示所有文档的 todos。True=全部文档, False=仅当前文档。
         self.defaults['window_state']['todos_show_all_documents'] = False
@@ -144,7 +144,7 @@ class Settings(Observable):
         self.defaults['preferences']['latex_interpreter'] = 'xelatex'
         # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
         self.defaults['preferences']['on_startup'] = 'last_session'
-        self.defaults['preferences']['use_latexmk'] = False
+        self.defaults['preferences']['use_latexmk'] = True
         # 个人 TeX 树（上游 issue #182）：构建子进程的 TEXMFHOME。空字符串 =
         # 不覆盖——环境里已有 TEXMFHOME 则沿用；没有（典型：从桌面菜单/Flatpak
         # 启动，shell 的 export 不生效）则注入 TeX Live 默认 ~/texmf。
@@ -193,7 +193,7 @@ class Settings(Observable):
         self.defaults['preferences']['line_spacing'] = 0
         self.defaults['preferences']['enable_code_folding'] = True
         self.defaults['preferences']['enable_sticky_scroll'] = True
-        self.defaults['preferences']['enable_line_wrapping'] = True
+        self.defaults['preferences']['enable_line_wrapping'] = False
         self.defaults['preferences']['highlight_current_line'] = True
         self.defaults['preferences']['highlight_matching_brackets'] = True
         self.defaults['preferences']['highlight_matching_begin_end'] = True
@@ -370,7 +370,7 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['previous_bookmark'] = '<Control><Shift>f2'
         # Multi-cursor shortcuts (VS Code-style)
         self.defaults['keyboard_shortcuts']['select_next_occurrence'] = '<Control>d'
-        self.defaults['keyboard_shortcuts']['select_all_occurrences'] = '<Control><Shift>l'
+        self.defaults['keyboard_shortcuts']['select_all_occurrences'] = '<Control><Shift>d'
         self.defaults['keyboard_shortcuts']['add_cursor_above'] = '<Control><Alt>Up'
         self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Alt>Down'
         self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
