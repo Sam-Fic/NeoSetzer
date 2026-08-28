@@ -1288,7 +1288,10 @@ class Workspace(Observable):
             self.show_help = show_help
             self.settings.set_value('window_state', 'show_preview', show_preview)
             self.settings.set_value('window_state', 'show_help', show_help)
-            self.add_change_code('set_show_preview_or_help')
+        # 无论状态是否变化都通知观察者：预览「开启」被记忆但当前文档无 PDF
+        # 而自动收起时，按钮同步为未按下；用户再点按钮值不变，仍需触发
+        # presenter 的手动展开路径（suppress_unbuilt=False 强制展开）。
+        self.add_change_code('set_show_preview_or_help')
 
     def set_show_symbols_or_document_structure(self, show_symbols, show_document_structure):
         if show_symbols != self.show_symbols or show_document_structure != self.show_document_structure:

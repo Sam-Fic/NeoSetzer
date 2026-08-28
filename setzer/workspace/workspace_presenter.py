@@ -448,10 +448,26 @@ class WorkspacePresenter(object):
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
         self.main_window.preview_split.set_show_sidebar(preview_help_visible)
-        if preview_help_visible:
-            self.main_window.headerbar.preview_help_toggle.set_active(True)
-        elif not show_preview and not show_help:
-            self.main_window.headerbar.preview_help_toggle.set_active(False)
+        # 按钮无条件跟随面板真实状态：无 PDF 自动收起时按钮也要取消高亮，
+        # 否则出现「面板已收起、按钮仍按下」的错位。
+        self._sync_preview_toggle(preview_help_visible)
+
+    def _sync_preview_toggle(self, active):
+        '''把预览按钮高亮同步为面板实际状态（程序化同步，非用户操作）。
+
+        set_active 会同步触发 'toggled'；打标让控制器回调跳过，避免它按
+        同步后的状态回写 workspace.show_preview/show_help（例如无 PDF 自动
+        收起时把用户的「预览开启」记忆错误清掉，切回已编译文档后预览就
+        不会自动恢复）。
+        '''
+        toggle = self.main_window.headerbar.preview_help_toggle
+        if toggle.get_active() == active:
+            return
+        toggle._setzer_syncing = True
+        try:
+            toggle.set_active(active)
+        finally:
+            toggle._setzer_syncing = False
 
     def focus_active_document(self):
         active_document = self.workspace.get_active_document()
@@ -561,7 +577,7 @@ class WorkspacePresenter(object):
         self.main_window.preview_split.connect('notify::sidebar-width-fraction', self.on_preview_width_changed)
 
         self.main_window.headerbar.sidebar_toggle.set_active(self.workspace.show_symbols or self.workspace.show_document_structure)
-        self.main_window.headerbar.preview_help_toggle.set_active(self.workspace.show_preview or self.workspace.show_help)
+        self._sync_preview_toggle(self.workspace.show_preview or self.workspace.show_help)
 
     def on_sidebar_width_changed(self, split, pspec):
         # 去抖：拖动期间仅缓存最新值，idle 时一次性 set_value。

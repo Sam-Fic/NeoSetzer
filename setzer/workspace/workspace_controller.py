@@ -32,7 +32,9 @@ class WorkspaceController(object):
         self.main_window = ServiceLocator.get_main_window()
 
         self._syncing_toggles = False
-        self._last_preview_help = ('preview', False)
+        # 「上次开启的面板」记忆，供按钮从关闭状态点亮时恢复：
+        # (show_preview, show_help) 布尔元组。
+        self._last_preview_help = (True, False)
 
         self.main_window.headerbar.sidebar_toggle.connect('toggled', self.on_sidebar_toggle_toggled)
         self.main_window.headerbar.preview_help_toggle.connect('toggled', self.on_preview_help_toggle_toggled)
@@ -133,6 +135,10 @@ class WorkspaceController(object):
         self.workspace.set_show_sidebar(show)
 
     def on_preview_help_toggle_toggled(self, toggle_button, parameter=None):
+        # 程序化状态同步（presenter._sync_preview_toggle）也会触发 toggled：
+        # 跳过，避免按同步后的按钮状态回写 show_preview/show_help。
+        if getattr(toggle_button, '_setzer_syncing', False):
+            return
         show = toggle_button.get_active()
         if self.workspace.is_preview_popped_out():
             # 预览已弹出独立窗口：toggle 控制 help 开关（侧栏只显示帮助）。
