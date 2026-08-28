@@ -374,9 +374,13 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['previous_bookmark'] = '<Control><Shift>f2'
         # Multi-cursor shortcuts (VS Code-style)
         self.defaults['keyboard_shortcuts']['select_next_occurrence'] = '<Control>d'
-        self.defaults['keyboard_shortcuts']['select_all_occurrences'] = '<Control><Shift>d'
-        self.defaults['keyboard_shortcuts']['add_cursor_above'] = '<Control><Alt>Up'
-        self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Alt>Down'
+        # 注意不能用 <Control><Shift>d：那是下标（subscript）快捷键；
+        # 与功能文档/偏好设置描述保持一致使用 <Control><Shift>l。
+        self.defaults['keyboard_shortcuts']['select_all_occurrences'] = '<Control><Shift>l'
+        # 不用 <Control><Alt>Up/Down：被 GNOME 工作区切换
+        # （switch-to-workspace-up/down）全局抢占，应用收不到这些键。
+        self.defaults['keyboard_shortcuts']['add_cursor_above'] = '<Control><Shift>Up'
+        self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Shift>Down'
         self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
 
         # Experimental features (multi-cursor toggles)
@@ -409,6 +413,13 @@ class Settings(Observable):
             'symbols': ('<Control><Shift>s', 'F8'),
             'typewriter': ('<Control><Shift>t', '<Control><Shift>y'),
             'build_log': ('<Control><Shift>l', 'F4'),
+            # 旧值 <Control><Shift>d 与下标（subscript）快捷键冲突，
+            # 「选中所有相同词」从未按预期生效，迁到文档宣称的 <Control><Shift>l。
+            'select_all_occurrences': ('<Control><Shift>d', '<Control><Shift>l'),
+            # <Control><Alt>Up/Down 被 GNOME 工作区切换全局抢占，
+            # 「上/下方添加光标」从未生效，迁到 <Control><Shift>Up/Down。
+            'add_cursor_above': ('<Control><Alt>Up', '<Control><Shift>Up'),
+            'add_cursor_below': ('<Control><Alt>Down', '<Control><Shift>Down'),
         }
         changed = False
         for action, (old_default, new_default) in migrations.items():

@@ -45,6 +45,21 @@ _KEYVAL_UP = Gdk.keyval_from_name('Up')
 _KEYVAL_DOWN = Gdk.keyval_from_name('Down')
 _KEYVAL_LEFT = Gdk.keyval_from_name('Left')
 _KEYVAL_RIGHT = Gdk.keyval_from_name('Right')
+_KEYVAL_HOME = Gdk.keyval_from_name('Home')
+_KEYVAL_END = Gdk.keyval_from_name('End')
+_KEYVAL_PAGE_UP = Gdk.keyval_from_name('Page_Up')
+_KEYVAL_PAGE_DOWN = Gdk.keyval_from_name('Page_Down')
+_KEYVAL_D = Gdk.keyval_from_name('d')
+_KEYVAL_L = Gdk.keyval_from_name('l')
+# 纯导航键（方向/行首尾/翻页）：多光标激活时按下这些键先折叠附加光标，
+# 再交给默认处理移动主光标，避免隐形光标滞留原地。
+_NAV_KEYVALS = (_KEYVAL_UP, _KEYVAL_DOWN, _KEYVAL_LEFT, _KEYVAL_RIGHT,
+                _KEYVAL_HOME, _KEYVAL_END, _KEYVAL_PAGE_UP, _KEYVAL_PAGE_DOWN)
+
+# Alt+Drag 列选的最小有效位移（逻辑像素）。快速 Alt+Click 连点时手部抖动
+# 会让 GestureDrag 触发 drag-begin；位移小于该值按点击对待——不清空已有
+# 多光标、不构建列选区。取值大于 GTK 默认拖动阈值（8px）留有余量。
+_COLUMN_DRAG_MIN_OFFSET = 12
 
 
 class DocumentController(object):
@@ -71,11 +86,18 @@ class DocumentController(object):
         # （VS Code/gedit/Kate 均用 2–5 秒）。per-document stat I/O 降低 75%。
         self._save_date_loop_timeout_id = GObject.timeout_add(2000, self.save_date_loop)
 
+        # CAPTURE 阶段：Alt+Click 添加光标时必须先于 GtkTextView 内部手势
+        # 运行并 CLAIM 事件序列，否则内部手势会同时把主光标移到点击处，
+        # 造成主/附加光标重叠、打字双倍字符。
         self.primary_click_controller = Gtk.GestureClick()
         self.primary_click_controller.set_button(1)
-        self.primary_click_controller.set_propagation_phase(Gtk.PropagationPhase.TARGET)
+        self.primary_click_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.primary_click_controller.connect('pressed', self.on_primary_buttonpress)
+        self.primary_click_controller.connect('released', self.on_primary_buttonrelease)
         self.view.source_view.add_controller(self.primary_click_controller)
+        # Alt+Click 在 released 中处理（见 on_primary_buttonpress 注释）；
+        # 此处记录按下前的主光标偏移，released 时恢复。
+        self._alt_click_restore_offset = None
 
         self.secondary_click_controller = Gtk.GestureClick()
         self.secondary_click_controller.set_button(3)
@@ -126,9 +148,13 @@ class DocumentController(object):
         self._column_drag_controller.connect('drag-end', self._on_column_drag_end)
         self.view.source_view.add_controller(self._column_drag_controller)
 
-        # 列选拖动状态
+        # 列选拖动状态。注意 GestureDrag 的 drag-update/drag-end 回调参数是
+        # 相对 drag-begin 起点的偏移量，不是绝对坐标，需记录起点自行换算。
         self._column_dragging = False
+        self._column_drag_additive = False
         self._column_drag_start_iter = None
+        self._column_drag_start_x = 0
+        self._column_drag_start_y = 0
 
         # Ctrl+Click 添加光标（非前向同步）：在 primary_click_controller 的
         # on_primary_buttonpress 中已处理 Ctrl+Click 前向同步。这里额外识别
@@ -171,21 +197,35 @@ class DocumentController(object):
         modifiers = Gtk.accelerator_get_default_mod_mask()
         state = controller.get_current_event_state()
 
+        # Alt+Click: 按下时不处理也不 CLAIM——CLAIM 会让列选手势
+        # （GestureDrag）收不到该序列的任何事件，Alt+Drag 列选永远无法
+        # 触发。真正的点击在 released 中处理；若按住后移动超过拖动阈值，
+        # 列选手势会 CLAIM 序列，released 不会再触发，自然切换成列选。
+        # 此处记录按下前的主光标偏移：内部手势在按下时会把主光标移到
+        # 点击处，released 添加附加光标后需把主光标恢复回原位，避免
+        # 主/附加光标重叠导致打字双倍插入。
+        if state & Gdk.ModifierType.ALT_MASK:
+            buffer = self.document.source_buffer
+            self._alt_click_restore_offset = buffer.get_iter_at_mark(
+                buffer.get_insert()).get_offset()
+            return
+
         if n_press == 1:
-            # Alt+Click: 添加/移除额外光标（多光标模式）
-            if state & Gdk.ModifierType.ALT_MASK:
-                if self._is_mc_feature_enabled('experimental_alt_click'):
-                    success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
-                    if success:
-                        self._handle_alt_click(iter_at_click, x, y)
-                return
+            # 普通点击（无修饰键）：折叠所有附加光标。否则它们滞留在原位，
+            # 用户看不见却会在下次打字时同时编辑多处隐藏位置。
+            if not (state & modifiers):
+                multicursor = getattr(self.document, 'multicursor', None)
+                if multicursor is not None and (
+                        multicursor.has_multiple_cursors()
+                        or multicursor.is_column_mode()):
+                    multicursor.clear_all()
 
             if state & modifiers == Gdk.ModifierType.CONTROL_MASK:
                 workspace = ServiceLocator.get_workspace()
                 active_document = workspace.get_active_document()
                 if active_document is not None:
                     # 优先检查是否在 \ref{...} 上,如果是则跳转到定义
-                    success, iter_at_click = self.view.source_view.get_iter_at_location(x, y)
+                    success, iter_at_click = self._iter_at_widget_coords(x, y)
                     if success:
                         label = active_document.get_label_at_iter(iter_at_click)
                         if label is not None:
@@ -220,12 +260,54 @@ class DocumentController(object):
                     else:
                         self._show_sync_unavailable_toast()
 
+    def on_primary_buttonrelease(self, controller, n_press, x, y):
+        """Alt+Click 的点击确认点：序列未被列选手势 CLAIM 才会走到这里，
+        即这确实是一次点击而非拖动。任何 n_press 都处理（快速连点时
+        GestureClick 上报 n_press≥2，每一次释放都应当添加/移除光标）。
+        """
+        state = controller.get_current_event_state()
+        restore_offset = self._alt_click_restore_offset
+        self._alt_click_restore_offset = None
+
+        if not (state & Gdk.ModifierType.ALT_MASK):
+            return
+        if not (self._is_mc_feature_enabled('experimental_alt_click')
+                and self._is_multicursor_enabled()):
+            return
+
+        success, iter_at_click = self._iter_at_widget_coords(x, y)
+        if not success:
+            return
+
+        controller.set_state(Gtk.EventSequenceState.CLAIMED)
+
+        # 恢复按下前的主光标位置（内部手势在按下时把它移到了点击处）。
+        # 先恢复再添加附加光标：若点击处恰是主光标原位，去重逻辑会
+        # 拒绝重叠的附加光标。
+        buffer = self.document.source_buffer
+        if restore_offset is not None:
+            buffer.place_cursor(buffer.get_iter_at_offset(restore_offset))
+
+        self._handle_alt_click(iter_at_click, x, y)
+
     def _do_jump_to_label(self, label):
         r'''在 idle 时跳转到指定 label 的 \label{...} 定义位置。'''
         workspace = ServiceLocator.get_workspace()
         workspace.actions.actions['jump-to-definition'].activate(
             GLib.Variant('s', label))
         return False  # 确保 idle 只执行一次
+
+    def _iter_at_widget_coords(self, x, y):
+        """事件坐标（source_view 部件坐标）→ TextIter，返回 (found, iter)。
+
+        GTK4 的 get_iter_at_location 要求 **buffer** 坐标，而手势事件提供
+        的是部件坐标（含行号栏宽度、左边距、滚动偏移）。直接传部件坐标
+        会让点击位置向右偏移约一个行号栏宽度——等宽英文字体的偏移容易被
+        当成"选到了相邻字符"，全宽中文字符下错位则非常明显。
+        """
+        buffer_x, buffer_y = self.view.source_view.window_to_buffer_coords(
+            Gtk.TextWindowType.WIDGET, x, y)
+        return self.view.source_view.get_iter_at_location(buffer_x, buffer_y)
 
     def _handle_alt_click(self, iter_at_click, x, y):
         """处理 Alt+Click 添加/移除额外光标。"""
@@ -236,8 +318,9 @@ class DocumentController(object):
         if mc.has_multiple_cursors():
             click_offset = iter_at_click.get_offset()
             # 检查是否点击了已有额外光标
-            for cursor_mark, _ in mc.cursors:
-                cursor_offset = cursor_mark.get_iter().get_offset()
+            buffer = self.document.source_buffer
+            for cursor_mark, _anchor, _tag in mc.cursors:
+                cursor_offset = buffer.get_iter_at_mark(cursor_mark).get_offset()
                 if abs(click_offset - cursor_offset) <= 2:
                     mc.remove_cursor_at_offset(click_offset)
                     return
@@ -297,7 +380,12 @@ class DocumentController(object):
             self.view.source_view.set_cursor(self._cursor_text)
 
     def _on_column_drag_begin(self, controller, x, y):
-        """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。"""
+        """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。
+
+        此处只记录状态并 CLAIM，不清空现有光标、不移动主光标：快速
+        Alt+Click 连点时手部抖动可能触发 drag-begin，位移未超过
+        _COLUMN_DRAG_MIN_OFFSET 前都按点击对待，不能破坏已有多光标。
+        """
         state = controller.get_current_event_state()
         if not (state & Gdk.ModifierType.ALT_MASK):
             return  # 非 Alt+Drag，忽略
@@ -305,57 +393,74 @@ class DocumentController(object):
             return
         if not self._is_multicursor_enabled():
             return
+        multicursor = getattr(self.document, 'multicursor', None)
+        if multicursor is None:
+            return
 
-        # Ctrl+Alt+Drag: 添加新的列选区到现有光标
-        if state & Gdk.ModifierType.CONTROL_MASK:
-            self._column_drag_additive = True
-        else:
-            self._column_drag_additive = False
-            # 清除现有多光标（仅当非加法模式；multicursor 延迟到 idle 构造，
-            # 未就绪时无现有多光标可清，跳过即可）
-            if not self._column_drag_additive:
-                multicursor = getattr(self.document, 'multicursor', None)
-                if multicursor is not None:
-                    multicursor.clear_all()
+        # CLAIM 事件序列：阻止 GtkTextView 内部手势同时拉出普通选区。
+        controller.set_state(Gtk.EventSequenceState.CLAIMED)
+
+        # Ctrl+Alt+Drag: 添加新的列选区到现有光标（加法模式）
+        self._column_drag_additive = bool(state & Gdk.ModifierType.CONTROL_MASK)
 
         self._column_dragging = True
-        # GTK4: get_iter_at_location 返回 (found, iter) 元组，取 [1] 得 TextIter。
-        self._column_drag_start_iter = self.view.source_view.get_iter_at_location(x, y)[1]
-        self._column_drag_last_iter = self._column_drag_start_iter
-        self._column_drag_last_x = x
-        self._column_drag_last_y = y
+        # drag-begin 的坐标是绝对坐标；drag-update/drag-end 给的是相对
+        # 起点的偏移，记录起点供换算。
+        self._column_drag_start_x = x
+        self._column_drag_start_y = y
+        self._column_drag_start_iter = self._iter_at_widget_coords(x, y)[1]
+
+    def _column_drag_is_real(self, offset_x, offset_y):
+        """位移是否构成真实列选拖动（而非连点时的指针抖动）。"""
+        return max(abs(offset_x), abs(offset_y)) >= _COLUMN_DRAG_MIN_OFFSET
 
     def _on_column_drag_update(self, controller, x, y):
-        """Alt+Drag 进行中：更新列选区。"""
+        """Alt+Drag 进行中：更新列选区。x/y 是相对起点的偏移。"""
         if not self._column_dragging or self._column_drag_start_iter is None:
             return
-
-        # 限制拖动距离（每像素更新过于频繁）
-        dx = x - self._column_drag_last_x
-        dy = y - self._column_drag_last_y
-        if abs(dx) < 2 and abs(dy) < 2:
+        if not self._column_drag_is_real(x, y):
             return
 
-        # GTK4: get_iter_at_location 返回 (found, iter) 元组，取 [1] 得 TextIter。
-        current_iter = self.view.source_view.get_iter_at_location(x, y)[1]
-        self._column_drag_last_iter = current_iter
-        self._column_drag_last_x = x
-        self._column_drag_last_y = y
+        abs_x = self._column_drag_start_x + x
+        abs_y = self._column_drag_start_y + y
+        found, current_iter = self._iter_at_widget_coords(abs_x, abs_y)
+        if not found:
+            return
 
-        # 更新列选区（multicursor 未就绪时无从添加，跳过）
+        # 更新列选区（multicursor 未就绪时无从添加，跳过）。
+        # 非加法模式的清空由 add_cursors_column 在此执行——即只在真实
+        # 拖动发生后，避免抖动"拖动"清空已有多光标。
         multicursor = getattr(self.document, 'multicursor', None)
         if multicursor is not None:
+            # 收起原生选区到起点，避免残留高亮干扰列选显示。
+            self.document.source_buffer.place_cursor(self._column_drag_start_iter)
             multicursor.add_cursors_column(
-                self._column_drag_start_iter, current_iter)
+                self._column_drag_start_iter, current_iter,
+                additive=self._column_drag_additive)
 
     def _on_column_drag_end(self, controller, x, y):
-        """Alt+Drag 结束：完成列选区。"""
+        """Alt+Drag 结束：位移足够时用最终位置构建列选区。
+
+        位移过小（连点抖动）则按点击处理：不构建列选区、不清空光标。
+        """
         if not self._column_dragging:
             return
 
+        multicursor = getattr(self.document, 'multicursor', None)
+        if (multicursor is not None and self._column_drag_start_iter is not None
+                and self._column_drag_is_real(x, y)):
+            abs_x = self._column_drag_start_x + x
+            abs_y = self._column_drag_start_y + y
+            found, end_iter = self._iter_at_widget_coords(abs_x, abs_y)
+            if found:
+                self.document.source_buffer.place_cursor(self._column_drag_start_iter)
+                multicursor.add_cursors_column(
+                    self._column_drag_start_iter, end_iter,
+                    additive=self._column_drag_additive)
+
         self._column_dragging = False
+        self._column_drag_additive = False
         self._column_drag_start_iter = None
-        self._column_drag_last_iter = None
 
     def on_secondary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
@@ -384,78 +489,92 @@ class DocumentController(object):
         elif keyval == Gdk.KEY_Z and (state & modifiers & Gdk.ModifierType.CONTROL_MASK) and (state & modifiers & Gdk.ModifierType.SHIFT_MASK):
             self.document._close_undo_group()
 
-        mc = self.document.multicursor
-        has_multi = (mc.has_multiple_cursors() or mc.is_column_mode()) and self._is_multicursor_enabled()
+        mc = getattr(self.document, 'multicursor', None)
+        if mc is None:
+            return False
+        has_multi = mc.has_multiple_cursors() or mc.is_column_mode()
 
         # --- Multi-cursor specific shortcuts ---
 
-        # Escape: 清除多光标
+        # Escape: 清除多光标（光标存在时只需 escape_clear 开关）
         if keyval == _KEYVAL_ESCAPE and has_multi and self._is_mc_feature_enabled('experimental_escape_clear'):
             mc.clear_all()
             return True
 
         # Ctrl+D: 选中下一个相同词/匹配
-        if keyval == Gdk.keyval_from_name('d') and state & modifiers == Gdk.ModifierType.CONTROL_MASK:
+        if keyval == _KEYVAL_D and state & modifiers == Gdk.ModifierType.CONTROL_MASK:
             if self._is_mc_feature_enabled('experimental_select_next'):
                 mc.select_next_occurrence()
                 return True
 
-        # Ctrl+Shift+L: 选中所有相同词/匹配
-        if keyval == Gdk.keyval_from_name('l') and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
+        # Ctrl+Shift+L: 选中所有相同词/匹配（必须同时带 Ctrl 与 Shift）
+        if keyval == _KEYVAL_L and (
+                state & modifiers & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK)
+                ) == (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
             if self._is_mc_feature_enabled('experimental_select_all'):
                 mc.select_all_occurrences()
                 return True
 
-        # Ctrl+Alt+Up: 每行上方添加光标
-        if keyval == _KEYVAL_UP and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
-            if self._is_mc_feature_enabled('experimental_add_above'):
+        # Ctrl+Alt+Up/Down: 每行上/下方添加光标。必须同时带 Ctrl 与 Alt
+        # （只带 Alt 的 Alt+Up/Down 是移动行，不能误触）；创建光标类操作
+        # 还需 multi-cursor mode 总开关。
+        ctrl_alt = Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK
+        if keyval == _KEYVAL_UP and state & modifiers & ctrl_alt == ctrl_alt:
+            if self._is_multicursor_enabled() and self._is_mc_feature_enabled('experimental_add_above'):
                 mc.add_cursor_above()
                 return True
-
-        # Ctrl+Alt+Down: 每行下方添加光标
-        if keyval == _KEYVAL_DOWN and state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK):
-            if self._is_mc_feature_enabled('experimental_add_below'):
+        if keyval == _KEYVAL_DOWN and state & modifiers & ctrl_alt == ctrl_alt:
+            if self._is_multicursor_enabled() and self._is_mc_feature_enabled('experimental_add_below'):
                 mc.add_cursor_below()
                 return True
 
+        # 纯导航键（无修饰键或仅 Shift）：折叠附加光标后交给默认处理移动
+        # 主光标，防止隐形光标滞留原地被后续编辑误中。上面的多光标快捷键
+        # 均已提前消费，不受影响。
+        if has_multi and keyval in _NAV_KEYVALS and not (
+                state & modifiers & ~Gdk.ModifierType.SHIFT_MASK):
+            mc.clear_all()
+            has_multi = False
+            return False
+
         # --- Multi-cursor edit handling ---
+        # 编辑类操作只要求「多光标文本编辑」开关 + 光标已存在（创建时的
+        # 开关不重复检查，否则先开创建、后关创建时已建光标将无法编辑）。
 
         edit_enabled = self._is_mc_feature_enabled('experimental_multiedit')
 
-        # Backspace: 多光标删除前一个字符
-        if keyval == _KEYVAL_BACKSPACE and has_multi and edit_enabled:
-            if mc.handle_delete('backspace'):
-                return True
-
-        # Delete: 多光标删除后一个字符
-        if keyval == _KEYVAL_DELETE and has_multi and edit_enabled:
-            if mc.handle_delete('delete'):
-                return True
-
-        # Tab / Shift+Tab: 多光标缩进/反缩进
-        if keyval in [_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB] and has_multi and edit_enabled:
-            # 对所有光标位置应用相同的缩进操作
-            if state & modifiers == Gdk.ModifierType.SHIFT_MASK:
-                self._multi_cursor_indent(outdent=True)
-            else:
-                self._multi_cursor_indent(outdent=False)
-            return True
-
-        # Printable characters: 在所有光标位置插入
         if has_multi and edit_enabled:
-            # Gdk.keyval_to_unicode 返回 keyval 对应的 Unicode 码点（int），非字符返回 0。
-            # GTK4 无 keyval_is_char；keyval_to_unicode 同时覆盖大小写与 Shift 修饰。
-            unichar = Gdk.keyval_to_unicode(keyval)
-            if unichar and unichar > 0:
-                text = chr(unichar)
-                if mc.handle_insert(text):
+            # Backspace: 多光标删除前一个字符
+            if keyval == _KEYVAL_BACKSPACE:
+                if mc.handle_delete('backspace'):
                     return True
 
-        # Enter: 在所有光标位置换行（处理较复杂，先清除多光标让默认处理器处理）
-        if keyval in [_KEYVAL_RETURN, _KEYVAL_KP_ENTER] and has_multi and edit_enabled:
-            # 简化处理：清除多光标，让 Enter 正常插入换行
-            mc.clear_all()
-            return False
+            # Delete: 多光标删除后一个字符
+            if keyval == _KEYVAL_DELETE:
+                if mc.handle_delete('delete'):
+                    return True
+
+            # Tab / Shift+Tab: 多光标缩进/反缩进
+            if keyval in (_KEYVAL_TAB, _KEYVAL_ISO_LEFT_TAB):
+                self._multi_cursor_indent(
+                    outdent=bool(state & modifiers & Gdk.ModifierType.SHIFT_MASK))
+                return True
+
+            # Enter: 在所有光标位置插入换行
+            if keyval in (_KEYVAL_RETURN, _KEYVAL_KP_ENTER):
+                if mc.handle_insert('\n'):
+                    return True
+
+            # 可打印字符: 在所有光标位置插入。排除 Ctrl/Alt 组合，
+            # 否则会把 Ctrl+B 等快捷键当成字符 'b' 插入。
+            if not (state & modifiers & (Gdk.ModifierType.CONTROL_MASK
+                                         | Gdk.ModifierType.ALT_MASK)):
+                # Gdk.keyval_to_unicode 返回 keyval 对应的 Unicode 码点（int），
+                # 非字符返回 0；同时覆盖大小写与 Shift 修饰。
+                unichar = Gdk.keyval_to_unicode(keyval)
+                if unichar > 0:
+                    if mc.handle_insert(chr(unichar)):
+                        return True
 
         # --- Normal key handling (original code) ---
 
@@ -539,7 +658,10 @@ class DocumentController(object):
         return True
 
     def _multi_cursor_indent(self, outdent=False):
-        """多光标模式下的缩进/反缩进：对每个光标所在行执行操作。"""
+        """多光标模式下的缩进/反缩进：对每个光标（及其选区覆盖）所在行执行操作。
+
+        缩进后保留多光标：mark 随文本自动平移，用户可继续编辑。
+        """
         mc = self.document.multicursor
         buffer = self.document.source_buffer
         use_spaces = DocumentSettings.get_effective_value(
@@ -548,17 +670,27 @@ class DocumentController(object):
             self.document, self.document.settings, 'tab_width')
         indent_unit = ' ' * tab_width if use_spaces else '\t'
 
-        # 收集所有需要编辑的行（去重）
+        # 收集所有需要编辑的行（去重）：选区覆盖端点之间的每一行
         lines_to_edit = set()
-        for cursor_mark, anchor_mark in mc.cursors:
-            cursor_iter = cursor_mark.get_iter()
-            lines_to_edit.add(cursor_iter.get_line())
+        for cursor_mark, anchor_mark, _tag in mc.cursors:
+            cursor_line = buffer.get_iter_at_mark(cursor_mark).get_line()
             if anchor_mark:
-                anchor_iter = anchor_mark.get_iter()
-                lines_to_edit.add(anchor_iter.get_line())
-        # 也包含主光标所在行
-        primary = buffer.get_iter_at_mark(buffer.get_insert())
-        lines_to_edit.add(primary.get_line())
+                anchor_line = buffer.get_iter_at_mark(anchor_mark).get_line()
+                lines_to_edit.update(
+                    range(min(cursor_line, anchor_line),
+                          max(cursor_line, anchor_line) + 1))
+            else:
+                lines_to_edit.add(cursor_line)
+        # 列选模式下主光标位于矩形角落、由列光标覆盖，不单独编辑其所在行；
+        # 普通多光标则包含主光标所在行。
+        if not mc.is_column_mode():
+            primary = buffer.get_iter_at_mark(buffer.get_insert())
+            if buffer.get_has_selection():
+                sel_bounds = buffer.get_selection_bounds()
+                lines_to_edit.update(
+                    range(sel_bounds[0].get_line(), sel_bounds[1].get_line() + 1))
+            else:
+                lines_to_edit.add(primary.get_line())
 
         buffer.begin_user_action()
         for line_num in sorted(lines_to_edit, reverse=True):
@@ -581,7 +713,7 @@ class DocumentController(object):
             else:
                 buffer.insert(line_start, indent_unit)
         buffer.end_user_action()
-        mc.clear_all()
+        mc._queue_draw()
 
     def indent_selection(self, outdent=False):
         '''对选区覆盖的每一行前插 / 删除一个缩进单元。

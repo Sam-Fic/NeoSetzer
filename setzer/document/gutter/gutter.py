@@ -160,11 +160,16 @@ class Gutter(object):
     def on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         '''鼠标悬停诊断行时返回该行的错误/警告描述文本。'''
         # gutter 上的 (x, y) 落在左侧窄条，x 对定位行无用：用 source_view
-        # 把 (0, y) 映射到该行文本，y 与文本区共享同一竖直坐标系。
+        # 把 (0, y) 映射到该行文本。悬停坐标是部件坐标，而 GTK4 的
+        # get_iter_at_location 要求 buffer 坐标，须先转换——否则滚动后
+        # 悬停行与实际解析行错位（相差一个滚动量）。
         if widget is self.drawing_area:
-            found, text_iter = self.source_view.get_iter_at_location(0, y)
+            buffer_x, buffer_y = self.source_view.window_to_buffer_coords(
+                Gtk.TextWindowType.WIDGET, 0, y)
         else:
-            found, text_iter = self.source_view.get_iter_at_location(x, y)
+            buffer_x, buffer_y = self.source_view.window_to_buffer_coords(
+                Gtk.TextWindowType.WIDGET, x, y)
+        found, text_iter = self.source_view.get_iter_at_location(buffer_x, buffer_y)
         if not found:
             return False
 

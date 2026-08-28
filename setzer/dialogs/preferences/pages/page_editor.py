@@ -1165,13 +1165,13 @@ class PageEditorView(Adw.PreferencesPage):
         self.expander_row.add_row(self.switch_select_all)
 
         self.switch_add_above = Adw.SwitchRow()
-        self.switch_add_above.set_title(_('Add cursor above (Ctrl+Alt+↑)'))
+        self.switch_add_above.set_title(_('Add cursor above (Ctrl+Shift+↑)'))
         self.switch_add_above.set_subtitle(_(
             'Add a cursor on the line above each existing cursor.'))
         self.expander_row.add_row(self.switch_add_above)
 
         self.switch_add_below = Adw.SwitchRow()
-        self.switch_add_below.set_title(_('Add cursor below (Ctrl+Alt+↓)'))
+        self.switch_add_below.set_title(_('Add cursor below (Ctrl+Shift+↓)'))
         self.switch_add_below.set_subtitle(_(
             'Add a cursor on the line below each existing cursor.'))
         self.expander_row.add_row(self.switch_add_below)

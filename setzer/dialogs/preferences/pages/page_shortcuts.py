@@ -171,7 +171,12 @@ class PageShortcuts(object):
                 'insert_matrix_dialog': _('Insert Matrix'),
                 'close_all_documents': _('Close All Documents'),
                 'restore_session': _('Restore Session'),
-                'reopen_last_closed_document': _('Reopen Last Closed Document')
+                'reopen_last_closed_document': _('Reopen Last Closed Document'),
+                'select_next_occurrence': _('Select Next Occurrence'),
+                'select_all_occurrences': _('Select All Occurrences'),
+                'add_cursor_above': _('Add Cursor Above'),
+                'add_cursor_below': _('Add Cursor Below'),
+                'clear_multi_cursor': _('Clear Multi-Cursor')
             }
         return self._action_titles.get(action_name, action_name)
 
@@ -239,7 +244,12 @@ class PageShortcuts(object):
                 'show_about_dialog': _('Show the about dialog'),
                 'close_all_documents': _('Close all open documents'),
                 'restore_session': _('Restore a previously saved session'),
-                'reopen_last_closed_document': _('Reopen the most recently closed document')
+                'reopen_last_closed_document': _('Reopen the most recently closed document'),
+                'select_next_occurrence': _('Select the next occurrence of the selected text or word (experimental multi-cursor)'),
+                'select_all_occurrences': _('Select all occurrences of the selected text or word (experimental multi-cursor)'),
+                'add_cursor_above': _('Add a cursor on the line above (experimental multi-cursor)'),
+                'add_cursor_below': _('Add a cursor on the line below (experimental multi-cursor)'),
+                'clear_multi_cursor': _('Clear all additional cursors (experimental multi-cursor)')
             }
         return self._action_descriptions.get(action_name, '')
 

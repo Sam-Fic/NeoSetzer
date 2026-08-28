@@ -72,6 +72,10 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('zoom_out', shortcuts.get('zoom_out', '<Control>minus'), self.actions.zoom_out)
         self._register_configurable('reset_zoom', shortcuts.get('reset_zoom', '<Control>0'), self.actions.reset_zoom)
         self._register_configurable('find', shortcuts.get('find', '<Control>f'), self.actions.start_search)
+        # select_all_occurrences（默认 Ctrl+Shift+L）必须在窗口级注册：同键还是
+        # LaTeX \left 插入的全局加速器（app 级，晚于窗口 CAPTURE 控制器被查询）。
+        # 注册在此处才能抢先；实验功能关闭时回调返回 False 放行，\left 照常工作。
+        self._register_configurable('select_all_occurrences', shortcuts.get('select_all_occurrences', '<Control><Shift>l'), self.actions.select_all_occurrences)
         # 非配置
         self.create_and_add_shortcut('<Control>l', self.actions.go_to_line)
         self._register_configurable('find_and_replace', shortcuts.get('find_and_replace', '<Control>h'), self.actions.start_search_and_replace)

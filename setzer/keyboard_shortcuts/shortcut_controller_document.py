@@ -67,8 +67,8 @@ class ShortcutControllerDocument(ShortcutController):
         # Multi-cursor shortcuts (VS Code-style)
         self.create_and_add_shortcut(shortcuts.get('select_next_occurrence', '<Control>d'), self.actions.select_next_occurrence)
         self.create_and_add_shortcut(shortcuts.get('select_all_occurrences', '<Control><Shift>l'), self.actions.select_all_occurrences)
-        self.create_and_add_shortcut(shortcuts.get('add_cursor_above', '<Control><Alt>Up'), self.actions.add_cursor_above)
-        self.create_and_add_shortcut(shortcuts.get('add_cursor_below', '<Control><Alt>Down'), self.actions.add_cursor_below)
+        self.create_and_add_shortcut(shortcuts.get('add_cursor_above', '<Control><Shift>Up'), self.actions.add_cursor_above)
+        self.create_and_add_shortcut(shortcuts.get('add_cursor_below', '<Control><Shift>Down'), self.actions.add_cursor_below)
         self.create_and_add_shortcut(shortcuts.get('clear_multi_cursor', 'Escape'), self.actions.clear_multi_cursor)
 
 

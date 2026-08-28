@@ -1288,44 +1288,71 @@ class Actions(object):
         return settings.get_value('preferences', feature_name)
 
     def select_next_occurrence(self, action=None, parameter=None):
-        """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。"""
+        """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。
+
+        未处理时返回 False：ShortcutController 据此放行事件继续传播，
+        避免功能关闭时按键被吞掉变成死键。
+        """
         if not self._mc_feature_enabled('experimental_select_next'):
-            return
+            return False
         mc = self._get_active_multicursor()
-        if mc is not None:
-            mc.select_next_occurrence()
+        if mc is None:
+            return False
+        mc.select_next_occurrence()
+        return True
 
     def select_all_occurrences(self, action=None, parameter=None):
         """选中所有相同词/匹配（Ctrl+Shift+L）。"""
         if not self._mc_feature_enabled('experimental_select_all'):
-            return
+            return False
         mc = self._get_active_multicursor()
-        if mc is not None:
-            mc.select_all_occurrences()
+        if mc is None:
+            return False
+        mc.select_all_occurrences()
+        return True
 
     def add_cursor_above(self, action=None, parameter=None):
-        """在当前光标所在位置上方行添加光标（Ctrl+Alt+Up）。"""
+        """在当前光标所在位置上方行添加光标（Ctrl+Alt+Up）。
+
+        创建额外光标属于「多光标模式」，需同时开启该开关。
+        """
+        if not self._mc_feature_enabled('experimental_multicursor'):
+            return False
         if not self._mc_feature_enabled('experimental_add_above'):
-            return
+            return False
         mc = self._get_active_multicursor()
-        if mc is not None:
-            mc.add_cursor_above()
+        if mc is None:
+            return False
+        mc.add_cursor_above()
+        return True
 
     def add_cursor_below(self, action=None, parameter=None):
         """在当前光标所在位置下方行添加光标（Ctrl+Alt+Down）。"""
+        if not self._mc_feature_enabled('experimental_multicursor'):
+            return False
         if not self._mc_feature_enabled('experimental_add_below'):
-            return
+            return False
         mc = self._get_active_multicursor()
-        if mc is not None:
-            mc.add_cursor_below()
+        if mc is None:
+            return False
+        mc.add_cursor_below()
+        return True
 
     def clear_multi_cursor(self, action=None, parameter=None):
-        """清除所有附加光标（Escape）。"""
+        """清除所有附加光标（Escape）。
+
+        无附加光标时返回 False：裸 Escape 还有其他用途（如关闭弹窗、
+        取消补全），不能无条件吞掉。
+        """
         if not self._mc_feature_enabled('experimental_escape_clear'):
-            return
+            return False
         mc = self._get_active_multicursor()
-        if mc is not None:
-            mc.clear_all()
+        if mc is None:
+            return False
+        if not (mc.has_multiple_cursors() or mc.is_column_mode()):
+            return False
+        mc.clear_all()
+        return True
 
     def cut(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

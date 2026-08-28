@@ -20,16 +20,22 @@ class MultiCursor(object):
 
     The primary cursor is the one native to GtkTextBuffer (insert mark).
     Additional cursors are tracked via Gtk.TextMarks stored in
-    self.cursors. Each cursor may have an associated selection (a range
-    from cursor_mark to a corresponding anchor mark).
+    self.cursors as (cursor_mark, anchor_mark or None, selection tag or
+    None). A non-None anchor marks a selection ranging from anchor to
+    cursor; the tag highlights that range in the view.
+
+    Cursor marks use right gravity so that text inserted exactly at the
+    cursor position pushes the mark behind the new text (the cursor
+    follows typing). Anchor marks use left gravity so a selection start
+    stays put when its replacement text is inserted.
 
     Supports:
-    - Ctrl+Click to add cursor at position
-    - Ctrl+D / Ctrl+Shift+L select next/all occurrences
+    - Alt+Click to add/remove a cursor (document controller claims the
+      click so the native caret does not move)
     - Alt+Drag column selection
+    - Ctrl+D / Ctrl+Shift+L select next/all occurrences
     - Ctrl+Alt+Up/Down add cursor on line above/below
-    - Multi-cursor text insertion (typing at all cursors)
-    - Multi-cursor deletion (backspace/delete at all cursors)
+    - Multi-cursor insert (incl. newline), backspace/delete and indent
     """
 
     def __init__(self, document):
@@ -37,48 +43,52 @@ class MultiCursor(object):
         self.buffer = document.source_buffer
         self.view = document.source_view
 
-        # Additional cursors: list of (cursor_mark, selection_anchor_mark or None)
+        # Additional cursors: (cursor_mark, anchor_mark or None, tag or None)
         # The primary cursor is NOT in this list.
         self.cursors = []
+        self._tag_counter = 0
 
-        # Whether column selection mode is active
+        # Whether column selection mode is active. In column mode edits
+        # apply to the additional cursors only — the primary caret sits
+        # at a corner of the rectangle and must not be edited twice.
         self._column_mode = False
-
-        # Selection tags for highlighting additional selections
-        self._selection_tags = []
 
         # Create a drawing area for rendering additional cursors
         self._draw_area = Gtk.DrawingArea()
         self._draw_area.set_css_classes(['multicursor-overlay'])
         self._draw_area.set_hexpand(True)
         self._draw_area.set_vexpand(True)
-        self._draw_area.set_margin_top(0)
-        self._draw_area.set_margin_bottom(0)
-        self._draw_area.set_margin_start(0)
-        self._draw_area.set_margin_end(0)
         self._draw_area.set_can_focus(False)
         self._draw_area.set_can_target(False)  # Don't receive events
         self._draw_area.set_draw_func(self._on_draw, None)
 
         # Try to add the drawing area to the overlay
+        self._overlay = None
         parent = self.view.get_parent()
         while parent is not None:
             if isinstance(parent, Gtk.Overlay):
                 parent.add_overlay(self._draw_area)
+                self._overlay = parent
                 break
             parent = parent.get_parent()
 
-        # Cursor blink handling
-        self._cursor_blink_id = None
-        self._cursor_visible = True
+        # Redraw triggers: additional cursor screen positions change on
+        # scroll, resize and any buffer modification (marks shift with
+        # text). Without these the overlay keeps stale cursor paintings.
+        self._scroll_handlers = []
+        scrolled = self.view.get_parent()
+        if isinstance(scrolled, Gtk.ScrolledWindow):
+            for adjustment in (scrolled.get_hadjustment(), scrolled.get_vadjustment()):
+                handler = adjustment.connect('value-changed', self._queue_draw)
+                self._scroll_handlers.append((adjustment, handler))
+        self._size_handlers = []
+        for prop in ('notify::width', 'notify::height'):
+            handler = self.view.connect(prop, self._queue_draw)
+            self._size_handlers.append(handler)
 
-        # Track primary cursor changes to update selection handling
-        self._cursor_handler = self.buffer.connect(
-            'notify::cursor-position', self._on_primary_cursor_changed)
-
-        # Track buffer modifications to adjust cursor positions
-        self._insert_handler = self.buffer.connect('insert-text', self._on_insert_text_before)
-        self._delete_handler = self.buffer.connect('delete-range', self._on_delete_range_before)
+        # Track buffer modifications to refresh the overlay (marks are
+        # shifted automatically by GTK; only the painting needs refresh).
+        self._changed_handler = self.buffer.connect('changed', self._queue_draw)
 
         # Suppress handler during multi-cursor edits
         self._suppress_handlers = False
@@ -92,23 +102,36 @@ class MultiCursor(object):
 
         # Remove drawing area from parent
         if self._draw_area is not None:
-            parent = self._draw_area.get_parent()
-            if parent is not None and isinstance(parent, Gtk.Overlay):
-                parent.remove_overlay(self._draw_area)
+            if self._overlay is not None:
+                try:
+                    self._overlay.remove_overlay(self._draw_area)
+                except Exception:
+                    pass
             self._draw_area = None
+            self._overlay = None
 
-        if self._cursor_handler:
-            self.buffer.disconnect(self._cursor_handler)
-            self._cursor_handler = None
-        if self._insert_handler:
-            self.buffer.disconnect(self._insert_handler)
-            self._insert_handler = None
-        if self._delete_handler:
-            self.buffer.disconnect(self._delete_handler)
-            self._delete_handler = None
-        if self._cursor_blink_id:
-            GLib.Source.remove(self._cursor_blink_id)
-            self._cursor_blink_id = None
+        for adjustment, handler in self._scroll_handlers:
+            try:
+                adjustment.disconnect(handler)
+            except Exception:
+                pass
+        self._scroll_handlers = []
+        for handler in self._size_handlers:
+            try:
+                self.view.disconnect(handler)
+            except Exception:
+                pass
+        self._size_handlers = []
+        if self._changed_handler:
+            try:
+                self.buffer.disconnect(self._changed_handler)
+            except Exception:
+                pass
+            self._changed_handler = None
+
+    def _queue_draw(self, *args):
+        if self._draw_area is not None:
+            self._draw_area.queue_draw()
 
     # --- Cursor management ---
 
@@ -119,63 +142,88 @@ class MultiCursor(object):
     def has_multiple_cursors(self):
         return len(self.cursors) > 0
 
+    def is_column_mode(self):
+        return self._column_mode
+
     def clear_all(self):
         """Remove all additional cursors and selections."""
         self._clear_all_cursors()
 
     def _clear_all_cursors(self):
         """Internal: remove all additional cursor marks and tags."""
-        for cursor_mark, anchor_mark in self.cursors:
+        for cursor_mark, anchor_mark, tag in self.cursors:
             self.buffer.delete_mark(cursor_mark)
-            if anchor_mark:
+            if anchor_mark is not None:
                 self.buffer.delete_mark(anchor_mark)
+            if tag is not None:
+                self._remove_tag(tag)
         self.cursors.clear()
 
-        for tag in self._selection_tags:
-            # Remove tag from buffer ranges
-            start = self.buffer.get_start_iter()
-            end = self.buffer.get_end_iter()
-            self.buffer.remove_tag(tag, start, end)
-            self.buffer.get_tag_table().remove(tag)
-        self._selection_tags.clear()
-
         self._column_mode = False
-        self._draw_area.queue_draw()
+        self._queue_draw()
 
-    def add_cursor_at_iter(self, iter_pos):
-        """Add an additional cursor at the given position."""
-        mark = self.buffer.create_mark(None, iter_pos, True)
-        self.cursors.append((mark, None))
-        self._draw_area.queue_draw()
+    def _cursor_offsets(self):
+        """Offsets of all additional cursors (selection ends included)."""
+        offsets = set()
+        for cursor_mark, anchor_mark, _tag in self.cursors:
+            offsets.add(self.buffer.get_iter_at_mark(cursor_mark).get_offset())
+            if anchor_mark is not None:
+                offsets.add(self.buffer.get_iter_at_mark(anchor_mark).get_offset())
+        return offsets
+
+    def add_cursor_at_iter(self, iter_pos, _allow_primary_overlap=False):
+        """Add an additional cursor at the given position.
+
+        Skips positions already occupied by another cursor (including the
+        primary caret — an overlapping cursor would double-insert text),
+        unless _allow_primary_overlap is set (column selection edits skip
+        the primary, so the rectangle corner must still get its cursor).
+        """
+        offset = iter_pos.get_offset()
+        if offset in self._cursor_offsets():
+            return
+        if not _allow_primary_overlap:
+            primary_offset = self.buffer.get_iter_at_mark(
+                self.buffer.get_insert()).get_offset()
+            if offset == primary_offset:
+                return
+        # Right gravity: typing at the cursor pushes the mark behind the
+        # inserted text.
+        mark = self.buffer.create_mark(None, iter_pos, False)
+        self.cursors.append((mark, None, None))
+        self._queue_draw()
 
     def add_cursor_with_selection(self, start_iter, end_iter):
         """Add an additional cursor with a selection range."""
         # Ensure start is before end
         if start_iter.compare(end_iter) > 0:
             start_iter, end_iter = end_iter, start_iter
+        if start_iter.get_offset() == end_iter.get_offset():
+            self.add_cursor_at_iter(start_iter)
+            return
 
-        cursor_mark = self.buffer.create_mark(None, end_iter, True)
+        cursor_mark = self.buffer.create_mark(None, end_iter, False)
         anchor_mark = self.buffer.create_mark(None, start_iter, True)
-        self.cursors.append((cursor_mark, anchor_mark))
-
-        # Add visual selection highlight
-        self._add_selection_tag(start_iter, end_iter)
-        self._draw_area.queue_draw()
+        tag = self._add_selection_tag(start_iter, end_iter)
+        self.cursors.append((cursor_mark, anchor_mark, tag))
+        self._queue_draw()
 
     def remove_last_cursor(self):
         """Remove the most recently added cursor."""
         if self.cursors:
-            cursor_mark, anchor_mark = self.cursors.pop()
+            cursor_mark, anchor_mark, tag = self.cursors.pop()
             self.buffer.delete_mark(cursor_mark)
-            if anchor_mark:
+            if anchor_mark is not None:
                 self.buffer.delete_mark(anchor_mark)
-            self._draw_area.queue_draw()
+            if tag is not None:
+                self._remove_tag(tag)
+            self._queue_draw()
 
     def remove_cursor_at_offset(self, offset, tolerance=2):
         """Remove cursor nearest to the given offset (within tolerance chars)."""
         best_idx = -1
         best_dist = tolerance + 1
-        for i, (cursor_mark, _) in enumerate(self.cursors):
+        for i, (cursor_mark, _anchor, _tag) in enumerate(self.cursors):
             mark_offset = self.buffer.get_iter_at_mark(cursor_mark).get_offset()
             dist = abs(mark_offset - offset)
             if dist < best_dist:
@@ -183,15 +231,18 @@ class MultiCursor(object):
                 best_idx = i
 
         if best_idx >= 0:
-            cursor_mark, anchor_mark = self.cursors.pop(best_idx)
+            cursor_mark, anchor_mark, tag = self.cursors.pop(best_idx)
             self.buffer.delete_mark(cursor_mark)
-            if anchor_mark:
+            if anchor_mark is not None:
                 self.buffer.delete_mark(anchor_mark)
-            self._draw_area.queue_draw()
+            if tag is not None:
+                self._remove_tag(tag)
+            self._queue_draw()
 
-    def add_cursors_column(self, anchor_iter, active_iter):
+    def add_cursors_column(self, anchor_iter, active_iter, additive=False):
         """Create column selection (one cursor per line in range)."""
-        self._clear_all_cursors()
+        if not additive:
+            self._clear_all_cursors()
         self._column_mode = True
 
         start_line = min(anchor_iter.get_line(), active_iter.get_line())
@@ -201,6 +252,7 @@ class MultiCursor(object):
         col_start = min(anchor_col, active_col)
         col_end = max(anchor_col, active_col)
 
+        existing = self._cursor_offsets()
         for line_num in range(start_line, end_line + 1):
             found, line_iter = self.buffer.get_iter_at_line(line_num)
             if not found:
@@ -219,7 +271,9 @@ class MultiCursor(object):
                 # Empty selection: just a cursor at col_start
                 cursor_iter = line_iter.copy()
                 cursor_iter.forward_chars(sel_start_col)
-                self.add_cursor_at_iter(cursor_iter)
+                if cursor_iter.get_offset() not in existing:
+                    self.add_cursor_at_iter(cursor_iter, _allow_primary_overlap=True)
+                    existing.add(cursor_iter.get_offset())
             else:
                 start_iter = line_iter.copy()
                 start_iter.forward_chars(sel_start_col)
@@ -227,118 +281,136 @@ class MultiCursor(object):
                 end_iter.forward_chars(sel_end_col)
                 self.add_cursor_with_selection(start_iter, end_iter)
 
-        self._draw_area.queue_draw()
+        self._queue_draw()
 
     def add_cursor_above(self):
         """Add cursor on the line above each existing cursor."""
-        new_cursors = []
-        # Process primary cursor
-        primary = self.buffer.get_iter_at_mark(self.buffer.get_insert())
-        if primary.get_line() > 0:
-            new_iter = self.buffer.get_iter_at_line(primary.get_line() - 1)[1]
-            new_iter.set_line_offset(primary.get_line_offset())
+        self._add_cursor_vertical(-1)
+
+    def add_cursor_below(self):
+        """Add cursor on the line below each existing cursor."""
+        self._add_cursor_vertical(1)
+
+    def _add_cursor_vertical(self, direction):
+        """Add a cursor one line up (-1) or down (+1) for every cursor."""
+        line_count = self.buffer.get_line_count()
+        new_iters = []
+
+        # Primary cursor first
+        positions = [self.buffer.get_iter_at_mark(self.buffer.get_insert())]
+        positions += [self.buffer.get_iter_at_mark(cursor_mark)
+                      for cursor_mark, _anchor, _tag in self.cursors]
+
+        existing = self._cursor_offsets()
+        for iter_pos in positions:
+            target_line = iter_pos.get_line() + direction
+            if target_line < 0 or target_line >= line_count:
+                continue
+            found, new_iter = self.buffer.get_iter_at_line(target_line)
+            if not found:
+                continue
+            new_iter.set_line_offset(iter_pos.get_line_offset())
             # Clamp to line length
             line_end = new_iter.copy()
             if not line_end.ends_line():
                 line_end.forward_to_line_end()
             if new_iter.get_offset() > line_end.get_offset():
                 new_iter = line_end
-            new_cursors.append(new_iter)
+            if new_iter.get_offset() not in existing:
+                new_iters.append(new_iter)
+                existing.add(new_iter.get_offset())
 
-        # Process additional cursors
-        for cursor_mark, _ in self.cursors:
-            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
-            if iter_pos.get_line() > 0:
-                new_iter = self.buffer.get_iter_at_line(iter_pos.get_line() - 1)[1]
-                new_iter.set_line_offset(iter_pos.get_line_offset())
-                line_end = new_iter.copy()
-                if not line_end.ends_line():
-                    line_end.forward_to_line_end()
-                if new_iter.get_offset() > line_end.get_offset():
-                    new_iter = line_end
-                new_cursors.append(new_iter)
-
-        for iter_pos in new_cursors:
-            self.add_cursor_at_iter(iter_pos)
-
-    def add_cursor_below(self):
-        """Add cursor on the line below each existing cursor."""
-        new_cursors = []
-        line_count = self.buffer.get_line_count()
-        primary = self.buffer.get_iter_at_mark(self.buffer.get_insert())
-        if primary.get_line() < line_count - 1:
-            new_iter = self.buffer.get_iter_at_line(primary.get_line() + 1)[1]
-            new_iter.set_line_offset(primary.get_line_offset())
-            line_end = new_iter.copy()
-            if not line_end.ends_line():
-                line_end.forward_to_line_end()
-            if new_iter.get_offset() > line_end.get_offset():
-                new_iter = line_end
-            new_cursors.append(new_iter)
-
-        for cursor_mark, _ in self.cursors:
-            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
-            if iter_pos.get_line() < line_count - 1:
-                new_iter = self.buffer.get_iter_at_line(iter_pos.get_line() + 1)[1]
-                new_iter.set_line_offset(iter_pos.get_line_offset())
-                line_end = new_iter.copy()
-                if not line_end.ends_line():
-                    line_end.forward_to_line_end()
-                if new_iter.get_offset() > line_end.get_offset():
-                    new_iter = line_end
-                new_cursors.append(new_iter)
-
-        for iter_pos in new_cursors:
+        for iter_pos in new_iters:
             self.add_cursor_at_iter(iter_pos)
 
     # --- Select next/all occurrence ---
 
-    def select_next_occurrence(self):
-        """Select the next occurrence of the selected text or word under cursor."""
-        search_text = self._get_search_text()
-        if not search_text:
-            return False
-
-        # If we have an active search, use it; otherwise create one
+    def _ensure_search_context(self):
         if self._search_context is None:
             self._search_context = GtkSource.SearchContext.new(
                 self.buffer, GtkSource.SearchSettings())
             self._search_context.set_highlight(False)
-
         settings = self._search_context.get_settings()
-        settings.set_search_text(search_text)
         settings.set_case_sensitive(False)
         settings.set_at_word_boundaries(False)
         settings.set_regex_enabled(False)
+        return self._search_context
 
-        # Find the position after the last cursor (primary or additional)
-        search_start = self._get_last_cursor_iter()
-        search_start.forward_char()  # Start after last cursor
+    def select_next_occurrence(self):
+        """Select the next occurrence of the selected text or word under cursor.
 
-        # Search forward
-        result = self._search_context.forward(search_start)
-        if result[0]:
-            # Add as a new selection
-            self.add_cursor_with_selection(result[1], result[2])
+        The first invocation (no selection, no additional cursors) selects
+        the word under the caret, VS Code style. Subsequent invocations
+        add the next match after the rightmost selection, wrapping around
+        at the end of the buffer. Returns True if a selection was made.
+        """
+        if not self.buffer.get_has_selection():
+            if self.has_multiple_cursors():
+                # Additional cursors exist but primary selection is gone —
+                # nothing meaningful to extend.
+                return False
+            caret = self.buffer.get_iter_at_mark(self.buffer.get_insert())
+            bounds = self._get_word_bounds_at_iter(caret)
+            if bounds is None:
+                return False
+            start_iter, end_iter = bounds
+            self.buffer.select_range(end_iter, start_iter)
             return True
+
+        bounds = self.buffer.get_selection_bounds()
+        text = self.buffer.get_text(bounds[0], bounds[1], True)
+        if not text or not text.strip():
+            return False
+
+        context = self._ensure_search_context()
+        context.get_settings().set_search_text(text)
+
+        # Start the search after the rightmost selected range.
+        search_offset = max(bounds[0].get_offset(), bounds[1].get_offset())
+        for cursor_mark, anchor_mark, _tag in self.cursors:
+            search_offset = max(
+                search_offset,
+                self.buffer.get_iter_at_mark(cursor_mark).get_offset())
+            if anchor_mark is not None:
+                search_offset = max(
+                    search_offset,
+                    self.buffer.get_iter_at_mark(anchor_mark).get_offset())
+
+        # Skip matches already covered by an existing selection; wrap
+        # around once at the buffer end.
+        attempts = len(self.cursors) + 2
+        search_iter = self.buffer.get_iter_at_offset(search_offset)
+        wrapped = False
+        while attempts > 0:
+            attempts -= 1
+            found, match_start, match_end, did_wrap = context.forward(search_iter)
+            if not found and not wrapped:
+                wrapped = True
+                search_iter = self.buffer.get_start_iter()
+                continue
+            if not found:
+                return False
+            if not self._is_range_selected(match_start.get_offset(),
+                                           match_end.get_offset()):
+                self.add_cursor_with_selection(match_start, match_end)
+                return True
+            search_iter = match_end
+
         return False
 
     def select_all_occurrences(self):
         """Select all occurrences of the selected text or word under cursor."""
-        search_text = self._get_search_text()
-        if not search_text:
+        if self.buffer.get_has_selection():
+            bounds = self.buffer.get_selection_bounds()
+            text = self.buffer.get_text(bounds[0], bounds[1], True)
+        else:
+            caret = self.buffer.get_iter_at_mark(self.buffer.get_insert())
+            text = self._get_word_at_iter(caret)
+        if not text or not text.strip():
             return False
 
-        if self._search_context is None:
-            self._search_context = GtkSource.SearchContext.new(
-                self.buffer, GtkSource.SearchSettings())
-            self._search_context.set_highlight(False)
-
-        settings = self._search_context.get_settings()
-        settings.set_search_text(search_text)
-        settings.set_case_sensitive(False)
-        settings.set_at_word_boundaries(False)
-        settings.set_regex_enabled(False)
+        context = self._ensure_search_context()
+        context.get_settings().set_search_text(text)
 
         # Clear existing additional cursors
         self._clear_all_cursors()
@@ -348,39 +420,53 @@ class MultiCursor(object):
         primary_set = False
 
         while True:
-            result = self._search_context.forward(search_iter)
-            if not result[0]:
+            found, match_start, match_end, _wrapped = context.forward(search_iter)
+            if not found:
                 break
 
             if not primary_set:
                 # Set primary to first match
-                self.buffer.select_range(result[2], result[1])
+                self.buffer.select_range(match_end, match_start)
                 primary_set = True
             else:
                 # Add as additional selection
-                self.add_cursor_with_selection(result[1], result[2])
+                self.add_cursor_with_selection(match_start, match_end)
 
             # Move past this match
-            search_iter = result[2].copy()
+            search_iter = match_end.copy()
             if not search_iter.forward_char():
                 break
 
         return primary_set
 
+    def _is_range_selected(self, start_offset, end_offset):
+        """True if the range overlaps the primary or any additional selection."""
+        if self.buffer.get_has_selection():
+            sel_start, sel_end = self.buffer.get_selection_bounds()
+            if start_offset < sel_end.get_offset() and end_offset > sel_start.get_offset():
+                return True
+        for cursor_mark, anchor_mark, _tag in self.cursors:
+            if anchor_mark is None:
+                continue
+            a = self.buffer.get_iter_at_mark(anchor_mark).get_offset()
+            b = self.buffer.get_iter_at_mark(cursor_mark).get_offset()
+            sel_start, sel_end = min(a, b), max(a, b)
+            if start_offset < sel_end and end_offset > sel_start:
+                return True
+        return False
+
     def _get_search_text(self):
         """Get the text to search: selection or word under cursor."""
         if self.buffer.get_has_selection():
             bounds = self.buffer.get_selection_bounds()
-            if bounds and len(bounds) == 2:
-                text = self.buffer.get_text(bounds[0], bounds[1], True)
-                if text and text.strip():
-                    return text
-        # Get word under cursor
+            text = self.buffer.get_text(bounds[0], bounds[1], True)
+            if text and text.strip():
+                return text
         cursor = self.buffer.get_iter_at_mark(self.buffer.get_insert())
         return self._get_word_at_iter(cursor)
 
-    def _get_word_at_iter(self, iter_pos):
-        """Extract the word at the given iterator position."""
+    def _get_word_bounds_at_iter(self, iter_pos):
+        """Return (start_iter, end_iter) of the word at iter_pos, or None."""
         start = iter_pos.copy()
         end = iter_pos.copy()
 
@@ -404,19 +490,71 @@ class MultiCursor(object):
                 break
 
         if start.get_offset() < end.get_offset():
-            return self.buffer.get_text(start, end, True)
+            return start, end
         return None
 
-    def _get_last_cursor_iter(self):
-        """Get the iterator for the last (rightmost) cursor."""
-        last_iter = self.buffer.get_iter_at_mark(self.buffer.get_insert())
-        for cursor_mark, _ in self.cursors:
-            iter_pos = self.buffer.get_iter_at_mark(cursor_mark)
-            if iter_pos.get_offset() > last_iter.get_offset():
-                last_iter = iter_pos
-        return last_iter.copy()
+    def _get_word_at_iter(self, iter_pos):
+        """Extract the word at the given iterator position."""
+        bounds = self._get_word_bounds_at_iter(iter_pos)
+        if bounds is None:
+            return None
+        return self.buffer.get_text(bounds[0], bounds[1], True)
 
     # --- Edit operations (called from controller) ---
+
+    def _collect_edit_ranges(self, include_primary):
+        """Collect (start_offset, end_offset) edit ranges for all cursors.
+
+        Overlapping/identical ranges are merged so duplicate cursors do
+        not double-edit the same span.
+        """
+        ranges = []
+        if include_primary:
+            if self.buffer.get_has_selection():
+                sel_bounds = self.buffer.get_selection_bounds()
+                ranges.append((sel_bounds[0].get_offset(),
+                               sel_bounds[1].get_offset()))
+            else:
+                offset = self.buffer.get_iter_at_mark(
+                    self.buffer.get_insert()).get_offset()
+                ranges.append((offset, offset))
+
+        for cursor_mark, anchor_mark, _tag in self.cursors:
+            cursor_offset = self.buffer.get_iter_at_mark(cursor_mark).get_offset()
+            if anchor_mark is not None:
+                anchor_offset = self.buffer.get_iter_at_mark(anchor_mark).get_offset()
+                ranges.append((min(cursor_offset, anchor_offset),
+                               max(cursor_offset, anchor_offset)))
+            else:
+                ranges.append((cursor_offset, cursor_offset))
+
+        # Merge overlapping ranges (sort ascending, fold neighbours)
+        ranges.sort()
+        merged = []
+        for start, end in ranges:
+            if merged and start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+            else:
+                merged.append((start, end))
+        return merged
+
+    def _consume_selections(self):
+        """Drop anchors and tags of selections that were just replaced.
+
+        After typing over a selection the selection is gone (VS Code
+        behaviour): the cursor stays behind the inserted text, ready for
+        further appending.
+        """
+        new_cursors = []
+        for cursor_mark, anchor_mark, tag in self.cursors:
+            if anchor_mark is not None:
+                self.buffer.delete_mark(anchor_mark)
+                if tag is not None:
+                    self._remove_tag(tag)
+                new_cursors.append((cursor_mark, None, None))
+            else:
+                new_cursors.append((cursor_mark, anchor_mark, tag))
+        self.cursors = new_cursors
 
     def handle_insert(self, text):
         """Insert text at all cursor positions. Returns True if handled."""
@@ -427,48 +565,17 @@ class MultiCursor(object):
         try:
             self.buffer.begin_user_action()
 
-            # Collect all edit positions: (offset, cursor_or_selection)
-            edits = []
+            # In column mode the primary caret sits at a rectangle corner
+            # already covered by the column cursors — editing it too would
+            # duplicate input at that corner.
+            ranges = self._collect_edit_ranges(include_primary=not self._column_mode)
 
-            # Primary cursor
-            primary_iter = self.buffer.get_iter_at_mark(self.buffer.get_insert())
-            if self.buffer.get_has_selection():
-                sel_bounds = self.buffer.get_selection_bounds()
-                edits.append((primary_iter.get_offset(), 'primary_selection',
-                              sel_bounds[0].get_offset(), sel_bounds[1].get_offset()))
-            else:
-                edits.append((primary_iter.get_offset(), 'primary',
-                              primary_iter.get_offset(), primary_iter.get_offset()))
-
-            # Additional cursors
-            for cursor_mark, anchor_mark in self.cursors:
-                cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
-                cursor_offset = cursor_iter.get_offset()
-                if anchor_mark:
-                    anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
-                    anchor_offset = anchor_iter.get_offset()
-                    start = min(cursor_offset, anchor_offset)
-                    end = max(cursor_offset, anchor_offset)
-                    edits.append((start, 'secondary_selection', start, end))
-                else:
-                    edits.append((cursor_offset, 'secondary', cursor_offset, cursor_offset))
-
-            # Sort by start offset descending so edits don't affect earlier positions
-            edits.sort(key=lambda e: e[2], reverse=True)
-
-            for edit in edits:
-                edit_type = edit[1]
-                start_offset = edit[2]
-                end_offset = edit[3]
-
-                start_iter = self.buffer.get_iter_at_offset(start_offset)
-                end_iter = self.buffer.get_iter_at_offset(end_offset)
-
-                # Delete existing selection at this position
+            # Apply from the end so earlier offsets stay valid.
+            for start_offset, end_offset in reversed(ranges):
                 if start_offset != end_offset:
+                    start_iter = self.buffer.get_iter_at_offset(start_offset)
+                    end_iter = self.buffer.get_iter_at_offset(end_offset)
                     self.buffer.delete(start_iter, end_iter)
-
-                # Insert text
                 insert_iter = self.buffer.get_iter_at_offset(start_offset)
                 self.buffer.insert(insert_iter, text)
 
@@ -476,7 +583,8 @@ class MultiCursor(object):
         finally:
             self._suppress_handlers = False
 
-        self._draw_area.queue_draw()
+        self._consume_selections()
+        self._queue_draw()
         return True
 
     def handle_delete(self, delete_type):
@@ -492,55 +600,44 @@ class MultiCursor(object):
         try:
             self.buffer.begin_user_action()
 
-            edits = []
+            ranges = []
+            include_primary = not self._column_mode
 
-            # Primary cursor
-            if self.buffer.get_has_selection():
-                sel_bounds = self.buffer.get_selection_bounds()
-                start = min(sel_bounds[0].get_offset(), sel_bounds[1].get_offset())
-                end = max(sel_bounds[0].get_offset(), sel_bounds[1].get_offset())
-                edits.append((start, end))
-            else:
-                primary_iter = self.buffer.get_iter_at_mark(self.buffer.get_insert())
-                if delete_type == 'backspace':
-                    if primary_iter.get_offset() > 0:
-                        primary_iter.backward_char()
-                end = primary_iter.get_offset()
-                edits.append((end, end + 1))
-
-            # Additional cursors
-            for cursor_mark, anchor_mark in self.cursors:
-                cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
-                cursor_offset = cursor_iter.get_offset()
-                if anchor_mark:
-                    anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
-                    anchor_offset = anchor_iter.get_offset()
-                    start = min(cursor_offset, anchor_offset)
-                    end = max(cursor_offset, anchor_offset)
-                    edits.append((start, end))
+            if include_primary:
+                if self.buffer.get_has_selection():
+                    sel_bounds = self.buffer.get_selection_bounds()
+                    ranges.append((min(sel_bounds[0].get_offset(),
+                                       sel_bounds[1].get_offset()),
+                                   max(sel_bounds[0].get_offset(),
+                                       sel_bounds[1].get_offset())))
                 else:
-                    if delete_type == 'backspace':
-                        if cursor_offset > 0:
-                            edits.append((cursor_offset - 1, cursor_offset))
-                    else:
-                        line_end = cursor_iter.copy()
-                        if not line_end.ends_line():
-                            line_end.forward_char()
-                        if cursor_offset != line_end.get_offset():
-                            edits.append((cursor_offset, cursor_offset + 1))
+                    primary_iter = self.buffer.get_iter_at_mark(
+                        self.buffer.get_insert())
+                    ranges.append(self._adjacent_char_range(
+                        primary_iter, delete_type))
 
-            # Sort descending by start offset
-            edits.sort(key=lambda e: e[0], reverse=True)
+            for cursor_mark, anchor_mark, _tag in self.cursors:
+                cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
+                if anchor_mark is not None:
+                    anchor_offset = self.buffer.get_iter_at_mark(anchor_mark).get_offset()
+                    cursor_offset = cursor_iter.get_offset()
+                    ranges.append((min(cursor_offset, anchor_offset),
+                                   max(cursor_offset, anchor_offset)))
+                else:
+                    ranges.append(self._adjacent_char_range(
+                        cursor_iter, delete_type))
 
-            # Merge overlapping ranges
+            # Drop empty (boundary) ranges, merge overlaps
+            ranges = [(s, e) for s, e in ranges if s < e]
+            ranges.sort()
             merged = []
-            for start, end in edits:
+            for start, end in ranges:
                 if merged and start <= merged[-1][1]:
-                    merged[-1] = (min(merged[-1][0], start), max(merged[-1][1], end))
+                    merged[-1] = (merged[-1][0], max(merged[-1][1], end))
                 else:
                     merged.append((start, end))
 
-            for start, end in merged:
+            for start, end in reversed(merged):
                 start_iter = self.buffer.get_iter_at_offset(start)
                 end_iter = self.buffer.get_iter_at_offset(end)
                 self.buffer.delete(start_iter, end_iter)
@@ -549,245 +646,117 @@ class MultiCursor(object):
         finally:
             self._suppress_handlers = False
 
-        self._draw_area.queue_draw()
+        self._consume_selections()
+        self._queue_draw()
         return True
+
+    def _adjacent_char_range(self, iter_pos, delete_type):
+        """Range of the char before (backspace) or after (delete) iter_pos.
+
+        Returns an empty range at buffer boundaries.
+        """
+        offset = iter_pos.get_offset()
+        if delete_type == 'backspace':
+            if offset > 0:
+                return (offset - 1, offset)
+            return (offset, offset)
+        next_iter = iter_pos.copy()
+        if next_iter.forward_char():
+            return (offset, offset + 1)
+        return (offset, offset)
 
     # --- Signal handlers ---
 
-    def _on_primary_cursor_changed(self, buffer, location):
-        """When primary cursor moves, check if we should clear multi-cursor."""
-        if not self.has_multiple_cursors():
-            return
-        # Don't clear during our own edit operations
-        if self._suppress_handlers:
-            return
-        # We don't clear on primary cursor change - user may want to move primary
-        # while keeping additional cursors. Clearing happens on explicit actions.
-
-    def _on_insert_text_before(self, buffer, location, text, length):
-        """Track insertions to adjust cursor marks (Gtk handles this automatically)."""
-        if self._suppress_handlers:
-            return
-
-    def _on_delete_range_before(self, buffer, start, end):
-        """Track deletions to adjust cursor marks (Gtk handles this automatically)."""
-        if self._suppress_handlers:
-            return
-
     # --- Drawing ---
 
-    def _on_draw(self, widget, cr, width, height, user_data):
-        """Draw additional cursors and selection highlights.
+    def _get_cursor_color(self):
+        """Cursor colour: GtkSourceView cursor colour with fallbacks."""
+        try:
+            color = self.view.get_cursor_color()
+            if color is not None and color.alpha > 0.01:
+                return color
+        except Exception:
+            pass
+        try:
+            return ColorManager.get_ui_color('view_fg_color')
+        except Exception:
+            fallback = Gdk.RGBA()
+            fallback.red = fallback.green = fallback.blue = 0.0
+            fallback.alpha = 1.0
+            return fallback
 
-        This is the draw_func callback for the overlay Gtk.DrawingArea.
-        It draws on top of the source view, so coordinates need to be
-        translated from source view space to drawing area space.
+    def _on_draw(self, widget, cr, width, height, user_data):
+        """Draw additional cursors on the overlay drawing area.
+
+        get_iter_location returns buffer coordinates; convert them to
+        view widget coordinates with buffer_to_window_coords, then
+        translate into the drawing area's coordinate space.
         """
         if not self.has_multiple_cursors():
             return
 
-        source_view = self.view
-        scale = widget.get_scale_factor()
+        color = self._get_cursor_color()
 
-        # Get the translation from source view to drawing area coordinates
-        # The source view is inside a scrolled window, so we need to account
-        # for the scroll offset
-        scrolled = source_view.get_parent()
-        hadj = scrolled.get_hadjustment()
-        vadj = scrolled.get_vadjustment()
-        scroll_x = hadj.get_value() if hadj else 0
-        scroll_y = vadj.get_value() if vadj else 0
-
-        # Get cursor color from the source view theme
-        # GTK4: StyleContext.get_color() 不再接受 state 参数。
-        # 优先用 GtkSource.View.get_cursor_color()，失败则回退到前景色。
-        color = None
-        try:
-            cursor_color = source_view.get_cursor_color()
-            if cursor_color:
-                color = cursor_color
-        except:
-            pass
-        if color is None:
-            color = source_view.get_style_context().get_color()
-
-        # Draw additional cursors
-        for cursor_mark, anchor_mark in self.cursors:
+        for cursor_mark, _anchor_mark, _tag in self.cursors:
             cursor_iter = self.buffer.get_iter_at_mark(cursor_mark)
-            cursor_rect = source_view.get_iter_location(cursor_iter)
+            cursor_rect = self.view.get_iter_location(cursor_iter)
 
-            # Translate from source view coordinates to drawing area coordinates
-            # The drawing area is aligned with the overlay, so we need to find
-            # the position of the source view relative to the drawing area
-            source_alloc = source_view.get_allocation()
-            draw_alloc = widget.get_allocation()
-
-            # Get source view position relative to its scrolled window
-            # and then to the overlay/drawing area
-            # Since source view is the main child of the scrolled window,
-            # and the scrolled window is inside a container that's inside the
-            # overlay, we need to compute the offset
-
-            # First, let's find the offset from the drawing area to the source view
-            # by walking up the widget hierarchy
-            offset_x, offset_y = self._get_source_view_offset(widget, source_view)
-
-            # Now translate the cursor position
-            x = cursor_rect.x - scroll_x + offset_x
-            y = cursor_rect.y - scroll_y + offset_y
+            try:
+                view_x, view_y = self.view.buffer_to_window_coords(
+                    Gtk.TextWindowType.WIDGET, cursor_rect.x, cursor_rect.y)
+                translated = self.view.translate_coordinates(
+                    widget, view_x, view_y)
+                if translated is None:
+                    continue
+                draw_x, draw_y = translated
+            except Exception:
+                continue
 
             # Clamp to drawing area bounds
-            if x < -20 or x > width + 20 or y < -20 or y > height + 20:
+            if draw_x < -20 or draw_x > width + 20 or draw_y < -20 or draw_y > height + 20:
                 continue
 
-            # Draw cursor line
             cr.set_source_rgba(color.red, color.green, color.blue, color.alpha)
-            cr.set_line_width(2.0 * scale)
+            cr.set_line_width(2.0)
+            cr.move_to(draw_x + 0.5, draw_y)
+            cr.line_to(draw_x + 0.5, draw_y + cursor_rect.height)
+            cr.stroke()
 
-            if self._cursor_visible:
-                cr.move_to(x, y)
-                cr.line_to(x, y + cursor_rect.height)
-                cr.stroke()
-
-            # Draw selection if any
-            if anchor_mark:
-                anchor_iter = self.buffer.get_iter_at_mark(anchor_mark)
-                self._draw_selection(source_view, cr, anchor_iter, cursor_iter,
-                                    scale, offset_x, offset_y, scroll_x, scroll_y)
-
-    def _get_source_view_offset(self, draw_widget, source_view):
-        """Calculate the offset from the drawing area to the source view.
-
-        Returns (offset_x, offset_y) in the same coordinate space as
-        the drawing area.
-        """
-        # Walk up from source_view to find the overlay's child
-        # We need to account for margins and padding
-        offset_x = 0
-        offset_y = 0
-
-        # Get source view's position relative to its parent (scrolled window)
-        # Actually, let's use the source view's allocation and the draw widget's
-        # allocation to compute the offset
-
-        # Alternative: use translate_coordinates
-        try:
-            # Translate source view's origin to the drawing area
-            rect = Gdk.Rectangle()
-            rect.x = 0
-            rect.y = 0
-            rect.width = 1
-            rect.height = 1
-
-            # source_view to draw_widget
-            translated = source_view.translate_coordinates(draw_widget, 0, 0)
-            if translated is not None:
-                offset_x = translated[0]
-                offset_y = translated[1]
-                return offset_x, offset_y
-        except:
-            pass
-
-        # Fallback: just use 0,0 and hope for the best
-        return offset_x, offset_y
-
-    def _draw_selection(self, source_view, cr, start_iter, end_iter, scale,
-                        offset_x, offset_y, scroll_x, scroll_y):
-        """Draw selection highlight for additional cursors."""
-        # GTK4: StyleContext.get_background_color() 不再接受 state 参数，
-        # 且多数主题下返回透明（背景由 CSS 管理）。检测 alpha 过低则用固定色。
-        # Gdk.RGBA 无 .parse()（见项目记忆），用直接属性赋值。
-        bg_color = None
-        try:
-            bg_color = source_view.get_style_context().get_background_color()
-        except:
-            pass
-        if bg_color is None or bg_color.alpha < 0.01:
-            bg_color = Gdk.RGBA()
-            bg_color.red = 0.208
-            bg_color.green = 0.518
-            bg_color.blue = 0.894
-            bg_color.alpha = 1.0
-
-        # Make it semi-transparent for additional selections
-        alpha = 0.4
-
-        # Draw selection rectangles (handles multi-line)
-        start_line = start_iter.get_line()
-        end_line = end_iter.get_line()
-
-        cr.set_source_rgba(bg_color.red, bg_color.green, bg_color.blue, alpha)
-
-        for line_num in range(start_line, end_line + 1):
-            found, line_start = self.buffer.get_iter_at_line(line_num)
-            if not found:
-                continue
-
-            line_end = line_start.copy()
-            if not line_end.ends_line():
-                line_end.forward_to_line_end()
-
-            if line_num == start_line:
-                sel_start = start_iter
-            else:
-                sel_start = line_start
-
-            if line_num == end_line:
-                sel_end = end_iter
-            else:
-                sel_end = line_end
-
-            if sel_start.get_offset() >= sel_end.get_offset():
-                continue
-
-            # GTK4: Gtk.TextView 无 get_selection_bounds(start, end)。
-            # 用 get_iter_location 计算 sel_start→sel_end 的选区矩形。
-            start_rect = source_view.get_iter_location(sel_start)
-            end_rect = source_view.get_iter_location(sel_end)
-            if end_rect.y > start_rect.y:
-                # sel_end 落在下一行（选区跨行尾）：延伸到本行末
-                le_iter = sel_start.copy()
-                if not le_iter.ends_line():
-                    le_iter.forward_to_line_end()
-                le_rect = source_view.get_iter_location(le_iter)
-                rect_width = le_rect.x - start_rect.x
-            else:
-                rect_width = end_rect.x - start_rect.x
-            if rect_width > 0:
-                cr.rectangle(start_rect.x - scroll_x + offset_x,
-                             start_rect.y - scroll_y + offset_y,
-                             rect_width, start_rect.height)
-                cr.fill()
+    # --- Selection tags ---
 
     def _add_selection_tag(self, start_iter, end_iter):
-        """Add a TextTag for visual selection highlight."""
+        """Apply a TextTag highlighting an additional selection."""
         if start_iter.get_offset() >= end_iter.get_offset():
-            return
+            return None
 
-        # Create a unique tag for this selection
-        tag_name = f'mc-selection-{len(self._selection_tags)}'
+        self._tag_counter += 1
+        tag_name = 'mc-selection-{}'.format(self._tag_counter)
         # 读主题 accent 色（明暗/高对比主题下自动跟随），不写死 Adwaita 蓝。
         tag = self.buffer.create_tag(
             tag_name,
             background=ColorManager.get_ui_color_string('accent_bg_color'),
             background_set=True)
-        # Make it semi-transparent - GTK doesn't support alpha in tags directly,
-        # so we draw selections manually in _on_draw instead
+        self.buffer.apply_tag(tag, start_iter, end_iter)
+        return tag
 
-        self._selection_tags.append(tag)
+    def _remove_tag(self, tag):
+        try:
+            start = self.buffer.get_start_iter()
+            end = self.buffer.get_end_iter()
+            self.buffer.remove_tag(tag, start, end)
+            self.buffer.get_tag_table().remove(tag)
+        except Exception:
+            pass
 
-    # --- Column selection editing helper ---
+    # --- Column selection helpers ---
 
     def get_column_selections(self):
-        """Return list of (line_num, start_col, end_col) for column selections.
-
-        Used for tab-aware editing and display.
-        """
+        """Return list of (line_num, start_col, end_col) for column selections."""
         if not self._column_mode:
             return []
 
         result = []
-        for cursor_mark, anchor_mark in self.cursors:
+        for cursor_mark, anchor_mark, _tag in self.cursors:
             cursor_iter = self.buffer.get_iter_at_mark(cursor_mark) if cursor_mark else None
             anchor_iter = self.buffer.get_iter_at_mark(anchor_mark) if anchor_mark else None
 
@@ -802,6 +771,3 @@ class MultiCursor(object):
                 result.append((line_num, col, col))
 
         return result
-
-    def is_column_mode(self):
-        return self._column_mode
