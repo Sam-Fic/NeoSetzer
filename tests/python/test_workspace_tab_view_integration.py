@@ -102,6 +102,7 @@ presenter_methods = _extract_methods_from_class(
     '_on_tab_view_selected_page_changed',
     '_on_tab_view_close_page',
     '_finish_page',
+    '_page_in_view',
     '_do_release_sync')
 
 
@@ -324,6 +325,10 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         sentinel.workspace.actions = actions if actions is not None else Mock()
         sentinel._finish_page = _bound(
             presenter_methods['_finish_page'], sentinel)
+        # _finish_page 内部调 self._page_in_view —— sentinel 是 Mock，会把
+        # 该方法自动 Mock 成 truthy，成员检测防线将永远放行。必须真绑定。
+        sentinel._page_in_view = _bound(
+            presenter_methods['_page_in_view'], sentinel)
         bound = _bound(
             presenter_methods['_on_tab_view_close_page'],
             sentinel)
@@ -457,6 +462,60 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         self.assertEqual(sentinel._selecting, 0,
                          'handler must decrement _selecting to 0 after '
                          'workspace.remove_document returns')
+
+    def test_cancel_then_retry_close_finishes_again(self):
+        # cancel（finish(False)）后 page 留在视图中。_cancel 必须同步清除
+        # _finished_pages 记账，否则用户再次点 X 时 _finish_page 的幂等
+        # 守卫拦截第二次 finish：adw 的 closing=True 协议悬而未决，
+        # 留下不可关闭的幽灵标签页。
+        sentinel, _ = self._harness()
+        page = object()
+
+        class StubView:
+            '''支持成员检测的最小 tab_view 替身。'''
+            def __init__(self):
+                self.pages = [page]
+                self.finished = []
+            def get_n_pages(self):
+                return len(self.pages)
+            def get_nth_page(self, i):
+                return self.pages[i]
+            def close_page_finish(self, p, confirm):
+                self.finished.append((p, confirm))
+                if confirm:
+                    self.pages.remove(p)
+
+        view = StubView()
+        sentinel._finish_page(view, page, False)   # cancel: finish(False)
+        assert (page, False) in view.finished
+        # cancel 后记账必须被清除（_cancel 的 discard 行为等价模拟）
+        sentinel._finished_pages.discard(page)
+        sentinel._finish_page(view, page, True)    # retry close
+        assert (page, True) in view.finished, \
+            'retry after cancel must finish again, not be swallowed'
+
+    def test_finish_page_skips_page_not_in_view(self):
+        # page 已被任何路径移出视图（漏账场景）时，close_page_finish 会触发
+        # libadwaita 的 page_belongs_to_this_view 断言。成员检测必须拦下。
+        sentinel, _ = self._harness()
+        page = object()
+        other = object()
+
+        class SpyView:
+            def __init__(self, pages):
+                self.pages = pages
+                self.finish_calls = []
+            def get_n_pages(self):
+                return len(self.pages)
+            def get_nth_page(self, i):
+                return self.pages[i]
+            def close_page_finish(self, p, confirm):
+                self.finish_calls.append((p, confirm))
+
+        spy = SpyView([other])                     # page 不在视图中
+        sentinel._finish_page(spy, page, True)
+        self.assertEqual(spy.finish_calls, [],
+                         'must not close_page_finish a page outside the view')
 
 
 if __name__ == '__main__':

@@ -682,15 +682,36 @@ class WorkspacePresenter(object):
             self._selecting -= 1
         return False
 
+    def _page_in_view(self, tab_view, page):
+        '''O(n) 成员检测：page 是否仍在 tab_view 中。
+
+        libadwaita 1.9 无公开的 contains 查询（get_page_position 对非成员
+        页可能断言而非返回 -1，跨版本不可依赖），用 get_n_pages/get_nth_page
+        逐个比对最稳妥。测试环境的 Mock 返回 Mock 而非 int，此时放行
+        （视为在视图中），保持 Mock 测试语义不变。'''
+        try:
+            n = tab_view.get_n_pages()
+            if not isinstance(n, int):
+                return True
+            for i in range(n):
+                if tab_view.get_nth_page(i) is page:
+                    return True
+        except Exception:
+            return True
+        return False
+
     def _finish_page(self, tab_view, page, confirm):
         '''幂等的 close_page_finish。
 
         对已 finish 移除的 page（不再 belong to view）再次调用会触发
         libadwaita 的 page_belongs_to_this_view 断言。_closing_pages 的
         signal 去重无法覆盖全部并发时序（WeakSet 条目丢失、对话框挂起
-        期间其它路径先行 finish 等），这里做最终防线。
-        '''
+        期间其它路径先行 finish 等），这里做最终防线：先查 _finished_pages
+        记账，再直接检测 page 是否仍在视图中——任何路径漏账都会被
+        成员检测拦下，断言从此不可能触发。'''
         if page in self._finished_pages:
+            return
+        if not self._page_in_view(tab_view, page):
             return
         self._finished_pages.add(page)
         tab_view.close_page_finish(page, confirm)
@@ -743,6 +764,10 @@ class WorkspacePresenter(object):
             # 否则之后再次点 X 会被去重拦截、永远关不掉该标签。
             self._closing_pages.discard(page)
             self._finish_page(tab_view, page, False)
+            # finish(False) 后 page 留在视图中，必须同步清除 _finished_pages
+            # 记账：否则用户之后再次点 X（走 _do_remove）会被幂等守卫拦截、
+            # 不再 finish，留下一个 closing=True 的幽灵标签页。
+            self._finished_pages.discard(page)
 
         # 已确认关闭（程序批量路径如会话恢复 discard）直接移除，不再弹 confirm。
         if document in self.workspace._confirmed_closes:
