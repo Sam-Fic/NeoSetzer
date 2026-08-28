@@ -75,8 +75,8 @@ class Preview(Observable):
 
         # ---- 文字选择（普通光标模式，放大镜关闭时左键拖动框选）----
         # text_selection: {'anchor': (cx,cy), 'head': (cx,cy)}，画布坐标。
-        # regions: page(0-based) → cairo.Region，未旋转页面局部 css 空间
-        # （points × scale_factor，top-down），供 presenter 直接画高亮。
+        # regions: page → 精修后的高亮矩形列表（未旋转 points，top-down，
+        # 浮点字形框），供 presenter 按 scale_factor 缩放后精确绘制。
         # rects: page → Poppler.Rectangle（未旋转 points，top-down），供
         # 松开后提取文本。text: 完成后缓存，Ctrl+C 再复制到剪贴板。
         self.text_selection = None
@@ -84,6 +84,10 @@ class Preview(Observable):
         self.text_selection_regions = dict()
         self.text_selection_rects = dict()
         self.text_selection_text = None
+        # get_text_layout() 字形框缓存：page → 浮点矩形列表（points，top-down）。
+        # 拖动选择时每个 motion 事件都要精修高亮矩形，整页字形列表开销不小，
+        # 以页为粒度缓存；load_pdf 换文档时整体清空。
+        self._text_layout_cache = dict()
 
         self.poppler_document = None
         # 内存 PDF 文档版本号：仅在成功加载新 Poppler 文档时递增。页面渲染
@@ -326,13 +330,17 @@ class Preview(Observable):
 
         坐标约定（poppler 26.01 无头实验确认）：get_selected_region /
         get_selected_text 的输入矩形与输出区域都是 top-down（顶左原点），
-        输出区域在 device 空间（points × scale）。链接 API 的 y-up 约定
-        与此不同，勿混用。
+        输出区域在 device 空间（points × scale）。get_text_layout 输出
+        同为 top-down points。链接 API 的 y-up 约定与此不同，勿混用。
 
         画布 → 页面局部：先对每页显示盒（margin..margin+page_width ×
         page_top..page_top+page_heights[i]）求交，得到显示坐标的两个角，
         再逆旋转到未旋转 css 空间、除以 scale_factor 得 points。rotation
-        均为 90° 的倍数，轴对齐矩形逆旋转后仍轴对齐，取角点 min/max 即可。'''
+        均为 90° 的倍数，轴对齐矩形逆旋转后仍轴对齐，取角点 min/max 即可。
+
+        regions 存的是经 _refine_selection_region 精修的浮点字形框
+        （points，绘制时 presenter 乘 scale_factor）；rects 保留 poppler
+        原始输入矩形供 get_selected_text 提取文本。'''
         self.text_selection_regions = dict()
         self.text_selection_rects = dict()
         layout = self.layout
@@ -379,8 +387,60 @@ class Preview(Observable):
             # rotation 传 0：矩形已换算到未旋转页面空间。
             region = doc.get_page(page).get_selected_region(scale, 0, rect)
             if region.num_rectangles() > 0:
-                self.text_selection_regions[page] = region
                 self.text_selection_rects[page] = rect
+                self.text_selection_regions[page] = self._refine_selection_region(
+                    page, region, scale)
+
+    def _refine_selection_region(self, page, region, scale):
+        '''把 get_selected_region 的整数 Region 精修为浮点字形框列表。
+
+        get_selected_region 返回 cairo.Region（整数 css 矩形，floor/ceil
+        取整 + GLYPH 样式自带的行高填充），直接绘制时高亮与文字有 1~3px
+        的错位。这里用 get_text_layout() 的浮点字形框（与 page.render
+        同一套文本引擎，可精确对齐）重算：取中心落在 Region 矩形内的
+        字形，返回它们的包围盒并集（points，top-down，浮点）。
+
+        选择语义（哪些字形被选中）与文本提取（get_selected_text 用
+        text_selection_rects）保持 poppler 原样，只改绘制的矩形。
+        get_text_layout 不可用时回退为 Region 整数矩形（仍可用，只是
+        恢复原 ~1px 取整误差）。'''
+        glyphs = self._get_text_layout_glyphs(page)
+        if glyphs is None:
+            fallback = []
+            for i in range(region.num_rectangles()):
+                r = region.get_rectangle(i)
+                fallback.append((r.x / scale, r.y / scale,
+                                 (r.x + r.width) / scale, (r.y + r.height) / scale))
+            return fallback
+        refined = []
+        for i in range(region.num_rectangles()):
+            r = region.get_rectangle(i)
+            x1, y1 = r.x / scale, r.y / scale
+            x2, y2 = (r.x + r.width) / scale, (r.y + r.height) / scale
+            for g in glyphs:
+                # 中心点判定：字形中心落在 Region 矩形内才算选中。
+                cx = (g.x1 + g.x2) / 2.0
+                cy = (g.y1 + g.y2) / 2.0
+                if x1 <= cx <= x2 and y1 <= cy <= y2:
+                    refined.append((g.x1, g.y1, g.x2, g.y2))
+        return refined
+
+    def _get_text_layout_glyphs(self, page):
+        '''取（带缓存的）整页字形浮点矩形列表，失败返回 None。
+
+        本机 poppler（26.x）无头实验确认 get_text_layout 返回 top-down
+        points（页顶左原点，y 向下），与 get_selected_region 的输出
+        约定一致。'''
+        if page in self._text_layout_cache:
+            return self._text_layout_cache[page]
+        try:
+            ok, glyphs = self.poppler_document.get_page(page).get_text_layout()
+            if not ok:
+                glyphs = None
+        except Exception:
+            glyphs = None
+        self._text_layout_cache[page] = glyphs
+        return glyphs
 
     def _displayed_to_unrotated(self, dx, dy, layout):
         '''页面局部显示坐标（css, y-down）→ 未旋转页面坐标（css, y-down）。
@@ -423,6 +483,8 @@ class Preview(Observable):
             self.poppler_document = new_document
             # 新内存文档 → 递增版本号，使渲染缓存整体失效重建。
             self.pdf_version += 1
+            # 字形框缓存绑定旧文档，必须一并清空。
+            self._text_layout_cache = dict()
             page_size = self.poppler_document.get_page(0).get_size()
             self.page_width = page_size.width
             self.page_height = page_size.height

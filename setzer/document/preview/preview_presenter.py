@@ -390,21 +390,22 @@ class PreviewPresenter(object):
     def draw_text_selection_rectangles(self, ctx, page_number, selection_color):
         '''绘制当前文字选择的每页高亮区域。
 
-        区域由 preview._recompute_text_selection_regions 算出：未旋转页面
-        局部 css 空间（points × scale_factor，top-down）。本方法由 draw 在
-        与 draw_rendered_page 相同的 transform 内调用（rotation != 0 时已
-        处于旋转 transform 中），坐标系与页面纹理一致，直接画即可。'''
+        区域由 preview._refine_selection_region 精修：未旋转页面 points
+        空间的浮点字形框（top-down），与 page.render 的文本引擎同源，
+        乘 scale_factor 后与渲染出的文字像素级对齐。本方法由 draw 在
+        与 draw_rendered_page 相同的 transform 内调用（rotation != 0 时
+        已处于旋转 transform 中），坐标系与页面纹理一致，直接画即可。'''
         if selection_color is None:
             return
-        region = self.preview.text_selection_regions.get(page_number)
-        if region is None:
+        rectangles = self.preview.text_selection_regions.get(page_number)
+        if not rectangles:
             return
+        scale = self.preview.layout.scale_factor
         ctx.set_source_rgba(selection_color.red, selection_color.green,
                             selection_color.blue, 0.30)
-        # get_selected_region 返回 cairo.Region（整数矩形，points × scale）。
-        for i in range(region.num_rectangles()):
-            rect = region.get_rectangle(i)
-            ctx.rectangle(rect.x, rect.y, rect.width, rect.height)
+        for x1, y1, x2, y2 in rectangles:
+            ctx.rectangle(x1 * scale, y1 * scale,
+                          (x2 - x1) * scale, (y2 - y1) * scale)
         ctx.fill()
 
     def ease(self, factor): return (factor - 1)**3 + 1
