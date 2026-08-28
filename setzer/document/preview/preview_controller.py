@@ -54,6 +54,8 @@ class PreviewController(object):
         # provide it.  Links retain the pointer cursor and page gaps/default
         # canvas retain the normal cursor.
         self.cursor_magnifier = Gdk.Cursor.new_from_name('zoom-in') or self.cursor_default
+        # 普通光标模式（放大镜关闭）下悬停页面用 text 光标提示可拖动选择。
+        self.cursor_text = Gdk.Cursor.new_from_name('text') or self.cursor_default
         # 缓存上次的 cursor / link_target：update_cursor 由
         # 滚动 + 鼠标移动每帧触发，原每次都无条件 set_cursor / set_link_target_string。
         # 鼠标在无链接区域移动时三者恒定，却每帧触发 GtkWidget cursor 属性设置 +
@@ -260,10 +262,27 @@ class PreviewController(object):
         self.update_cursor()
         if self._magnifier_active:
             self._update_magnifier()
+        self._update_active_text_selection()
+
+    def _update_active_text_selection(self):
+        '''拖动选择中：把光标当前位置（视口坐标 + 滚动偏移 = 画布坐标）
+        作为 head 更新选择并重绘。由 hover motion 与滚轮滚动共同调用
+        （按住拖动途中滚轮滚动，选择也要跟住）。'''
+        if not self.preview.text_selection_dragging:
+            return
+        content = self.view.content
+        if content.cursor_x is None or content.cursor_y is None:
+            return
+        self.preview.update_text_selection(
+            content.scrolling_offset_x + content.cursor_x,
+            content.scrolling_offset_y + content.cursor_y)
+        self.view.content.queue_draw()
 
     def on_magnifier_context_changed(self, *arguments):
         '''Cancel a held lens as soon as its PDF pixels or layout may change.'''
         self._cancel_magnifier('preview-context-changed')
+        # PDF / 布局变化后选择的页码、几何、旋转可能已失效，清除。
+        self.preview.clear_text_selection()
 
     def on_magnifier_setting_changed(self):
         '''工具栏放大镜开关切换（preview.use_magnifier 已更新后调用）。
@@ -332,8 +351,9 @@ class PreviewController(object):
             return True
 
         page_number, x_offset, y_offset = data
-        # 放大镜关闭时不给 zoom-in 光标（普通箭头，便于按住拖动选择等交互）。
-        cursor = self.cursor_magnifier if self.preview.use_magnifier else self.cursor_default
+        # 放大镜开启 → zoom-in 光标；关闭 → text 光标提示可拖动选择文字
+        # （悬停在链接上会在下方覆盖为 pointer）。
+        cursor = self.cursor_magnifier if self.preview.use_magnifier else self.cursor_text
         link_target = ''
         tooltip = ''
         # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
@@ -382,12 +402,15 @@ class PreviewController(object):
                     self._show_ctrl_hint_toast()
                     return True
             else:
-                # 无链接、无修饰键的普通左键按下：进入放大镜模式（按住
-                # 显示、松开消失）。链接优先——上面命中链接时绝不激活。
-                # state == 0 已保证无 Ctrl/Shift 等修饰键。放大镜在工具栏
-                # 被用户关闭时不激活（左键留给按住拖动的交互）。
+                # 无链接、无修饰键的普通左键按下：放大镜开启时进入放大镜
+                # 模式（按住显示、松开消失）；关闭时开始拖动选择文字。
+                # 链接优先——上面命中链接时绝不激活。state == 0 已保证无
+                # Ctrl/Shift 等修饰键。
                 if self.preview.use_magnifier:
                     self._begin_magnifier(x_offset, y_offset)
+                else:
+                    self.preview.begin_text_selection(x_offset, y_offset)
+                    self.view.content.queue_draw()
             return True
 
         return True
@@ -396,6 +419,11 @@ class PreviewController(object):
         # 无论何种状态松开都结束放大镜：即使因边界条件未激活也是无害 no-op。
         if self._magnifier_active:
             self._end_magnifier()
+        # 结束拖动选择：提取文本写入主选择，高亮保留在屏幕上（与 Evince
+        # 一致），Ctrl+C 可复制到剪贴板。
+        if self.preview.text_selection is not None:
+            self.preview.finish_text_selection()
+            self.view.content.queue_draw()
 
     # ---- 放大镜 ----
 
@@ -649,13 +677,23 @@ class PreviewController(object):
         ↑ / ↓        — 微调滚动（50px）
         Ctrl+G       — 跳转到指定页面
         '''
-        if keyval == Gdk.KEY_Escape and self._magnifier_active:
-            self._cancel_magnifier('escape')
-            return True
+        if keyval == Gdk.KEY_Escape:
+            if self._magnifier_active:
+                self._cancel_magnifier('escape')
+                return True
+            if self.preview.text_selection is not None:
+                self.preview.clear_text_selection()
+                return True
         if self.preview.layout == None or self.preview.poppler_document == None:
             return False
 
         ctrl = (state & Gdk.ModifierType.CONTROL_MASK) != 0
+
+        # Ctrl+C — 把选中文本复制到剪贴板（松开鼠标时已写入主选择）。
+        if ctrl and keyval in (Gdk.KEY_c, Gdk.KEY_C) and self.preview.text_selection_text:
+            Gdk.Display.get_default().get_clipboard().set_content(
+                Gdk.ContentProvider.new_for_value(self.preview.text_selection_text))
+            return True
 
         # Ctrl+G — 跳转到页面
         if ctrl and keyval in (Gdk.KEY_g, Gdk.KEY_G):

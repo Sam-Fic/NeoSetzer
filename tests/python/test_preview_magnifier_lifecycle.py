@@ -130,17 +130,10 @@ class PreviewMagnifierLifecycleTest(unittest.TestCase):
         self.links = []
         self.controller = PreviewControllerHarness()
         self.controller.view = _View()
-        self.controller.preview = SimpleNamespace(
-            layout=_Layout(),
-            poppler_document=object(),
-            page_renderer=self.renderer,
-            links_parser=SimpleNamespace(get_links_for_page=lambda page: self.links),
-            get_page_height=lambda page: 100,
-            use_magnifier=True,
-        )
         self.controller.cursor_default = 'default'
         self.controller.cursor_pointer = 'pointer'
         self.controller.cursor_magnifier = 'zoom-in'
+        self.controller.cursor_text = 'text'
         self.controller._current_cursor = None
         self.controller._current_link_target = None
         self.controller._current_tooltip = None
@@ -149,18 +142,31 @@ class PreviewMagnifierLifecycleTest(unittest.TestCase):
         self.controller._magnifier_pending_request_id = 3
         self.controller._magnifier_last_enqueue_pos = (10, 20)
         self.controller._magnifier_debug_pos = {'debug': True}
+        # 文字选择状态（controller 的新增路径会读取 / 清除）。
+        self.controller.preview = SimpleNamespace(
+            layout=_Layout(),
+            poppler_document=object(),
+            page_renderer=self.renderer,
+            links_parser=SimpleNamespace(get_links_for_page=lambda page: self.links),
+            get_page_height=lambda page: 100,
+            use_magnifier=True,
+            text_selection=None,
+            text_selection_dragging=False,
+            text_selection_text=None,
+            clear_text_selection=lambda: None,
+        )
 
     def test_non_link_page_uses_zoom_in_cursor(self):
         self.controller.update_cursor()
         self.assertEqual(self.controller.view.cursors, ['zoom-in'])
         self.assertEqual(self.controller.view.link_targets, [''])
 
-    def test_disabled_magnifier_uses_default_cursor_on_page(self):
+    def test_disabled_magnifier_uses_text_cursor_on_page(self):
         self.controller.preview.use_magnifier = False
 
         self.controller.update_cursor()
 
-        self.assertEqual(self.controller.view.cursors, ['default'])
+        self.assertEqual(self.controller.view.cursors, ['text'])
 
     def test_disabling_cancels_active_lens_and_restores_cursor(self):
         self.controller._magnifier_active = True
@@ -174,8 +180,9 @@ class PreviewMagnifierLifecycleTest(unittest.TestCase):
         self.assertFalse(self.controller._magnifier_active)
         self.assertEqual(self.renderer.invalidated, 1)
         self.assertEqual(self.controller.view.magnifier.dismiss_count, 1)
-        # 光标缓存被重置：即使缓存值已是 'zoom-in' 也必须重新下发 'default'。
-        self.assertEqual(self.controller.view.cursors, ['zoom-in', 'default'])
+        # 光标缓存被重置：即使缓存值已是 'zoom-in' 也必须重新下发 'text'
+        # （关闭放大镜后悬停页面为普通光标模式的 text 光标）。
+        self.assertEqual(self.controller.view.cursors, ['zoom-in', 'text'])
 
     def test_enabling_refreshes_cursor_without_cancelling(self):
         self.controller.preview.use_magnifier = False

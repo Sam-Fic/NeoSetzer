@@ -222,6 +222,8 @@ class PreviewPresenter(object):
         else:
             page_bg_color = None
         synctex_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.visible_synctex_rectangles else None
+        # 文字选择高亮与 synctex 同用 accent 色（无选择时不取色，保持零开销）。
+        selection_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.text_selection_regions else None
 
         self.draw_background(ctx, drawing_area, canvas_bg_color)
 
@@ -272,10 +274,12 @@ class PreviewPresenter(object):
                 ctx.translate(-layout.page_width_original / 2.0, -layout.page_height_original / 2.0)
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+                self.draw_text_selection_rectangles(ctx, page_number, selection_color)
                 ctx.restore()
             else:
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+                self.draw_text_selection_rectangles(ctx, page_number, selection_color)
 
             # per-page advance：每页实际高 + gap（而非统一 page_step）。
             ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_heights[page_number] + page_gap))
@@ -382,6 +386,26 @@ class PreviewPresenter(object):
                 ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
             ctx.fill()
             ctx.set_operator(cairo.Operator.OVER)
+
+    def draw_text_selection_rectangles(self, ctx, page_number, selection_color):
+        '''绘制当前文字选择的每页高亮区域。
+
+        区域由 preview._recompute_text_selection_regions 算出：未旋转页面
+        局部 css 空间（points × scale_factor，top-down）。本方法由 draw 在
+        与 draw_rendered_page 相同的 transform 内调用（rotation != 0 时已
+        处于旋转 transform 中），坐标系与页面纹理一致，直接画即可。'''
+        if selection_color is None:
+            return
+        region = self.preview.text_selection_regions.get(page_number)
+        if region is None:
+            return
+        ctx.set_source_rgba(selection_color.red, selection_color.green,
+                            selection_color.blue, 0.30)
+        # get_selected_region 返回 cairo.Region（整数矩形，points × scale）。
+        for i in range(region.num_rectangles()):
+            rect = region.get_rectangle(i)
+            ctx.rectangle(rect.x, rect.y, rect.width, rect.height)
+        ctx.fill()
 
     def ease(self, factor): return (factor - 1)**3 + 1
 

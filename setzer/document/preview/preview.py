@@ -22,6 +22,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Poppler
 from gi.repository import GLib
 from gi.repository import Gio
+from gi.repository import Gdk
 
 import os.path
 import time
@@ -71,6 +72,18 @@ class Preview(Observable):
         self.recolor_pdf = self.document.settings.get_value('preferences', 'recolor_pdf')
         # 放大镜开关（预览工具栏切换按钮，preferences/use_magnifier）。
         self.use_magnifier = self.document.settings.get_value('preferences', 'use_magnifier')
+
+        # ---- 文字选择（普通光标模式，放大镜关闭时左键拖动框选）----
+        # text_selection: {'anchor': (cx,cy), 'head': (cx,cy)}，画布坐标。
+        # regions: page(0-based) → cairo.Region，未旋转页面局部 css 空间
+        # （points × scale_factor，top-down），供 presenter 直接画高亮。
+        # rects: page → Poppler.Rectangle（未旋转 points，top-down），供
+        # 松开后提取文本。text: 完成后缓存，Ctrl+C 再复制到剪贴板。
+        self.text_selection = None
+        self.text_selection_dragging = False
+        self.text_selection_regions = dict()
+        self.text_selection_rects = dict()
+        self.text_selection_text = None
 
         self.poppler_document = None
         # 内存 PDF 文档版本号：仅在成功加载新 Poppler 文档时递增。页面渲染
@@ -245,6 +258,147 @@ class Preview(Observable):
             return False
         return self.load_pdf(external_reload=True)
 
+    # ---- 文字选择（普通光标模式，放大镜关闭时左键拖动框选）----
+
+    def begin_text_selection(self, doc_x, doc_y):
+        '''普通光标模式下左键按下：以 (doc_x, doc_y) 为锚点开始框选。
+
+        替换上一个（仍显示中的）选择。区域立即重算（首帧只有锚点，
+        通常得到空区域）。'''
+        self.text_selection = {'anchor': (doc_x, doc_y), 'head': (doc_x, doc_y)}
+        self.text_selection_dragging = True
+        self.text_selection_text = None
+        self._recompute_text_selection_regions()
+
+    def update_text_selection(self, doc_x, doc_y):
+        '''拖动中更新 head 并重算各页高亮区域。仅拖动期间有效。'''
+        if not self.text_selection_dragging or self.text_selection is None:
+            return
+        self.text_selection['head'] = (doc_x, doc_y)
+        self._recompute_text_selection_regions()
+
+    def finish_text_selection(self):
+        '''松开左键：提取选中文本，写入 X11/Wayland 主选择（primary）。
+
+        选中高亮保留在屏幕上（与 Evince 一致），文本缓存在
+        text_selection_text 供 Ctrl+C 复制到剪贴板。返回所选文本。'''
+        if self.text_selection is None or not self.text_selection_dragging:
+            return ''
+        self.text_selection_dragging = False
+        self.text_selection_text = self._extract_selected_text()
+        text = self.text_selection_text
+        if text:
+            try:
+                Gdk.Display.get_default().get_primary_clipboard().set_content(
+                    Gdk.ContentProvider.new_for_value(text))
+            except Exception:
+                # 主选择不可用（个别后端）不影响选择本身。
+                pass
+        return text
+
+    def clear_text_selection(self):
+        '''清除选择与高亮（Esc、新 PDF / 布局变化时调用）。'''
+        if self.text_selection is None and not self.text_selection_regions:
+            return
+        self.text_selection = None
+        self.text_selection_dragging = False
+        self.text_selection_regions = dict()
+        self.text_selection_rects = dict()
+        self.text_selection_text = None
+        self.view.drawing_area.queue_draw()
+
+    def _extract_selected_text(self):
+        '''按页序拼接各页选中文本。poppler 的 get_selected_text 对换行
+        与词间空格已做处理，页与页之间补换行。'''
+        doc = self.poppler_document
+        if doc is None:
+            return ''
+        parts = []
+        for page in sorted(self.text_selection_rects):
+            text = doc.get_page(page).get_selected_text(
+                Poppler.SelectionStyle.GLYPH, self.text_selection_rects[page])
+            if text:
+                parts.append(text)
+        return '\n'.join(parts)
+
+    def _recompute_text_selection_regions(self):
+        '''按当前框选矩形重算每页的高亮区域与 poppler 矩形。
+
+        坐标约定（poppler 26.01 无头实验确认）：get_selected_region /
+        get_selected_text 的输入矩形与输出区域都是 top-down（顶左原点），
+        输出区域在 device 空间（points × scale）。链接 API 的 y-up 约定
+        与此不同，勿混用。
+
+        画布 → 页面局部：先对每页显示盒（margin..margin+page_width ×
+        page_top..page_top+page_heights[i]）求交，得到显示坐标的两个角，
+        再逆旋转到未旋转 css 空间、除以 scale_factor 得 points。rotation
+        均为 90° 的倍数，轴对齐矩形逆旋转后仍轴对齐，取角点 min/max 即可。'''
+        self.text_selection_regions = dict()
+        self.text_selection_rects = dict()
+        layout = self.layout
+        doc = self.poppler_document
+        if self.text_selection is None or layout is None or doc is None:
+            return
+        ax, ay = self.text_selection['anchor']
+        hx, hy = self.text_selection['head']
+        x_min, x_max = min(ax, hx), max(ax, hx)
+        y_min, y_max = min(ay, hy), max(ay, hy)
+        if x_max - x_min < 2 and y_max - y_min < 2:
+            # 原地点击（无拖动）：无选择内容。
+            return
+        window_width = self.view.content.width
+        margin = layout.get_horizontal_margin(window_width)
+        scale = layout.scale_factor
+        rotation = layout.rotation
+        first = max(0, layout.get_page_by_offset(y_min) - 1)
+        last = min(max(0, layout.get_page_by_offset(y_max) - 1), doc.get_n_pages() - 1)
+        for page in range(first, last + 1):
+            page_top = layout.get_page_top(page)
+            page_h = layout.get_page_height(page)
+            if page_top is None or page_h is None:
+                continue
+            iy_min = max(y_min, page_top)
+            iy_max = min(y_max, page_top + page_h)
+            if iy_max - iy_min < 1:
+                continue
+            ix_min = max(x_min, margin)
+            ix_max = min(x_max, margin + layout.page_width)
+            if ix_max - ix_min < 1:
+                continue
+            corners = ((ix_min - margin, iy_min - page_top),
+                       (ix_max - margin, iy_max - page_top))
+            points = []
+            for dx, dy in corners:
+                ux, uy = self._displayed_to_unrotated(dx, dy, layout)
+                points.append((ux / scale, uy / scale))
+            xs = [p[0] for p in points]
+            ys = [p[1] for p in points]
+            rect = Poppler.Rectangle()
+            rect.x1, rect.y1 = min(xs), min(ys)
+            rect.x2, rect.y2 = max(xs), max(ys)
+            # rotation 传 0：矩形已换算到未旋转页面空间。
+            region = doc.get_page(page).get_selected_region(scale, 0, rect)
+            if region.num_rectangles() > 0:
+                self.text_selection_regions[page] = region
+                self.text_selection_rects[page] = rect
+
+    def _displayed_to_unrotated(self, dx, dy, layout):
+        '''页面局部显示坐标（css, y-down）→ 未旋转页面坐标（css, y-down）。
+
+        与 draw 的旋转 transform / layouter 坐标反算同一套数学：绕显示
+        盒中心与未旋转盒中心互转。rotation=0 直接原样返回。'''
+        rotation = layout.rotation
+        if rotation == 0:
+            return dx, dy
+        theta = math.radians(rotation)
+        cos_t = math.cos(theta)
+        sin_t = math.sin(theta)
+        cx, cy = layout.page_width / 2.0, layout.page_height / 2.0
+        ocx, ocy = layout.page_width_original / 2.0, layout.page_height_original / 2.0
+        dx -= cx
+        dy -= cy
+        return (ocx + dx * cos_t + dy * sin_t, ocy - dx * sin_t + dy * cos_t)
+
     def get_pdf_date(self):
         if self.pdf_filename != None:
             try:
@@ -284,6 +438,8 @@ class Preview(Observable):
             ]
             self.update_vertical_margin()
             self.layout = None
+            # 新 PDF 的页码 / 几何与旧选择不再对应，清除选择。
+            self.clear_text_selection()
             # Only a successfully opened Poppler document is accepted as the
             # current disk version. This also suppresses monitor events caused
             # by NeoSetzer's own successful builds.
@@ -321,6 +477,7 @@ class Preview(Observable):
         self.page_height = None
         self.page_heights = None
         self.layout = None
+        self.clear_text_selection()
         if self.pdf_is_stale:
             self.set_pdf_is_stale(False)
         self.add_change_code('pdf_changed')
