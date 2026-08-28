@@ -539,12 +539,13 @@ class Search(Observable):
             return
         buffer = self.document.source_buffer
         cursor = buffer.get_iter_at_mark(buffer.get_insert())
-        found, start, end = self.search_context.forward(cursor)
-        if found and start.get_offset() <= cursor.get_offset() <= end.get_offset():
+        # forward/backward 返回 (found, start, end, has_wrapped) 四元组。
+        result = self.search_context.forward(cursor)
+        if result[0] and result[1].get_offset() <= cursor.get_offset() <= result[2].get_offset():
             self.view.replace_button.set_sensitive(True)
         else:
-            found, start, end = self.search_context.backward(cursor)
-            if found and start.get_offset() <= cursor.get_offset() <= end.get_offset():
+            result = self.search_context.backward(cursor)
+            if result[0] and result[1].get_offset() <= cursor.get_offset() <= result[2].get_offset():
                 self.view.replace_button.set_sensitive(True)
             else:
                 self.view.replace_button.set_sensitive(False)
