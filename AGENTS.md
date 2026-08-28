@@ -1,0 +1,3 @@
+# AGENTS.MD
+
+在使用Adw.Dialog、Adw.PreferencesDialog等弹窗组件时，禁止同时保留系统默认右上角关闭按钮（右上角 X）和手动添加的Close/Cancel按钮，创建弹窗时必须调用set_show_end_title_buttons(False)禁用默认关闭按钮，仅保留单一手动关闭入口。弹窗HeaderBar的按钮布局需遵循规范：文字按钮最多设置2个，分别为左侧的Cancel/Close按钮和右侧带suggested-action样式的主确认按钮，中间的次要操作统一降级为flat图标按钮并配套tooltip提示。
