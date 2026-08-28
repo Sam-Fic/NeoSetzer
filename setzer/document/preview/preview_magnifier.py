@@ -22,8 +22,9 @@
 - 纯函数 ``compute_magnifier_params`` / ``compute_magnifier_placement``：
   渲染参数推导与浮窗定位（含视口边缘翻转），不依赖 GTK，可单测。
 - ``PreviewMagnifier(Gtk.DrawingArea)``：圆形浮窗本体。作为画布坐标系
-  的 overlay 子控件挂到 ScrollingWidget 的 canvas 上（add_overlay_widget），
-  定位用 margin_start / margin_top（画布坐标，随滚动平移）。
+  的 overlay 子控件挂到 ScrollingWidget 的定位层（Gtk.Fixed）上
+  （add_overlay_widget），定位经 positioner 注入的 move_overlay_widget
+  （画布坐标，float，无 Gtk margin 的 int16 上限，随滚动平移）。
 
 语义：旁置式——浮窗摆在光标右下（贴近视口边缘时翻转），玻璃圆心
 显示「光标处」的内容；圆心十字标记被跟踪点。（曾试验「圆心即光标+
@@ -62,13 +63,14 @@ class PreviewMagnifier(Gtk.DrawingArea):
         super().__init__()
         self.diameter = diameter
         self._surface = None
+        # 画布定位函数（ScrollingWidget.move_overlay_widget），由 PreviewView
+        # 在 add_overlay_widget 之后注入。Gtk margin 是 gint16（上限
+        # 32767px），长 PDF 高缩放下画布坐标会超限导致定位失败。
+        self._positioner = None
 
         self.set_content_width(diameter)
         self.set_content_height(diameter)
-        # START 对齐 + margin_* 即「左上角放在 (margin_start, margin_top)」，
-        # 与页码徽章同一定位范式（画布坐标系）。
-        self.set_halign(Gtk.Align.START)
-        self.set_valign(Gtk.Align.START)
+        # 左上角放在画布坐标 (x, y)，与页码徽章同一定位范式（Gtk.Fixed）。
         self.set_can_focus(False)
         # 关键：不参与输入。浮窗常悬停在光标附近，若可命中会吞掉 motion/
         # release 事件，导致放大镜抖动或无法松开消失。
@@ -76,10 +78,21 @@ class PreviewMagnifier(Gtk.DrawingArea):
         self.set_visible(False)
         self.set_draw_func(self._draw)
 
+    def set_positioner(self, positioner):
+        '''注入画布定位函数（ScrollingWidget.move_overlay_widget）。
+
+        Gtk margin 是 gint16（上限 32767px），长 PDF 高缩放下画布坐标会
+        超限导致定位失败；positioner 用 Gtk.Fixed 的 float 坐标无此限制。'''
+        self._positioner = positioner
+
     def present_at(self, x, y):
         '''把浮窗左上角放到画布坐标 (x, y) 并显示。'''
-        self.set_margin_start(int(round(x)))
-        self.set_margin_top(int(round(y)))
+        if self._positioner is not None:
+            self._positioner(self, x, y)
+        else:
+            # 兜底：positioner 未注入时退回 margin 定位（短文档无影响）。
+            self.set_margin_start(int(round(x)))
+            self.set_margin_top(int(round(y)))
         self.set_visible(True)
 
     def set_magnified_surface(self, surface):

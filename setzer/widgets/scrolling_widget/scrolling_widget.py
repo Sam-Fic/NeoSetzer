@@ -37,9 +37,12 @@ class ScrollingWidget(Observable):
 
     The drawing area is wrapped in a ``Gtk.Overlay`` (``self.canvas``) so that
     canvas-positioned widgets (e.g. per-page page indicator buttons) can be
-    placed on top of the drawing area. These widgets use canvas coordinates
-    for ``set_margin_top``/``set_margin_end`` and scroll with the content
-    naturally, since they are children of the canvas-sized overlay.
+    placed on top of the drawing area. Positioning goes through a
+    ``Gtk.Fixed`` layer (``self.fixed``): ``Gtk`` margins are ``gint16``
+    (capped at 32767px) which tall canvases (long PDF, high zoom) exceed,
+    while ``Gtk.Fixed.move`` takes unconstrained float canvas coordinates.
+    These widgets scroll with the content naturally, since they are children
+    of the canvas-sized overlay.
     '''
 
     def __init__(self):
@@ -65,6 +68,12 @@ class ScrollingWidget(Observable):
         self.canvas = Gtk.Overlay()
         self.content = Gtk.DrawingArea()
         self.canvas.set_child(self.content)
+        # 画布坐标定位层：Gtk margin 是 gint16（上限 32767px），长 PDF 高缩放
+        # 下画布高度轻松超过该上限（触发 Gtk-CRITICAL: margin <= G_MAXINT16
+        # 且定位失败）。Gtk.Fixed.move 用 float 坐标无此限制，overlay 子控件
+        # 统一经 add_overlay_widget / move_overlay_widget 绝对定位。
+        self.fixed = Gtk.Fixed()
+        self.canvas.add_overlay(self.fixed)
         self.view.set_child(self.canvas)
 
         self.adjustment_x = self.view.get_hadjustment()
@@ -127,12 +136,20 @@ class ScrollingWidget(Observable):
         self.content.queue_draw()
 
     def add_overlay_widget(self, widget):
-        '''把 widget 放到画布坐标系的 overlay 层。
+        '''把 widget 放到画布坐标系的定位层（Gtk.Fixed）。
 
-        widget 的大小 / 位置由调用方通过 set_halign/set_valign + set_margin_*
-        设定（坐标以画布左上角为原点）。widget 会随画布一起随滚动平移，
-        不会停在视口固定位置。'''
-        self.canvas.add_overlay(widget)
+        widget 的位置随后通过 move_overlay_widget(widget, x, y) 以画布左上角
+        为原点的坐标设定（float，无 Gtk margin 的 int16 上限）。widget 会随
+        画布一起随滚动平移，不会停在视口固定位置。'''
+        widget.set_halign(Gtk.Align.START)
+        widget.set_valign(Gtk.Align.START)
+        self.fixed.put(widget, 0, 0)
+
+    def move_overlay_widget(self, widget, x, y):
+        '''把定位层中的 widget 摆到画布坐标 (x, y)。
+
+        坐标为 float，不受 Gtk margin 的 G_MAXINT16 上限约束。'''
+        self.fixed.move(widget, float(x), float(y))
 
     def scroll_to_position(self, position):
         yoffset = max(position[1], 0)

@@ -37,10 +37,11 @@ class PageIndicatorButton(Gtk.Button):
     （浅色淡灰、深色深灰，无阴影），hover / active 等交互态由 GTK 处理，
     Python 不需要查 ColorManager。
 
-    位置与显隐：实际放上画布 overlay 的是外层 Gtk.Revealer（fade in/out
-    容器），按钮是 revealer 的子元素。view 在滚动时实时更新 revealer 的
-    margin_top / margin_end + set_reveal_child()，按钮本身不参与定位/
-    显隐。
+    位置与显隐：实际放上画布定位层（Gtk.Fixed）的是外层 Gtk.Revealer
+    （fade in/out 容器），按钮是 revealer 的子元素。view 在滚动时实时
+    用画布坐标 move 定位 revealer + set_reveal_child()，按钮本身不参与
+    定位/显隐。不用 Gtk margin 定位：margin 是 gint16（上限 32767px），
+    长 PDF 高缩放下 page_top 会超限导致定位失败。
 
     点击：view 把 'clicked' 信号统一接走，从 button.get_page_number()
     读出 1-based 页码，回调给 PreviewPresenter 滚动到该页顶部。'''
@@ -143,11 +144,10 @@ class PreviewView(Gtk.Box):
             # 上"这种小元素(滑动方向感不强,容易让人误以为在重排)。
             revealer.set_transition_type(Gtk.RevealerTransitionType.CROSSFADE)
             revealer.set_transition_duration(self._page_indicator_fade_ms)
-            # 定位：revealer 自身作为画布 overlay 子,halign/valign 决定
-            # 在 overlay 内的对齐基准（START=距顶 / 距左；END=距右）,
-            # margin_top / margin_end 给具体偏移。
-            revealer.set_halign(Gtk.Align.END)
-            revealer.set_valign(Gtk.Align.START)
+            # 定位：revealer 放在画布定位层（Gtk.Fixed）里，由
+            # _update_indicator_button_positions 用画布坐标 move 到对应页
+            # 右上角。不能用 Gtk margin 定位（gint16 上限 32767px，长 PDF
+            # 高缩放下 page_top 超限会定位失败）。
             revealer.set_can_focus(False)
             revealer.set_child(btn)
             # 初始为不可见,等首次 show_page_indicator 时再 reveal。
@@ -170,6 +170,9 @@ class PreviewView(Gtk.Box):
         # PreviewController 驱动（press/hover/release → present/dismiss）。
         self.magnifier = PreviewMagnifier()
         self.content.add_overlay_widget(self.magnifier)
+        # 注入画布定位函数：Gtk margin 有 int16 上限，长 PDF 高缩放下画布
+        # 坐标会超限，放大镜与页码徽章统一走 Gtk.Fixed 的 float 坐标定位。
+        self.magnifier.set_positioner(self.content.move_overlay_widget)
 
         # ToastOverlay 仍用于短暂的构建失败反馈；外部 PDF 变更是持续状态，
         # 使用 Adw.Banner 以免提示消失后用户不知预览仍可能是旧版本。
@@ -293,20 +296,21 @@ class PreviewView(Gtk.Box):
     def _update_indicator_button_positions(self, visible_pages, layout):
         '''把按钮池中的前 N 个按 visible_pages 摆到对应页右上角，其余淡出。
 
-        定位（基于画布坐标系，作用在外层 revealer 上）：
-        - revealer.halign=END, valign=START（构造时已设）
-        - margin_top = page_y_starts[page] + 10
-        - margin_end = horizontal_margin + 10
-        margin_end 推导：canvas_width = 2*h_margin + page_width（页面居中），
-        按钮右边缘要落在 page_right - 10 = (h_margin + page_width) - 10，
-        所以 margin_end = canvas_width - (page_right - 10) = h_margin + 10。
-        不需要知道按钮宽度。
+        定位（画布坐标系，Gtk.Fixed 绝对定位，float 坐标无 int16 上限）：
+        - 左上角 y = page_y_starts[page] + 10
+        - 右边缘落在 page_right - 10，故左上角
+          x = canvas_width - (horizontal_margin + 10) - badge_width
+          （badge_width 为按钮的 measured 自然宽度）
+        不用 Gtk margin 定位：margin 是 gint16（上限 32767px），长 PDF 高
+        缩放下 page_top 会超限（Gtk-CRITICAL: margin <= G_MAXINT16）且
+        定位失败。
 
         显隐用 set_reveal_child：True 触发 crossfade 淡入（200ms）,
         False 触发淡出。对当前不在 visible_pages 范围内的 revealer 也
         调 False（滚动时那些页滑出视口,自动淡出）。'''
         window_width = self.get_allocated_width()
         h_margin = layout.get_horizontal_margin(window_width)
+        right_edge = layout.canvas_width - (h_margin + 10)
         for i, (btn, revealer) in enumerate(zip(self._page_indicator_buttons, self._page_indicator_revealers)):
             if i < len(visible_pages):
                 page_number = visible_pages[i]
@@ -315,8 +319,8 @@ class PreviewView(Gtk.Box):
                     revealer.set_reveal_child(False)
                     continue
                 btn.set_page_number(page_number)
-                revealer.set_margin_top(page_top + 10)
-                revealer.set_margin_end(h_margin + 10)
+                _, badge_width, _, _ = btn.measure(Gtk.Orientation.HORIZONTAL, -1)
+                self.content.move_overlay_widget(revealer, right_edge - badge_width, page_top + 10)
                 revealer.set_reveal_child(True)
             else:
                 # 池中多余的按钮淡出（被本次可见页列表压缩掉的部分）
