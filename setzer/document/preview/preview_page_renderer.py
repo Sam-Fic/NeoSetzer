@@ -47,7 +47,7 @@ class PreviewPageRenderer(Observable):
         # AttributeError 导致渲染线程静默崩溃（线程异常不会冒泡到主线程）。
         self.visible_pages_additional = [0, -1]
         self.page_width = None
-        self.pdf_date = None
+        self.pdf_version = None
         self.rendered_pages = dict()
         self.is_active_lock = threading.Lock()
         self.is_active = False
@@ -144,7 +144,7 @@ class PreviewPageRenderer(Observable):
         with self.visible_pages_lock:
             self.visible_pages = list()
         self.page_width = None
-        self.pdf_date = None
+        self.pdf_version = None
         # Preview hiding invalidates all in-flight lens surfaces as well.
         self.invalidate_magnifier_requests()
 
@@ -259,7 +259,7 @@ class PreviewPageRenderer(Observable):
                     # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
                     surface = self._apply_theme_recolor(surface, colors)
 
-                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_date'], colors]})
+                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
 
     def _apply_theme_recolor(self, surface, colors):
         '''对 ARGB32 surface 做「深色化」处理并返回新 surface。
@@ -422,12 +422,16 @@ class PreviewPageRenderer(Observable):
         max_additional_pages = max(math.floor(self.maximum_rendered_pixels / (page_width * page_height * hidpi_factor * hidpi_factor) - visible_pages[1] + visible_pages[0]), 0)
         visible_pages_additional = [max(int(visible_pages[0] - max_additional_pages / 2), 0), min(int(visible_pages[1] + max_additional_pages / 2), self.preview.poppler_document.get_n_pages() - 1)]
 
-        pdf_date = self.preview.get_pdf_date()
+        # 缓存版本号 = 内存 Poppler 文档的版本（preview.pdf_version），而非
+        # 磁盘 mtime：编译期间编译器改写磁盘 PDF（mtime 一直变），但内存文档
+        # 不变，已渲染页仍然有效。若按 mtime 失效，编译中滚动/缩放会清空缓存
+        # 导致预览白屏（只剩页面底色），直到构建结束才恢复。
+        pdf_version = self.preview.pdf_version
         with self.visible_pages_lock:
             self.visible_pages = visible_pages
             self.visible_pages_additional = visible_pages_additional
         self.page_width = page_width
-        self.pdf_date = pdf_date
+        self.pdf_version = pdf_version
 
         if self.preview.recolor_pdf:
             colors = (ColorManager.get_ui_color('view_fg_color'), ColorManager.get_ui_color('view_bg_color'))
@@ -449,7 +453,7 @@ class PreviewPageRenderer(Observable):
             else:
                 colors_changed = False
 
-            if page_data[3] != pdf_date or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
+            if page_data[3] != pdf_version or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
                 del(self.rendered_pages[page_number])
                 changed = True
         if changed:
@@ -478,7 +482,7 @@ class PreviewPageRenderer(Observable):
         vp_lo, vp_hi = visible_pages[0], visible_pages[1]
         for page_number in range(lo, hi + 1):
             page_data = rendered_pages.get(page_number)
-            if page_data is None or page_data[1] != page_width or page_data[3] != pdf_date:
+            if page_data is None or page_data[1] != page_width or page_data[3] != pdf_version:
                 with self.page_render_count_lock:
                     try:
                         page_render_count[page_number] += 1
@@ -492,7 +496,7 @@ class PreviewPageRenderer(Observable):
                     render_task['hidpi_factor'] = hidpi_factor
                     render_task['page_width'] = page_width
                     render_task['page_height'] = page_height
-                    render_task['pdf_date'] = pdf_date
+                    render_task['pdf_version'] = pdf_version
                     render_task['matching_theme_colors'] = colors
 
                     if page_number >= vp_lo and page_number <= vp_hi:

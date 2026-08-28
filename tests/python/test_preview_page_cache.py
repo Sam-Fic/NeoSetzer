@@ -74,29 +74,27 @@ class _PopplerDocument:
 
 
 class _Preview:
-    def __init__(self, pdf_date):
+    def __init__(self, pdf_version):
         self.layout = _Layout()
         self.view = _View()
         self.poppler_document = _PopplerDocument()
         self.recolor_pdf = False
-        self.pdf_date = pdf_date
-
-    def get_pdf_date(self):
-        return self.pdf_date
+        # 渲染缓存版本号 = 内存文档版本（编译期间磁盘 mtime 变化不影响它）。
+        self.pdf_version = pdf_version
 
 
 class _RendererHarness:
     update_rendered_pages = _UPDATE_RENDERED_PAGES
 
-    def __init__(self, pdf_date, cached_page=None):
+    def __init__(self, pdf_version, cached_page=None):
         self.is_active_lock = threading.Lock()
         self.is_active = True
-        self.preview = _Preview(pdf_date)
+        self.preview = _Preview(pdf_version)
         self.visible_pages_lock = threading.Lock()
         self.visible_pages = []
         self.visible_pages_additional = []
         self.page_width = None
-        self.pdf_date = None
+        self.pdf_version = None
         self.maximum_rendered_pixels = 20_000_000
         self.rendered_pages = ({0: cached_page} if cached_page is not None else {})
         self.render_queue = queue.Queue()
@@ -116,19 +114,19 @@ class _RendererHarness:
 class TestPreviewPageCache(unittest.TestCase):
 
     @staticmethod
-    def cached_page(pdf_date, width=100, height=200):
-        # Production tuple contract: surface, width, height, PDF date, colors.
-        return [object(), width, height, pdf_date, None]
+    def cached_page(pdf_version, width=100, height=200):
+        # Production tuple contract: surface, width, height, pdf version, colors.
+        return [object(), width, height, pdf_version, None]
 
     def test_unchanged_cached_page_is_not_queued_again(self):
-        renderer = _RendererHarness(123456789, self.cached_page(123456789))
+        renderer = _RendererHarness(3, self.cached_page(3))
 
         renderer.update_rendered_pages()
 
         self.assertEqual(renderer.queued_tasks, 0)
         self.assertEqual(renderer.page_render_count, {})
 
-    def test_pdf_date_change_invalidates_and_queues_cached_page(self):
+    def test_pdf_version_change_invalidates_and_queues_cached_page(self):
         renderer = _RendererHarness(2, self.cached_page(1))
 
         renderer.update_rendered_pages()

@@ -7,12 +7,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -59,6 +59,11 @@ class Preview(Observable):
         self._external_pdf_debounce_id = None
         self._external_pdf_state = ExternalPdfState.CURRENT
         self._external_pdf_debounce_ms = 400
+        # 构建期间抑制外部 PDF 监控：编译器会向同一 PDF 路径增量写入，此时
+        # 的监控事件属于本次构建自身而非外部变更。构建结束（idle）后由
+        # parse_result → load_pdf 接受新版本，监控恢复正常响应，从而保证
+        # 编译全程预览区一直显示上一次编译好的 PDF。
+        self._suppress_monitor_for_build = False
         # 构建失败但保留旧 PDF 时为 True：预览面板据此显示「构建失败，显示的是
         # 上一次成功的 PDF」横幅，避免用户误以为构建成功。由 build_system 置 True，
         # set_pdf_filename / reset_pdf_data 置 False。
@@ -66,6 +71,12 @@ class Preview(Observable):
         self.recolor_pdf = self.document.settings.get_value('preferences', 'recolor_pdf')
 
         self.poppler_document = None
+        # 内存 PDF 文档版本号：仅在成功加载新 Poppler 文档时递增。页面渲染
+        # 缓存（PreviewPageRenderer）用它做失效判断——编译期间磁盘上的 PDF
+        # 被编译器改写（mtime 变化），但内存文档不变，缓存必须保持有效，
+        # 预览才能在编译全程稳定显示上一次编译好的 PDF。get_pdf_date() 的
+        # 磁盘 mtime 只用于会话恢复持久化，不能作为渲染缓存版本。
+        self.pdf_version = 0
         self.page_width = None
         self.page_height = None
         self.layout = None
@@ -88,6 +99,7 @@ class Preview(Observable):
 
         self.document.connect('filename_change', self.on_filename_change)
         self.document.connect('pdf_updated', self.on_pdf_updated)
+        self.document.build_system.connect('build_state_change', self.on_build_state_change)
 
         # 保存回调引用以便 shutdown 时断开 settings 单例连接。
         self._settings_callback = self.on_settings_changed
@@ -185,20 +197,45 @@ class Preview(Observable):
     def _on_external_pdf_file_changed(self, monitor, file, other_file, event_type):
         if not self._external_pdf_tracker.matches_event_files(file, other_file):
             return
+        # 构建进行中：事件来自编译器自身的写入，忽略，保持显示旧 PDF。
+        if self._suppress_monitor_for_build:
+            return
         self._clear_external_pdf_debounce()
         self._external_pdf_debounce_id = GLib.timeout_add(
             self._external_pdf_debounce_ms, self._on_external_pdf_debounced)
 
     def _on_external_pdf_debounced(self):
         self._external_pdf_debounce_id = None
+        # 构建开始瞬间仍可能挂着未触发的 debounce（build_state_change 已清除，
+        # 此处是兜底），同样丢弃。
+        if self._suppress_monitor_for_build:
+            return False
         state = self._external_pdf_tracker.inspect_disk_change()
         self._set_external_pdf_state(state)
         return False
+
+    def on_build_state_change(self, build_system, state):
+        '''构建开始时挂起外部 PDF 监控，结束后恢复。
+
+        编译器写 PDF 的过程会被目录监控误判为"外部修改"，导致编译中途弹横幅、
+        甚至把写了一半的 PDF 重载进预览。挂起后编译全程预览区稳定显示上一次
+        的 PDF，构建结束时 parse_result → load_pdf 加载并接受新版本，监控在
+        idle 后恢复对外部修改的正常响应。building_to_stop 期间 worker 仍在
+        退出，保持抑制直到 idle。'''
+        if state == 'building_in_progress':
+            self._suppress_monitor_for_build = True
+            self._clear_external_pdf_debounce()
+        elif state == 'idle':
+            self._suppress_monitor_for_build = False
 
     def reload_external_pdf(self):
         '''Safely reload a PDF after the user accepts the persistent banner.'''
 
         if self.pdf_filename is None:
+            return False
+        # 构建进行中不重载：磁盘上的 PDF 正在被编译器改写，保持显示上一版，
+        # 待构建结束由 parse_result 统一加载新 PDF。
+        if self._suppress_monitor_for_build:
             return False
         return self.load_pdf(external_reload=True)
 
@@ -224,6 +261,8 @@ class Preview(Observable):
         if new_document != None:
             # a new PDF was loaded successfully -- replace the old one.
             self.poppler_document = new_document
+            # 新内存文档 → 递增版本号，使渲染缓存整体失效重建。
+            self.pdf_version += 1
             page_size = self.poppler_document.get_page(0).get_size()
             self.page_width = page_size.width
             self.page_height = page_size.height
@@ -271,6 +310,7 @@ class Preview(Observable):
         self._set_external_pdf_state(ExternalPdfState.CURRENT)
         self.pdf_filename = None
         self.poppler_document = None
+        self.pdf_version += 1
         self.page_width = None
         self.page_height = None
         self.page_heights = None
@@ -727,5 +767,3 @@ class Preview(Observable):
             self.document.settings.disconnect('settings_changed', self._settings_callback)
         except (TypeError, KeyError, AttributeError):
             pass
-
-

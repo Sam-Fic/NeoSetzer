@@ -69,6 +69,7 @@ def _load_preview_methods():
         '_stop_external_pdf_monitor',
         '_on_external_pdf_file_changed',
         '_on_external_pdf_debounced',
+        'on_build_state_change',
         'reload_external_pdf',
     }
     methods = [node for node in class_node.body
@@ -94,6 +95,7 @@ class ExternalPdfPreviewIntegrationTest(unittest.TestCase):
         self.preview._external_pdf_monitor = None
         self.preview._external_pdf_monitor_directory = None
         self.preview._external_pdf_state = ExternalPdfState.CURRENT
+        self.preview._suppress_monitor_for_build = False
         self.notifications = []
         self.preview.add_change_code = lambda code, state=None: self.notifications.append((code, state))
 
@@ -148,6 +150,47 @@ class ExternalPdfPreviewIntegrationTest(unittest.TestCase):
         self.preview.load_pdf = lambda external_reload=False: calls.append(external_reload) or True
         self.assertTrue(self.preview.reload_external_pdf())
         self.assertEqual(calls, [True])
+
+    def test_build_in_progress_suppresses_monitor_and_reload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, 'document.pdf')
+            self._write_pdf(target, b'%PDF-1.7 first')
+            self.preview._external_pdf_tracker = ExternalPdfChangeTracker(target)
+            self.preview._external_pdf_tracker.accept_current_file()
+            self._write_pdf(target, b'%PDF-1.7 changed')
+
+            self.preview.on_build_state_change(None, 'building_in_progress')
+            self.preview._on_external_pdf_file_changed(None, _File(target), None, object())
+            self.assertIsNone(self.preview._external_pdf_debounce_id)
+            self.assertEqual(_FakeGLib.callbacks, {})
+            self.assertEqual(self.preview._external_pdf_state, ExternalPdfState.CURRENT)
+            self.assertEqual(self.notifications, [])
+
+            # 构建期间横幅 Reload 不触发重载，预览保持旧 PDF。
+            calls = []
+            self.preview.pdf_filename = target
+            self.preview.load_pdf = lambda external_reload=False: calls.append(external_reload) or True
+            self.assertFalse(self.preview.reload_external_pdf())
+            self.assertEqual(calls, [])
+
+    def test_build_state_transitions_restore_monitor_response(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, 'document.pdf')
+            self._write_pdf(target, b'%PDF-1.7 first')
+            self.preview._external_pdf_tracker = ExternalPdfChangeTracker(target)
+            self.preview._external_pdf_tracker.accept_current_file()
+            self._write_pdf(target, b'%PDF-1.7 changed')
+
+            self.preview.on_build_state_change(None, 'building_in_progress')
+            self.preview.on_build_state_change(None, 'idle')
+            self.assertFalse(self.preview._suppress_monitor_for_build)
+
+            # idle 后监控恢复正常：事件走 debounce 并发布 CHANGED。
+            self.preview._on_external_pdf_file_changed(None, _File(target), None, object())
+            delay, callback = _FakeGLib.callbacks[self.preview._external_pdf_debounce_id]
+            self.assertEqual(delay, 400)
+            self.assertFalse(callback())
+            self.assertEqual(self.preview._external_pdf_state, ExternalPdfState.CHANGED)
 
 
 if __name__ == '__main__':
