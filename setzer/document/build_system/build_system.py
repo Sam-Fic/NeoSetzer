@@ -421,6 +421,15 @@ class BuildSystem(Observable):
     def execute_query(self, query):
         stage_index = 0
         while len(query.jobs) > 0:
+            # 每次 pop 前校验自己仍是当前活动构建：stop_building /
+            # add_query（旧构建被新构建取代）/ shutdown 都只清空 jobs 并
+            # 换掉 active_query，但旧 worker 可能正卡在某个 job 的 run() 里；
+            # 它返回时 parse_build_log 会往本 query.jobs 插入 additional_jobs
+            #（bibtex 等），若不校验，旧线程会继续执行这些任务，与新构建
+            # 并发读写同一批中间文件（.aux/.bbl），且共享 builder 实例的
+            # self.process。active_query 已指向别处或 None → 立即退出。
+            if query is not self.active_query:
+                break
             if not query.force_building_to_stop:
                 job = query.jobs.pop(0)
                 stage_index += 1
