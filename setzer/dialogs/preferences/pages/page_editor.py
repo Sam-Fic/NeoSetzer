@@ -169,6 +169,26 @@ class PageEditor(object):
         self.view.option_auto_reload_on_external_change.connect(
             'notify::active', self.on_switch_toggled, 'auto_reload_on_external_change')
 
+        # ---- Git 集成（#216 / #443）----
+        self.view.option_git_integration.set_active(
+            self.settings.get_value('preferences', 'git_integration'))
+        self.view.option_git_integration.connect(
+            'notify::active', self.on_switch_toggled, 'git_integration')
+
+        self.view.option_git_gutter_diff.set_active(
+            self.settings.get_value('preferences', 'git_gutter_diff'))
+        self.view.option_git_gutter_diff.set_sensitive(
+            self.settings.get_value('preferences', 'git_integration'))
+        self.view.option_git_gutter_diff.connect(
+            'notify::active', self.on_switch_toggled, 'git_gutter_diff')
+
+        self.view.option_git_sidebar_panel.set_active(
+            self.settings.get_value('preferences', 'git_sidebar_panel'))
+        self.view.option_git_sidebar_panel.set_sensitive(
+            self.settings.get_value('preferences', 'git_integration'))
+        self.view.option_git_sidebar_panel.connect(
+            'notify::active', self.on_switch_toggled, 'git_sidebar_panel')
+
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
 
@@ -966,6 +986,28 @@ class PageEditorView(Adw.PreferencesPage):
             'Automatically reload files modified by external applications '
             'without showing a prompt. Unsaved changes in the editor will be lost.'))
         group_external_changes.add(self.option_auto_reload_on_external_change)
+
+        # Git 集成（#216 gutter diff + #443 侧栏面板）：总开关关闭后
+        # 不再执行任何 git 子进程，两个子开关可分别关闭 gutter 行级标记
+        # 与侧栏面板。
+        group_git = Adw.PreferencesGroup()
+        group_git.set_title(_('Git Integration'))
+        self.add(group_git)
+
+        self.option_git_integration = Adw.SwitchRow()
+        self.option_git_integration.set_title(_('Enable Git integration'))
+        self.option_git_integration.set_subtitle(_('Detect repositories and run git commands for open documents'))
+        group_git.add(self.option_git_integration)
+
+        self.option_git_gutter_diff = Adw.SwitchRow()
+        self.option_git_gutter_diff.set_title(_('Show change marks in the line number column'))
+        self.option_git_gutter_diff.set_subtitle(_('Added, modified and deleted lines relative to HEAD'))
+        group_git.add(self.option_git_gutter_diff)
+
+        self.option_git_sidebar_panel = Adw.SwitchRow()
+        self.option_git_sidebar_panel.set_title(_('Show the Git sidebar panel'))
+        self.option_git_sidebar_panel.set_subtitle(_('Branch status with pull and commit & push actions'))
+        group_git.add(self.option_git_sidebar_panel)
 
         # 新建文档默认设置：编码与行尾格式
         group_new_doc = Adw.PreferencesGroup()

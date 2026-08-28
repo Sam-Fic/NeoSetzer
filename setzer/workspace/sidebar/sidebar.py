@@ -23,6 +23,7 @@ import setzer.workspace.sidebar.document_structure_page.files as files_section
 import setzer.workspace.sidebar.document_structure_page.structure as structure_section
 import setzer.workspace.sidebar.document_structure_page.labels as labels_section
 import setzer.workspace.sidebar.document_structure_page.todos as todos_section
+import setzer.workspace.sidebar.git.git_section as git_section
 import setzer.workspace.sidebar.document_stats.document_stats as document_stats_section
 from setzer.app.service_locator import ServiceLocator
 
@@ -86,6 +87,12 @@ class Sidebar(object):
 
         self.todos_section = todos_section.TodosSection(self.data_provider)
         self.document_structure_page.add_section('todos', _('To-Dos'), self.todos_section.view)
+
+        # Git 面板（#443）：位于 To-Dos 与 Document Stats 之间；文档不在
+        # repo 内 / git 不可用 / 偏好关闭时整个 section 自动隐藏。
+        self.git_section = git_section.GitSection(self.workspace)
+        self.git_section.set_group(
+            self.document_structure_page.add_section('git', _('Git'), self.git_section.view))
 
         self.document_stats_section = document_stats_section.DocumentStats(self.workspace)
         self.document_stats_section.set_group(

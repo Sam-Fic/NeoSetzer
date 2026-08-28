@@ -28,6 +28,7 @@ from setzer.helpers.timer import timer
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
+from setzer.vcs.git_repository import GitRepository, DIFF_LINE_LIMIT
 
 
 class Gutter(object):
@@ -148,7 +149,7 @@ class Gutter(object):
         self.source_view.set_has_tooltip(True)
         self.source_view.connect('query-tooltip', self.on_query_tooltip)
 
-        # 离屏缓存：把整个 gutter（背景+行号+折叠+书签+诊断色条）绘到
+        # 离屏缓存：把整个 gutter（背景+行号+折叠+书签+诊断）绘到
         # cairo.ImageSurface，覆盖 [surf_top_doc_y, surf_top_doc_y + surf_h]，
         # surf_h = 视口高 + 2*MARGIN 行缓冲。滚动时优先平移旧 surface（命中）或
         # 增量补绘露出带（patch），避免每帧逐行 Pango 重绘。MARGIN 缓冲带保证
@@ -156,6 +157,17 @@ class Gutter(object):
         # 均正确覆盖，绝不空白（修复旧版 delta==0 顶部空白 bug）。
         self._gutter_cache = None  # (first_line, height, surface_top_doc_y, surface)
         self._GUTTER_MARGIN = 15
+
+        # —— Git 行级 diff 标记（#216）——
+        # git_marks 取值：
+        #   None        无标记（不在 repo / 超大文件降级 / 功能关闭 / diff 未就绪）
+        #   'untracked' 文件未被 git 跟踪 → 所有行按新增（绿条）处理
+        #   dict        {'added': set(1based), 'modified': set(1based),
+        #                'deleted_after': set(1based)}，来自共享 GitRepository
+        self.git_repo = None
+        self.git_marks = None
+        self._git_colors_cache = None
+        self._setup_git_diff()
 
     def on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         '''鼠标悬停诊断行时返回该行的错误/警告描述文本。'''
@@ -212,6 +224,10 @@ class Gutter(object):
             GLib.source_remove(self._refresh_idle_id)
             self._refresh_idle_id = None
 
+        # 断开共享 GitRepository（进程级缓存单例）与文档信号，避免单例
+        # 持有 gutter → document 引用阻碍 GC。
+        self._teardown_git_diff()
+
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
@@ -235,11 +251,20 @@ class Gutter(object):
             self.update_size()
             self.drawing_area.queue_draw()
 
+        if item in ('git_integration', 'git_gutter_diff'):
+            # Git 开关变化：关→断开连接清空标记；开→重新建立（文档可能
+            # 此时已在 repo 内）。两种情况都要失效离屏缓存并重绘。
+            self._teardown_git_diff()
+            self._setup_git_diff()
+            self._gutter_cache = None
+            self.drawing_area.queue_draw()
+
     def on_document_change(self, document):
         self._schedule_refresh()
 
     def on_scheme_changed(self, buffer, pspec):
         self._scheme_colors_cache = None
+        self._git_colors_cache = None
         self._gutter_cache = None
         self.drawing_area.queue_draw()
 
@@ -267,6 +292,163 @@ class Gutter(object):
 
     def on_build_diagnostics_changed(self, document):
         self._schedule_refresh()
+
+    # —— Git 行级 diff 标记（#216） ——————————————————————————————————
+
+    def _setup_git_diff(self):
+        '''连接共享 GitRepository。条件：功能开启 + 文档有文件路径 + 在
+        repo 内。否则保持 git_marks=None（不显示任何标记）。'''
+        if not self.settings.get_value('preferences', 'git_integration'):
+            return
+        if not self.settings.get_value('preferences', 'git_gutter_diff'):
+            return
+        filename = self.document.get_filename()
+        if filename is None:
+            return
+        repo = GitRepository.get_for_path(filename)
+        if repo is None:
+            return
+        self.git_repo = repo
+        repo.connect('state_changed', self.on_git_state_changed)
+        repo.connect('diff_changed', self.on_git_diff_changed)
+        self.document.connect('saved', self.on_document_saved)
+        self.document.connect('filename_change', self.on_git_filename_change)
+        self._update_git_marks()
+
+    def _teardown_git_diff(self):
+        '''断开与 GitRepository / 文档信号的连接并清空标记。
+
+        GitRepository 按仓库根缓存且生命周期长于单个文档，不断开会导致
+        单例持续持有 gutter → document 引用，文档无法 GC（与 settings
+        信号同理，见 shutdown 注释）。'''
+        repo = self.git_repo
+        if repo is not None:
+            repo.disconnect('state_changed', self.on_git_state_changed)
+            repo.disconnect('diff_changed', self.on_git_diff_changed)
+        try:
+            self.document.disconnect('saved', self.on_document_saved)
+            self.document.disconnect('filename_change', self.on_git_filename_change)
+        except (KeyError, AttributeError):
+            pass
+        self.git_repo = None
+        self.git_marks = None
+
+    def _git_diff_enabled(self):
+        return (self.settings.get_value('preferences', 'git_integration')
+                and self.settings.get_value('preferences', 'git_gutter_diff')
+                and self.git_repo is not None)
+
+    def on_git_filename_change(self, document, filename=None):
+        '''新建文档首次保存会触发 filename 变化，此时才可能进入 repo 上下文。'''
+        self._teardown_git_diff()
+        self._setup_git_diff()
+        self._gutter_cache = None
+        self.drawing_area.queue_draw()
+
+    def on_document_saved(self, document):
+        '''保存后磁盘内容变化 → 刷新仓库状态并重取 diff。键入不触发。'''
+        if self.git_repo is not None:
+            self.git_repo.refresh()
+
+    def on_git_state_changed(self, repo):
+        if repo is not self.git_repo:
+            return
+        self._update_git_marks()
+
+    def on_git_diff_changed(self, repo, filename):
+        if repo is not self.git_repo:
+            return
+        if filename == self.document.get_filename():
+            self._update_git_marks()
+
+    def _update_git_marks(self):
+        '''重算当前文档的 diff 标记并重绘。
+
+        性能降级：文件超过 DIFF_LINE_LIMIT 行时不逐行映射（git_marks=None），
+        Git 面板仍显示文件级状态；diff 变更量超限由 parse_num_diff 标记
+        degraded，同样不显示。'''
+        if not self._git_diff_enabled():
+            self.git_marks = None
+        else:
+            filename = self.document.get_filename()
+            if self.source_buffer.get_line_count() > DIFF_LINE_LIMIT:
+                self.git_marks = None
+            elif self.git_repo.is_file_untracked(filename):
+                # 未跟踪文件：整文件视为新增（与 VS Code gutter 行为一致）
+                self.git_marks = 'untracked'
+            else:
+                self.git_repo.request_file_diff(filename)
+                marks = self.git_repo.get_file_diff(filename)
+                if marks is not None and marks['degraded']:
+                    marks = None
+                self.git_marks = marks
+        self._gutter_cache = None
+        self.drawing_area.queue_draw()
+
+    def _get_git_colors(self):
+        '''三类 diff 标记色（新增绿/修改蓝/删除红），经 ColorManager 从
+        libadwaita 调色板解析，明暗主题自动适配。随 style-scheme 变化失效。'''
+        if self._git_colors_cache is not None:
+            return self._git_colors_cache
+        self._git_colors_cache = (
+            ColorManager.get_ui_color('git_added'),
+            ColorManager.get_ui_color('git_modified'),
+            ColorManager.get_ui_color('git_deleted'),
+        )
+        return self._git_colors_cache
+
+    def draw_git_diff(self, ctx, line, scroll_base=None):
+        '''在行号栏左缘绘制 diff 标记：新增行绿条、修改行蓝条、
+        删除点红三角（画在删除位置之后的第一行上）。无标记的行
+        先做 O(1) 集合判断并立即返回，不触碰 yrange 计算。'''
+        marks = self.git_marks
+        if marks is None:
+            return
+        line_1 = line + 1
+        color = None
+        deleted_here = False
+        if marks == 'untracked':
+            color = 0  # 全文件新增
+        else:
+            if line_1 in marks['added']:
+                color = 0
+            elif line_1 in marks['modified']:
+                color = 1
+            elif line_1 in marks['deleted_after']:
+                deleted_here = True
+        if color is None and not deleted_here:
+            return
+
+        added_c, modified_c, deleted_c = self._get_git_colors()
+        colors = (added_c, modified_c, deleted_c)
+
+        line_iter = self.source_buffer.get_iter_at_line(line)
+        if isinstance(line_iter, tuple):
+            line_iter = line_iter[1]
+        try:
+            yrange = self.source_view.get_line_yrange(line_iter)
+        except Exception:
+            return
+        base = scroll_base if scroll_base is not None else self.adjustment.get_value()
+        slot_top = yrange.y - base
+
+        if color is not None:
+            # 3px 竖条，与编译诊断色条同位同宽；诊断条在其后绘制，
+            # 同行既有 diff 又有错误时错误色优先（与 VS Code 行为一致）。
+            ctx.rectangle(0, slot_top, 3, yrange.height)
+            Gdk.cairo_set_source_rgba(ctx, colors[color])
+            ctx.fill()
+
+        if deleted_here:
+            # 红色右指三角，画在删除点之后第一行的左缘中部。
+            size = min(7, max(5, round(yrange.height * 0.35)))
+            y = slot_top + (yrange.height - size) / 2
+            ctx.move_to(0, y)
+            ctx.line_to(size * 0.8, y + size / 2)
+            ctx.line_to(0, y + size)
+            ctx.close_path()
+            Gdk.cairo_set_source_rgba(ctx, deleted_c)
+            ctx.fill()
 
     def _schedule_refresh(self):
         '''5 路信号共用一次 idle 刷新。单次按键至少触发 on_document_change +
@@ -726,6 +908,10 @@ class Gutter(object):
             self.draw_folding_region(ctx, line, is_current, offset, line_height)
 
         self.draw_bookmark(ctx, line, offset, line_height)
+
+        # Git diff 行级标记（新增绿条/修改蓝条/删除红三角），画在诊断色条
+        # 之前：同行同时存在编译错误时诊断色覆盖 diff 色（错误优先）。
+        self.draw_git_diff(ctx, line, scroll_base)
 
         # 编译诊断色条（错误强制红、警告琥珀色）绘制在最上层、行号左缘，
         # 不跟随强调色。放在最后以避免被 current-line 背景填充覆盖。

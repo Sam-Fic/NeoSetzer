@@ -269,6 +269,18 @@ class Settings(Observable):
         self.defaults['preferences']['multicursor_escape_clear'] = True
         self.defaults['preferences']['multicursor_multiedit'] = True
 
+        # —— Git 集成（gutter diff #216 + 侧栏面板 #443）——
+        # 总开关（默认开）：关闭后 gutter 标记与侧栏 Git 面板全部停用，
+        # 不再执行任何 git 子进程。两个子开关可分别关闭 gutter 行级标记
+        # 与侧栏面板（大文件 diff 可能拖慢打字，需要逃生口）。
+        self.defaults['preferences']['git_integration'] = True
+        self.defaults['preferences']['git_gutter_diff'] = True
+        self.defaults['preferences']['git_sidebar_panel'] = True
+        # 已信任仓库根路径列表：首次 pull/commit/push 前弹确认对话框，
+        # 用户确认后记住。未信任仓库仅提供只读信息（git hooks 可执行
+        # 任意命令，打开外来项目时这是真实风险）。
+        self.defaults['preferences']['git_trusted_repos'] = []
+
         # —— AI 修复集成（build log → 外部 Agent CLI）——
         # 设计见 .trae/documents/ai-fix-agent-integration.md。
         # 信任目录列表里的 cwd 直接跳过预览弹窗，发送即确认；

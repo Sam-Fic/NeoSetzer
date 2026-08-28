@@ -64,6 +64,10 @@ class ColorManager():
         'dim_fg_color': 'view_fg_color',
         'line_highlighting_color': 'accent_color',
         'code_folding_hover': 'accent_color',
+        # Git gutter diff 标记（#216）：跟随 libadwaita 调色板，明/暗主题自动适配
+        'git_added': 'success_color',
+        'git_modified': 'accent_color',
+        'git_deleted': 'destructive_color',
     }
 
     def init(main_window):
