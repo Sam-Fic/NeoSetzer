@@ -65,8 +65,8 @@ def register_global_accels(settings=None):
     before_after(['_{', '}'], shortcuts.get('subscript', '<Control><Shift>d'))
     before_after(['^{', '}'], shortcuts.get('superscript', '<Control><Shift>u'))
     insert_symbol(['\\frac{•}{•}'], shortcuts.get('fraction', '<Alt><Shift>f'))
-    insert_symbol(['\\left •'], shortcuts.get('left', '<Control><Shift>l'))
-    insert_symbol(['\\right •'], shortcuts.get('right', '<Control><Shift>r'))
+    insert_symbol(['\\left •'], shortcuts.get('left', '<Alt><Shift>l'))
+    insert_symbol(['\\right •'], shortcuts.get('right', '<Alt><Shift>r'))
     insert_symbol(['\\item •'], shortcuts.get('list_item', '<Control><Shift>i'))
     insert_symbol(['\\\\\n'], shortcuts.get('new_line', '<Control>Return'))
 

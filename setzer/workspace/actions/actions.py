@@ -7,12 +7,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
@@ -1280,20 +1280,15 @@ class Actions(object):
         mc = getattr(document, 'multicursor', None)
         return mc
 
-    def _mc_feature_enabled(self, feature_name):
-        """Check if a specific experimental multi-cursor feature is enabled."""
-        settings = self.settings
-        if not settings.get_value('preferences', 'experimental_features'):
+    def _mc_enabled(self, feature):
+        '''多光标设置门控：总开关关闭或对应子开关关闭时不执行。'''
+        if not self.settings.get_value('preferences', 'multicursor_enabled'):
             return False
-        return settings.get_value('preferences', feature_name)
+        return self.settings.get_value('preferences', feature)
 
     def select_next_occurrence(self, action=None, parameter=None):
-        """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。
-
-        未处理时返回 False：ShortcutController 据此放行事件继续传播，
-        避免功能关闭时按键被吞掉变成死键。
-        """
-        if not self._mc_feature_enabled('experimental_select_next'):
+        """在当前活动文档中选中下一个相同词/匹配（Ctrl+D）。"""
+        if not self._mc_enabled('multicursor_select_next'):
             return False
         mc = self._get_active_multicursor()
         if mc is None:
@@ -1303,7 +1298,7 @@ class Actions(object):
 
     def select_all_occurrences(self, action=None, parameter=None):
         """选中所有相同词/匹配（Ctrl+Shift+L）。"""
-        if not self._mc_feature_enabled('experimental_select_all'):
+        if not self._mc_enabled('multicursor_select_all'):
             return False
         mc = self._get_active_multicursor()
         if mc is None:
@@ -1312,13 +1307,8 @@ class Actions(object):
         return True
 
     def add_cursor_above(self, action=None, parameter=None):
-        """在当前光标所在位置上方行添加光标（Ctrl+Alt+Up）。
-
-        创建额外光标属于「多光标模式」，需同时开启该开关。
-        """
-        if not self._mc_feature_enabled('experimental_multicursor'):
-            return False
-        if not self._mc_feature_enabled('experimental_add_above'):
+        """在当前光标所在位置上方行添加光标（默认 Ctrl+Shift+Up）。"""
+        if not self._mc_enabled('multicursor_add_above'):
             return False
         mc = self._get_active_multicursor()
         if mc is None:
@@ -1327,10 +1317,8 @@ class Actions(object):
         return True
 
     def add_cursor_below(self, action=None, parameter=None):
-        """在当前光标所在位置下方行添加光标（Ctrl+Alt+Down）。"""
-        if not self._mc_feature_enabled('experimental_multicursor'):
-            return False
-        if not self._mc_feature_enabled('experimental_add_below'):
+        """在当前光标所在位置下方行添加光标（默认 Ctrl+Shift+Down）。"""
+        if not self._mc_enabled('multicursor_add_below'):
             return False
         mc = self._get_active_multicursor()
         if mc is None:
@@ -1344,8 +1332,6 @@ class Actions(object):
         无附加光标时返回 False：裸 Escape 还有其他用途（如关闭弹窗、
         取消补全），不能无条件吞掉。
         """
-        if not self._mc_feature_enabled('experimental_escape_clear'):
-            return False
         mc = self._get_active_multicursor()
         if mc is None:
             return False
@@ -1697,5 +1683,3 @@ class Actions(object):
         buffer.begin_user_action()
         document.code_folding.unfold_all()
         buffer.end_user_action()
-
-

@@ -63,6 +63,7 @@ class Settings(Observable):
             self.pickle()
         else:
             self._migrate_conflicting_shortcut_defaults()
+            self._drop_removed_preference_keys()
 
     @staticmethod
     def _migrate_presets_bytes(data):
@@ -254,6 +255,20 @@ class Settings(Observable):
         # 自动弹；偏好页的“再次显示首次引导”按钮可随时手动重看。
         self.defaults['preferences']['first_run_tutorial_shown'] = False
 
+        # —— 多光标编辑（标准编辑功能，各项可单独开关）——
+        # 总开关（默认开）：关闭后无法创建额外光标，已有多光标的手势与
+        # 快捷键全部停用。子开关可分别关闭 Alt+Click / Alt+Drag 列选、
+        # 选中下一个/所有相同词、上/下方添加光标、Escape 清除、多点编辑。
+        self.defaults['preferences']['multicursor_enabled'] = True
+        self.defaults['preferences']['multicursor_alt_click'] = True
+        self.defaults['preferences']['multicursor_alt_drag'] = True
+        self.defaults['preferences']['multicursor_select_next'] = True
+        self.defaults['preferences']['multicursor_select_all'] = True
+        self.defaults['preferences']['multicursor_add_above'] = True
+        self.defaults['preferences']['multicursor_add_below'] = True
+        self.defaults['preferences']['multicursor_escape_clear'] = True
+        self.defaults['preferences']['multicursor_multiedit'] = True
+
         # —— AI 修复集成（build log → 外部 Agent CLI）——
         # 设计见 .trae/documents/ai-fix-agent-integration.md。
         # 信任目录列表里的 cwd 直接跳过预览弹窗，发送即确认；
@@ -367,8 +382,10 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['subscript'] = '<Control><Shift>d'
         self.defaults['keyboard_shortcuts']['superscript'] = '<Control><Shift>u'
         self.defaults['keyboard_shortcuts']['fraction'] = '<Alt><Shift>f'
-        self.defaults['keyboard_shortcuts']['left'] = '<Control><Shift>l'
-        self.defaults['keyboard_shortcuts']['right'] = '<Control><Shift>r'
+        # <Control><Shift>l/r 已让给标准化的多光标「选中所有相同词」，
+        # \left/\right 插入改用 <Alt><Shift>l/r（保持左右配对）。
+        self.defaults['keyboard_shortcuts']['left'] = '<Alt><Shift>l'
+        self.defaults['keyboard_shortcuts']['right'] = '<Alt><Shift>r'
         self.defaults['keyboard_shortcuts']['toggle_bookmark'] = '<Control>f2'
         self.defaults['keyboard_shortcuts']['next_bookmark'] = 'f2'
         self.defaults['keyboard_shortcuts']['previous_bookmark'] = '<Control><Shift>f2'
@@ -383,18 +400,6 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Shift>Down'
         self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
 
-        # Experimental features (multi-cursor toggles)
-        self.defaults['preferences']['experimental_features'] = False
-        self.defaults['preferences']['experimental_multicursor'] = False
-        self.defaults['preferences']['experimental_alt_click'] = False
-        self.defaults['preferences']['experimental_alt_drag'] = False
-        self.defaults['preferences']['experimental_select_next'] = False
-        self.defaults['preferences']['experimental_select_all'] = False
-        self.defaults['preferences']['experimental_add_above'] = False
-        self.defaults['preferences']['experimental_add_below'] = False
-        self.defaults['preferences']['experimental_escape_clear'] = False
-        self.defaults['preferences']['experimental_multiedit'] = False
-
     def _migrate_conflicting_shortcut_defaults(self):
         '''把已持久化配置中仍等于"旧冲突默认值"的快捷键迁到新默认值。
 
@@ -403,6 +408,9 @@ class Settings(Observable):
         - symbols    = <Control><Shift>s（被 save_as 抢占，从未生效）
         - typewriter = <Control><Shift>t（被硬编码的 reopen 标签页抢占）
         - build_log  = <Control><Shift>l（在 CAPTURE 阶段抢占 left 的 \\left）
+        - select_all_occurrences = <Control><Shift>d（与 subscript 冲突）
+        - add_cursor_above/below = <Control><Alt>Up/Down（被 GNOME 抢占）
+        - left/right = <Control><Shift>l/r（让给多光标「选中所有相同词」）
         只有当保存值仍等于旧默认值时才改写（说明用户从未主动改过该键，
         或改了也因冲突从未生效）；用户自定义的其他值一律保留。
         '''
@@ -420,6 +428,10 @@ class Settings(Observable):
             # 「上/下方添加光标」从未生效，迁到 <Control><Shift>Up/Down。
             'add_cursor_above': ('<Control><Alt>Up', '<Control><Shift>Up'),
             'add_cursor_below': ('<Control><Alt>Down', '<Control><Shift>Down'),
+            # <Control><Shift>l/r 让给多光标「选中所有相同词」，
+            # \left/\right 插入迁到 <Alt><Shift>l/r（保持左右配对）。
+            'left': ('<Control><Shift>l', '<Alt><Shift>l'),
+            'right': ('<Control><Shift>r', '<Alt><Shift>r'),
         }
         changed = False
         for action, (old_default, new_default) in migrations.items():
@@ -435,6 +447,24 @@ class Settings(Observable):
                 changed = True
         if changed:
             self.pickle()
+
+    def _drop_removed_preference_keys(self):
+        '''清理已持久化配置中被移除的 preferences 键。
+
+        defaults 中不存在的 preferences 键视为已废弃（如多光标重构后删除
+        的 experimental_* 系列），从用户配置中清除，避免 settings.json
+        无限累积历史残留。只处理 preferences 节——该节键名完全由 defaults
+        定义；其他节（search_history、wizard presets 等）含动态键，不能
+        按 defaults 过滤。'''
+        saved = self.data.get('preferences')
+        if not isinstance(saved, dict):
+            return
+        stale = [key for key in saved if key not in self.defaults['preferences']]
+        if not stale:
+            return
+        for key in stale:
+            del saved[key]
+        self.pickle()
 
     def add_to_search_history(self, field, text, max_items=15):
         """Add text to search history ('find' or 'replace'). Dupes moved to top."""

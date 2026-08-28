@@ -193,6 +193,16 @@ class DocumentController(object):
                 main_window.disconnect(self._window_active_handler)
             self._window_active_handler = None
 
+    def _is_mc_enabled(self, feature=None):
+        '''多光标设置门控：总开关 multicursor_enabled 关闭时全部停用；
+        feature 给定时再检查对应子开关（multicursor_alt_click 等）。'''
+        settings = ServiceLocator.get_settings()
+        if not settings.get_value('preferences', 'multicursor_enabled'):
+            return False
+        if feature is None:
+            return True
+        return settings.get_value('preferences', feature)
+
     def on_primary_buttonpress(self, controller, n_press, x, y):
         modifiers = Gtk.accelerator_get_default_mod_mask()
         state = controller.get_current_event_state()
@@ -271,8 +281,9 @@ class DocumentController(object):
 
         if not (state & Gdk.ModifierType.ALT_MASK):
             return
-        if not (self._is_mc_feature_enabled('experimental_alt_click')
-                and self._is_multicursor_enabled()):
+
+        # Alt+Click 添加/移除光标可在偏好设置中单独关闭。
+        if not self._is_mc_enabled('multicursor_alt_click'):
             return
 
         success, iter_at_click = self._iter_at_widget_coords(x, y)
@@ -311,8 +322,6 @@ class DocumentController(object):
 
     def _handle_alt_click(self, iter_at_click, x, y):
         """处理 Alt+Click 添加/移除额外光标。"""
-        if not self._is_multicursor_enabled():
-            return
         mc = self.document.multicursor
         # 检查点击位置是否靠近已有额外光标（移除）
         if mc.has_multiple_cursors():
@@ -337,21 +346,6 @@ class DocumentController(object):
             toast = Adw.Toast.new(_('No PDF available for forward sync. Build the document first.'))
             toast.set_timeout(3)
             main_window.toast_overlay.add_toast(toast)
-
-    def _is_mc_feature_enabled(self, feature_name):
-        """Check if a specific experimental multi-cursor feature is enabled.
-
-        Returns False if experimental features are disabled globally,
-        or if the specific feature toggle is off.
-        """
-        settings = ServiceLocator.get_settings()
-        if not settings.get_value('preferences', 'experimental_features'):
-            return False
-        return settings.get_value('preferences', feature_name)
-
-    def _is_multicursor_enabled(self):
-        """Check if the core multi-cursor mode is enabled."""
-        return self._is_mc_feature_enabled('experimental_multicursor')
 
     def _on_motion_enter(self, controller, x, y):
         self._update_ctrl_cursor(controller)
@@ -389,9 +383,8 @@ class DocumentController(object):
         state = controller.get_current_event_state()
         if not (state & Gdk.ModifierType.ALT_MASK):
             return  # 非 Alt+Drag，忽略
-        if not self._is_mc_feature_enabled('experimental_alt_drag'):
-            return
-        if not self._is_multicursor_enabled():
+        # Alt+Drag 列选可在偏好设置中单独关闭。
+        if not self._is_mc_enabled('multicursor_alt_drag'):
             return
         multicursor = getattr(self.document, 'multicursor', None)
         if multicursor is None:
@@ -496,37 +489,37 @@ class DocumentController(object):
 
         # --- Multi-cursor specific shortcuts ---
 
-        # Escape: 清除多光标（光标存在时只需 escape_clear 开关）
-        if keyval == _KEYVAL_ESCAPE and has_multi and self._is_mc_feature_enabled('experimental_escape_clear'):
+        # Escape: 清除多光标
+        if keyval == _KEYVAL_ESCAPE and has_multi \
+                and self._is_mc_enabled('multicursor_escape_clear'):
             mc.clear_all()
             return True
 
         # Ctrl+D: 选中下一个相同词/匹配
-        if keyval == _KEYVAL_D and state & modifiers == Gdk.ModifierType.CONTROL_MASK:
-            if self._is_mc_feature_enabled('experimental_select_next'):
-                mc.select_next_occurrence()
-                return True
+        if keyval == _KEYVAL_D and state & modifiers == Gdk.ModifierType.CONTROL_MASK \
+                and self._is_mc_enabled('multicursor_select_next'):
+            mc.select_next_occurrence()
+            return True
 
         # Ctrl+Shift+L: 选中所有相同词/匹配（必须同时带 Ctrl 与 Shift）
         if keyval == _KEYVAL_L and (
                 state & modifiers & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK)
-                ) == (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK):
-            if self._is_mc_feature_enabled('experimental_select_all'):
-                mc.select_all_occurrences()
-                return True
+                ) == (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK) \
+                and self._is_mc_enabled('multicursor_select_all'):
+            mc.select_all_occurrences()
+            return True
 
         # Ctrl+Alt+Up/Down: 每行上/下方添加光标。必须同时带 Ctrl 与 Alt
-        # （只带 Alt 的 Alt+Up/Down 是移动行，不能误触）；创建光标类操作
-        # 还需 multi-cursor mode 总开关。
+        # （只带 Alt 的 Alt+Up/Down 是移动行，不能误触）。
         ctrl_alt = Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK
-        if keyval == _KEYVAL_UP and state & modifiers & ctrl_alt == ctrl_alt:
-            if self._is_multicursor_enabled() and self._is_mc_feature_enabled('experimental_add_above'):
-                mc.add_cursor_above()
-                return True
-        if keyval == _KEYVAL_DOWN and state & modifiers & ctrl_alt == ctrl_alt:
-            if self._is_multicursor_enabled() and self._is_mc_feature_enabled('experimental_add_below'):
-                mc.add_cursor_below()
-                return True
+        if keyval == _KEYVAL_UP and state & modifiers & ctrl_alt == ctrl_alt \
+                and self._is_mc_enabled('multicursor_add_above'):
+            mc.add_cursor_above()
+            return True
+        if keyval == _KEYVAL_DOWN and state & modifiers & ctrl_alt == ctrl_alt \
+                and self._is_mc_enabled('multicursor_add_below'):
+            mc.add_cursor_below()
+            return True
 
         # 纯导航键（无修饰键或仅 Shift）：折叠附加光标后交给默认处理移动
         # 主光标，防止隐形光标滞留原地被后续编辑误中。上面的多光标快捷键
@@ -538,12 +531,9 @@ class DocumentController(object):
             return False
 
         # --- Multi-cursor edit handling ---
-        # 编辑类操作只要求「多光标文本编辑」开关 + 光标已存在（创建时的
-        # 开关不重复检查，否则先开创建、后关创建时已建光标将无法编辑）。
+        # 编辑类操作要求光标已存在，且「多点编辑」开关开启。
 
-        edit_enabled = self._is_mc_feature_enabled('experimental_multiedit')
-
-        if has_multi and edit_enabled:
+        if has_multi and self._is_mc_enabled('multicursor_multiedit'):
             # Backspace: 多光标删除前一个字符
             if keyval == _KEYVAL_BACKSPACE:
                 if mc.handle_delete('backspace'):

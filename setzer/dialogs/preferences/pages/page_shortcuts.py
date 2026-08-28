@@ -245,11 +245,11 @@ class PageShortcuts(object):
                 'close_all_documents': _('Close all open documents'),
                 'restore_session': _('Restore a previously saved session'),
                 'reopen_last_closed_document': _('Reopen the most recently closed document'),
-                'select_next_occurrence': _('Select the next occurrence of the selected text or word (experimental multi-cursor)'),
-                'select_all_occurrences': _('Select all occurrences of the selected text or word (experimental multi-cursor)'),
-                'add_cursor_above': _('Add a cursor on the line above (experimental multi-cursor)'),
-                'add_cursor_below': _('Add a cursor on the line below (experimental multi-cursor)'),
-                'clear_multi_cursor': _('Clear all additional cursors (experimental multi-cursor)')
+                'select_next_occurrence': _('Select the next occurrence of the selected text or word (multi-cursor)'),
+                'select_all_occurrences': _('Select all occurrences of the selected text or word (multi-cursor)'),
+                'add_cursor_above': _('Add a cursor on the line above (multi-cursor)'),
+                'add_cursor_below': _('Add a cursor on the line below (multi-cursor)'),
+                'clear_multi_cursor': _('Clear all additional cursors (multi-cursor)')
             }
         return self._action_descriptions.get(action_name, '')
 
