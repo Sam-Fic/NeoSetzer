@@ -73,6 +73,12 @@ class ScrollingWidget(Observable):
         # 且定位失败）。Gtk.Fixed.move 用 float 坐标无此限制，overlay 子控件
         # 统一经 add_overlay_widget / move_overlay_widget 绝对定位。
         self.fixed = Gtk.Fixed()
+        # Fixed 自身不对指针事件可命中（can-target=False 等价 GTK3 overlay 的
+        # pass-through）：它全画布大小盖在 drawing area 上方，若可命中会把
+        # 点击 / hover 事件从 drawing area 的 GestureClick / 控制器手里全部
+        # 截走（放大镜按住、链接悬停等全部失效）。GTK4 pick 先递归子控件再
+        # 检查自身 can-target，因此其中的交互子控件（页码徽章按钮）仍可点击。
+        self.fixed.set_can_target(False)
         self.canvas.add_overlay(self.fixed)
         self.view.set_child(self.canvas)
 
