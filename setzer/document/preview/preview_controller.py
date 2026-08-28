@@ -265,6 +265,18 @@ class PreviewController(object):
         '''Cancel a held lens as soon as its PDF pixels or layout may change.'''
         self._cancel_magnifier('preview-context-changed')
 
+    def on_magnifier_setting_changed(self):
+        '''工具栏放大镜开关切换（preview.use_magnifier 已更新后调用）。
+
+        关闭：取消激活中的放大镜（若在按住时被关闭，浮窗立即消失）。
+        两种方向都重置光标缓存并立即刷新悬停光标——_set_hover_feedback
+        有按值缓存，直接调 update_cursor 会因缓存值"未变"而跳过设置，
+        光标停留旧状态（如 zoom-in）直到鼠标移动。'''
+        if not self.preview.use_magnifier:
+            self._cancel_magnifier('magnifier-disabled')
+        self._current_cursor = None
+        self.update_cursor()
+
     def _set_hover_feedback(self, cursor, link_target='', tooltip=''):
         '''Apply hover feedback only when values change, including on leave.'''
         if cursor is not self._current_cursor:
@@ -320,7 +332,8 @@ class PreviewController(object):
             return True
 
         page_number, x_offset, y_offset = data
-        cursor = self.cursor_magnifier
+        # 放大镜关闭时不给 zoom-in 光标（普通箭头，便于按住拖动选择等交互）。
+        cursor = self.cursor_magnifier if self.preview.use_magnifier else self.cursor_default
         link_target = ''
         tooltip = ''
         # per-page：用该页 height 把 top-down y 转 y-up（与 link y1/y2 一致）。
@@ -371,8 +384,10 @@ class PreviewController(object):
             else:
                 # 无链接、无修饰键的普通左键按下：进入放大镜模式（按住
                 # 显示、松开消失）。链接优先——上面命中链接时绝不激活。
-                # state == 0 已保证无 Ctrl/Shift 等修饰键。
-                self._begin_magnifier(x_offset, y_offset)
+                # state == 0 已保证无 Ctrl/Shift 等修饰键。放大镜在工具栏
+                # 被用户关闭时不激活（左键留给按住拖动的交互）。
+                if self.preview.use_magnifier:
+                    self._begin_magnifier(x_offset, y_offset)
             return True
 
         return True

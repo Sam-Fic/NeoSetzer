@@ -26,7 +26,8 @@ def _load_controller_methods():
                       and node.name == 'PreviewController')
     names = {
         '_cancel_magnifier', '_set_hover_feedback',
-        'on_magnifier_context_changed', 'on_key_pressed', 'update_cursor',
+        'on_magnifier_context_changed', 'on_magnifier_setting_changed',
+        'on_key_pressed', 'update_cursor',
     }
     methods = [node for node in class_node.body
                if isinstance(node, ast.FunctionDef) and node.name in names]
@@ -135,6 +136,7 @@ class PreviewMagnifierLifecycleTest(unittest.TestCase):
             page_renderer=self.renderer,
             links_parser=SimpleNamespace(get_links_for_page=lambda page: self.links),
             get_page_height=lambda page: 100,
+            use_magnifier=True,
         )
         self.controller.cursor_default = 'default'
         self.controller.cursor_pointer = 'pointer'
@@ -152,6 +154,40 @@ class PreviewMagnifierLifecycleTest(unittest.TestCase):
         self.controller.update_cursor()
         self.assertEqual(self.controller.view.cursors, ['zoom-in'])
         self.assertEqual(self.controller.view.link_targets, [''])
+
+    def test_disabled_magnifier_uses_default_cursor_on_page(self):
+        self.controller.preview.use_magnifier = False
+
+        self.controller.update_cursor()
+
+        self.assertEqual(self.controller.view.cursors, ['default'])
+
+    def test_disabling_cancels_active_lens_and_restores_cursor(self):
+        self.controller._magnifier_active = True
+        self.controller._magnifier_layout_ref = self.controller.preview.layout
+        self.controller.update_cursor()
+        self.assertEqual(self.controller.view.cursors, ['zoom-in'])
+
+        self.controller.preview.use_magnifier = False
+        self.controller.on_magnifier_setting_changed()
+
+        self.assertFalse(self.controller._magnifier_active)
+        self.assertEqual(self.renderer.invalidated, 1)
+        self.assertEqual(self.controller.view.magnifier.dismiss_count, 1)
+        # 光标缓存被重置：即使缓存值已是 'zoom-in' 也必须重新下发 'default'。
+        self.assertEqual(self.controller.view.cursors, ['zoom-in', 'default'])
+
+    def test_enabling_refreshes_cursor_without_cancelling(self):
+        self.controller.preview.use_magnifier = False
+        self.controller.on_magnifier_setting_changed()
+        cursors = list(self.controller.view.cursors)
+
+        self.controller.preview.use_magnifier = True
+        self.controller.on_magnifier_setting_changed()
+
+        self.assertEqual(self.renderer.invalidated, 0)
+        self.assertEqual(self.controller.view.magnifier.dismiss_count, 0)
+        self.assertEqual(self.controller.view.cursors, cursors + ['zoom-in'])
 
     def test_link_keeps_pointer_cursor_over_the_magnifier_cursor(self):
         rect = SimpleNamespace(x1=0, x2=20, y1=70, y2=90)

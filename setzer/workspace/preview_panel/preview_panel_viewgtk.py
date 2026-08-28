@@ -120,6 +120,16 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_in_button.set_can_focus(False)
         self.toolbar.append(self.zoom_in_button)
 
+        # 放大镜开关：开启时按住左键显示放大镜；关闭则左键不触发放大镜
+        # （悬停光标也恢复普通箭头），便于将来按住拖动选择 PDF 文字等交互。
+        self.magnifier_toggle = Gtk.ToggleButton()
+        self.magnifier_toggle.set_icon_name('edit-find-symbolic')
+        self.magnifier_toggle.set_tooltip_text(
+            _('Magnifier: hold left mouse button on the PDF to zoom'))
+        self.magnifier_toggle.add_css_class('flat')
+        self.magnifier_toggle.set_can_focus(False)
+        self.toolbar.append(self.magnifier_toggle)
+
         self.recolor_pdf_toggle = Gtk.ToggleButton()
         self.recolor_pdf_toggle.set_icon_name('color-symbolic')
         self.recolor_pdf_toggle.set_tooltip_text(_('Match theme colors'))

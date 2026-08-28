@@ -69,6 +69,8 @@ class Preview(Observable):
         # set_pdf_filename / reset_pdf_data 置 False。
         self.pdf_is_stale = False
         self.recolor_pdf = self.document.settings.get_value('preferences', 'recolor_pdf')
+        # 放大镜开关（预览工具栏切换按钮，preferences/use_magnifier）。
+        self.use_magnifier = self.document.settings.get_value('preferences', 'use_magnifier')
 
         self.poppler_document = None
         # 内存 PDF 文档版本号：仅在成功加载新 Poppler 文档时递增。页面渲染
@@ -112,6 +114,10 @@ class Preview(Observable):
             self.recolor_pdf = value
             self.add_change_code('recolor_pdf_changed')
             self.view.drawing_area.queue_draw()
+        elif item == 'use_magnifier':
+            self.use_magnifier = value
+            # 关闭时取消激活中的放大镜、恢复普通光标；开启时刷新悬停光标。
+            self.controller.on_magnifier_setting_changed()
 
     def on_filename_change(self, document, filename=None):
         if filename != None:

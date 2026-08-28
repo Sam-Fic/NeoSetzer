@@ -38,6 +38,7 @@ class PreviewPanelController(object):
 
         self.view.external_viewer_button.connect('clicked', self.on_external_viewer_button_clicked)
         self.view.recolor_pdf_toggle.connect('toggled', self.on_recolor_pdf_toggle_toggled)
+        self.view.magnifier_toggle.connect('toggled', self.on_magnifier_toggle_toggled)
         # 弹出为独立窗口。guard 在 workspace.pop_out_preview 内（已弹出 / 无文档时 no-op）。
         # 收回方式：关闭独立窗口（close-request → workspace.pop_in_preview）。
         self.view.detach_button.connect('clicked', self.on_detach_button_clicked)
@@ -67,5 +68,10 @@ class PreviewPanelController(object):
         recolor_pdf = toggle_button.get_active()
         if ServiceLocator.get_settings().get_value('preferences', 'recolor_pdf') != recolor_pdf:
             ServiceLocator.get_settings().set_value('preferences', 'recolor_pdf', recolor_pdf)
+
+    def on_magnifier_toggle_toggled(self, toggle_button, parameter=None):
+        use_magnifier = toggle_button.get_active()
+        if ServiceLocator.get_settings().get_value('preferences', 'use_magnifier') != use_magnifier:
+            ServiceLocator.get_settings().set_value('preferences', 'use_magnifier', use_magnifier)
 
 

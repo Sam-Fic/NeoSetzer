@@ -56,6 +56,7 @@ class PreviewPanelPresenter(object):
         self.update_buttons()
 
         self.view.recolor_pdf_toggle.set_active(self.workspace.settings.get_value('preferences', 'recolor_pdf'))
+        self.view.magnifier_toggle.set_active(self.workspace.settings.get_value('preferences', 'use_magnifier'))
         self.workspace.settings.connect('settings_changed', self.on_settings_changed)
 
     def on_settings_changed(self, settings, parameter):
@@ -63,6 +64,8 @@ class PreviewPanelPresenter(object):
 
         if item == 'recolor_pdf':
             self.view.recolor_pdf_toggle.set_active(value)
+        elif item == 'use_magnifier':
+            self.view.magnifier_toggle.set_active(value)
 
     def on_new_document(self, workspace, document):
         if document.is_latex_document():
@@ -274,6 +277,7 @@ class PreviewPanelPresenter(object):
         self.view.toolbar.set_visible(True)
         self.view.external_viewer_button.set_visible(True)
         self.view.recolor_pdf_toggle.set_visible(True)
+        self.view.magnifier_toggle.set_visible(True)
         self.view.zoom_out_button.set_visible(True)
         self.view.fit_width_button.set_visible(True)
         self.view.zoom_level_button.set_visible(True)
@@ -285,6 +289,7 @@ class PreviewPanelPresenter(object):
 
         self.view.external_viewer_button.set_sensitive(has_pdf)
         self.view.recolor_pdf_toggle.set_sensitive(has_pdf)
+        self.view.magnifier_toggle.set_sensitive(has_pdf)
         self.view.zoom_out_button.set_sensitive(has_pdf)
         self.view.fit_width_button.set_sensitive(has_pdf)
         self.view.zoom_level_button.set_sensitive(has_pdf)

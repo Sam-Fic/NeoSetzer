@@ -172,6 +172,10 @@ class Settings(Observable):
         self.defaults['preferences']['app_theme_mode'] = 'system'
         self.defaults['preferences']['language'] = 'en'
         self.defaults['preferences']['recolor_pdf'] = False
+        # PDF 预览放大镜（按住左键放大）开关。默认开启保持既有行为；关闭后
+        # 左键按下不再触发放大镜，悬停光标恢复普通箭头（方便以后做文字选择
+        # 等按住拖动的交互）。预览工具栏有对应切换按钮。
+        self.defaults['preferences']['use_magnifier'] = True
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         # 撤销栈深度上限（GtkSource.Buffer 的 max-undo-levels）。0 = 不限。
