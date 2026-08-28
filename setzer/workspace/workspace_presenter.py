@@ -778,9 +778,13 @@ class WorkspacePresenter(object):
         # push_closed_document 已在 on_document_removed 统一处理。
         if document.source_buffer.get_modified():
             dialog = DialogLocator.get_dialog('close_confirmation')
-            # 对话框回调：根据按钮决定 _do_remove / _cancel。
+            # 对话框回调收到的是 parameters dict（含 'response' 数字码：
+            # discard=0 / cancel=1 / save=2，未知回落 1）。cancel 必须
+            # 走 _cancel 保留标签页；旧写法把 dict 当布尔判断，永远真值，
+            # 导致 Cancel/Esc 也会关闭并丢失未保存修改。
             dialog.run({'unsaved_document': document},
-                       lambda response: _do_remove() if response else _cancel())
+                       lambda parameters: _cancel()
+                       if parameters.get('response') == 1 else _do_remove())
         else:
             _do_remove()
 
