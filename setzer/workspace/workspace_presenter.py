@@ -67,6 +67,14 @@ class WorkspacePresenter(object):
         # 第二次若已 finish 移除则该 page 不再 belong to view，
         # close_page_finish 会断言失败。拦截重复 signal 即可消除断言。
         self._closing_pages = weakref.WeakSet()
+        # 已经 close_page_finish 的 page（同样 WeakSet：finish 后 adw 释放 page，
+        # 而对话框回调等闭包仍强引用 page，条目存活至闭包销毁，无泄漏）。
+        # _closing_pages 只能拦截「同一 page 的重复 close-page signal」；
+        # 无法覆盖所有并发时序（例如确认对话框挂起期间该文档又被其它路径
+        # 移除）。对已 finish（不再 belong to view）的 page 再调
+        # close_page_finish / close_page 会触发 page_belongs_to_this_view
+        # 断言，_finish_page / on_document_removed 用本集合做最终防线。
+        self._finished_pages = weakref.WeakSet()
 
         # 拖动分隔条时 notify::sidebar-width-fraction 每像素触发一次。
         # 原实现每帧调 set_value → add_change_code('settings_changed') →
@@ -213,11 +221,16 @@ class WorkspacePresenter(object):
                 self.workspace.actions.push_closed_document(filename)
             # 发起 adw 关闭协议（同步 emit close-page）。抑制
             # selected-page::notify（拆掉当前选中 page 时会发空页）。
-            self._selecting += 1
-            try:
-                self.main_window.document_stack.close_page(page)
-            finally:
-                self._selecting -= 1
+            # 守卫：page 已在关闭流程中（用户先点了 X，确认对话框可能仍
+            # 挂着——由该流程负责 finish），或已 finish 移除（再 close_page
+            # 会触发 page_belongs_to_this_view 断言），都不重复发起。
+            if (page not in self._closing_pages
+                    and page not in self._finished_pages):
+                self._selecting += 1
+                try:
+                    self.main_window.document_stack.close_page(page)
+                finally:
+                    self._selecting -= 1
 
         if self.workspace.active_document == None:
             self.main_window.mode_stack.set_visible_child_name('welcome_screen')
@@ -653,6 +666,19 @@ class WorkspacePresenter(object):
             self._selecting -= 1
         return False
 
+    def _finish_page(self, tab_view, page, confirm):
+        '''幂等的 close_page_finish。
+
+        对已 finish 移除的 page（不再 belong to view）再次调用会触发
+        libadwaita 的 page_belongs_to_this_view 断言。_closing_pages 的
+        signal 去重无法覆盖全部并发时序（WeakSet 条目丢失、对话框挂起
+        期间其它路径先行 finish 等），这里做最终防线。
+        '''
+        if page in self._finished_pages:
+            return
+        self._finished_pages.add(page)
+        tab_view.close_page_finish(page, confirm)
+
     def _on_tab_view_close_page(self, tab_view, page):
         '''Adw.TabView close-page signal 处理器——关闭协议的唯一切口。
 
@@ -680,7 +706,7 @@ class WorkspacePresenter(object):
 
         if document is None:
             # 找不到对应文档：放行让 adw 走默认 close（不会无限挂起页面）。
-            tab_view.close_page_finish(page, True)
+            self._finish_page(tab_view, page, True)
             return
 
         def _do_remove():
@@ -691,7 +717,7 @@ class WorkspacePresenter(object):
             # 抑制 selected-page::notify（拆掉当前选中 page 时 adw 会发空 selected）。
             self._selecting += 1
             try:
-                tab_view.close_page_finish(page, True)
+                self._finish_page(tab_view, page, True)
                 self.workspace.remove_document(document)
             finally:
                 self._selecting -= 1
@@ -700,7 +726,7 @@ class WorkspacePresenter(object):
             # 用户取消关闭：page 仍 belong to view，需从 _closing_pages 移除，
             # 否则之后再次点 X 会被去重拦截、永远关不掉该标签。
             self._closing_pages.discard(page)
-            tab_view.close_page_finish(page, False)
+            self._finish_page(tab_view, page, False)
 
         # 已确认关闭（程序批量路径如会话恢复 discard）直接移除，不再弹 confirm。
         if document in self.workspace._confirmed_closes:

@@ -101,6 +101,7 @@ presenter_methods = _extract_methods_from_class(
     PRESENTER_SRC, 'WorkspacePresenter',
     '_on_tab_view_selected_page_changed',
     '_on_tab_view_close_page',
+    '_finish_page',
     '_do_release_sync')
 
 
@@ -316,10 +317,13 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         sentinel = Mock()
         sentinel._selecting = 0
         sentinel._closing_pages = set()
+        sentinel._finished_pages = set()
         sentinel._page_to_doc = page_to_doc if page_to_doc is not None else {}
         sentinel.workspace = Mock()
         sentinel.workspace._confirmed_closes = set()
         sentinel.workspace.actions = actions if actions is not None else Mock()
+        sentinel._finish_page = _bound(
+            presenter_methods['_finish_page'], sentinel)
         bound = _bound(
             presenter_methods['_on_tab_view_close_page'],
             sentinel)
@@ -384,6 +388,39 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         bound(tab_view, page)              # duplicate signal (same page)
         tab_view.close_page_finish.assert_called_once_with(page, True)
         sentinel.workspace.remove_document.assert_called_once_with(doc)
+
+    def test_finish_page_is_idempotent(self):
+        # close_page_finish on an already-finished page hits libadwaita's
+        # 'page_belongs_to_this_view' assertion. _finish_page must only
+        # forward the first call and swallow every later one, regardless
+        # of the confirm argument.
+        sentinel, _ = self._harness()
+        tab_view = Mock()
+        page = object()
+        sentinel._finish_page(tab_view, page, True)
+        sentinel._finish_page(tab_view, page, True)
+        sentinel._finish_page(tab_view, page, False)
+        tab_view.close_page_finish.assert_called_once_with(page, True)
+
+    def test_finish_guard_survives_closing_pages_dedup_loss(self):
+        # _closing_pages is a WeakSet: entries can be lost (page GC
+        # timing), leaving the signal-level dedup blind. If a second
+        # close-page signal then arrives for an already-finished page,
+        # the _finish_page guard (_finished_pages) must still prevent a
+        # second close_page_finish — otherwise libadwaita aborts with
+        # 'page_belongs_to_this_view'.
+        actions = Mock()
+        doc = self._mock_document(modified=False)
+        page = object()
+        sentinel, bound = self._harness(
+            page_to_doc={page: doc},
+            actions=actions,
+        )
+        tab_view = Mock()
+        bound(tab_view, page)                    # first signal finishes page
+        sentinel._closing_pages.discard(page)    # simulate WeakSet entry loss
+        bound(tab_view, page)                    # arrives again
+        tab_view.close_page_finish.assert_called_once_with(page, True)
 
     def test_close_path_uses_selecting_guard(self):
         # The handler must increment _selecting around the call to

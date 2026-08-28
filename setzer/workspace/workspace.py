@@ -224,6 +224,11 @@ class Workspace(Observable):
         self.schedule_persistence()
 
     def remove_document(self, document, confirmed=False):
+        # 幂等守卫：确认对话框挂起期间，同一文档可能已被其它路径移除
+        # （如外部删除对话框 / 批量关闭），重入调用会让
+        # open_documents.remove 抛 ValueError。
+        if document not in self.open_documents:
+            return
         if confirmed:
             self._confirmed_closes.add(document)
         self._unwatch_document_state(document)
