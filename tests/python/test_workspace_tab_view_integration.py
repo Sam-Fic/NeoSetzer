@@ -305,10 +305,17 @@ class TabViewClosePageGuardTests(unittest.TestCase):
     '''When the user clicks the X button or middle-clicks a tab,
     ``close-page`` fires. The handler must:
 
-    - BAIL (and call close_page_finish(page, True) to release the
-      page) if the page is unknown.
-    - Otherwise delegate to ``actions.close_document(document)``,
-      which encapsulates push_closed_document + modified-check + confirm.
+    - Return False (GDK_EVENT_PROPAGATE) if the page is unknown, so
+      libadwaita's default class handler auto-finishes it. The handler
+      must NOT call close_page_finish itself and then propagate: the
+      default handler would finish the already-detached page again and
+      trip the 'page_belongs_to_this_view' Adwaita-CRITICAL.
+    - Return True (GDK_EVENT_STOP) for known documents: the app takes
+      over the protocol (sync finish via _do_remove, or async confirm
+      dialog that finishes in its callback). Returning a false value
+      there would let the default handler auto-finish with confirm=True
+      before the user answers the dialog, making Cancel unable to keep
+      the tab.
     - The ``_selecting`` guard is set during the call to suppress
       the synchronous ``notify::selected-page`` that adw emits
       when a non-selected page is closed.
@@ -344,23 +351,28 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         doc.get_filename = Mock(return_value=filename)
         return doc
 
-    def test_unknown_page_finishes_with_confirm_true(self):
-        # adw requires close_page_finish to be called or the page
-        # stays in a "pending close" state. We pass True to tell
-        # adw the close was approved, which is safe: the page is
-        # not in our mapping, so we have nothing to lose.
+    def test_unknown_page_propagates_to_default_handler(self):
+        # Unknown page: the handler must return False so libadwaita's
+        # default class handler auto-finishes (confirm=True for
+        # non-pinned pages). It must NOT call close_page_finish itself:
+        # finishing and then propagating makes the default handler
+        # finish the already-detached page again — the exact source of
+        # the 'page_belongs_to_this_view' Adwaita-CRITICAL.
         sentinel, bound = self._harness(page_to_doc={})
         tab_view = Mock()
         ghost = object()  # weak-referenceable, not in _page_to_doc
-        bound(tab_view, ghost)
-        tab_view.close_page_finish.assert_called_once_with(ghost, True)
-        sentinel.workspace.actions.close_document.assert_not_called()
+        result = bound(tab_view, ghost)
+        self.assertFalse(result)
+        tab_view.close_page_finish.assert_not_called()
+        sentinel.workspace.remove_document.assert_not_called()
 
     def test_known_page_unmodified_routes_to_workspace_remove_document(self):
         # For an unmodified document the handler calls
         # close_page_finish(page, True) and workspace.remove_document(doc)
         # directly (push + confirm live in on_document_removed / the
         # close-page protocol, not in actions.close_document anymore).
+        # It must return True (GDK_EVENT_STOP) so the default class
+        # handler does not auto-finish the already-detached page again.
         actions = Mock()
         doc = self._mock_document(modified=False)
         page = object()  # weak-referenceable page object (str is not)
@@ -369,10 +381,79 @@ class TabViewClosePageGuardTests(unittest.TestCase):
             actions=actions,
         )
         tab_view = Mock()
-        bound(tab_view, page)
+        result = bound(tab_view, page)
+        self.assertTrue(result)
         tab_view.close_page_finish.assert_called_once_with(page, True)
         sentinel.workspace.remove_document.assert_called_once_with(doc)
         actions.close_document.assert_not_called()
+
+    def test_modified_document_defers_to_dialog_and_stops_propagation(self):
+        # Modified document: the handler must return True so the default
+        # class handler does NOT auto-finish (confirm=True) while the
+        # confirm dialog is still pending — otherwise the tab would be
+        # torn down before the user answers and Cancel could not keep
+        # it. Cancel (response=1) must finish(False) and keep the
+        # document; the page must stay until the callback finishes it.
+        ns = presenter_methods['_on_tab_view_close_page'].__globals__
+        calls = []
+
+        class StubDialog:
+            def run(self, parameters, callback):
+                calls.append((parameters['unsaved_document'], callback))
+
+        class StubLocator:
+            @staticmethod
+            def get_dialog(name):
+                return StubDialog()
+
+        ns['DialogLocator'] = StubLocator
+        try:
+            doc = self._mock_document(modified=True)
+            page = object()
+            sentinel, bound = self._harness(page_to_doc={page: doc})
+            tab_view = Mock()
+            result = bound(tab_view, page)
+            self.assertTrue(result)
+            tab_view.close_page_finish.assert_not_called()
+            sentinel.workspace.remove_document.assert_not_called()
+
+            # Cancel keeps the tab: finish(False), page survives.
+            unsaved, callback = calls[0]
+            self.assertIs(unsaved, doc)
+            callback({'response': 1})
+            tab_view.close_page_finish.assert_called_once_with(page, False)
+            sentinel.workspace.remove_document.assert_not_called()
+        finally:
+            del ns['DialogLocator']
+
+    def test_modified_document_discard_finishes_and_removes(self):
+        # Discard (response=0) in the confirm dialog callback must
+        # finish(True) and remove the document.
+        ns = presenter_methods['_on_tab_view_close_page'].__globals__
+        calls = []
+
+        class StubDialog:
+            def run(self, parameters, callback):
+                calls.append(callback)
+
+        class StubLocator:
+            @staticmethod
+            def get_dialog(name):
+                return StubDialog()
+
+        ns['DialogLocator'] = StubLocator
+        try:
+            doc = self._mock_document(modified=True)
+            page = object()
+            sentinel, bound = self._harness(page_to_doc={page: doc})
+            tab_view = Mock()
+            bound(tab_view, page)
+            callback = calls[0]
+            callback({'response': 0})
+            tab_view.close_page_finish.assert_called_once_with(page, True)
+            sentinel.workspace.remove_document.assert_called_once_with(doc)
+        finally:
+            del ns['DialogLocator']
 
     def test_duplicate_close_page_signal_is_deduplicated(self):
         # The same page's close-page signal can fire twice (user clicks X

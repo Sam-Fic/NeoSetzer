@@ -208,8 +208,10 @@ class WorkspacePresenter(object):
         # (B) 程序直接 workspace.remove_document（Ctrl+W / files_view /
         #     document_switcher / welcome_screen 等）：page 仍在映射，这里
         #     主动 close_page(page) 发起协议 → 同步触发 close-page signal →
-        #     _on_tab_view_close_page 处理 confirm + finish + remove。
-        #     remove 重入本回调时 page 已 pop → 跳过，无循环。
+        #     此刻映射已 pop，_on_tab_view_close_page 走未知 page 分支返回
+        #     False，由 libadwaita 默认处理器 auto-finish（confirm=TRUE）
+        #     拆掉标签页。这类路径的文档已先行从 workspace 移除，无需再
+        #     弹 confirm。remove 重入本回调时 page 已 pop → 跳过，无循环。
         page = self._doc_to_page.pop(document, None)
         if page is not None:
             self._page_to_doc.pop(page, None)
@@ -719,32 +721,44 @@ class WorkspacePresenter(object):
     def _on_tab_view_close_page(self, tab_view, page):
         '''Adw.TabView close-page signal 处理器——关闭协议的唯一切口。
 
+        返回值契约（libadwaita 的 close-page 是 RUN_LAST + 布尔累加器信号，
+        类默认处理器 close_page_cb 会对非 pin 页以 confirm=TRUE 立即
+        auto-finish）：
+        - 返回 True（GDK_EVENT_STOP）：默认处理器不运行，page 保持
+          closing 状态，由应用负责稍后 close_page_finish（同步路径或
+          确认对话框回调）。
+        - 返回 False/None（GDK_EVENT_PROPAGATE）：默认处理器立即
+          auto-finish 并 detach 页面。
+        若处理器自己 finish 过却又返回 False，默认处理器会对已 detach 的
+        page 再次 finish → page_belongs_to_this_view 断言失败（日志中的
+        Adwaita-CRITICAL）。若弹异步确认对话框时返回 False，默认处理器
+        会在用户作答前就拆掉标签页，Cancel 无从恢复。故：
+        - 未知 page → return False 放行默认处理器（不自行 finish）。
+        - 已知文档 → return True 接管（未修改/已确认由 _do_remove 同步
+          finish；已修改弹 close_confirmation 对话框，回调里 finish）。
+
         触发时机：
         - 用户点 X / 中键标签 / Alt+W：adw 内部已 close_page(page)（设
           page->closing=True），同步 emit 本 signal。
-        - 程序路径（on_document_removed 调 close_page(page)）：同样 emit。
-
-        处理流程（务必先 pop 映射再 remove_document，否则重入循环）：
-        1. 未知 page → close_page_finish(page, True) 放行。
-        2. 已知 document 且未修改 → finish(True) + pop 映射 + remove_document。
-        3. 已知 document 且已修改 → 弹 close_confirmation 对话框：
-           Save/Discard → finish(True) + pop 映射 + remove_document；
-           Cancel → finish(False) 取消关闭（page 保留）。
+        - 程序路径（on_document_removed 调 close_page(page)）：同样 emit
+          （此时映射已 pop，走未知 page 分支放行默认处理器）。
         '''
         document = self._page_to_doc.get(page)
 
         # 去重：同一 page 的 close-page signal 可能因「用户点 X（adw 内部
         # close_page）」与「程序路径 on_document_removed 再 close_page」两路
-        # 并发而触发两次。第二次到达时该 page 往往已被第一次 finish 移除，
-        # 不再 belong to view，close_page_finish 会断言失败。拦截重复 signal。
+        # 并发而触发两次。第二次到达时该 page 往往已被第一次 finish 移除。
+        # 拦截重复 signal 并返回 STOP（既有流程负责收尾，且不能让默认
+        # 处理器对可能已 detach 的 page auto-finish）。
         if page in self._closing_pages:
-            return
+            return True
         self._closing_pages.add(page)
 
         if document is None:
-            # 找不到对应文档：放行让 adw 走默认 close（不会无限挂起页面）。
-            self._finish_page(tab_view, page, True)
-            return
+            # 找不到对应文档：放行默认处理器 auto-finish（confirm=TRUE），
+            # 不自行 close_page_finish——否则默认处理器随后会对已 detach 的
+            # page 再 finish，触发 page_belongs_to_this_view 断言。
+            return False
 
         def _do_remove():
             # 先从双向映射移除，再 remove_document，避免 on_document_removed
@@ -773,7 +787,7 @@ class WorkspacePresenter(object):
         if document in self.workspace._confirmed_closes:
             self.workspace._confirmed_closes.discard(document)
             _do_remove()
-            return
+            return True
 
         # push_closed_document 已在 on_document_removed 统一处理。
         if document.source_buffer.get_modified():
@@ -785,8 +799,14 @@ class WorkspacePresenter(object):
             dialog.run({'unsaved_document': document},
                        lambda parameters: _cancel()
                        if parameters.get('response') == 1 else _do_remove())
-        else:
-            _do_remove()
+            # 异步对话框挂起期间必须 STOP：返回 False 会让默认处理器在
+            # emission 结束时立即 auto-finish（confirm=TRUE）拆掉标签页，
+            # 用户还没作答标签就消失了，Cancel 无从恢复。STOP 后 page 保持
+            # closing 状态，由对话框回调 _do_remove / _cancel 收尾。
+            return True
+
+        _do_remove()
+        return True
 
     def _refresh_page_label(self, document):
         '''把 document 的 displayname / modified 状态推到 Adw.TabPage.title。
