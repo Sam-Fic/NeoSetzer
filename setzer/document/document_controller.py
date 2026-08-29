@@ -56,10 +56,10 @@ _KEYVAL_L = Gdk.keyval_from_name('l')
 _NAV_KEYVALS = (_KEYVAL_UP, _KEYVAL_DOWN, _KEYVAL_LEFT, _KEYVAL_RIGHT,
                 _KEYVAL_HOME, _KEYVAL_END, _KEYVAL_PAGE_UP, _KEYVAL_PAGE_DOWN)
 
-# Alt+Drag 列选的最小有效位移（逻辑像素）。快速 Alt+Click 连点时手部抖动
-# 会让 GestureDrag 触发 drag-begin；位移小于该值按点击对待——不清空已有
-# 多光标、不构建列选区。取值大于 GTK 默认拖动阈值（8px）留有余量。
-_COLUMN_DRAG_MIN_OFFSET = 12
+# Alt+Drag 列选的最小有效位移（逻辑像素）。drag-begin 即 CLAIM 序列，
+# 但最终位移小于该值时按"带抖动的点击"兜底成 Alt+Click（见
+# _on_column_drag_end）——不构建列选区、不清空已有多光标。
+_COLUMN_DRAG_MIN_OFFSET = 16
 
 
 class DocumentController(object):
@@ -376,9 +376,11 @@ class DocumentController(object):
     def _on_column_drag_begin(self, controller, x, y):
         """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。
 
-        此处只记录状态并 CLAIM，不清空现有光标、不移动主光标：快速
-        Alt+Click 连点时手部抖动可能触发 drag-begin，位移未超过
-        _COLUMN_DRAG_MIN_OFFSET 前都按点击对待，不能破坏已有多光标。
+        立即 CLAIM 事件序列：拖动一开始就从 GtkTextView 内部手势手中
+        接管，避免其拉出普通选区甚至反过来接管序列（不 CLAIM 会让
+        列选前段毫无反应、表现"迟钝"）。带抖动的 Alt+Click 也会触发
+        drag-begin——CLAIM 会阻断点击手势的 released，这类序列改在
+        drag-end 按位移兜底判定（见 _on_column_drag_end）。
         """
         state = controller.get_current_event_state()
         if not (state & Gdk.ModifierType.ALT_MASK):
@@ -390,7 +392,6 @@ class DocumentController(object):
         if multicursor is None:
             return
 
-        # CLAIM 事件序列：阻止 GtkTextView 内部手势同时拉出普通选区。
         controller.set_state(Gtk.EventSequenceState.CLAIMED)
 
         # Ctrl+Alt+Drag: 添加新的列选区到现有光标（加法模式）
@@ -408,7 +409,11 @@ class DocumentController(object):
         return max(abs(offset_x), abs(offset_y)) >= _COLUMN_DRAG_MIN_OFFSET
 
     def _on_column_drag_update(self, controller, x, y):
-        """Alt+Drag 进行中：更新列选区。x/y 是相对起点的偏移。"""
+        """Alt+Drag 进行中：更新列选区。x/y 是相对起点的偏移。
+
+        位移未达 _COLUMN_DRAG_MIN_OFFSET 前不构建列选区——那可能只是
+        一次带抖动的点击，最终由 drag-end 按点击兜底处理。
+        """
         if not self._column_dragging or self._column_drag_start_iter is None:
             return
         if not self._column_drag_is_real(x, y):
@@ -432,24 +437,39 @@ class DocumentController(object):
                 additive=self._column_drag_additive)
 
     def _on_column_drag_end(self, controller, x, y):
-        """Alt+Drag 结束：位移足够时用最终位置构建列选区。
-
-        位移过小（连点抖动）则按点击处理：不构建列选区、不清空光标。
+        """Alt+Drag 结束：位移足够时用最终位置构建列选区；位移过小
+        （带抖动的点击）则兜底按 Alt+Click 处理——drag-begin 已 CLAIM
+        序列、released 不会触发，必须在这里补上点击语义。
         """
         if not self._column_dragging:
             return
 
         multicursor = getattr(self.document, 'multicursor', None)
-        if (multicursor is not None and self._column_drag_start_iter is not None
-                and self._column_drag_is_real(x, y)):
+        if multicursor is not None and self._column_drag_start_iter is not None:
             abs_x = self._column_drag_start_x + x
             abs_y = self._column_drag_start_y + y
-            found, end_iter = self._iter_at_widget_coords(abs_x, abs_y)
-            if found:
-                self.document.source_buffer.place_cursor(self._column_drag_start_iter)
-                multicursor.add_cursors_column(
-                    self._column_drag_start_iter, end_iter,
-                    additive=self._column_drag_additive)
+            if self._column_drag_is_real(x, y):
+                # 真实拖动：构建最终列选区。
+                found, end_iter = self._iter_at_widget_coords(abs_x, abs_y)
+                if found:
+                    self.document.source_buffer.place_cursor(
+                        self._column_drag_start_iter)
+                    multicursor.add_cursors_column(
+                        self._column_drag_start_iter, end_iter,
+                        additive=self._column_drag_additive)
+            else:
+                # 抖动点击：恢复主光标到按下前位置，再按释放点添加/移除
+                # 附加光标（与 on_primary_buttonrelease 的处理保持一致）。
+                found, end_iter = self._iter_at_widget_coords(abs_x, abs_y)
+                if found:
+                    buffer = self.document.source_buffer
+                    restore_offset = self._alt_click_restore_offset
+                    self._alt_click_restore_offset = None
+                    if restore_offset is not None:
+                        buffer.place_cursor(
+                            buffer.get_iter_at_offset(restore_offset))
+                    if self._is_mc_enabled('multicursor_alt_click'):
+                        self._handle_alt_click(end_iter, abs_x, abs_y)
 
         self._column_dragging = False
         self._column_drag_additive = False
