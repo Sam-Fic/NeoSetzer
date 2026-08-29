@@ -8492,7 +8492,7 @@ msgid ""
 msgstr ""
 "Pull, commit et push exécutent des commandes git dans ce dépôt, ce qui peut exécuter ses hooks :\n"
 "\n"
-"%s\n"
+"%s"
 
 #: setzer/workspace/sidebar/git/git_section.py:172
 msgid "Trust and Continue"

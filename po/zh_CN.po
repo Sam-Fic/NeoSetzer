@@ -8033,7 +8033,7 @@ msgid ""
 msgstr ""
 "拉取、提交和推送会在本仓库运行 git 命令，这可能执行其钩子：\n"
 "\n"
-"%s\n"
+"%s"
 
 #: setzer/workspace/sidebar/git/git_section.py:172
 msgid "Trust and Continue"

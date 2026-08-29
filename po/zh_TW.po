@@ -8062,7 +8062,7 @@ msgid ""
 msgstr ""
 "拉取、提交和推送會在本儲存庫執行 git 指令，這可能執行其鉤子：\n"
 "\n"
-"%s\n"
+"%s"
 
 #: setzer/workspace/sidebar/git/git_section.py:172
 msgid "Trust and Continue"
