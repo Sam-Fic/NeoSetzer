@@ -806,29 +806,6 @@ class PageEditorView(Adw.PreferencesPage):
         self.right_margin_position_row.set_adjustment(adjustment_right_margin)
         group_right_margin.add(self.right_margin_position_row)
 
-        group_shortcuts_bar = Adw.PreferencesGroup()
-        group_shortcuts_bar.set_title(_('Shortcuts Bar'))
-        self.add(group_shortcuts_bar)
-
-        self.option_show_shortcuts_bar = Adw.SwitchRow()
-        self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
-        self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
-        self.option_show_shortcuts_bar.set_tooltip_text(_(
-            'Display a bar of keyboard shortcuts above the editor.'))
-        group_shortcuts_bar.add(self.option_show_shortcuts_bar)
-
-        group_tab_bar = Adw.PreferencesGroup()
-        group_tab_bar.set_title(_('Tab Bar'))
-        self.add(group_tab_bar)
-
-        self.option_show_tab_bar = Adw.SwitchRow()
-        self.option_show_tab_bar.set_title(_('Show tab bar'))
-        self.option_show_tab_bar.set_subtitle(_('Display the multi-document tab bar above the shortcuts bar.'))
-        self.option_show_tab_bar.set_tooltip_text(_(
-            'Display a bar of open documents above the shortcuts bar. '
-            'When enabled, a single open document hides the bar automatically.'))
-        group_tab_bar.add(self.option_show_tab_bar)
-
         group_line_wrapping = Adw.PreferencesGroup()
         group_line_wrapping.set_title(_('Line Wrapping'))
         self.add(group_line_wrapping)
@@ -948,6 +925,30 @@ class PageEditorView(Adw.PreferencesPage):
             'Display symbols for spaces (·) and tabs (→) '
             'to help debug indentation and trailing whitespace issues.'))
         group_visible_chars.add(self.option_show_whitespace)
+
+        # 界面元素显隐：快捷键栏与多文档标签栏（与上方显示类设置相邻）
+        group_shortcuts_bar = Adw.PreferencesGroup()
+        group_shortcuts_bar.set_title(_('Shortcuts Bar'))
+        self.add(group_shortcuts_bar)
+
+        self.option_show_shortcuts_bar = Adw.SwitchRow()
+        self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
+        self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
+        self.option_show_shortcuts_bar.set_tooltip_text(_(
+            'Display a bar of keyboard shortcuts above the editor.'))
+        group_shortcuts_bar.add(self.option_show_shortcuts_bar)
+
+        group_tab_bar = Adw.PreferencesGroup()
+        group_tab_bar.set_title(_('Tab Bar'))
+        self.add(group_tab_bar)
+
+        self.option_show_tab_bar = Adw.SwitchRow()
+        self.option_show_tab_bar.set_title(_('Show tab bar'))
+        self.option_show_tab_bar.set_subtitle(_('Display the multi-document tab bar above the shortcuts bar.'))
+        self.option_show_tab_bar.set_tooltip_text(_(
+            'Display a bar of open documents above the shortcuts bar. '
+            'When enabled, a single open document hides the bar automatically.'))
+        group_tab_bar.add(self.option_show_tab_bar)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
         # 应用崩溃后下次启动可恢复未保存的编辑。

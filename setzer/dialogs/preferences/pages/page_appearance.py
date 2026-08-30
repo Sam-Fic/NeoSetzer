@@ -368,8 +368,8 @@ class PageGeneral(object):
             fraction = self.settings.defaults['window_state']['sidebar_width_fraction']
             self.view.sidebar_width_scale.set_value(int(fraction * 100))
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
-        self.view.option_preview_zoom.set_selected(
-            self.view.preview_zoom_values.index(defaults['preview_zoom']))
+            self.view.option_preview_zoom.set_selected(
+                self.view.preview_zoom_values.index(defaults['preview_zoom']))
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
@@ -627,6 +627,20 @@ class PageGeneralView(Adw.PreferencesPage):
         self.language_combo.set_model(language_model)
         group_language.add(self.language_combo)
 
+        # on startup（应用级/界面设置，归属此通用页）
+        group_startup = Adw.PreferencesGroup()
+        group_startup.set_title(_('On Startup'))
+        self.add(group_startup)
+
+        self.startup_combo = Adw.ComboRow()
+        self.startup_combo.set_title(_('Open'))
+        self.startup_combo.set_subtitle(_('Whether to restore the previous session or start with an empty workspace.'))
+        startup_model = Gtk.StringList()
+        for name, _value in STARTUP_MODES:
+            startup_model.append(_(name))
+        self.startup_combo.set_model(startup_model)
+        group_startup.add(self.startup_combo)
+
         # preview width
         group_preview = Adw.PreferencesGroup()
         group_preview.set_title(_('Preview'))
@@ -644,20 +658,6 @@ class PageGeneralView(Adw.PreferencesPage):
         self.preview_width_row.set_subtitle(_('Percentage of the window width allocated to the PDF preview.'))
         self.preview_width_row.add_suffix(self.preview_width_scale)
         group_preview.add(self.preview_width_row)
-
-        # on startup（应用级/界面设置，归属此通用页）
-        group_startup = Adw.PreferencesGroup()
-        group_startup.set_title(_('On Startup'))
-        self.add(group_startup)
-
-        self.startup_combo = Adw.ComboRow()
-        self.startup_combo.set_title(_('Open'))
-        self.startup_combo.set_subtitle(_('Whether to restore the previous session or start with an empty workspace.'))
-        startup_model = Gtk.StringList()
-        for name, _value in STARTUP_MODES:
-            startup_model.append(_(name))
-        self.startup_combo.set_model(startup_model)
-        group_startup.add(self.startup_combo)
 
         # 预览 PDF 配色随主题：深色模式下把 PDF 前景/背景重着色以匹配编辑器
         # 深浅色（recolor_pdf）。该值在 preview 工具栏有快速切换按钮，此处暴露
@@ -703,67 +703,9 @@ class PageGeneralView(Adw.PreferencesPage):
         self.sidebar_width_row.add_suffix(self.sidebar_width_scale)
         group_sidebar.add(self.sidebar_width_row)
 
-        # tutorial（来自 First Run 页）
-        group_tutorial = Adw.PreferencesGroup()
-        group_tutorial.set_title(_('First-Run Tutorial'))
-        self.add(group_tutorial)
-
-        self.show_again_row = Adw.ActionRow()
-        self.show_again_row.set_title(_('Show the tutorial again'))
-        self.show_again_row.set_subtitle(_('Open the welcome tips dialog.'))
-        self.show_again_button = Gtk.Button(label=_('Show'))
-        self.show_again_button.set_valign(Gtk.Align.CENTER)
-        self.show_again_row.add_suffix(self.show_again_button)
-        self.show_again_row.set_activatable_widget(self.show_again_button)
-        group_tutorial.add(self.show_again_row)
-
-        # backup and restore（来自 Settings Data 页）
-        group_backup = Adw.PreferencesGroup()
-        group_backup.set_title(_('Backup and Restore'))
-        group_backup.set_description(_('Export your preferences and keyboard shortcuts to a '
-                                        'file, or import them on another machine.'))
-        self.add(group_backup)
-
-        self.export_row = Adw.ActionRow()
-        self.export_row.set_title(_('Export Settings'))
-        self.export_row.set_subtitle(_('Save your preferences and keyboard shortcuts to a file.'))
-        self.option_export = Gtk.Button(label=_('Export'))
-        self.option_export.add_css_class('suggested-action')
-        self.option_export.set_valign(Gtk.Align.CENTER)
-        self.export_row.add_suffix(self.option_export)
-        self.export_row.set_activatable_widget(self.option_export)
-        group_backup.add(self.export_row)
-
-        self.import_row = Adw.ActionRow()
-        self.import_row.set_title(_('Import Settings'))
-        self.import_row.set_subtitle(_('Load preferences and keyboard shortcuts from a file.'))
-        self.option_import = Gtk.Button(label=_('Import'))
-        self.option_import.set_valign(Gtk.Align.CENTER)
-        self.import_row.add_suffix(self.option_import)
-        self.import_row.set_activatable_widget(self.option_import)
-        group_backup.add(self.import_row)
-
-        self.reset_all_row = Adw.ActionRow()
-        self.reset_all_row.set_title(_('Reset all preferences'))
-        self.reset_all_row.set_subtitle(_('Restore all preference values to their defaults.'))
-        self.option_reset_all = Gtk.Button(label=_('Reset'))
-        self.option_reset_all.add_css_class('destructive-action')
-        self.option_reset_all.set_valign(Gtk.Align.CENTER)
-        self.reset_all_row.add_suffix(self.option_reset_all)
-        self.reset_all_row.set_activatable_widget(self.option_reset_all)
-        group_backup.add(self.reset_all_row)
-
-        # reset（通用页偏好）
-        group_reset = Adw.PreferencesGroup()
-        self.add(group_reset)
-
-        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
-        self.reset_button.set_halign(Gtk.Align.END)
-        self.reset_button.add_css_class('destructive-action')
-        group_reset.add(self.reset_button)
-
         # ---- AI 代理设置（自 Build System 页迁入：AI Fix / Agent 终端按钮等
-        #      多个入口共用的配置）----
+        #      多个入口共用的配置）。置于 Tutorial/Backup 之前——功能配置区
+        #      在前，备份/重置等档案性操作统一放页面末尾。----
         group_ai_main = Adw.PreferencesGroup()
         group_ai_main.set_title(_('AI Settings'))
         self.add(group_ai_main)
@@ -811,6 +753,64 @@ class PageGeneralView(Adw.PreferencesPage):
         self.ai_reset_button.set_halign(Gtk.Align.END)
         self.ai_reset_button.add_css_class('destructive-action')
         group_ai_reset.add(self.ai_reset_button)
+
+        # tutorial（来自 First Run 页）
+        group_tutorial = Adw.PreferencesGroup()
+        group_tutorial.set_title(_('First-Run Tutorial'))
+        self.add(group_tutorial)
+
+        self.show_again_row = Adw.ActionRow()
+        self.show_again_row.set_title(_('Show the tutorial again'))
+        self.show_again_row.set_subtitle(_('Open the welcome tips dialog.'))
+        self.show_again_button = Gtk.Button(label=_('Show'))
+        self.show_again_button.set_valign(Gtk.Align.CENTER)
+        self.show_again_row.add_suffix(self.show_again_button)
+        self.show_again_row.set_activatable_widget(self.show_again_button)
+        group_tutorial.add(self.show_again_row)
+
+        # backup and restore（来自 Settings Data 页）
+        group_backup = Adw.PreferencesGroup()
+        group_backup.set_title(_('Backup and Restore'))
+        group_backup.set_description(_('Export your preferences and keyboard shortcuts to a '
+                                        'file, or import them on another machine.'))
+        self.add(group_backup)
+
+        self.export_row = Adw.ActionRow()
+        self.export_row.set_title(_('Export Settings'))
+        self.export_row.set_subtitle(_('Save your preferences and keyboard shortcuts to a file.'))
+        self.option_export = Gtk.Button(label=_('Export'))
+        self.option_export.set_valign(Gtk.Align.CENTER)
+        self.export_row.add_suffix(self.option_export)
+        self.export_row.set_activatable_widget(self.option_export)
+        group_backup.add(self.export_row)
+
+        self.import_row = Adw.ActionRow()
+        self.import_row.set_title(_('Import Settings'))
+        self.import_row.set_subtitle(_('Load preferences and keyboard shortcuts from a file.'))
+        self.option_import = Gtk.Button(label=_('Import'))
+        self.option_import.set_valign(Gtk.Align.CENTER)
+        self.import_row.add_suffix(self.option_import)
+        self.import_row.set_activatable_widget(self.option_import)
+        group_backup.add(self.import_row)
+
+        self.reset_all_row = Adw.ActionRow()
+        self.reset_all_row.set_title(_('Reset all preferences'))
+        self.reset_all_row.set_subtitle(_('Restore all preference values to their defaults.'))
+        self.option_reset_all = Gtk.Button(label=_('Reset'))
+        self.option_reset_all.add_css_class('destructive-action')
+        self.option_reset_all.set_valign(Gtk.Align.CENTER)
+        self.reset_all_row.add_suffix(self.option_reset_all)
+        self.reset_all_row.set_activatable_widget(self.option_reset_all)
+        group_backup.add(self.reset_all_row)
+
+        # reset（通用页偏好）：页面最末尾，紧随 Backup and Restore
+        group_reset = Adw.PreferencesGroup()
+        self.add(group_reset)
+
+        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button.set_halign(Gtk.Align.END)
+        self.reset_button.add_css_class('destructive-action')
+        group_reset.add(self.reset_button)
 
 
 class AddCustomToolDialog(object):

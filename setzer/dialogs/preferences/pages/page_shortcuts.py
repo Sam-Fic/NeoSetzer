@@ -638,14 +638,6 @@ class PageShortcutsView(Adw.PreferencesPage):
         group_actions.set_title(_('Actions'))
         self.add(group_actions)
 
-        import_row = Adw.ActionRow()
-        import_row.set_title(_('Import Shortcuts'))
-        import_row.set_subtitle(_('Load keyboard shortcuts from a JSON file'))
-        self.import_button = Gtk.Button(label=_('Import'))
-        self.import_button.set_valign(Gtk.Align.CENTER)
-        import_row.add_suffix(self.import_button)
-        group_actions.add(import_row)
-
         export_row = Adw.ActionRow()
         export_row.set_title(_('Export Shortcuts'))
         export_row.set_subtitle(_('Save keyboard shortcuts to a JSON file'))
@@ -653,6 +645,14 @@ class PageShortcutsView(Adw.PreferencesPage):
         self.export_button.set_valign(Gtk.Align.CENTER)
         export_row.add_suffix(self.export_button)
         group_actions.add(export_row)
+
+        import_row = Adw.ActionRow()
+        import_row.set_title(_('Import Shortcuts'))
+        import_row.set_subtitle(_('Load keyboard shortcuts from a JSON file'))
+        self.import_button = Gtk.Button(label=_('Import'))
+        self.import_button.set_valign(Gtk.Align.CENTER)
+        import_row.add_suffix(self.import_button)
+        group_actions.add(import_row)
 
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
