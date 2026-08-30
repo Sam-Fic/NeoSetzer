@@ -40,6 +40,17 @@ msgstr "已在终端中启动 {}。命令已复制到剪贴板——请粘贴到
 msgid "Launched {} in terminal."
 msgstr "已在终端中启动 {}。"
 
+#: setzer/ai_fix/agent_runner.py:415
+#, python-brace-format
+msgid ""
+"{tool} is not available on this system. Check the executable name in "
+"Preferences → AI Fix."
+msgstr "{tool} 在此系统上不可用。请在首选项 → AI Fix 中检查可执行文件名。"
+
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:115
+msgid "Open AI agent in terminal"
+msgstr "在终端中打开 AI 代理"
+
 #: setzer/ai_fix/preview_dialog.py:78
 #, python-brace-format
 msgid "Send to {tool}"

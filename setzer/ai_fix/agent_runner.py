@@ -272,6 +272,85 @@ def render_template(template, prompt, filename, cwd):
     return out
 
 
+def _launch_in_terminal(agent_args, cwd, terminal_cmd=None):
+    '''组装并启动终端命令（run_headed / run_headed_bare 共用）。
+
+    组装规则：
+      [flatpak-spawn --host] + [terminal] + [prefix?] + [extra_args?] +
+      [workdir?] + [sep] + [agent_args...]
+
+    Args:
+        agent_args: list[str]，要在终端里执行的命令（Agent CLI 部分）。
+        cwd: str，工作目录。
+        terminal_cmd: 用户指定的终端命令（覆盖自动检测），可带参数。
+
+    Returns:
+        tuple (success:bool, message:str)。成功时 message 为 None；
+        失败时 message 为给用户的错误提示。
+    '''
+    terminal_info = detect_terminal(terminal_cmd)
+    if terminal_info is None:
+        return (False, _('No terminal emulator available. '
+                          'Install gnome-terminal / xterm or set a custom terminal in Preferences.'))
+
+    terminal_path, spec = terminal_info
+    sep = spec.get('sep', '--')
+    workdir_arg = spec.get('workdir_arg')
+    prefix = spec.get('prefix')           # 如 wezterm 的 ['start']
+    extra_args = spec.get('extra_args')   # 用户自定义终端命令的额外参数
+
+    final_cmd = []
+    if is_flatpak():
+        flatpak_spawn = shutil.which('flatpak-spawn')
+        if flatpak_spawn:
+            final_cmd.extend([flatpak_spawn, '--host'])
+
+    final_cmd.append(terminal_path)
+
+    # prefix：终端自身需要的子命令（如 wezterm 的 'start'）
+    if prefix:
+        final_cmd.extend(prefix)
+
+    # 用户自定义终端命令的额外参数（如 'gnome-terminal --maximize' 中的 --maximize）
+    if extra_args:
+        final_cmd.extend(extra_args)
+
+    # 工作目录
+    if workdir_arg and cwd:
+        # workdir_arg 支持两种写法：
+        #   - str:  生成 '--flag=<cwd>'（等号，GNOME/GTK 系）
+        #   - tuple: 生成 '--flag' '<cwd>'（空格，kitty/konsole 等）
+        if isinstance(workdir_arg, (list, tuple)):
+            final_cmd.extend(list(workdir_arg))
+            final_cmd.append(cwd)
+        else:
+            final_cmd.extend([workdir_arg + '=' + cwd])
+
+    final_cmd.append(sep)
+    final_cmd.extend(agent_args)
+
+    try:
+        # Unix: start_new_session=True 脱离 Setzer 进程组，Setzer 退出不杀终端
+        # Windows: creationflags=CREATE_NEW_PROCESS_GROUP 达到类似效果
+        # DEVNULL：避免管道死锁（终端不读 stdin/stdout 也无碍）
+        popen_kwargs = dict(
+            cwd=cwd or None,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if sys.platform == 'win32':
+            popen_kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs['start_new_session'] = True
+        subprocess.Popen(final_cmd, **popen_kwargs)
+    except FileNotFoundError:
+        return (False, _('Terminal executable not found: {}').format(terminal_path))
+    except Exception as e:
+        return (False, _('Failed to launch terminal: {}').format(str(e)))
+
+    return (True, None)
+
+
 def run_headed(tool_config, prompt, cwd, filename, terminal_cmd=None):
     '''有头模式：启动外部终端跑 Agent 交互式 TUI。
 
@@ -304,72 +383,43 @@ def run_headed(tool_config, prompt, cwd, filename, terminal_cmd=None):
         except Exception:
             pass  # 剪贴板失败也不阻止启动
 
-    terminal_info = detect_terminal(terminal_cmd)
-    if terminal_info is None:
-        return (False, _('No terminal emulator available. '
-                          'Install gnome-terminal / xterm or set a custom terminal in Preferences.'))
-
-    terminal_path, spec = terminal_info
-    sep = spec.get('sep', '--')
-    workdir_arg = spec.get('workdir_arg')
-    prefix = spec.get('prefix')           # 如 wezterm 的 ['start']
-    extra_args = spec.get('extra_args')   # 用户自定义终端命令的额外参数
-
-    # 组装最终命令：
-    #   [flatpak-spawn --host] + [terminal] + [prefix?] + [extra_args?] +
-    #   [workdir?] + [sep] + [agent_cmd...]
-    final_cmd = []
-    if is_flatpak():
-        flatpak_spawn = shutil.which('flatpak-spawn')
-        if flatpak_spawn:
-            final_cmd.extend([flatpak_spawn, '--host'])
-
-    final_cmd.append(terminal_path)
-
-    # prefix：终端自身需要的子命令（如 wezterm 的 'start'）
-    if prefix:
-        final_cmd.extend(prefix)
-
-    # 用户自定义终端命令的额外参数（如 'gnome-terminal --maximize' 中的 --maximize）
-    if extra_args:
-        final_cmd.extend(extra_args)
-
-    # 工作目录
-    if workdir_arg and cwd:
-        # workdir_arg 支持两种写法：
-        #   - str:  生成 '--flag=<cwd>'（等号，GNOME/GTK 系）
-        #   - tuple: 生成 '--flag' '<cwd>'（空格，kitty/konsole 等）
-        if isinstance(workdir_arg, (list, tuple)):
-            final_cmd.extend(list(workdir_arg))
-            final_cmd.append(cwd)
-        else:
-            final_cmd.extend([workdir_arg + '=' + cwd])
-
-    final_cmd.append(sep)
-    final_cmd.extend(rendered)
-
-    try:
-        # Unix: start_new_session=True 脱离 Setzer 进程组，Setzer 退出不杀终端
-        # Windows: creationflags=CREATE_NEW_PROCESS_GROUP 达到类似效果
-        # DEVNULL：避免管道死锁（终端不读 stdin/stdout 也无碍）
-        popen_kwargs = dict(
-            cwd=cwd or None,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        if sys.platform == 'win32':
-            popen_kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
-        else:
-            popen_kwargs['start_new_session'] = True
-        subprocess.Popen(final_cmd, **popen_kwargs)
-    except FileNotFoundError:
-        return (False, _('Terminal executable not found: {}').format(terminal_path))
-    except Exception as e:
-        return (False, _('Failed to launch terminal: {}').format(str(e)))
+    success, message = _launch_in_terminal(rendered, cwd, terminal_cmd)
+    if not success:
+        return (False, message)
 
     tool_name = tool_config.get('name', 'agent')
     if needs_clipboard_fallback:
         return (True, _('Launched {} in terminal. Prompt copied to clipboard — paste it there.').format(tool_name))
+    return (True, _('Launched {} in terminal.').format(tool_name))
+
+
+def run_headed_bare(tool_config, cwd, terminal_cmd=None):
+    '''裸启动：终端 + 工具 executable（无参数），进入交互 TUI。
+
+    供「快速打开 Agent 终端」使用：不预填 prompt，用户在 TUI 里自行输入。
+    所有内置 Agent CLI（opencode / claude / codex / gemini / aider）无参数
+    启动即进入交互模式。终端运行在 host 上，命令由 host shell 解析，
+    传裸名 executable 即可（与 run_headed 渲染模板传裸名一致）。
+
+    Args:
+        tool_config: dict，至少含 name / executable。
+        cwd: str，工作目录（通常为活动文档所在目录）。
+        terminal_cmd: 用户指定的终端命令（覆盖自动检测），可带参数。
+
+    Returns:
+        tuple (success:bool, message:str)。
+    '''
+    executable = tool_config.get('executable')
+    if not executable or _which_on_host(executable) is None:
+        tool_name = tool_config.get('name', executable or 'agent')
+        return (False, _('{tool} is not available on this system. '
+                          'Check the executable name in Preferences → AI Fix.').format(tool=tool_name))
+
+    success, message = _launch_in_terminal([executable], cwd, terminal_cmd)
+    if not success:
+        return (False, message)
+
+    tool_name = tool_config.get('name', 'agent')
     return (True, _('Launched {} in terminal.').format(tool_name))
 
 

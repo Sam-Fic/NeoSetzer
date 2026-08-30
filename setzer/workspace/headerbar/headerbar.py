@@ -21,6 +21,7 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import GLib
+from gi.repository import Adw
 
 import os.path
 
@@ -59,6 +60,9 @@ class HeaderBar(object):
         self.view.build_log_toggle.set_active(self.workspace.get_show_build_log())
         # 初始显隐根据 show_shortcuts_bar 设置决定。
         self.update_build_log_toggle_visibility()
+
+        # 「在终端中打开 Agent」按钮：裸启动 AI Fix 配置的 Agent CLI。
+        self.view.agent_terminal_button.connect('clicked', self.on_agent_terminal_clicked)
 
         # Compact 模式：窄窗（<700px breakpoint）时隐藏 save / help 按钮（有 Ctrl+S、
         # F1 兜底），缓解 headerbar 在 360px 下的按钮溢出。不能直接用
@@ -209,6 +213,9 @@ class HeaderBar(object):
         # 在 update_toggles 末尾统一收敛，避免在 welcome 模式或非 latex 文档时
         # 误显。
         self.update_build_log_toggle_visibility()
+        # 「在终端中打开 Agent」按钮的显隐同样收敛在此：有 root/active
+        # latex 文档时显示，welcome 模式 / 非 latex 文档时隐藏。
+        self.update_agent_terminal_button_visibility()
 
     def hide_sidebar_toggles(self):
         self.view.sidebar_toggle.set_visible(False)
@@ -322,3 +329,64 @@ class HeaderBar(object):
         show = self.workspace.settings.get_value('preferences', 'show_shortcuts_bar')
         has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
         self.view.build_log_toggle.set_visible((not show) and has_latex_doc)
+
+    def update_agent_terminal_button_visibility(self):
+        '''收敛「在终端中打开 Agent」按钮的显隐：有 root/active latex 文档
+        时显示，welcome 模式 / 非 latex 文档时隐藏（与 build_wrapper 内容
+        的出现条件一致）。'''
+        has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
+        self.view.agent_terminal_button.set_visible(has_latex_doc)
+
+    # ---- 快速打开 Agent 终端 ----
+
+    def on_agent_terminal_clicked(self, button):
+        '''「在终端中打开 Agent」按钮点击：裸启动 AI Fix 配置的 Agent CLI。
+
+        与 Build Log 的 AI Fix 流程（build_log_dialog_controller._initiate_ai_fix）
+        共用启用开关与工具配置，但不组词、不查信任目录（无 prompt 发送，
+        用户在 TUI 中自行输入并控制对话）、不保存文档。工作目录 = 活动
+        文档所在目录。
+        '''
+        settings = self.workspace.settings
+
+        # 1. 全局开关（与 AI Fix 共用）
+        if not settings.get_value('preferences', 'ai_fix_enabled'):
+            self._toast(_('AI Fix is disabled. Enable it in Preferences → AI Fix.'))
+            return
+
+        # 2. 取活动文档；未保存的新文档无目录可打开
+        document = self.workspace.get_active_document()
+        if document is None:
+            self._toast(_('No active document'))
+            return
+        cwd = document.get_dirname()
+        if not cwd:
+            self._toast(_('Please save the document first'))
+            return
+
+        # 3. 取激活工具配置（找不到时回退第一个，与 _initiate_ai_fix 一致）
+        active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
+        tools = settings.get_value('preferences', 'ai_fix_tools')
+        tool_config = next((t for t in tools if t.get('name') == active_tool_name), None)
+        if tool_config is None:
+            tool_config = tools[0] if tools else None
+            if tool_config is None:
+                self._toast(_('No agent tool configured. Add one in Preferences → AI Fix.'))
+                return
+
+        # 4. 裸启动：终端 + executable（无参数，进入交互 TUI）
+        from setzer.ai_fix import agent_runner
+        # 本地化钩子（agent_runner 模块文档声明）：让返回的提示消息走 gettext。
+        agent_runner._ = _
+        terminal_cmd = settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
+        success, msg = agent_runner.run_headed_bare(tool_config, cwd, terminal_cmd=terminal_cmd)
+        self._toast(msg)
+
+    def _toast(self, message):
+        '''主窗口 toast。本按钮不在任何弹窗内，始终用主窗口的 toast_overlay。'''
+        try:
+            main_window = ServiceLocator.get_main_window()
+            if main_window is not None and hasattr(main_window, 'toast_overlay'):
+                main_window.toast_overlay.add_toast(Adw.Toast.new(message))
+        except Exception:
+            pass  # toast 失败不影响主流程

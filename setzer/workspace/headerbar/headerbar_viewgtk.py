@@ -106,18 +106,31 @@ class HeaderBar(object):
         # build button wrapper (contains Build / stop / clean / timer)
         self.build_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
+        # 「在终端中打开 Agent」按钮：裸启动 AI Fix 配置的 Agent CLI（不预填
+        # prompt，用户自行输入），工作目录 = 活动 LaTeX 文档所在目录。
+        # 位于 build_wrapper 右侧、build_log_toggle 左侧。仅当有 root/active
+        # latex 文档时显示（update_toggles 收敛），初始隐藏。
+        self.agent_terminal_button = Gtk.Button()
+        self.agent_terminal_button.set_child(Gtk.Image(icon_name='utilities-terminal-symbolic'))
+        self.agent_terminal_button.set_tooltip_text(_('Open AI agent in terminal'))
+        self.agent_terminal_button.add_css_class('flat')
+        self.agent_terminal_button.set_can_focus(False)
+        self.agent_terminal_button.set_visible(False)
+
         # Pass-12: 预览/帮助按钮回到各自侧栏的内嵌工具栏（与左侧栏一致），
         # 标题栏不再持有 panel_buttons_stack。pack_end 顺序（从右到左）：
-        # menu → preview/help toggle → build_log → build。
+        # menu → preview/help toggle → build_log → agent_terminal → build。
         # 布局理由：build_wrapper 永远最左，作为整个右侧组靠近编辑器一侧的
-        # 锚点（视觉上与下方编辑器内容最近），build_log_toggle 紧贴其右
-        # 便于「build 出错看 build log、再点开 preview 看效果」的工作流，
+        # 锚点（视觉上与下方编辑器内容最近），agent_terminal_button 提供
+        # 「随时拉起 Agent 对话」的快速入口，build_log_toggle 便于
+        # 「build 出错看 build log、再点开 preview 看效果」的工作流，
         # preview_help_toggle 夹在汉堡菜单与 build_log 之间。
         # 这样 build_log_toggle 在快捷栏关闭/打开切换时,
         # 其左侧的 build_wrapper 位置不变,布局更稳定。
         self.widget.pack_end(self.menu_button)
         self.widget.pack_end(self.preview_help_toggle)
         self.widget.pack_end(self.build_log_toggle)
+        self.widget.pack_end(self.agent_terminal_button)
         self.widget.pack_end(self.build_wrapper)
 
         # title / open documents popover
