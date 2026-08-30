@@ -42,10 +42,9 @@ msgstr "已在终端中启动 {}。"
 
 #: setzer/ai_fix/agent_runner.py:415
 #, python-brace-format
-msgid ""
-"{tool} is not available on this system. Check the executable name in "
-"Preferences → AI Fix."
-msgstr "{tool} 在此系统上不可用。请在首选项 → AI Fix 中检查可执行文件名。"
+msgid "{tool} is not available on this system. Check the executable name in "
+"Preferences → General → AI Settings."
+msgstr "{tool} 在此系统上不可用。请在首选项 → 常规 → AI 设置中检查可执行文件名。"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:115
 msgid "Open AI agent in terminal"
@@ -119,11 +118,12 @@ msgstr "编辑"
 msgid "Don't ask again for this project"
 msgstr "此项目不再询问"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:111
+#: setzer/ai_fix/preview_dialog_viewgtk.py:112
 msgid ""
 "Skip this preview dialog for the current document's directory in the future. "
-"You can revoke this in Preferences → AI Fix → Trusted directories."
-msgstr "首选项"
+"You can revoke this in Preferences → General → AI Settings → Trusted directories."
+msgstr ""
+"今后跳过当前文档目录的此预览对话框。可在首选项 → 常规 → AI 设置 → 信任目录中撤销。"
 
 #: setzer/app/exception_handler.py:50
 msgid "Close"
@@ -1312,8 +1312,9 @@ msgid "No visible log items to send"
 msgstr "没有可显示的编译日志项。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:416
-msgid "AI Fix is disabled. Enable it in Preferences → AI Fix."
-msgstr "首选项"
+#: setzer/workspace/headerbar/headerbar.py:354
+msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
+msgstr "AI 代理已禁用。请在首选项 → 常规 → AI 设置中启用。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:422
 msgid "No active document"
@@ -1325,8 +1326,9 @@ msgid "Please save the document first"
 msgstr "创建新文档"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:438
-msgid "No agent tool configured. Add one in Preferences → AI Fix."
-msgstr "未配置代理工具"
+#: setzer/workspace/headerbar/headerbar.py:374
+msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
+msgstr "未配置 Agent 工具。请在首选项 → 常规 → AI 设置中添加。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:487
 msgid "Added to trusted directories"
@@ -4292,13 +4294,12 @@ msgstr "偏好"
 msgid "Reset to Defaults"
 msgstr "恢复为默认值"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:173
+#: setzer/dialogs/preferences/pages/page_appearance.py:552
 msgid ""
-"All build system and AI Fix settings will be restored to their default "
-"values. Custom tools and trusted directories will be removed."
+"All AI agent settings will be restored to their default values. Custom tools "
+"and trusted directories will be removed."
 msgstr ""
-"构建系统与 AI Fix 的所有设置都将恢复为默认值。自定义工具与受信任目录将被移"
-"除。"
+"所有 AI 代理设置都将恢复为默认值。自定义工具与受信任目录将被移除。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
 msgid "(active)"
@@ -4502,31 +4503,31 @@ msgstr "TEXMFHOME 目录"
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr "前导“~”会展开为您的主目录。例如：~/.texmf"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:647
-msgid "AI Fix"
-msgstr "AI 修复"
+#: setzer/dialogs/preferences/pages/page_appearance.py:749
+msgid "AI Settings"
+msgstr "AI 设置"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:651
-msgid "Enable AI Fix"
-msgstr "启用 AI 修复"
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
+msgid "Enable AI agent"
+msgstr "启用 AI 代理"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:652
-msgid "Show \"AI Fix\" buttons in the Build Log dialog"
-msgstr "在构建日志对话框中显示“AI 修复”按钮"
+#: setzer/dialogs/preferences/pages/page_appearance.py:754
+msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
+msgstr "启用构建日志对话框中的 AI 修复按钮和标题栏中的 Agent 终端按钮"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:656
+#: setzer/dialogs/preferences/pages/page_appearance.py:758
 msgid "Active agent tool"
 msgstr "当前 Agent 工具"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:657
-msgid "Which CLI to invoke when clicking AI Fix"
-msgstr "点击 AI 修复按钮时调用的 CLI"
+#: setzer/dialogs/preferences/pages/page_appearance.py:759
+msgid "Which CLI to invoke for AI features"
+msgstr "AI 功能调用的 CLI"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:661
+#: setzer/dialogs/preferences/pages/page_appearance.py:763
 msgid "Terminal command (optional)"
 msgstr "终端命令（可选）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:663
+#: setzer/dialogs/preferences/pages/page_appearance.py:765
 msgid ""
 "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under "
 "Flatpak, flatpak-spawn --host is added automatically."

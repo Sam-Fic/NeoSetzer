@@ -109,7 +109,7 @@ class PreviewDialogView(DialogView):
         self.dont_ask_switch = Adw.SwitchRow(
             title=_('Don\'t ask again for this project'),
             subtitle=_('Skip this preview dialog for the current document\'s directory in the future. '
-                       'You can revoke this in Preferences → AI Fix → Trusted directories.'))
+                       'You can revoke this in Preferences → General → AI Settings → Trusted directories.'))
         dont_ask_group.add(self.dont_ask_switch)
         content_box.append(dont_ask_group)
 

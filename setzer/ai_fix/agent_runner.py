@@ -413,7 +413,7 @@ def run_headed_bare(tool_config, cwd, terminal_cmd=None):
     if not executable or _which_on_host(executable) is None:
         tool_name = tool_config.get('name', executable or 'agent')
         return (False, _('{tool} is not available on this system. '
-                          'Check the executable name in Preferences → AI Fix.').format(tool=tool_name))
+                          'Check the executable name in Preferences → General → AI Settings.').format(tool=tool_name))
 
     success, message = _launch_in_terminal([executable], cwd, terminal_cmd)
     if not success:

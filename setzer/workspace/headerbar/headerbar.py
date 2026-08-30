@@ -351,7 +351,7 @@ class HeaderBar(object):
 
         # 1. 全局开关（与 AI Fix 共用）
         if not settings.get_value('preferences', 'ai_fix_enabled'):
-            self._toast(_('AI Fix is disabled. Enable it in Preferences → AI Fix.'))
+            self._toast(_('AI agent is disabled. Enable it in Preferences → General → AI Settings.'))
             return
 
         # 2. 取活动文档；未保存的新文档无目录可打开
@@ -371,7 +371,7 @@ class HeaderBar(object):
         if tool_config is None:
             tool_config = tools[0] if tools else None
             if tool_config is None:
-                self._toast(_('No agent tool configured. Add one in Preferences → AI Fix.'))
+                self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
                 return
 
         # 4. 裸启动：终端 + executable（无参数，进入交互 TUI）

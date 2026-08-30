@@ -413,7 +413,7 @@ class BuildLogDialogController(object):
 
         # 1. 全局开关
         if not settings.get_value('preferences', 'ai_fix_enabled'):
-            self._toast(_('AI Fix is disabled. Enable it in Preferences → AI Fix.'))
+            self._toast(_('AI agent is disabled. Enable it in Preferences → General → AI Settings.'))
             return
 
         # 2. 取活动文档
@@ -435,7 +435,7 @@ class BuildLogDialogController(object):
             # 配置异常：回退第一个工具
             tool_config = tools[0] if tools else None
             if tool_config is None:
-                self._toast(_('No agent tool configured. Add one in Preferences → AI Fix.'))
+                self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
                 return
 
         # 4. 组装 prompt
