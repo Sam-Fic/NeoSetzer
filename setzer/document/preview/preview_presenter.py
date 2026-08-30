@@ -65,6 +65,13 @@ class PreviewPresenter(object):
         self.view.set_external_pdf_reload_handler(self.on_external_pdf_reload_requested)
         self.page_renderer.connect('rendered_pages_changed', self.on_rendered_pages_changed)
 
+        # 滚动不重绘优化（ScrollingWidget 不在偏移变化时 queue_draw，GSK 仅平移
+        # 纹理）的正确性保障：快照只含最近一次 draw 画过的页，滚动使视口超出
+        # 该覆盖范围时必须补一次重绘，否则滚入「已缓存但未画进快照」的区域会
+        # 显示空白，只能靠鼠标移动等无关事件碰巧触发重绘才恢复。
+        self._drawn_page_range = None
+        self.view.content.connect('scrolling_offset_changed', self.on_scrolling_offset_change)
+
         # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
         # view 的画布 overlay 里），点击 → 滚动到该页顶部。
         self.view.set_page_indicator_click_handler(self._on_page_indicator_clicked)
@@ -151,6 +158,31 @@ class PreviewPresenter(object):
 
     def on_rendered_pages_changed(self, page_renderer):
         self.view.drawing_area.queue_draw()
+
+    def on_scrolling_offset_change(self, *arguments):
+        '''滚动偏移变化：检查视口是否滚出了最近一次 draw 的覆盖范围。
+
+        滚动本身不 queue_draw（GSK 平移快照纹理），快照里只有上次 draw 画过
+        的页（视口 + 上下各一个视口的超扫）。视口滚出覆盖范围时补一次重绘，
+        否则滚入「纹理已缓存但未画进快照」的区域会显示空白——此前只能靠
+        鼠标移动等无关事件碰巧 queue_draw 才恢复。
+        layout 重建路径自带 queue_draw（on_layout_changed），这里只处理纯滚动；
+        layout 身份变化 / 尚无覆盖记录时直接跳过。'''
+        drawn = self._drawn_page_range
+        layout = self.preview.layout
+        if drawn is None or layout is None or drawn[2] is not layout:
+            return
+        poppler_document = self.preview.poppler_document
+        if poppler_document is None:
+            return
+        n_pages = poppler_document.get_n_pages()
+        if n_pages == 0:
+            return
+        content = self.view.content
+        first_page = max(0, layout.get_page_by_offset(content.scrolling_offset_y) - 1)
+        last_page = min(layout.get_page_by_offset(content.scrolling_offset_y + content.height) - 1, n_pages - 1)
+        if first_page < drawn[0] or last_page > drawn[1]:
+            self.view.drawing_area.queue_draw()
 
     def show_blank_slate(self):
         if self._last_build_result == 'error':
@@ -240,10 +272,16 @@ class PreviewPresenter(object):
         visible_height = self.view.content.adjustment_y.get_page_size()
         margin = layout.get_horizontal_margin(visible_width)
         scrolling_offset_y = self.view.content.scrolling_offset_y
+        # 超扫（overscan）：除视口内页外，上下各多画一个视口高的页。滚动时
+        # drawing area 不重绘（GSK 只平移上次快照），视口平移到的区域必须已在
+        # 快照中画好；只画视口页的话，滚入「纹理已缓存但未画进快照」的区域
+        # 会连页面底色都没有、一片空白。超扫一个视口保证连续滚动中最多每滚过
+        # 一个视口高才需要一次重绘（由 on_scrolling_offset_change 触发）。
+        overscan = visible_height
         # per-page：直接用 layout.get_page_by_offset 找首页 0-based。
-        first_page = max(0, layout.get_page_by_offset(scrolling_offset_y) - 1)
-        # 末页：找"视口底"所在的页（clamp 到 n-1）。
-        last_offset = scrolling_offset_y + visible_height
+        first_page = max(0, layout.get_page_by_offset(max(scrolling_offset_y - overscan, 0)) - 1)
+        # 末页：找"视口底 + 超扫"所在的页（clamp 到 n-1）。
+        last_offset = scrolling_offset_y + visible_height + overscan
         n_pages = self.preview.poppler_document.get_n_pages()
         last_page = min(layout.get_page_by_offset(last_offset) - 1, n_pages - 1)
         if last_page < first_page:
@@ -253,6 +291,9 @@ class PreviewPresenter(object):
         first_page_top = layout.get_page_top(first_page)
         if first_page_top is None:
             return
+        # 记录本次绘制覆盖的页范围（连带 layout 身份）：滚动偏移变化时据此
+        # 判断视口是否滚出覆盖区、需要补重绘。
+        self._drawn_page_range = (first_page, last_page, layout)
         base_matrix = ctx.get_matrix()
         ctx.transform(cairo.Matrix(1, 0, 0, 1, margin, first_page_top))
 
@@ -353,14 +394,21 @@ class PreviewPresenter(object):
         page_height_css = rendered_page_data[2]
         device_w = page_width_css * layout.hidpi_factor
         device_h = page_height_css * layout.hidpi_factor
+        surface_w = surface.get_width()
+        surface_h = surface.get_height()
 
         # The context is already rotated (if needed), so we draw the un-rotated
         # page texture at its natural CSS size: scale the device-px surface down
         # to CSS px and fill the page rectangle.
+        # 全分辨率纹理的 surface 恰为页面设备像素尺寸，缩放因子退化为
+        # 1/hidpi（与原实现一致）；低分辨率 draft 纹理（快速滚动兜底产出）
+        # 按比例放大铺满同一页面矩形——内容先可见、略软，随后被全分辨率
+        # 精修结果替换。
         matrix = ctx.get_matrix()
-        ctx.scale(1.0 / layout.hidpi_factor, 1.0 / layout.hidpi_factor)
+        ctx.scale(device_w / (surface_w * layout.hidpi_factor),
+                  device_h / (surface_h * layout.hidpi_factor))
         ctx.set_source_surface(surface, 0, 0)
-        ctx.rectangle(0, 0, device_w, device_h)
+        ctx.rectangle(0, 0, surface_w, surface_h)
         ctx.fill()
         ctx.set_matrix(matrix)
 

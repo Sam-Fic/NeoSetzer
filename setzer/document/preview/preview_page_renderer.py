@@ -93,12 +93,16 @@ class PreviewPageRenderer(Observable):
         if self.preview.layout != None:
             self.update_rendered_pages()
         else:
-            self.rendered_pages = dict()
             # layout 为 None 通常意味着 PDF 切换（preview.load_pdf 置 layout=None
-            # 并发 layout_changed）。清空 page_render_count，避免旧 PDF 的高页号
-            # 条目残留（perf-12 问题 3）：若新 PDF 页数少于旧 PDF，多出的高页号
-            # 渲染计数会永久残留，且 render_page_loop 可能 KeyError（todo 入队
-            # 后 poppler_document 被替换，render_count 字典中已无该页号）。
+            # 并发 layout_changed）。清空 page_render_count，使队列中所有积压
+            # todo 失效（perf-12 问题 3：旧 PDF 高页号条目残留会导致
+            # render_page_loop KeyError）。
+            # rendered_pages 不再整体清空：几何一致的旧版本纹理继续作占位显示
+            # （见 update_rendered_pages 的驱逐策略），新版本渲染结果到达后逐页
+            # 替换，构建成功后预览不再整屏白底等重绘。poppler 文档已不存在时
+            # （无 PDF 可回退）内容不会再被绘制，直接清空。
+            if self.preview.poppler_document is None:
+                self.rendered_pages = dict()
             with self.page_render_count_lock:
                 self.page_render_count = dict()
 
@@ -207,17 +211,21 @@ class PreviewPageRenderer(Observable):
                 is_active = self.is_active
             todo = None
             if is_active:
-                # 阻塞式 get + 50ms timeout 替代原「非阻塞 get + time.sleep(0.05)」：
-                # 原实现在队列空时每 50ms 轮询一次，高优先级渲染任务入队后最多
-                # 等 50ms 才被取走；改用阻塞 get 后任务入队即唤醒线程，延迟趋近 0。
-                # timeout=0.05 保证 is_active 变 False 时能在 50ms 内检测到并退出。
-                # shutdown 时投递哨兵 None 唤醒阻塞 get，让线程即时退出而非
-                # 等满 50ms。
-                try: todo = self.render_queue.get(block=True, timeout=0.05)
+                # 取任务顺序：高优先级非阻塞 → 低优先级非阻塞 → 高优先级阻塞
+                # 等待（50ms timeout）。高优先级永远优先；仅当两级队列都空时
+                # 才阻塞等待新任务——任务入队即唤醒线程，延迟趋近 0。若高队列
+                # 空而低队列有活（如滚动停滞后精修低分辨率占位），处理完当前
+                # 任务后立即取走，不再有旧实现「高队列 get 等满 50ms 才看低
+                # 队列」的停顿。timeout=0.05 保证 is_active 变 False 时能在
+                # 50ms 内检测到并退出。shutdown 时投递哨兵 None 唤醒阻塞 get，
+                # 让线程即时退出而非等满 50ms。
+                try: todo = self.render_queue.get(block=False)
                 except queue.Empty:
                     try: todo = self.render_queue_low_priority.get(block=False)
                     except queue.Empty:
-                        todo = None
+                        try: todo = self.render_queue.get(block=True, timeout=0.05)
+                        except queue.Empty:
+                            todo = None
             else:
                 time.sleep(0.05)
             # 哨兵 None（shutdown 投递）或 deactivate 期间积压的 None：跳过。
@@ -237,29 +245,59 @@ class PreviewPageRenderer(Observable):
             with self.visible_pages_lock:
                 is_visible = (todo['page_number'] >= self.visible_pages_additional[0] and todo['page_number'] <= self.visible_pages_additional[1])
             if todo['render_count'] == render_count and is_visible:
-                colors = todo['matching_theme_colors']
-                width = todo['page_width'] * todo['hidpi_factor']
-                height = todo['page_height'] * todo['hidpi_factor']
-                surface = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
-                ctx = cairo.Context(surface)
+                try:
+                    # 与主线程 load_pdf 的竞态：通过有效性检查后文档仍可能被
+                    # 替换（新文档页数更少时 get_page 返回 None）。线程异常不
+                    # 会冒泡到主线程，且渲染线程崩溃后没有任何重启路径——预览
+                    # 将永久空白，因此这里兜底吞掉并继续。
+                    doc = self.preview.poppler_document
+                    if doc is None:
+                        continue
+                    page = doc.get_page(todo['page_number'])
+                    if page is None:
+                        continue
+                    colors = todo['matching_theme_colors']
+                    # draft 任务（快速滚动兜底）以 1/4 分辨率渲染：像素量约
+                    # 1/16，产出快约一个数量级——滚动停不下来的页面先显示
+                    # 略软的图像，滚动停滞后由全分辨率任务精修替换（见
+                    # update_rendered_pages 的入队策略）。绘制端
+                    # （draw_rendered_page）按 surface 实际尺寸缩放到页面矩形。
+                    divisor = 4 if todo.get('draft', False) else 1
+                    width = max(1, int(todo['page_width'] * todo['hidpi_factor'] / divisor))
+                    height = max(1, int(todo['page_height'] * todo['hidpi_factor'] / divisor))
+                    surface = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
+                    ctx = cairo.Context(surface)
 
-                ctx.set_source_rgba(1, 1, 1, 1)
-                ctx.rectangle(0, 0, width, height)
-                ctx.fill()
+                    ctx.set_source_rgba(1, 1, 1, 1)
+                    ctx.rectangle(0, 0, width, height)
+                    ctx.fill()
 
-                ctx.scale(todo['scale_factor'] * todo['hidpi_factor'], todo['scale_factor'] * todo['hidpi_factor'])
-                page = self.preview.poppler_document.get_page(todo['page_number'])
-                page.render(ctx)
+                    ctx.scale(todo['scale_factor'] * todo['hidpi_factor'] / divisor, todo['scale_factor'] * todo['hidpi_factor'] / divisor)
+                    page.render(ctx)
 
-                if colors != None:
-                    # 直接从 cairo surface 取数据到 numpy 做 alpha 提取 +
-                    # Operator.IN 着色。原实现 4 次内存拷贝（12MB/页），现
-                    # 2 次（np.frombuffer + .copy() → bytearray）。正确性：
-                    # FORMAT_ARGB32 小端字节序为 BGRA，alpha 公式沿用原实现
-                    # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
-                    surface = self._apply_theme_recolor(surface, colors)
+                    if colors != None:
+                        # 直接从 cairo surface 取数据到 numpy 做 alpha 提取 +
+                        # Operator.IN 着色。原实现 4 次内存拷贝（12MB/页），现
+                        # 2 次（np.frombuffer + .copy() → bytearray）。正确性：
+                        # FORMAT_ARGB32 小端字节序为 BGRA，alpha 公式沿用原实现
+                        # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
+                        surface = self._apply_theme_recolor(surface, colors)
 
-                self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
+                    self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
+                    # 结果产出后立即唤醒主循环安装（g_idle_add 线程安全），
+                    # 不等 50ms 轮询定时器——draft 兜底的低延迟全靠这一步。
+                    GObject.idle_add(self._wake_rendered_pages_loop)
+                except Exception:
+                    continue
+
+    def _wake_rendered_pages_loop(self):
+        '''渲染线程产出结果后的主线程唤醒回调：立即消费结果队列。
+
+        一次性回调：返回 False 自毁；50ms 轮询定时器仍保留作兜底。'''
+        if self._shutting_down:
+            return False
+        self.rendered_pages_loop()
+        return False
 
     def _apply_theme_recolor(self, surface, colors):
         '''对 ARGB32 surface 做「深色化」处理并返回新 surface。
@@ -386,11 +424,16 @@ class PreviewPageRenderer(Observable):
             is_active = self.is_active
         if not is_active: return True
 
+        # 渲染完成的结果可能已属于旧文档版本（渲染期间发生了构建/重载）：
+        # 丢弃，由新版本任务重新渲染，避免把过期内容写回缓存盖住占位纹理。
+        current_version = self.preview.pdf_version
         changed = False
         while self.rendered_pages_queue.empty() == False:
             try: todo = self.rendered_pages_queue.get(block=False)
             except queue.Empty: pass
             else:
+                if todo['item'][3] != current_version:
+                    continue
                 try:
                     del(self.rendered_pages[todo['page_number']])
                 except KeyError: pass
@@ -453,7 +496,11 @@ class PreviewPageRenderer(Observable):
             else:
                 colors_changed = False
 
-            if page_data[3] != pdf_version or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
+            # 版本不匹配不驱逐：几何一致的旧版本纹理（上次构建的渲染结果）
+            # 继续画在界面上作占位，新版本任务（见下方入队条件）渲染完成后
+            # 逐页替换——构建成功后预览保持显示旧内容而不是整屏白底。
+            # 几何（宽/高）或配色变化、滚出缓存区间的条目仍立即驱逐。
+            if page_data[1] != page_width or page_data[2] != page_height or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
                 del(self.rendered_pages[page_number])
                 changed = True
         if changed:
@@ -480,14 +527,40 @@ class PreviewPageRenderer(Observable):
         rendered_pages = self.rendered_pages
         page_render_count = self.page_render_count
         vp_lo, vp_hi = visible_pages[0], visible_pages[1]
+        # 全分辨率纹理的设备像素宽，用于识别低分辨率 draft 占位。
+        full_device_width = page_width * hidpi_factor
         for page_number in range(lo, hi + 1):
             page_data = rendered_pages.get(page_number)
-            if page_data is None or page_data[1] != page_width or page_data[3] != pdf_version:
+            # 版本不匹配的占位条目（旧 PDF 纹理）同样触发重绘：保留显示但
+            # 必须排队产出新版本结果来替换。低分辨率 draft 占位（快速滚动
+            # 时产出）内容已对但偏软，也要排队做全分辨率精修。
+            needs_render = page_data is None or page_data[1] != page_width or page_data[2] != page_height or page_data[3] != pdf_version
+            if not needs_render and page_data[0].get_width() < full_device_width:
+                needs_render = True
+            if needs_render:
                 with self.page_render_count_lock:
                     try:
                         page_render_count[page_number] += 1
                     except KeyError:
                         page_render_count[page_number] = 1
+
+                    # 视口内完全没有纹理的页：先入队一个低分辨率 draft 任务
+                    # （高优先级，排在同页全分辨率任务之前）。快速滚动滚入未
+                    # 缓存页面时，全分辨率渲染要几十毫秒一页，期间页面纯白；
+                    # draft 约 1/16 像素量，能抢先把「略软但有内容」的图像送
+                    # 上屏幕，滚动停滞后全分辨率精修替换。
+                    if page_data is None and page_number >= vp_lo and page_number <= vp_hi:
+                        draft_task = dict()
+                        draft_task['page_number'] = page_number
+                        draft_task['render_count'] = page_render_count[page_number]
+                        draft_task['scale_factor'] = scale_factor
+                        draft_task['hidpi_factor'] = hidpi_factor
+                        draft_task['page_width'] = page_width
+                        draft_task['page_height'] = page_height
+                        draft_task['pdf_version'] = pdf_version
+                        draft_task['matching_theme_colors'] = colors
+                        draft_task['draft'] = True
+                        render_queue.put(draft_task)
 
                     render_task = dict()
                     render_task['page_number'] = page_number
@@ -500,6 +573,13 @@ class PreviewPageRenderer(Observable):
                     render_task['matching_theme_colors'] = colors
 
                     if page_number >= vp_lo and page_number <= vp_hi:
-                        render_queue.put(render_task)
+                        # 视口内、完全没有纹理的页：快速兜底已由 draft 任务
+                        # 承担，全分辨率走低优先级——快速滚动中不与其他页的
+                        # draft 抢渲染线程，滚动停下后自动精修。其余（占位
+                        # 替换、精修）仍按原行为高优先级。
+                        if page_data is None:
+                            render_queue_low_priority.put(render_task)
+                        else:
+                            render_queue.put(render_task)
                     else:
                         render_queue_low_priority.put(render_task)
