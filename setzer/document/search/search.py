@@ -218,10 +218,11 @@ class Search(Observable):
         
     def on_replace_button_click(self, button_object=None):
         replacement = self.view.replace_entry.get_text()
-        bounds = self.search_context.get_buffer().get_selection_bounds()
-        if len(bounds) == 2:
-            matched_text = bounds[0].get_text(bounds[1])
-            self.search_context.replace(*bounds, self._apply_preserve_case(matched_text, replacement), -1)
+        current = self._current_match()
+        if current is not None:
+            start, end = current
+            matched_text = start.get_text(end)
+            self.search_context.replace(start, end, self._apply_preserve_case(matched_text, replacement), -1)
             self._add_replace_history(replacement)
             self.on_search_next_match()
 
@@ -532,23 +533,55 @@ class Search(Observable):
             search_view.entry.remove_css_class('error')
             search_view.replace_all_button.set_sensitive(False)
 
+    def _current_match(self):
+        '''返回「当前匹配」的 (start, end) iter 对，无则返回 None。
+
+        「当前匹配」定义（与 gedit 一致）：
+        1. 选区恰好是一个匹配 → 该匹配（输入搜索词/导航后的常规状态）；
+        2. 光标折叠且落在某个高亮匹配的内部或边缘 → 该匹配（用户点击过
+           文档后选区塌缩的状态）。
+
+        探测语义（GtkSource.SearchContext）：forward(iter) 返回起始 ≥ iter
+        的第一个匹配，backward(iter) 返回结束 ≤ iter 的最后一个匹配——二者
+        都会跳过「包含 iter」的匹配，故内部命中需两步探测：backward 取上一
+        匹配 P，再 forward(P 末尾) 取其后第一个匹配，检查它是否覆盖光标
+        （匹配不重叠时该匹配即包含光标的那一个；backward 无结果时从 buffer
+        起点探测首个匹配）。
+        '''
+        buffer = self.document.source_buffer
+        if buffer.get_has_selection():
+            start, end = buffer.get_selection_bounds()
+            result = self.search_context.forward(start)
+            if (result[0] and result[1].get_offset() == start.get_offset()
+                    and result[2].get_offset() == end.get_offset()):
+                return (result[1], result[2])
+            return None
+
+        cursor = buffer.get_iter_at_mark(buffer.get_insert())
+        offset = cursor.get_offset()
+        # 光标恰在匹配起始：forward 直接命中
+        result = self.search_context.forward(cursor)
+        if result[0] and result[1].get_offset() == offset:
+            return (result[1], result[2])
+        # 光标恰在匹配末尾：backward 直接命中
+        result = self.search_context.backward(cursor)
+        if result[0] and result[2].get_offset() == offset:
+            return (result[1], result[2])
+        # 光标在匹配内部：从上一匹配末尾（或 buffer 起点）forward 探测覆盖光标的匹配
+        if result[0]:
+            probe_iter = result[2]
+        else:
+            probe_iter = buffer.get_start_iter()
+        result = self.search_context.forward(probe_iter)
+        if result[0] and result[1].get_offset() <= offset <= result[2].get_offset():
+            return (result[1], result[2])
+        return None
+
     def update_replace_button(self):
-        search_text = self.view.entry.get_text()
-        if not search_text:
+        if not self.view.entry.get_text():
             self.view.replace_button.set_sensitive(False)
             return
-        buffer = self.document.source_buffer
-        cursor = buffer.get_iter_at_mark(buffer.get_insert())
-        # forward/backward 返回 (found, start, end, has_wrapped) 四元组。
-        result = self.search_context.forward(cursor)
-        if result[0] and result[1].get_offset() <= cursor.get_offset() <= result[2].get_offset():
-            self.view.replace_button.set_sensitive(True)
-        else:
-            result = self.search_context.backward(cursor)
-            if result[0] and result[1].get_offset() <= cursor.get_offset() <= result[2].get_offset():
-                self.view.replace_button.set_sensitive(True)
-            else:
-                self.view.replace_button.set_sensitive(False)
+        self.view.replace_button.set_sensitive(self._current_match() is not None)
 
     def on_search_stop(self, entry=None):
         self.hide_search_bar()
