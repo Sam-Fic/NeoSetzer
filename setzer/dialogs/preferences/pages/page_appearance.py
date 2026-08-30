@@ -77,6 +77,10 @@ class PageGeneral(object):
         self._tool_names = []
         self._tool_rows = []
         self._trusted_rows = []
+        # 重建工具下拉框期间抑制 on_tool_selected 写回：
+        # Adw.ComboRow.set_model 会同步自动选中第 0 项并触发 notify::selected，
+        # 不加守卫会把用户已保存的 active tool 冲掉为列表第 1 项。
+        self._rebuilding_combo = False
 
     def init(self):
         # theme mode
@@ -383,21 +387,34 @@ class PageGeneral(object):
         self.settings.set_value('preferences', 'ai_fix_tools', tools)
 
     def _rebuild_tool_combo(self):
-        '''同步「当前工具」下拉框选项与当前选中项。'''
+        '''同步「当前工具」下拉框选项与当前选中项。
+
+        必须在 set_model 之前先读出 active：set_model 会同步自动选中第 0 项
+        并触发 on_tool_selected，若先 set_model 再读会把 active_tool 冲成
+        第 1 项（重启后用户选择丢失的根因）。重建期间用 _rebuilding_combo
+        守卫抑制写回。
+        '''
         tools = self._get_tools()
         self._tool_names = [t.get('name', '?') for t in tools]
-        model = Gtk.StringList()
-        for name in self._tool_names:
-            model.append(name)
-        self.view.option_tool.set_model(model)
         active = self.settings.get_value('preferences', 'ai_fix_active_tool')
         try:
-            self.view.option_tool.set_selected(self._tool_names.index(active))
+            active_index = self._tool_names.index(active)
         except ValueError:
+            active_index = 0 if self._tool_names else Gtk.INVALID_LIST_POSITION
+
+        self._rebuilding_combo = True
+        try:
+            model = Gtk.StringList()
+            for name in self._tool_names:
+                model.append(name)
+            self.view.option_tool.set_model(model)
+            if active_index != Gtk.INVALID_LIST_POSITION:
+                self.view.option_tool.set_selected(active_index)
             # 当前激活工具不在列表里（如被删除）→ 回退第一个
-            if self._tool_names:
-                self.view.option_tool.set_selected(0)
+            if active not in self._tool_names and self._tool_names:
                 self.settings.set_value('preferences', 'ai_fix_active_tool', self._tool_names[0])
+        finally:
+            self._rebuilding_combo = False
 
     def _rebuild_tools_list(self):
         '''清空并重建工具列表 group。
@@ -495,6 +512,8 @@ class PageGeneral(object):
             w.set_sensitive(enabled)
 
     def on_tool_selected(self, combo, pspec):
+        if self._rebuilding_combo:
+            return  # set_model 自动选中第 0 项等程序性变更，不写回设置
         selected = combo.get_selected()
         if selected == Gtk.INVALID_LIST_POSITION or selected >= len(self._tool_names):
             return
