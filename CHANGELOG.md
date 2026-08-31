@@ -1,5 +1,33 @@
 # Changelog
 
+## v81 — 2026-08-31
+
+### 主要改进
+
+- **预览面板文字选择与放大镜工具栏**：预览画布新增文字拖选高亮（光标变 I-beam，拖选自动归整到 glyph 边界，复用 GTK 文本复制流程），并在画布浮层基于浮点字形框精修消除与文字的错位；工具栏新增放大镜开关（Gtk.Fixed 定位修复画布 margin 溢出，画布侧支持打开后跟随真实 PDF、编译期间保持显示上一次编译结果）。预览渲染管线同步引入 draft 低分辨率兜底：单个耗时 > 200 ms 或有更高优先级构建在飞时自动降级到 draft，单帧端到端耗时 ~1650 ms → ~120 ms。
+
+- **多光标编辑转正与列选拖动体验收紧**：多光标编辑从实验性开关移除，改用分级门控（列选拖动阈值收紧、补齐 drag-end 抖动点击兜底，回归测试覆盖取消/拖出窗口/未触发修饰键三条边界），并修复多光标模式下的快捷键与交互残留问题。
+
+- **AI 设置整合与「在终端中打开 Agent」快速入口**：AI 相关设置从独立页迁移到 General 页并更名为 AI Settings（含重排各页设置分组顺序、修复重置取消路径 NameError、阻止 ComboRow 重建冲掉用户保存的 active agent tool）。主窗口标题栏新增「在终端中打开 Agent」快速入口（裸启动 AI Fix 配置的 Agent CLI，不预填 prompt，工作目录 = 活动 LaTeX 文档所在目录），welcome 模式下隐藏避免空文档误操作。
+
+- **Git 集成：行级 diff 标记与侧栏面板（#216 #443）**：编辑器 gutter 实时显示当前文件的增删行标记，Git 侧栏面板提供仓库状态浏览，配合已有的提交流程形成完整回路；偏好页 Git 面板 subtitle 裸 `&` 改为 Pango 实体 `&amp;`，翻译文件同步更新（git 信任对话框 msgstr 结尾换行对齐）。
+
+- **标签页 / 工作区关闭协议回归与编辑器稳定性收尾**：关闭协议增加视图成员检测与 TabView `page_belongs_to_this_view` 契约修复，幽灵标签页与 `Adwaita-CRITICAL` 警告消除；未保存标签页的 Cancel/Esc 不会再误关；标题栏预览按钮跟随面板真实状态；旧 worker 被新构建取代后不再继续执行残留任务；搜索 Replace 按钮判定统一由 `_current_match` 提供并适配 `GtkSource` SearchContext 四元组返回值；预览期间避免文字选择高亮与文字错位。
+
+### Improvements
+
+- **feat**: Preview canvas gains native text selection (I-beam cursor, drag-to-select snapped to glyph rectangles, GTK copy on highlight) and the canvas overlay is repositioned via `Gtk.Fixed` to stop margin overflow. The preview toolbar now has a magnifier toggle; the canvas keeps showing the previous build while a new compile is running. The render pipeline adds a draft low-resolution fallback — frames slower than 200 ms or with a higher-priority build in flight automatically downgrade to draft, taking end-to-end per-frame from ~1650 ms down to ~120 ms.
+
+- **feat/refactor**: Multi-cursor editing is promoted out of the experimental gate into a tiered-gating default. The column-select drag threshold is tightened, a drag-end jitter-click fallback is added, and regression coverage now includes cancel / drag-out-of-window / missing-modifier edge cases. Latent shortcut and interaction glitches in multi-cursor mode are fixed.
+
+- **feat/refactor/fix**: AI settings move from a dedicated page into General under the new name "AI Settings"; preference group order is rebalanced across all pages, the reset-cancel `NameError` is fixed, and `ComboRow` rebuilds no longer wipe the user's saved active agent tool. A new "Open AI agent in terminal" entry appears in the main headerbar (bare-launch of the AI-Fix-configured agent CLI with no pre-filled prompt, working directory = active LaTeX document), and is hidden on the welcome page so an empty document can't trigger it.
+
+- **feat/fix/i18n**: Git integration adds per-line diff markers in the editor gutter and a sidebar repository panel, completing the loop with the existing commit flow alongside #216 / #443. The Git preferences panel's subtitle now escapes a bare `&` as Pango entity `&amp;`; the trust-dialog msgstr trailing newlines are aligned, and translation files are refreshed.
+
+- **fix**: The tab-close protocol grows view-membership detection plus the `page_belongs_to_this_view` TabView contract fix, killing ghost tabs and the `Adwaita-CRITICAL` warnings. Cancel/Esc on unsaved tabs no longer accidentally dismisses them; the headerbar preview button now follows the panel's real state; superseded build workers stop running leftover tasks. The search Replace button is sourced from `_current_match` and adapted to `GtkSource`'s 4-tuple `SearchContext` return; text-selection overlays in the preview no longer drift off the glyphs.
+
+---
+
 ## v80 — 2026-08-27
 
 ### 主要改进
