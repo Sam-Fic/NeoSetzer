@@ -29,7 +29,7 @@ DocumentView 在 Gtk.Stack 中切换时，对应文档的状态栏自然可见�
 
 import setzer.document.statusbar.statusbar_viewgtk as statusbar_view
 from setzer.settings.document_settings import DocumentSettings
-from setzer.app.font_manager import FontManager
+from setzer.app.ui_zoom import UIZoomManager
 
 
 # 语言显示名映射：document.language ('latex'/'bibtex') → 展示名
@@ -127,14 +127,14 @@ class StatusBar(object):
         self.view.encoding_label.set_text(display_name)
 
     def update_zoom_field(self):
-        '''更新状态栏中的编辑器缩放百分比。
+        '''更新状态栏中的应用缩放百分比。
 
-        缩放（FontManager.zoom_level）是全局设置，所有文档共享同一值；
-        此处仅读取当前全局值展示，真正的刷新由缩放动作统一触发
+        缩放（UIZoomManager.zoom_level，Ctrl+加/减/0）是全局设置，所有文档
+        共享同一值；此处仅读取当前全局值展示，真正的刷新由缩放动作统一触发
         （见 workspace/actions/actions.py 的 _update_zoom_indicators）。
         '''
         self.view.zoom_label.set_text(_('Zoom: {zoom}').format(
-            zoom='{:.0%}'.format(FontManager.zoom_level)))
+            zoom=UIZoomManager.get_zoom_percent()))
 
     def on_finished_parsing(self, document):
         '''Parser 完成时更新 labels/todos 计数。'''

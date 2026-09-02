@@ -72,6 +72,7 @@ foreach t : [
   ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
   ['test_structure_numbering', 'test_structure_numbering.py'],
   ['test_agent_runner_bare', 'test_agent_runner_bare.py'],
+  ['test_ui_zoom', 'test_ui_zoom.py'],
 ]
   test(
     t[0],

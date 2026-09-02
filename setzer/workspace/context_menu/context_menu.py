@@ -20,7 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gdk, Gtk
 
-from setzer.app.font_manager import FontManager
+from setzer.app.ui_zoom import UIZoomManager
 from setzer.popovers.popover_manager import PopoverManager
 
 
@@ -110,7 +110,7 @@ class ContextMenu(object):
         button_zoom_out.set_action_name('win.zoom-out')
         inner_box.append(button_zoom_out)
 
-        self.reset_zoom_button_pointer = Gtk.Button.new_with_label("{:.0%}".format(FontManager.zoom_level))
+        self.reset_zoom_button_pointer = Gtk.Button.new_with_label(UIZoomManager.get_zoom_percent())
         self.reset_zoom_button_pointer.add_css_class('flat')
         self.reset_zoom_button_pointer.set_action_name('win.reset-zoom')
         inner_box.append(self.reset_zoom_button_pointer)

@@ -20,11 +20,11 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import GLib, Gio, Gtk, Gdk, Pango, Adw
+from gi.repository import GLib, Gio, Gtk, Gdk, Adw
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
-from setzer.app.font_manager import FontManager
+from setzer.app.ui_zoom import UIZoomManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.settings.document_settings import DocumentSettings
 from setzer.document.bibtex.text_utils import (
@@ -298,12 +298,9 @@ class Actions(object):
         else: sync_document = document
         can_sync = sync_document != None and sync_document.is_latex_document() and sync_document.build_system.can_sync
         can_build = (self.workspace.get_root_or_active_latex_document() != None)
-        can_reset_zoom = (round(FontManager.zoom_level * 100) != 100)
-        # get_font_desc 内部 Pango.FontDescription.from_string(font_string) 每次构造
-        # 新对象，原调两次（zoom_in / zoom_out 各一）。取一次 size 复用。
-        font_size = FontManager.get_font_desc().get_size()
-        can_zoom_in = (font_size * 1.1 <= 24 * Pango.SCALE)
-        can_zoom_out = (font_size / 1.1 >= 6 * Pango.SCALE)
+        can_reset_zoom = UIZoomManager.is_zoomed()
+        can_zoom_in = UIZoomManager.can_zoom_in()
+        can_zoom_out = UIZoomManager.can_zoom_out()
 
         self.actions['close-active-document'].set_enabled(document_active)
         self.actions['close-all-documents'].set_enabled(document_active)
@@ -1411,40 +1408,28 @@ class Actions(object):
         self.workspace.get_active_document().source_buffer.redo()
 
     def zoom_in(self, action=None, parameter=''):
-        font_desc = Pango.FontDescription.from_string(FontManager.font_string)
-        font_desc.set_size(min(font_desc.get_size() * 1.1, 24 * Pango.SCALE))
-        FontManager.font_string = font_desc.to_string()
-        FontManager.propagate_font_setting()
-        # 仅持久化缩放倍率到独立设置项；不要改写 settings.font_string（那是干净基准，
-        # 一旦写入缩放后的字号，zoom_level 的分母会被污染，导致百分比被锁死）。
-        self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
-        FontManager.saved_zoom_level = FontManager.zoom_level
+        # 应用级 UI 缩放（gtk-xft-dpi，Ctrl+加/减/0 与右键菜单缩放按钮共用）。
+        # 编辑器字号缩放改由 Ctrl+滚轮独占（FontManager），二者正交可叠加；
+        # dpi 写入与持久化（ui_zoom_level）统一在 UIZoomManager 内完成。
+        UIZoomManager.zoom_in()
         self._update_zoom_indicators()
+        self.update_actions()
 
     def zoom_out(self, action=None, parameter=''):
-        font_desc = Pango.FontDescription.from_string(FontManager.font_string)
-        font_desc.set_size(max(font_desc.get_size() / 1.1, 6 * Pango.SCALE))
-        FontManager.font_string = font_desc.to_string()
-        FontManager.propagate_font_setting()
-        # 仅持久化缩放倍率到独立设置项；不要改写 settings.font_string（干净基准）。
-        self.settings.set_value('preferences', 'editor_font_zoom_level', FontManager.zoom_level)
-        FontManager.saved_zoom_level = FontManager.zoom_level
+        UIZoomManager.zoom_out()
         self._update_zoom_indicators()
+        self.update_actions()
 
     def reset_zoom(self, action=None, parameter=''):
-        # 重置到干净基准字号（100%），不牵连 settings.font_string。
-        FontManager.font_string = FontManager.base_font_string
-        FontManager.zoom_level = 1.0
-        FontManager.propagate_font_setting()
-        # 重置缩放倍率为 1.0，同时保存到独立设置项
-        self.settings.set_value('preferences', 'editor_font_zoom_level', 1.0)
-        FontManager.saved_zoom_level = 1.0
+        # 回到 100%：UIZoomManager 会把原始 dpi 值原样写回，不再接管系统。
+        UIZoomManager.reset()
         self._update_zoom_indicators()
+        self.update_actions()
 
     def _update_zoom_indicators(self):
         '''缩放是全局设置，所有文档共享同一倍率。刷新右键菜单的缩放按钮标签，
         以及每个已打开文档状态栏中的缩放百分比标签。'''
-        zoom_label = "{:.0%}".format(FontManager.zoom_level)
+        zoom_label = UIZoomManager.get_zoom_percent()
         try:
             self.workspace.context_menu.popover_more.view.reset_zoom_button.set_label(zoom_label)
             self.workspace.context_menu.reset_zoom_button_pointer.set_label(zoom_label)

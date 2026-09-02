@@ -107,6 +107,7 @@ from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_first_run_tutorial
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
+from setzer.app.ui_zoom import UIZoomManager
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.app.latex_db import LaTeXDB
 from setzer.settings.document_settings import DocumentSettings
@@ -254,6 +255,10 @@ class MainApplicationController(Adw.Application):
         ServiceLocator.set_main_window(self.main_window)
         ColorManager.init(self.main_window)
         FontManager.init(self.main_window)
+        # 应用级 UI 缩放（Ctrl+加/减/0）：恢复持久化倍率。须在主窗口创建后
+        # 调用（依赖 Gtk.Settings）；且在 Windows 上需晚于本文件开头强制写
+        # 入的 96×1024 基准（见文件头注释），否则基准会被读成别的值。
+        UIZoomManager.init(self.settings)
 
         self.workspace = Workspace()
 

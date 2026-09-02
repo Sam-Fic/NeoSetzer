@@ -310,6 +310,10 @@ class Settings(Observable):
         # 编辑器字号缩放倍率（1.0 = 默认）：与 font_string 分离，使 system font 模式
         # 下的缩放偏好也能跨重启持久化。
         self.defaults['preferences']['editor_font_zoom_level'] = 1.0
+        # 应用级 UI 缩放倍率（Ctrl+加/减/0，经 gtk-xft-dpi 缩放整个应用文字）：
+        # 1.0 = 不接管、跟随系统。与 editor_font_zoom_level（仅编辑器字号，
+        # Ctrl+滚轮）独立，二者可叠加。见 setzer/app/ui_zoom.py。
+        self.defaults['preferences']['ui_zoom_level'] = 1.0
 
         # 搜索/替换历史记录：全局共享（跨文档），最多 15 条，去重，最新在前。
         self.defaults['search_history'] = {'find': [], 'replace': []}
