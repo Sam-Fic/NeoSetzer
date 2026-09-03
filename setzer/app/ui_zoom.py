@@ -33,6 +33,14 @@ Pango 文字渲染分辨率，与 GNOME「文本缩放」无障碍机制同源�
   96×1024，见 setzer.in），写入 原始值 × 倍率；
 - 回到 100% 时把原始值原样写回（保留 -1 哨兵），彻底交还系统。
 
+惰性自举（_ensure_init）：init() 的唯一显式调用点在 setzer.in —— 那是 meson
+configure_file 的**模板**，生成的 builddir/setzer[_dev].py 若未重新构建就会是
+旧副本（Python 包本身走 PYTHONPATH 实时生效，入口脚本却不会），届时本模块
+的 init 从未被调用 → _base_dpi 为 None → _apply() 静默 no-op，表现为「快捷键
+有反应、百分比在变、界面缩放纹丝不动」。故所有公开方法都先 _ensure_init()：
+未显式 init 时自行从 ServiceLocator 取 Settings、读基准 dpi 并恢复持久化倍率，
+使本特性不再依赖入口脚本的新旧。
+
 已知取舍：若用户在应用打开期间修改系统文本缩放/DPI，非 100% 状态下不会
 实时跟随（我们的写入会覆盖系统值）；回到 100% 即恢复接管前读到的原始值。
 '''
@@ -49,50 +57,100 @@ class UIZoomManager():
     # 当前缩放倍率（1.0 = 100%）。所有读取方（状态栏、右键菜单、动作
     # enable 判定）统一从这里取值。
     zoom_level = 1.0
-    # init 时注入的 Settings 引用（setzer.in activate() 中传入），
-    # 持久化用。不走 ServiceLocator，保持模块可脱离其 gi 依赖单测。
+    # init 时注入的 Settings 引用（setzer.in activate() 中传入），持久化用。
+    # 未经 init 时由 _locate_settings() 延迟 import ServiceLocator 兜底获取。
     _settings = None
-    # init 时读到的原始 gtk-xft-dpi（保留 -1 等哨兵原样）；None = 尚未 init。
+    # init 时读到的原始 gtk-xft-dpi（保留 -1 等哨兵原样）；None = 基准未确定。
     _base_dpi = None
+    # 基准 dpi 是否已确定（True 后不再重读，避免把我们自己写的值当基准）。
+    _dpi_ready = False
+    # 持久化倍率是否已恢复到 zoom_level（与 _dpi_ready 分离：headless 下无
+    # Gtk.Settings 时仍要能恢复倍率、维护百分比与落盘，只是不接管 dpi）。
+    _level_restored = False
+    # 是否被显式 init 过。未 init（入口脚本陈旧）才允许走 ServiceLocator 兜底；
+    # 显式 init(None) 表示「故意不落盘」，不得被兜底覆盖。
+    _explicit_init = False
 
-    def init(settings):
+    def init(settings=None):
         '''启动时恢复持久化的缩放。须在主窗口创建后调用（Gtk.Settings 需
-        已有默认 Display），见 setzer.in 的 activate()。'''
-        UIZoomManager._settings = settings
-        try:
-            saved = settings.get_value('preferences', 'ui_zoom_level')
-        except Exception:
-            saved = None
-        UIZoomManager.zoom_level = zoom_math.clamp_level(saved)
-        UIZoomManager._base_dpi = UIZoomManager._read_raw_dpi()
+        已有默认 Display），见 setzer.in 的 activate()。
+
+        幂等，且与惰性自举等价 —— 显式调用只是把基准确定得更早（避免首帧
+        后文字突然变大的一次跳变）。'''
+        UIZoomManager._explicit_init = True
+        UIZoomManager._ensure_init(settings)
+
+    def _ensure_init(injected_settings=None):
+        '''惰性完成一次性初始化；任何公开方法调用前都先过这里。'''
+        if injected_settings is not None and not UIZoomManager._dpi_ready:
+            UIZoomManager._settings = injected_settings
+        if UIZoomManager._settings is None and not UIZoomManager._explicit_init:
+            UIZoomManager._settings = UIZoomManager._locate_settings()
+        if not UIZoomManager._level_restored:
+            UIZoomManager._level_restored = True
+            UIZoomManager.zoom_level = zoom_math.clamp_level(UIZoomManager._read_saved_level())
+        if UIZoomManager._dpi_ready:
+            return True
+        base = UIZoomManager._read_raw_dpi()
+        if base is None:
+            # 还没有默认 Display（极早期调用 / headless）：不固化基准，下次再试。
+            return False
+        UIZoomManager._base_dpi = base
+        UIZoomManager._dpi_ready = True
         # 100% 不接管系统设置（见模块 docstring）；仅非 100% 时写入。
         if not zoom_math.is_default(UIZoomManager.zoom_level):
             UIZoomManager._apply()
+        return True
+
+    def _locate_settings():
+        '''未显式 init 时兜底取 Settings 单例（入口脚本陈旧的场景）。
+        延迟 import：保持本模块可被 gi-free 单测直接加载。'''
+        try:
+            from setzer.app.service_locator import ServiceLocator
+            return ServiceLocator.get_settings()
+        except Exception:
+            return None
+
+    def _read_saved_level():
+        if UIZoomManager._settings is None:
+            return None
+        try:
+            return UIZoomManager._settings.get_value('preferences', 'ui_zoom_level')
+        except Exception:
+            return None
 
     def zoom_in():
+        UIZoomManager._ensure_init()
         UIZoomManager._set_level(zoom_math.next_zoom_in(UIZoomManager.zoom_level))
 
     def zoom_out():
+        UIZoomManager._ensure_init()
         UIZoomManager._set_level(zoom_math.next_zoom_out(UIZoomManager.zoom_level))
 
     def reset():
+        UIZoomManager._ensure_init()
         UIZoomManager._set_level(1.0)
 
     def is_zoomed():
         '''是否偏离 100%（用于 reset 动作的 enable 判定）。'''
+        UIZoomManager._ensure_init()
         return not zoom_math.is_default(UIZoomManager.zoom_level)
 
     def can_zoom_in():
+        UIZoomManager._ensure_init()
         return zoom_math.can_zoom_in(UIZoomManager.zoom_level)
 
     def can_zoom_out():
+        UIZoomManager._ensure_init()
         return zoom_math.can_zoom_out(UIZoomManager.zoom_level)
 
     def get_zoom_percent():
         '''状态栏 / 右键菜单按钮的当前缩放文本（如 '110%'）。'''
+        UIZoomManager._ensure_init()
         return zoom_math.format_percent(UIZoomManager.zoom_level)
 
     def _set_level(level):
+        UIZoomManager._ensure_init()
         level = zoom_math.clamp_level(level)
         if level == UIZoomManager.zoom_level:
             return False

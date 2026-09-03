@@ -11,7 +11,9 @@
 # - 100% 不写 dpi（不接管系统设置）；
 # - 非 100% 写入 原始dpi × 倍率（-1 哨兵基准按 96×1024 换算）；
 # - reset 把原始值（含 -1）原样写回；
-# - 阶梯边界（约 51%–236%）、边界内往返精确还原、损坏持久化值规范化。
+# - 阶梯边界（约 51%–236%）、边界内往返精确还原、损坏持久化值规范化；
+# - 惰性自举（TestUIZoomLazyBootstrap）：即使 setzer.in 的 init() 因入口脚本
+#   陈旧而未执行，缩放仍真接管 dpi（不只变百分比）。
 
 import sys
 import types
@@ -165,10 +167,13 @@ class TestZoomMath(unittest.TestCase):
 class TestUIZoomManager(unittest.TestCase):
 
     def setUp(self):
-        # static class，跨用例共享：每例重置
+        # static class，跨用例共享：每例重置（含惰性自举的三个一次性标志）
         ui_zoom.UIZoomManager.zoom_level = 1.0
         ui_zoom.UIZoomManager._base_dpi = None
         ui_zoom.UIZoomManager._settings = None
+        ui_zoom.UIZoomManager._dpi_ready = False
+        ui_zoom.UIZoomManager._level_restored = False
+        ui_zoom.UIZoomManager._explicit_init = False
         self.gtk_settings = FakeGtkSettings(96 * 1024)
         self.prefs = FakePreferences()
         self._orig_gtk = ui_zoom.Gtk
@@ -288,6 +293,88 @@ class TestUIZoomManager(unittest.TestCase):
         ui_zoom.UIZoomManager.init(None)
         ui_zoom.UIZoomManager.zoom_in()
         self.assertAlmostEqual(ui_zoom.UIZoomManager.zoom_level, 1.1)
+
+
+class TestUIZoomLazyBootstrap(unittest.TestCase):
+    '''惰性自举：即使 setzer.in（meson configure_file 模板）的 init() 调用因
+    入口脚本陈旧而未执行，缩放也必须真生效（不能只变百分比）。'''
+
+    def setUp(self):
+        ui_zoom.UIZoomManager.zoom_level = 1.0
+        ui_zoom.UIZoomManager._base_dpi = None
+        ui_zoom.UIZoomManager._settings = None
+        ui_zoom.UIZoomManager._dpi_ready = False
+        ui_zoom.UIZoomManager._level_restored = False
+        ui_zoom.UIZoomManager._explicit_init = False
+        self.gtk_settings = FakeGtkSettings(96 * 1024)
+        self.prefs = FakePreferences()
+        self._orig_gtk = ui_zoom.Gtk
+        # 默认堵住 ServiceLocator 兜底路径，避免单测写用户配置（各例按需改）
+        self._orig_locate = ui_zoom.UIZoomManager.__dict__['_locate_settings']
+        ui_zoom.UIZoomManager._locate_settings = lambda: None
+        ui_zoom.Gtk = types.SimpleNamespace(
+            Settings=types.SimpleNamespace(get_default=lambda: self.gtk_settings))
+
+    def tearDown(self):
+        ui_zoom.Gtk = self._orig_gtk
+        ui_zoom.UIZoomManager._locate_settings = self._orig_locate
+
+    def test_zoom_in_without_init_still_writes_dpi(self):
+        ui_zoom.UIZoomManager._locate_settings = lambda: self.prefs
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.1)))
+        self.assertEqual(ui_zoom.UIZoomManager.get_zoom_percent(), '110%')
+        self.assertAlmostEqual(self.prefs.values['ui_zoom_level'], 1.1, places=6)
+
+    def test_read_only_entry_restores_persisted_zoom(self):
+        # 状态栏/菜单只是读百分比，也应触发自举并恢复上一次的缩放
+        ui_zoom.UIZoomManager._locate_settings = lambda: FakePreferences({'ui_zoom_level': 1.21})
+        self.assertEqual(ui_zoom.UIZoomManager.get_zoom_percent(), '121%')
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.21)))
+
+    def test_lazy_step_from_restored_level_is_relative_to_restored(self):
+        # 自举在计算新级别前完成：从持久化的 110% 放大一步得 121%，而非 110%
+        ui_zoom.UIZoomManager._locate_settings = lambda: FakePreferences({'ui_zoom_level': 1.1})
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertAlmostEqual(ui_zoom.UIZoomManager.zoom_level, 1.21, places=6)
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.21)))
+
+    def test_explicit_init_none_does_not_autolocate(self):
+        # 显式 init(None) = 故意不落盘，不得被 ServiceLocator 兜底覆盖
+        called = []
+        ui_zoom.UIZoomManager._locate_settings = lambda: called.append(1) or self.prefs
+        ui_zoom.UIZoomManager.init(None)
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertEqual(called, [])
+        self.assertIsNone(ui_zoom.UIZoomManager._settings)
+        self.assertEqual(self.prefs.writes, [])
+        # 不接管不影响 dpi 通道：基准仍正常写入
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.1)))
+
+    def test_no_display_yet_retries_later(self):
+        # 主窗口/Display 未就绪：不固化基准，但倍率与百分比照常
+        ui_zoom.UIZoomManager._locate_settings = lambda: self.prefs
+        ui_zoom.Gtk = types.SimpleNamespace(
+            Settings=types.SimpleNamespace(get_default=lambda: None))
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertAlmostEqual(ui_zoom.UIZoomManager.zoom_level, 1.1)
+        self.assertFalse(ui_zoom.UIZoomManager._dpi_ready)
+        self.assertEqual(self.gtk_settings.written, [])
+        # Display 就绪后下一次调用补上基准并接管
+        ui_zoom.Gtk = types.SimpleNamespace(
+            Settings=types.SimpleNamespace(get_default=lambda: self.gtk_settings))
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertTrue(ui_zoom.UIZoomManager._dpi_ready)
+        self.assertEqual(self.gtk_settings.written[0], int(round(96 * 1024 * 1.1)))
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.21)))
+
+    def test_base_not_recaptured_after_external_dpi_change(self):
+        # 接管后基准只读一次：系统 dpi 中途变化不会把我们的写入当成新基准
+        ui_zoom.UIZoomManager._locate_settings = lambda: self.prefs
+        ui_zoom.UIZoomManager.zoom_in()
+        self.gtk_settings.dpi = 144 * 1024      # 外部（如 GNOME 文本缩放）改变
+        ui_zoom.UIZoomManager.zoom_in()
+        self.assertEqual(self.gtk_settings.dpi, int(round(96 * 1024 * 1.21)))
 
 
 if __name__ == '__main__':
