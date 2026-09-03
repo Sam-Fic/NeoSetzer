@@ -37,6 +37,7 @@ import json
 from string import Template
 from gi.repository import Pango
 from setzer.app.font_manager import FontManager
+from setzer.app.ui_zoom import UIZoomManager
 from setzer.widgets.search_highlight import highlight_words
 
 from setzer.helpers.observable import Observable
@@ -123,7 +124,17 @@ class HelpPanel(Observable):
         # 主题切换会让 UserContentManager 持有 N 个 style sheet，WebKit 每次
         # 页面加载/渲染都要合并全部 CSS 规则，导致帮助页滚动/hover 越用越卡。
         self._current_style_sheet = None
+        # 帮助页是 WebKit 渲染，不吃 GtkSettings:gtk-xft-dpi（那是 GTK 自己的
+        # Pango 通路），所以应用缩放必须显式乘进注入的样式表并重注册。
+        UIZoomManager.add_observer(self._on_app_zoom_changed)
         self.update_colors()
+
+    def _on_app_zoom_changed(self, zoom_level=None):
+        try:
+            self.update_colors()
+        except Exception:
+            # 面板已销毁等极端情况：不影响缩放本身（_notify_observers 也会吞）。
+            pass
 
     def _ensure_search_index(self):
         if self.search_index is None:
@@ -200,9 +211,12 @@ class HelpPanel(Observable):
         # 结构（参照 font_manager.propagate_font_setting 的写法）。
         font_desc = Pango.FontDescription.from_string(FontManager.font_string)
         font_family = json.dumps(font_desc.get_family())
-        font_size = font_desc.get_size() / Pango.SCALE
+        # 与 textview.monospace 同理：CSS 里的 pt 是设备无关量，不随 gtk-xft-dpi
+        # 变化，WebKit 更是完全不走 GTK 的文字缩放通路 ⇒ 应用缩放要自己乘进去。
+        # 模板里的其余长度（margin/padding）用 em，会跟着字号一起缩放。
+        font_size = font_desc.get_size() / Pango.SCALE * UIZoomManager.get_zoom_level()
         substitutions['editor_font_family'] = font_family
-        substitutions['editor_font_size'] = f'{font_size}pt'
+        substitutions['editor_font_size'] = '{:.4g}pt'.format(font_size)
 
         css = _CSS_TEMPLATE.safe_substitute(substitutions)
 

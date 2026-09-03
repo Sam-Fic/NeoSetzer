@@ -23,6 +23,8 @@ from gi.repository import Gtk
 
 import json
 
+from setzer.app.ui_zoom import UIZoomManager
+
 
 class FontManager():
 
@@ -57,6 +59,22 @@ class FontManager():
         FontManager.font_string = 'monospace 11'
         FontManager.base_font_string = 'monospace 11'
         FontManager._font_desc = None
+        # 应用缩放（Ctrl+加/减/0）会改 CSS 里的有效字号（见 propagate_font_setting），
+        # 倍率一变就要重发样式表。这里登记回调，使 FontManager 不需要被 ui_zoom
+        # 反向 import（避免循环依赖）。
+        UIZoomManager.add_observer(FontManager.on_app_zoom_changed)
+
+    def on_app_zoom_changed(zoom_level=None):
+        '''UIZoomManager 回调：倍率变化后重发编辑器字号 CSS。
+
+        主窗口 / workspace 尚未建好时（启动早期）provider 还不存在，直接放弃：
+        真正的样式在 workspace_presenter.update_font 里会按当时的倍率生成。'''
+        try:
+            if FontManager.main_window is None:
+                return
+            FontManager.propagate_font_setting()
+        except Exception:
+            pass
 
     def propagate_font_setting():
         # font_string 可能已变（zoom in/out/reset），重建缓存供本方法及后续
@@ -73,8 +91,15 @@ class FontManager():
         # 的字符串，JSON 字符串转义是 CSS 字符串转义的子集，安全且无副作用。
         # 例：json.dumps('Monospace') -> '"Monospace"'，直接拼进 font-family: ...。
         quoted_family = json.dumps(font_family)
-        data = ('textview.monospace { font-size: ' + str(font_size) + 'pt; font-family: ' + quoted_family + '; }\n'
-                'listbox.monospace row, listbox.monospace row label { font-size: ' + str(font_size) + 'pt; font-family: ' + quoted_family + '; }')
+        # 应用缩放（UIZoomManager）乘进 CSS：CSS 里的 pt/px 是设备无关量，**不随
+        # gtk-xft-dpi 变化**（实测：dpi ×1.5 后 font-size: 11pt 的标签尺寸不变），
+        # 所以编辑器要跟随应用缩放必须在字号上乘倍率。font_string / zoom_level 本身
+        # 不含该因子（它们是「编辑器 Ctrl+滚轮」那条独立轴），仅在写 CSS 时叠加，
+        # 因此两轴正交可叠加且都不会污染对方的百分比读数。
+        effective_size = font_size * UIZoomManager.get_zoom_level()
+        size_text = '{:.4g}pt'.format(effective_size)
+        data = ('textview.monospace { font-size: ' + size_text + '; font-family: ' + quoted_family + '; }\n'
+                'listbox.monospace row, listbox.monospace row label { font-size: ' + size_text + '; font-family: ' + quoted_family + '; }')
         FontManager.main_window.css_provider_font_size.load_from_string(data)
 
         # zoom_level = 当前（含缩放）字号 / 干净基准字号。
