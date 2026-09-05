@@ -1,6 +1,20 @@
-# NeoSetzer 国际化维护
+# po 目录说明
 
-NeoSetzer 当前未配置独立的托管翻译平台。请直接在本仓库提交翻译更新，并通过 [NeoSetzer Issues](https://github.com/Sam-Fic/NeoSetzer/issues) 报告翻译问题。
+翻译工作流（同步、校验、提交规范）见 [CONTRIBUTING.md](../CONTRIBUTING.md) 的「翻译贡献」章节。本文件仅记录 po 目录专属的参考信息。
+
+## 文件清单
+
+| 文件 | 用途 |
+|------|------|
+| `LINGUAS` | 支持的语言代码列表，每行一个 |
+| `POTFILES` | 含可翻译字符串的源文件清单，由 `generate-potfiles.sh` 生成 |
+| `setzer.pot` | 翻译模板，由 meson + xgettext 生成，已纳入版本控制供 CI 校验 |
+| `setzer.its` | ITS 规则，让 xgettext 提取 XML 资源文件中的可翻译字符串 |
+| `*.po` | 各语言的翻译文件 |
+| `sync-po.sh` | po 同步与校验脚本（详见 CONTRIBUTING.md） |
+| `generate-potfiles.sh` | 重新生成 POTFILES 清单 |
+
+`setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
 
 ## 新增语言
 
@@ -14,35 +28,7 @@ xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages
 cp po/setzer.pot po/lang.po
 ```
 
-翻译 `po/lang.po` 后，将语言代码加入 `po/LINGUAS`。
-
-## 更新现有翻译
-
-先生成最新的 pot 模板：
-
-```bash
-meson setup --wipe builddir --prefix=/tmp/usr
-ninja -C builddir setzer-pot
-xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
-  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
-```
-
-然后用 `sync-po.sh` 同步 po 文件到最新模板：
-
-```bash
-# 同步全部语言
-./po/sync-po.sh
-
-# 只同步某一语言
-./po/sync-po.sh es
-
-# 仅校验不修改（CI 友好）
-./po/sync-po.sh --check
-```
-
-`sync-po.sh` 使用 `--no-fuzzy-matching` 避免 msgmerge 将不相关的旧翻译错配到新 msgid，使用 `--sort-by-file` 保持条目按源码位置稳定排序，并自动清理 obsolete 条目。同步后直接在 `.po` 文件中补译未译条目即可。
-
-`setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
+翻译 `po/lang.po` 后，将语言代码加入 `LINGUAS`，再运行 `./po/sync-po.sh --check` 确认通过。
 
 ## 测试翻译
 
@@ -55,17 +41,9 @@ LANGUAGE=lang ./scripts/dev/setzer.dev
 
 将 `lang` 替换为要验证的语言代码。完成后可删除 `/tmp/neosetzer-i18n`。
 
-## 提交前检查
+## .po 元数据模板
 
-| 检查项 | 要求 |
-|---|---|
-| 改动范围 | 只提交实际翻译过的 `.po` 文件、`LINGUAS` 和必要的源字符串清单更新。 |
-| 模板文件 | 不提交生成的 `po/setzer.pot`。 |
-| 格式验证 | 再次运行更新命令；除时间戳外不应产生意外差异。 |
-| 编译验证 | 执行 `ninja -C builddir setzer-gmo`，确认 `.mo` 可正常生成。 |
-| 版权信息 | 不要在 `.po` 文件开头新增版权行，以保持历史版权策略一致。 |
-
-`.po` 文件的元数据可使用以下模板：
+新建或重置 `.po` 文件头部时可使用以下模板：
 
 ```po
 msgid ""
@@ -81,3 +59,5 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 ```
+
+不要在 `.po` 文件开头新增版权行，以保持历史版权策略一致。

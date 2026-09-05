@@ -40,7 +40,7 @@ xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages
 ### 提交前检查清单
 
 - [ ] `./po/sync-po.sh --check` 全部通过
-- [ ] 不提交 `po/setzer.pot`（模板文件由 CI 生成）
+- [ ] `po/setzer.pot` 已同步至最新（如改动了可翻译字符串）
 - [ ] 翻译为人工完成，不使用机器翻译
 
 ## 代码贡献
