@@ -36,6 +36,16 @@ if 'gi' not in sys.modules:
     sys.modules['gi'] = _gi
     sys.modules['gi.repository'] = _repo
 
+# discover 模式下，字母序靠前的测试（如 test_settings*）可能已通过
+# conftest_stub 注入了无 Gdk 的桩，令上面的让位分支失效、下面的导入因缺
+# Gdk 失败（真 gi / CI 单文件进程不受影响）。幂等补齐缺失的模块名即可：
+# ui_zoom 导入期只要求名字存在，测试运行期统一用伪造对象替换 ui_zoom.Gtk/Gdk。
+_repo = sys.modules.get('gi.repository')
+if _repo is not None:
+    for _name in ('Gtk', 'Gdk'):
+        if not hasattr(_repo, _name):
+            setattr(_repo, _name, types.ModuleType(_name))
+
 import setzer.app.ui_zoom as ui_zoom  # 桩必须在导入前就位
 
 
