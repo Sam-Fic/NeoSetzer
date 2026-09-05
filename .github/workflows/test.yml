@@ -39,8 +39,14 @@ jobs:
             gir1.2-webkit-6.0 \
             gir1.2-xdp-1.0
 
+      - name: Install Python dependencies
+        run: pip install polib
+
       - name: Configure project
         run: meson setup builddir --prefix=/usr --buildtype=debug
+
+      - name: Verify translation files
+        run: ./po/sync-po.sh --check
 
       - name: Run unit tests
         run: meson test -C builddir --print-errorlogs
