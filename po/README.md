@@ -18,15 +18,31 @@ cp po/setzer.pot po/lang.po
 
 ## 更新现有翻译
 
+先生成最新的 pot 模板：
+
 ```bash
 meson setup --wipe builddir --prefix=/tmp/usr
-ninja -C builddir setzer-update-po
+ninja -C builddir setzer-pot
 xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
   -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
-msgmerge -U po/lang.po po/setzer.pot
 ```
 
-随后处理 `lang.po` 中标记为 `#, fuzzy` 的条目。`setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
+然后用 `sync-po.sh` 同步 po 文件到最新模板：
+
+```bash
+# 同步全部语言
+./po/sync-po.sh
+
+# 只同步某一语言
+./po/sync-po.sh es
+
+# 仅校验不修改（CI 友好）
+./po/sync-po.sh --check
+```
+
+`sync-po.sh` 使用 `--no-fuzzy-matching` 避免 msgmerge 将不相关的旧翻译错配到新 msgid，使用 `--sort-by-file` 保持条目按源码位置稳定排序，并自动清理 obsolete 条目。同步后直接在 `.po` 文件中补译未译条目即可。
+
+`setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
 
 ## 测试翻译
 
