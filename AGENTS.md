@@ -1,3 +1,10 @@
 # AGENTS.MD
 
-在使用Adw.Dialog、Adw.PreferencesDialog等弹窗组件时，禁止同时保留系统默认右上角关闭按钮（右上角 X）和手动添加的Close/Cancel按钮，创建弹窗时必须调用set_show_end_title_buttons(False)禁用默认关闭按钮，仅保留单一手动关闭入口。弹窗HeaderBar的按钮布局需遵循规范：文字按钮最多设置2个，分别为左侧的Cancel/Close按钮和右侧带suggested-action样式的主确认按钮，中间的次要操作统一降级为flat图标按钮并配套tooltip提示。
+本文件是 AI 协作索引。遇到对应场景时，先查阅指向的文档再动手。
+
+| 场景 | 查阅文档 |
+|------|----------|
+| 改动了可翻译字符串（`_(...)` 文本、`data/resources/` 下 XML） | [CONTRIBUTING.md](CONTRIBUTING.md)「翻译贡献」 |
+| 创建或修改弹窗组件（Adw.Dialog 等） | [docs/ui-guidelines.md](docs/ui-guidelines.md) |
+| 发版（版本号、CHANGELOG、tag） | [docs/RELEASE.md](docs/RELEASE.md) |
+| 打包（Debian / Windows / macOS） | [docs/packaging/](docs/packaging/) |
