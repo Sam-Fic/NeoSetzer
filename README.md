@@ -137,83 +137,9 @@ To uninstall, just delete the folder. Your settings live in `%LOCALAPPDATA%\setz
 >
 > **LaTeX is still a separate install.** The zip contains the editor, not a LaTeX distribution — see "Installing a LaTeX distribution on Windows" below.
 
-### Step 1 — Install MSYS2
+### Build from source (Windows)
 
-Download and install MSYS2 from <https://www.msys2.org/>. Open the **MSYS2 MINGW64** shell (not the default `ucrt64`/`clang64` shell unless you know what you are doing — `mingw64` is the tested configuration).
-
-### Step 2 — Install dependencies
-
-In the MSYS2 MINGW64 shell:
-
-```bash
-# Run in the MSYS2 MINGW64 shell
-pacman -S --needed \
-  mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
-  mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
-  mingw-w64-x86_64-gtksourceview5 \
-  mingw-w64-x86_64-poppler \
-  mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
-  mingw-w64-x86_64-python-gobject \
-  mingw-w64-x86_64-python-pip \
-  mingw-w64-x86_64-python-numpy \
-  gettext
-```
-
-> **No `libportal`:** the package `mingw-w64-x86_64-libportal` does **not** exist in MSYS2 — libportal is only packaged for the `msys` subsystem, not `mingw64`. NeoSetzer only uses it (`Xdp`) for Flatpak detection, guarded by `try/except`, so it is simply omitted on Windows.
-
-Then install the **pure-Python** libraries that are not packaged by pacman. MSYS2's Python is externally managed (PEP 668), so the `--break-system-packages` flag is required:
-
-> **`numpy` comes from pacman, not pip.** The MSYS2 MinGW Python reports the platform tag `mingw_x86_64_msvcrt_gnu`, so upstream `win_amd64` wheels (including numpy's) do **not** match — `pip install numpy` falls back to a source build and fails/succeeds only after a very long compile. Always install `numpy` (and any other C-extension package such as `scipy`, `pillow`, …) via pacman as `mingw-w64-x86_64-python-<name>` instead.
->
-> **Use the MinGW Python, not the MSYS one.** Make sure `python` resolves to `/mingw64/bin/python` (`python -c "import sys; print(sys.platform)"` should print `win32`). If `pip`/`python` point at the `msys` interpreter instead, PyGObject and the pacman-installed `numpy` won't be found. Prefer `python -m pip …` to be explicit.
-
-### Step 3 — Clone and configure
-
-```bash
-# Run in the MSYS2 MINGW64 shell
-git clone https://github.com/Sam-Fic/NeoSetzer.git
-cd NeoSetzer
-meson setup builddir
-```
-
-### Step 4 — Run (development mode)
-
-```bash
-# Run in cmd / PowerShell (no MSYS2 needed)
-scripts\dev\setzer.dev.bat
-```
-
-`scripts\dev\setzer.dev.bat` is the recommended Windows launcher — a thin wrapper that adds the source tree to `PYTHONPATH` (the `setzer` package is not installed into `site-packages`) and prepends `mingw64\bin` to `PATH` so the correct Python and the GTK4 / libadwaita DLLs are found, then runs the meson-built `builddir\setzer_dev.py`. It works from cmd, PowerShell, or a double-click in File Explorer, with no MSYS2 shell required.
-
-> **PowerShell note:** run it *without* quotes. A quoted path (`"scripts\dev\setzer.dev.bat"`) is treated as a string and is only echoed, not executed.
-
-Cross-platform alternative (run from the MSYS2 MINGW64 shell) — this is the path used to validate the build in this fork:
-
-```bash
-# Run in the MSYS2 MINGW64 shell
-python scripts/dev/setzer.dev
-```
-
-> A bare `python builddir\setzer_dev.py` fails with `ModuleNotFoundError: No module named 'setzer'` unless `PYTHONPATH` is set first — prefer the `.bat` or `python scripts/dev/setzer.dev`.
-
-### Step 5 — Install (optional)
-
-```bash
-# Run in the MSYS2 MINGW64 shell
-ninja install -C builddir
-```
-
-This installs `setzer.bat` (and the Python `setzer` script) into the MSYS2 `bin/` directory. After installation you can launch NeoSetzer by running `setzer` from any MSYS2 shell, or by adding `<MSYS2>\mingw64\bin` to your system `PATH` and running `setzer.bat` from cmd / PowerShell / Windows Terminal.
-
-### Installing a LaTeX distribution on Windows
-
-To build documents from within the app, install one of:
-
-- [MiKTeX](https://miktex.org/) (Windows-native, recommended)
-- [TeX Live](https://www.tug.org/texlive/) (cross-platform)
-- [Tectonic](https://tectonic-typesetting.github.io/) (single-binary, automatic dependency download)
-
-Make sure the LaTeX engine you choose (`pdflatex`, `xelatex`, `lualatex`, or `tectonic`) is on your `PATH`, then pick it in the "Preferences" dialog under "LaTeX Interpreter".
+To build from source on Windows, install [MSYS2](https://www.msys2.org/), then follow the dependency installation and build steps in [docs/packaging/windows.md](docs/packaging/windows.md).
 
 ## Building your documents from within the app
 

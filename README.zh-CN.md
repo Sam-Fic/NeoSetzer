@@ -137,83 +137,9 @@ NeoSetzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 
 >
 > **LaTeX 仍需单独安装。** zip 里只有编辑器，不含 LaTeX 发行版，参见下文「在 Windows 上安装 LaTeX 发行版」。
 
-### 第 1 步 — 安装 MSYS2
+### 从源码构建（Windows）
 
-从 <https://www.msys2.org/> 下载并安装 MSYS2。打开 **MSYS2 MINGW64** 终端（不是默认的 `ucrt64`/`clang64` 终端，除非你知道自己在做什么——`mingw64` 是经过测试的配置）。
-
-### 第 2 步 — 安装依赖
-
-在 MSYS2 MINGW64 终端中：
-
-```bash
-# 在 MSYS2 MINGW64 终端中执行
-pacman -S --needed \
-  mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
-  mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
-  mingw-w64-x86_64-gtksourceview5 \
-  mingw-w64-x86_64-poppler \
-  mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
-  mingw-w64-x86_64-python-gobject \
-  mingw-w64-x86_64-python-pip \
-  mingw-w64-x86_64-python-numpy \
-  gettext
-```
-
-> **不需要 `libportal`：** MSYS2 中**不存在** `mingw-w64-x86_64-libportal` 这个包——libportal 只在 `msys` 子系统中打包，不提供 `mingw64` 版本。NeoSetzer 仅在 Flatpak 检测时用到它（`Xdp`），且已被 `try/except` 包裹，因此在 Windows 上直接省略即可。
-
-所有运行时 Python 依赖都通过 pacman 安装，没有需要再额外 `pip install` 的包。
-
-> **`numpy` 要用 pacman 安装，而不是 pip。** MSYS2 的 MinGW Python 平台标签是 `mingw_x86_64_msvcrt_gnu`，与上游 `win_amd64` 的 wheel（包括 numpy 的）**不匹配**——`pip install numpy` 会回退到源码编译，要么失败、要么编译很久。凡是带 C 扩展的包（如 `numpy`、`scipy`、`pillow` 等）都应通过 pacman 以 `mingw-w64-x86_64-python-<name>` 安装。
->
-> **务必使用 MinGW 的 Python，而不是 MSYS 的。** 请确认 `python` 解析到 `/mingw64/bin/python`（`python -c "import sys; print(sys.platform)"` 应输出 `win32`）。如果 `pip`/`python` 指向的是 `msys` 解释器，PyGObject 与通过 pacman 安装的 `numpy` 都会找不到。建议显式使用 `python -m pip …`。
-
-### 第 3 步 — 克隆并配置
-
-```bash
-# 在 MSYS2 MINGW64 终端中执行
-git clone https://github.com/Sam-Fic/NeoSetzer.git
-cd NeoSetzer
-meson setup builddir
-```
-
-### 第 4 步 — 运行（开发模式）
-
-```bash
-# 在 cmd / PowerShell 中执行（无需 MSYS2）
-scripts\dev\setzer.dev.bat
-```
-
-`scripts\dev\setzer.dev.bat` 是推荐的 Windows 启动方式——它是一个轻量包装脚本：把源码根目录加入 `PYTHONPATH`（`setzer` 包并未安装到 `site-packages`），并把 `mingw64\bin` 加到 `PATH` 前面以便找到正确的 Python 与 GTK4 / libadwaita 的 DLL，然后运行 meson 生成的 `builddir\setzer_dev.py`。它可以从 cmd、PowerShell，或在资源管理器里双击运行，**无需 MSYS2 终端**。
-
-> **PowerShell 注意：** 运行时**不要加引号**。加引号的路径（`"scripts\dev\setzer.dev.bat"`）会被当成字符串只回显、不会执行。
-
-跨平台替代方式（在 MSYS2 MINGW64 终端里运行）——本 fork 正是用这一方式验证过构建：
-
-```bash
-# 在 MSYS2 MINGW64 终端中执行
-python scripts/dev/setzer.dev
-```
-
-> 直接 `python builddir\setzer_dev.py` 在没有设置 `PYTHONPATH` 时会报 `ModuleNotFoundError: No module named 'setzer'`，请优先使用上面的 `.bat` 或 `python scripts/dev/setzer.dev`。
-
-### 第 5 步 — 安装（可选）
-
-```bash
-# 在 MSYS2 MINGW64 终端中执行
-ninja install -C builddir
-```
-
-这会将 `setzer.bat`（和 Python `setzer` 脚本）安装到 MSYS2 的 `bin/` 目录。安装后，你可以从任何 MSYS2 终端运行 `setzer` 启动，或将 `<MSYS2>\mingw64\bin` 加入系统 `PATH` 后从 cmd / PowerShell / Windows Terminal 运行 `setzer.bat`。
-
-### 在 Windows 上安装 LaTeX 发行版
-
-要在应用内构建文档，请安装以下之一：
-
-- [MiKTeX](https://miktex.org/)（Windows 原生，推荐）
-- [TeX Live](https://www.tug.org/texlive/)（跨平台）
-- [Tectonic](https://tectonic-typesetting.github.io/)（单文件，自动下载依赖）
-
-确保你选择的 LaTeX 引擎（`pdflatex`、`xelatex`、`lualatex` 或 `tectonic`）在 `PATH` 中，然后在"偏好设置"对话框的"LaTeX 解释器"下选择它。
+在 Windows 上从源码构建，需先安装 [MSYS2](https://www.msys2.org/)，然后按 [docs/packaging/windows.md](docs/packaging/windows.md) 中的依赖安装和构建步骤操作。
 
 ## 在应用内构建文档
 

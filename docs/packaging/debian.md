@@ -12,27 +12,9 @@ NeoSetzer 的 Debian x64 安装包由 GitHub Actions 在 **Ubuntu 24.04** 上构
 
 当前包依赖 WebKitGTK 6，因此目标系统应提供 `gir1.2-webkit-6.0`；Ubuntu 24.04+ 和 Debian 13+ 是经过工作流验证的目标环境。
 
-## 正式发布流程
+## 正式发布
 
-发布前必须使 `meson.build`、`CHANGELOG.md` 和 Git 标签使用同一版本号。`CHANGELOG.md` 应包含中文 `主要改进` 与英文 `Improvements` 两个小节，并与 GitHub Release 正文保持一致。
-
-```bash
-# 1. 确认上一标签以来的变更
-CURRENT_VERSION=$(sed -n "s/^[[:space:]]*version:[[:space:]]*'\([^']*\)'.*/\1/p" meson.build)
-git log "v${CURRENT_VERSION}..HEAD" --oneline
-
-# 2. 更新 meson.build 的版本号与 CHANGELOG.md
-#    例如：76 -> 77；确保新增 ## v77 条目。
-
-# 3. 提交版本资料并创建匹配标签
-NEW_VERSION=77
-git add meson.build CHANGELOG.md
-git commit -m "release: version ${NEW_VERSION}"
-git tag -a "v${NEW_VERSION}" -m "NeoSetzer ${NEW_VERSION}"
-git push origin master "v${NEW_VERSION}"
-```
-
-推送 `v*` 标签后，Debian、Windows 与 macOS 工作流会并行构建，并把各自制品附加到同一 GitHub Release。不要手动创建仅包含 `.deb` 的 Release；这样会导致跨平台资产和标签源码不一致。
+发布流程（版本号、CHANGELOG、tag、GitHub Release）见 [docs/RELEASE.md](../RELEASE.md)。推送 `v*` 标签后，Debian、Windows 与 macOS 工作流会并行构建，并把各自制品附加到同一 GitHub Release。不要手动创建仅包含 `.deb` 的 Release；这样会导致跨平台资产和标签源码不一致。
 
 ## 本地 Debian 构建
 
