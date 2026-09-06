@@ -335,14 +335,13 @@ class HeaderBar(object):
         self.view.build_log_toggle.set_visible((not show) and has_latex_doc)
 
     def update_agent_terminal_button_visibility(self):
-        '''收敛「在终端中打开 Agent」按钮的显隐：有 root/active latex 文档
-        且不在 welcome 模式时显示；welcome 模式 / 非 latex 文档时隐藏
-        （与 build_wrapper 内容的出现条件一致）。welcome 模式以
-        headerbar 的 'welcome' css class 为权威信号（由
-        activate_welcome_screen_mode / activate_document_mode 设置）。'''
+        '''收敛「在终端中打开 Agent」按钮的显隐：有 root/active latex 文档时显示，
+        否则隐藏。welcome 模式天然没 latex 文档，会走到 hide 分支；本方法
+        因此不需要额外的 welcome 兜底——update_toggles() 已经保证
+        "有 latex 文档 → 调用 show_*_toggles；否则 hide_*_toggles"。
+        '''
         has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
-        in_welcome = self.view.widget.has_css_class('welcome')
-        self.view.agent_terminal_button.set_visible(has_latex_doc and not in_welcome)
+        self.view.agent_terminal_button.set_visible(has_latex_doc)
 
     # ---- 快速打开 Agent 终端 ----
 
