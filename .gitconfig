@@ -1,0 +1,17 @@
+# 仓库级 gitconfig — 包含 po 文件的自定义 diff driver。
+#
+# 启用方式（每个贡献者克隆仓库后跑一次）：
+#   git config include.path ../.gitconfig
+#
+# 启用后：po/*.po 和 po/*.pot 的 diff 会以 msgid 块为边界，
+# sync-po.sh 引起的行号漂移/条目重排不再产生数千行假 diff，
+# 只显示真正被改的 msgstr。
+#
+# 为什么需要 include 而不是直接编辑 ~/.gitconfig：
+# include 是仓库本地配置，存到 .git/config，不会污染全局。
+# 其他贡献者只需克隆后跑上面那一行即可。
+
+[diff "po-diff"]
+	# 匹配 msgid 块的首行（包括折行续行的 msgid_plural 等）。
+	# xfuncname 是 POSIX ERE，行首引号是字面量。
+	xfuncname = "^(\"msgid |\")?msgid \""

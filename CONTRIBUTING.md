@@ -18,6 +18,18 @@ ninja -C builddir
 ./scripts/dev/setzer.dev
 ```
 
+### 翻译文件 diff 优化
+
+`sync-po.sh` 会重排 po 条目并刷新行号引用，导致 `git diff` 展示数千行噪音。
+仓库根目录的 `.gitconfig` 定义了 `po-diff` driver，以 `msgid` 块为边界切 hunk，
+把 po 文件的 PR 视图变得可读。
+
+启用（克隆仓库后跑一次）：
+
+```bash
+git config include.path ../.gitconfig
+```
+
 ### 提交规范
 
 提交信息使用 Conventional Commits 格式：

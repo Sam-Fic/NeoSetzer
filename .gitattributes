@@ -1,0 +1,13 @@
+# po/pot 文件：用 msgid 块作为 diff hunk 边界，避免 sync-po.sh 重排/折行
+# 产生的几千行"假改动"掩盖真正的翻译变更。
+#
+# 实际效果：在 git diff / git log -p / GitHub PR view 中，po 文件的 diff
+# 只显示「同一 msgid 块内的 msgstr 变化」，行号漂移和折行重排都被视为
+# 上下文噪音而折叠。
+#
+# xfuncname 必须能匹配到 msgid 块的首行（带或不带前导注释都可）。
+# xfuncname 是 POSIX 扩展正则；需要匹配「以 msgid 开头的行」或「文件头
+# 的 msgid ""」（PO header）。
+
+po/*.po   diff=po-diff merge=po-diff
+po/*.pot  diff=po-diff merge=po-diff
