@@ -15,6 +15,12 @@ if host_machine.system() != 'windows'
     install_dir: join_paths(datadir, 'icons', 'hicolor', 'scalable', 'apps'),
   )
 
+  # symbolic app icon
+  install_data(
+    files('resources/icons/hicolor/scalable/apps/org.cvfosammmm.Setzer-symbolic.svg'),
+    install_dir: join_paths(datadir, 'icons', 'hicolor', 'scalable', 'apps'),
+  )
+
   # MIME type
   install_data(
     files('org.cvfosammmm.Setzer.mime.xml'),

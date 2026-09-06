@@ -57,7 +57,7 @@ def WelcomeScreenView():
 
     # --- top: status page (icon + title + hint) ---
     status = Adw.StatusPage()
-    status.set_icon_name('document-latex-symbolic')
+    status.set_icon_name('org.cvfosammmm.Setzer-symbolic')
     status.set_title(_('Write beautiful LaTeX documents with ease!'))
     status.set_description(_('Start a new document below, pick a template, '
                             'or jump back into one of your recent files.'))

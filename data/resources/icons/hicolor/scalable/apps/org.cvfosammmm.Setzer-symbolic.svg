@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 由主应用图标 org.cvfosammmm.Setzer.svg 提炼：圆盘（圆心菱形镂空）+ 右后方方块（重叠处留 1.5px 缝表示层级）。
+     16×16 画布、单色填充（GTK 会按主题重新着色）、2px 级主笔画、形状对齐像素网格。 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <path fill="#2e3436" d="M 11.766 5 H 14 A 1 1 0 0 1 15 6 V 10 A 1 1 0 0 1 14 11 H 11.766 A 6.5 6.5 0 0 0 11.766 5 Z"/>
+  <path fill-rule="evenodd" fill="#2e3436" d="M 1 8 A 5 5 0 1 1 11 8 A 5 5 0 1 1 1 8 Z M 6 6 L 8 8 L 6 10 L 4 8 Z"/>
+</svg>
