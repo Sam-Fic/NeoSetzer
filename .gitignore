@@ -3,9 +3,9 @@ builddir
 **/__pycache__/
 .flatpak-builder/
 flatpak/
-.trae/
 .codebuddy/
 .vscode/
+.zcode/
 
 # Python
 *.pyc
