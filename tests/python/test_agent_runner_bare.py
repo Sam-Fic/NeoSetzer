@@ -76,6 +76,15 @@ class RunHeadedBareTest(unittest.TestCase):
         assert 'myagent' in msg
         assert _popen_calls() == []
 
+    def test_missing_executable_field(self):
+        '''tool_config 缺 / 空 executable：返回「未配置可执行文件」失败消息。'''
+        tool = {'name': 'myagent', 'executable': ''}
+        success, msg = agent_runner.run_headed_bare(tool, '/tmp/proj')
+        assert success is False
+        assert 'myagent' in msg
+        # 不该去探测 PATH，也不该启动终端
+        assert _popen_calls() == []
+
     def test_no_terminal_available(self):
         '''系统无可用终端：返回失败提示。'''
         tool = {'name': 'claude', 'executable': 'claude'}
