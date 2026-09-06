@@ -170,5 +170,56 @@ class RunHeadedTest(unittest.TestCase):
         assert 'terminal' in msg.lower()
 
 
+class ResolveToolConfigTest(unittest.TestCase):
+    '''resolve_tool_config：HeaderBar 与 Build Log AI Fix 共用的工具选择 helper。'''
+
+    def test_empty_tools(self):
+        assert agent_runner.resolve_tool_config([], 'opencode') is None
+
+    def test_active_tool_available(self):
+        '''active_tool_name 命中且 executable 在 PATH：直接返回它。'''
+        tools = [
+            {'name': 'opencode', 'executable': 'opencode'},
+            {'name': 'claude', 'executable': 'claude'},
+        ]
+        with mock.patch.object(agent_runner, 'check_tool_available', return_value=True):
+            result = agent_runner.resolve_tool_config(tools, 'opencode')
+        assert result is tools[0]
+
+    def test_active_tool_unavailable_falls_back_to_first_available(self):
+        '''active_tool_name 命中但不可用：遍历列表挑第一个可用的。'''
+        tools = [
+            {'name': 'opencode', 'executable': 'opencode'},
+            {'name': 'claude', 'executable': 'claude'},
+            {'name': 'gemini', 'executable': 'gemini'},
+        ]
+        # opencode 不可用 → 走到 claude（第一个可用）
+        with mock.patch.object(agent_runner, 'check_tool_available',
+                               side_effect=lambda t: t['name'] == 'claude'):
+            result = agent_runner.resolve_tool_config(tools, 'opencode')
+        assert result is tools[1]
+
+    def test_active_tool_missing_falls_back_to_first_available(self):
+        '''active_tool_name 不在列表里：遍历列表挑第一个可用的。'''
+        tools = [
+            {'name': 'opencode', 'executable': 'opencode'},
+            {'name': 'claude', 'executable': 'claude'},
+        ]
+        with mock.patch.object(agent_runner, 'check_tool_available',
+                               side_effect=lambda t: t['name'] == 'claude'):
+            result = agent_runner.resolve_tool_config(tools, 'does-not-exist')
+        assert result is tools[1]
+
+    def test_nothing_available_returns_first(self):
+        '''全部不可用：返回 tools[0]，让上层报具体原因（而不是返回 None）。'''
+        tools = [
+            {'name': 'opencode', 'executable': 'opencode'},
+            {'name': 'claude', 'executable': 'claude'},
+        ]
+        with mock.patch.object(agent_runner, 'check_tool_available', return_value=False):
+            result = agent_runner.resolve_tool_config(tools, 'claude')
+        assert result is tools[0]
+
+
 if __name__ == '__main__':
     unittest.main()

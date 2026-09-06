@@ -244,6 +244,30 @@ def check_tool_available(tool_config):
     return _which_on_host(executable) is not None
 
 
+def resolve_tool_config(tools, active_tool_name):
+    '''按 active_tool_name 解析工具配置；找不到时遍历列表，挑第一个
+    _which_on_host 可探测到的可执行文件；都没有则返回 None。
+
+    供 HeaderBar「快速打开 Agent 终端」按钮和 Build Log AI Fix 共用——
+    旧实现两处都硬编码 `tools[0]`，在第一个工具不可用时仍然选中它，
+    等到 run_headed/run_headed_bare 才报"工具不可用"。本函数把可用性
+    检查前移到选择阶段：选出来的工具至少 executable 在 host PATH 里。
+    '''
+    if not tools:
+        return None
+    match = next((t for t in tools if t.get('name') == active_tool_name), None)
+    if match is not None and check_tool_available(match):
+        return match
+    # 回退：挑第一个可用的；保留顺序以便用户偏好（列表前 = 优先）
+    for t in tools:
+        if check_tool_available(t):
+            return t
+    # 没有任何工具可用：返回第一个，让上层报具体原因（缺 executable /
+    # 不在 PATH）；不要在这里返回 None，否则上层无法区分"未配置"与
+    # "配置了但都不可用"。
+    return tools[0]
+
+
 def render_template(template, prompt, filename, cwd):
     '''把模板里的占位符替换为实际值，返回新列表（不改原模板）。
 

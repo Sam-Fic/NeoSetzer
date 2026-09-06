@@ -371,19 +371,19 @@ class HeaderBar(object):
             return
 
         # 3. 取激活工具配置（找不到时回退第一个，与 _initiate_ai_fix 一致）
-        active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
-        tools = settings.get_value('preferences', 'ai_fix_tools')
-        tool_config = next((t for t in tools if t.get('name') == active_tool_name), None)
-        if tool_config is None:
-            tool_config = tools[0] if tools else None
-            if tool_config is None:
-                self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
-                return
-
-        # 4. 裸启动：终端 + executable（无参数，进入交互 TUI）
+        # 3. 取激活工具配置（agent_runner.resolve_tool_config 优先按 active_tool_name，
+        #    找不到或不可用时回退到第一个 _which_on_host 可探测到的工具）。
         from setzer.ai_fix import agent_runner
         # 本地化钩子（agent_runner 模块文档声明）：让返回的提示消息走 gettext。
         agent_runner._ = _
+        active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
+        tools = settings.get_value('preferences', 'ai_fix_tools')
+        tool_config = agent_runner.resolve_tool_config(tools, active_tool_name)
+        if tool_config is None:
+            self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
+            return
+
+        # 4. 裸启动：终端 + executable（无参数，进入交互 TUI）
         terminal_cmd = settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed_bare(tool_config, cwd, terminal_cmd=terminal_cmd)
         self._toast(msg)

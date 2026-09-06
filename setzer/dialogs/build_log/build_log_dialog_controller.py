@@ -427,16 +427,17 @@ class BuildLogDialogController(object):
             self._toast(_('Please save the document first'))
             return
 
-        # 3. 取激活工具配置
+        # 3. 取激活工具配置（agent_runner.resolve_tool_config 优先按 active_tool_name，
+        #    找不到或不可用时回退到第一个 _which_on_host 可探测到的工具）。
+        from setzer.ai_fix import agent_runner
+        # 本地化钩子（agent_runner 模块文档声明）：让返回的提示消息走 gettext。
+        agent_runner._ = _
         active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
         tools = settings.get_value('preferences', 'ai_fix_tools')
-        tool_config = next((t for t in tools if t.get('name') == active_tool_name), None)
+        tool_config = agent_runner.resolve_tool_config(tools, active_tool_name)
         if tool_config is None:
-            # 配置异常：回退第一个工具
-            tool_config = tools[0] if tools else None
-            if tool_config is None:
-                self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
-                return
+            self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
+            return
 
         # 4. 组装 prompt
         from setzer.ai_fix import prompt_builder
@@ -502,7 +503,7 @@ class BuildLogDialogController(object):
             # 保存失败，中止 AI fix（toast 已由 save_to_disk 弹出）
             return
 
-        from setzer.ai_fix import agent_runner
+        # agent_runner 已在 _initiate_ai_fix 顶部 import 过；Python 缓存复用。
         filename = document.get_filename()
         terminal_cmd = self.build_log.settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed(
