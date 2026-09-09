@@ -376,13 +376,13 @@ class BuildSystem(Observable):
             if not self.document.root_is_set:
                 if result_blob['backward_sync']['filename'] == self.document.get_filename():
                     self.set_synctex_position(self.document, result_blob['backward_sync'])
-                    self.document.scroll_cursor_onscreen()
+                    self.document.scroll_cursor_to_center()
             elif self.document.is_root:
                 workspace = ServiceLocator.get_workspace()
                 document = workspace.open_document_by_filename(result_blob['backward_sync']['filename'])
                 if document != None:
                     self.set_synctex_position(document, result_blob['backward_sync'])
-                    document.scroll_cursor_onscreen()
+                    document.scroll_cursor_to_center()
 
         self.change_build_state('idle')
 
