@@ -4,6 +4,7 @@ builddir
 .flatpak-builder/
 flatpak/
 .codebuddy/
+.workbuddy/
 .vscode/
 .zcode/
 
