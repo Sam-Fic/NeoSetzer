@@ -15,6 +15,8 @@
       <rect x="400" y="395" width="163" height="1085"/>
     </clipPath>
   </defs>
+  <!-- 整体围绕内容中心缩小到 93%，画布保持 128×128 -->
+  <g transform="translate(999.5 1017.5) scale(0.93) translate(-999.5 -1017.5)">
   <!-- 封面：圆角矩形提供顶部圆角，下方矩形盖平底部两角 -->
   <rect x="400" y="395" width="1200" height="955" rx="163" fill="#241f31"/>
   <rect x="400" y="558" width="1200" height="792" fill="#241f31"/>
@@ -35,5 +37,6 @@
     <rect x="460" y="1499.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
     <rect x="460" y="1522.5" width="1200" height="22.75" fill="#ffffff"/>
     <rect x="460" y="1545.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
+  </g>
   </g>
 </svg>
