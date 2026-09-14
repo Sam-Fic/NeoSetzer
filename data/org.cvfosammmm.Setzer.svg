@@ -1,74 +1,39 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="128" height="128" viewBox="0 0 128 128" version="1.1"
-     xmlns="http://www.w3.org/2000/svg">
-  <title>LaTeX Editor</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="392 395 1215 1245" fill="none">
   <defs>
-    <linearGradient id="circGrad" x1="0" y1="0" x2="0.25" y2="1">
-      <stop offset="0" stop-color="#99c1f1"/>
-      <stop offset="1" stop-color="#1c71d8"/>
+    <linearGradient id="spine" x1="0" y1="395" x2="0" y2="1480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#241f31"/>
+      <stop offset="1" stop-color="#9a9996"/>
     </linearGradient>
-    <linearGradient id="sqGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#dc8add"/>
-      <stop offset="1" stop-color="#813d9c"/>
+    <linearGradient id="globalGradient" x1="1660" y1="1386" x2="969" y2="2077" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#deddda"/>
+      <stop offset="1" stop-color="#ffffff"/>
     </linearGradient>
-    <clipPath id="circClip">
-      <!-- 正面圆：cy=62 -->
-      <circle cx="46" cy="62" r="40"/>
+    <clipPath id="pagesClip">
+      <path d="M1564 1386 H563 A91 91 0 0 0 563 1568 H1564 A93 93 0 0 1 1564 1386 Z"/>
     </clipPath>
-    <!-- 圆形厚度 clip（下移4px的圆 + 中间4px厚度填充带） -->
-    <clipPath id="circThickClip">
-      <circle cx="46" cy="66" r="40"/>
-      <rect x="6" y="62" width="80" height="4"/>
+    <clipPath id="spineClip">
+      <rect x="400" y="395" width="163" height="1085"/>
     </clipPath>
   </defs>
-  <g transform="matrix(1.1743119266055047 0 0 1.1743119266055047 -7.045871559633028 -11.155963302752298)">
-
-
-  <!-- ====== Layer 0: 圆形厚度 ====== -->
-  <circle cx="46" cy="66" r="40" fill="#1a5fb4"/>
-  <rect x="6" y="62" width="80" height="4" fill="#1a5fb4"/>
-
-  <!-- ====== Layer 1: 方形厚度 ====== -->
-  <rect x="55" y="36" width="60" height="60" rx="4" ry="4" fill="#613583"/>
-
-  <!-- ====== Layer 2: 圆厚 × 方厚（最暗） ====== -->
-  <g clip-path="url(#circThickClip)">
-    <rect x="55" y="36" width="60" height="60" rx="4" ry="4" fill="#c64600"/>
-  </g>
-
-  <!-- ====== Layer 3: 圆形正面 ====== -->
-  <circle cx="46" cy="62" r="40" fill="url(#circGrad)"/>
-
-  <!-- ====== Layer 4: 圆面 × 方厚（中暗） ====== -->
-  <g clip-path="url(#circClip)">
-    <rect x="55" y="36" width="60" height="60" rx="4" ry="4" fill="#e66100"/>
-  </g>
-
-  <!-- ====== Layer 5: 方形正面 ====== -->
-  <rect x="55" y="32" width="60" height="60" rx="4" ry="4" fill="url(#sqGrad)"/>
-
-  <!-- ====== Layer 6: 圆厚 × 方面（中暗） ====== -->
-  <g clip-path="url(#circThickClip)">
-    <rect x="55" y="32" width="60" height="60" rx="4" ry="4" fill="#e66100"/>
-  </g>
-
-  <!-- ====== Layer 7: 圆面 × 方面（最亮） ====== -->
-  <g clip-path="url(#circClip)">
-    <rect x="55" y="32" width="60" height="60" rx="4" ry="4" fill="#ff7800"/>
-  </g>
-
-  <!-- ====== Layer 8: 装饰元素 ====== -->
-  <!-- 阴影菱形（下移 4px），rx=4 满足 2px 限制 -->
-  <rect x="38" y="56" width="16" height="16" rx="4" ry="4" fill="#ffa348" transform="rotate(45, 46, 64)"/>
-
-  <!-- 正面菱形 -->
-  <rect x="38" y="54" width="16" height="16" rx="4" ry="4" fill="#f6d32d" transform="rotate(45, 46, 62)"/>
-
-  <!-- TeX logo (不受 2px 最小限制影响) -->
-  <text x="85" y="62" fill="white" fill-opacity="0.92" dominant-baseline="central"
-        font-family="'STIX Two Text', 'DejaVu Serif', 'Noto Serif', serif"
-        font-size="22" font-weight="bold" text-anchor="middle">
-    T<tspan font-size="16">E</tspan>X
-  </text>
+  <!-- 封面：圆角矩形提供顶部圆角，下方矩形盖平底部两角 -->
+  <rect x="400" y="395" width="1200" height="955" rx="163" fill="#241f31"/>
+  <rect x="400" y="558" width="1200" height="792" fill="#241f31"/>
+  <!-- 书脊：半圆提供左上凸圆角 + 矩形主体（半圆裁剪到书脊宽度内） -->
+  <circle cx="563" cy="558" r="163" fill="url(#spine)" clip-path="url(#spineClip)"/>
+  <rect x="400" y="558" width="163" height="922" fill="url(#spine)"/>
+  <!-- Sigma -->
+  <path transform="translate(464.3 377.7) scale(9.4)" d="M98.94 26.57H29.06L51.3 52.42 28.96 78.06H98.94V61.21H86.45L86.24 69.38H53.51L69.14 52.32 53.72 35.15H86.35L86.56 42.6H98.83Z" fill="#ffffff"/>
+  <!-- 黑色 C 形书页外框：中心线 r=127，描边 72 → 外缘 r=163、内缘 r=91 -->
+  <path d="M1564 1350 H563 A127 127 0 0 0 563 1604 H1564" fill="none" stroke="#000000" stroke-width="72" stroke-linecap="round"/>
+  <!-- 灰色内衬书页：8 条横条纹暗示书页厚度 -->
+  <g clip-path="url(#pagesClip)">
+    <rect x="460" y="1386" width="1200" height="22.75" fill="#ffffff"/>
+    <rect x="460" y="1408.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
+    <rect x="460" y="1431.5" width="1200" height="22.75" fill="#ffffff"/>
+    <rect x="460" y="1454.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
+    <rect x="460" y="1477" width="1200" height="22.75" fill="#ffffff"/>
+    <rect x="460" y="1499.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
+    <rect x="460" y="1522.5" width="1200" height="22.75" fill="#ffffff"/>
+    <rect x="460" y="1545.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
   </g>
 </svg>
