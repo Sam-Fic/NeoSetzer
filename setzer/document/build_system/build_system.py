@@ -393,9 +393,18 @@ class BuildSystem(Observable):
             from setzer.settings.document_settings import DocumentSettings
             try: DocumentSettings.save_document_state(self.document)
             except Exception: pass
+            # 构建期间 latexmk/poppler/cairo 短时间大量分配再释放，glibc 把
+            # 空闲块留在堆 arena 不归还 OS，RSS 停在峰值。延迟 3 秒（等预览
+            # 渲染队列把新 PDF 的页面纹理画完）后 malloc_trim 归还空闲页。
+            GLib.timeout_add_seconds(3, self._trim_heap_after_build)
 
         # 构建完成后刷新 LaTeXDB 的 label/bibitem 数据库（事件驱动）。
         LaTeXDB.schedule_parse_included_files()
+
+    def _trim_heap_after_build(self):
+        from setzer.helpers.malloc_trim import trim_malloc_heap
+        trim_malloc_heap()
+        return False   # 一次性回调
 
     def add_query(self, query):
         if self.active_query != None:
