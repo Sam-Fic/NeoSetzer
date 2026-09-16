@@ -21,6 +21,7 @@ import subprocess
 
 import setzer.document.build_system.builder.builder_build as builder_build
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.decode_output import decode_process_output
 from setzer.helpers.synctex_folder import synctex_folder
 
 
@@ -64,7 +65,10 @@ class BuilderForwardSync(builder_build.BuilderBuild):
 
         rectangles = list()
         if process != None:
-            raw = process.communicate()[0].decode('utf-8')
+            # 三级容错解码（UTF-8 → 系统代码页 → replace）：synctex 出错时
+            # 在中文 Windows 上输出 GBK 文本，硬按 UTF-8 解码会抛
+            # UnicodeDecodeError 使后台线程崩溃（Windows 用户实测报告）。
+            raw = decode_process_output(process.communicate()[0])
             self.process = None
 
             for match in self.forward_synctex_regex.finditer(raw):
