@@ -20,98 +20,100 @@ msgstr ""
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:8
 msgid "Simple yet full-featured LaTeX editor (fork of Setzer)"
-msgstr ""
+msgstr "简洁而功能完备的 LaTeX 编辑器（Setzer 的分支）"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
-msgid "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-featured editor. It is a fork of the Setzer project."
-msgstr ""
+msgid ""
+"NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
+"featured editor. It is a fork of the Setzer project."
+msgstr "NeoSetzer 让你在简单易用却功能完备的编辑器中撰写 LaTeX 文档。它是 Setzer 项目的分支。"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:16
 msgid "Features include:"
-msgstr ""
+msgstr "功能包括："
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:33
 msgid "Buttons and shortcuts for many LaTeX elements and special characters"
-msgstr ""
+msgstr "为大量 LaTeX 元素和特殊字符提供按钮与快捷键"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
 msgid "Comfortable document creation wizard"
-msgstr ""
+msgstr "舒适的文档创建向导"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:41
 msgid "Dark mode"
-msgstr ""
+msgstr "深色模式"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:45
 msgid "Helpful error messages in the build log"
-msgstr ""
+msgstr "构建日志中提供实用的错误信息"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
 msgid "Looks great on the Gnome desktop"
-msgstr ""
+msgstr "在 GNOME 桌面上观感极佳"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
 msgid "Good screen to content ratio"
-msgstr ""
+msgstr "屏幕与内容的比例合理"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:24
 msgid "Arguably the best .pdf viewer of any LaTeX editor"
-msgstr ""
+msgstr "堪称所有 LaTeX 编辑器中最好的 .pdf 查看器"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:37
 msgid "Document creation wizard"
-msgstr ""
+msgstr "文档创建向导"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:72
 msgid "Fork maintenance release (development continued from v67):"
-msgstr ""
+msgstr "分支维护版本（自 v67 起继续开发）："
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:74
 msgid "UI polish: welcome screen, header bar, document wizard, preview panel"
-msgstr ""
+msgstr "界面打磨：欢迎页、标题栏、文档向导、预览面板"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:75
 msgid "Refactor gutter rendering and preview panel widgets"
-msgstr ""
+msgstr "重构行号槽渲染与预览面板部件"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
 msgid "Add per-PDF theme color matching preference"
-msgstr ""
+msgstr "新增按 PDF 匹配主题配色的首选项"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:77
 msgid "Default highlight-current-line to on"
-msgstr ""
+msgstr "默认开启当前行高亮"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:78
 msgid "Packaging: add standard Debian (.deb) build flow"
-msgstr ""
+msgstr "打包：新增标准 Debian（.deb）构建流程"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:84
 msgid "Modernize GUI to latest GTK4 and libadwaita standards:"
-msgstr ""
+msgstr "将 GUI 更新至最新的 GTK4 与 libadwaita 标准："
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
 msgid "Upgrade to Adw.PreferencesDialog for preferences"
-msgstr ""
+msgstr "首选项改用 Adw.PreferencesDialog"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:87
 msgid "Upgrade to Adw.ShortcutsDialog for keyboard shortcuts"
-msgstr ""
+msgstr "键盘快捷键改用 Adw.ShortcutsDialog"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:88
 msgid "Replace all deprecated GTK4 API calls"
-msgstr ""
+msgstr "替换全部已弃用的 GTK4 API 调用"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:89
 msgid "Update Flatpak runtime to GNOME 48"
-msgstr ""
+msgstr "Flatpak 运行时更新至 GNOME 48"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:95
 msgid "Mostly bugfixes, ..."
-msgstr ""
+msgstr "以错误修复为主，……"
 
 #: data/resources/latexdb/languages/languages.xml:2
 #: data/resources/latexdb/languages/languages.xml:21
@@ -303,51 +305,51 @@ msgstr ""
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
-msgstr ""
+msgstr "来自 AMS 的附加数学字体。"
 
 #: data/resources/latexdb/packages/general.xml:3
 msgid "mathematics package from AMS."
-msgstr ""
+msgstr "来自 AMS 的数学宏包。"
 
 #: data/resources/latexdb/packages/general.xml:4
 msgid "mathematical symbols from AMS."
-msgstr ""
+msgstr "来自 AMS 的数学符号。"
 
 #: data/resources/latexdb/packages/general.xml:5
 msgid "math theorems setting package from AMS."
-msgstr ""
+msgstr "来自 AMS 的数学定理排版宏包。"
 
 #: data/resources/latexdb/packages/general.xml:6
 msgid "multilingual documents."
-msgstr ""
+msgstr "多语言文档。"
 
 #: data/resources/latexdb/packages/general.xml:7
 msgid "dirac braket and set notations."
-msgstr ""
+msgstr "狄拉克括号与集合记号。"
 
 #: data/resources/latexdb/packages/general.xml:8
 msgid "bibliographies in LaTeX."
-msgstr ""
+msgstr "在 LaTeX 中管理参考文献。"
 
 #: data/resources/latexdb/packages/general.xml:9
 msgid "simple arithmetic in LaTeX commands."
-msgstr ""
+msgstr "在 LaTeX 命令中进行简单算术。"
 
 #: data/resources/latexdb/packages/general.xml:10
 msgid "foreground and background colors."
-msgstr ""
+msgstr "前景色与背景色。"
 
 #: data/resources/latexdb/packages/general.xml:11
 msgid "colored tables."
-msgstr ""
+msgstr "彩色表格。"
 
 #: data/resources/latexdb/packages/general.xml:12
 msgid "enumerate with redefinable labels."
-msgstr ""
+msgstr "可重定义标签的 enumerate 列表。"
 
 #: data/resources/latexdb/packages/general.xml:13
 msgid "interface to document dimensions."
-msgstr ""
+msgstr "文档页面尺寸设置接口。"
 
 #: data/resources/latexdb/packages/general.xml:14
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
@@ -366,15 +368,15 @@ msgstr "在您文档内创建超链接"
 
 #: data/resources/latexdb/packages/general.xml:17
 msgid "conditional commands."
-msgstr ""
+msgstr "条件命令。"
 
 #: data/resources/latexdb/packages/general.xml:18
 msgid "provides a listing environment for embedding programming code."
-msgstr ""
+msgstr "提供嵌入程序代码的列表（listing）环境。"
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr ""
+msgstr "提供更多参考文献与引用样式。"
 
 #: data/resources/latexdb/packages/general.xml:20
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
@@ -383,7 +385,7 @@ msgstr "不带缩进的段落"
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
-msgstr ""
+msgstr "绘制二维与三维图表。"
 
 #: data/resources/latexdb/packages/general.xml:22
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
@@ -392,20 +394,22 @@ msgstr "包含在文本模式中使用的符号"
 
 #: data/resources/latexdb/packages/general.xml:23
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
-msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
+msgid ""
+"define theorem environments (like \"definition\", \"lemma\", …) with custom "
+"styling."
 msgstr "使用自定义样式定义定理环境（如“定义”、“引理”等）"
 
 #: data/resources/latexdb/packages/general.xml:24
 msgid "graphics and plotting."
-msgstr ""
+msgstr "图形与绘图。"
 
 #: data/resources/latexdb/packages/general.xml:25
 msgid "set transparency for sections in your document."
-msgstr ""
+msgstr "为文档中的章节设置透明度。"
 
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
+msgstr "用 \\\\url{..} 命令输入网址，无需转义特殊字符。"
 
 #: data/resources/latexdb/packages/general.xml:27
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
@@ -413,7 +417,9 @@ msgid "enables colored text."
 msgstr "启用彩色文本"
 
 #: setzer/ai_fix/agent_runner.py:317
-msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
+msgid ""
+"No terminal emulator available. Install gnome-terminal / xterm or set a "
+"custom terminal in Preferences."
 msgstr "没有可用的终端模拟器。请安装 gnome-terminal / xterm，或在首选项中设置自定义终端。"
 
 #: setzer/ai_fix/agent_runner.py:371
@@ -434,12 +440,16 @@ msgstr "已在终端中启动 {}。"
 
 #: setzer/ai_fix/agent_runner.py:439
 #, python-brace-format
-msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
-msgstr ""
+msgid ""
+"{tool} has no executable configured. Set one in Preferences → General → AI "
+"Settings."
+msgstr "{tool} 尚未配置可执行文件。请在首选项 → 常规 → AI 设置中设置。"
 
 #: setzer/ai_fix/agent_runner.py:442
 #, python-brace-format
-msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
+msgid ""
+"{tool} is not available on this system. Check the executable name in "
+"Preferences → General → AI Settings."
 msgstr "{tool} 在此系统上不可用。请在首选项 → 常规 → AI 设置中检查可执行文件名。"
 
 #: setzer/ai_fix/preview_dialog.py:78
@@ -498,7 +508,8 @@ msgid "Send"
 msgstr "发送"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:77
-msgid "Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
+msgid ""
+"Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
 msgstr "编辑"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:110
@@ -506,7 +517,10 @@ msgid "Don't ask again for this project"
 msgstr "此项目不再询问"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:111
-msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
+msgid ""
+"Skip this preview dialog for the current document's directory in the future."
+" You can revoke this in Preferences → General → AI Settings → Trusted "
+"directories."
 msgstr "今后跳过当前文档目录的此预览对话框。可在首选项 → 常规 → AI 设置 → 信任目录中撤销。"
 
 #: setzer/app/exception_handler.py:50
@@ -1028,7 +1042,9 @@ msgstr "崩溃恢复"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:75
 #, python-brace-format
-msgid "Setzer did not exit cleanly last time. {n} unsaved document(s) were recovered:"
+msgid ""
+"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"recovered:"
 msgstr "NeoSetzer 上次未正常退出，已恢复 {n} 个未保存的文档："
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:87
@@ -1198,7 +1214,9 @@ msgid "Choose a BibTeX File"
 msgstr "选择 BibTeX 文件"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:227
-msgid "Choose a bibliography associated with the current document, or open a BibTeX file."
+msgid ""
+"Choose a bibliography associated with the current document, or open a BibTeX"
+" file."
 msgstr "请选择与当前文档关联的参考文献库，或打开一个 BibTeX 文件。"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:266
@@ -1263,7 +1281,9 @@ msgid "Insert Citations"
 msgstr "插入引用"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:407
-msgid "Select entries on the left, choose a command, optionally add a locator, and insert. The preview shows the final LaTeX text."
+msgid ""
+"Select entries on the left, choose a command, optionally add a locator, and "
+"insert. The preview shows the final LaTeX text."
 msgstr "在左侧选择条目，选择命令，可选添加定位符，然后插入。预览显示最终的 LaTeX 文本。"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:416
@@ -1343,7 +1363,9 @@ msgstr "删除 BibTeX 条目？"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:827
 #, python-brace-format
-msgid "Delete “{key}” from this bibliography? This can be undone when the file is open in Setzer."
+msgid ""
+"Delete “{key}” from this bibliography? This can be undone when the file is "
+"open in Setzer."
 msgstr "要从此参考文献库中删除“{key}”吗？文件在 Setzer 中打开时可撤销此操作。"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:830
@@ -1360,7 +1382,10 @@ msgid "Format Bibliography?"
 msgstr "格式化文献？"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:851
-msgid "Rewrite every entry with fields in a consistent order and aligned values. Comments and everything outside entries stay unchanged. This can be undone when the file is open in Setzer."
+msgid ""
+"Rewrite every entry with fields in a consistent order and aligned values. "
+"Comments and everything outside entries stay unchanged. This can be undone "
+"when the file is open in Setzer."
 msgstr "重写每个条目，字段统一排序、值对齐。注释与条目外的内容保持不变。文件在 Setzer 中打开时可撤销此操作。"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:854
@@ -1632,7 +1657,8 @@ msgstr "没有可显示的编译日志项。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:416
 #: setzer/workspace/headerbar/headerbar.py:360
-msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
+msgid ""
+"AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "AI 代理已禁用。请在首选项 → 常规 → AI 设置中启用。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:422
@@ -1648,7 +1674,8 @@ msgstr "请先保存文档"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:439
 #: setzer/workspace/headerbar/headerbar.py:383
-msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
+msgid ""
+"No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "未配置 Agent 工具。请在首选项 → 常规 → AI 设置中添加。"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:488
@@ -1793,7 +1820,10 @@ msgid "Document \"{document}\" has no filename."
 msgstr "文档{document}没有文件名"
 
 #: setzer/dialogs/build_save/build_save.py:37
-msgid "Please save your document to a file, so the build system knows where to put the .pdf (it will be in the same folder as your document). A file chooser will appear for you to select a location and filename."
+msgid ""
+"Please save your document to a file, so the build system knows where to put "
+"the .pdf (it will be in the same folder as your document). A file chooser "
+"will appear for you to select a location and filename."
 msgstr "请将文档保存到文件，以便构建系统知道 .pdf 的输出位置（与文档位于同一文件夹）。将会弹出文件选择器供你选择位置和文件名"
 
 #: setzer/dialogs/build_save/build_save.py:39
@@ -1867,7 +1897,8 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "文档{document}在磁盘上有变化"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
-msgid "Should Setzer reload it now? Reloading will discard your unsaved changes."
+msgid ""
+"Should Setzer reload it now? Reloading will discard your unsaved changes."
 msgstr "是否立即让 NeoSetzer 重载它？重载将丢弃您未保存的修改。"
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:45
@@ -1884,7 +1915,8 @@ msgid "Document \"{document}\" was deleted from disk or moved."
 msgstr "文档{document}已从磁盘删除或移走"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
-msgid "If you close it or close Setzer without saving, this document will be lost."
+msgid ""
+"If you close it or close Setzer without saving, this document will be lost."
 msgstr "如果你关闭它或关闭 NeoSetzer 而不保存，此文档将会丢失。"
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43
@@ -2203,7 +2235,9 @@ msgid "Page format"
 msgstr "页面格式"
 
 #: setzer/dialogs/document_wizard/pages/page.py:107
-msgid "Select the paper size for the document. US Letter for North America, A4 for most other regions."
+msgid ""
+"Select the paper size for the document. US Letter for North America, A4 for "
+"most other regions."
 msgstr "选择文档的纸张大小。北美使用 US Letter，其他大部分地区使用 A4。"
 
 #: setzer/dialogs/document_wizard/pages/page.py:119
@@ -2211,7 +2245,9 @@ msgid "Landscape format"
 msgstr "横向格式"
 
 #: setzer/dialogs/document_wizard/pages/page.py:121
-msgid "Switch to landscape orientation (wider than tall). Useful for wide tables or figures."
+msgid ""
+"Switch to landscape orientation (wider than tall). Useful for wide tables or"
+" figures."
 msgstr "横向（宽大于高）"
 
 #: setzer/dialogs/document_wizard/pages/page.py:125
@@ -2219,7 +2255,9 @@ msgid "Two-column layout"
 msgstr "两栏布局"
 
 #: setzer/dialogs/document_wizard/pages/page.py:127
-msgid "Arrange text in two columns per page. Common for scientific articles and magazines."
+msgid ""
+"Arrange text in two columns per page. Common for scientific articles and "
+"magazines."
 msgstr "将文本排为每页双栏"
 
 #: setzer/dialogs/document_wizard/pages/page.py:135
@@ -2229,7 +2267,9 @@ msgid "Font size"
 msgstr "字体大小"
 
 #: setzer/dialogs/document_wizard/pages/page.py:138
-msgid "LaTeX standard default is 10pt; 12pt is common for book and letter. Values outside 10-12pt require the extsizes package."
+msgid ""
+"LaTeX standard default is 10pt; 12pt is common for book and letter. Values "
+"outside 10-12pt require the extsizes package."
 msgstr "LaTeX 标准默认值为 10pt；book 与 letter 类常用 12pt。"
 
 #: setzer/dialogs/document_wizard/pages/page.py:143
@@ -2241,7 +2281,9 @@ msgid "On: use LaTeX default margins. Off: set custom margins below."
 msgstr "开：使用 LaTeX 默认边距。关：在下方设置自定义边距。"
 
 #: setzer/dialogs/document_wizard/pages/page.py:146
-msgid "When enabled, LaTeX's default margins (about 1 inch / 2.54 cm) are used. Disable to set custom values for each side."
+msgid ""
+"When enabled, LaTeX's default margins (about 1 inch / 2.54 cm) are used. "
+"Disable to set custom values for each side."
 msgstr "启用后使用 LaTeX 默认页边距（约 1 英寸 / 2.54 厘米）。关闭后可分别为各边自定义。"
 
 #: setzer/dialogs/document_wizard/pages/page.py:149
@@ -2296,7 +2338,9 @@ msgid "Show navigation buttons"
 msgstr "显示导航按钮"
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:172
-msgid "Show or hide the Beamer navigation bar at the bottom of slides. Disabling gives a cleaner look for presentations."
+msgid ""
+"Show or hide the Beamer navigation bar at the bottom of slides. Disabling "
+"gives a cleaner look for presentations."
 msgstr "在幻灯片底部显示或隐藏 Beamer 导航栏。关闭后演示文稿看起来更清爽。"
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:175
@@ -2308,7 +2352,9 @@ msgid "(\"t\" option, it's centered by default)"
 msgstr "（“t”选项，默认为居中）"
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:178
-msgid "When enabled, slide content is top-aligned (the [t] option). When disabled, content is vertically centered — the Beamer default."
+msgid ""
+"When enabled, slide content is top-aligned (the [t] option). When disabled, "
+"content is vertically centered — the Beamer default."
 msgstr "启用后幻灯片内容顶部对齐（[t] 选项）。关闭时内容垂直居中——Beamer 默认行为。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:79
@@ -2381,7 +2427,9 @@ msgid "<b>Book:</b>  For actual books containing many chapters and sections."
 msgstr "<b>书籍（Book）：</b>  用于包含许多章节的实际书籍"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:183
-msgid "<b>Report:</b>  For longer reports and articles containing more than one chapter, small books, thesis."
+msgid ""
+"<b>Report:</b>  For longer reports and articles containing more than one "
+"chapter, small books, thesis."
 msgstr "<b>报告（Report）：</b>  用于较长的报告，以及包含多章的文章、小册子、学位论文。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:184
@@ -2396,7 +2444,9 @@ msgid ""
 msgstr "<b>Beamer：</b>  用于通过 LaTeX 制作演示文稿幻灯片的文档类。有许多预定义的演示样式。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:187
-msgid "<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many customizations and sensible defaults."
+msgid ""
+"<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many "
+"customizations and sensible defaults."
 msgstr "<b>Scrartcl：</b> article 类的 KOMA-Script 替代。提供更多自定义选项与合理的默认值。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:188
@@ -2408,7 +2458,9 @@ msgid "<b>Scrbook:</b>  KOMA-Script replacement for the book class."
 msgstr "<b>Scrbook：</b> book 类的 KOMA-Script 替代。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:190
-msgid "<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for address, date, and subject layout."
+msgid ""
+"<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for "
+"address, date, and subject layout."
 msgstr "KOMA-Script 信件文档类"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:210
@@ -2420,7 +2472,9 @@ msgid "Load template"
 msgstr "加载模板"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:215
-msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
+msgid ""
+"Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — "
+"otherwise only “None” is listed."
 msgstr "显示已保存的预设。通过 ⋮ 菜单的“保存为预设”添加；未保存过时仅提供“无”。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:223
@@ -2432,7 +2486,9 @@ msgid "Use document template"
 msgstr "使用文档模板"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:228
-msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
+msgid ""
+"Shows your saved document templates. Use the ⋮ menu → “Save Document "
+"Template” to add one — otherwise only “Use wizard settings” is listed."
 msgstr "显示已保存的文档模板。通过 ⋮ 菜单的“保存文档模板”添加；否则仅提供“使用向导设置”。"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:256
@@ -2458,7 +2514,9 @@ msgid "General document settings"
 msgstr "常规文档设置"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
-msgid "<b>AMS packages:</b> provide mathematical symbols, math-related environments, …"
+msgid ""
+"<b>AMS packages:</b> provide mathematical symbols, math-related "
+"environments, …"
 msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等……"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
@@ -2500,7 +2558,9 @@ msgid "Date"
 msgstr "日期"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:210
-msgid "The document date, used in the \\date{} command. Use \\\\today for the current date."
+msgid ""
+"The document date, used in the \\date{} command. Use \\\\today for the "
+"current date."
 msgstr "文档日期"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:218
@@ -2511,11 +2571,15 @@ msgid "Language"
 msgstr "语言"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
-msgid "The main language for this document. This is used to apply rules for hyphenation and other purposes."
+msgid ""
+"The main language for this document. This is used to apply rules for "
+"hyphenation and other purposes."
 msgstr "用于该文档的主语言。这是用来应用连字符规则和其它目的"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:224
-msgid "The main language for hyphenation patterns and automatic labels (e.g. \"Abstract\" vs \"Zusammenfassung\")."
+msgid ""
+"The main language for hyphenation patterns and automatic labels (e.g. "
+"\"Abstract\" vs \"Zusammenfassung\")."
 msgstr "用于断字规则和自动标签的主语言（例如「Abstract」与「Zusammenfassung」）。"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:241
@@ -2524,11 +2588,15 @@ msgid "Font package"
 msgstr "字体宏包"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:242
-msgid "Select the font package to include in the preamble. lmodern is recommended for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX."
+msgid ""
+"Select the font package to include in the preamble. lmodern is recommended "
+"for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX."
 msgstr "选择要包含在导言区的字体宏包。pdfLaTeX 推荐使用 lmodern，XeLaTeX/LuaLaTeX 推荐使用 fontspec"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:246
-msgid "Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX. fontspec enables system fonts with XeLaTeX/LuaLaTeX."
+msgid ""
+"Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX."
+" fontspec enables system fonts with XeLaTeX/LuaLaTeX."
 msgstr "选择要包含在导言区的字体宏包。pdfLaTeX 推荐使用 lmodern，XeLaTeX/LuaLaTeX 推荐使用 fontspec"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:251
@@ -2598,7 +2666,9 @@ msgid "Saved source template"
 msgstr "已保存的源文档模板"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:375
-msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
+msgid ""
+"“{}” will be inserted exactly as saved. Document class, language, package, "
+"and metadata settings above will not be applied."
 msgstr "将按保存时的原样插入“{}”。上方的文档类、语言、宏包和元数据设置不会生效。"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:381
@@ -2695,7 +2765,9 @@ msgid "Fax"
 msgstr "传真"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:254
-msgid "Your fax number. Only used by scrlttr2; enable \"Show return address\" to make it appear."
+msgid ""
+"Your fax number. Only used by scrlttr2; enable \"Show return address\" to "
+"make it appear."
 msgstr "您的传真号码。仅 scrlttr2 使用；启用“显示回信地址”后才会显示。"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:263
@@ -2744,7 +2816,9 @@ msgid "The name of the person or organization you are writing to."
 msgstr "你写信给的个人或组织名称"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:291
-msgid "The recipient's street address or PO box. Use a new line for each address line."
+msgid ""
+"The recipient's street address or PO box. Use a new line for each address "
+"line."
 msgstr "收件人的街道地址或邮政信箱。请将每一行地址单独换行输入。"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:294
@@ -2828,7 +2902,9 @@ msgid "Use letter-style date"
 msgstr "使用信件样式日期"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:341
-msgid "Print the date in the spelled-out letter style instead of the numeric ISO form."
+msgid ""
+"Print the date in the spelled-out letter style instead of the numeric ISO "
+"form."
 msgstr "以拼写的信件样式打印日期，而非数字 ISO 格式。"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:364
@@ -2860,7 +2936,10 @@ msgid "Sectioning level"
 msgstr "章节划分"
 
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:147
-msgid "Choose the highest sectioning command. \"section\" for articles (\\section{}), \"chapter\" for reports and books (\\chapter{}), \"none\" for no sectioning commands."
+msgid ""
+"Choose the highest sectioning command. \"section\" for articles "
+"(\\section{}), \"chapter\" for reports and books (\\chapter{}), \"none\" for"
+" no sectioning commands."
 msgstr "选择最高层级的分节命令"
 
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:152
@@ -2999,7 +3078,9 @@ msgid "Start Writing"
 msgstr "开始写作"
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:92
-msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
+msgid ""
+"Start with a document, then build and preview it. You can reopen these tips "
+"at any time from Preferences."
 msgstr "从一个文档开始，然后构建并预览 PDF。你可以随时在“偏好设置”中重新打开这些提示。"
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:125
@@ -3012,7 +3093,9 @@ msgid "Start with a document"
 msgstr "从一个文档开始"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
-msgid "Use the welcome screen to create or open a file, choose a template, or try the example document."
+msgid ""
+"Use the welcome screen to create or open a file, choose a template, or try "
+"the example document."
 msgstr "使用欢迎页面新建或打开文件、选择模板，或试用示例文档。"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
@@ -3021,7 +3104,9 @@ msgstr "构建并预览 PDF"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
 #, python-brace-format
-msgid "Use {shortcut} to save and build. The PDF opens in the preview panel, where you can inspect the result."
+msgid ""
+"Use {shortcut} to save and build. The PDF opens in the preview panel, where "
+"you can inspect the result."
 msgstr "使用 {shortcut} 保存并构建。PDF 会在预览面板中打开，你可以在那里查看结果。"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
@@ -3029,7 +3114,9 @@ msgid "Navigate with document structure"
 msgstr "使用文档结构导航"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
-msgid "Use Document Structure to move between headings in a long document. Select an entry to jump to its title."
+msgid ""
+"Use Document Structure to move between headings in a long document. Select "
+"an entry to jump to its title."
 msgstr "使用“文档结构”在长文档的各个标题之间移动。选择一个条目即可跳转到对应标题。"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
@@ -3038,7 +3125,9 @@ msgstr "快速查找命令"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
 #, python-brace-format
-msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
+msgid ""
+"Use {shortcut} to search and run application commands when you do not "
+"remember where an action is located."
 msgstr "当你不记得某个操作的位置时，使用 {shortcut} 搜索并运行应用程序命令。"
 
 #: setzer/dialogs/go_to_line/go_to_line.py:40
@@ -3180,11 +3269,16 @@ msgid "Type of path to included file"
 msgstr "包括文件的路径类型"
 
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:92
-msgid "<b>Absolute Path:</b> Specify the absolute location of the included file in your filesystem."
+msgid ""
+"<b>Absolute Path:</b> Specify the absolute location of the included file in "
+"your filesystem."
 msgstr "<b>绝对路径：</b> 指定被包含文件在文件系统中的绝对位置"
 
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:92
-msgid "<b>Relative Path:</b> Set the path relative to the main document. This is useful when the included file is in the same folder as the main document and you want to move around both of them together."
+msgid ""
+"<b>Relative Path:</b> Set the path relative to the main document. This is "
+"useful when the included file is in the same folder as the main document and"
+" you want to move around both of them together."
 msgstr "<b>相对路径：</b> 设置相对于主文档的路径。当被包含文件与主文档位于同一文件夹，且希望二者一起移动时，这很有用。"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:61
@@ -3294,7 +3388,9 @@ msgid "Subfolder inside the document folder where the image is stored"
 msgstr "图片存放于文档目录下的子文件夹"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
-msgid "Image will be saved as PNG into \"<document folder>/<subfolder>/<file name>.png\"."
+msgid ""
+"Image will be saved as PNG into \"<document folder>/<subfolder>/<file "
+"name>.png\"."
 msgstr "图片将作为 PNG 保存至“<文档目录>/<子文件夹>/<文件名>.png”。"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
@@ -3402,16 +3498,22 @@ msgstr "显示在图片下方的文字；留空则不生成标题"
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:216
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:286
 msgid "Label (for \\ref)"
-msgstr "标签（用于 \ref）"
+msgstr ""
+"标签（用于 \r"
+"ef）"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:217
 msgid "Identifier used with \\ref to cross-reference this figure"
-msgstr "用于 \ref 交叉引用此图的标识符"
+msgstr ""
+"用于 \r"
+"ef 交叉引用此图的标识符"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:221
 #, python-brace-format
 msgid "Label is referenced with \\ref{label}. Leave \"fig:\" prefix or customize."
-msgstr "通过 \ref{label} 引用标签。保留“fig:”前缀或自行修改。"
+msgstr ""
+"通过 \r"
+"ef{label} 引用标签。保留“fig:”前缀或自行修改。"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:266
 msgid "Change…"
@@ -3479,7 +3581,9 @@ msgstr "已移除 {count} 个不再适配调整后表格大小的合并范围。
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:235
 #: setzer/dialogs/insert_table/insert_table_controller.py:264
-msgid "The selected range must fit inside the table, span at least two cells, and not overlap another merged range."
+msgid ""
+"The selected range must fit inside the table, span at least two cells, and "
+"not overlap another merged range."
 msgstr "所选范围必须位于表格内、至少跨越两个单元格，且不能与其他合并范围重叠。"
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:246
@@ -3488,7 +3592,9 @@ msgid "Editing merged range: row {row}, column {column}."
 msgstr "正在编辑合并范围：第 {row} 行，第 {column} 列。"
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:327
-msgid "Header repetition was disabled because a first-row merge spans multiple rows."
+msgid ""
+"Header repetition was disabled because a first-row merge spans multiple "
+"rows."
 msgstr "由于第一行的合并跨越多行，已关闭重复表头。"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:94
@@ -3520,7 +3626,8 @@ msgid "Table Data"
 msgstr "表格数据"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:132
-msgid "Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
+msgid ""
+"Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
 msgstr "以 LaTeX 形式输入单元格内容。使用 Tab 和 Shift+Tab 在单元格之间移动。"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
@@ -3572,7 +3679,9 @@ msgid "Merge Cells"
 msgstr "合并单元格"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:177
-msgid "Merge a rectangular range. The top-left cell supplies the generated LaTeX content."
+msgid ""
+"Merge a rectangular range. The top-left cell supplies the generated LaTeX "
+"content."
 msgstr "合并一个矩形区域。左上角单元格提供生成的 LaTeX 内容。"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:179
@@ -3677,7 +3786,9 @@ msgid "Long tables cannot use a table float"
 msgstr "长表格不能使用 table 浮动环境"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:252
-msgid "Caption and label are placed inside longtable; float placement and centering are unavailable."
+msgid ""
+"Caption and label are placed inside longtable; float placement and centering"
+" are unavailable."
 msgstr "标题和标签置于 longtable 内部；不能设置浮动位置或居中。"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:256
@@ -4187,7 +4298,9 @@ msgid "Reset all preferences?"
 msgstr "前往首选项"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:317
-msgid "This resets all preferences to their default values. Keyboard shortcuts and window layout are kept."
+msgid ""
+"This resets all preferences to their default values. Keyboard shortcuts and "
+"window layout are kept."
 msgstr "将所有首选项恢复为默认值。键盘快捷键和窗口布局会保留。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:320
@@ -4251,7 +4364,9 @@ msgid "Remove from trusted list"
 msgstr "从信任列表中移除"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:571
-msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
+msgid ""
+"All AI agent settings will be restored to their default values. Custom tools"
+" and trusted directories will be removed."
 msgstr "所有 AI 代理设置都将恢复为默认值。自定义工具与受信任目录将被移除。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:599
@@ -4279,7 +4394,8 @@ msgid "On Startup"
 msgstr "启动时"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
-msgid "Whether to restore the previous session or start with an empty workspace."
+msgid ""
+"Whether to restore the previous session or start with an empty workspace."
 msgstr "是否恢复上一次会话或启动空白工作区。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:657
@@ -4307,7 +4423,10 @@ msgid "Initial zoom mode for the PDF preview."
 msgstr "预览"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:676
-msgid "Default zoom mode for the PDF preview. Fit Width fills the preview width; Fit Text Width fits the text column; Fit Height fills the preview height; Manual starts at 100%."
+msgid ""
+"Default zoom mode for the PDF preview. Fit Width fills the preview width; "
+"Fit Text Width fits the text column; Fit Height fills the preview height; "
+"Manual starts at 100%."
 msgstr "PDF 预览的默认缩放模式。适合宽度填满预览宽度；适合文本宽度贴合文本栏；适合高度填满预览高度；手动模式以 100% 起始。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:680
@@ -4347,7 +4466,9 @@ msgid "Enable AI agent"
 msgstr "启用 AI 代理"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:715
-msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
+msgid ""
+"Enables AI Fix in the Build Log dialog and the agent terminal button in the "
+"header bar"
 msgstr "启用构建日志对话框中的 AI 修复按钮和标题栏中的 Agent 终端按钮"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:719
@@ -4363,15 +4484,21 @@ msgid "Terminal command (optional)"
 msgstr "终端命令（可选）"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:726
-msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
-msgstr "留空自动检测（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自动添加 flatpak-spawn --host。"
+msgid ""
+"Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under "
+"Flatpak, flatpak-spawn --host is added automatically."
+msgstr ""
+"留空自动检测（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自动添加 flatpak-"
+"spawn --host。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:731
 msgid "Agent tools"
 msgstr "Agent 工具"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:732
-msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
+msgid ""
+"Built-in presets cannot be removed. Add a custom tool to integrate other "
+"Agent CLIs."
 msgstr "内置预设无法删除。添加自定义工具以集成其他 Agent CLI。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:738
@@ -4383,7 +4510,9 @@ msgid "Trusted directories"
 msgstr "受信任目录"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:744
-msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
+msgid ""
+"Directories where the preview dialog is skipped. Click delete to revoke "
+"trust for a project."
 msgstr "跳过预览对话框的目录。点击删除可撤销对项目的信任。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:752
@@ -4415,7 +4544,9 @@ msgid "Backup and Restore"
 msgstr "备份与恢复"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:774
-msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
+msgid ""
+"Export your preferences and keyboard shortcuts to a file, or import them on "
+"another machine."
 msgstr "键盘快捷键"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:780
@@ -4462,8 +4593,13 @@ msgstr "有头命令模板"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:866
 #, python-brace-format
-msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
-msgstr "以空格分隔的参数。使用 {prompt} / {file} / {cwd} 作为占位符。例如：aider --message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示信息将复制到剪贴板。"
+msgid ""
+"Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
+"Example: aider --message {prompt} --no-auto-commits. If left blank or "
+"without {prompt}, the prompt is copied to clipboard."
+msgstr ""
+"以空格分隔的参数。使用 {prompt} / {file} / {cwd} 作为占位符。例如：aider --message {prompt} "
+"--no-auto-commits。如果留空或不包含 {prompt}，提示信息将复制到剪贴板。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:150
 msgid "All build system settings will be restored to their default values."
@@ -4473,18 +4609,29 @@ msgstr "所有构建系统设置都将恢复为默认值。"
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
-msgstr "未找到 LaTeX 解释器。若要在 Flatpak 中安装解释器，请打开终端并运行以下命令：    flatpak install org.freedesktop.Sdk.Extension.texlive"
+msgstr ""
+"未找到 LaTeX 解释器。若要在 Flatpak 中安装解释器，请打开终端并运行以下命令：    flatpak install "
+"org.freedesktop.Sdk.Extension.texlive"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:300
-msgid "No LaTeX interpreter found. For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
-msgstr "未找到 LaTeX 解释器。有关安装 LaTeX 的说明，请参阅 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+msgid ""
+"No LaTeX interpreter found. For instructions on installing LaTeX see <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+msgstr ""
+"未找到 LaTeX 解释器。有关安装 LaTeX 的说明，请参阅 <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:305
 msgid "Interpreter"
 msgstr "解释器"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:310
-msgid "Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic documentation</a>)."
+msgid ""
+"Please note: the Tectonic backend uses only the V1 command-line interface. "
+"Tectonic.toml configuration files are ignored. For custom build "
+"configuration, switch to another interpreter (see the <a "
+"href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic "
+"documentation</a>)."
 msgstr "请注意：Tectonic 后端仅使用 V1 命令行接口。Tectonic.toml 配置文件将被忽略。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:320
@@ -4496,8 +4643,12 @@ msgid "Output chain"
 msgstr "输出链"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:332
-msgid "PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; your interpreter choice is ignored on this route."
-msgstr "经 PostScript 生成 PDF 运行 latex → dvips → ps2pdf。PSTricks/psfrag 需要；此路线忽略您选择的解释器。"
+msgid ""
+"PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; "
+"your interpreter choice is ignored on this route."
+msgstr ""
+"经 PostScript 生成 PDF 运行 latex → dvips → ps2pdf。PSTricks/psfrag "
+"需要；此路线忽略您选择的解释器。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:334
 msgid "Direct PDF"
@@ -4512,7 +4663,9 @@ msgid "Generate SyncTeX for preview sync"
 msgstr "为预览同步生成 SyncTeX"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:342
-msgid "Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster."
+msgid ""
+"Enables forward/reverse sync between editor and PDF preview. Disabling makes"
+" builds slightly faster."
 msgstr "启用编辑器与 PDF 预览之间的正向/反向同步。禁用可让构建略快。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:350
@@ -4520,7 +4673,8 @@ msgid "Automatically build and save after changes"
 msgstr "更改后自动构建并保存"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:351
-msgid "When you stop typing, the document is saved and rebuilt after a short delay."
+msgid ""
+"When you stop typing, the document is saved and rebuilt after a short delay."
 msgstr "停止输入后，文档会在短暂延迟后保存并重新构建"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:355
@@ -4528,7 +4682,8 @@ msgid "Delay (seconds)"
 msgstr "延迟（秒）"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:357
-msgid "Shorter delays update the preview faster but use more CPU while typing."
+msgid ""
+"Shorter delays update the preview faster but use more CPU while typing."
 msgstr "预览"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
@@ -4536,7 +4691,9 @@ msgid "Pop up build log on auto-build errors"
 msgstr "自动构建出错时弹出构建日志"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:370
-msgid "When auto-build is on, automatically show the build log when errors occur. Disable to avoid interruptions while typing."
+msgid ""
+"When auto-build is on, automatically show the build log when errors occur. "
+"Disable to avoid interruptions while typing."
 msgstr "启用自动构建时，出错会自动显示构建日志。关闭可避免在输入时受到干扰"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:375
@@ -4568,7 +4725,9 @@ msgid "Embedded system commands"
 msgstr "嵌入式系统命令"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:404
-msgid "Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources."
+msgid ""
+"Warning: enable this only if you have to. It can cause security problems "
+"when building files from untrusted sources."
 msgstr "警告：仅当您不得不时启用该选项。它可以在构建不可信来源文件时导致安全问题。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:412
@@ -4592,8 +4751,13 @@ msgid "Personal TeX tree"
 msgstr "个人 TeX 树"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:424
-msgid "Directory with your own packages, classes and bibliography styles (kpathsea TEXMFHOME). Applied to every build; leave empty to use your environment or the TeX Live default (~/texmf)."
-msgstr "存放您自己的宏包、类和文献样式的目录（kpathsea TEXMFHOME）。应用于每次构建；留空则使用您的环境或 TeX Live 默认值（~/texmf）。"
+msgid ""
+"Directory with your own packages, classes and bibliography styles (kpathsea "
+"TEXMFHOME). Applied to every build; leave empty to use your environment or "
+"the TeX Live default (~/texmf)."
+msgstr ""
+"存放您自己的宏包、类和文献样式的目录（kpathsea TEXMFHOME）。应用于每次构建；留空则使用您的环境或 TeX Live "
+"默认值（~/texmf）。"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:428
 msgid "TEXMFHOME directory"
@@ -4680,7 +4844,9 @@ msgid "Use the system fixed width font"
 msgstr "使用系统等宽字体"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:714
-msgid "Use the system fixed-width font for editing. When enabled, the font set below is overridden."
+msgid ""
+"Use the system fixed-width font for editing. When enabled, the font set "
+"below is overridden."
 msgstr "启用后"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:721
@@ -4688,7 +4854,9 @@ msgid "Set Editor Font"
 msgstr "设置编辑器字体"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:724
-msgid "Choose a custom font for the LaTeX editor. Only active when \"Use the system fixed width font\" is off."
+msgid ""
+"Choose a custom font for the LaTeX editor. Only active when \"Use the system"
+" fixed width font\" is off."
 msgstr "为 LaTeX 编辑器选择自定义字体。仅在「使用系统等宽字体」关闭时生效。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:729
@@ -4700,7 +4868,9 @@ msgid "Extra vertical space between lines in pixels."
 msgstr "行与行之间额外的垂直间距（像素）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:732
-msgid "Extra vertical space between lines, in pixels. Affects readability and line density in the editor."
+msgid ""
+"Extra vertical space between lines, in pixels. Affects readability and line "
+"density in the editor."
 msgstr "行与行之间额外的垂直间距（像素）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:739
@@ -4720,7 +4890,9 @@ msgid "When enabled, pressing Tab inserts spaces instead of a tab character."
 msgstr "启用后，按 Tab 键将插入空格而不是制表符"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:754
-msgid "Number of spaces a tab character occupies when \"Insert spaces instead of tabs\" is enabled."
+msgid ""
+"Number of spaces a tab character occupies when \"Insert spaces instead of "
+"tabs\" is enabled."
 msgstr "插入"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:766
@@ -4732,7 +4904,9 @@ msgid "Maximum number of undo steps. 0 = unlimited."
 msgstr "最大撤销步数"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:769
-msgid "Limit the number of undoable actions kept in memory. Lower values save memory for very large documents. 0 keeps an unlimited history."
+msgid ""
+"Limit the number of undoable actions kept in memory. Lower values save "
+"memory for very large documents. 0 keeps an unlimited history."
 msgstr "限制保留在内存中的可撤销操作数量"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:777
@@ -4764,7 +4938,9 @@ msgid "Display a vertical line at a fixed column."
 msgstr "在固定列位置显示一条竖线"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:795
-msgid "Display a vertical line at a fixed column position to help keep lines within a recommended width."
+msgid ""
+"Display a vertical line at a fixed column position to help keep lines within"
+" a recommended width."
 msgstr "在固定列位置显示一条竖线"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:800
@@ -4776,7 +4952,9 @@ msgid "Column position for the right margin guide."
 msgstr "右侧边距参考线"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:803
-msgid "Column position for the right margin guide vertical line. LaTeX documents are typically kept within 80 columns."
+msgid ""
+"Column position for the right margin guide vertical line. LaTeX documents "
+"are typically kept within 80 columns."
 msgstr "右侧边距参考线"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:810
@@ -4792,7 +4970,9 @@ msgid "Wrap long lines instead of scrolling horizontally."
 msgstr "长行换行而非横向滚动"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:817
-msgid "Wrap long lines to fit within the editor window instead of scrolling horizontally."
+msgid ""
+"Wrap long lines to fit within the editor window instead of scrolling "
+"horizontally."
 msgstr "长行自动换行"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:822
@@ -4808,7 +4988,9 @@ msgid "Allow collapsing blocks of code such as environments."
 msgstr "允许折叠代码块"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:829
-msgid "Allow collapsing and expanding code blocks such as LaTeX environments, sections, and functions."
+msgid ""
+"Allow collapsing and expanding code blocks such as LaTeX environments, "
+"sections, and functions."
 msgstr "允许折叠与展开代码块"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:834
@@ -4820,11 +5002,15 @@ msgid "Enable sticky scroll for sections"
 msgstr "粘性滚动"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:839
-msgid "Show the current section header at the top of the editor while scrolling."
+msgid ""
+"Show the current section header at the top of the editor while scrolling."
 msgstr "滚动时在编辑器顶部显示当前节标题"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:841
-msgid "Displays a sticky header at the top of the editor showing the current section hierarchy (chapter, section, subsection, etc.) as you scroll through long documents."
+msgid ""
+"Displays a sticky header at the top of the editor showing the current "
+"section hierarchy (chapter, section, subsection, etc.) as you scroll through"
+" long documents."
 msgstr "在编辑器顶部显示一个粘性标题栏，展示当前章节层级（章、节、小节等），方便在长文档中滚动时定位。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:847
@@ -4860,11 +5046,15 @@ msgid "Highlight matching \\begin/\\end"
 msgstr "高亮匹配括号"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:866
-msgid "Highlight the environment matching the \\begin or \\end command next to the cursor."
+msgid ""
+"Highlight the environment matching the \\begin or \\end command next to the "
+"cursor."
 msgstr "光标"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:868
-msgid "Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor."
+msgid ""
+"Highlight the \\begin{...}/\\end{...} pair that matches the one next to the "
+"cursor."
 msgstr "高亮与光标旁配对的 \\begin{...}/\\end{...}。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:873
@@ -4876,19 +5066,27 @@ msgid "Check spelling as you type"
 msgstr "输入时检查拼写"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:879
-msgid "Underline misspelled words in the text. Commands, math and verbatim regions are skipped."
+msgid ""
+"Underline misspelled words in the text. Commands, math and verbatim regions "
+"are skipped."
 msgstr "为文本中标错的单词加下划线。命令、数学公式和原文环境将被跳过。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:882
-msgid "Check spelling as you type using enchant/hunspell dictionaries. LaTeX commands, math mode and verbatim environments are not checked. Right-click a marked word for suggestions."
-msgstr "使用 enchant/hunspell 词典在输入时检查拼写。LaTeX 命令、数学模式和原文环境不会被检查。右键点击标记出的单词可获取建议。"
+msgid ""
+"Check spelling as you type using enchant/hunspell dictionaries. LaTeX "
+"commands, math mode and verbatim environments are not checked. Right-click a"
+" marked word for suggestions."
+msgstr ""
+"使用 enchant/hunspell 词典在输入时检查拼写。LaTeX 命令、数学模式和原文环境不会被检查。右键点击标记出的单词可获取建议。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:889
 msgid "Dictionary used for spell checking"
 msgstr "用于拼写检查的词典"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:891
-msgid "The dictionary language for spell checking. Additional languages can be installed via hunspell/aspell packages."
+msgid ""
+"The dictionary language for spell checking. Additional languages can be "
+"installed via hunspell/aspell packages."
 msgstr "用于拼写检查的词典语言。可通过 hunspell/aspell 软件包安装更多语言。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:896
@@ -4900,7 +5098,9 @@ msgid "View and edit ignored words and your user dictionary"
 msgstr "查看并编辑已忽略的单词以及你的用户词典"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:900
-msgid "Manage the words you ignored for the current session and the words saved permanently to your user dictionary."
+msgid ""
+"Manage the words you ignored for the current session and the words saved "
+"permanently to your user dictionary."
 msgstr "管理你在本次会话中忽略的单词，以及永久保存到用户词典中的单词。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:910
@@ -4916,7 +5116,9 @@ msgid "Display line ending characters (¶) at the end of each line."
 msgstr "在每行末尾显示行尾符（¶）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:917
-msgid "Display a paragraph symbol (¶) at the end of each line to help identify trailing whitespace and line ending issues."
+msgid ""
+"Display a paragraph symbol (¶) at the end of each line to help identify "
+"trailing whitespace and line ending issues."
 msgstr "在每行末尾显示段落符号（¶），便于发现尾部空白和行尾问题。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:922
@@ -4928,7 +5130,9 @@ msgid "Display whitespace characters (· for spaces, → for tabs)."
 msgstr "空白字符"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:925
-msgid "Display symbols for spaces (·) and tabs (→) to help debug indentation and trailing whitespace issues."
+msgid ""
+"Display symbols for spaces (·) and tabs (→) to help debug indentation and "
+"trailing whitespace issues."
 msgstr "显示空格（·）和制表符（→）的符号，便于调试缩进和尾部空白问题。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:931
@@ -4960,7 +5164,9 @@ msgid "Display the multi-document tab bar above the shortcuts bar."
 msgstr "在快捷栏上方显示多文档标签栏。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:949
-msgid "Display a bar of open documents above the shortcuts bar. When enabled, a single open document hides the bar automatically."
+msgid ""
+"Display a bar of open documents above the shortcuts bar. When enabled, a "
+"single open document hides the bar automatically."
 msgstr "在快捷栏上方显示已打开文档栏。启用后，仅打开一个文档时自动隐藏该栏。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:956
@@ -4976,7 +5182,9 @@ msgid "Periodically save buffer to a temp file for crash recovery"
 msgstr "定期将缓冲区保存到临时文件以进行崩溃恢复"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:963
-msgid "Periodically save the buffer to a temporary file for crash recovery. Setzer can restore unsaved edits after an unexpected application exit."
+msgid ""
+"Periodically save the buffer to a temporary file for crash recovery. Setzer "
+"can restore unsaved edits after an unexpected application exit."
 msgstr "定期将缓冲区保存到临时文件，以便在意外退出后恢复未保存的编辑。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:969
@@ -4984,7 +5192,8 @@ msgid "Auto save interval (seconds)"
 msgstr "自动保存间隔（秒）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:973
-msgid "Time interval in seconds between automatic saves when auto save is enabled."
+msgid ""
+"Time interval in seconds between automatic saves when auto save is enabled."
 msgstr "自动保存的时间间隔（秒）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:979
@@ -5000,7 +5209,9 @@ msgid "Reload files modified by external applications without prompting"
 msgstr "自动重新加载被外部应用修改的文件，不弹窗提示"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:987
-msgid "Automatically reload files modified by external applications without showing a prompt. Unsaved changes in the editor will be lost."
+msgid ""
+"Automatically reload files modified by external applications without showing"
+" a prompt. Unsaved changes in the editor will be lost."
 msgstr "自动重新加载被外部应用修改的文件，不弹窗提示"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:995
@@ -5046,7 +5257,9 @@ msgid "Encoding used when creating new documents"
 msgstr "关闭当前文档"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1026
-msgid "Default character encoding for new documents. UTF-8 is the recommended choice for cross-platform collaboration."
+msgid ""
+"Default character encoding for new documents. UTF-8 is the recommended "
+"choice for cross-platform collaboration."
 msgstr "新文档的默认字符编码。跨平台协作推荐使用 UTF-8。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1029
@@ -5074,7 +5287,9 @@ msgid "Line ending format for new documents"
 msgstr "新文档的行尾格式"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1042
-msgid "Default line ending format for new documents. LF is Unix/macOS style; CRLF is Windows style; CR is old macOS style."
+msgid ""
+"Default line ending format for new documents. LF is Unix/macOS style; CRLF "
+"is Windows style; CR is old macOS style."
 msgstr "新文档的默认行尾格式"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1045
@@ -5158,7 +5373,9 @@ msgid "Automatically add matching \\end{}"
 msgstr "自动添加闭合括号"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1108
-msgid "When you type \\begin{, automatically insert the matching \\end{} (use Tab to jump to the content placeholder)."
+msgid ""
+"When you type \\begin{, automatically insert the matching \\end{} (use Tab "
+"to jump to the content placeholder)."
 msgstr "输入 \\begin{ 时自动插入配对的 \\end{}（按 Tab 跳到内容占位符）。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1114
@@ -5593,7 +5810,9 @@ msgstr "快捷键已被占用"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:323
 #, python-brace-format
-msgid "This shortcut is currently assigned to \"{other}\". Reassigning it will remove the shortcut from that action."
+msgid ""
+"This shortcut is currently assigned to \"{other}\". Reassigning it will "
+"remove the shortcut from that action."
 msgstr "该快捷键当前已分配给 “{other}”。重新分配将从该操作中移除快捷键"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:326
@@ -5635,7 +5854,10 @@ msgstr "跳过了 {m} 个无效快捷键"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:567
 #, python-brace-format
-msgid "The imported file conflicts with existing or other imported shortcuts ({n} conflict(s)). Proceeding will assign each conflicting shortcut to the imported action and clear it from the other action(s)."
+msgid ""
+"The imported file conflicts with existing or other imported shortcuts ({n} "
+"conflict(s)). Proceeding will assign each conflicting shortcut to the "
+"imported action and clear it from the other action(s)."
 msgstr "导入的文件与现有或其他已导入的快捷键冲突（{n} 处）。继续会将每个冲突的快捷键分配给导入的操作，并从其他操作清除。"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:572
@@ -5693,7 +5915,8 @@ msgid "LaTeX Snippets"
 msgstr "LaTeX 代码片段"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:102
-msgid "Create reusable LaTeX text and expand it from the editor completion list."
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
 msgstr "创建可复用的 LaTeX 文本，并从编辑器补全列表中展开。"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:105
@@ -5744,7 +5967,8 @@ msgstr "正在统计匹配数……匹配数量仍在计算中"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:50
 #, python-brace-format
 msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
-msgid_plural "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
+msgid_plural ""
+"Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
 msgstr[0] "将 {amount} 处“{original}”替换为“{replacement}”。"
 msgstr[1] "将 {amount} 处“{original}”替换为“{replacement}”。"
 
@@ -5761,7 +5985,9 @@ msgid "Save document"
 msgstr "保存文档"
 
 #: setzer/dialogs/save_document/save_document.py:86
-msgid "Save failed. The disk may be full or you may not have permission to write the file."
+msgid ""
+"Save failed. The disk may be full or you may not have permission to write "
+"the file."
 msgstr "保存失败，可能是磁盘已满或权限不足"
 
 #: setzer/dialogs/save_document/save_document.py:88
@@ -6146,7 +6372,9 @@ msgid "No preview available"
 msgstr "无预览可用"
 
 #: setzer/document/preview/preview_viewgtk.py:433
-msgid "To show a .pdf preview of your document, click the build button in the headerbar."
+msgid ""
+"To show a .pdf preview of your document, click the build button in the "
+"headerbar."
 msgstr "要显示文档的 .pdf 预览，请点击标题栏中的构建按钮"
 
 #: setzer/document/preview/preview_viewgtk.py:437
@@ -6468,8 +6696,16 @@ msgid "Remove the root document designation"
 msgstr "移除根文档指定"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:78
-msgid "Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements."
-msgstr "点击下方列表中的文档将其设为根文档。无论你当前正在编辑哪个文档，根文档都会被构建，并始终显示在 .pdf 预览中。构建日志也会指向根文档。在处理大型项目时这通常很有用——顶层文档（根）通常通过 include 语句包含多个下层文件"
+msgid ""
+"Click on a document in the list below to set it as root. The root document "
+"will get built, no matter which document you are currently editing, and it "
+"will always display in the .pdf preview. The build log will also refer to "
+"the root document. This is often useful for working on large projects where "
+"typically a top level document (the root) will contain multiple lower level "
+"files via include statements."
+msgstr ""
+"点击下方列表中的文档将其设为根文档。无论你当前正在编辑哪个文档，根文档都会被构建，并始终显示在 .pdf "
+"预览中。构建日志也会指向根文档。在处理大型项目时这通常很有用——顶层文档（根）通常通过 include 语句包含多个下层文件"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:90
 msgid "Exit root document selection mode"
@@ -6957,7 +7193,8 @@ msgid "Snippet trigger must be text"
 msgstr "代码片段触发词必须为文本"
 
 #: setzer/snippets/user_snippets.py:94
-msgid "Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
 msgstr "代码片段触发词必须以反斜杠开头，并且只能使用字母、数字或 @"
 
 #: setzer/snippets/user_snippets.py:96
@@ -7038,7 +7275,9 @@ msgid "The selected destination is not a local file."
 msgstr "所选目标不是本地文件。"
 
 #: setzer/workspace/auto_build/auto_build.py:123
-msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
+msgid ""
+"Auto-build is not available for unsaved documents. Save the document to "
+"enable it."
 msgstr "自动构建不适用于未保存的文档。请保存文档以启用该功能。"
 
 #: setzer/workspace/auto_build/auto_build.py:174
@@ -7128,11 +7367,16 @@ msgid "JavaScript is disabled"
 msgstr "JavaScript 已禁用"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:230
-msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
+msgid ""
+"Help pages render with JavaScript disabled for security. Static "
+"documentation displays normally; interactive examples that depend on "
+"JavaScript will not run."
 msgstr "出于安全考虑，帮助页面在禁用 JavaScript 的情况下渲染。静态文档可正常显示；依赖 JavaScript 的交互式示例将无法运行"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:252
-msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
+msgid ""
+"Help page rendering requires WebKit6. Search is still available — click a "
+"result to open it in your web browser."
 msgstr "帮助页面渲染需要 WebKit6。搜索仍可用——点击结果即可在网页浏览器中打开"
 
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:218
@@ -7211,32 +7455,58 @@ msgstr "这些计数会在文档保存后更新"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:51
 #, python-brace-format
-msgid "The whole document has <b>{text_words}</b> words in text, <b>{header_words}</b> words in headers and <b>{outside_words}</b> words outside text (captions, ...)."
-msgstr "整篇文档正文中包含 <b>{text_words}</b> 个词，标题中包含 <b>{header_words}</b> 个词，正文之外（图注等）包含 <b>{outside_words}</b> 个词"
+msgid ""
+"The whole document has <b>{text_words}</b> words in text, "
+"<b>{header_words}</b> words in headers and <b>{outside_words}</b> words "
+"outside text (captions, ...)."
+msgstr ""
+"整篇文档正文中包含 <b>{text_words}</b> 个词，标题中包含 <b>{header_words}</b> 个词，正文之外（图注等）包含 "
+"<b>{outside_words}</b> 个词"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:62
 #, python-brace-format
-msgid "{file} has <b>{text_words}</b> words in text, <b>{header_words}</b> words in headers and <b>{outside_words}</b> words outside text (captions, ...)."
-msgstr "{file} 正文中包含 <b>{text_words}</b> 个词，标题中包含 <b>{header_words}</b> 个词，正文之外（图注等）包含 <b>{outside_words}</b> 个词"
+msgid ""
+"{file} has <b>{text_words}</b> words in text, <b>{header_words}</b> words in"
+" headers and <b>{outside_words}</b> words outside text (captions, ...)."
+msgstr ""
+"{file} 正文中包含 <b>{text_words}</b> 个词，标题中包含 <b>{header_words}</b> "
+"个词，正文之外（图注等）包含 <b>{outside_words}</b> 个词"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:79
 #, python-brace-format
-msgid "The whole document has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace) and <b>{lines}</b> lines."
-msgstr "整篇文档包含 <b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）和 <b>{lines}</b> 行"
+msgid ""
+"The whole document has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> "
+"excluding whitespace) and <b>{lines}</b> lines."
+msgstr ""
+"整篇文档包含 <b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）和 "
+"<b>{lines}</b> 行"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:90
 #, python-brace-format
-msgid "{file} has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace) and <b>{lines}</b> lines."
-msgstr "{file} 包含 <b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）和 <b>{lines}</b> 行"
+msgid ""
+"{file} has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding "
+"whitespace) and <b>{lines}</b> lines."
+msgstr ""
+"{file} 包含 <b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）和 "
+"<b>{lines}</b> 行"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:106
 #, python-brace-format
-msgid "Selection: <b>{words}</b> words, <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace)."
-msgstr "选区：<b>{words}</b> 个词，<b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）"
+msgid ""
+"Selection: <b>{words}</b> words, <b>{chars}</b> characters "
+"(<b>{chars_no_spaces}</b> excluding whitespace)."
+msgstr ""
+"选区：<b>{words}</b> 个词，<b>{chars}</b> 个字符（不含空白字符为 <b>{chars_no_spaces}</b> 个）"
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:120
-msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
-msgstr "字数统计需要 <tt>texcount</tt>（TeX Live 的一部分），但未找到。字符数与行数统计仍可用。参见 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">安装指南</a>"
+msgid ""
+"Word counts require <tt>texcount</tt> (part of TeX Live), which was not "
+"found. Character and line counts remain available above. See <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation "
+"guide</a>."
+msgstr ""
+"字数统计需要 <tt>texcount</tt>（TeX Live 的一部分），但未找到。字符数与行数统计仍可用。参见 <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">安装指南</a>"
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
 msgid "No sections match your search"
@@ -7277,7 +7547,9 @@ msgid "No files"
 msgstr "无文件"
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:36
-msgid "The main document is always shown. Add \\input{...} or \\include{...} to include other files."
+msgid ""
+"The main document is always shown. Add \\input{...} or \\include{...} to "
+"include other files."
 msgstr "主文档始终显示。添加 \\input{...} 或 \\include{...} 以包含其他文件"
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:188
@@ -7325,7 +7597,9 @@ msgid "Delete Section?"
 msgstr "删除行"
 
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-msgid "Remove the entire section including its content. This action cannot be undone."
+msgid ""
+"Remove the entire section including its content. This action cannot be "
+"undone."
 msgstr "移除"
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:36
@@ -7333,7 +7607,9 @@ msgid "No document structure"
 msgstr "无文档结构"
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:37
-msgid "Add \\section{}, \\chapter{}, or other sectioning commands to outline your document."
+msgid ""
+"Add \\section{}, \\chapter{}, or other sectioning commands to outline your "
+"document."
 msgstr "添加 \\section{}、\\chapter{} 或其他章节命令来构建文档大纲"
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:195
@@ -7497,7 +7773,9 @@ msgid "Clear Recent List?"
 msgstr "清空最近列表？"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:297
-msgid "All documents will be removed from the recent list. This does not delete the files themselves."
+msgid ""
+"All documents will be removed from the recent list. This does not delete the"
+" files themselves."
 msgstr "所有文档将从最近列表中移除。这不会删除文件本身"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:300
@@ -7509,7 +7787,9 @@ msgid "Write beautiful LaTeX documents with ease!"
 msgstr "轻松编写精美的 LaTeX 文档！"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:62
-msgid "Start a new document below, pick a template, or jump back into one of your recent files."
+msgid ""
+"Start a new document below, pick a template, or jump back into one of your "
+"recent files."
 msgstr "在下方新建文档、选择模板，或回到你最近的某个文件"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:82
@@ -7564,7 +7844,9 @@ msgstr "未命名文档 {number}"
 
 #: setzer/workspace/workspace.py:786
 #, python-brace-format
-msgid "Session loaded, but no documents could be opened (files may have been moved or deleted): {name}"
+msgid ""
+"Session loaded, but no documents could be opened (files may have been moved "
+"or deleted): {name}"
 msgstr "会话已加载，但无法打开任何文档（文件可能已被移动或删除）：{name}"
 
 #: setzer/workspace/workspace.py:802
