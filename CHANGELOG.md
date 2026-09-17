@@ -1,5 +1,37 @@
 # Changelog
 
+## v82 — 2026-09-17
+
+### 主要改进
+
+- **应用级界面缩放（Ctrl+加/减/0）**：三个快捷键由「仅缩放编辑器字号」升级为整个应用界面缩放，走 `gtk-xft-dpi`（与 GNOME 文本缩放同源机制），菜单、标签、按钮、编辑器等全部文字随动，跨重启持久化；新增离散阶梯纯逻辑模块（1.1^k，约 51%–236%，in/out 索引互逆，杜绝浮点漂移）与恰好 100% 时不触碰系统设置的接管语义。图标与编辑器字号同步随动：新增 `helpers/zoom_css.py` 按倍率生成镜像样式表（穷举 libadwaita/libgtk 全部 `-gtk-icon-size` 字面值，运行时自动抽取自研样式），帮助页 WebKit 注入样式同步乘入倍率；编辑器字号缩放保留给 Ctrl+滚轮，与应用缩放两轴正交可叠加。另为 `UIZoomManager` 增加惰性自举机制，修复入口脚本陈旧时缩放功能静默失效。
+
+- **全新应用图标与符号图标体系**：应用图标更换为更贴合应用定位的书籍造型新设计（整体缩放到 93% 并保持 128×128 画布尺寸）；新增按 HIG 自主图标提炼的 16×16 `org.cvfosammmm.Setzer-symbolic.svg`（圆盘 + 菱形镂空 + 后方方块，支持主题着色），欢迎页空状态图标随之更换。
+
+- **SyncTeX 反向同步跳转对齐视口居中**：按住 Ctrl 从 PDF 点回源码时，目标行由「最小可见化滚动」改为垂直居中对齐，跳转位置更醒目（文档首尾由 Gtk 自动夹紧）。
+
+- **稳定性与内存优化**：修复文档统计侧栏空闲时持续刷新的循环；构建完成后延迟 3 秒调用 `malloc_trim` 归还 glibc 空闲页，解决构建后 RSS 居高不下；预览侧栏动画期间保留旧纹理作占位、新尺寸渲染完成后再替换，消除白屏；子进程输出解码改为 UTF-8 → 系统 preferred encoding → `errors='replace'` 三级容错，修复中文 Windows 上 SyncTeX 出错走 cp936 代码页导致的后台线程崩溃。
+
+- **AI Fix 错误提示与工具选择修复**：拆分「未配置 executable」与「系统上不可用」两类错误提示并分别指引去 Preferences 配置或检查 PATH；新增 `resolve_tool_config` 共享工具选择逻辑（优先 active tool，不可用时自动挑选首个可探测工具），修复第一个工具不可用时仍被选中、组装完 prompt 才报错的问题，标题栏终端按钮与 Build Log 入口同步受益。
+
+- **翻译质量与语言切换修复**：新增 `po/sync-po.sh` 同步脚本（`--no-fuzzy-matching` 杜绝 fuzzy 错配、`--check` 模式接入 CI 校验），es/it 补译至 100%，修正 zh_CN 存量 fuzzy 错配与未译条目，全部 7 种语言达 100% 翻译率、零 fuzzy、零 obsolete；修复开发模式下界面语言切换不生效（locale 查找路径改为指向构建目录 `po/`，无需先 `meson install`）。
+
+### Improvements
+
+- **feat/fix**: App-level UI zoom on Ctrl+Plus/Minus/0 via `gtk-xft-dpi` (same mechanism as GNOME text scaling): all text — menus, tabs, buttons, editor — scales together and persists across restarts. New discrete 1.1^k ladder (~51%–236%) with invertible in/out indices to eliminate float drift, and takeover semantics that leave system settings untouched at exactly 100%. Icons and editor font now follow the zoom via a generated mirror stylesheet (`helpers/zoom_css.py`, exhaustively covering libadwaita/libgtk `-gtk-icon-size` literals and auto-mirroring custom styles); the WebKit help panel multiplies the factor into its injected style sheet. Editor font zoom moves to Ctrl+wheel and stays orthogonal to app zoom. A lazy bootstrap in `UIZoomManager` fixes zoom silently failing with a stale entry script.
+
+- **feat/style**: Brand-new book-style application icon (scaled to 93% within the 128×128 canvas) plus a new HIG-derived 16×16 symbolic app icon (disc + diamond cutout + backing square, theme-tintable); the welcome screen's empty state now uses it.
+
+- **feat**: SyncTeX reverse sync (PDF → source) now centers the target line in the editor viewport instead of minimally scrolling it into view.
+
+- **fix/perf**: Stop the idle refresh loop of the document-stats sidebar; call `malloc_trim` after builds (3 s delay) so glibc returns free pages, keeping RSS down after long compile sessions; keep the previous preview texture during sidebar resize animations to eliminate white frames; and decode build/sync subprocess output with a three-tier fallback (UTF-8 → preferred encoding → `errors='replace'`), fixing a background-thread crash on Chinese Windows where synctex errors arrive in cp936/GBK.
+
+- **fix**: AI Fix now distinguishes "no executable configured" from "not available on this system" with targeted guidance for each, and a shared `resolve_tool_config` helper picks the first available agent tool instead of blindly defaulting to `tools[0]`.
+
+- **i18n/fix**: New `po/sync-po.sh` workflow (no-fuzzy merging, stable ordering, `--check` mode wired into CI) brings all 7 languages to 100% translation with zero fuzzy/obsolete entries — es and it filled in manually, zh_CN mismatched fuzzy translations corrected; dev-mode language switching now works by pointing gettext at the build directory's compiled `.mo` files, no install step required.
+
+---
+
 ## v81 — 2026-08-31
 
 ### 主要改进
