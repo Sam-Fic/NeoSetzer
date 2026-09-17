@@ -61,6 +61,8 @@ class PreviewPageRenderer(Observable):
 
         self.page_render_count_lock = threading.Lock()
         self.page_render_count = dict()
+        # 每页只跟踪最新目标，避免同一帧的 layout/position 通知反复使任务过期。
+        self._pending_page_renders = {}
         self.render_queue = queue.Queue()
         self.render_queue_low_priority = queue.Queue()
         self.rendered_pages_queue = queue.Queue()
@@ -97,7 +99,7 @@ class PreviewPageRenderer(Observable):
             # 并发 layout_changed）。清空 page_render_count，使队列中所有积压
             # todo 失效（perf-12 问题 3：旧 PDF 高页号条目残留会导致
             # render_page_loop KeyError）。
-            # rendered_pages 不再整体清空：几何一致的旧版本纹理继续作占位显示
+            # rendered_pages 不再整体清空：旧版本纹理继续作占位显示
             # （见 update_rendered_pages 的驱逐策略），新版本渲染结果到达后逐页
             # 替换，构建成功后预览不再整屏白底等重绘。poppler 文档已不存在时
             # （无 PDF 可回退）内容不会再被绘制，直接清空。
@@ -105,6 +107,7 @@ class PreviewPageRenderer(Observable):
                 self.rendered_pages = dict()
             with self.page_render_count_lock:
                 self.page_render_count = dict()
+            self._pending_page_renders.clear()
 
     def on_recolor_pdf_changed(self, preview):
         self.update_rendered_pages()
@@ -149,6 +152,7 @@ class PreviewPageRenderer(Observable):
             self.visible_pages = list()
         self.page_width = None
         self.pdf_version = None
+        self._pending_page_renders.clear()
         # Preview hiding invalidates all in-flight lens surfaces as well.
         self.invalidate_magnifier_requests()
 
@@ -252,10 +256,10 @@ class PreviewPageRenderer(Observable):
                     # 将永久空白，因此这里兜底吞掉并继续。
                     doc = self.preview.poppler_document
                     if doc is None:
-                        continue
+                        raise RuntimeError('PDF no longer available')
                     page = doc.get_page(todo['page_number'])
                     if page is None:
-                        continue
+                        raise RuntimeError('PDF page no longer available')
                     colors = todo['matching_theme_colors']
                     # draft 任务（快速滚动兜底）以 1/4 分辨率渲染：像素量约
                     # 1/16，产出快约一个数量级——滚动停不下来的页面先显示
@@ -283,11 +287,20 @@ class PreviewPageRenderer(Observable):
                         # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
                         surface = self._apply_theme_recolor(surface, colors)
 
-                    self.rendered_pages_queue.put({'page_number': todo['page_number'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
+                    self.rendered_pages_queue.put({'page_number': todo['page_number'], 'render_count': todo['render_count'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
                     # 结果产出后立即唤醒主循环安装（g_idle_add 线程安全），
                     # 不等 50ms 轮询定时器——draft 兜底的低延迟全靠这一步。
                     GObject.idle_add(self._wake_rendered_pages_loop)
                 except Exception:
+                    # 释放失败的精修请求，后续布局/滚动通知可重试；draft
+                    # 失败不释放，因为同一请求的全分辨率任务仍在队列里。
+                    if not todo.get('draft', False):
+                        self.rendered_pages_queue.put({
+                            'page_number': todo['page_number'],
+                            'render_count': todo['render_count'],
+                            'item': None,
+                        })
+                        GObject.idle_add(self._wake_rendered_pages_loop)
                     continue
 
     def _wake_rendered_pages_loop(self):
@@ -424,20 +437,35 @@ class PreviewPageRenderer(Observable):
             is_active = self.is_active
         if not is_active: return True
 
-        # 渲染完成的结果可能已属于旧文档版本（渲染期间发生了构建/重载）：
-        # 丢弃，由新版本任务重新渲染，避免把过期内容写回缓存盖住占位纹理。
+        # 渲染期间可能发生缩放、换色或 PDF 重载。只接收仍对应当前请求
+        # 和布局的结果，避免动画中间帧覆盖最终尺寸的纹理。
+        layout = self.preview.layout
+        if layout is None:
+            return True
         current_version = self.preview.pdf_version
         changed = False
         while self.rendered_pages_queue.empty() == False:
             try: todo = self.rendered_pages_queue.get(block=False)
             except queue.Empty: pass
             else:
-                if todo['item'][3] != current_version:
+                page_number = todo['page_number']
+                item = todo['item']
+                with self.page_render_count_lock:
+                    current_count = self.page_render_count.get(page_number)
+                if todo['render_count'] != current_count:
                     continue
-                try:
-                    del(self.rendered_pages[todo['page_number']])
-                except KeyError: pass
-                self.rendered_pages[todo['page_number']] = todo['item']
+                if item is None:
+                    self._pending_page_renders.pop(page_number, None)
+                    continue
+                if (item[3] != current_version
+                        or item[1] != int(layout.page_width_original)
+                        or item[2] != int(layout.page_height_original)
+                        or not self.visible_pages_additional[0] <= page_number <= self.visible_pages_additional[1]):
+                    continue
+                # 原子替换同一页的 surface；旧图一直保留到这里，没有超时白屏。
+                self.rendered_pages[page_number] = item
+                if item[0].get_width() >= item[1] * layout.hidpi_factor:
+                    self._pending_page_renders.pop(page_number, None)
                 changed = True
         if changed:
             self.add_change_code('rendered_pages_changed')
@@ -482,7 +510,7 @@ class PreviewPageRenderer(Observable):
             colors = None
 
         changed = False
-        # colors_changed 判定：stored[3] 与 colors 同为 None → 不变；
+        # colors_changed 判定：stored[4] 与 colors 同为 None → 不变；
         # 仅一方为 None → 变；两者皆非 None → 比较 RGBA.equal。
         # 原实现每分支都重复 self.rendered_pages[page_number] 字典查找（5+ 次/页），
         # 缓存到 page_data 后每次循环只查一次。滚动/缩放时此循环每次都跑。
@@ -496,11 +524,11 @@ class PreviewPageRenderer(Observable):
             else:
                 colors_changed = False
 
-            # 版本不匹配不驱逐：几何一致的旧版本纹理（上次构建的渲染结果）
-            # 继续画在界面上作占位，新版本任务（见下方入队条件）渲染完成后
-            # 逐页替换——构建成功后预览保持显示旧内容而不是整屏白底。
-            # 几何（宽/高）或配色变化、滚出缓存区间的条目仍立即驱逐。
-            if page_data[1] != page_width or page_data[2] != page_height or colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
+            # 尺寸/版本变化只请求精修，不驱逐仍可显示的纹理。侧栏动画每帧
+            # 都会改变 fit-to-width 的页面尺寸，先删旧图会让异步渲染的等待期
+            # 只剩白底。绘制端将旧 surface 缩放到当前布局，新结果就绪后替换。
+            # 范围外页面和不匹配的配色仍驱逐，不另建一份旧图缓存。
+            if colors_changed or page_number < visible_pages_additional[0] or page_number > visible_pages_additional[1]:
                 del(self.rendered_pages[page_number])
                 changed = True
         if changed:
@@ -527,6 +555,15 @@ class PreviewPageRenderer(Observable):
         rendered_pages = self.rendered_pages
         page_render_count = self.page_render_count
         vp_lo, vp_hi = visible_pages[0], visible_pages[1]
+        color_key = None if colors is None else tuple(
+            (c.red, c.green, c.blue, c.alpha) for c in colors)
+        target = (page_width, page_height, scale_factor, hidpi_factor, pdf_version, color_key)
+        # 滚出缓存区的未完成任务也失效；重新滚入时可以正常重新排队。
+        for page_number in list(self._pending_page_renders):
+            if not lo <= page_number <= hi:
+                del self._pending_page_renders[page_number]
+                with self.page_render_count_lock:
+                    page_render_count[page_number] = page_render_count.get(page_number, 0) + 1
         # 全分辨率纹理的设备像素宽，用于识别低分辨率 draft 占位。
         full_device_width = page_width * hidpi_factor
         for page_number in range(lo, hi + 1):
@@ -537,7 +574,18 @@ class PreviewPageRenderer(Observable):
             needs_render = page_data is None or page_data[1] != page_width or page_data[2] != page_height or page_data[3] != pdf_version
             if not needs_render and page_data[0].get_width() < full_device_width:
                 needs_render = True
+            if not needs_render:
+                if self._pending_page_renders.pop(page_number, None) is not None:
+                    with self.page_render_count_lock:
+                        page_render_count[page_number] = page_render_count.get(page_number, 0) + 1
+                continue
             if needs_render:
+                is_visible = vp_lo <= page_number <= vp_hi
+                pending = self._pending_page_renders.get(page_number)
+                # 已在渲染相同目标时不重复排队。预取页进入视口时允许提升优先级。
+                if pending is not None and pending[0] == target and (pending[1] or not is_visible):
+                    continue
+                self._pending_page_renders[page_number] = (target, is_visible)
                 with self.page_render_count_lock:
                     try:
                         page_render_count[page_number] += 1

@@ -389,24 +389,15 @@ class PreviewPresenter(object):
         surface = rendered_page_data[0]
         if not isinstance(surface, cairo.ImageSurface): return
 
-        # rendered_page_data[1] / [2] are the un-rotated CSS page dimensions.
-        page_width_css = rendered_page_data[1]
-        page_height_css = rendered_page_data[2]
-        device_w = page_width_css * layout.hidpi_factor
-        device_h = page_height_css * layout.hidpi_factor
+        # 使用当前布局的未旋转尺寸，而非缓存生成时的尺寸。侧栏动画/缩放
+        # 期间旧图跟随页面矩形连续缩放，新尺寸的高清图就绪后再替换。
+        # surface 是设备像素，layout 是画布坐标；两者直接相除同时兼容
+        # HiDPI 和低分辨率 draft。旋转由调用方的 context 变换处理。
         surface_w = surface.get_width()
         surface_h = surface.get_height()
-
-        # The context is already rotated (if needed), so we draw the un-rotated
-        # page texture at its natural CSS size: scale the device-px surface down
-        # to CSS px and fill the page rectangle.
-        # 全分辨率纹理的 surface 恰为页面设备像素尺寸，缩放因子退化为
-        # 1/hidpi（与原实现一致）；低分辨率 draft 纹理（快速滚动兜底产出）
-        # 按比例放大铺满同一页面矩形——内容先可见、略软，随后被全分辨率
-        # 精修结果替换。
         matrix = ctx.get_matrix()
-        ctx.scale(device_w / (surface_w * layout.hidpi_factor),
-                  device_h / (surface_h * layout.hidpi_factor))
+        ctx.scale(layout.page_width_original / surface_w,
+                  layout.page_height_original / surface_h)
         ctx.set_source_surface(surface, 0, 0)
         ctx.rectangle(0, 0, surface_w, surface_h)
         ctx.fill()
