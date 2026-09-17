@@ -10,33 +10,64 @@
     </linearGradient>
     <clipPath id="pagesClip">
       <path d="M1564 1386 H563 A91 91 0 0 0 563 1568 H1564 A93 93 0 0 1 1564 1386 Z"/>
+      <!-- 搭接区：书页再向外多铺一点（左半圆 r=105 落在黑框 r∈[91,163] 的环内，
+           上下边落在横杠范围内），这样书页边缘与黑框内缘不再"边对边"重合，
+           避免两条抗锯齿边叠加出一行浅色接缝 -->
+      <path d="M1485 1372 H563 A105 105 0 0 0 563 1582 H1485 Z"/>
     </clipPath>
     <clipPath id="spineClip">
       <rect x="400" y="395" width="163" height="1085"/>
     </clipPath>
+    <!-- 只保留左半圆（x <= 563）：把整圆环裁成 C 的圆弧段 -->
+    <clipPath id="cLeftClip">
+      <rect x="400" y="1314" width="163" height="326"/>
+    </clipPath>
+    <!-- 装饰形状的不透明度渐变（颜色取自书籍配色） -->
+    <!-- 三角：上方完全不透明 -> 下方完全透明 -->
+    <linearGradient id="triFade" x1="0" y1="521.0" x2="0" y2="971.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5e5c64" stop-opacity="1"/>
+      <stop offset="1" stop-color="#5e5c64" stop-opacity="0"/>
+    </linearGradient>
+    <!-- 圆：上方完全透明 -> 下方完全不透明 -->
+    <linearGradient id="discFade" x1="0" y1="807.1" x2="0" y2="1193.3" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5e5c64" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5e5c64" stop-opacity="1"/>
+    </linearGradient>
   </defs>
   <!-- 整体围绕内容中心缩小到 93%，画布保持 128×128 -->
-  <g transform="translate(999.5 1017.5) scale(0.93) translate(-999.5 -1017.5)">
-  <!-- 封面：圆角矩形提供顶部圆角，下方矩形盖平底部两角 -->
-  <rect x="400" y="395" width="1200" height="955" rx="163" fill="#241f31"/>
-  <rect x="400" y="558" width="1200" height="792" fill="#241f31"/>
-  <!-- 书脊：半圆提供左上凸圆角 + 矩形主体（半圆裁剪到书脊宽度内） -->
-  <circle cx="563" cy="558" r="163" fill="url(#spine)" clip-path="url(#spineClip)"/>
-  <rect x="400" y="558" width="163" height="922" fill="url(#spine)"/>
-  <!-- Sigma -->
-  <path transform="translate(464.3 377.7) scale(9.4)" d="M98.94 26.57H29.06L51.3 52.42 28.96 78.06H98.94V61.21H86.45L86.24 69.38H53.51L69.14 52.32 53.72 35.15H86.35L86.56 42.6H98.83Z" fill="#ffffff"/>
-  <!-- 黑色 C 形书页外框：中心线 r=127，描边 72 → 外缘 r=163、内缘 r=91 -->
-  <path d="M1564 1350 H563 A127 127 0 0 0 563 1604 H1564" fill="none" stroke="#000000" stroke-width="72" stroke-linecap="round"/>
-  <!-- 灰色内衬书页：8 条横条纹暗示书页厚度 -->
-  <g clip-path="url(#pagesClip)">
-    <rect x="460" y="1386" width="1200" height="22.75" fill="#ffffff"/>
-    <rect x="460" y="1408.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
-    <rect x="460" y="1431.5" width="1200" height="22.75" fill="#ffffff"/>
-    <rect x="460" y="1454.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
-    <rect x="460" y="1477" width="1200" height="22.75" fill="#ffffff"/>
-    <rect x="460" y="1499.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
-    <rect x="460" y="1522.5" width="1200" height="22.75" fill="#ffffff"/>
-    <rect x="460" y="1545.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
-  </g>
+  <g transform="translate(1000 1017.5) scale(0.93) translate(-1000 -1017.5)">
+    <!-- 封面：圆角矩形提供顶部圆角，下方矩形盖平底部两角 -->
+    <rect x="400" y="395" width="1200" height="955" rx="163" fill="#241f31"/>
+    <rect x="400" y="558" width="1200" height="792" fill="#241f31"/>
+    <!-- 书脊：半圆提供左上凸圆角 + 矩形主体（半圆裁剪到书脊宽度内） -->
+    <circle cx="563" cy="558" r="163" fill="url(#spine)" clip-path="url(#spineClip)"/>
+    <rect x="400" y="558" width="163" height="922" fill="url(#spine)"/>
+    <!-- 装饰几何：左上三角 + 右下圆，两者右下/左上部分重叠，都垫在 Σ 之下 -->
+    <polygon points="944.7,521.0 1204.7,971.4 684.7,971.4" fill="url(#triFade)"/>
+    <circle cx="1200.3" cy="1000.2" r="193.05" fill="url(#discFade)"/>
+    <!-- Sigma -->
+    <path transform="translate(464.3 377.7) scale(9.4)" d="M98.94 26.57H29.06L51.3 52.42 28.96 78.06H98.94V61.21H86.45L86.24 69.38H53.51L69.14 52.32 53.72 35.15H86.35L86.56 42.6H98.83Z" fill="#ffffff"/>
+    <!-- 灰色内衬书页：8 条横条纹暗示书页厚度
+         （必须画在黑色外框之前，让外框压住书页的边缘，见 pagesClip 的搭接区） -->
+    <g clip-path="url(#pagesClip)">
+      <!-- 白色底板：整块垫在条纹下面（覆盖 pagesClip 的外接范围 x458..1564 / y1372..1582），
+           避免条纹接缝与边缘抗锯齿处的半透明像素透出背景 -->
+      <rect x="458" y="1372" width="1106" height="210" fill="#ffffff"/>
+      <rect x="460" y="1386" width="1200" height="22.75" fill="#ffffff"/>
+      <rect x="460" y="1408.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
+      <rect x="460" y="1431.5" width="1200" height="22.75" fill="#ffffff"/>
+      <rect x="460" y="1454.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
+      <rect x="460" y="1477" width="1200" height="22.75" fill="#ffffff"/>
+      <rect x="460" y="1499.75" width="1200" height="22.75" fill="url(#globalGradient)"/>
+      <rect x="460" y="1522.5" width="1200" height="22.75" fill="#ffffff"/>
+      <rect x="460" y="1545.25" width="1200" height="22.75" fill="url(#globalGradient)"/>
+    </g>
+    <!-- 黑色 C 形书页外框：两条横杠 + 左半圆环（几何上与原单条 path 完全等价）
+         中心线 r=127、描边 72 → 外缘 r=163、内缘 r=91，圆心 (563,1477) -->
+    <g fill="none" stroke="#000000" stroke-width="72" stroke-linecap="round">
+      <line x1="1564" y1="1350" x2="563" y2="1350"/>
+      <line x1="1564" y1="1604" x2="563" y2="1604"/>
+      <circle cx="563" cy="1477" r="127" clip-path="url(#cLeftClip)"/>
+    </g>
   </g>
 </svg>
