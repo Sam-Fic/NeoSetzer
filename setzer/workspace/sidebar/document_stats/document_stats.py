@@ -281,7 +281,14 @@ class DocumentStats(object):
         # 立即触发一次 view 刷新，无需等 2000ms 兜底轮询。count_chars_lines
         # 在主线程 update_data 中调用，idle_add 保证在当前 update_data 返回后
         # 才执行 update_view，避免重入。
-        GLib.idle_add(self.update_view)
+        GLib.idle_add(self._update_view_idle)
+
+    def _update_view_idle(self):
+        # update_view returns True for the periodic timeout. Propagating that
+        # value from an idle source would keep it running continuously, even
+        # while the statistics panel is hidden, starving UI animations.
+        self.update_view()
+        return False
 
     def count_words(self, filename):
         if filename in self._inflight:
@@ -302,7 +309,7 @@ class DocumentStats(object):
                 with self.values_lock:
                     self.texcount_missing = True
                     self.values[filename]['counts'] = None
-                GLib.idle_add(self.update_view)
+                GLib.idle_add(self._update_view_idle)
                 return
 
             # 30 秒超时：texcount 处理损坏文件或网络文件系统时可能永久挂起，
@@ -314,7 +321,7 @@ class DocumentStats(object):
                 process.wait()
                 with self.values_lock:
                     self.values[filename]['counts'] = None
-                GLib.idle_add(self.update_view)
+                GLib.idle_add(self._update_view_idle)
                 return
 
             # texcount 输出形如 "123+45+67 ..."（text+headers+outside 以 '+'
@@ -335,7 +342,7 @@ class DocumentStats(object):
                 with self.values_lock:
                     self.values[filename]['counts'] = None
             # 后台线程拿到新值后立即触发主线程刷新，无需等 2000ms 兜底轮询。
-            GLib.idle_add(self.update_view)
+            GLib.idle_add(self._update_view_idle)
         finally:
             self._inflight.discard(filename)
 
