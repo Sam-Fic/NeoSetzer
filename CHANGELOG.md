@@ -1,5 +1,21 @@
 # Changelog
 
+## v83 — 2026-09-18
+
+### 主要改进
+
+- **全语言翻译补全至事实上的 100%**：zh_CN（43 条）、zh_TW 与 de/es/fr/it/pt_BR（各 57 条）补全 v82 引入却遗漏翻译的字符串，覆盖 appdata 元数据与 fork 更新日志（23 条）、LaTeX 宏包描述（`general.xml` 片段如 amsfonts/braket/geometry，19 条）、AI 报错与设置文案以及整应用缩放（14 条）三类；`\url{..}` 的双反斜杠变体一并补译。各语言用词跟随该语言 po 既有术语风格（如 zh_TW 的「偏好設定/建置/重設」、pt_BR 的 Preferências、it 的 Impostazioni），44 条语言名 autonym 按设计保持原语言不译。
+
+- **应用图标书页边缘接缝修复**：修正 `data/org.cvfosammmm.Setzer.svg` 中书页边缘出现的浅色接缝，图标在小尺寸与深色背景下过渡更平滑。
+
+### Improvements
+
+- **i18n**: Filled in the strings introduced by v82 that had been left untranslated — zh_CN gained 43 entries and zh_TW plus de/es/fr/it/pt_BR 57 each — covering appdata metadata and the fork changelog (23), LaTeX package descriptions from `general.xml` such as amsfonts/braket/geometry (19), and AI error/settings text along with app-level zoom strings (14). The double-backslash `\url{..}` variant was translated as well. Wording follows each language's existing po terminology (e.g. zh_TW's 偏好設定/建置/重設, pt_BR's Preferências, it's Impostazioni); the 44 language-name autonyms stay untranslated by design, so all 7 languages are now effectively at 100%.
+
+- **fix**: Removed the light seam along the page edges of the application icon (`data/org.cvfosammmm.Setzer.svg`), so it blends cleanly at small sizes and on dark backgrounds.
+
+---
+
 ## v82 — 2026-09-17
 
 ### 主要改进

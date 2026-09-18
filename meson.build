@@ -1,6 +1,6 @@
 project(
   'NeoSetzer',
-  version: '82',
+  version: '83',
   license: 'GPL-3.0-or-later',
 )
 
