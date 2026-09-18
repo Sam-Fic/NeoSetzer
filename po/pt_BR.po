@@ -20,98 +20,109 @@ msgstr ""
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:8
 msgid "Simple yet full-featured LaTeX editor (fork of Setzer)"
-msgstr ""
+msgstr "Editor de LaTeX simples porém completo (fork do Setzer)"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
-msgid "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-featured editor. It is a fork of the Setzer project."
+msgid ""
+"NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
+"featured editor. It is a fork of the Setzer project."
 msgstr ""
+"O NeoSetzer permite escrever documentos LaTeX com um editor fácil de usar e "
+"ao mesmo tempo completo. É um fork do projeto Setzer."
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:16
 msgid "Features include:"
-msgstr ""
+msgstr "Os recursos incluem:"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:33
 msgid "Buttons and shortcuts for many LaTeX elements and special characters"
-msgstr ""
+msgstr "Botões e atalhos para muitos elementos LaTeX e caracteres especiais"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
 msgid "Comfortable document creation wizard"
-msgstr ""
+msgstr "Assistente de criação de documentos conveniente"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:41
 msgid "Dark mode"
-msgstr ""
+msgstr "Modo escuro"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:45
 msgid "Helpful error messages in the build log"
-msgstr ""
+msgstr "Mensagens de erro úteis no registro de compilação"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
 msgid "Looks great on the Gnome desktop"
-msgstr ""
+msgstr "Ótima aparência no desktop GNOME"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
 msgid "Good screen to content ratio"
-msgstr ""
+msgstr "Boa proporção entre tela e conteúdo"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:24
 msgid "Arguably the best .pdf viewer of any LaTeX editor"
 msgstr ""
+"Possivelmente o melhor visualizador de .pdf entre os editores de LaTeX"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:37
 msgid "Document creation wizard"
-msgstr ""
+msgstr "Assistente de criação de documentos"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:72
 msgid "Fork maintenance release (development continued from v67):"
 msgstr ""
+"Versão de manutenção do fork (desenvolvimento continuado a partir da v67):"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:74
 msgid "UI polish: welcome screen, header bar, document wizard, preview panel"
 msgstr ""
+"Polimento da interface: tela de boas-vindas, barra de cabeçalho, assistente "
+"de documentos, painel de visualização"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:75
 msgid "Refactor gutter rendering and preview panel widgets"
 msgstr ""
+"Refatoração da renderização da margem de números de linha e dos widgets do "
+"painel de visualização"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
 msgid "Add per-PDF theme color matching preference"
-msgstr ""
+msgstr "Preferência adicionada para adequar a cor do tema a cada PDF"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:77
 msgid "Default highlight-current-line to on"
-msgstr ""
+msgstr "Realce da linha atual ativado por padrão"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:78
 msgid "Packaging: add standard Debian (.deb) build flow"
-msgstr ""
+msgstr "Empacotamento: fluxo de compilação padrão Debian (.deb)"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:84
 msgid "Modernize GUI to latest GTK4 and libadwaita standards:"
 msgstr ""
+"Modernização da GUI para os padrões mais recentes de GTK4 e libadwaita:"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
 msgid "Upgrade to Adw.PreferencesDialog for preferences"
-msgstr ""
+msgstr "Preferências migradas para Adw.PreferencesDialog"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:87
 msgid "Upgrade to Adw.ShortcutsDialog for keyboard shortcuts"
-msgstr ""
+msgstr "Atalhos de teclado migrados para Adw.ShortcutsDialog"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:88
 msgid "Replace all deprecated GTK4 API calls"
-msgstr ""
+msgstr "Substituição de todas as chamadas GTK4 API obsoletas"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:89
 msgid "Update Flatpak runtime to GNOME 48"
-msgstr ""
+msgstr "Runtime do Flatpak atualizado para GNOME 48"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:95
 msgid "Mostly bugfixes, ..."
-msgstr ""
+msgstr "Principalmente correções de erros, …"
 
 #: data/resources/latexdb/languages/languages.xml:2
 #: data/resources/latexdb/languages/languages.xml:21
@@ -303,51 +314,51 @@ msgstr ""
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
-msgstr ""
+msgstr "fontes matemáticas adicionais do AMS."
 
 #: data/resources/latexdb/packages/general.xml:3
 msgid "mathematics package from AMS."
-msgstr ""
+msgstr "pacote de matemática do AMS."
 
 #: data/resources/latexdb/packages/general.xml:4
 msgid "mathematical symbols from AMS."
-msgstr ""
+msgstr "símbolos matemáticos do AMS."
 
 #: data/resources/latexdb/packages/general.xml:5
 msgid "math theorems setting package from AMS."
-msgstr ""
+msgstr "pacote do AMS para composição de teoremas matemáticos."
 
 #: data/resources/latexdb/packages/general.xml:6
 msgid "multilingual documents."
-msgstr ""
+msgstr "documentos multilíngues."
 
 #: data/resources/latexdb/packages/general.xml:7
 msgid "dirac braket and set notations."
-msgstr ""
+msgstr "notação braket de Dirac e de conjuntos."
 
 #: data/resources/latexdb/packages/general.xml:8
 msgid "bibliographies in LaTeX."
-msgstr ""
+msgstr "bibliografias em LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:9
 msgid "simple arithmetic in LaTeX commands."
-msgstr ""
+msgstr "aritmética simples em comandos LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:10
 msgid "foreground and background colors."
-msgstr ""
+msgstr "cores de primeiro plano e de fundo."
 
 #: data/resources/latexdb/packages/general.xml:11
 msgid "colored tables."
-msgstr ""
+msgstr "tabelas coloridas."
 
 #: data/resources/latexdb/packages/general.xml:12
 msgid "enumerate with redefinable labels."
-msgstr ""
+msgstr "listas enumerate com rótulos redefiníveis."
 
 #: data/resources/latexdb/packages/general.xml:13
 msgid "interface to document dimensions."
-msgstr ""
+msgstr "interface para as dimensões do documento."
 
 #: data/resources/latexdb/packages/general.xml:14
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
@@ -366,15 +377,16 @@ msgstr "criar hyperlinks dentro de seu documento."
 
 #: data/resources/latexdb/packages/general.xml:17
 msgid "conditional commands."
-msgstr ""
+msgstr "comandos condicionais."
 
 #: data/resources/latexdb/packages/general.xml:18
 msgid "provides a listing environment for embedding programming code."
 msgstr ""
+"fornece um ambiente de listagem para incorporar código de programação."
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr ""
+msgstr "fornece estilos adicionais de bibliografia e citação."
 
 #: data/resources/latexdb/packages/general.xml:20
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
@@ -383,7 +395,7 @@ msgstr "parágrafos sem recuo."
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
-msgstr ""
+msgstr "cria gráficos em duas e três dimensões."
 
 #: data/resources/latexdb/packages/general.xml:22
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
@@ -392,20 +404,24 @@ msgstr "contém símbolos para serem usados em modo texto."
 
 #: data/resources/latexdb/packages/general.xml:23
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
-msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
-msgstr "definir ambientes de teoremas (como \"definição\", \"lema\", …) com estilo personalizado."
+msgid ""
+"define theorem environments (like \"definition\", \"lemma\", …) with custom "
+"styling."
+msgstr ""
+"definir ambientes de teoremas (como \"definição\", \"lema\", …) com estilo "
+"personalizado."
 
 #: data/resources/latexdb/packages/general.xml:24
 msgid "graphics and plotting."
-msgstr ""
+msgstr "gráficos e desenho de gráficos."
 
 #: data/resources/latexdb/packages/general.xml:25
 msgid "set transparency for sections in your document."
-msgstr ""
+msgstr "define a transparência das seções do seu documento."
 
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
+msgstr "digite URLs com o comando \\\\url{..} sem precisar escapá-las."
 
 #: data/resources/latexdb/packages/general.xml:27
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
@@ -413,8 +429,12 @@ msgid "enables colored text."
 msgstr "habilita texto colorido."
 
 #: setzer/ai_fix/agent_runner.py:317
-msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
-msgstr "Nenhum emulador de terminal disponível. Instale gnome-terminal / xterm ou defina um terminal personalizado em Preferências."
+msgid ""
+"No terminal emulator available. Install gnome-terminal / xterm or set a "
+"custom terminal in Preferences."
+msgstr ""
+"Nenhum emulador de terminal disponível. Instale gnome-terminal / xterm ou "
+"defina um terminal personalizado em Preferências."
 
 #: setzer/ai_fix/agent_runner.py:371
 msgid "Terminal executable not found: {}"
@@ -426,7 +446,9 @@ msgstr "Falha ao iniciar o terminal: {}"
 
 #: setzer/ai_fix/agent_runner.py:416
 msgid "Launched {} in terminal. Prompt copied to clipboard — paste it there."
-msgstr "Iniciou {} no terminal. Comando copiado para a área de transferência — cole-o no terminal."
+msgstr ""
+"Iniciou {} no terminal. Comando copiado para a área de transferência — "
+"cole-o no terminal."
 
 #: setzer/ai_fix/agent_runner.py:417 setzer/ai_fix/agent_runner.py:449
 msgid "Launched {} in terminal."
@@ -434,13 +456,21 @@ msgstr "Iniciou {} no terminal."
 
 #: setzer/ai_fix/agent_runner.py:439
 #, python-brace-format
-msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
+msgid ""
+"{tool} has no executable configured. Set one in Preferences → General → AI "
+"Settings."
 msgstr ""
+"{tool} não tem um executável configurado. Configure um em Preferências → "
+"Geral → Configurações de IA."
 
 #: setzer/ai_fix/agent_runner.py:442
 #, python-brace-format
-msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
+msgid ""
+"{tool} is not available on this system. Check the executable name in "
+"Preferences → General → AI Settings."
 msgstr ""
+"{tool} não está disponível neste sistema. Verifique o nome do executável em "
+"Preferências → Geral → Configurações de IA."
 
 #: setzer/ai_fix/preview_dialog.py:78
 #, python-brace-format
@@ -498,16 +528,25 @@ msgid "Send"
 msgstr "Enviar"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:77
-msgid "Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
-msgstr "Edite o prompt abaixo, se necessário, e clique em <b>Enviar</b> para iniciar o agente."
+msgid ""
+"Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
+msgstr ""
+"Edite o prompt abaixo, se necessário, e clique em <b>Enviar</b> para iniciar"
+" o agente."
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:110
 msgid "Don't ask again for this project"
 msgstr "Não perguntar novamente neste projeto"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:111
-msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
+msgid ""
+"Skip this preview dialog for the current document's directory in the future."
+" You can revoke this in Preferences → General → AI Settings → Trusted "
+"directories."
 msgstr ""
+"Pular esta caixa de diálogo de visualização para o diretório do documento "
+"atual de agora em diante. Pode ser desfeito em Preferências → Geral → "
+"Configurações de IA → Diretórios confiáveis."
 
 #: setzer/app/exception_handler.py:50
 msgid "Close"
@@ -1028,8 +1067,12 @@ msgstr "Recuperação após falha"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:75
 #, python-brace-format
-msgid "Setzer did not exit cleanly last time. {n} unsaved document(s) were recovered:"
-msgstr "O Setzer não foi encerrado corretamente na última vez. {n} documento não salvo foi recuperado:"
+msgid ""
+"Setzer did not exit cleanly last time. {n} unsaved document(s) were "
+"recovered:"
+msgstr ""
+"O Setzer não foi encerrado corretamente na última vez. {n} documento não "
+"salvo foi recuperado:"
 
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:87
 #: setzer/dialogs/close_confirmation/close_confirmation.py:77
@@ -1198,8 +1241,12 @@ msgid "Choose a BibTeX File"
 msgstr "Escolher um arquivo BibTeX"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:227
-msgid "Choose a bibliography associated with the current document, or open a BibTeX file."
-msgstr "Escolha uma bibliografia associada ao documento atual ou abra um arquivo BibTeX."
+msgid ""
+"Choose a bibliography associated with the current document, or open a BibTeX"
+" file."
+msgstr ""
+"Escolha uma bibliografia associada ao documento atual ou abra um arquivo "
+"BibTeX."
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:266
 msgid "Insert Citation"
@@ -1263,8 +1310,12 @@ msgid "Insert Citations"
 msgstr "Inserir citações"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:407
-msgid "Select entries on the left, choose a command, optionally add a locator, and insert. The preview shows the final LaTeX text."
-msgstr "Selecione entradas à esquerda, escolha um comando, adicione opcionalmente um localizador e insira. A pré-visualização mostra o texto LaTeX final."
+msgid ""
+"Select entries on the left, choose a command, optionally add a locator, and "
+"insert. The preview shows the final LaTeX text."
+msgstr ""
+"Selecione entradas à esquerda, escolha um comando, adicione opcionalmente um"
+" localizador e insira. A pré-visualização mostra o texto LaTeX final."
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:416
 msgid "Command"
@@ -1343,8 +1394,12 @@ msgstr "Excluir entrada BibTeX?"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:827
 #, python-brace-format
-msgid "Delete “{key}” from this bibliography? This can be undone when the file is open in Setzer."
-msgstr "Excluir “{key}” desta bibliografia? Isso pode ser desfeito quando o arquivo estiver aberto no Setzer."
+msgid ""
+"Delete “{key}” from this bibliography? This can be undone when the file is "
+"open in Setzer."
+msgstr ""
+"Excluir “{key}” desta bibliografia? Isso pode ser desfeito quando o arquivo "
+"estiver aberto no Setzer."
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:830
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1471
@@ -1360,8 +1415,14 @@ msgid "Format Bibliography?"
 msgstr "Formatar bibliografia?"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:851
-msgid "Rewrite every entry with fields in a consistent order and aligned values. Comments and everything outside entries stay unchanged. This can be undone when the file is open in Setzer."
-msgstr "Reescrever cada entrada com campos em ordem consistente e valores alinhados. Comentários e tudo fora das entradas permanecem inalterados. Isso pode ser desfeito quando o arquivo está aberto no Setzer."
+msgid ""
+"Rewrite every entry with fields in a consistent order and aligned values. "
+"Comments and everything outside entries stay unchanged. This can be undone "
+"when the file is open in Setzer."
+msgstr ""
+"Reescrever cada entrada com campos em ordem consistente e valores alinhados."
+" Comentários e tudo fora das entradas permanecem inalterados. Isso pode ser "
+"desfeito quando o arquivo está aberto no Setzer."
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:854
 msgid "Format"
@@ -1386,7 +1447,9 @@ msgstr "Citação inserida com {count} chaves"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1019
 msgid "No citation keys selected — click an entry to add it."
-msgstr "Nenhuma chave de citação selecionada — clique em uma entrada para adicioná-la."
+msgstr ""
+"Nenhuma chave de citação selecionada — clique em uma entrada para adicioná-"
+"la."
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1083
 #, python-brace-format
@@ -1632,8 +1695,11 @@ msgstr "Nenhum item visível no log para enviar"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:416
 #: setzer/workspace/headerbar/headerbar.py:360
-msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
+msgid ""
+"AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr ""
+"O agente de IA está desativado. Ative-o em Preferências → Geral → "
+"Configurações de IA."
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:422
 #: setzer/workspace/headerbar/headerbar.py:366
@@ -1648,8 +1714,11 @@ msgstr "Por favor, salve o documento primeiro"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:439
 #: setzer/workspace/headerbar/headerbar.py:383
-msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
+msgid ""
+"No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr ""
+"Nenhuma ferramenta de agente configurada. Adicione uma em Preferências → "
+"Geral → Configurações de IA."
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:488
 msgid "Added to trusted directories"
@@ -1793,8 +1862,15 @@ msgid "Document \"{document}\" has no filename."
 msgstr "Documento «{document}» não tem identificador de arquivo."
 
 #: setzer/dialogs/build_save/build_save.py:37
-msgid "Please save your document to a file, so the build system knows where to put the .pdf (it will be in the same folder as your document). A file chooser will appear for you to select a location and filename."
-msgstr "Por favor, salve seu documento em um arquivo, para que o sistema de compilação saiba onde colocar o .pdf (ele estará na mesma pasta do seu documento). Um seletor de arquivos aparecerá para você escolher um local e nome de arquivo."
+msgid ""
+"Please save your document to a file, so the build system knows where to put "
+"the .pdf (it will be in the same folder as your document). A file chooser "
+"will appear for you to select a location and filename."
+msgstr ""
+"Por favor, salve seu documento em um arquivo, para que o sistema de "
+"compilação saiba onde colocar o .pdf (ele estará na mesma pasta do seu "
+"documento). Um seletor de arquivos aparecerá para você escolher um local e "
+"nome de arquivo."
 
 #: setzer/dialogs/build_save/build_save.py:39
 msgid "Save document now"
@@ -1867,8 +1943,11 @@ msgid "Document \"{document}\" has changed on disk."
 msgstr "Documento «{document}» mudou no disco."
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:44
-msgid "Should Setzer reload it now? Reloading will discard your unsaved changes."
-msgstr "O Setzer deve recarregá-lo agora? Recarregar descartará suas alterações não salvas."
+msgid ""
+"Should Setzer reload it now? Reloading will discard your unsaved changes."
+msgstr ""
+"O Setzer deve recarregá-lo agora? Recarregar descartará suas alterações não "
+"salvas."
 
 #: setzer/dialogs/document_changed_on_disk/document_changed_on_disk.py:45
 msgid "Keep the current Version"
@@ -1884,8 +1963,11 @@ msgid "Document \"{document}\" was deleted from disk or moved."
 msgstr "Documento «{document}» foi excluído do disco ou movido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:42
-msgid "If you close it or close Setzer without saving, this document will be lost."
-msgstr "Se você fechar o documento ou fechar o Setzer sem salvar, este documento será perdido."
+msgid ""
+"If you close it or close Setzer without saving, this document will be lost."
+msgstr ""
+"Se você fechar o documento ou fechar o Setzer sem salvar, este documento "
+"será perdido."
 
 #: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43
 msgid "Save As…"
@@ -1947,7 +2029,8 @@ msgstr "Substituir opções de compilação"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:87
 msgid "Use document-specific settings instead of global defaults"
-msgstr "Usar configurações específicas do documento em vez dos padrões globais"
+msgstr ""
+"Usar configurações específicas do documento em vez dos padrões globais"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:93
 #: setzer/dialogs/preferences/pages/page_build_system.py:346
@@ -2203,24 +2286,36 @@ msgid "Page format"
 msgstr "Formato da página"
 
 #: setzer/dialogs/document_wizard/pages/page.py:107
-msgid "Select the paper size for the document. US Letter for North America, A4 for most other regions."
-msgstr "Selecione o tamanho do papel para o documento. US Letter para a América do Norte, A4 para a maioria das outras regiões."
+msgid ""
+"Select the paper size for the document. US Letter for North America, A4 for "
+"most other regions."
+msgstr ""
+"Selecione o tamanho do papel para o documento. US Letter para a América do "
+"Norte, A4 para a maioria das outras regiões."
 
 #: setzer/dialogs/document_wizard/pages/page.py:119
 msgid "Landscape format"
 msgstr "Formato Paisagem"
 
 #: setzer/dialogs/document_wizard/pages/page.py:121
-msgid "Switch to landscape orientation (wider than tall). Useful for wide tables or figures."
-msgstr "Alternar para orientação paisagem (mais larga que alta). Útil para tabelas ou figuras largas."
+msgid ""
+"Switch to landscape orientation (wider than tall). Useful for wide tables or"
+" figures."
+msgstr ""
+"Alternar para orientação paisagem (mais larga que alta). Útil para tabelas "
+"ou figuras largas."
 
 #: setzer/dialogs/document_wizard/pages/page.py:125
 msgid "Two-column layout"
 msgstr "Leiaute de duas colunas"
 
 #: setzer/dialogs/document_wizard/pages/page.py:127
-msgid "Arrange text in two columns per page. Common for scientific articles and magazines."
-msgstr "Organizar o texto em duas colunas por página. Comum em artigos científicos e revistas."
+msgid ""
+"Arrange text in two columns per page. Common for scientific articles and "
+"magazines."
+msgstr ""
+"Organizar o texto em duas colunas por página. Comum em artigos científicos e"
+" revistas."
 
 #: setzer/dialogs/document_wizard/pages/page.py:135
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:360
@@ -2229,8 +2324,12 @@ msgid "Font size"
 msgstr "Tamanho da fonte"
 
 #: setzer/dialogs/document_wizard/pages/page.py:138
-msgid "LaTeX standard default is 10pt; 12pt is common for book and letter. Values outside 10-12pt require the extsizes package."
-msgstr "O padrão do LaTeX é 10pt; 12pt é comum para as classes book e letter. Valores fora de 10-12pt requerem o pacote extsizes."
+msgid ""
+"LaTeX standard default is 10pt; 12pt is common for book and letter. Values "
+"outside 10-12pt require the extsizes package."
+msgstr ""
+"O padrão do LaTeX é 10pt; 12pt é comum para as classes book e letter. "
+"Valores fora de 10-12pt requerem o pacote extsizes."
 
 #: setzer/dialogs/document_wizard/pages/page.py:143
 msgid "Use default margins"
@@ -2238,11 +2337,17 @@ msgstr "Usar margens padrão"
 
 #: setzer/dialogs/document_wizard/pages/page.py:144
 msgid "On: use LaTeX default margins. Off: set custom margins below."
-msgstr "Ativado: usar margens padrão do LaTeX. Desativado: definir margens personalizadas abaixo."
+msgstr ""
+"Ativado: usar margens padrão do LaTeX. Desativado: definir margens "
+"personalizadas abaixo."
 
 #: setzer/dialogs/document_wizard/pages/page.py:146
-msgid "When enabled, LaTeX's default margins (about 1 inch / 2.54 cm) are used. Disable to set custom values for each side."
-msgstr "Quando ativado, são usadas as margens padrão do LaTeX (aprox. 1 polegada / 2,54 cm). Desative para definir valores personalizados para cada lado."
+msgid ""
+"When enabled, LaTeX's default margins (about 1 inch / 2.54 cm) are used. "
+"Disable to set custom values for each side."
+msgstr ""
+"Quando ativado, são usadas as margens padrão do LaTeX (aprox. 1 polegada / "
+"2,54 cm). Desative para definir valores personalizados para cada lado."
 
 #: setzer/dialogs/document_wizard/pages/page.py:149
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
@@ -2296,8 +2401,12 @@ msgid "Show navigation buttons"
 msgstr "Mostrar botões de navegação"
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:172
-msgid "Show or hide the Beamer navigation bar at the bottom of slides. Disabling gives a cleaner look for presentations."
-msgstr "Mostrar ou ocultar a barra de navegação do Beamer na parte inferior dos slides. Desativar oferece um visual mais limpo para apresentações."
+msgid ""
+"Show or hide the Beamer navigation bar at the bottom of slides. Disabling "
+"gives a cleaner look for presentations."
+msgstr ""
+"Mostrar ou ocultar a barra de navegação do Beamer na parte inferior dos "
+"slides. Desativar oferece um visual mais limpo para apresentações."
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:175
 msgid "Align content to the top of pages"
@@ -2308,8 +2417,12 @@ msgid "(\"t\" option, it's centered by default)"
 msgstr "(opção \"t\", centralizado por padrão)"
 
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:178
-msgid "When enabled, slide content is top-aligned (the [t] option). When disabled, content is vertically centered — the Beamer default."
-msgstr "Quando ativado, o conteúdo do slide é alinhado ao topo (a opção [t]). Quando desativado, o conteúdo é centralizado verticalmente — padrão do Beamer."
+msgid ""
+"When enabled, slide content is top-aligned (the [t] option). When disabled, "
+"content is vertically centered — the Beamer default."
+msgstr ""
+"Quando ativado, o conteúdo do slide é alinhado ao topo (a opção [t]). Quando"
+" desativado, o conteúdo é centralizado verticalmente — padrão do Beamer."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:79
 msgid "Delete document template?"
@@ -2381,11 +2494,16 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:182
 msgid "<b>Book:</b>  For actual books containing many chapters and sections."
-msgstr "<b>Livro:</b>  Efetivamente para livros, contendo vários capítulos e seções."
+msgstr ""
+"<b>Livro:</b>  Efetivamente para livros, contendo vários capítulos e seções."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:183
-msgid "<b>Report:</b>  For longer reports and articles containing more than one chapter, small books, thesis."
-msgstr "<b>Relatório:</b>  Para relatórios e artigos mais longos contendo mais de um capítulo; livretos, teses."
+msgid ""
+"<b>Report:</b>  For longer reports and articles containing more than one "
+"chapter, small books, thesis."
+msgstr ""
+"<b>Relatório:</b>  Para relatórios e artigos mais longos contendo mais de um"
+" capítulo; livretos, teses."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:184
 msgid "<b>Letter:</b>  For writing letters."
@@ -2402,8 +2520,12 @@ msgstr ""
 "Existem vários estilos de apresentação pré-definidos."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:187
-msgid "<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many customizations and sensible defaults."
-msgstr "<b>Scrartcl:</b> substituto do KOMA-Script para a classe article. Adiciona muitas personalizações e valores padrão sensatos."
+msgid ""
+"<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many "
+"customizations and sensible defaults."
+msgstr ""
+"<b>Scrartcl:</b> substituto do KOMA-Script para a classe article. Adiciona "
+"muitas personalizações e valores padrão sensatos."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:188
 msgid "<b>Scrreprt:</b>  KOMA-Script replacement for the report class."
@@ -2414,8 +2536,12 @@ msgid "<b>Scrbook:</b>  KOMA-Script replacement for the book class."
 msgstr "<b>Scrbook:</b> substituto do KOMA-Script para a classe book."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:190
-msgid "<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for address, date, and subject layout."
-msgstr "<b>Scrlttr2:</b> Classe de carta do KOMA-Script com recursos avançados para layout de endereço, data e assunto."
+msgid ""
+"<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for "
+"address, date, and subject layout."
+msgstr ""
+"<b>Scrlttr2:</b> Classe de carta do KOMA-Script com recursos avançados para "
+"layout de endereço, data e assunto."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:210
 msgid "Templates"
@@ -2426,8 +2552,12 @@ msgid "Load template"
 msgstr "Carregar modelo"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:215
-msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
-msgstr "Mostra as predefinições salvas. Adicione uma pelo menu ⋮ → «Salvar como predefinição»; sem nenhuma salva, apenas «Nenhuma» é exibida."
+msgid ""
+"Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — "
+"otherwise only “None” is listed."
+msgstr ""
+"Mostra as predefinições salvas. Adicione uma pelo menu ⋮ → «Salvar como "
+"predefinição»; sem nenhuma salva, apenas «Nenhuma» é exibida."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:223
 msgid "Document templates"
@@ -2438,8 +2568,13 @@ msgid "Use document template"
 msgstr "Usar modelo de documento"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:228
-msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
-msgstr "Mostra os modelos de documento salvos. Adicione um pelo menu ⋮ → «Salvar modelo de documento»; sem nenhum salvo, apenas «Usar configurações do assistente» é exibida."
+msgid ""
+"Shows your saved document templates. Use the ⋮ menu → “Save Document "
+"Template” to add one — otherwise only “Use wizard settings” is listed."
+msgstr ""
+"Mostra os modelos de documento salvos. Adicione um pelo menu ⋮ → «Salvar "
+"modelo de documento»; sem nenhum salvo, apenas «Usar configurações do "
+"assistente» é exibida."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:256
 msgid "Delete selected document template"
@@ -2451,7 +2586,8 @@ msgstr "Usar configurações do assistente"
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:291
 msgid "Select a saved LaTeX source template to preview it here."
-msgstr "Selecione um modelo de código-fonte LaTeX salvo para visualizá-lo aqui."
+msgstr ""
+"Selecione um modelo de código-fonte LaTeX salvo para visualizá-lo aqui."
 
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:297
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:253
@@ -2464,8 +2600,12 @@ msgid "General document settings"
 msgstr "Configurações gerais de documento"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
-msgid "<b>AMS packages:</b> provide mathematical symbols, math-related environments, …"
-msgstr "<b>Pacotes AMS:</b> fornecem símbolos matemáticos, ambientes relacionados à matemática, …"
+msgid ""
+"<b>AMS packages:</b> provide mathematical symbols, math-related "
+"environments, …"
+msgstr ""
+"<b>Pacotes AMS:</b> fornecem símbolos matemáticos, ambientes relacionados à "
+"matemática, …"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
@@ -2506,8 +2646,12 @@ msgid "Date"
 msgstr "Data"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:210
-msgid "The document date, used in the \\date{} command. Use \\\\today for the current date."
-msgstr "A data do documento, usada no comando \\date{}. Use \\\\today para a data atual."
+msgid ""
+"The document date, used in the \\date{} command. Use \\\\today for the "
+"current date."
+msgstr ""
+"A data do documento, usada no comando \\date{}. Use \\\\today para a data "
+"atual."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:218
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:223
@@ -2517,12 +2661,20 @@ msgid "Language"
 msgstr "Língua"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
-msgid "The main language for this document. This is used to apply rules for hyphenation and other purposes."
-msgstr "A língua principal para este documento. É usada para aplicar regras de hifenização e outros propósitos."
+msgid ""
+"The main language for this document. This is used to apply rules for "
+"hyphenation and other purposes."
+msgstr ""
+"A língua principal para este documento. É usada para aplicar regras de "
+"hifenização e outros propósitos."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:224
-msgid "The main language for hyphenation patterns and automatic labels (e.g. \"Abstract\" vs \"Zusammenfassung\")."
-msgstr "O idioma principal para padrões de hifenização e rótulos automáticos (por exemplo, \"Abstract\" vs \"Zusammenfassung\")."
+msgid ""
+"The main language for hyphenation patterns and automatic labels (e.g. "
+"\"Abstract\" vs \"Zusammenfassung\")."
+msgstr ""
+"O idioma principal para padrões de hifenização e rótulos automáticos (por "
+"exemplo, \"Abstract\" vs \"Zusammenfassung\")."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:241
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:244
@@ -2530,12 +2682,20 @@ msgid "Font package"
 msgstr "Pacote de Fontes"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:242
-msgid "Select the font package to include in the preamble. lmodern is recommended for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX."
-msgstr "Selecione o pacote de fontes a incluir no preâmbulo. lmodern é recomendado para pdfLaTeX, fontspec para XeLaTeX/LuaLaTeX."
+msgid ""
+"Select the font package to include in the preamble. lmodern is recommended "
+"for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX."
+msgstr ""
+"Selecione o pacote de fontes a incluir no preâmbulo. lmodern é recomendado "
+"para pdfLaTeX, fontspec para XeLaTeX/LuaLaTeX."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:246
-msgid "Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX. fontspec enables system fonts with XeLaTeX/LuaLaTeX."
-msgstr "Escolha o pacote de fontes. lmodern (Latin Modern) é recomendado para pdfLaTeX. fontspec habilita fontes do sistema com XeLaTeX/LuaLaTeX."
+msgid ""
+"Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX."
+" fontspec enables system fonts with XeLaTeX/LuaLaTeX."
+msgstr ""
+"Escolha o pacote de fontes. lmodern (Latin Modern) é recomendado para "
+"pdfLaTeX. fontspec habilita fontes do sistema com XeLaTeX/LuaLaTeX."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:251
 msgid "Latin Modern (lmodern)"
@@ -2604,8 +2764,12 @@ msgid "Saved source template"
 msgstr "Modelo de código-fonte salvo"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:375
-msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
-msgstr "“{}” será inserido exatamente como foi salvo. As configurações de classe do documento, idioma, pacotes e metadados acima não serão aplicadas."
+msgid ""
+"“{}” will be inserted exactly as saved. Document class, language, package, "
+"and metadata settings above will not be applied."
+msgstr ""
+"“{}” será inserido exatamente como foi salvo. As configurações de classe do "
+"documento, idioma, pacotes e metadados acima não serão aplicadas."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:381
 msgid "Document title required"
@@ -2677,7 +2841,9 @@ msgstr "Seu nome como aparece no bloco de endereço."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:243
 msgid "Your street address or PO box. Use a new line for each address line."
-msgstr "Seu endereço ou caixa postal. Use uma nova linha para cada linha do endereço."
+msgstr ""
+"Seu endereço ou caixa postal. Use uma nova linha para cada linha do "
+"endereço."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:245
 msgid "Place"
@@ -2685,7 +2851,8 @@ msgstr "Local"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:247
 msgid "Location printed above the date, e.g. \"Berlin\". Only used by scrlttr2."
-msgstr "Local impresso acima da data, p. ex. \"Berlin\". Usado apenas por scrlttr2."
+msgstr ""
+"Local impresso acima da data, p. ex. \"Berlin\". Usado apenas por scrlttr2."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:249
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:293
@@ -2701,8 +2868,12 @@ msgid "Fax"
 msgstr "Fax"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:254
-msgid "Your fax number. Only used by scrlttr2; enable \"Show return address\" to make it appear."
-msgstr "Seu número de fax. Usado apenas por scrlttr2; ative \"Mostrar endereço de remetente\" para exibi-lo."
+msgid ""
+"Your fax number. Only used by scrlttr2; enable \"Show return address\" to "
+"make it appear."
+msgstr ""
+"Seu número de fax. Usado apenas por scrlttr2; ative \"Mostrar endereço de "
+"remetente\" para exibi-lo."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:263
 msgid "Letterhead"
@@ -2731,7 +2902,8 @@ msgstr "Logotipo"
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:272
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:393
 msgid "Choose a logo image or PDF to include in the letterhead."
-msgstr "Escolha uma imagem ou PDF de logotipo para incluir no cabeçalho da carta."
+msgstr ""
+"Escolha uma imagem ou PDF de logotipo para incluir no cabeçalho da carta."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:273
 msgid "Choose logo"
@@ -2750,8 +2922,12 @@ msgid "The name of the person or organization you are writing to."
 msgstr "Nome da pessoa ou organização a quem você está escrevendo."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:291
-msgid "The recipient's street address or PO box. Use a new line for each address line."
-msgstr "O endereço ou caixa postal do destinatário. Use uma nova linha para cada linha do endereço."
+msgid ""
+"The recipient's street address or PO box. Use a new line for each address "
+"line."
+msgstr ""
+"O endereço ou caixa postal do destinatário. Use uma nova linha para cada "
+"linha do endereço."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:294
 msgid "The recipient's phone number."
@@ -2795,7 +2971,8 @@ msgstr "Mostrar campo de endereço para envelope com janela"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:321
 msgid "Show the recipient address in the position for a windowed envelope."
-msgstr "Mostra o endereço do destinatário na posição para um envelope com janela."
+msgstr ""
+"Mostra o endereço do destinatário na posição para um envelope com janela."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:323
 msgid "Show return address"
@@ -2803,7 +2980,8 @@ msgstr "Mostrar endereço de retorno"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:325
 msgid "Show the sender address above the recipient address field."
-msgstr "Mostra o endereço do remetente acima do campo de endereço do destinatário."
+msgstr ""
+"Mostra o endereço do remetente acima do campo de endereço do destinatário."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:327
 msgid "Return address text"
@@ -2811,7 +2989,9 @@ msgstr "Texto do endereço de remetente"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:329
 msgid "Text used for the return address. Leave empty to use the sender block."
-msgstr "Texto usado para o endereço de remetente. Deixe vazio para usar o bloco do remetente."
+msgstr ""
+"Texto usado para o endereço de remetente. Deixe vazio para usar o bloco do "
+"remetente."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:331
 msgid "Show fold marks"
@@ -2819,7 +2999,8 @@ msgstr "Mostrar marcas de dobra"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:333
 msgid "Show marks that help fold the letter for a windowed envelope."
-msgstr "Mostra marcas que ajudam a dobrar a carta para um envelope com janela."
+msgstr ""
+"Mostra marcas que ajudam a dobrar a carta para um envelope com janela."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:335
 msgid "Show header and footer rules"
@@ -2834,8 +3015,11 @@ msgid "Use letter-style date"
 msgstr "Usar data no estilo de carta"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:341
-msgid "Print the date in the spelled-out letter style instead of the numeric ISO form."
-msgstr "Imprimir a data no estilo de carta por extenso em vez da forma numérica ISO."
+msgid ""
+"Print the date in the spelled-out letter style instead of the numeric ISO "
+"form."
+msgstr ""
+"Imprimir a data no estilo de carta por extenso em vez da forma numérica ISO."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:364
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:174
@@ -2866,8 +3050,14 @@ msgid "Sectioning level"
 msgstr "Nível de seccionamento"
 
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:147
-msgid "Choose the highest sectioning command. \"section\" for articles (\\section{}), \"chapter\" for reports and books (\\chapter{}), \"none\" for no sectioning commands."
-msgstr "Escolha o comando de seccionamento de nível mais alto. \"section\" para artigos (\\section{}), \"chapter\" para relatórios e livros (\\chapter{}), \"none\" para nenhum comando de seccionamento."
+msgid ""
+"Choose the highest sectioning command. \"section\" for articles "
+"(\\section{}), \"chapter\" for reports and books (\\chapter{}), \"none\" for"
+" no sectioning commands."
+msgstr ""
+"Escolha o comando de seccionamento de nível mais alto. \"section\" para "
+"artigos (\\section{}), \"chapter\" para relatórios e livros (\\chapter{}), "
+"\"none\" para nenhum comando de seccionamento."
 
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:152
 msgid "Section (\\section{})"
@@ -3005,8 +3195,12 @@ msgid "Start Writing"
 msgstr "Começar a escrever"
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:92
-msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
-msgstr "Comece com um documento e depois compile-o para visualizar o PDF. Você pode reabrir estas dicas a qualquer momento em Preferências."
+msgid ""
+"Start with a document, then build and preview it. You can reopen these tips "
+"at any time from Preferences."
+msgstr ""
+"Comece com um documento e depois compile-o para visualizar o PDF. Você pode "
+"reabrir estas dicas a qualquer momento em Preferências."
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:125
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
@@ -3018,8 +3212,12 @@ msgid "Start with a document"
 msgstr "Comece com um documento"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:59
-msgid "Use the welcome screen to create or open a file, choose a template, or try the example document."
-msgstr "Use a tela de boas-vindas para criar ou abrir um arquivo, escolher um modelo ou experimentar o documento de exemplo."
+msgid ""
+"Use the welcome screen to create or open a file, choose a template, or try "
+"the example document."
+msgstr ""
+"Use a tela de boas-vindas para criar ou abrir um arquivo, escolher um modelo"
+" ou experimentar o documento de exemplo."
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:64
 msgid "Build and preview your PDF"
@@ -3027,16 +3225,24 @@ msgstr "Compile e visualize seu PDF"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:65
 #, python-brace-format
-msgid "Use {shortcut} to save and build. The PDF opens in the preview panel, where you can inspect the result."
-msgstr "Use {shortcut} para salvar e compilar. O PDF é aberto no painel de visualização, onde você pode conferir o resultado."
+msgid ""
+"Use {shortcut} to save and build. The PDF opens in the preview panel, where "
+"you can inspect the result."
+msgstr ""
+"Use {shortcut} para salvar e compilar. O PDF é aberto no painel de "
+"visualização, onde você pode conferir o resultado."
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:71
 msgid "Navigate with document structure"
 msgstr "Navegue com a estrutura do documento"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:72
-msgid "Use Document Structure to move between headings in a long document. Select an entry to jump to its title."
-msgstr "Use a Estrutura do documento para se mover entre títulos em um documento longo. Selecione uma entrada para ir até seu título."
+msgid ""
+"Use Document Structure to move between headings in a long document. Select "
+"an entry to jump to its title."
+msgstr ""
+"Use a Estrutura do documento para se mover entre títulos em um documento "
+"longo. Selecione uma entrada para ir até seu título."
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:77
 msgid "Find commands quickly"
@@ -3044,8 +3250,12 @@ msgstr "Encontre comandos rapidamente"
 
 #: setzer/dialogs/first_run_tutorial/tutorial_content.py:78
 #, python-brace-format
-msgid "Use {shortcut} to search and run application commands when you do not remember where an action is located."
-msgstr "Use {shortcut} para pesquisar e executar comandos do aplicativo quando não se lembrar de onde fica uma ação."
+msgid ""
+"Use {shortcut} to search and run application commands when you do not "
+"remember where an action is located."
+msgstr ""
+"Use {shortcut} para pesquisar e executar comandos do aplicativo quando não "
+"se lembrar de onde fica uma ação."
 
 #: setzer/dialogs/go_to_line/go_to_line.py:40
 #, python-brace-format
@@ -3186,12 +3396,22 @@ msgid "Type of path to included file"
 msgstr "Tipo de caminho para arquivo incluído"
 
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:92
-msgid "<b>Absolute Path:</b> Specify the absolute location of the included file in your filesystem."
-msgstr "<b>Caminho Absoluto:</b> Especificar o caminho absoluto do arquivo incluído no seu sistema de arquivos."
+msgid ""
+"<b>Absolute Path:</b> Specify the absolute location of the included file in "
+"your filesystem."
+msgstr ""
+"<b>Caminho Absoluto:</b> Especificar o caminho absoluto do arquivo incluído "
+"no seu sistema de arquivos."
 
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:92
-msgid "<b>Relative Path:</b> Set the path relative to the main document. This is useful when the included file is in the same folder as the main document and you want to move around both of them together."
-msgstr "<b>Caminho Relativo:</b> Definir o caminho relativo ao documento principal. Isto é útil quando o arquivo incluído está no mesmo diretório do documento principal e se quer movê-los juntos."
+msgid ""
+"<b>Relative Path:</b> Set the path relative to the main document. This is "
+"useful when the included file is in the same folder as the main document and"
+" you want to move around both of them together."
+msgstr ""
+"<b>Caminho Relativo:</b> Definir o caminho relativo ao documento principal. "
+"Isto é útil quando o arquivo incluído está no mesmo diretório do documento "
+"principal e se quer movê-los juntos."
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:61
 #: setzer/dialogs/insert_image/insert_image_controller.py:122
@@ -3257,7 +3477,9 @@ msgstr "Origem da imagem"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:87
 msgid "Pick an image file or use the picture currently on the clipboard"
-msgstr "Escolha um arquivo de imagem ou use a imagem atualmente na área de transferência"
+msgstr ""
+"Escolha um arquivo de imagem ou use a imagem atualmente na área de "
+"transferência"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:88
 msgid "From clipboard (pasted)"
@@ -3273,7 +3495,9 @@ msgstr "Arquivo de imagem"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:95
 msgid "The selected image file, or \"No file chosen\" before selection"
-msgstr "O arquivo de imagem selecionado, ou \"Nenhum arquivo escolhido\" antes da seleção"
+msgstr ""
+"O arquivo de imagem selecionado, ou \"Nenhum arquivo escolhido\" antes da "
+"seleção"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:98
 msgid "Open a file chooser to select an image"
@@ -3300,8 +3524,12 @@ msgid "Subfolder inside the document folder where the image is stored"
 msgstr "Subpasta dentro da pasta do documento onde a imagem é armazenada"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:131
-msgid "Image will be saved as PNG into \"<document folder>/<subfolder>/<file name>.png\"."
-msgstr "A imagem será salva como PNG em \"<document folder>/<subfolder>/<file name>.png\"."
+msgid ""
+"Image will be saved as PNG into \"<document folder>/<subfolder>/<file "
+"name>.png\"."
+msgstr ""
+"A imagem será salva como PNG em \"<document folder>/<subfolder>/<file "
+"name>.png\"."
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:140
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:261
@@ -3314,7 +3542,8 @@ msgstr "ex.: [ht] — use \"H\" para forçar no local (requer o pacote float)"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
 msgid "LaTeX float specifier controlling where the figure may be placed"
-msgstr "Especificador de float do LaTeX que controla onde a figura pode ser colocada"
+msgstr ""
+"Especificador de float do LaTeX que controla onde a figura pode ser colocada"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
 msgid "htbp (here, top, bottom, page) — most flexible, default"
@@ -3403,7 +3632,8 @@ msgstr "Legenda &amp; Rótulo"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:211
 msgid "Text shown below the image; leave empty for no caption"
-msgstr "Texto exibido abaixo da imagem; deixe em branco para não inserir legenda"
+msgstr ""
+"Texto exibido abaixo da imagem; deixe em branco para não inserir legenda"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:216
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:286
@@ -3417,7 +3647,9 @@ msgstr "Identificador usado com \\ref para referenciar esta figura"
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:221
 #, python-brace-format
 msgid "Label is referenced with \\ref{label}. Leave \"fig:\" prefix or customize."
-msgstr "O rótulo é referenciado com \\ref{label}. Mantenha o prefixo \"fig:\" ou personalize."
+msgstr ""
+"O rótulo é referenciado com \\ref{label}. Mantenha o prefixo \"fig:\" ou "
+"personalize."
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:266
 msgid "Change…"
@@ -3464,7 +3696,9 @@ msgstr "Foram importadas {rows} linhas e {columns} colunas."
 #: setzer/dialogs/insert_table/insert_table_controller.py:186
 #, python-brace-format
 msgid "Cleared {count} merged ranges because imported data replaces the grid."
-msgstr "Foram removidos {count} intervalos mesclados porque os dados importados substituem a grade."
+msgstr ""
+"Foram removidos {count} intervalos mesclados porque os dados importados "
+"substituem a grade."
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:194
 msgid "Imported data exceeds the maximum of 30 rows and 12 columns."
@@ -3481,12 +3715,18 @@ msgstr "Os dados TSV/CSV importados não são válidos."
 #: setzer/dialogs/insert_table/insert_table_controller.py:226
 #, python-brace-format
 msgid "Removed {count} merged ranges that no longer fit the resized table."
-msgstr "Foram removidos {count} intervalos mesclados que não cabem mais na tabela redimensionada."
+msgstr ""
+"Foram removidos {count} intervalos mesclados que não cabem mais na tabela "
+"redimensionada."
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:235
 #: setzer/dialogs/insert_table/insert_table_controller.py:264
-msgid "The selected range must fit inside the table, span at least two cells, and not overlap another merged range."
-msgstr "O intervalo selecionado deve caber na tabela, abranger pelo menos duas células e não se sobrepor a outro intervalo mesclado."
+msgid ""
+"The selected range must fit inside the table, span at least two cells, and "
+"not overlap another merged range."
+msgstr ""
+"O intervalo selecionado deve caber na tabela, abranger pelo menos duas "
+"células e não se sobrepor a outro intervalo mesclado."
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:246
 #, python-brace-format
@@ -3494,8 +3734,12 @@ msgid "Editing merged range: row {row}, column {column}."
 msgstr "Editando intervalo mesclado: linha {row}, coluna {column}."
 
 #: setzer/dialogs/insert_table/insert_table_controller.py:327
-msgid "Header repetition was disabled because a first-row merge spans multiple rows."
-msgstr "A repetição do cabeçalho foi desativada porque uma mesclagem da primeira linha abrange várias linhas."
+msgid ""
+"Header repetition was disabled because a first-row merge spans multiple "
+"rows."
+msgstr ""
+"A repetição do cabeçalho foi desativada porque uma mesclagem da primeira "
+"linha abrange várias linhas."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:94
 msgid "Copy the generated LaTeX without changing the document"
@@ -3526,8 +3770,11 @@ msgid "Table Data"
 msgstr "Dados da tabela"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:132
-msgid "Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
-msgstr "Insira o conteúdo da célula como LaTeX. Use Tab e Shift+Tab para mover-se entre as células."
+msgid ""
+"Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
+msgstr ""
+"Insira o conteúdo da célula como LaTeX. Use Tab e Shift+Tab para mover-se "
+"entre as células."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:147
 msgid "Import format"
@@ -3535,7 +3782,9 @@ msgstr "Formato de importação"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
 msgid "Auto uses TSV when the text contains tabs; otherwise it uses comma CSV"
-msgstr "Automático usa TSV quando o texto contém tabulações; caso contrário, usa CSV separado por vírgulas."
+msgstr ""
+"Automático usa TSV quando o texto contém tabulações; caso contrário, usa CSV"
+" separado por vírgulas."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:150
 msgid "Auto (TSV when tabs are present)"
@@ -3578,8 +3827,12 @@ msgid "Merge Cells"
 msgstr "Mesclar células"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:177
-msgid "Merge a rectangular range. The top-left cell supplies the generated LaTeX content."
-msgstr "Mescle um intervalo retangular. A célula superior esquerda fornece o conteúdo LaTeX gerado."
+msgid ""
+"Merge a rectangular range. The top-left cell supplies the generated LaTeX "
+"content."
+msgstr ""
+"Mescle um intervalo retangular. A célula superior esquerda fornece o "
+"conteúdo LaTeX gerado."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:179
 msgid "Start row"
@@ -3632,7 +3885,8 @@ msgstr "Estilo das linhas"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:222
 msgid "Plain rules use \\hline; Booktabs uses professional horizontal rules"
-msgstr "Linhas simples usam \\hline; Booktabs usa regras horizontais profissionais."
+msgstr ""
+"Linhas simples usam \\hline; Booktabs usa regras horizontais profissionais."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:224
 msgid "Plain rules"
@@ -3656,7 +3910,9 @@ msgstr "Repetir o cabeçalho nas páginas seguintes"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:235
 msgid "Repeat the first row when a long table continues on a new page"
-msgstr "Repetir a primeira linha quando uma tabela longa continuar em uma nova página"
+msgstr ""
+"Repetir a primeira linha quando uma tabela longa continuar em uma nova "
+"página"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:241
 msgid "Table Environment"
@@ -3668,7 +3924,9 @@ msgstr "Ambiente de saída"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:244
 msgid "Long tables may continue across pages and are not floating tables"
-msgstr "Tabelas longas podem continuar em várias páginas e não são tabelas flutuantes"
+msgstr ""
+"Tabelas longas podem continuar em várias páginas e não são tabelas "
+"flutuantes"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:246
 msgid "Standard table"
@@ -3683,8 +3941,12 @@ msgid "Long tables cannot use a table float"
 msgstr "Tabelas longas não podem usar um float table"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:252
-msgid "Caption and label are placed inside longtable; float placement and centering are unavailable."
-msgstr "A legenda e o rótulo são colocados dentro de longtable; posicionamento flutuante e centralização não estão disponíveis."
+msgid ""
+"Caption and label are placed inside longtable; float placement and centering"
+" are unavailable."
+msgstr ""
+"A legenda e o rótulo são colocados dentro de longtable; posicionamento "
+"flutuante e centralização não estão disponíveis."
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:256
 msgid "Use table environment"
@@ -3692,7 +3954,8 @@ msgstr "Usar ambiente table"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:257
 msgid "Wrap tabular in a floating table with caption and label support"
-msgstr "Envolver tabular em uma tabela flutuante com suporte a legenda e rótulo"
+msgstr ""
+"Envolver tabular em uma tabela flutuante com suporte a legenda e rótulo"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:263
 msgid "htbp (here, top, bottom, page) — default"
@@ -3724,7 +3987,8 @@ msgstr "Texto exibido acima da tabela; deixe vazio para omiti-lo"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:287
 msgid "Identifier used with \\ref to cross-reference this table"
-msgstr "Identificador usado com \\ref para fazer referência cruzada a esta tabela"
+msgstr ""
+"Identificador usado com \\ref para fazer referência cruzada a esta tabela"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:293
 msgid "LaTeX Preview"
@@ -4186,15 +4450,21 @@ msgstr "Arquivo de configurações inválido."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:312
 msgid "Settings imported. Reopen Preferences to see all changes."
-msgstr "Configurações importadas. Reabra as Preferências para ver todas as alterações."
+msgstr ""
+"Configurações importadas. Reabra as Preferências para ver todas as "
+"alterações."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:316
 msgid "Reset all preferences?"
 msgstr "Redefinir todas as preferências?"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:317
-msgid "This resets all preferences to their default values. Keyboard shortcuts and window layout are kept."
-msgstr "Isto restabelece todas as preferências aos valores padrão. Atalhos de teclado e o layout da janela são mantidos."
+msgid ""
+"This resets all preferences to their default values. Keyboard shortcuts and "
+"window layout are kept."
+msgstr ""
+"Isto restabelece todas as preferências aos valores padrão. Atalhos de "
+"teclado e o layout da janela são mantidos."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:320
 #: setzer/dialogs/preferences/pages/page_appearance.py:344
@@ -4207,7 +4477,9 @@ msgstr "Redefinir"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:330
 msgid "Preferences reset. Reopen Preferences to see all changes."
-msgstr "Preferências redefinidas. Reabra as Preferências para ver todas as alterações."
+msgstr ""
+"Preferências redefinidas. Reabra as Preferências para ver todas as "
+"alterações."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:341
 #: setzer/dialogs/preferences/pages/page_appearance.py:570
@@ -4218,7 +4490,8 @@ msgstr "Redefinir para os Padrões?"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:342
 msgid "All appearance settings will be restored to their default values."
-msgstr "Todas as configurações de aparência serão restauradas aos valores padrão."
+msgstr ""
+"Todas as configurações de aparência serão restauradas aos valores padrão."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:449
 msgid "(active)"
@@ -4250,15 +4523,21 @@ msgstr "Nenhum diretório confiável ainda"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:488
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
-msgstr "Marque «Não perguntar novamente» no diálogo de visualização para adicionar um."
+msgstr ""
+"Marque «Não perguntar novamente» no diálogo de visualização para adicionar "
+"um."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:501
 msgid "Remove from trusted list"
 msgstr "Remover da lista confiável"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:571
-msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
+msgid ""
+"All AI agent settings will be restored to their default values. Custom tools"
+" and trusted directories will be removed."
 msgstr ""
+"Todas as configurações do agente de IA serão restauradas para os valores "
+"padrão. Ferramentas personalizadas e diretórios confiáveis serão removidos."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:599
 msgid "General"
@@ -4285,8 +4564,11 @@ msgid "On Startup"
 msgstr "Na inicialização"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
-msgid "Whether to restore the previous session or start with an empty workspace."
-msgstr "Se deve restaurar a sessão anterior ou iniciar com uma área de trabalho vazia."
+msgid ""
+"Whether to restore the previous session or start with an empty workspace."
+msgstr ""
+"Se deve restaurar a sessão anterior ou iniciar com uma área de trabalho "
+"vazia."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:657
 msgid "Preview Sidebar Width"
@@ -4302,7 +4584,8 @@ msgstr "Corresponder cores do PDF ao tema"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:668
 msgid "Recolor the PDF preview to match the light/dark theme."
-msgstr "Recolorir a pré-visualização do PDF para corresponder ao tema claro/escuro."
+msgstr ""
+"Recolorir a pré-visualização do PDF para corresponder ao tema claro/escuro."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:672
 msgid "Default Zoom"
@@ -4313,8 +4596,15 @@ msgid "Initial zoom mode for the PDF preview."
 msgstr "Modo de zoom inicial para a visualização em PDF."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:676
-msgid "Default zoom mode for the PDF preview. Fit Width fills the preview width; Fit Text Width fits the text column; Fit Height fills the preview height; Manual starts at 100%."
-msgstr "Modo de zoom padrão para a visualização em PDF. \"Ajustar à largura\" preenche toda a largura da visualização; \"Ajustar à largura do texto\" ajusta‑se à coluna de texto; \"Ajustar à altura\" preenche toda a altura da visualização; \"Manual\" inicia em 100%."
+msgid ""
+"Default zoom mode for the PDF preview. Fit Width fills the preview width; "
+"Fit Text Width fits the text column; Fit Height fills the preview height; "
+"Manual starts at 100%."
+msgstr ""
+"Modo de zoom padrão para a visualização em PDF. \"Ajustar à largura\" "
+"preenche toda a largura da visualização; \"Ajustar à largura do texto\" "
+"ajusta‑se à coluna de texto; \"Ajustar à altura\" preenche toda a altura da "
+"visualização; \"Manual\" inicia em 100%."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:680
 msgid "Fit Width"
@@ -4346,15 +4636,19 @@ msgstr "Porcentagem da largura da janela alocada à barra lateral."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:710
 msgid "AI Settings"
-msgstr ""
+msgstr "Configurações de IA"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:714
 msgid "Enable AI agent"
-msgstr ""
+msgstr "Ativar agente de IA"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:715
-msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
+msgid ""
+"Enables AI Fix in the Build Log dialog and the agent terminal button in the "
+"header bar"
 msgstr ""
+"Habilita a correção com IA na caixa de diálogo do registro de compilação e o"
+" botão do terminal do agente na barra de cabeçalho"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:719
 msgid "Active agent tool"
@@ -4362,23 +4656,31 @@ msgstr "Ferramenta de agente ativa"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:720
 msgid "Which CLI to invoke for AI features"
-msgstr ""
+msgstr "CLI a ser invocada para os recursos de IA"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:724
 msgid "Terminal command (optional)"
 msgstr "Comando de terminal (opcional)"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:726
-msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
-msgstr "Deixe em branco para detecção automática (gnome-terminal / xterm / konsole / ...). No Flatpak, flatpak-spawn --host é adicionado automaticamente."
+msgid ""
+"Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under "
+"Flatpak, flatpak-spawn --host is added automatically."
+msgstr ""
+"Deixe em branco para detecção automática (gnome-terminal / xterm / konsole /"
+" ...). No Flatpak, flatpak-spawn --host é adicionado automaticamente."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:731
 msgid "Agent tools"
 msgstr "Ferramentas de agente"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:732
-msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
-msgstr "Predefinições internas não podem ser removidas. Adicione uma ferramenta personalizada para integrar outras CLIs de agente."
+msgid ""
+"Built-in presets cannot be removed. Add a custom tool to integrate other "
+"Agent CLIs."
+msgstr ""
+"Predefinições internas não podem ser removidas. Adicione uma ferramenta "
+"personalizada para integrar outras CLIs de agente."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:738
 msgid "+ Add custom tool"
@@ -4389,8 +4691,12 @@ msgid "Trusted directories"
 msgstr "Diretórios confiáveis"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:744
-msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
-msgstr "Diretórios onde o diálogo de visualização é ignorado. Clique em excluir para revogar a confiança de um projeto."
+msgid ""
+"Directories where the preview dialog is skipped. Click delete to revoke "
+"trust for a project."
+msgstr ""
+"Diretórios onde o diálogo de visualização é ignorado. Clique em excluir para"
+" revogar a confiança de um projeto."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:752
 #: setzer/dialogs/preferences/pages/page_appearance.py:810
@@ -4421,8 +4727,12 @@ msgid "Backup and Restore"
 msgstr "Backup e restauração"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:774
-msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
-msgstr "Exporte suas preferências e atalhos de teclado para um arquivo ou importe‑os em outra máquina."
+msgid ""
+"Export your preferences and keyboard shortcuts to a file, or import them on "
+"another machine."
+msgstr ""
+"Exporte suas preferências e atalhos de teclado para um arquivo ou importe‑os"
+" em outra máquina."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:780
 msgid "Save your preferences and keyboard shortcuts to a file."
@@ -4468,12 +4778,21 @@ msgstr "Modelo de comando com cabeçalho"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:866
 #, python-brace-format
-msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
-msgstr "Argumentos separados por espaço. Use {prompt} / {file} / {cwd} como marcadores de posição. Exemplo: aider --message {prompt} --no-auto-commits. Se deixado em branco ou sem {prompt}, o prompt é copiado para a área de transferência."
+msgid ""
+"Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
+"Example: aider --message {prompt} --no-auto-commits. If left blank or "
+"without {prompt}, the prompt is copied to clipboard."
+msgstr ""
+"Argumentos separados por espaço. Use {prompt} / {file} / {cwd} como "
+"marcadores de posição. Exemplo: aider --message {prompt} --no-auto-commits. "
+"Se deixado em branco ou sem {prompt}, o prompt é copiado para a área de "
+"transferência."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:150
 msgid "All build system settings will be restored to their default values."
 msgstr ""
+"Todas as configurações do sistema de compilação serão restauradas para os "
+"valores padrão."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:297
 msgid ""
@@ -4484,28 +4803,49 @@ msgstr ""
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:300
-msgid "No LaTeX interpreter found. For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
-msgstr "Nenhum interpretador LaTeX encontrado. Para instruções sobre como instalar o LaTeX, veja <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+msgid ""
+"No LaTeX interpreter found. For instructions on installing LaTeX see <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
+msgstr ""
+"Nenhum interpretador LaTeX encontrado. Para instruções sobre como instalar o"
+" LaTeX, veja <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:305
 msgid "Interpreter"
 msgstr "Interpretador"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:310
-msgid "Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic documentation</a>)."
-msgstr "Observação: o back-end Tectonic usa apenas a interface de linha de comando V1. Os arquivos de configuração Tectonic.toml são ignorados. Para configuração de compilação personalizada, mude para outro interpretador (veja a <a href=\"https://tectonic-typesetting.github.io/tectonic/\">documentação do Tectonic</a>)."
+msgid ""
+"Please note: the Tectonic backend uses only the V1 command-line interface. "
+"Tectonic.toml configuration files are ignored. For custom build "
+"configuration, switch to another interpreter (see the <a "
+"href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic "
+"documentation</a>)."
+msgstr ""
+"Observação: o back-end Tectonic usa apenas a interface de linha de comando "
+"V1. Os arquivos de configuração Tectonic.toml são ignorados. Para "
+"configuração de compilação personalizada, mude para outro interpretador "
+"(veja a <a href=\"https://tectonic-"
+"typesetting.github.io/tectonic/\">documentação do Tectonic</a>)."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:320
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
-msgstr "Remover automaticamente arquivos auxiliares (.log, .dvi, …) após compilar o .pdf."
+msgstr ""
+"Remover automaticamente arquivos auxiliares (.log, .dvi, …) após compilar o "
+".pdf."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:331
 msgid "Output chain"
 msgstr "Cadeia de saída"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:332
-msgid "PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; your interpreter choice is ignored on this route."
-msgstr "PDF via PostScript executa latex → dvips → ps2pdf. Necessário para PSTricks/psfrag; sua escolha de interpretador é ignorada nesta rota."
+msgid ""
+"PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; "
+"your interpreter choice is ignored on this route."
+msgstr ""
+"PDF via PostScript executa latex → dvips → ps2pdf. Necessário para "
+"PSTricks/psfrag; sua escolha de interpretador é ignorada nesta rota."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:334
 msgid "Direct PDF"
@@ -4520,32 +4860,47 @@ msgid "Generate SyncTeX for preview sync"
 msgstr "Gerar SyncTeX para sincronização de pré-visualização"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:342
-msgid "Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster."
-msgstr "Ativa sincronização direta/inversa entre editor e pré-visualização de PDF. Desativar torna as compilações um pouco mais rápidas."
+msgid ""
+"Enables forward/reverse sync between editor and PDF preview. Disabling makes"
+" builds slightly faster."
+msgstr ""
+"Ativa sincronização direta/inversa entre editor e pré-visualização de PDF. "
+"Desativar torna as compilações um pouco mais rápidas."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:350
 msgid "Automatically build and save after changes"
 msgstr "Compilar e salvar automaticamente após alterações"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:351
-msgid "When you stop typing, the document is saved and rebuilt after a short delay."
-msgstr "Quando você parar de digitar, o documento é salvo e recompilado após um curto intervalo."
+msgid ""
+"When you stop typing, the document is saved and rebuilt after a short delay."
+msgstr ""
+"Quando você parar de digitar, o documento é salvo e recompilado após um "
+"curto intervalo."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:355
 msgid "Delay (seconds)"
 msgstr "Atraso (segundos)"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:357
-msgid "Shorter delays update the preview faster but use more CPU while typing."
-msgstr "Atrasos menores atualizam a pré-visualização mais rapidamente, mas consomem mais CPU enquanto você digita."
+msgid ""
+"Shorter delays update the preview faster but use more CPU while typing."
+msgstr ""
+"Atrasos menores atualizam a pré-visualização mais rapidamente, mas consomem "
+"mais CPU enquanto você digita."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:368
 msgid "Pop up build log on auto-build errors"
 msgstr "Exibir registro de compilação em erros de compilação automática"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:370
-msgid "When auto-build is on, automatically show the build log when errors occur. Disable to avoid interruptions while typing."
-msgstr "Quando a compilação automática está ativa, exibe automaticamente o registro de compilação quando ocorrem erros. Desative para evitar interrupções ao digitar."
+msgid ""
+"When auto-build is on, automatically show the build log when errors occur. "
+"Disable to avoid interruptions while typing."
+msgstr ""
+"Quando a compilação automática está ativa, exibe automaticamente o registro "
+"de compilação quando ocorrem erros. Desative para evitar interrupções ao "
+"digitar."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:375
 msgid "Automatically show build log"
@@ -4576,8 +4931,12 @@ msgid "Embedded system commands"
 msgstr "Comandos de sistema embutidos"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:404
-msgid "Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources."
-msgstr "Aviso: ative isto apenas se necessário. Pode causar problemas de segurança ao compilar arquivos de fontes não confiáveis."
+msgid ""
+"Warning: enable this only if you have to. It can cause security problems "
+"when building files from untrusted sources."
+msgstr ""
+"Aviso: ative isto apenas se necessário. Pode causar problemas de segurança "
+"ao compilar arquivos de fontes não confiáveis."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:412
 msgid "System commands"
@@ -4600,8 +4959,14 @@ msgid "Personal TeX tree"
 msgstr "Árvore TeX pessoal"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:424
-msgid "Directory with your own packages, classes and bibliography styles (kpathsea TEXMFHOME). Applied to every build; leave empty to use your environment or the TeX Live default (~/texmf)."
-msgstr "Diretório com seus próprios pacotes, classes e estilos de bibliografia (kpathsea TEXMFHOME). Aplicado a cada compilação; deixe vazio para usar seu ambiente ou o padrão do TeX Live (~/texmf)."
+msgid ""
+"Directory with your own packages, classes and bibliography styles (kpathsea "
+"TEXMFHOME). Applied to every build; leave empty to use your environment or "
+"the TeX Live default (~/texmf)."
+msgstr ""
+"Diretório com seus próprios pacotes, classes e estilos de bibliografia "
+"(kpathsea TEXMFHOME). Aplicado a cada compilação; deixe vazio para usar seu "
+"ambiente ou o padrão do TeX Live (~/texmf)."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:428
 msgid "TEXMFHOME directory"
@@ -4613,7 +4978,8 @@ msgstr "Um \"~\" inicial é expandido para sua pasta pessoal. Exemplo: ~/.texmf"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:159
 msgid "Unavailable: install pyenchant and hunspell dictionaries to enable."
-msgstr "Indisponível: instale os dicionários pyenchant e hunspell para habilitar."
+msgstr ""
+"Indisponível: instale os dicionários pyenchant e hunspell para habilitar."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:287
 msgid "Select previous suggestion"
@@ -4688,16 +5054,24 @@ msgid "Use the system fixed width font"
 msgstr "Usar a fonte de largura fixa do sistema"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:714
-msgid "Use the system fixed-width font for editing. When enabled, the font set below is overridden."
-msgstr "Usar a fonte monoespaçada do sistema para edição. Quando ativado, a fonte definida abaixo será ignorada."
+msgid ""
+"Use the system fixed-width font for editing. When enabled, the font set "
+"below is overridden."
+msgstr ""
+"Usar a fonte monoespaçada do sistema para edição. Quando ativado, a fonte "
+"definida abaixo será ignorada."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:721
 msgid "Set Editor Font"
 msgstr "Definir Fonte do Editor"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:724
-msgid "Choose a custom font for the LaTeX editor. Only active when \"Use the system fixed width font\" is off."
-msgstr "Escolha uma fonte personalizada para o editor LaTeX. Só está ativa quando \"Usar a fonte monoespaçada do sistema\" estiver desativada."
+msgid ""
+"Choose a custom font for the LaTeX editor. Only active when \"Use the system"
+" fixed width font\" is off."
+msgstr ""
+"Escolha uma fonte personalizada para o editor LaTeX. Só está ativa quando "
+"\"Usar a fonte monoespaçada do sistema\" estiver desativada."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:729
 msgid "Line Spacing"
@@ -4708,8 +5082,12 @@ msgid "Extra vertical space between lines in pixels."
 msgstr "Espaço vertical extra entre linhas em pixels."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:732
-msgid "Extra vertical space between lines, in pixels. Affects readability and line density in the editor."
-msgstr "Espaçamento vertical extra entre linhas, em pixels. Afeta a legibilidade e a densidade de linhas no editor."
+msgid ""
+"Extra vertical space between lines, in pixels. Affects readability and line "
+"density in the editor."
+msgstr ""
+"Espaçamento vertical extra entre linhas, em pixels. Afeta a legibilidade e a"
+" densidade de linhas no editor."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:739
 msgid "Tab Stops"
@@ -4725,11 +5103,17 @@ msgstr "Usar espaços ao pressionar Tab, em vez de um caractere de tabulação."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:746
 msgid "When enabled, pressing Tab inserts spaces instead of a tab character."
-msgstr "Quando ativado, pressionar Tab insere espaços em vez de um caractere de tabulação."
+msgstr ""
+"Quando ativado, pressionar Tab insere espaços em vez de um caractere de "
+"tabulação."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:754
-msgid "Number of spaces a tab character occupies when \"Insert spaces instead of tabs\" is enabled."
-msgstr "Número de espaços que um caractere de tabulação ocupa quando \"Inserir espaços em vez de tabulações\" estiver ativado."
+msgid ""
+"Number of spaces a tab character occupies when \"Insert spaces instead of "
+"tabs\" is enabled."
+msgstr ""
+"Número de espaços que um caractere de tabulação ocupa quando \"Inserir "
+"espaços em vez de tabulações\" estiver ativado."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:766
 msgid "Maximum undo depth"
@@ -4740,8 +5124,13 @@ msgid "Maximum number of undo steps. 0 = unlimited."
 msgstr "Número máximo de passos de desfazer. 0 = ilimitado."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:769
-msgid "Limit the number of undoable actions kept in memory. Lower values save memory for very large documents. 0 keeps an unlimited history."
-msgstr "Limite o número de ações passíveis de desfazer mantidas na memória. Valores menores economizam memória para documentos muito grandes. 0 mantém um histórico ilimitado."
+msgid ""
+"Limit the number of undoable actions kept in memory. Lower values save "
+"memory for very large documents. 0 keeps an unlimited history."
+msgstr ""
+"Limite o número de ações passíveis de desfazer mantidas na memória. Valores "
+"menores economizam memória para documentos muito grandes. 0 mantém um "
+"histórico ilimitado."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:777
 msgid "Line Numbers"
@@ -4772,8 +5161,12 @@ msgid "Display a vertical line at a fixed column."
 msgstr "Exibir uma linha vertical em uma coluna fixa."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:795
-msgid "Display a vertical line at a fixed column position to help keep lines within a recommended width."
-msgstr "Exibir uma linha vertical em uma posição de coluna fixa para ajudar a manter as linhas dentro de uma largura recomendada."
+msgid ""
+"Display a vertical line at a fixed column position to help keep lines within"
+" a recommended width."
+msgstr ""
+"Exibir uma linha vertical em uma posição de coluna fixa para ajudar a manter"
+" as linhas dentro de uma largura recomendada."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:800
 msgid "Right margin column"
@@ -4784,8 +5177,12 @@ msgid "Column position for the right margin guide."
 msgstr "Posição da coluna para a guia de margem direita."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:803
-msgid "Column position for the right margin guide vertical line. LaTeX documents are typically kept within 80 columns."
-msgstr "Posição da coluna para a linha vertical da guia da margem direita. Documentos LaTeX normalmente são mantidos dentro de 80 colunas."
+msgid ""
+"Column position for the right margin guide vertical line. LaTeX documents "
+"are typically kept within 80 columns."
+msgstr ""
+"Posição da coluna para a linha vertical da guia da margem direita. "
+"Documentos LaTeX normalmente são mantidos dentro de 80 colunas."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:810
 msgid "Line Wrapping"
@@ -4800,8 +5197,12 @@ msgid "Wrap long lines instead of scrolling horizontally."
 msgstr "Quebrar linhas longas em vez de rolar horizontalmente."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:817
-msgid "Wrap long lines to fit within the editor window instead of scrolling horizontally."
-msgstr "Quebrar linhas longas para que caibam dentro da janela do editor em vez de rolar horizontalmente."
+msgid ""
+"Wrap long lines to fit within the editor window instead of scrolling "
+"horizontally."
+msgstr ""
+"Quebrar linhas longas para que caibam dentro da janela do editor em vez de "
+"rolar horizontalmente."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:822
 msgid "Code Folding"
@@ -4816,8 +5217,12 @@ msgid "Allow collapsing blocks of code such as environments."
 msgstr "Permitir recolher blocos de código, como ambientes."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:829
-msgid "Allow collapsing and expanding code blocks such as LaTeX environments, sections, and functions."
-msgstr "Permitir recolher e expandir blocos de código, como ambientes LaTeX, seções e funções."
+msgid ""
+"Allow collapsing and expanding code blocks such as LaTeX environments, "
+"sections, and functions."
+msgstr ""
+"Permitir recolher e expandir blocos de código, como ambientes LaTeX, seções "
+"e funções."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:834
 msgid "Sticky Scroll"
@@ -4828,12 +5233,20 @@ msgid "Enable sticky scroll for sections"
 msgstr "Ativar rolagem fixa para seções"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:839
-msgid "Show the current section header at the top of the editor while scrolling."
-msgstr "Mostrar o cabeçalho da seção atual no topo do editor durante a rolagem."
+msgid ""
+"Show the current section header at the top of the editor while scrolling."
+msgstr ""
+"Mostrar o cabeçalho da seção atual no topo do editor durante a rolagem."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:841
-msgid "Displays a sticky header at the top of the editor showing the current section hierarchy (chapter, section, subsection, etc.) as you scroll through long documents."
-msgstr "Exibe um cabeçalho fixo no topo do editor mostrando a hierarquia de seções atual (capítulo, seção, subseção, etc.) enquanto você navega por documentos longos."
+msgid ""
+"Displays a sticky header at the top of the editor showing the current "
+"section hierarchy (chapter, section, subsection, etc.) as you scroll through"
+" long documents."
+msgstr ""
+"Exibe um cabeçalho fixo no topo do editor mostrando a hierarquia de seções "
+"atual (capítulo, seção, subseção, etc.) enquanto você navega por documentos "
+"longos."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:847
 msgid "Highlighting"
@@ -4868,12 +5281,20 @@ msgid "Highlight matching \\begin/\\end"
 msgstr "Destacar \\begin/\\end correspondentes"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:866
-msgid "Highlight the environment matching the \\begin or \\end command next to the cursor."
-msgstr "Destacar o ambiente correspondente ao comando \\begin ou \\end próximo ao cursor."
+msgid ""
+"Highlight the environment matching the \\begin or \\end command next to the "
+"cursor."
+msgstr ""
+"Destacar o ambiente correspondente ao comando \\begin ou \\end próximo ao "
+"cursor."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:868
-msgid "Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor."
-msgstr "Realçar o par \\\\begin{...}/\\\\end{...} que corresponde ao par próximo ao cursor."
+msgid ""
+"Highlight the \\begin{...}/\\end{...} pair that matches the one next to the "
+"cursor."
+msgstr ""
+"Realçar o par \\\\begin{...}/\\\\end{...} que corresponde ao par próximo ao "
+"cursor."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:873
 msgid "Spell Checking"
@@ -4884,20 +5305,34 @@ msgid "Check spelling as you type"
 msgstr "Verificar ortografia ao digitar"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:879
-msgid "Underline misspelled words in the text. Commands, math and verbatim regions are skipped."
-msgstr "Sublinha palavras com erro no texto. Comandos, matemática e regiões verbatim são ignorados."
+msgid ""
+"Underline misspelled words in the text. Commands, math and verbatim regions "
+"are skipped."
+msgstr ""
+"Sublinha palavras com erro no texto. Comandos, matemática e regiões verbatim"
+" são ignorados."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:882
-msgid "Check spelling as you type using enchant/hunspell dictionaries. LaTeX commands, math mode and verbatim environments are not checked. Right-click a marked word for suggestions."
-msgstr "Verifica a ortografia enquanto digita usando dicionários enchant/hunspell. Comandos LaTeX, modo matemático e ambientes verbatim não são verificados. Clique com o botão direito em uma palavra marcada para ver sugestões."
+msgid ""
+"Check spelling as you type using enchant/hunspell dictionaries. LaTeX "
+"commands, math mode and verbatim environments are not checked. Right-click a"
+" marked word for suggestions."
+msgstr ""
+"Verifica a ortografia enquanto digita usando dicionários enchant/hunspell. "
+"Comandos LaTeX, modo matemático e ambientes verbatim não são verificados. "
+"Clique com o botão direito em uma palavra marcada para ver sugestões."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:889
 msgid "Dictionary used for spell checking"
 msgstr "Dicionário usado para verificação ortográfica"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:891
-msgid "The dictionary language for spell checking. Additional languages can be installed via hunspell/aspell packages."
-msgstr "O idioma do dicionário para a verificação ortográfica. Idiomas adicionais podem ser instalados via pacotes hunspell/aspell."
+msgid ""
+"The dictionary language for spell checking. Additional languages can be "
+"installed via hunspell/aspell packages."
+msgstr ""
+"O idioma do dicionário para a verificação ortográfica. Idiomas adicionais "
+"podem ser instalados via pacotes hunspell/aspell."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:896
 msgid "Manage Words"
@@ -4908,8 +5343,12 @@ msgid "View and edit ignored words and your user dictionary"
 msgstr "Visualizar e editar palavras ignoradas e seu dicionário de usuário"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:900
-msgid "Manage the words you ignored for the current session and the words saved permanently to your user dictionary."
-msgstr "Gerencie as palavras que você ignorou na sessão atual e as palavras salvas permanentemente em seu dicionário de usuário."
+msgid ""
+"Manage the words you ignored for the current session and the words saved "
+"permanently to your user dictionary."
+msgstr ""
+"Gerencie as palavras que você ignorou na sessão atual e as palavras salvas "
+"permanentemente em seu dicionário de usuário."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:910
 msgid "Visible Characters"
@@ -4924,8 +5363,12 @@ msgid "Display line ending characters (¶) at the end of each line."
 msgstr "Exibir o caractere de final de linha (¶) ao final de cada linha."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:917
-msgid "Display a paragraph symbol (¶) at the end of each line to help identify trailing whitespace and line ending issues."
-msgstr "Exibir o símbolo de parágrafo (¶) ao final de cada linha para ajudar a identificar espaços em branco no final e problemas de fim de linha."
+msgid ""
+"Display a paragraph symbol (¶) at the end of each line to help identify "
+"trailing whitespace and line ending issues."
+msgstr ""
+"Exibir o símbolo de parágrafo (¶) ao final de cada linha para ajudar a "
+"identificar espaços em branco no final e problemas de fim de linha."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:922
 msgid "Show whitespace"
@@ -4933,11 +5376,16 @@ msgstr "Mostrar espaços em branco"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:923
 msgid "Display whitespace characters (· for spaces, → for tabs)."
-msgstr "Exibir caracteres de espaço em branco (· para espaços, → para tabulações)."
+msgstr ""
+"Exibir caracteres de espaço em branco (· para espaços, → para tabulações)."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:925
-msgid "Display symbols for spaces (·) and tabs (→) to help debug indentation and trailing whitespace issues."
-msgstr "Exibir símbolos para espaços (·) e tabulações (→) para ajudar a identificar problemas de indentação e espaços em branco no final das linhas."
+msgid ""
+"Display symbols for spaces (·) and tabs (→) to help debug indentation and "
+"trailing whitespace issues."
+msgstr ""
+"Exibir símbolos para espaços (·) e tabulações (→) para ajudar a identificar "
+"problemas de indentação e espaços em branco no final das linhas."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:931
 msgid "Shortcuts Bar"
@@ -4965,11 +5413,16 @@ msgstr "Mostrar barra de abas"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:947
 msgid "Display the multi-document tab bar above the shortcuts bar."
-msgstr "Exibir a barra de abas de múltiplos documentos acima da barra de atalhos."
+msgstr ""
+"Exibir a barra de abas de múltiplos documentos acima da barra de atalhos."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:949
-msgid "Display a bar of open documents above the shortcuts bar. When enabled, a single open document hides the bar automatically."
-msgstr "Exibir uma barra de documentos abertos acima da barra de atalhos. Quando ativado, um único documento aberto oculta a barra automaticamente."
+msgid ""
+"Display a bar of open documents above the shortcuts bar. When enabled, a "
+"single open document hides the bar automatically."
+msgstr ""
+"Exibir uma barra de documentos abertos acima da barra de atalhos. Quando "
+"ativado, um único documento aberto oculta a barra automaticamente."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:956
 msgid "Auto Save"
@@ -4981,19 +5434,29 @@ msgstr "Ativar salvamento automático (recuperação após falha)"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:961
 msgid "Periodically save buffer to a temp file for crash recovery"
-msgstr "Salvar periodicamente o buffer em um arquivo temporário para recuperação após falha"
+msgstr ""
+"Salvar periodicamente o buffer em um arquivo temporário para recuperação "
+"após falha"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:963
-msgid "Periodically save the buffer to a temporary file for crash recovery. Setzer can restore unsaved edits after an unexpected application exit."
-msgstr "Salvar periodicamente o buffer em um arquivo temporário para recuperação após falhas. O Setzer pode restaurar edições não salvas após um encerramento inesperado do aplicativo."
+msgid ""
+"Periodically save the buffer to a temporary file for crash recovery. Setzer "
+"can restore unsaved edits after an unexpected application exit."
+msgstr ""
+"Salvar periodicamente o buffer em um arquivo temporário para recuperação "
+"após falhas. O Setzer pode restaurar edições não salvas após um encerramento"
+" inesperado do aplicativo."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:969
 msgid "Auto save interval (seconds)"
 msgstr "Intervalo de salvamento automático (segundos)"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:973
-msgid "Time interval in seconds between automatic saves when auto save is enabled."
-msgstr "Intervalo de tempo em segundos entre salvamentos automáticos quando o salvamento automático está ativado."
+msgid ""
+"Time interval in seconds between automatic saves when auto save is enabled."
+msgstr ""
+"Intervalo de tempo em segundos entre salvamentos automáticos quando o "
+"salvamento automático está ativado."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:979
 msgid "External Changes"
@@ -5005,11 +5468,16 @@ msgstr "Recarregar arquivos alterados automaticamente"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:985
 msgid "Reload files modified by external applications without prompting"
-msgstr "Recarregar arquivos modificados por aplicativos externos sem perguntar"
+msgstr ""
+"Recarregar arquivos modificados por aplicativos externos sem perguntar"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:987
-msgid "Automatically reload files modified by external applications without showing a prompt. Unsaved changes in the editor will be lost."
-msgstr "Recarregar automaticamente arquivos modificados por aplicações externas sem mostrar um aviso. Alterações não salvas no editor serão perdidas."
+msgid ""
+"Automatically reload files modified by external applications without showing"
+" a prompt. Unsaved changes in the editor will be lost."
+msgstr ""
+"Recarregar automaticamente arquivos modificados por aplicações externas sem "
+"mostrar um aviso. Alterações não salvas no editor serão perdidas."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:995
 msgid "Git Integration"
@@ -5054,8 +5522,12 @@ msgid "Encoding used when creating new documents"
 msgstr "Codificação usada ao criar novos documentos"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1026
-msgid "Default character encoding for new documents. UTF-8 is the recommended choice for cross-platform collaboration."
-msgstr "Codificação de caracteres padrão para novos documentos. UTF-8 é a opção recomendada para colaboração entre plataformas."
+msgid ""
+"Default character encoding for new documents. UTF-8 is the recommended "
+"choice for cross-platform collaboration."
+msgstr ""
+"Codificação de caracteres padrão para novos documentos. UTF-8 é a opção "
+"recomendada para colaboração entre plataformas."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1029
 msgid "UTF-8"
@@ -5082,8 +5554,12 @@ msgid "Line ending format for new documents"
 msgstr "Formato de fim de linha para novos documentos"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1042
-msgid "Default line ending format for new documents. LF is Unix/macOS style; CRLF is Windows style; CR is old macOS style."
-msgstr "Formato de final de linha padrão para novos documentos. LF é o estilo Unix/macOS; CRLF é o estilo Windows; CR é o estilo do macOS antigo."
+msgid ""
+"Default line ending format for new documents. LF is Unix/macOS style; CRLF "
+"is Windows style; CR is old macOS style."
+msgstr ""
+"Formato de final de linha padrão para novos documentos. LF é o estilo "
+"Unix/macOS; CRLF é o estilo Windows; CR é o estilo do macOS antigo."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1045
 msgid "LF (Unix)"
@@ -5135,11 +5611,13 @@ msgstr "Adicionar colchetes de fechamento automaticamente"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1088
 msgid "Insert a matching closing bracket when you type an opening one."
-msgstr "Inserir um colchete de fechamento correspondente ao digitar um de abertura."
+msgstr ""
+"Inserir um colchete de fechamento correspondente ao digitar um de abertura."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1092
 msgid "Add brackets to selected text, instead of replacing it with them"
-msgstr "Adicionar colchetes ao texto selecionado, em vez de substituí-lo por eles"
+msgstr ""
+"Adicionar colchetes ao texto selecionado, em vez de substituí-lo por eles"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1093
 msgid "Wrap the selected text in brackets, keeping it selected."
@@ -5151,7 +5629,9 @@ msgstr "Pular colchetes de fechamento com Tab"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1098
 msgid "Press Tab to move past an automatically inserted closing bracket."
-msgstr "Pressione Tab para avançar além do colchete de fechamento inserido automaticamente."
+msgstr ""
+"Pressione Tab para avançar além do colchete de fechamento inserido "
+"automaticamente."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1102
 msgid "Update matching begin / end blocks"
@@ -5159,15 +5639,21 @@ msgstr "Atualizar blocos begin / end correspondentes"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1103
 msgid "Keep matching \\begin{} / \\end{} blocks in sync when you edit one."
-msgstr "Mantenha os blocos \\begin{} / \\end{} correspondentes sincronizados ao editar um deles."
+msgstr ""
+"Mantenha os blocos \\begin{} / \\end{} correspondentes sincronizados ao "
+"editar um deles."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1107
 msgid "Automatically add matching \\end{}"
 msgstr "Adicionar automaticamente o \\end{} correspondente"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1108
-msgid "When you type \\begin{, automatically insert the matching \\end{} (use Tab to jump to the content placeholder)."
-msgstr "Ao digitar \\begin{, insira automaticamente o \\end{} correspondente (use Tab para ir até o marcador de posição do conteúdo)."
+msgid ""
+"When you type \\begin{, automatically insert the matching \\end{} (use Tab "
+"to jump to the content placeholder)."
+msgstr ""
+"Ao digitar \\begin{, insira automaticamente o \\end{} correspondente (use "
+"Tab para ir até o marcador de posição do conteúdo)."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1114
 msgid "Multi-Cursor"
@@ -5401,15 +5887,15 @@ msgstr "Mostrar popover de seleção de documentos"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:197
 msgid "Zoom in the whole application"
-msgstr ""
+msgstr "Ampliar o aplicativo inteiro"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:198
 msgid "Zoom out the whole application"
-msgstr ""
+msgstr "Reduzir o aplicativo inteiro"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:199
 msgid "Reset the application zoom to 100%"
-msgstr ""
+msgstr "Redefinir o zoom do aplicativo para 100 %"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:200
 msgid "Find text in document"
@@ -5565,11 +6051,15 @@ msgstr "Reabrir o documento fechado mais recentemente"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:248
 msgid "Select the next occurrence of the selected text or word (multi-cursor)"
-msgstr "Selecionar a próxima ocorrência do texto ou palavra selecionada (múltiplos cursores)"
+msgstr ""
+"Selecionar a próxima ocorrência do texto ou palavra selecionada (múltiplos "
+"cursores)"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:249
 msgid "Select all occurrences of the selected text or word (multi-cursor)"
-msgstr "Selecionar todas as ocorrências do texto ou palavra selecionada (múltiplos cursores)"
+msgstr ""
+"Selecionar todas as ocorrências do texto ou palavra selecionada (múltiplos "
+"cursores)"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:250
 msgid "Add a cursor on the line above (multi-cursor)"
@@ -5601,8 +6091,12 @@ msgstr "Atalho Já em Uso"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:323
 #, python-brace-format
-msgid "This shortcut is currently assigned to \"{other}\". Reassigning it will remove the shortcut from that action."
-msgstr "Este atalho está atualmente atribuído a \"{other}\". Reatribuí-lo removerá o atalho daquela ação."
+msgid ""
+"This shortcut is currently assigned to \"{other}\". Reassigning it will "
+"remove the shortcut from that action."
+msgstr ""
+"Este atalho está atualmente atribuído a \"{other}\". Reatribuí-lo removerá o"
+" atalho daquela ação."
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:326
 msgid "Reassign"
@@ -5643,8 +6137,14 @@ msgstr "Ignorou {m} atalho inválido"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:567
 #, python-brace-format
-msgid "The imported file conflicts with existing or other imported shortcuts ({n} conflict(s)). Proceeding will assign each conflicting shortcut to the imported action and clear it from the other action(s)."
-msgstr "O arquivo importado conflita com atalhos existentes ou com outros importados ({n} conflito(s)). Prosseguir atribuirá cada atalho conflitante à ação importada e o removerá das outras ações."
+msgid ""
+"The imported file conflicts with existing or other imported shortcuts ({n} "
+"conflict(s)). Proceeding will assign each conflicting shortcut to the "
+"imported action and clear it from the other action(s)."
+msgstr ""
+"O arquivo importado conflita com atalhos existentes ou com outros importados"
+" ({n} conflito(s)). Prosseguir atribuirá cada atalho conflitante à ação "
+"importada e o removerá das outras ações."
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:572
 msgid "Shortcut Conflicts in Import"
@@ -5670,7 +6170,8 @@ msgstr "Falha ao exportar atalhos: {error}"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:634
 msgid "Click a shortcut button to change it. Press Escape to cancel."
-msgstr "Clique em um botão de atalho para alterá-lo. Pressione Escape para cancelar."
+msgstr ""
+"Clique em um botão de atalho para alterá-lo. Pressione Escape para cancelar."
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:642
 msgid "Export Shortcuts"
@@ -5701,8 +6202,10 @@ msgid "LaTeX Snippets"
 msgstr "Trechos do LaTeX"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:102
-msgid "Create reusable LaTeX text and expand it from the editor completion list."
-msgstr "Crie texto LaTeX reutilizável e expanda-o pela lista de conclusão do editor."
+msgid ""
+"Create reusable LaTeX text and expand it from the editor completion list."
+msgstr ""
+"Crie texto LaTeX reutilizável e expanda-o pela lista de conclusão do editor."
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:105
 msgid "Add snippet"
@@ -5714,7 +6217,9 @@ msgstr "Ainda não há trechos"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:117
 msgid "Add a snippet to expand a custom LaTeX command while writing."
-msgstr "Adicione um trecho para expandir um comando LaTeX personalizado durante a escrita."
+msgstr ""
+"Adicione um trecho para expandir um comando LaTeX personalizado durante a "
+"escrita."
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:140
 msgid "Delete snippet"
@@ -5747,14 +6252,19 @@ msgstr "Substituir todas as ocorrências de «{original}» por «{replacement}»
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:48
 msgid "Counting matches… The number of occurrences is still being calculated."
-msgstr "Contando correspondências… O número de ocorrências ainda está sendo calculado."
+msgstr ""
+"Contando correspondências… O número de ocorrências ainda está sendo "
+"calculado."
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:50
 #, python-brace-format
 msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
-msgid_plural "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
-msgstr[0] "Substituindo {amount} ocorrência de «{original}» com «{replacement}»."
-msgstr[1] "Substituindo {amount} ocorrências de «{original}» com «{replacement}»."
+msgid_plural ""
+"Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
+msgstr[0] ""
+"Substituindo {amount} ocorrência de «{original}» com «{replacement}»."
+msgstr[1] ""
+"Substituindo {amount} ocorrências de «{original}» com «{replacement}»."
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:52
 msgid "Do you really want to do this?"
@@ -5769,8 +6279,12 @@ msgid "Save document"
 msgstr "Salvar documento"
 
 #: setzer/dialogs/save_document/save_document.py:86
-msgid "Save failed. The disk may be full or you may not have permission to write the file."
-msgstr "Falha ao salvar. O disco pode estar cheio ou você pode não ter permissão para gravar o arquivo."
+msgid ""
+"Save failed. The disk may be full or you may not have permission to write "
+"the file."
+msgstr ""
+"Falha ao salvar. O disco pode estar cheio ou você pode não ter permissão "
+"para gravar o arquivo."
 
 #: setzer/dialogs/save_document/save_document.py:88
 msgid "Retry"
@@ -5836,12 +6350,15 @@ msgstr "Não é possível importar \"{name}\": {reason}"
 #: setzer/document/bibtex/entry_store.py:503
 #, python-brace-format
 msgid "The {type} entry at character {position} has no citation key"
-msgstr "A entrada do tipo {type} no caractere {position} não tem chave de citação"
+msgstr ""
+"A entrada do tipo {type} no caractere {position} não tem chave de citação"
 
 #: setzer/document/bibtex/entry_store.py:511
 #, python-brace-format
 msgid "The entry at character {position} cannot be edited safely: {reason}"
-msgstr "A entrada no caractere {position} não pode ser editada com segurança: {reason}"
+msgstr ""
+"A entrada no caractere {position} não pode ser editada com segurança: "
+"{reason}"
 
 #: setzer/document/bibtex/entry_store.py:556
 msgid "A field name is invalid"
@@ -5910,7 +6427,9 @@ msgstr "A string no caractere {position} não tem \"=\" entre nome e valor"
 #: setzer/document/bibtex/entry_store.py:709
 #, python-brace-format
 msgid "The string at character {position} cannot be edited safely: {reason}"
-msgstr "A string no caractere {position} não pode ser editada com segurança: {reason}"
+msgstr ""
+"A string no caractere {position} não pode ser editada com segurança: "
+"{reason}"
 
 #: setzer/document/bibtex/entry_store.py:751
 msgid "A string name must be a plain identifier"
@@ -6007,7 +6526,9 @@ msgstr "Não foi possível salvar o documento: {error}"
 
 #: setzer/document/document_controller.py:346
 msgid "No PDF available for forward sync. Build the document first."
-msgstr "Nenhum PDF disponível para sincronização direta. Compile o documento primeiro."
+msgstr ""
+"Nenhum PDF disponível para sincronização direta. Compile o documento "
+"primeiro."
 
 #: setzer/document/preview/context_menu/context_menu.py:106
 msgid "Open Link"
@@ -6135,11 +6656,14 @@ msgstr "O PDF foi alterado no disco"
 
 #: setzer/document/preview/preview_viewgtk.py:230
 msgid "PDF is no longer available on disk; showing the previous version"
-msgstr "O PDF não está mais disponível no disco; a versão anterior está sendo exibida"
+msgstr ""
+"O PDF não está mais disponível no disco; a versão anterior está sendo "
+"exibida"
 
 #: setzer/document/preview/preview_viewgtk.py:231
 msgid "The changed PDF is not ready yet; showing the previous version"
-msgstr "O PDF alterado ainda não está pronto; a versão anterior está sendo exibida"
+msgstr ""
+"O PDF alterado ainda não está pronto; a versão anterior está sendo exibida"
 
 #: setzer/document/preview/preview_viewgtk.py:231
 msgid "Try Again"
@@ -6154,8 +6678,12 @@ msgid "No preview available"
 msgstr "Pré-visualização não disponível"
 
 #: setzer/document/preview/preview_viewgtk.py:433
-msgid "To show a .pdf preview of your document, click the build button in the headerbar."
-msgstr "Para mostrar uma pré-visualização .pdf do seu documento, clique no botão de compilação na barra de topo."
+msgid ""
+"To show a .pdf preview of your document, click the build button in the "
+"headerbar."
+msgstr ""
+"Para mostrar uma pré-visualização .pdf do seu documento, clique no botão de "
+"compilação na barra de topo."
 
 #: setzer/document/preview/preview_viewgtk.py:437
 msgid "Check the build log for errors."
@@ -6476,8 +7004,21 @@ msgid "Remove the root document designation"
 msgstr "Remover a designação de documento raiz"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:78
-msgid "Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements."
-msgstr "Clique em um documento na lista abaixo para defini-lo como raiz. O documento raiz será compilado, não importa qual documento você esteja editando no momento, e será sempre exibido na pré-visualização do .pdf. O registro de compilação também se referirá ao documento raiz. Isso é frequentemente útil ao trabalhar em grandes projetos, onde tipicamente um documento de nível superior (a raiz) conterá múltiplos arquivos de nível inferior por meio de comandos include."
+msgid ""
+"Click on a document in the list below to set it as root. The root document "
+"will get built, no matter which document you are currently editing, and it "
+"will always display in the .pdf preview. The build log will also refer to "
+"the root document. This is often useful for working on large projects where "
+"typically a top level document (the root) will contain multiple lower level "
+"files via include statements."
+msgstr ""
+"Clique em um documento na lista abaixo para defini-lo como raiz. O documento"
+" raiz será compilado, não importa qual documento você esteja editando no "
+"momento, e será sempre exibido na pré-visualização do .pdf. O registro de "
+"compilação também se referirá ao documento raiz. Isso é frequentemente útil "
+"ao trabalhar em grandes projetos, onde tipicamente um documento de nível "
+"superior (a raiz) conterá múltiplos arquivos de nível inferior por meio de "
+"comandos include."
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:90
 msgid "Exit root document selection mode"
@@ -6965,8 +7506,11 @@ msgid "Snippet trigger must be text"
 msgstr "O gatilho do trecho deve ser texto"
 
 #: setzer/snippets/user_snippets.py:94
-msgid "Snippet trigger must start with a backslash and use letters, numbers, or @"
-msgstr "O gatilho do trecho deve começar com uma barra invertida e usar letras, números ou @"
+msgid ""
+"Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr ""
+"O gatilho do trecho deve começar com uma barra invertida e usar letras, "
+"números ou @"
 
 #: setzer/snippets/user_snippets.py:96
 msgid "Snippet trigger is too long"
@@ -7046,8 +7590,12 @@ msgid "The selected destination is not a local file."
 msgstr "O destino selecionado não é um arquivo local."
 
 #: setzer/workspace/auto_build/auto_build.py:123
-msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
-msgstr "A compilação automática não está disponível para documentos não salvos. Salve o documento para habilitá-la."
+msgid ""
+"Auto-build is not available for unsaved documents. Save the document to "
+"enable it."
+msgstr ""
+"A compilação automática não está disponível para documentos não salvos. "
+"Salve o documento para habilitá-la."
 
 #: setzer/workspace/auto_build/auto_build.py:174
 msgid "Auto-build deferred — a build is already in progress."
@@ -7055,7 +7603,8 @@ msgstr "Compilação automática adiada — uma compilação já está em andame
 
 #: setzer/workspace/auto_build/auto_build.py:177
 msgid "Auto-build skipped — the document was busy building."
-msgstr "Compilação automática ignorada — o documento estava ocupado compilando."
+msgstr ""
+"Compilação automática ignorada — o documento estava ocupado compilando."
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:43
 msgid "Toggle sidebar (Document Structure / Symbols)"
@@ -7072,7 +7621,7 @@ msgstr "Log de Compilação"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:115
 msgid "Open AI agent in terminal"
-msgstr ""
+msgstr "Abrir o agente de IA no terminal"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:160
 msgid "Welcome to Setzer"
@@ -7136,12 +7685,22 @@ msgid "JavaScript is disabled"
 msgstr "JavaScript está desabilitado"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:230
-msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
-msgstr "As páginas de ajuda são renderizadas com JavaScript desabilitado por segurança. A documentação estática é exibida normalmente; exemplos interativos que dependem de JavaScript não serão executados."
+msgid ""
+"Help pages render with JavaScript disabled for security. Static "
+"documentation displays normally; interactive examples that depend on "
+"JavaScript will not run."
+msgstr ""
+"As páginas de ajuda são renderizadas com JavaScript desabilitado por "
+"segurança. A documentação estática é exibida normalmente; exemplos "
+"interativos que dependem de JavaScript não serão executados."
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:252
-msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
-msgstr "A renderização das páginas de ajuda requer WebKit6. A pesquisa ainda está disponível — clique em um resultado para abri-lo no seu navegador web."
+msgid ""
+"Help page rendering requires WebKit6. Search is still available — click a "
+"result to open it in your web browser."
+msgstr ""
+"A renderização das páginas de ajuda requer WebKit6. A pesquisa ainda está "
+"disponível — clique em um resultado para abri-lo no seu navegador web."
 
 #: setzer/workspace/preview_panel/preview_panel_presenter.py:218
 msgid "Maximum zoom level reached"
@@ -7219,32 +7778,64 @@ msgstr "Estas contagens são atualizadas após o documento ser salvo."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:51
 #, python-brace-format
-msgid "The whole document has <b>{text_words}</b> words in text, <b>{header_words}</b> words in headers and <b>{outside_words}</b> words outside text (captions, ...)."
-msgstr "O documento inteiro tem <b>{text_words}</b> palavras no texto, <b>{header_words}</b> palavras em cabeçalhos e <b>{outside_words}</b> palavras fora do texto (legendas, ...)."
+msgid ""
+"The whole document has <b>{text_words}</b> words in text, "
+"<b>{header_words}</b> words in headers and <b>{outside_words}</b> words "
+"outside text (captions, ...)."
+msgstr ""
+"O documento inteiro tem <b>{text_words}</b> palavras no texto, "
+"<b>{header_words}</b> palavras em cabeçalhos e <b>{outside_words}</b> "
+"palavras fora do texto (legendas, ...)."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:62
 #, python-brace-format
-msgid "{file} has <b>{text_words}</b> words in text, <b>{header_words}</b> words in headers and <b>{outside_words}</b> words outside text (captions, ...)."
-msgstr "{file} tem <b>{text_words}</b> palavras no texto, <b>{header_words}</b> palavras em cabeçalhos e <b>{outside_words}</b> palavras fora do texto (legendas, ...)."
+msgid ""
+"{file} has <b>{text_words}</b> words in text, <b>{header_words}</b> words in"
+" headers and <b>{outside_words}</b> words outside text (captions, ...)."
+msgstr ""
+"{file} tem <b>{text_words}</b> palavras no texto, <b>{header_words}</b> "
+"palavras em cabeçalhos e <b>{outside_words}</b> palavras fora do texto "
+"(legendas, ...)."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:79
 #, python-brace-format
-msgid "The whole document has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace) and <b>{lines}</b> lines."
-msgstr "O documento inteiro tem <b>{chars}</b> caracteres (<b>{chars_no_spaces}</b> excluindo espaços) e <b>{lines}</b> linhas."
+msgid ""
+"The whole document has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> "
+"excluding whitespace) and <b>{lines}</b> lines."
+msgstr ""
+"O documento inteiro tem <b>{chars}</b> caracteres (<b>{chars_no_spaces}</b> "
+"excluindo espaços) e <b>{lines}</b> linhas."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:90
 #, python-brace-format
-msgid "{file} has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace) and <b>{lines}</b> lines."
-msgstr "{file} tem <b>{chars}</b> caracteres (<b>{chars_no_spaces}</b> excluindo espaços) e <b>{lines}</b> linhas."
+msgid ""
+"{file} has <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding "
+"whitespace) and <b>{lines}</b> lines."
+msgstr ""
+"{file} tem <b>{chars}</b> caracteres (<b>{chars_no_spaces}</b> excluindo "
+"espaços) e <b>{lines}</b> linhas."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:106
 #, python-brace-format
-msgid "Selection: <b>{words}</b> words, <b>{chars}</b> characters (<b>{chars_no_spaces}</b> excluding whitespace)."
-msgstr "Seleção: <b>{words}</b> palavras, <b>{chars}</b> caracteres (<b>{chars_no_spaces}</b> excluindo espaços)."
+msgid ""
+"Selection: <b>{words}</b> words, <b>{chars}</b> characters "
+"(<b>{chars_no_spaces}</b> excluding whitespace)."
+msgstr ""
+"Seleção: <b>{words}</b> palavras, <b>{chars}</b> caracteres "
+"(<b>{chars_no_spaces}</b> excluindo espaços)."
 
 #: setzer/workspace/sidebar/document_stats/stats_text.py:120
-msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
-msgstr "A contagem de palavras requer <tt>texcount</tt> (parte do TeX Live), que não foi encontrado. As contagens de caracteres e linhas permanecem disponíveis acima. Veja o <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">guia de instalação</a>."
+msgid ""
+"Word counts require <tt>texcount</tt> (part of TeX Live), which was not "
+"found. Character and line counts remain available above. See <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation "
+"guide</a>."
+msgstr ""
+"A contagem de palavras requer <tt>texcount</tt> (parte do TeX Live), que não"
+" foi encontrado. As contagens de caracteres e linhas permanecem disponíveis "
+"acima. Veja o <a "
+"href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">guia de "
+"instalação</a>."
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
 msgid "No sections match your search"
@@ -7285,8 +7876,12 @@ msgid "No files"
 msgstr "Nenhum arquivo"
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:36
-msgid "The main document is always shown. Add \\input{...} or \\include{...} to include other files."
-msgstr "O documento principal é sempre exibido. Adicione \\input{...} ou \\include{...} para incluir outros arquivos."
+msgid ""
+"The main document is always shown. Add \\input{...} or \\include{...} to "
+"include other files."
+msgstr ""
+"O documento principal é sempre exibido. Adicione \\input{...} ou "
+"\\include{...} para incluir outros arquivos."
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:188
 msgid "Set as Root"
@@ -7333,16 +7928,24 @@ msgid "Delete Section?"
 msgstr "Excluir seção?"
 
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-msgid "Remove the entire section including its content. This action cannot be undone."
-msgstr "Remover toda a seção, incluindo seu conteúdo. Esta ação não pode ser desfeita."
+msgid ""
+"Remove the entire section including its content. This action cannot be "
+"undone."
+msgstr ""
+"Remover toda a seção, incluindo seu conteúdo. Esta ação não pode ser "
+"desfeita."
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:36
 msgid "No document structure"
 msgstr "Nenhuma Estrutura de Documento"
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:37
-msgid "Add \\section{}, \\chapter{}, or other sectioning commands to outline your document."
-msgstr "Adicione \\section{}, \\chapter{} ou outros comandos de seccionamento para estruturar seu documento."
+msgid ""
+"Add \\section{}, \\chapter{}, or other sectioning commands to outline your "
+"document."
+msgstr ""
+"Adicione \\section{}, \\chapter{} ou outros comandos de seccionamento para "
+"estruturar seu documento."
 
 #: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:195
 msgid "Copy Title"
@@ -7505,8 +8108,12 @@ msgid "Clear Recent List?"
 msgstr "Limpar Lista Recente?"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:297
-msgid "All documents will be removed from the recent list. This does not delete the files themselves."
-msgstr "Todos os documentos serão removidos da lista recente. Isso não exclui os arquivos em si."
+msgid ""
+"All documents will be removed from the recent list. This does not delete the"
+" files themselves."
+msgstr ""
+"Todos os documentos serão removidos da lista recente. Isso não exclui os "
+"arquivos em si."
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:300
 msgid "Clear"
@@ -7517,8 +8124,12 @@ msgid "Write beautiful LaTeX documents with ease!"
 msgstr "Escreva belos documentos LaTeX com facilidade!"
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:62
-msgid "Start a new document below, pick a template, or jump back into one of your recent files."
-msgstr "Inicie um novo documento abaixo, escolha um modelo ou retorne a um de seus arquivos recentes."
+msgid ""
+"Start a new document below, pick a template, or jump back into one of your "
+"recent files."
+msgstr ""
+"Inicie um novo documento abaixo, escolha um modelo ou retorne a um de seus "
+"arquivos recentes."
 
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:82
 msgid "Open a Document…"
@@ -7572,8 +8183,12 @@ msgstr "Documento sem Título {number}"
 
 #: setzer/workspace/workspace.py:786
 #, python-brace-format
-msgid "Session loaded, but no documents could be opened (files may have been moved or deleted): {name}"
-msgstr "Sessão carregada, mas nenhum documento pôde ser aberto (os arquivos podem ter sido movidos ou excluídos): {name}"
+msgid ""
+"Session loaded, but no documents could be opened (files may have been moved "
+"or deleted): {name}"
+msgstr ""
+"Sessão carregada, mas nenhum documento pôde ser aberto (os arquivos podem "
+"ter sido movidos ou excluídos): {name}"
 
 #: setzer/workspace/workspace.py:802
 #, python-brace-format
