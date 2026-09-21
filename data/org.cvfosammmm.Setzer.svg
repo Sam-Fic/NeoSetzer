@@ -26,11 +26,11 @@
     <!-- 三角：上方完全不透明 -> 下方完全透明 -->
     <linearGradient id="triFade" x1="0" y1="521.0" x2="0" y2="971.4" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#5e5c64" stop-opacity="1"/>
-      <stop offset="1" stop-color="#5e5c64" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5e5c64" stop-opacity="0.2"/>
     </linearGradient>
     <!-- 圆：上方完全透明 -> 下方完全不透明 -->
     <linearGradient id="discFade" x1="0" y1="807.1" x2="0" y2="1193.3" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#5e5c64" stop-opacity="0"/>
+      <stop offset="0" stop-color="#5e5c64" stop-opacity="0.2"/>
       <stop offset="1" stop-color="#5e5c64" stop-opacity="1"/>
     </linearGradient>
   </defs>
