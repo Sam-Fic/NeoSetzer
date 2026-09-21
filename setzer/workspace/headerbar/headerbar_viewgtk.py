@@ -111,7 +111,7 @@ class HeaderBar(object):
         # 位于 build_wrapper 右侧、build_log_toggle 左侧。仅当有 root/active
         # latex 文档时显示（update_toggles 收敛），初始隐藏。
         self.agent_terminal_button = Gtk.Button()
-        self.agent_terminal_button.set_child(Gtk.Image(icon_name='utilities-terminal-symbolic'))
+        self.agent_terminal_button.set_child(Gtk.Image(icon_name='own-ai-agent-terminal-symbolic'))
         self.agent_terminal_button.set_tooltip_text(_('Open AI agent in terminal'))
         self.agent_terminal_button.add_css_class('flat')
         self.agent_terminal_button.set_can_focus(False)

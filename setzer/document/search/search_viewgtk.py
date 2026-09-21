@@ -102,7 +102,7 @@ class SearchBar(Gtk.SearchBar):
         options_box.set_valign(Gtk.Align.CENTER)
 
         self.case_toggle = Gtk.ToggleButton()
-        self.case_toggle.set_child(Gtk.Image(icon_name='font-select-symbolic'))
+        self.case_toggle.set_child(Gtk.Image(icon_name='uppercase-symbolic'))
         self.case_toggle.set_can_focus(False)
         self.case_toggle.set_hexpand(False)
         self.case_toggle.add_css_class('flat')
@@ -111,7 +111,7 @@ class SearchBar(Gtk.SearchBar):
         options_box.append(self.case_toggle)
 
         self.regex_toggle = Gtk.ToggleButton()
-        self.regex_toggle.set_child(Gtk.Image(icon_name='insert-text-symbolic'))
+        self.regex_toggle.set_child(Gtk.Image(icon_name='regex-symbolic'))
         self.regex_toggle.set_can_focus(False)
         self.regex_toggle.set_hexpand(False)
         self.regex_toggle.add_css_class('flat')
@@ -129,7 +129,7 @@ class SearchBar(Gtk.SearchBar):
         options_box.append(self.word_toggle)
 
         self.preserve_case_toggle = Gtk.ToggleButton()
-        self.preserve_case_toggle.set_child(Gtk.Image(icon_name='font-select-symbolic'))
+        self.preserve_case_toggle.set_child(Gtk.Image(icon_name='keyboard-caps-lock-wide-symbolic'))
         self.preserve_case_toggle.set_can_focus(False)
         self.preserve_case_toggle.set_hexpand(False)
         self.preserve_case_toggle.add_css_class('flat')

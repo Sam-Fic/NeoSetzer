@@ -97,7 +97,7 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_out_button.set_can_focus(False)
         self.toolbar.append(self.zoom_out_button)
 
-        self.fit_width_button = Gtk.Button(icon_name='xsi-view-fit-width-symbolic')
+        self.fit_width_button = Gtk.Button(icon_name='double-ended-arrows-horizontal-symbolic')
         self.fit_width_button.set_tooltip_text(_('Fit to Width'))
         self.fit_width_button.add_css_class('flat')
         self.fit_width_button.set_can_focus(False)

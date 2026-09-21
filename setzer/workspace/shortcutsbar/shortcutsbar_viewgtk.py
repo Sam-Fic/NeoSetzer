@@ -381,13 +381,13 @@ class ShortcutsBar(Gtk.Box):
 
     def insert_wizard_button(self):
         self.wizard_button = Gtk.Button()
-        self.wizard_button.set_icon_name('document-new-symbolic')
+        self.wizard_button.set_icon_name('own-wizard-symbolic')
         self.wizard_button.set_can_focus(False)
         self.wizard_button.add_css_class('flat')
         self.wizard_button.set_action_name('win.show-document-wizard')
         shortcut_tooltips.set_tooltip(self.wizard_button, _('Create a template document'))
         self._button_meta[id(self.wizard_button)] = {
-            'icon_name': 'document-new-symbolic',
+            'icon_name': 'own-wizard-symbolic',
             'label': _('New Document'),
             'tooltip': _('Create a template document'),
             'menu_model': None,
