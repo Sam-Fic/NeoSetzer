@@ -619,7 +619,11 @@ class Preview(Observable):
         if self.layout == None: return
         if dest == None: return
 
-        page_number = dest.page_num
+        # Poppler.Dest.page_num 是 1-based（poppler-glib 在 find_dest 与
+        # action.goto_dest.dest 上都做了 +1，用 pdftotext 页码交叉验证过），
+        # 而本类与 layout 的页面 API 全是 0-based。不减 1 会把目标页当成
+        # 下一页跳（末页链接则因越界直接不动作）。
+        page_number = dest.page_num - 1
         content = self.view.content
         if self.rotation == 0:
             left = dest.left * self.layout.scale_factor
@@ -629,14 +633,15 @@ class Preview(Observable):
             # left/top，right 默认 0。用 max(right-left, 0) 安全取宽。
             width = max((dest.right - dest.left) * self.layout.scale_factor, 0)
             x = max(min(left, content.scrolling_offset_x), left + width - content.width + 18)
-            # per-page 几何：y = page_y_starts[page] + (page_height_px - top - gap)
-            # 原公式 (h + gap) * page_number - top - gap + padding 等价于
-            # "页面顶 + 页面内 top-down 偏移"，但依赖等高。
+            # per-page 几何：y = 页顶 + 页面内 top-down 偏移。dest.top 是
+            # PDF y-up（自页底向上量），页面内偏移 = page_height_px - top。
+            # 旧等高公式 (h + gap) * page_num_1based - top - gap + padding
+            # 展开后正是 page_top + (h - top)，per-page 改写不得再补 gap 项。
             page_top = self.layout.get_page_top(page_number)
             page_h_px = self.layout.get_page_height(page_number)
             if page_top is None or page_h_px is None:
                 return
-            y = page_top + (page_h_px - top - self.layout.page_gap)
+            y = page_top + (page_h_px - top)
             self.view.content.scroll_to_position([x, y])
         else:
             # dest coords are PDF (y-up). Convert the target to displayed canvas
