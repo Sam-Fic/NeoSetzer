@@ -124,6 +124,7 @@ class PreviewPanelPresenter(object):
                 old_preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
                 old_preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
                 old_preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
+                old_preview.zoom_manager.disconnect('zoom_mode_changed', self.on_zoom_mode_changed)
 
         self.document = self.workspace.get_root_or_active_latex_document()
         # 工具链未挂接的文档视同无预览（正常流程不会发生：激活/根文档都会
@@ -146,6 +147,7 @@ class PreviewPanelPresenter(object):
             self.document.preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
             self.document.preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
             self.document.preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
+            self.document.preview.zoom_manager.connect('zoom_mode_changed', self.on_zoom_mode_changed)
             self._attach_target_bar(self.document.preview.view)
 
     def on_pdf_changed(self, preview):
@@ -170,6 +172,18 @@ class PreviewPanelPresenter(object):
         self.update_buttons()
         self.update_zoom_level()
         self._sync_zoom_action_state()
+
+    def on_zoom_mode_changed(self, zoom_manager):
+        self._sync_fit_width_button()
+
+    def _sync_fit_width_button(self):
+        '''fit_to_width 模式（本按钮点击后进入的模式）下按钮呈按下（checked）
+        态；text-width / height 两个 fit 模式不亮，与弹窗菜单里的独立档位一致。'''
+        doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
+        if doc_preview is None:
+            self.view.fit_width_button.set_active(False)
+            return
+        self.view.fit_width_button.set_active(doc_preview.zoom_manager.zoom_mode == 'fit_to_width')
 
     def _sync_zoom_action_state(self):
         '''同步两个有状态 action 的 state，使弹窗里「当前缩放档位」或「当前 fit
@@ -301,6 +315,8 @@ class PreviewPanelPresenter(object):
             self.view.zoom_in_button.set_sensitive(zoom_level != None and zoom_level < 4)
             self.view.zoom_out_button.set_sensitive(zoom_level != None and zoom_level > 0.25)
 
+        self._sync_fit_width_button()
+
     def update_zoom_level(self):
         doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
         if doc_preview is None:
@@ -333,6 +349,9 @@ class PreviewPanelPresenter(object):
         if doc_preview is None:
             return
         doc_preview.zoom_manager.set_zoom_fit_to_width_auto_offset()
+        # 已处于 fit_to_width 时模式未变、不发 zoom_mode_changed，而 ToggleButton
+        # 的 clicked 默认处理已把 active 翻成 False，故此处无条件回写一次。
+        self._sync_fit_width_button()
 
     def _sync_switch_icons(self):
         '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。

@@ -97,7 +97,10 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_out_button.set_can_focus(False)
         self.toolbar.append(self.zoom_out_button)
 
-        self.fit_width_button = Gtk.Button(icon_name='double-ended-arrows-horizontal-symbolic')
+        # ToggleButton：处于 fit_to_width 模式时呈按下（checked）态，状态由
+        # presenter 依 zoom_manager.zoom_mode 同步（见 _sync_fit_width_button）。
+        self.fit_width_button = Gtk.ToggleButton()
+        self.fit_width_button.set_icon_name('double-ended-arrows-horizontal-symbolic')
         self.fit_width_button.set_tooltip_text(_('Fit to Width'))
         self.fit_width_button.add_css_class('flat')
         self.fit_width_button.set_can_focus(False)
