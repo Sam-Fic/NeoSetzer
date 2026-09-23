@@ -24,7 +24,7 @@
 # 1. 生成最新的 pot 模板
 meson setup --wipe builddir --prefix=/tmp/usr
 ninja -C builddir setzer-pot
-xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
+xgettext data/resources/latexdb/*/*.xml \
   -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
 
 # 2. 同步全部 po 文件（清理 obsolete、零 fuzzy、稳定排序）
@@ -60,7 +60,7 @@ xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages
 ```bash
 meson setup --wipe builddir --prefix=/tmp/usr
 ninja -C builddir setzer-pot
-xgettext data/resources/latexdb/*/*.xml data/resources/document_wizard/languages.xml \
+xgettext data/resources/latexdb/*/*.xml \
   -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
 cp po/setzer.pot po/lang.po
 ```

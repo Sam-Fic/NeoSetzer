@@ -40,7 +40,7 @@ class AboutDialog(object):
         self.view.set_application_name('NeoSetzer')
         self.view.set_application_icon('org.cvfosammmm.Setzer')
         self.view.set_version(ServiceLocator.get_setzer_version())
-        self.view.set_developer_name('Robert Griesel')
+        self.view.set_developer_name('Robert Griesel, Sam-Fic')
         self.view.set_copyright('© 2017-present Robert Griesel, Sam-Fic')
         self.view.set_comments(_('NeoSetzer is a LaTeX editor.'))
         self.view.set_license_type(Gtk.License.GPL_3_0)
@@ -53,11 +53,14 @@ class AboutDialog(object):
         # （"Document must begin with an element"）。用 <ul><li> 包裹成列表。
         self.view.set_release_notes(_('''
 <ul>
-<li>Performance improvements and bug fixes</li>
-<li>Improved keyboard shortcuts</li>
-<li>Added print functionality</li>
-<li>Enhanced preview keyboard navigation</li>
-<li>Better error handling for file operations</li>
+<li>New: AI Fix for build errors, plus an agent terminal entry in the header bar</li>
+<li>New: app-wide interface zoom with Ctrl+Plus, Ctrl+Minus and Ctrl+0</li>
+<li>New: command palette, table and matrix generators, bibliography manager, spell checking, bookmarks and multi-cursor editing</li>
+<li>New: Git integration with per-line diff markers and a repository sidebar</li>
+<li>New: packaging for Debian, Windows and macOS</li>
+<li>Improved: opening documents, restoring sessions and building are markedly faster</li>
+<li>Improved: PDF preview gains text selection, a magnifier, a detached window and click-to-source navigation</li>
+<li>Updated: all seven bundled translations are now complete</li>
 </ul>'''))
         import platform
         debug_info = 'Setzer version: {}\nOS: {} {}\nPython: {}'.format(

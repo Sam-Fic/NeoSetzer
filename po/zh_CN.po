@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-06 10:51+0800\n"
+"POT-Creation-Date: 2026-09-24 02:11+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -22,96 +22,186 @@ msgstr ""
 msgid "Simple yet full-featured LaTeX editor (fork of Setzer)"
 msgstr "简洁而功能完备的 LaTeX 编辑器（Setzer 的分支）"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:14
 msgid ""
 "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
 "featured editor. It is a fork of the Setzer project."
 msgstr "NeoSetzer 让你在简单易用却功能完备的编辑器中撰写 LaTeX 文档。它是 Setzer 项目的分支。"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:16
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
 msgid "Features include:"
 msgstr "功能包括："
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:33
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:17
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:32
 msgid "Buttons and shortcuts for many LaTeX elements and special characters"
 msgstr "为大量 LaTeX 元素和特殊字符提供按钮与快捷键"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
 msgid "Comfortable document creation wizard"
 msgstr "舒适的文档创建向导"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:41
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:40
 msgid "Dark mode"
 msgstr "深色模式"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:45
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:44
 msgid "Helpful error messages in the build log"
 msgstr "构建日志中提供实用的错误信息"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
 msgid "Looks great on the Gnome desktop"
 msgstr "在 GNOME 桌面上观感极佳"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
 msgid "Good screen to content ratio"
 msgstr "屏幕与内容的比例合理"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:24
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
 msgid "Arguably the best .pdf viewer of any LaTeX editor"
 msgstr "堪称所有 LaTeX 编辑器中最好的 .pdf 查看器"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:37
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:36
 msgid "Document creation wizard"
 msgstr "文档创建向导"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:72
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:71
+msgid ""
+"All seven bundled translations completed, and the light seam along the page "
+"edges of the application icon fixed."
+msgstr "补全全部七种内置翻译，并修复应用图标书页边缘的浅色接缝。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
+msgid ""
+"App-wide interface zoom, a new book-style application icon, centered SyncTeX"
+" jumps, and lower memory use after builds."
+msgstr "全应用界面缩放、全新书籍造型应用图标、SyncTeX 跳转居中，以及构建后更低的内存占用。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:81
+msgid ""
+"Text selection and a magnifier in the preview, Git integration, an agent "
+"terminal entry, and multi-cursor editing out of the experimental stage."
+msgstr "预览新增文字选择与放大镜、Git 集成、Agent 终端入口，多光标编辑也已脱离实验阶段。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
+msgid ""
+"Remaining dialogs rebuilt on standard libadwaita widgets, with several long-"
+"standing bugs fixed."
+msgstr "其余对话框改用标准 libadwaita 控件重建，并修复了多个长期存在的问题。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:91
+msgid ""
+"Opening documents, restoring sessions and parsing bibliography files are now"
+" orders of magnitude faster."
+msgstr "打开文档、恢复会话与解析参考文献文件现在快了数个数量级。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:96
+msgid ""
+"Command palette, table and matrix generators, a bibliography manager, user "
+"snippets and an interactive example project."
+msgstr "新增命令面板、表格与矩阵生成器、参考文献管理器、用户代码片段以及可交互示例项目。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:101
+msgid ""
+"Renamed to NeoSetzer with a new icon; LaTeX-aware spell checking, image "
+"insertion, and automated Debian, Windows and macOS builds."
+msgstr ""
+"更名为 NeoSetzer 并换用新图标；新增感知 LaTeX 的拼写检查、图片插入，以及 Debian、Windows 与 macOS 自动构建。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:106
+msgid ""
+"Theme quick switcher in the menu, rebuilt build log and autocomplete popups,"
+" and sharper gutter rendering."
+msgstr "菜单新增主题快速切换器，重构构建日志与自动补全弹窗，行号栏绘制更清晰。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:111
+msgid ""
+"Native Windows support, with cross-platform paths, terminals and packaging."
+msgstr "新增 Windows 原生支持，涵盖跨平台路径、终端与打包。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:116
+msgid ""
+"Build diagnostics highlighted in the gutter, per-page preview layout with "
+"page badges, and begin/end syntax highlighting."
+msgstr "行号栏高亮显示构建诊断，预览按页布局并带页码徽章，新增 begin/end 语法高亮。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:121
+msgid ""
+"Build pipeline reworked on a thread pool, an undo depth limit, and several "
+"GTK4 compatibility fixes."
+msgstr "构建流程改用线程池重构，新增撤销深度上限，并修复多项 GTK4 兼容问题。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:126
+msgid ""
+"First-run tutorial, bookmarks, multi-cursor editing, code folding commands "
+"and a global exception handler."
+msgstr "新增首次运行教程、书签、多光标编辑、代码折叠命令与全局异常处理器。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:131
+msgid ""
+"AI fix for build errors, a detached PDF preview window, session snapshots "
+"and an improved document wizard."
+msgstr "新增构建错误 AI 修复、可分离的 PDF 预览窗口、会话快照与改进后的文档向导。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:136
+msgid ""
+"Clicking in the PDF preview now jumps to the exact source character, and "
+"search and replace share a single toolbar."
+msgstr "点击 PDF 预览现在可精确定位到源码字符，搜索与替换合并为同一工具栏。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:141
+msgid ""
+"Sidebar and help panel interaction refactored, a PDF page jump entry added, "
+"and editor settings merged into the appearance page."
+msgstr "重构侧边栏与帮助面板交互，新增 PDF 页码跳转入口，编辑器设置并入外观页。"
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:146
 msgid "Fork maintenance release (development continued from v67):"
 msgstr "分支维护版本（自 v67 起继续开发）："
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:74
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:148
 msgid "UI polish: welcome screen, header bar, document wizard, preview panel"
 msgstr "界面打磨：欢迎页、标题栏、文档向导、预览面板"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:75
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:149
 msgid "Refactor gutter rendering and preview panel widgets"
 msgstr "重构行号槽渲染与预览面板部件"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:150
 msgid "Add per-PDF theme color matching preference"
 msgstr "新增按 PDF 匹配主题配色的首选项"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:77
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:151
 msgid "Default highlight-current-line to on"
 msgstr "默认开启当前行高亮"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:78
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:152
 msgid "Packaging: add standard Debian (.deb) build flow"
 msgstr "打包：新增标准 Debian（.deb）构建流程"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:84
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:158
 msgid "Modernize GUI to latest GTK4 and libadwaita standards:"
 msgstr "将 GUI 更新至最新的 GTK4 与 libadwaita 标准："
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:160
 msgid "Upgrade to Adw.PreferencesDialog for preferences"
 msgstr "首选项改用 Adw.PreferencesDialog"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:87
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:161
 msgid "Upgrade to Adw.ShortcutsDialog for keyboard shortcuts"
 msgstr "键盘快捷键改用 Adw.ShortcutsDialog"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:88
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:162
 msgid "Replace all deprecated GTK4 API calls"
 msgstr "替换全部已弃用的 GTK4 API 调用"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:89
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:163
 msgid "Update Flatpak runtime to GNOME 48"
 msgstr "Flatpak 运行时更新至 GNOME 48"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:95
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:169
 msgid "Mostly bugfixes, ..."
 msgstr "以错误修复为主，……"
 
@@ -588,7 +678,7 @@ msgstr "导出项目包"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:115
-#: setzer/document/preview/preview_presenter.py:560
+#: setzer/document/preview/preview_presenter.py:551
 msgid "Print"
 msgstr "打印"
 
@@ -983,27 +1073,33 @@ msgstr "复刻仓库"
 msgid ""
 "\n"
 "<ul>\n"
-"<li>Performance improvements and bug fixes</li>\n"
-"<li>Improved keyboard shortcuts</li>\n"
-"<li>Added print functionality</li>\n"
-"<li>Enhanced preview keyboard navigation</li>\n"
-"<li>Better error handling for file operations</li>\n"
+"<li>New: AI Fix for build errors, plus an agent terminal entry in the header bar</li>\n"
+"<li>New: app-wide interface zoom with Ctrl+Plus, Ctrl+Minus and Ctrl+0</li>\n"
+"<li>New: command palette, table and matrix generators, bibliography manager, spell checking, bookmarks and multi-cursor editing</li>\n"
+"<li>New: Git integration with per-line diff markers and a repository sidebar</li>\n"
+"<li>New: packaging for Debian, Windows and macOS</li>\n"
+"<li>Improved: opening documents, restoring sessions and building are markedly faster</li>\n"
+"<li>Improved: PDF preview gains text selection, a magnifier, a detached window and click-to-source navigation</li>\n"
+"<li>Updated: all seven bundled translations are now complete</li>\n"
 "</ul>"
 msgstr ""
 "\n"
 "<ul>\n"
-"<li>性能改进与错误修复</li>\n"
-"<li>改进了键盘快捷键</li>\n"
-"<li>新增打印功能</li>\n"
-"<li>增强了预览键盘导航</li>\n"
-"<li>Better error handling for file operations</li>\n"
+"<li>新增：构建错误的 AI 修复，以及标题栏中的 Agent 终端入口</li>\n"
+"<li>新增：全应用界面缩放（Ctrl+加、Ctrl+减、Ctrl+0）</li>\n"
+"<li>新增：命令面板、表格与矩阵生成器、参考文献管理器、拼写检查、书签与多光标编辑</li>\n"
+"<li>新增：Git 集成，含行级差异标记与仓库侧边栏</li>\n"
+"<li>新增：Debian、Windows 与 macOS 打包</li>\n"
+"<li>改进：打开文档、恢复会话与构建速度显著提升</li>\n"
+"<li>改进：PDF 预览支持文字选择、放大镜、独立窗口与点击定位到源码</li>\n"
+"<li>更新：七种内置翻译已全部补全</li>\n"
 "</ul>"
 
-#: setzer/dialogs/about/about.py:71
+#: setzer/dialogs/about/about.py:74
 msgid "Fork maintainer"
 msgstr "复刻维护者"
 
-#: setzer/dialogs/about/about.py:73
+#: setzer/dialogs/about/about.py:76
 msgid "translator-credits"
 msgstr "lumingzh <lumingzh@qq.com>"
 
@@ -4054,7 +4150,7 @@ msgid "Zoom"
 msgstr "缩放"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:118
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:121
 msgid "Zoom in"
 msgstr "放大"
 
@@ -6158,7 +6254,7 @@ msgstr "所选 BibTeX 路径不是常规文件"
 msgid "The bibliography changed outside Setzer"
 msgstr "参考文献库已在 Setzer 外部被更改"
 
-#: setzer/document/build_system/build_system.py:406
+#: setzer/document/build_system/build_system.py:415
 msgid "Previous build cancelled"
 msgstr "上一次构建已取消"
 
@@ -6310,25 +6406,25 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:514
+#: setzer/document/preview/preview_presenter.py:505
 msgid "Save Image As"
 msgstr "另存为"
 
-#: setzer/document/preview/preview_presenter.py:619
+#: setzer/document/preview/preview_presenter.py:610
 msgid "No printer available"
 msgstr "没有可用的打印机"
 
-#: setzer/document/preview/preview_presenter.py:624
+#: setzer/document/preview/preview_presenter.py:615
 msgid "Could not prepare print data"
 msgstr "无法准备打印数据"
 
-#: setzer/document/preview/preview_presenter.py:629
+#: setzer/document/preview/preview_presenter.py:620
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:405
 msgid "Document"
 msgstr "文档"
 
-#: setzer/document/preview/preview_presenter.py:638
+#: setzer/document/preview/preview_presenter.py:629
 msgid "Printing failed"
 msgstr "打印失败"
 
@@ -6769,7 +6865,7 @@ msgid "New Document from Template"
 msgstr "从模板新建文档"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:101
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:104
 msgid "Fit to Width"
 msgstr "适合宽度"
 
@@ -7379,23 +7475,23 @@ msgid ""
 "result to open it in your web browser."
 msgstr "帮助页面渲染需要 WebKit6。搜索仍可用——点击结果即可在网页浏览器中打开"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:218
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:232
 msgid "Maximum zoom level reached"
 msgstr "已达到最大缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:220
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:234
 msgid "Minimum zoom level reached"
 msgstr "已达到最小缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:254
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:268
 msgid "Build failed — showing the previous PDF"
 msgstr "构建失败——显示上一版 PDF"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:268
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:282
 msgid "of "
 msgstr " 共 "
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:270
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:284
 msgid "No preview"
 msgstr "无预览"
 
@@ -7403,23 +7499,23 @@ msgstr "无预览"
 msgid "Switch to Help"
 msgstr "切换到帮助"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:112
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:115
 msgid "Set zoom level"
 msgstr "设置缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:128
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:131
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "放大镜：按住左键在 PDF 上缩放"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:135
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:138
 msgid "Match theme colors"
 msgstr "匹配主题颜色"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:141
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:144
 msgid "Open in external PDF viewer"
 msgstr "在外部 PDF 查看器中打开"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:150
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:153
 msgid "Detach preview to separate window"
 msgstr "预览"
 
@@ -7437,15 +7533,15 @@ msgstr "引号"
 msgid "Objects"
 msgstr "对象"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:468
+#: setzer/workspace/sidebar/document_stats/document_stats.py:475
 msgid "Characters"
 msgstr "字符"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:468
+#: setzer/workspace/sidebar/document_stats/document_stats.py:475
 msgid "no spaces"
 msgstr "无空格"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:470
+#: setzer/workspace/sidebar/document_stats/document_stats.py:477
 msgid "Lines"
 msgstr "行数"
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-06 10:51+0800\n"
+"POT-Creation-Date: 2026-09-24 02:11+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/setzer/application/de/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "Simple yet full-featured LaTeX editor (fork of Setzer)"
 msgstr "Einfacher, dennoch funktionsreicher LaTeX-Editor (Fork von Setzer)"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:14
 msgid ""
 "NeoSetzer lets you Write LaTeX documents with an easy to use yet full-"
 "featured editor. It is a fork of the Setzer project."
@@ -28,96 +28,220 @@ msgstr ""
 "Mit NeoSetzer schreiben Sie LaTeX-Dokumente in einem einfach zu bedienenden "
 "und zugleich funktionsreichen Editor. Es ist ein Fork des Setzer-Projekts."
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:16
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:15
 msgid "Features include:"
 msgstr "Zu den Funktionen gehören:"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:33
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:17
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:32
 msgid "Buttons and shortcuts for many LaTeX elements and special characters"
 msgstr ""
 "Schaltflächen und Tastenkombinationen für viele LaTeX-Elemente und "
 "Sonderzeichen"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:18
 msgid "Comfortable document creation wizard"
 msgstr "Komfortabler Assistent zum Erstellen von Dokumenten"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:41
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:40
 msgid "Dark mode"
 msgstr "Dunkelmodus"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:45
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:44
 msgid "Helpful error messages in the build log"
 msgstr "Hilfreiche Fehlermeldungen im Erstellungsprotokoll"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:21
 msgid "Looks great on the Gnome desktop"
 msgstr "Sieht auf dem GNOME-Desktop großartig aus"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:22
 msgid "Good screen to content ratio"
 msgstr "Gutes Verhältnis von Bildschirmfläche zu Inhalt"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:24
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:23
 msgid "Arguably the best .pdf viewer of any LaTeX editor"
 msgstr "Wohl der beste .pdf-Betrachter unter allen LaTeX-Editoren"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:37
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:36
 msgid "Document creation wizard"
 msgstr "Assistent zum Erstellen von Dokumenten"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:72
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:71
+msgid ""
+"All seven bundled translations completed, and the light seam along the page "
+"edges of the application icon fixed."
+msgstr ""
+"Alle sieben mitgelieferten Übersetzungen wurden vervollständigt und die "
+"helle Naht an den Seitenrändern des Anwendungssymbols behoben."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
+msgid ""
+"App-wide interface zoom, a new book-style application icon, centered SyncTeX"
+" jumps, and lower memory use after builds."
+msgstr ""
+"Anwendungsweiter Interface-Zoom, ein neues Anwendungssymbol in Buchform, "
+"zentrierte SyncTeX-Sprünge und geringere Speichernutzung nach dem Erstellen."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:81
+msgid ""
+"Text selection and a magnifier in the preview, Git integration, an agent "
+"terminal entry, and multi-cursor editing out of the experimental stage."
+msgstr ""
+"Textauswahl und Lupe in der Vorschau, Git-Integration, ein Agent-Terminal-"
+"Eintrag sowie Mehrfach-Cursor-Bearbeitung jenseits des experimentellen "
+"Stadiums."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
+msgid ""
+"Remaining dialogs rebuilt on standard libadwaita widgets, with several long-"
+"standing bugs fixed."
+msgstr ""
+"Verbleibende Dialoge auf Standard-Libadwaita-Widgets neu aufgebaut und "
+"mehrere langjährige Fehler behoben."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:91
+msgid ""
+"Opening documents, restoring sessions and parsing bibliography files are now"
+" orders of magnitude faster."
+msgstr ""
+"Dokumente öffnen, Sitzungen wiederherstellen und Bibliographie-Dateien "
+"auswerten ist nun um Größenordnungen schneller."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:96
+msgid ""
+"Command palette, table and matrix generators, a bibliography manager, user "
+"snippets and an interactive example project."
+msgstr ""
+"Befehlspalette, Tabellen- und Matrix-Generatoren, eine Bibliographie-"
+"Verwaltung, benutzerdefinierte Snippets und ein interaktives "
+"Beispielprojekt."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:101
+msgid ""
+"Renamed to NeoSetzer with a new icon; LaTeX-aware spell checking, image "
+"insertion, and automated Debian, Windows and macOS builds."
+msgstr ""
+"Umbenannt in NeoSetzer mit neuem Symbol; LaTeX-bewusste Rechtschreibprüfung,"
+" Bilder einfügen und automatisierte Debian-, Windows- und macOS-"
+"Erstellungen."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:106
+msgid ""
+"Theme quick switcher in the menu, rebuilt build log and autocomplete popups,"
+" and sharper gutter rendering."
+msgstr ""
+"Schnellumschalter für Designs im Menü, neu aufgebaute Popups für "
+"Erstellungsprotokoll und Autovervollständigung sowie schärfere Darstellung "
+"der Randzone."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:111
+msgid ""
+"Native Windows support, with cross-platform paths, terminals and packaging."
+msgstr ""
+"Natives Windows-Setup mit plattformübergreifenden Pfaden, Terminals und "
+"Paketierung."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:116
+msgid ""
+"Build diagnostics highlighted in the gutter, per-page preview layout with "
+"page badges, and begin/end syntax highlighting."
+msgstr ""
+"Erstellungsdiagnose in der Randzone hervorgehoben, seitenweises "
+"Vorschaulayout mit Seitenabzeichen und begin/end-Syntaxhervorhebung."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:121
+msgid ""
+"Build pipeline reworked on a thread pool, an undo depth limit, and several "
+"GTK4 compatibility fixes."
+msgstr ""
+"Erstellungsablauf auf einen Thread-Pool umgestellt, eine Rückgängig-"
+"Tiefenbegrenzung sowie mehrere GTK4-Kompatibilitätskorrekturen."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:126
+msgid ""
+"First-run tutorial, bookmarks, multi-cursor editing, code folding commands "
+"and a global exception handler."
+msgstr ""
+"Erststart-Tutorial, Lesezeichen, Mehrfach-Cursor-Bearbeitung, Befehle zum "
+"Code-Falten und ein globaler Ausnahmebehandler."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:131
+msgid ""
+"AI fix for build errors, a detached PDF preview window, session snapshots "
+"and an improved document wizard."
+msgstr ""
+"KI-Korrektur von Erstellungsfehlern, ein abgekoppeltes PDF-Vorschaufenster, "
+"Sitzungssnapshots und ein verbesserter Dokumentenassistent."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:136
+msgid ""
+"Clicking in the PDF preview now jumps to the exact source character, and "
+"search and replace share a single toolbar."
+msgstr ""
+"Klicks in der PDF-Vorschau springen nun zum exakten Quelltextzeichen, und "
+"Suchen und Ersetzen teilen sich eine Werkzeugleiste."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:141
+msgid ""
+"Sidebar and help panel interaction refactored, a PDF page jump entry added, "
+"and editor settings merged into the appearance page."
+msgstr ""
+"Seitenleisten- und Hilfebedienung überarbeitet, ein Sprung-Eintrag für PDF-"
+"Seiten ergänzt und Editor-Einstellungen in die Erscheinungsbild-Seite "
+"integriert."
+
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:146
 msgid "Fork maintenance release (development continued from v67):"
 msgstr "Fork-Wartungsversion (Entwicklung fortgesetzt ab v67):"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:74
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:148
 msgid "UI polish: welcome screen, header bar, document wizard, preview panel"
 msgstr ""
 "UI-Verfeinerungen: Willkommensbildschirm, Kopfzeile, Dokumentassistent, "
 "Vorschauleiste"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:75
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:149
 msgid "Refactor gutter rendering and preview panel widgets"
 msgstr ""
 "Refactoring der Zeilennummernrand-Darstellung und der Vorschauleisten-"
 "Widgets"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:76
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:150
 msgid "Add per-PDF theme color matching preference"
 msgstr "Neue Einstellung zum Anpassen des Farbschemas an je ein PDF"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:77
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:151
 msgid "Default highlight-current-line to on"
 msgstr "Hervorheben der aktuellen Zeile standardmäßig aktiviert"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:78
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:152
 msgid "Packaging: add standard Debian (.deb) build flow"
 msgstr "Paketierung: Standard-Build-Prozess für Debian (.deb) hinzugefügt"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:84
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:158
 msgid "Modernize GUI to latest GTK4 and libadwaita standards:"
 msgstr "GUI auf den neuesten Stand von GTK4 und libadwaita gebracht:"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:86
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:160
 msgid "Upgrade to Adw.PreferencesDialog for preferences"
 msgstr "Einstellungen auf Adw.PreferencesDialog umgestellt"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:87
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:161
 msgid "Upgrade to Adw.ShortcutsDialog for keyboard shortcuts"
 msgstr "Tastenkombinationen auf Adw.ShortcutsDialog umgestellt"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:88
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:162
 msgid "Replace all deprecated GTK4 API calls"
 msgstr "Alle veralteten GTK4-API-Aufrufe ersetzt"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:89
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:163
 msgid "Update Flatpak runtime to GNOME 48"
 msgstr "Flatpak-Laufzeitumgebung auf GNOME 48 aktualisiert"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:95
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:169
 msgid "Mostly bugfixes, ..."
 msgstr "Überwiegend Fehlerbehebungen, …"
 
@@ -609,7 +733,7 @@ msgstr "Projekt-Paket exportieren"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:115
-#: setzer/document/preview/preview_presenter.py:560
+#: setzer/document/preview/preview_presenter.py:551
 msgid "Print"
 msgstr "Drucken"
 
@@ -1004,27 +1128,33 @@ msgstr "Repository forken"
 msgid ""
 "\n"
 "<ul>\n"
-"<li>Performance improvements and bug fixes</li>\n"
-"<li>Improved keyboard shortcuts</li>\n"
-"<li>Added print functionality</li>\n"
-"<li>Enhanced preview keyboard navigation</li>\n"
-"<li>Better error handling for file operations</li>\n"
+"<li>New: AI Fix for build errors, plus an agent terminal entry in the header bar</li>\n"
+"<li>New: app-wide interface zoom with Ctrl+Plus, Ctrl+Minus and Ctrl+0</li>\n"
+"<li>New: command palette, table and matrix generators, bibliography manager, spell checking, bookmarks and multi-cursor editing</li>\n"
+"<li>New: Git integration with per-line diff markers and a repository sidebar</li>\n"
+"<li>New: packaging for Debian, Windows and macOS</li>\n"
+"<li>Improved: opening documents, restoring sessions and building are markedly faster</li>\n"
+"<li>Improved: PDF preview gains text selection, a magnifier, a detached window and click-to-source navigation</li>\n"
+"<li>Updated: all seven bundled translations are now complete</li>\n"
 "</ul>"
 msgstr ""
 "\n"
 "<ul>\n"
-"<li>Leistungsverbesserungen und Fehlerbehebungen</li>\n"
-"<li>Verbesserte Tastenkürzel</li>\n"
-"<li>Druckfunktion hinzugefügt</li>\n"
-"<li>Verbesserte Tastaturnavigation in der Vorschau</li>\n"
-"<li>Bessere Fehlerbehandlung bei Dateioperationen</li>\n"
+"<li>Neu: KI-Korrektur für Erstellungsfehler sowie ein Agent-Terminal-Eintrag in der Kopfleiste</li>\n"
+"<li>Neu: Anwendungsweiter Interface-Zoom mit Ctrl+Plus, Ctrl+Minus und Ctrl+0</li>\n"
+"<li>Neu: Befehlspalette, Tabellen- und Matrix-Generatoren, Bibliographie-Verwaltung, Rechtschreibprüfung, Lesezeichen und Mehrfach-Cursor-Bearbeitung</li>\n"
+"<li>Neu: Git-Integration mit zeilenweisen Diff-Markierungen und einer Repository-Seitenleiste</li>\n"
+"<li>Neu: Paketierung für Debian, Windows und macOS</li>\n"
+"<li>Verbessert: Dokumente öffnen, Sitzungen wiederherstellen und Erstellen sind deutlich schneller</li>\n"
+"<li>Verbessert: Die PDF-Vorschau bietet Textauswahl, eine Lupe, ein separates Fenster und Sprung zur Quelltextstelle per Klick</li>\n"
+"<li>Aktualisiert: Alle sieben mitgelieferten Übersetzungen sind nun vollständig</li>\n"
 "</ul>"
 
-#: setzer/dialogs/about/about.py:71
+#: setzer/dialogs/about/about.py:74
 msgid "Fork maintainer"
 msgstr "Fork-Betreuer"
 
-#: setzer/dialogs/about/about.py:73
+#: setzer/dialogs/about/about.py:76
 msgid "translator-credits"
 msgstr "Stephan Lachnit <stephanlachnit@protonmail.com>"
 
@@ -4225,7 +4355,7 @@ msgid "Zoom"
 msgstr "Zoom"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:118
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:121
 msgid "Zoom in"
 msgstr "Vergrößern"
 
@@ -6483,7 +6613,7 @@ msgstr "Der ausgewählte BibTeX-Pfad ist keine reguläre Datei"
 msgid "The bibliography changed outside Setzer"
 msgstr "Die Bibliographie wurde außerhalb von Setzer geändert"
 
-#: setzer/document/build_system/build_system.py:406
+#: setzer/document/build_system/build_system.py:415
 msgid "Previous build cancelled"
 msgstr "Vorherige Erstellung abgebrochen"
 
@@ -6637,25 +6767,25 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:514
+#: setzer/document/preview/preview_presenter.py:505
 msgid "Save Image As"
 msgstr "Bild speichern unter"
 
-#: setzer/document/preview/preview_presenter.py:619
+#: setzer/document/preview/preview_presenter.py:610
 msgid "No printer available"
 msgstr "Kein Drucker verfügbar"
 
-#: setzer/document/preview/preview_presenter.py:624
+#: setzer/document/preview/preview_presenter.py:615
 msgid "Could not prepare print data"
 msgstr "Druckdaten konnten nicht vorbereitet werden"
 
-#: setzer/document/preview/preview_presenter.py:629
+#: setzer/document/preview/preview_presenter.py:620
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:405
 msgid "Document"
 msgstr "Dokument"
 
-#: setzer/document/preview/preview_presenter.py:638
+#: setzer/document/preview/preview_presenter.py:629
 msgid "Printing failed"
 msgstr "Drucken fehlgeschlagen"
 
@@ -7108,7 +7238,7 @@ msgid "New Document from Template"
 msgstr "Neues Dokument aus Vorlage"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:101
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:104
 msgid "Fit to Width"
 msgstr "An Breite anpassen"
 
@@ -7732,23 +7862,23 @@ msgstr ""
 "verfügbar — klicken Sie auf ein Ergebnis, um es in Ihrem Webbrowser zu "
 "öffnen."
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:218
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:232
 msgid "Maximum zoom level reached"
 msgstr "Maximale Zoomstufe erreicht"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:220
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:234
 msgid "Minimum zoom level reached"
 msgstr "Minimale Zoomstufe erreicht"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:254
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:268
 msgid "Build failed — showing the previous PDF"
 msgstr "Erstellung fehlgeschlagen — vorherige PDF wird angezeigt"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:268
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:282
 msgid "of "
 msgstr " von "
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:270
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:284
 msgid "No preview"
 msgstr "Keine Vorschau"
 
@@ -7756,23 +7886,23 @@ msgstr "Keine Vorschau"
 msgid "Switch to Help"
 msgstr "Zur Hilfe wechseln"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:112
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:115
 msgid "Set zoom level"
 msgstr "Skalierung"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:128
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:131
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "Lupe: linke Maustaste auf dem PDF gedrückt halten zum Zoomen"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:135
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:138
 msgid "Match theme colors"
 msgstr "Designfarben anpassen"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:141
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:144
 msgid "Open in external PDF viewer"
 msgstr "In externem PDF-Betrachter öffnen"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:150
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:153
 msgid "Detach preview to separate window"
 msgstr "Vorschau in ein separates Fenster auslagern"
 
@@ -7790,15 +7920,15 @@ msgstr "Anführungszeichen"
 msgid "Objects"
 msgstr "Objekte"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:468
+#: setzer/workspace/sidebar/document_stats/document_stats.py:475
 msgid "Characters"
 msgstr "Zeichen"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:468
+#: setzer/workspace/sidebar/document_stats/document_stats.py:475
 msgid "no spaces"
 msgstr "ohne Leerzeichen"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:470
+#: setzer/workspace/sidebar/document_stats/document_stats.py:477
 msgid "Lines"
 msgstr "Zeilen"
 

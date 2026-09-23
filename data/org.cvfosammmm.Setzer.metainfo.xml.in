@@ -6,7 +6,6 @@
     <content_rating type="oars-1.1" />
     <name translate="no">NeoSetzer</name>
     <summary>Simple yet full-featured LaTeX editor (fork of Setzer)</summary>
-    <developer_name translate="no">Cvfosammmm</developer_name>
     <developer id="org.cvfosammmm">
         <name translate="no">Cvfosammmm</name>
     </developer>
@@ -67,6 +66,81 @@
     </requires>
 
     <releases>
+        <release version="83" date="2026-09-18">
+            <description>
+                <p>All seven bundled translations completed, and the light seam along the page edges of the application icon fixed.</p>
+            </description>
+        </release>
+        <release version="82" date="2026-09-17">
+            <description>
+                <p>App-wide interface zoom, a new book-style application icon, centered SyncTeX jumps, and lower memory use after builds.</p>
+            </description>
+        </release>
+        <release version="81" date="2026-08-31">
+            <description>
+                <p>Text selection and a magnifier in the preview, Git integration, an agent terminal entry, and multi-cursor editing out of the experimental stage.</p>
+            </description>
+        </release>
+        <release version="80" date="2026-08-27">
+            <description>
+                <p>Remaining dialogs rebuilt on standard libadwaita widgets, with several long-standing bugs fixed.</p>
+            </description>
+        </release>
+        <release version="79" date="2026-08-25">
+            <description>
+                <p>Opening documents, restoring sessions and parsing bibliography files are now orders of magnitude faster.</p>
+            </description>
+        </release>
+        <release version="78" date="2026-08-24">
+            <description>
+                <p>Command palette, table and matrix generators, a bibliography manager, user snippets and an interactive example project.</p>
+            </description>
+        </release>
+        <release version="77" date="2026-08-21">
+            <description>
+                <p>Renamed to NeoSetzer with a new icon; LaTeX-aware spell checking, image insertion, and automated Debian, Windows and macOS builds.</p>
+            </description>
+        </release>
+        <release version="76" date="2026-08-03">
+            <description>
+                <p>Theme quick switcher in the menu, rebuilt build log and autocomplete popups, and sharper gutter rendering.</p>
+            </description>
+        </release>
+        <release version="75" date="2026-07-31">
+            <description>
+                <p>Native Windows support, with cross-platform paths, terminals and packaging.</p>
+            </description>
+        </release>
+        <release version="74" date="2026-07-31">
+            <description>
+                <p>Build diagnostics highlighted in the gutter, per-page preview layout with page badges, and begin/end syntax highlighting.</p>
+            </description>
+        </release>
+        <release version="73" date="2026-07-30">
+            <description>
+                <p>Build pipeline reworked on a thread pool, an undo depth limit, and several GTK4 compatibility fixes.</p>
+            </description>
+        </release>
+        <release version="72" date="2026-07-30">
+            <description>
+                <p>First-run tutorial, bookmarks, multi-cursor editing, code folding commands and a global exception handler.</p>
+            </description>
+        </release>
+        <release version="71" date="2026-07-29">
+            <description>
+                <p>AI fix for build errors, a detached PDF preview window, session snapshots and an improved document wizard.</p>
+            </description>
+        </release>
+        <release version="70" date="2026-07-27">
+            <description>
+                <p>Clicking in the PDF preview now jumps to the exact source character, and search and replace share a single toolbar.</p>
+            </description>
+        </release>
+        <release version="69" date="2026-07-26">
+            <description>
+                <p>Sidebar and help panel interaction refactored, a PDF page jump entry added, and editor settings merged into the appearance page.</p>
+            </description>
+        </release>
         <release version="68" date="2026-7-25">
             <description translatable="no">
                 <p>Fork maintenance release (development continued from v67):</p>
@@ -380,7 +454,7 @@
                 <p>Set margins in wizard, improved icon, ...</p>
             </description>
         </release>
-        ​<release version="0.0.1" date="2019-10-13">
+        <release version="0.0.1" date="2019-10-13">
             <description translate="no">
                 <p>Initial release</p>
             </description>
