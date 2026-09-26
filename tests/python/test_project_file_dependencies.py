@@ -15,6 +15,12 @@ import tempfile
 import types
 import unittest
 
+# math preview 是并发开发中的特性：parser 引用 find_math_regions 时注入
+# 真实实现；模块不存在（如只检出不含该特性的提交）则跳过注入。
+try:
+    from setzer.document.math_preview.math_region_finder import find_math_regions
+except ImportError:
+    find_math_regions = None
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 from setzer.document.parser.latex_braces import scan_balanced_braced_argument
 from setzer.document.parser.structure_numbering import (
@@ -85,8 +91,7 @@ def _extract_class(path, class_name, namespace):
 
 
 def _load_parser_class():
-    path = os.path.join(REPO, 'setzer/document/parser/parser_latex.py')
-    return _extract_class(path, 'ParserLaTeX', {
+    namespace = {
         'Observable': _Observable,
         'ServiceLocator': _RegexServiceLocator,
         'GLib': types.SimpleNamespace(timeout_add=lambda *args: 1,
@@ -98,7 +103,11 @@ def _load_parser_class():
         'SectioningCommand': SectioningCommand,
         'SecnumDepthChange': SecnumDepthChange,
         'calculate_structure_numbers': calculate_structure_numbers,
-    })
+    }
+    if find_math_regions is not None:
+        namespace['find_math_regions'] = find_math_regions
+    path = os.path.join(REPO, 'setzer/document/parser/parser_latex.py')
+    return _extract_class(path, 'ParserLaTeX', namespace)
 
 
 def _load_data_provider_class():

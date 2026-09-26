@@ -23,6 +23,7 @@ from gi.repository import Gtk, Gdk, GLib
 import sys
 
 import setzer.workspace.sidebar.document_structure_page.labels_viewgtk as labels_section_view
+from setzer.document.label_check import analyze_labels
 
 
 class LabelsSection(object):
@@ -34,6 +35,7 @@ class LabelsSection(object):
         self.view = labels_section_view.LabelsSectionView(self)
 
         self.labels = list()
+        self.report = None
 
     def on_row_activated(self, row):
         label = row.item_data
@@ -51,14 +53,32 @@ class LabelsSection(object):
     def update_items(self, *params):
         labels = list()
         document = self.data_provider.document
-        for label in document.parser.symbols['labels_with_offset']:
-            # 不修改 parser 的 label 列表（原 label.append(document) 会反复追加，
-            # 每次 update_items 都让列表增长一份 document 引用，属内存/性能泄漏）。
-            # 构造新列表 [name, offset, document]，保持 on_row_activated 的索引不变。
-            labels.append([label[0], label[1], document])
-        for include_document in self.data_provider.integrated_includes:
+        # 与 include 文档合并分析：\ref 常出现在根文档而 \label 在子文件，
+        # 单看任一份都会误报「未使用」。仅覆盖已打开的文档——与下方列出的
+        # label 集合一致（未打开的 include 没有解析结果，两侧同样受限）。
+        documents = [document]
+        documents.extend(self.data_provider.integrated_includes.keys())
+        definitions = list()
+        references = list()
+        for include_document in documents:
             for label in include_document.parser.symbols['labels_with_offset']:
+                # 不修改 parser 的 label 列表（原 label.append(document) 会反复追加，
+                # 每次 update_items 都让列表增长一份 document 引用，属内存/性能泄漏）。
+                # 构造新列表 [name, offset, document]，保持 on_row_activated 的索引不变。
                 labels.append([label[0], label[1], include_document])
+                definitions.append(label[0])
+            for name, _offset in include_document.parser.symbols.get('refs_with_offset', ()):
+                references.append(name)
+        report = analyze_labels(definitions, references)
+        # 第 4 位为问题标记：duplicate 优先于 unused（与「重复定义更严重」的
+        # 直觉一致），供视图加徽章；无问题时为 None。
+        for label in labels:
+            if label[0] in report.duplicate_names:
+                label.append('duplicate')
+            elif label[0] in report.unused_names:
+                label.append('unused')
+            else:
+                label.append(None)
         # GLib.utf8_collate_key(str, len) 在部分 MSYS2/Windows 的 PyGObject
         # 构建中会段错误（g_convert 断言失败 + SIGSEGV），无法 try/except 捕获。
         # Windows 上退化为纯 Python 大小写折叠排序（locale-naive 但安全）；
@@ -67,6 +87,7 @@ class LabelsSection(object):
             labels.sort(key=lambda label: label[0].casefold())
         else:
             labels.sort(key=lambda label: GLib.utf8_collate_key(label[0].casefold(), len(label[0].casefold())))
+        self.report = report
         self.labels = labels
 
         self.view.populate()

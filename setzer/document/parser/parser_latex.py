@@ -46,6 +46,13 @@ _OTHER_SYMBOLS_REGEX_PATTERN = (r'\\(label|include|input|subfile|subimport|bibli
 # 该规则与 _OTHER_SYMBOLS_REGEX_PATTERN 分离，以保持后者的 group 编号稳定。
 _PROJECT_DEPENDENCIES_REGEX_PATTERN = r'\\(LoadLetterOption|documentclass)\s*(?:\[[^\[\]]*\]\s*)?\{([^{}\s]+)\}'
 
+# 引用命令正则：\ref/\eqref/\pageref/\autoref/\cref/\Cref/\vref/\nameref/
+# \cpageref/\Cpageref，含 hyperref 星号形式与可选参数；键支持逗号分隔的
+# 多引用（cleveref）。参数前的硬性 \{ 天然排除 \refstepcounter 等以 ref
+# 开头的更长命令名；(?<!\\) 排除换行 \\ 之后紧跟 "ref" 文本的罕见情形。
+# 与 _OTHER_SYMBOLS_REGEX_PATTERN 分离以保持二者的 group 编号稳定。
+_REF_COMMANDS_REGEX_PATTERN = r'(?<!\\)\\(ref|eqref|pageref|autoref|cref|Cref|vref|nameref|cpageref|Cpageref)\*?(?:\[[^\{\[]*\])?\{((?:\s|\w|\:|\.|,|\/|-|\(|\))*)\}'
+
 # 块级符号正则只处理换行和环境边界。章节标题由轻量定位正则配合
 # 平衡花括号扫描器读取，以支持 \textit{...} 等嵌套 LaTeX 命令。
 _BLOCK_SYMBOLS_REGEX_PATTERN = r'\n|\\(begin|end)\{((?:\w|•|\*)+)\}'
@@ -71,6 +78,9 @@ class ParserLaTeX(Observable):
         self.symbols['bibitems'] = set()
         self.symbols['labels'] = set()
         self.symbols['labels_with_offset'] = list()
+        # \ref 族引用目标：(键, 引用命令 offset)，逗号分隔的多键已拆开。
+        # 供 label 未使用/重复检查与侧栏徽章消费。
+        self.symbols['refs_with_offset'] = list()
         self.symbols['todos'] = set()
         self.symbols['todos_with_offset'] = set()
         self.symbols['included_latex_files'] = set()
@@ -98,6 +108,7 @@ class ParserLaTeX(Observable):
         # 模块加载时一次性解析的正则对象，避免热路径里每次 finditer 都查表。
         self._other_symbols_regex = ServiceLocator.get_regex_object(_OTHER_SYMBOLS_REGEX_PATTERN)
         self._project_dependencies_regex = ServiceLocator.get_regex_object(_PROJECT_DEPENDENCIES_REGEX_PATTERN)
+        self._refs_regex = ServiceLocator.get_regex_object(_REF_COMMANDS_REGEX_PATTERN)
         self._block_symbols_regex = ServiceLocator.get_regex_object(_BLOCK_SYMBOLS_REGEX_PATTERN)
         self._section_command_regex = ServiceLocator.get_regex_object(_SECTION_COMMAND_REGEX_PATTERN)
         self._section_numbering_regex = ServiceLocator.get_regex_object(_SECTION_NUMBERING_REGEX_PATTERN)
@@ -471,6 +482,47 @@ class ParserLaTeX(Observable):
         self.symbols['packages'] = packages
         self.symbols['packages_detailed'] = packages_detailed
 
+    def _parse_refs(self, text):
+        r'''提取 \ref 族的引用目标，返回 (键, 引用命令 offset) 列表。
+
+        逗号分隔的多引用（cleveref）按 key 拆开；位于注释中（同一行前方
+        存在未转义的 %）的引用不计入——被注释掉的 \ref 不应让仍存活的
+        label 误报「未使用」。同一目标被多次引用时保留多条（次数即使用
+        频度，后续功能可用）。
+        '''
+        refs = list()
+        for match in self._refs_regex.finditer(text):
+            offset = match.start()
+            if self._is_in_comment(text, offset):
+                continue
+            for key in match.group(2).split(','):
+                key = key.strip()
+                if key:
+                    refs.append((key, offset))
+        return refs
+
+    @staticmethod
+    def _is_in_comment(text, pos):
+        r'''pos 前方（同一行）是否存在未转义的 %。
+
+        \% 是字面百分号；\\% 是换行命令 \\ 后接真正的注释，因此按 % 前连续
+        反斜杠数的奇偶判定：偶数个反斜杠成对转义，% 未被转义。
+        '''
+        line_start = text.rfind('\n', 0, pos) + 1
+        search_start = line_start
+        while True:
+            percent = text.find('%', search_start, pos)
+            if percent == -1:
+                return False
+            backslashes = 0
+            cursor = percent - 1
+            while cursor >= line_start and text[cursor] == '\\':
+                backslashes += 1
+                cursor -= 1
+            if backslashes % 2 == 0:
+                return True
+            search_start = percent + 1
+
     def initial_parse(self, text):
         '''文档初次加载（set_text）后一次性全量解析。
 
@@ -495,6 +547,7 @@ class ParserLaTeX(Observable):
         self.number_of_lines = text.count('\n') + 1
         self.parse_blocks()
         self.parse_symbols()
+        self.symbols['refs_with_offset'] = self._parse_refs(text)
         self.add_change_code('finished_parsing')
 
 

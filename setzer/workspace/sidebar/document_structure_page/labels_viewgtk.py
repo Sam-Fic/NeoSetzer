@@ -39,18 +39,41 @@ class LabelsSectionView(structure_widget.StructureWidget):
         self._register_context_actions()
 
     def populate(self):
-        # 签名 = id(document) + 全部 label 名称元组。按键不动 \label 时签名命中。
+        # 签名 = id(document) + 全部 (label 名, 问题标记) 元组。仅动正文时
+        # 命中跳过；新增 \ref 使徽章状态变化时签名改变，触发重建。
         doc = self.model.data_provider.document
-        signature = (id(doc), tuple(label[0] for label in self.model.labels))
+        signature = (id(doc), tuple((label[0], label[3]) for label in self.model.labels))
         if not self.populate_if_changed(signature):
             return
         self.clear_rows()
         for label in self.model.labels:
             row = self.make_row('tag-symbolic', label[0], 0)
             row.item_data = label
+            self._apply_problem_badge(row, label)
             self.append_row(row)
         self.set_empty_state_visible(len(self.model.labels) == 0)
         self._sync_selection_to_accent_row()
+
+    def _apply_problem_badge(self, row, label):
+        # 问题标记 → (徽章文案, tooltip, css class)。字面量在使用处以 _()
+        # 包裹（放类级常量里 xgettext 提取不到）；unused 用 dim 弱化呈现，
+        # duplicate 用 error 色强调。
+        flag = label[3] if len(label) > 3 else None
+        if flag == 'unused':
+            text, tooltip, css_class = (
+                _('Unused'), _('This label is never referenced.'), 'dim-label')
+        elif flag == 'duplicate':
+            text, tooltip, css_class = (
+                _('Duplicate'), _('This label is defined more than once.'), 'error')
+        else:
+            return
+        badge = Gtk.Label(label=text)
+        badge.add_css_class(css_class)
+        badge.set_tooltip_text(tooltip)
+        badge.set_valign(Gtk.Align.CENTER)
+        row.add_suffix(badge)
+        # make_row 默认以 label 名作为行 tooltip；有问题时说明更有用。
+        row.set_tooltip_text(tooltip)
 
     def make_row(self, icon_name, text, indent):
         row = super().make_row(icon_name, text, indent)
