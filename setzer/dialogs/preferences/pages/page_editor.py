@@ -28,6 +28,7 @@ from gi.repository import Pango
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.document.spellchecking.spellchecking import SpellChecker
+from setzer.document.chktex.chktex import ChktexLinter
 from setzer.dialogs.preferences.pages.page_snippets import SnippetsGroupView
 
 
@@ -160,6 +161,18 @@ class PageEditor(object):
             self.view.spellchecking_words_row.set_sensitive(False)
             self.view.option_spellchecking.set_subtitle(_(
                 'Unavailable: install pyenchant and hunspell dictionaries to enable.'))
+
+        # ---- chktex 实时检查（可选外部依赖，缺 chktex 时置灰）----
+        if ChktexLinter.is_available():
+            self.view.option_chktex.set_active(
+                self.settings.get_value('preferences', 'chktex_enabled'))
+            self.view.option_chktex.connect(
+                'notify::active', self.on_switch_toggled, 'chktex_enabled')
+        else:
+            self.view.option_chktex.set_active(False)
+            self.view.option_chktex.set_sensitive(False)
+            self.view.option_chktex.set_subtitle(_(
+                'Unavailable: install chktex to enable.'))
 
         # 同步到预览 SourceView（初始状态）。
         self._apply_preview_space_drawer()
@@ -620,6 +633,8 @@ class PageEditor(object):
         if getattr(self, 'spellchecking_languages', None):
             self.view.spellchecking_language_row.set_selected(
                 self._spellchecking_language_index(defaults['spellchecking_language']))
+        # chktex：开关直接写回（缺 chktex 时开关已置灰，无需特殊处理）。
+        self.view.option_chktex.set_active(defaults['chktex_enabled'])
         self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
         self.view.option_auto_reload_on_external_change.set_active(
@@ -921,6 +936,12 @@ class PageEditorView(Adw.PreferencesPage):
         self.spellchecking_words_row.add_suffix(self.spellchecking_words_button)
         self.spellchecking_words_row.set_activatable_widget(self.spellchecking_words_button)
         group_spellchecking.add(self.spellchecking_words_row)
+
+        self.option_chktex = Adw.SwitchRow()
+        self.option_chktex.set_title(_('Real-time linting (chktex)'))
+        self.option_chktex.set_subtitle(_(
+            'Run chktex in the background and underline possible problems'))
+        group_spellchecking.add(self.option_chktex)
 
         # 可见字符：显示行尾 ¶ 和空白（空格 · Tab →），调试缩进问题时有用。
         group_visible_chars = Adw.PreferencesGroup()

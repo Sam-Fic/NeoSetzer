@@ -118,6 +118,7 @@ class Gutter(object):
         self.document.code_folding.connect('folding_state_changed', self.on_folding_state_changed)
         self.document.bookmarks.connect('bookmarks_changed', self.on_bookmarks_changed)
         self.document.connect('build_diagnostics_changed', self.on_build_diagnostics_changed)
+        self.document.connect('chktex_diagnostics_changed', self.on_chktex_diagnostics_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('changed', self.on_adjustment_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
         self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
@@ -189,7 +190,11 @@ class Gutter(object):
         bd = self.document.build_diagnostics
         error_msgs = bd.error_messages.get(line)
         warning_msgs = bd.warning_messages.get(line)
-        if error_msgs is None and warning_msgs is None:
+        # chktex 实时检查的行级消息与编译诊断并列展示（各有前缀区分）。
+        linter = getattr(self.document, 'chktex', None)
+        chktex_msgs = linter.messages.get(line) \
+            if linter is not None and linter.enabled else None
+        if error_msgs is None and warning_msgs is None and chktex_msgs is None:
             return False
 
         # 同行既有错误又有警告时，两类内容一并列出（错误在前、警告在后），
@@ -199,6 +204,8 @@ class Gutter(object):
             parts.append('Error:\n' + '\n'.join(error_msgs))
         if warning_msgs:
             parts.append('Warning:\n' + '\n'.join(warning_msgs))
+        if chktex_msgs:
+            parts.append('chktex:\n' + '\n'.join(chktex_msgs))
         tooltip.set_text('\n\n'.join(parts))
         return True
 
@@ -291,6 +298,9 @@ class Gutter(object):
         self._schedule_refresh()
 
     def on_build_diagnostics_changed(self, document):
+        self._schedule_refresh()
+
+    def on_chktex_diagnostics_changed(self, document):
         self._schedule_refresh()
 
     # —— Git 行级 diff 标记（#216） ——————————————————————————————————

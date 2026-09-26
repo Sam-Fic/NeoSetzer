@@ -213,6 +213,10 @@ class Settings(Observable):
         # 词典时运行时回退 en_US → 首个可用语言。
         self.defaults['preferences']['spellchecking_enabled'] = False
         self.defaults['preferences']['spellchecking_language'] = 'en_US'
+        # chktex 实时检查：后台子进程 lint（当前全文经 stdin 喂入，无需
+        # 保存），编辑器内波浪线 + gutter 悬停提示。系统未安装 chktex 时
+        # 偏好页置灰、功能停用。
+        self.defaults['preferences']['chktex_enabled'] = False
         # 行尾/空白可见性：调试缩进问题时有用。
         # show_line_endings: 在行尾显示 ¶ 符号。
         self.defaults['preferences']['show_line_endings'] = False

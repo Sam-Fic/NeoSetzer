@@ -42,6 +42,7 @@ foreach t : [
   ['test_stats_markup',           'test_stats_markup.py'],
   ['test_matching_blocks_regex',  'test_matching_blocks_regex.py'],
   ['test_latex_braces',           'test_latex_braces.py'],
+  ['test_chktex_parser',          'test_chktex_parser.py'],
   ['test_bibtex_entry_store',     'test_bibtex_entry_store.py'],
   ['test_bibtex_file_session',    'test_bibtex_file_session.py'],
   ['test_bibtex_text_utils',      'test_bibtex_text_utils.py'],

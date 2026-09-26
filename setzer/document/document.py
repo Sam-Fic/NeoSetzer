@@ -45,6 +45,7 @@ import setzer.document.autocomplete.autocomplete as autocomplete
 import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_highlight
 import setzer.document.spellchecking.spellchecking as spellchecking
 import setzer.document.build_diagnostics.build_diagnostics as build_diagnostics
+import setzer.document.chktex.chktex as chktex_linter
 import setzer.document.math_preview.math_preview as math_preview
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
@@ -199,6 +200,7 @@ class Document(Observable):
         if self.is_latex_document() and not self._latex_features_ready:
             self.begin_end_highlight = begin_end_highlight.BeginEndHighlight(self)
             self.spellchecking = spellchecking.SpellChecker(self)
+            self.chktex = chktex_linter.ChktexLinter(self)
             self.update_matching_blocks = update_matching_blocks.UpdateMatchingBlocks(self)
             self.bracket_completion = bracket_completion.BracketCompletion(self)
             self.autocomplete = autocomplete.Autocomplete(self)
@@ -320,6 +322,16 @@ class Document(Observable):
         if spell is not None:
             try:
                 spell.shutdown()
+            except Exception:
+                pass
+
+        # chktex 连接了 settings 单例信号 + 防抖回调与后台线程，需显式清理
+        # （同 spellchecking：断开连接、作废在途结果、清除波浪线标记），
+        # 否则单例持有文档引用阻碍 GC、关闭后回调访问已失效的 buffer。
+        chktex = getattr(self, 'chktex', None)
+        if chktex is not None:
+            try:
+                chktex.shutdown()
             except Exception:
                 pass
 
