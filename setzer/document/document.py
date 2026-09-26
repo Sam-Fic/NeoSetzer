@@ -68,6 +68,9 @@ class Document(Observable):
         self.filename = None
         self.save_date = None
         self.last_activated = 0
+        # 标签页固定状态：会话级 UI 状态（随 workspace.json / .stzs 持久化），
+        # Adw.TabPage 的 pin 与固定区图标由 WorkspacePresenter 依据本值同步。
+        self._pinned = False
         # 记录原始文件的换行符格式（'\n' | '\r\n' | '\r'），用于保存时还原
         self.line_ending = '\n'
         # 每文档「最近使用」符号列表，结构同 favorites：[(category, command), ...]。

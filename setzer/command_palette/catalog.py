@@ -83,6 +83,7 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('close-document', _('Close Document'), _('File'), 'close-active-document', ('close', 'tab'), 'close_document'),
     CommandDescriptor('close-all', _('Close All Documents'), _('File'), 'close-all-documents', ('close', 'tabs'), 'close_all_documents'),
     CommandDescriptor('reopen', _('Reopen Last Closed Document'), _('File'), 'reopen-last-closed-document', ('restore', 'tab'), 'reopen_last_closed_document'),
+    CommandDescriptor('pin-tab', _('Pin Tab'), _('File'), 'pin-tab', ('pin', 'tab', 'document'), 'pin_tab'),
     CommandDescriptor('build', _('Build PDF'), _('Build'), 'build', ('compile', 'latex', 'pdf')),
     CommandDescriptor('save-build', _('Save and Build PDF'), _('Build'), 'save-and-build', ('compile', 'latex', 'pdf')),
     CommandDescriptor('build-log', _('Show Build Log'), _('Build'), 'show-build-log', ('compile', 'output', 'log'), 'build_log'),

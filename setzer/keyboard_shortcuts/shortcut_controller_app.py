@@ -102,6 +102,8 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('insert_matrix_dialog', shortcuts.get('insert_matrix_dialog', ''), self.actions.start_insert_matrix_dialog)
         self._register_configurable('close_all_documents', shortcuts.get('close_all_documents', '<Control><Shift>w'), self.actions.close_all)
         self._register_configurable('restore_session', shortcuts.get('restore_session', '<Control><Shift>j'), lambda: self.main_window.activate_action('restore-session'))
+        # 固定/取消固定当前文档标签页（与标签条右键菜单共用 win.pin-tab）。
+        self._register_configurable('pin_tab', shortcuts.get('pin_tab', '<Control><Alt>p'), self.actions.pin_tab)
 
     def _register_configurable(self, action_name, trigger_string, callback):
         '''Register a user-configurable shortcut and track it by action_name

@@ -369,6 +369,11 @@ class Settings(Observable):
         # reopen_last_closed_document：默认 Ctrl+Shift+T（浏览器式"重开标签页"惯例）。
         # 此前为硬编码、用户无法改绑；现提升为可配置项，纳入偏好设置的快捷键编辑器。
         self.defaults['keyboard_shortcuts']['reopen_last_closed_document'] = '<Control><Shift>t'
+        # pin_tab：默认 Ctrl+Alt+P，固定/取消固定当前文档标签页（与标签条右键
+        # 菜单共用同一 win.pin-tab 动作）。Ctrl+Shift+P 已被 preview 占用；
+        # Ctrl+Alt+Up/Down 被 GNOME 工作区切换抢占（见 add_cursor_above 注），
+        # Ctrl+Alt+P 无冲突。
+        self.defaults['keyboard_shortcuts']['pin_tab'] = '<Control><Alt>p'
         self.defaults['keyboard_shortcuts']['cut'] = '<Control>x'
         self.defaults['keyboard_shortcuts']['copy'] = '<Control>c'
         self.defaults['keyboard_shortcuts']['paste'] = '<Control>v'

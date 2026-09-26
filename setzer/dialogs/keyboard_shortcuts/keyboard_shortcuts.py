@@ -54,6 +54,7 @@ class KeyboardShortcutsDialog(object):
         # 重开最近关闭的文档：现为可配置项（默认 Ctrl+Shift+T，浏览器惯例），
         # 从设置读取以反映用户改键；与 show_open_docs (Ctrl+T) 仅差一个 Shift。
         section['items'].append({'title': _('Reopen the last closed document'), 'shortcut': shortcuts.get('reopen_last_closed_document', '<ctrl><shift>T')})
+        section['items'].append({'title': _('Pin or unpin the active document tab'), 'shortcut': shortcuts.get('pin_tab', '<ctrl><alt>P')})
         data.append(section)
 
         section = {'title': _('Tools'), 'items': list()}

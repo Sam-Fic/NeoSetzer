@@ -94,6 +94,9 @@ class WorkspacePresenter(object):
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('new_inactive_document', self.on_new_inactive_document)
         self.workspace.connect('root_state_change', self.on_root_state_change)
+        # document._pinned → TabView 页面 pin 的单向同步入口（toggle 与会话
+        # 恢复共用）。页面 → workspace 方向无需求：pin 只能经 workspace 改。
+        self.workspace.connect('document_pin_state_changed', self.on_document_pin_state_changed)
         # Adw.TabView 的双向同步：
         # - 用户点击标签条切页 → selected-page::notify → workspace.set_active_document
         # - 用户点关闭按钮/中键 → close-page signal → workspace.remove_document
@@ -166,6 +169,11 @@ class WorkspacePresenter(object):
         # 暴露，避免耦合具体 widget 实现。
         document.connect('modified_changed', self._on_document_modified_changed)
         document.connect('is_root_changed', self._on_document_is_root_changed)
+        # 已带固定状态的文档（如程序化 pin 后再入栈的路径）落栈即同步。
+        # 会话恢复路径 pin 在 add_document 之后才恢复，由
+        # document_pin_state_changed 信号补做，两处幂等。
+        if getattr(document, '_pinned', False):
+            self._apply_page_pin(document)
         # 挂钩 build 完成事件：首次编译成功后，若用户已开启预览
         # （show_preview=True），之前因「从未编译」而被抑制的预览侧栏
         # 需要重新评估显隐——此时文档已有 PDF，预览有内容可展示。
@@ -834,6 +842,29 @@ class WorkspacePresenter(object):
         已经反映（在 document.py 中加 '•' 前缀），不需要这里再加。
         '''
         return document.get_displayname()
+
+    def on_document_pin_state_changed(self, workspace, document):
+        self._apply_page_pin(document)
+
+    def _apply_page_pin(self, document):
+        '''把 document._pinned 同步到 Adw.TabPage。
+
+        固定页在 TabBar 中收缩为纯图标（不显示标题文字），必须给 page 设
+        图标否则空白。图标按文档类型取与 document_switcher 一致的符号图；
+        非固定页不显示图标（标题模式），设了也无副作用，保持始终设置即可。
+        '''
+        page = self._doc_to_page.get(document)
+        if page is None:
+            return
+        pinned = bool(getattr(document, '_pinned', False))
+        self.main_window.document_stack.set_page_pinned(page, pinned)
+        page.set_icon(Gio.ThemedIcon.new(self._document_icon_name(document)))
+
+    def _document_icon_name(self, document):
+        '''固定标签的图标名：与 document_switcher 的类型图标保持一致。'''
+        return {'latex': 'document-latex-symbolic',
+                'bibtex': 'document-bibtex-symbolic'}.get(
+                    document.get_document_type(), 'document-other-symbolic')
 
     def _on_document_displayname_changed(self, document, value=None):
         self._refresh_page_label(document)

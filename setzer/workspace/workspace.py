@@ -47,6 +47,7 @@ import setzer.workspace.shortcutsbar.shortcutsbar as shortcutsbar
 import setzer.workspace.build_log.build_log as build_log
 import setzer.workspace.actions.actions as actions
 import setzer.workspace.context_menu.context_menu as context_menu
+import setzer.workspace.tab_context_menu as tab_context_menu
 import setzer.workspace.auto_build.auto_build as auto_build
 import setzer.workspace.auto_save.auto_save as auto_save
 from setzer.app.service_locator import ServiceLocator
@@ -152,6 +153,9 @@ class Workspace(Observable):
         self.auto_build = auto_build.AutoBuild(self)
         self.auto_save = auto_save.AutoSave(self)
         self.controller = workspace_controller.WorkspaceController(self)
+        # 标签条右键菜单（固定/关闭标签页）：依赖 main_window 与 presenter，
+        # 在两者就绪后创建。
+        self.tab_context_menu = tab_context_menu.TabContextMenu(self)
 
     def open_document_by_filename_with_spinner(self, filename):
         '''用户触发的打开文档：先显示 spinner，延迟约一帧再执行实际打开。
@@ -468,6 +472,23 @@ class Workspace(Observable):
             return min(self.open_documents, key=lambda val: val.last_activated)
         except ValueError:
             return None
+
+    def toggle_pin_document(self, document):
+        '''固定/取消固定文档标签页（workspace 级动作的唯一入口）。
+
+        真理之源是 document._pinned（模型层）；Adw.TabPage 的 pin 与固定区
+        图标由 WorkspacePresenter 监听 document_pin_state_changed 后同步，
+        会话持久化走 _collect_open_documents_data / _restore_document_state
+        （与 last_activated 等会话字段同机制）。
+        '''
+        if document is None or document not in self.open_documents:
+            return
+        document._pinned = not getattr(document, '_pinned', False)
+        self.add_change_code('document_pin_state_changed', document)
+        self.schedule_persistence()
+
+    def is_document_pinned(self, document):
+        return bool(getattr(document, '_pinned', False))
 
     def _update_recently_opened(self, target_dict, filename, max_capacity,
                                 change_code, date=None, notify=True):
@@ -826,6 +847,12 @@ class Workspace(Observable):
             document._restore_scroll_offset = item['scroll_offset']
         if 'folded_regions' in item:
             document.code_folding.set_initial_folded_regions(item['folded_regions'])
+        # 固定标签页状态：恢复到 document._pinned 并通知 presenter 同步
+        # TabView 页面（页面在 add_document 时已创建，此时 pin 是安全的）。
+        pinned = bool(item.get('pinned', False))
+        if getattr(document, '_pinned', False) != pinned:
+            document._pinned = pinned
+            self.add_change_code('document_pin_state_changed', document)
         # 未命名文档的 item 中无 'filename' 键（只有 'untitled_id'），
         # 且未命名文档不可能被设为 root，故跳过 root 匹配检查。
         if 'filename' in item and item['filename'] == root_document_filename:
@@ -857,6 +884,8 @@ class Workspace(Observable):
                     'filename': filename,
                     'last_activated': document.get_last_activated()
                 }
+                if getattr(document, '_pinned', False):
+                    doc_data['pinned'] = True
                 try:
                     cursor_offset = document.source_buffer.get_property('cursor-position')
                     doc_data['cursor_offset'] = cursor_offset
@@ -893,6 +922,8 @@ class Workspace(Observable):
                     'displayname': document.get_displayname(),
                     'type': document.language,
                 }
+                if getattr(document, '_pinned', False):
+                    doc_data['pinned'] = True
                 try:
                     cursor_offset = document.source_buffer.get_property('cursor-position')
                     doc_data['cursor_offset'] = cursor_offset

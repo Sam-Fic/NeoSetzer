@@ -72,6 +72,10 @@ class Actions(object):
         self.add_action('close-all-documents', self.close_all)
         self.add_action('close-active-document', self.close_active_document)
         self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
+        # 标签条右键菜单：固定/取消固定与关闭目标标签。无菜单打开（快捷键
+        # 路径）时目标回退为当前活跃文档，见各回调。
+        self.add_action('pin-tab', self.pin_tab)
+        self.add_action('close-tab', self.close_tab)
         self.add_action('go-to-line', self.go_to_line)
         self.add_action('toggle-bookmark', self.toggle_bookmark)
         self.add_action('next-bookmark', self.next_bookmark)
@@ -304,6 +308,10 @@ class Actions(object):
 
         self.actions['close-active-document'].set_enabled(document_active)
         self.actions['close-all-documents'].set_enabled(document_active)
+        # 标签条右键菜单动作：无文档打开时禁用（菜单项灰显）。快捷键路径
+        # 的目标回退同为活跃文档，语义一致。
+        self.actions['close-tab'].set_enabled(document_active)
+        self.actions['pin-tab'].set_enabled(document_active)
         self.actions['reopen-last-closed-document'].set_enabled(len(self._closed_document_stack) > 0)
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
@@ -777,6 +785,24 @@ class Actions(object):
         if document is None or document not in self.workspace.open_documents:
             return
         self.workspace.remove_document(document)
+
+    def _pin_or_close_target_document(self):
+        '''标签条右键动作的目标文档：菜单打开时为右键命中的标签，否则为
+        当前活跃文档（快捷键路径）。'''
+        tab_menu = getattr(self.workspace, 'tab_context_menu', None)
+        document = tab_menu.get_target_document() if tab_menu is not None else None
+        if document is None:
+            document = self.workspace.get_active_document()
+        return document
+
+    def pin_tab(self, action=None, parameter=None):
+        '''固定/取消固定标签页（Ctrl+Alt+P 与标签条右键菜单共用）。'''
+        self.workspace.toggle_pin_document(self._pin_or_close_target_document())
+
+    def close_tab(self, action=None, parameter=None):
+        '''关闭标签条右键菜单的目标标签（无菜单时关闭活跃文档）。
+        未保存确认等协议统一走 close_document → remove_document 链路。'''
+        self.close_document(self._pin_or_close_target_document())
 
     def reopen_last_closed_document(self, action=None, parameter=None):
         if len(self._closed_document_stack) == 0: return
