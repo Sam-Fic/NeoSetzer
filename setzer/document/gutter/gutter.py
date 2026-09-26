@@ -657,9 +657,15 @@ class Gutter(object):
             margin = self._GUTTER_MARGIN * (self.line_height or 18)
             band_top_iter, _ = self.source_view.get_line_at_y(scroll_top - margin)
             band_line = band_top_iter.get_line()
-            # 取该逻辑行首显示行的文档 y 作 surface 顶。
-            loc0 = self.source_view.get_iter_location(band_top_iter)
-            line0_doc_y = loc0.y
+            # 取该逻辑行 slot 的顶部文档 y 作 surface 顶。
+            # 必须用 get_line_yrange().y（slot 顶）而非 get_iter_location().y
+            # （文本区顶）：行距 > 0 时 pixels_above_lines = line_spacing // 2，
+            # 后者比 slot 顶低 pixels_above_lines 像素。文档滚到顶部时带顶只能
+            # 钳在第 1 行，用文本区顶会让 surface 从第 1 行的文本区起画，
+            # DrawingArea 最上面 pixels_above_lines 行像素一帧都没被覆盖——
+            # DrawingArea 自身不画 CSS 背景，于是透出下层控件底色，表现为
+            # 行号列顶部一条等高于行距一半的细亮条。
+            line0_doc_y = self.source_view.get_line_yrange(band_top_iter).y
         except Exception:
             line0_doc_y = None
 
