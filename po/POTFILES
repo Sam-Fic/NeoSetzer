@@ -1,4 +1,4 @@
-# generated on Sat Sep 26 01:28:04 PM UTC 2026
+# generated on Sat Sep 26 01:44:59 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -171,6 +171,13 @@
 ./setzer/document/__init__.py
 ./setzer/document/label_check.py
 ./setzer/document/magic_comments.py
+./setzer/document/math_preview/__init__.py
+./setzer/document/math_preview/math_preview_cache.py
+./setzer/document/math_preview/math_preview_compiler.py
+./setzer/document/math_preview/math_preview_popover.py
+./setzer/document/math_preview/math_preview.py
+./setzer/document/math_preview/math_region_finder.py
+./setzer/document/math_preview/snippet_wrapper.py
 ./setzer/document/multicursor/__init__.py
 ./setzer/document/multicursor/multicursor.py
 ./setzer/document/parser/beamer_frames.py

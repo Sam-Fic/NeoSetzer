@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 21:28+0800\n"
+"POT-Creation-Date: 2026-09-26 21:48+0800\n"
 "PO-Revision-Date: 2026-08-24 09:12+0800\n"
 "Last-Translator: NeoSetzer French translation contributors\n"
 "Language-Team: French <LL@li.org>\n"
@@ -711,7 +711,7 @@ msgstr "Édition"
 
 #: setzer/command_palette/catalog.py:92
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:328
-#: setzer/dialogs/preferences/pages/page_editor.py:762
+#: setzer/dialogs/preferences/pages/page_editor.py:765
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:143
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:108
 msgid "Undo"
@@ -1170,7 +1170,7 @@ msgstr "URL"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:66
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:130
-#: setzer/dialogs/preferences/pages/page_editor.py:665
+#: setzer/dialogs/preferences/pages/page_editor.py:668
 msgid "Editor"
 msgstr "Éditeur"
 
@@ -2110,7 +2110,7 @@ msgid "Use spaces or tabs for indentation"
 msgstr "Utiliser des espaces ou des tabulations pour l'indentation"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:143
-#: setzer/dialogs/preferences/pages/page_editor.py:750
+#: setzer/dialogs/preferences/pages/page_editor.py:753
 msgid "Tab Width"
 msgstr "Largeur de tabulation"
 
@@ -2628,7 +2628,7 @@ msgstr "La date du document, utilisée dans la commande \\date{}. Utilisez \\tod
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:218
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:223
 #: setzer/dialogs/preferences/pages/page_appearance.py:618
-#: setzer/dialogs/preferences/pages/page_editor.py:888
+#: setzer/dialogs/preferences/pages/page_editor.py:905
 msgid "Language"
 msgstr "Langue"
 
@@ -3828,7 +3828,7 @@ msgid "Stop editing the selected merged range"
 msgstr "Arrêter la modification de la plage fusionnée sélectionnée"
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:219
-#: setzer/dialogs/preferences/pages/page_editor.py:672
+#: setzer/dialogs/preferences/pages/page_editor.py:675
 msgid "Appearance"
 msgstr "Apparence"
 
@@ -4311,7 +4311,7 @@ msgstr "Fraction"
 
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:636
-#: setzer/dialogs/preferences/pages/page_editor.py:902
+#: setzer/dialogs/preferences/pages/page_editor.py:919
 #: setzer/document/preview/preview_controller.py:646
 msgid "Open"
 msgstr "Ouvrir"
@@ -4630,7 +4630,7 @@ msgstr "Répertoires où la boîte de dialogue d'aperçu est ignorée. Cliquez s
 #: setzer/dialogs/preferences/pages/page_appearance.py:752
 #: setzer/dialogs/preferences/pages/page_appearance.py:810
 #: setzer/dialogs/preferences/pages/page_build_system.py:435
-#: setzer/dialogs/preferences/pages/page_editor.py:1154
+#: setzer/dialogs/preferences/pages/page_editor.py:1171
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:662
 msgid "Reset to Defaults"
 msgstr "Rétablir les valeurs par défaut"
@@ -4847,637 +4847,656 @@ msgstr "Répertoire TEXMFHOME"
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr "Un « ~ » initial est développé vers votre dossier personnel. Exemple : ~/.texmf"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:159
+#: setzer/dialogs/preferences/pages/page_editor.py:162
 msgid "Unavailable: install pyenchant and hunspell dictionaries to enable."
 msgstr "Indisponible : installez pyenchant et les dictionnaires hunspell pour activer."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:287
+#: setzer/dialogs/preferences/pages/page_editor.py:290
 msgid "Select previous suggestion"
 msgstr "Sélectionner la suggestion précédente"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:288
+#: setzer/dialogs/preferences/pages/page_editor.py:291
 msgid "Move the selection up one item in the completion popup."
 msgstr "Déplacer la sélection d'un élément vers le haut dans la fenêtre de complétion."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:289
+#: setzer/dialogs/preferences/pages/page_editor.py:292
 msgid "Select next suggestion"
 msgstr "Sélectionner la suggestion suivante"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:290
+#: setzer/dialogs/preferences/pages/page_editor.py:293
 msgid "Move the selection down one item in the completion popup."
 msgstr "Déplacer la sélection d'un élément vers le bas dans la fenêtre de complétion."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:291
+#: setzer/dialogs/preferences/pages/page_editor.py:294
 msgid "Previous page"
 msgstr "Page précédente"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:292
+#: setzer/dialogs/preferences/pages/page_editor.py:295
 msgid "Scroll the completion popup up one page."
 msgstr "Faire défiler la fenêtre de complétion d'une page vers le haut."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:293
+#: setzer/dialogs/preferences/pages/page_editor.py:296
 msgid "Next page"
 msgstr "Page suivante"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:294
+#: setzer/dialogs/preferences/pages/page_editor.py:297
 msgid "Scroll the completion popup down one page."
 msgstr "Faire défiler la fenêtre de complétion d'une page vers le bas."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:295
+#: setzer/dialogs/preferences/pages/page_editor.py:298
 msgid "Accept suggestion"
 msgstr "Accepter la suggestion"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:296
+#: setzer/dialogs/preferences/pages/page_editor.py:299
 msgid "Insert the currently selected completion."
 msgstr "Insérer la complétion actuellement sélectionnée."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:297
+#: setzer/dialogs/preferences/pages/page_editor.py:300
 msgid "Dismiss popup"
 msgstr "Fermer la fenêtre"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:298
+#: setzer/dialogs/preferences/pages/page_editor.py:301
 msgid "Close the completion popup without inserting anything."
 msgstr "Fermer la fenêtre de complétion sans insérer quoi que ce soit."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:304
+#: setzer/dialogs/preferences/pages/page_editor.py:307
 msgid "Disabled"
 msgstr "Désactivé"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:372
+#: setzer/dialogs/preferences/pages/page_editor.py:375
 msgid "Press a shortcut… (Esc to cancel)"
 msgstr "Appuyez sur un raccourci… (Échap pour annuler)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:454
+#: setzer/dialogs/preferences/pages/page_editor.py:457
 msgid "Font size is too small; clamped to 6pt minimum."
 msgstr "Taille de police trop petite ; limitée à un minimum de 6 pt."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:456
+#: setzer/dialogs/preferences/pages/page_editor.py:459
 msgid "Font size is too large; clamped to 24pt maximum."
 msgstr "Taille de police trop grande ; limitée à un maximum de 24 pt."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:706
+#: setzer/dialogs/preferences/pages/page_editor.py:709
 msgid "Font"
 msgstr "Police"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:711
+#: setzer/dialogs/preferences/pages/page_editor.py:714
 msgid "Use the system fixed width font"
 msgstr "Utiliser la police à chasse fixe du système"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:714
+#: setzer/dialogs/preferences/pages/page_editor.py:717
 msgid "Use the system fixed-width font for editing. When enabled, the font set below is overridden."
 msgstr "Utiliser la police à chasse fixe du système pour l'édition. Lorsqu'elle est activée, la police définie ci-dessous est remplacée."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:721
+#: setzer/dialogs/preferences/pages/page_editor.py:724
 msgid "Set Editor Font"
 msgstr "Définir la police de l'éditeur"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:724
+#: setzer/dialogs/preferences/pages/page_editor.py:727
 msgid "Choose a custom font for the LaTeX editor. Only active when \"Use the system fixed width font\" is off."
 msgstr "Choisir une police personnalisée pour l'éditeur LaTeX. Active uniquement lorsque « Utiliser la police à chasse fixe du système » est désactivé."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:729
+#: setzer/dialogs/preferences/pages/page_editor.py:732
 msgid "Line Spacing"
 msgstr "Interligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:730
+#: setzer/dialogs/preferences/pages/page_editor.py:733
 msgid "Extra vertical space between lines in pixels."
 msgstr "Espace vertical supplémentaire entre les lignes, en pixels."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:732
+#: setzer/dialogs/preferences/pages/page_editor.py:735
 msgid "Extra vertical space between lines, in pixels. Affects readability and line density in the editor."
 msgstr "Espace vertical supplémentaire entre les lignes, en pixels. Influence la lisibilité et la densité des lignes dans l'éditeur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:739
+#: setzer/dialogs/preferences/pages/page_editor.py:742
 msgid "Tab Stops"
 msgstr "Taquets de tabulation"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:743
+#: setzer/dialogs/preferences/pages/page_editor.py:746
 msgid "Insert spaces instead of tabs"
 msgstr "Insérer des espaces au lieu de tabulations"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:744
+#: setzer/dialogs/preferences/pages/page_editor.py:747
 msgid "Use spaces when pressing Tab, instead of a tab character."
 msgstr "Utiliser des espaces à l'appui de Tab, au lieu d'un caractère de tabulation."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:746
+#: setzer/dialogs/preferences/pages/page_editor.py:749
 msgid "When enabled, pressing Tab inserts spaces instead of a tab character."
 msgstr "Lorsqu'elle est activée, l'appui sur Tab insère des espaces au lieu d'un caractère de tabulation."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:754
+#: setzer/dialogs/preferences/pages/page_editor.py:757
 msgid "Number of spaces a tab character occupies when \"Insert spaces instead of tabs\" is enabled."
 msgstr "Nombre d'espaces qu'occupe un caractère de tabulation lorsque « Insérer des espaces au lieu de tabulations » est activé."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:766
+#: setzer/dialogs/preferences/pages/page_editor.py:769
 msgid "Maximum undo depth"
 msgstr "Profondeur d'annulation maximale"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:767
+#: setzer/dialogs/preferences/pages/page_editor.py:770
 msgid "Maximum number of undo steps. 0 = unlimited."
 msgstr "Nombre maximal d'étapes d'annulation. 0 = illimité."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:769
+#: setzer/dialogs/preferences/pages/page_editor.py:772
 msgid "Limit the number of undoable actions kept in memory. Lower values save memory for very large documents. 0 keeps an unlimited history."
 msgstr "Limite le nombre d'actions annulables conservées en mémoire. Des valeurs plus faibles économisent la mémoire pour les très grands documents. 0 conserve un historique illimité."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:777
+#: setzer/dialogs/preferences/pages/page_editor.py:780
 msgid "Line Numbers"
 msgstr "Numéros de ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:781
+#: setzer/dialogs/preferences/pages/page_editor.py:784
 msgid "Show line numbers"
 msgstr "Afficher les numéros de ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:782
+#: setzer/dialogs/preferences/pages/page_editor.py:785
 msgid "Display line numbers in the editor gutter."
 msgstr "Afficher les numéros de ligne dans la gouttière de l'éditeur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:784
+#: setzer/dialogs/preferences/pages/page_editor.py:787
 msgid "Display line numbers in the left gutter of the editor."
 msgstr "Afficher les numéros de ligne dans la gouttière gauche de l'éditeur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:788
+#: setzer/dialogs/preferences/pages/page_editor.py:791
 msgid "Right Margin"
 msgstr "Marge droite"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:792
+#: setzer/dialogs/preferences/pages/page_editor.py:795
 msgid "Show right margin guide"
 msgstr "Afficher le guide de marge droite"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:793
+#: setzer/dialogs/preferences/pages/page_editor.py:796
 msgid "Display a vertical line at a fixed column."
 msgstr "Afficher une ligne verticale à une colonne fixe."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:795
+#: setzer/dialogs/preferences/pages/page_editor.py:798
 msgid "Display a vertical line at a fixed column position to help keep lines within a recommended width."
 msgstr "Afficher une ligne verticale à une position de colonne fixe pour aider à garder les lignes dans une largeur recommandée."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:800
+#: setzer/dialogs/preferences/pages/page_editor.py:803
 msgid "Right margin column"
 msgstr "Colonne de marge droite"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:801
+#: setzer/dialogs/preferences/pages/page_editor.py:804
 msgid "Column position for the right margin guide."
 msgstr "Position de colonne pour le guide de marge droite."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:803
+#: setzer/dialogs/preferences/pages/page_editor.py:806
 msgid "Column position for the right margin guide vertical line. LaTeX documents are typically kept within 80 columns."
 msgstr "Position de la colonne pour la ligne verticale du guide de marge droite. Les documents LaTeX sont généralement conservés dans une limite de 80 colonnes."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:810
+#: setzer/dialogs/preferences/pages/page_editor.py:813
 msgid "Line Wrapping"
 msgstr "Retour à la ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:814
+#: setzer/dialogs/preferences/pages/page_editor.py:817
 msgid "Enable line wrapping"
 msgstr "Activer le retour à la ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:815
+#: setzer/dialogs/preferences/pages/page_editor.py:818
 msgid "Wrap long lines instead of scrolling horizontally."
 msgstr "Replier les longues lignes au lieu de faire défiler horizontalement."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:817
+#: setzer/dialogs/preferences/pages/page_editor.py:820
 msgid "Wrap long lines to fit within the editor window instead of scrolling horizontally."
 msgstr "Couper les lignes longues pour qu'elles tiennent dans la fenêtre de l'éditeur au lieu d'un défilement horizontal."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:822
+#: setzer/dialogs/preferences/pages/page_editor.py:825
 msgid "Code Folding"
 msgstr "Repli de code"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:826
+#: setzer/dialogs/preferences/pages/page_editor.py:829
 msgid "Enable code folding"
 msgstr "Activer le pliage de code"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:827
+#: setzer/dialogs/preferences/pages/page_editor.py:830
 msgid "Allow collapsing blocks of code such as environments."
 msgstr "Permettre de replier les blocs de code tels que les environnements."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:829
+#: setzer/dialogs/preferences/pages/page_editor.py:832
 msgid "Allow collapsing and expanding code blocks such as LaTeX environments, sections, and functions."
 msgstr "Permettre de replier et déplier les blocs de code tels que les environnements LaTeX, les sections et les fonctions."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:834
+#: setzer/dialogs/preferences/pages/page_editor.py:837
 msgid "Sticky Scroll"
 msgstr "Défilement collant"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:838
+#: setzer/dialogs/preferences/pages/page_editor.py:841
 msgid "Enable sticky scroll for sections"
 msgstr "Activer le défilement persistant des sections"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:839
+#: setzer/dialogs/preferences/pages/page_editor.py:842
 msgid "Show the current section header at the top of the editor while scrolling."
 msgstr "Afficher l'en-tête de section actuel en haut de l'éditeur lors du défilement."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:841
+#: setzer/dialogs/preferences/pages/page_editor.py:844
 msgid "Displays a sticky header at the top of the editor showing the current section hierarchy (chapter, section, subsection, etc.) as you scroll through long documents."
 msgstr "Affiche un en-tête persistant en haut de l'éditeur montrant la hiérarchie de section actuelle (chapitre, section, sous-section, etc.) lors du défilement dans les documents longs."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:847
+#: setzer/dialogs/preferences/pages/page_editor.py:850
+msgid "Math Preview"
+msgstr "Aperçu des formules"
+
+#: setzer/dialogs/preferences/pages/page_editor.py:854
+msgid "Math Preview on Hover"
+msgstr "Aperçu des formules au survol"
+
+#: setzer/dialogs/preferences/pages/page_editor.py:855
+msgid "Show a rendered preview of the formula under the mouse cursor."
+msgstr "Affiche un aperçu rendu de la formule sous le curseur de la souris."
+
+#: setzer/dialogs/preferences/pages/page_editor.py:857
+msgid "Hover the mouse over a formula without holding any modifier key to see a rendered preview. The formula is compiled with the configured LaTeX interpreter using this document's preamble and results are cached."
+msgstr "Survolez une formule avec la souris sans maintenir de touche modificatrice"
+"pour en voir un aperçu rendu. La formule est compilée avec l’interpréteur"
+"LaTeX configuré en utilisant le préambule de ce document ; les résultats"
+"sont mis en cache."
+
+#: setzer/dialogs/preferences/pages/page_editor.py:864
 msgid "Highlighting"
 msgstr "Surlignage"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:851
+#: setzer/dialogs/preferences/pages/page_editor.py:868
 msgid "Highlight current line"
 msgstr "Surligner la ligne actuelle"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:852
+#: setzer/dialogs/preferences/pages/page_editor.py:869
 msgid "Visually emphasize the line containing the cursor."
 msgstr "Mettre visuellement en évidence la ligne contenant le curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:854
+#: setzer/dialogs/preferences/pages/page_editor.py:871
 msgid "Visually highlight the line where the cursor is located."
 msgstr "Surligner visuellement la ligne où se trouve le curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:858
+#: setzer/dialogs/preferences/pages/page_editor.py:875
 msgid "Highlight matching brackets"
 msgstr "Surligner les crochets correspondants"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:859
+#: setzer/dialogs/preferences/pages/page_editor.py:876
 msgid "Highlight the bracket matching the one next to the cursor."
 msgstr "Surligner la parenthèse correspondant à celle à côté du curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:861
+#: setzer/dialogs/preferences/pages/page_editor.py:878
 msgid "Highlight the bracket that matches the one next to the cursor."
 msgstr "Surligner la parenthèse qui correspond à celle à côté du curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:865
+#: setzer/dialogs/preferences/pages/page_editor.py:882
 msgid "Highlight matching \\begin/\\end"
 msgstr "Surligner les \\begin/\\end correspondants"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:866
+#: setzer/dialogs/preferences/pages/page_editor.py:883
 msgid "Highlight the environment matching the \\begin or \\end command next to the cursor."
 msgstr "Surligner l'environnement correspondant à la commande \\begin ou \\end à côté du curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:868
+#: setzer/dialogs/preferences/pages/page_editor.py:885
 msgid "Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor."
 msgstr "Surligner la paire \\begin{...}/\\end{...} qui correspond à celle à côté du curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:873
+#: setzer/dialogs/preferences/pages/page_editor.py:890
 msgid "Spell Checking"
 msgstr "Vérification orthographique"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:877
+#: setzer/dialogs/preferences/pages/page_editor.py:894
 msgid "Check spelling as you type"
 msgstr "Vérifier l'orthographe pendant la frappe"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:879
+#: setzer/dialogs/preferences/pages/page_editor.py:896
 msgid "Underline misspelled words in the text. Commands, math and verbatim regions are skipped."
 msgstr "Souligner les mots mal orthographiés dans le texte. Les commandes, les formules mathématiques et les zones verbatim sont ignorées."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:882
+#: setzer/dialogs/preferences/pages/page_editor.py:899
 msgid "Check spelling as you type using enchant/hunspell dictionaries. LaTeX commands, math mode and verbatim environments are not checked. Right-click a marked word for suggestions."
 msgstr "Vérifier l'orthographe pendant la frappe à l'aide des dictionnaires enchant/hunspell. Les commandes LaTeX, le mode mathématique et les environnements verbatim ne sont pas vérifiés. Clic droit sur un mot marqué pour des suggestions."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:889
+#: setzer/dialogs/preferences/pages/page_editor.py:906
 msgid "Dictionary used for spell checking"
 msgstr "Dictionnaire utilisé pour la vérification orthographique"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:891
+#: setzer/dialogs/preferences/pages/page_editor.py:908
 msgid "The dictionary language for spell checking. Additional languages can be installed via hunspell/aspell packages."
 msgstr "La langue du dictionnaire pour la vérification orthographique. Des langues supplémentaires peuvent être installées via les paquets hunspell/aspell."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:896
+#: setzer/dialogs/preferences/pages/page_editor.py:913
 msgid "Manage Words"
 msgstr "Gérer les mots"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:898
+#: setzer/dialogs/preferences/pages/page_editor.py:915
 msgid "View and edit ignored words and your user dictionary"
 msgstr "Consulter et modifier les mots ignorés et votre dictionnaire utilisateur"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:900
+#: setzer/dialogs/preferences/pages/page_editor.py:917
 msgid "Manage the words you ignored for the current session and the words saved permanently to your user dictionary."
 msgstr "Gérer les mots que vous avez ignorés pour la session actuelle et les mots enregistrés définitivement dans votre dictionnaire utilisateur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:910
+#: setzer/dialogs/preferences/pages/page_editor.py:927
 msgid "Visible Characters"
 msgstr "Caractères visibles"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:914
+#: setzer/dialogs/preferences/pages/page_editor.py:931
 msgid "Show line endings"
 msgstr "Afficher les fins de ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:915
+#: setzer/dialogs/preferences/pages/page_editor.py:932
 msgid "Display line ending characters (¶) at the end of each line."
 msgstr "Afficher les caractères de fin de ligne (¶) à la fin de chaque ligne."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:917
+#: setzer/dialogs/preferences/pages/page_editor.py:934
 msgid "Display a paragraph symbol (¶) at the end of each line to help identify trailing whitespace and line ending issues."
 msgstr "Afficher un symbole de paragraphe (¶) à la fin de chaque ligne pour aider à repérer les espaces de fin et les problèmes de fins de ligne."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:922
+#: setzer/dialogs/preferences/pages/page_editor.py:939
 msgid "Show whitespace"
 msgstr "Afficher les espaces"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:923
+#: setzer/dialogs/preferences/pages/page_editor.py:940
 msgid "Display whitespace characters (· for spaces, → for tabs)."
 msgstr "Afficher les caractères d'espacement (· pour les espaces, → pour les tabulations)."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:925
+#: setzer/dialogs/preferences/pages/page_editor.py:942
 msgid "Display symbols for spaces (·) and tabs (→) to help debug indentation and trailing whitespace issues."
 msgstr "Afficher des symboles pour les espaces (·) et les tabulations (→) pour aider à déboguer l'indentation et les espaces de fin de ligne."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:931
+#: setzer/dialogs/preferences/pages/page_editor.py:948
 msgid "Shortcuts Bar"
 msgstr "Barre de raccourcis"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:935
+#: setzer/dialogs/preferences/pages/page_editor.py:952
 msgid "Show shortcuts bar"
 msgstr "Afficher la barre de raccourcis"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:936
+#: setzer/dialogs/preferences/pages/page_editor.py:953
 msgid "Display the shortcuts bar above the editor."
 msgstr "Afficher la barre de raccourcis au-dessus de l'éditeur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:938
+#: setzer/dialogs/preferences/pages/page_editor.py:955
 msgid "Display a bar of keyboard shortcuts above the editor."
 msgstr "Afficher une barre de raccourcis clavier au-dessus de l'éditeur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:942
+#: setzer/dialogs/preferences/pages/page_editor.py:959
 msgid "Tab Bar"
 msgstr "Barre d'onglets"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:946
+#: setzer/dialogs/preferences/pages/page_editor.py:963
 msgid "Show tab bar"
 msgstr "Afficher la barre d'onglets"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:947
+#: setzer/dialogs/preferences/pages/page_editor.py:964
 msgid "Display the multi-document tab bar above the shortcuts bar."
 msgstr "Afficher la barre d'onglets multi-documents au-dessus de la barre de raccourcis."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:949
+#: setzer/dialogs/preferences/pages/page_editor.py:966
 msgid "Display a bar of open documents above the shortcuts bar. When enabled, a single open document hides the bar automatically."
 msgstr "Afficher une barre des documents ouverts au-dessus de la barre de raccourcis. Lorsqu'activée, un seul document ouvert masque automatiquement la barre."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:956
+#: setzer/dialogs/preferences/pages/page_editor.py:973
 msgid "Auto Save"
 msgstr "Enregistrement automatique"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:960
+#: setzer/dialogs/preferences/pages/page_editor.py:977
 msgid "Enable auto save (crash recovery)"
 msgstr "Activer l'enregistrement automatique (récupération après incident)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:961
+#: setzer/dialogs/preferences/pages/page_editor.py:978
 msgid "Periodically save buffer to a temp file for crash recovery"
 msgstr "Enregistrer périodiquement le tampon dans un fichier temporaire pour la récupération après incident."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:963
+#: setzer/dialogs/preferences/pages/page_editor.py:980
 msgid "Periodically save the buffer to a temporary file for crash recovery. Setzer can restore unsaved edits after an unexpected application exit."
 msgstr "Enregistrer périodiquement le tampon dans un fichier temporaire pour la récupération après incident. Setzer peut restaurer les modifications non enregistrées après une fermeture inattendue de l'application."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:969
+#: setzer/dialogs/preferences/pages/page_editor.py:986
 msgid "Auto save interval (seconds)"
 msgstr "Intervalle d'enregistrement automatique (secondes)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:973
+#: setzer/dialogs/preferences/pages/page_editor.py:990
 msgid "Time interval in seconds between automatic saves when auto save is enabled."
 msgstr "Intervalle en secondes entre les enregistrements automatiques lorsque l'enregistrement automatique est activé."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:979
+#: setzer/dialogs/preferences/pages/page_editor.py:996
 msgid "External Changes"
 msgstr "Modifications externes"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:983
+#: setzer/dialogs/preferences/pages/page_editor.py:1000
 msgid "Automatically reload changed files"
 msgstr "Recharger automatiquement les fichiers modifiés"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:985
+#: setzer/dialogs/preferences/pages/page_editor.py:1002
 msgid "Reload files modified by external applications without prompting"
 msgstr "Recharger les fichiers modifiés par des applications externes sans demander confirmation."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:987
+#: setzer/dialogs/preferences/pages/page_editor.py:1004
 msgid "Automatically reload files modified by external applications without showing a prompt. Unsaved changes in the editor will be lost."
 msgstr "Recharger automatiquement les fichiers modifiés par des applications externes sans afficher d'invite. Les modifications non enregistrées dans l'éditeur seront perdues."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:995
+#: setzer/dialogs/preferences/pages/page_editor.py:1012
 msgid "Git Integration"
 msgstr "Intégration Git"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:999
+#: setzer/dialogs/preferences/pages/page_editor.py:1016
 msgid "Enable Git integration"
 msgstr "Activer l'intégration Git"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1000
+#: setzer/dialogs/preferences/pages/page_editor.py:1017
 msgid "Detect repositories and run git commands for open documents"
 msgstr "Détecter les dépôts et exécuter des commandes git pour les documents ouverts"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1004
+#: setzer/dialogs/preferences/pages/page_editor.py:1021
 msgid "Show change marks in the line number column"
 msgstr "Afficher les marques de modification dans la colonne des numéros de ligne"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1005
+#: setzer/dialogs/preferences/pages/page_editor.py:1022
 msgid "Added, modified and deleted lines relative to HEAD"
 msgstr "Lignes ajoutées, modifiées et supprimées par rapport à HEAD"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1009
+#: setzer/dialogs/preferences/pages/page_editor.py:1026
 msgid "Show the Git sidebar panel"
 msgstr "Afficher le panneau latéral Git"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1013
+#: setzer/dialogs/preferences/pages/page_editor.py:1030
 msgid "Branch status with pull and commit &amp; push actions"
 msgstr "Statut de branche avec actions de pull et commit & push"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1018
+#: setzer/dialogs/preferences/pages/page_editor.py:1035
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:111
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:391
 msgid "New Document"
 msgstr "Nouveau document"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1022
+#: setzer/dialogs/preferences/pages/page_editor.py:1039
 msgid "Default Encoding"
 msgstr "Encodage par défaut"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1024
+#: setzer/dialogs/preferences/pages/page_editor.py:1041
 msgid "Encoding used when creating new documents"
 msgstr "Encodage utilisé lors de la création de nouveaux documents."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1026
+#: setzer/dialogs/preferences/pages/page_editor.py:1043
 msgid "Default character encoding for new documents. UTF-8 is the recommended choice for cross-platform collaboration."
 msgstr "Encodage de caractères par défaut pour les nouveaux documents. UTF-8 est le choix recommandé pour une collaboration multiplateforme."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1029
+#: setzer/dialogs/preferences/pages/page_editor.py:1046
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1030
+#: setzer/dialogs/preferences/pages/page_editor.py:1047
 msgid "ISO-8859-1"
 msgstr "ISO-8859-1"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1031
+#: setzer/dialogs/preferences/pages/page_editor.py:1048
 msgid "Windows-1252"
 msgstr "Windows-1252"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1032
+#: setzer/dialogs/preferences/pages/page_editor.py:1049
 msgid "UTF-16"
 msgstr "UTF-16"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1038
+#: setzer/dialogs/preferences/pages/page_editor.py:1055
 msgid "Default Line Ending"
 msgstr "Fin de ligne par défaut"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1040
+#: setzer/dialogs/preferences/pages/page_editor.py:1057
 msgid "Line ending format for new documents"
 msgstr "Format de fin de ligne pour les nouveaux documents"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1042
+#: setzer/dialogs/preferences/pages/page_editor.py:1059
 msgid "Default line ending format for new documents. LF is Unix/macOS style; CRLF is Windows style; CR is old macOS style."
 msgstr "Format de fin de ligne par défaut pour les nouveaux documents. LF est le style Unix/macOS ; CRLF est le style Windows ; CR est l'ancien style macOS."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1045
+#: setzer/dialogs/preferences/pages/page_editor.py:1062
 msgid "LF (Unix)"
 msgstr "LF (Unix)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1046
+#: setzer/dialogs/preferences/pages/page_editor.py:1063
 msgid "CRLF (Windows)"
 msgstr "CRLF (Windows)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1047
+#: setzer/dialogs/preferences/pages/page_editor.py:1064
 msgid "CR (Old macOS)"
 msgstr "CR (ancien macOS)"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1054
+#: setzer/dialogs/preferences/pages/page_editor.py:1071
 msgid "Autocomplete"
 msgstr "Complétion automatique"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1058
+#: setzer/dialogs/preferences/pages/page_editor.py:1075
 msgid "Suggest matching LaTeX Commands"
 msgstr "Suggérer les commandes LaTeX correspondantes"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1059
+#: setzer/dialogs/preferences/pages/page_editor.py:1076
 msgid "Show a completion popup as you type LaTeX commands."
 msgstr "Afficher une fenêtre de complétion au fur et à mesure de la saisie des commandes LaTeX."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1063
+#: setzer/dialogs/preferences/pages/page_editor.py:1080
 msgid "Manual trigger key"
 msgstr "Touche de déclenchement manuelle"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1064
+#: setzer/dialogs/preferences/pages/page_editor.py:1081
 msgid "Press to capture a shortcut that opens the completion popup."
 msgstr "Appuyez pour capturer un raccourci qui ouvre la fenêtre de complétion."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1071
+#: setzer/dialogs/preferences/pages/page_editor.py:1088
 msgid "Completion Navigation"
 msgstr "Navigation de complétion"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1072
+#: setzer/dialogs/preferences/pages/page_editor.py:1089
 msgid "Keys used to move and confirm within the completion popup."
 msgstr "Touches utilisées pour se déplacer et confirmer dans la fenêtre de complétion."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1083
+#: setzer/dialogs/preferences/pages/page_editor.py:1100
 msgid "Brackets and Blocks"
 msgstr "Parenthèses et blocs"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1087
+#: setzer/dialogs/preferences/pages/page_editor.py:1104
 msgid "Automatically add closing brackets"
 msgstr "Ajouter automatiquement les crochets fermants"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1088
+#: setzer/dialogs/preferences/pages/page_editor.py:1105
 msgid "Insert a matching closing bracket when you type an opening one."
 msgstr "Insérer un crochet fermant correspondant lorsque vous saisissez un crochet ouvrant."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1092
+#: setzer/dialogs/preferences/pages/page_editor.py:1109
 msgid "Add brackets to selected text, instead of replacing it with them"
 msgstr "Ajouter des parenthèses autour du texte sélectionné, au lieu de le remplacer"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1093
+#: setzer/dialogs/preferences/pages/page_editor.py:1110
 msgid "Wrap the selected text in brackets, keeping it selected."
 msgstr "Encadrer le texte sélectionné entre crochets en le gardant sélectionné."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1097
+#: setzer/dialogs/preferences/pages/page_editor.py:1114
 msgid "Jump over closing brackets with Tab"
 msgstr "Sauter les crochets fermants avec Tab"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1098
+#: setzer/dialogs/preferences/pages/page_editor.py:1115
 msgid "Press Tab to move past an automatically inserted closing bracket."
 msgstr "Appuyez sur Tab pour passer au-delà d'une parenthèse fermante insérée automatiquement."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1102
+#: setzer/dialogs/preferences/pages/page_editor.py:1119
 msgid "Update matching begin / end blocks"
 msgstr "Mettre à jour les blocs \\begin / \\end correspondants"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1103
+#: setzer/dialogs/preferences/pages/page_editor.py:1120
 msgid "Keep matching \\begin{} / \\end{} blocks in sync when you edit one."
 msgstr "Garder les blocs \\begin{} / \\end{} correspondants synchronisés lorsque vous en modifiez un."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1107
+#: setzer/dialogs/preferences/pages/page_editor.py:1124
 msgid "Automatically add matching \\end{}"
 msgstr "Ajouter automatiquement le \\end{} correspondant"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1108
+#: setzer/dialogs/preferences/pages/page_editor.py:1125
 msgid "When you type \\begin{, automatically insert the matching \\end{} (use Tab to jump to the content placeholder)."
 msgstr "Lorsque vous tapez \\begin{, insérez automatiquement le \\end{} correspondant (utilisez Tab pour aller à l'espace réservé du contenu)."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1114
+#: setzer/dialogs/preferences/pages/page_editor.py:1131
 msgid "Multi-Cursor"
 msgstr "Curseurs multiples"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1118
+#: setzer/dialogs/preferences/pages/page_editor.py:1135
 msgid "Multi-cursor editing"
 msgstr "Édition à curseurs multiples"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1120
+#: setzer/dialogs/preferences/pages/page_editor.py:1137
 msgid "Place multiple cursors and edit them simultaneously."
 msgstr "Placer plusieurs curseurs et les éditer simultanément."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1126
+#: setzer/dialogs/preferences/pages/page_editor.py:1143
 msgid "Alt+Click to add or remove a cursor"
 msgstr "Alt+Clic pour ajouter ou supprimer un curseur"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1127
+#: setzer/dialogs/preferences/pages/page_editor.py:1144
 msgid "Add a cursor at the clicked position, or remove an existing one."
 msgstr "Ajouter un curseur à la position cliquée, ou en supprimer un existant."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1128
+#: setzer/dialogs/preferences/pages/page_editor.py:1145
 msgid "Alt+Drag column selection"
 msgstr "Sélection de colonne par Alt+glisser"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1129
+#: setzer/dialogs/preferences/pages/page_editor.py:1146
 msgid "Drag to create a column (rectangular) selection."
 msgstr "Glisser pour créer une sélection de colonne (rectangulaire)."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1130
+#: setzer/dialogs/preferences/pages/page_editor.py:1147
 msgid "Select next occurrence"
 msgstr "Sélectionner l'occurrence suivante"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1131
+#: setzer/dialogs/preferences/pages/page_editor.py:1148
 msgid "Select the next match of the selected text or word."
 msgstr "Sélectionner la prochaine occurrence du texte ou du mot sélectionné."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1132
+#: setzer/dialogs/preferences/pages/page_editor.py:1149
 msgid "Select all occurrences"
 msgstr "Sélectionner toutes les occurrences"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1133
+#: setzer/dialogs/preferences/pages/page_editor.py:1150
 msgid "Select every match of the selected text or word."
 msgstr "Sélectionner toutes les occurrences du texte ou du mot sélectionné."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1134
+#: setzer/dialogs/preferences/pages/page_editor.py:1151
 msgid "Add cursor above"
 msgstr "Ajouter un curseur au-dessus"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1135
+#: setzer/dialogs/preferences/pages/page_editor.py:1152
 msgid "Add a cursor on the line above each cursor."
 msgstr "Ajouter un curseur sur la ligne au-dessus de chaque curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1136
+#: setzer/dialogs/preferences/pages/page_editor.py:1153
 msgid "Add cursor below"
 msgstr "Ajouter un curseur en dessous"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1137
+#: setzer/dialogs/preferences/pages/page_editor.py:1154
 msgid "Add a cursor on the line below each cursor."
 msgstr "Ajouter un curseur sur la ligne en dessous de chaque curseur."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1138
+#: setzer/dialogs/preferences/pages/page_editor.py:1155
 msgid "Escape clears extra cursors"
 msgstr "Échap efface les curseurs supplémentaires"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1139
+#: setzer/dialogs/preferences/pages/page_editor.py:1156
 msgid "Press Escape to remove all additional cursors."
 msgstr "Appuyer sur Échap pour supprimer tous les curseurs supplémentaires."
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1140
+#: setzer/dialogs/preferences/pages/page_editor.py:1157
 msgid "Edit at all cursors"
 msgstr "Éditer à tous les curseurs"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1141
+#: setzer/dialogs/preferences/pages/page_editor.py:1158
 msgid "Typing, deleting and indenting apply to every cursor."
 msgstr "La frappe, la suppression et l'indentation s'appliquent à chaque curseur."
 
@@ -6475,14 +6494,18 @@ msgstr "Nettoyer les fichiers de compilation"
 msgid "Pass {}"
 msgstr "Passe {}"
 
-#: setzer/document/document.py:713
+#: setzer/document/document.py:728
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr "Impossible d'enregistrer le document : {error}"
 
-#: setzer/document/document_controller.py:346
+#: setzer/document/document_controller.py:368
 msgid "No PDF available for forward sync. Build the document first."
 msgstr "Aucun PDF disponible pour la synchronisation aller. Compilez d'abord le document."
+
+#: setzer/document/math_preview/math_preview_popover.py:67
+msgid "Rendering formula…"
+msgstr "Rendu de la formule…"
 
 #: setzer/document/preview/context_menu/context_menu.py:106
 msgid "Open Link"

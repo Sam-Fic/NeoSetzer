@@ -77,6 +77,10 @@ foreach t : [
   ['test_ui_zoom', 'test_ui_zoom.py'],
   ['test_zoom_css', 'test_zoom_css.py'],
   ['test_decode_output', 'test_decode_output.py'],
+  ['test_math_region_finder', 'test_math_region_finder.py'],
+  ['test_snippet_wrapper', 'test_snippet_wrapper.py'],
+  ['test_math_preview_cache', 'test_math_preview_cache.py'],
+  ['test_math_preview_compiler', 'test_math_preview_compiler.py'],
 ]
   test(
     t[0],

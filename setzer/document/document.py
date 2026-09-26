@@ -45,6 +45,7 @@ import setzer.document.autocomplete.autocomplete as autocomplete
 import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_highlight
 import setzer.document.spellchecking.spellchecking as spellchecking
 import setzer.document.build_diagnostics.build_diagnostics as build_diagnostics
+import setzer.document.math_preview.math_preview as math_preview
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
@@ -123,6 +124,11 @@ class Document(Observable):
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
         self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
+        # 公式 hover 预览（仅 LaTeX）：连接 parser 的 math_regions 与 settings，
+        # 不构造 UI（弹窗由 controller 懒创建），同步构造开销可忽略。
+        self.math_preview = None
+        if self.is_latex_document():
+            self.math_preview = math_preview.MathPreview(self)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
@@ -324,6 +330,15 @@ class Document(Observable):
         if mc is not None:
             try:
                 mc.shutdown()
+            except Exception:
+                pass
+
+        # math_preview 连接了 settings 单例信号 + buffer changed 信号，持有
+        # 会话级临时目录，需断开、作废挂起请求并清理目录。LaTeX 专属。
+        mp = getattr(self, 'math_preview', None)
+        if mp is not None:
+            try:
+                mp.shutdown()
             except Exception:
                 pass
 

@@ -177,6 +177,11 @@ class Settings(Observable):
         # 左键按下不再触发放大镜，悬停光标恢复普通箭头（方便以后做文字选择
         # 等按住拖动的交互）。预览工具栏有对应切换按钮。
         self.defaults['preferences']['use_magnifier'] = True
+        # 公式 hover 预览：无修饰键悬停在数学区域上约 0.45s 后弹出该公式的
+        # 渲染图（复用文档 preamble 单独编译，按内容哈希缓存）。默认开启
+        # 与 use_magnifier 同例；修饰键/拖选/补全窗口期间不触发，可在
+        # Editor 偏好中关闭。
+        self.defaults['preferences']['math_hover_preview'] = True
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         # 撤销栈深度上限（GtkSource.Buffer 的 max-undo-levels）。0 = 不限。

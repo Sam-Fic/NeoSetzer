@@ -113,6 +113,9 @@ class PageEditor(object):
         self.view.option_code_folding.set_active(self.settings.get_value('preferences', 'enable_code_folding'))
         self.view.option_code_folding.connect('notify::active', self.on_switch_toggled, 'enable_code_folding')
 
+        self.view.option_math_hover_preview.set_active(self.settings.get_value('preferences', 'math_hover_preview'))
+        self.view.option_math_hover_preview.connect('notify::active', self.on_switch_toggled, 'math_hover_preview')
+
         self.view.option_sticky_scroll.set_active(self.settings.get_value('preferences', 'enable_sticky_scroll'))
         self.view.option_sticky_scroll.connect('notify::active', self.on_switch_toggled, 'enable_sticky_scroll')
 
@@ -842,6 +845,20 @@ class PageEditorView(Adw.PreferencesPage):
             'current section hierarchy (chapter, section, subsection, etc.) '
             'as you scroll through long documents.'))
         group_sticky_scroll.add(self.option_sticky_scroll)
+
+        group_math_preview = Adw.PreferencesGroup()
+        group_math_preview.set_title(_('Math Preview'))
+        self.add(group_math_preview)
+
+        self.option_math_hover_preview = Adw.SwitchRow()
+        self.option_math_hover_preview.set_title(_('Math Preview on Hover'))
+        self.option_math_hover_preview.set_subtitle(_('Show a rendered preview of the formula under the mouse cursor.'))
+        self.option_math_hover_preview.set_tooltip_text(_(
+            'Hover the mouse over a formula without holding any modifier key '
+            'to see a rendered preview. The formula is compiled with the '
+            'configured LaTeX interpreter using this document\'s preamble '
+            'and results are cached.'))
+        group_math_preview.add(self.option_math_hover_preview)
 
         group_highlighting = Adw.PreferencesGroup()
         group_highlighting.set_title(_('Highlighting'))

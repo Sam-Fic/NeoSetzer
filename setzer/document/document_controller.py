@@ -26,6 +26,8 @@ from gi.repository import Gdk, GLib, Gtk, GObject, Pango, Adw
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
+from setzer.document.math_preview import math_preview
+from setzer.document.math_preview.math_preview_popover import MathPreviewPopover
 from setzer.settings.document_settings import DocumentSettings
 from setzer.document.smart_list import (
     SmartListNewlineKind,
@@ -137,6 +139,21 @@ class DocumentController(object):
         self._motion_controller.connect('leave', self._on_motion_leave)
         self.view.source_view.add_controller(self._motion_controller)
 
+        # 公式 hover 预览：独立 motion controller（上面的 _motion_controller
+        # 只管 Ctrl+hover 指针反馈，二者互不掺和）。无修饰键驻留 DWELL_MS
+        # 后弹预览弹窗；Ctrl（前向同步/加光标）、Alt（列选）、拖选、补全
+        # 窗口期间一律不触发。非 autohide 弹窗由本类显式收起（seat-grab
+        # 理由见 math_preview_popover.py / symbol_preview.py 注释）。
+        self._math_hover_controller = Gtk.EventControllerMotion()
+        self._math_hover_controller.connect('enter', self._on_math_hover_enter)
+        self._math_hover_controller.connect('motion', self._on_math_hover_motion)
+        self._math_hover_controller.connect('leave', self._on_math_hover_leave)
+        self.view.source_view.add_controller(self._math_hover_controller)
+        self._math_hover_timer_id = None
+        self._math_hover_region = None       # 当前驻留的 MathRegion
+        self._math_hover_request_id = None   # 在飞的预览请求 id
+        self._math_hover_popover = None      # 懒创建（MathPreviewPopover）
+
         # Alt+Drag 列选（column selection）：通过 GestureDrag 识别 Alt 修饰键
         # 按下时从鼠标起点拖动形成矩形选区。同时也支持 Ctrl+点击添加光标
         # 和 Alt+点击添加光标（通过 primary_click_controller 的事件处理）。
@@ -173,6 +190,9 @@ class DocumentController(object):
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用，移除 500ms 轮询定时器。'''
         self.continue_save_date_loop = False
+        # 公式 hover 预览：取消驻留定时器，避免文档关闭后回调访问已销毁的
+        # buffer / popover（motion controller 随 source_view 销毁自动断开）。
+        self._math_hover_cancel_timer()
         if self._save_date_loop_timeout_id is not None:
             GLib.Source.remove(self._save_date_loop_timeout_id)
             self._save_date_loop_timeout_id = None
@@ -204,6 +224,8 @@ class DocumentController(object):
         return settings.get_value('preferences', feature)
 
     def on_primary_buttonpress(self, controller, n_press, x, y):
+        # 任何左键按下（点击/拖选开始）都收起公式预览弹窗。
+        self._math_hover_popdown()
         modifiers = Gtk.accelerator_get_default_mod_mask()
         state = controller.get_current_event_state()
 
@@ -373,6 +395,113 @@ class DocumentController(object):
         else:
             self.view.source_view.set_cursor(self._cursor_text)
 
+    # ---------- 公式 hover 预览 ----------
+
+    def _math_hover_cancel_timer(self):
+        if self._math_hover_timer_id is not None:
+            GLib.Source.remove(self._math_hover_timer_id)
+            self._math_hover_timer_id = None
+
+    def _math_hover_popdown(self):
+        '''取消驻留定时器并收起预览弹窗（离开/换区域/点击/滚动/编辑）。'''
+        self._math_hover_cancel_timer()
+        self._math_hover_region = None
+        self._math_hover_request_id = None
+        if self._math_hover_popover is not None:
+            self._math_hover_popover.popdown()
+
+    def _math_hover_allowed(self, controller):
+        '''hover 预览的触发守卫：设置开关 + 无修饰键 + 无交互冲突。'''
+        settings = ServiceLocator.get_settings()
+        if not settings.get_value('preferences', 'math_hover_preview'):
+            return False
+        if getattr(self.document, 'math_preview', None) is None:
+            return False
+        # 任何修饰键都不触发：Ctrl+Click 是前向同步/跳转/加光标，
+        # Alt 是列选——预览绝不与它们抢交互。
+        modifiers = Gtk.accelerator_get_default_mod_mask()
+        if controller.get_current_event_state() & modifiers:
+            return False
+        # 拖选进行中（按下未释放，含选区拖动）不触发。
+        if self.primary_click_controller.is_active():
+            return False
+        # 补全窗口可见时不触发，避免两个浮层互相遮挡。
+        autocomplete = getattr(self.document, 'autocomplete', None)
+        widget = getattr(autocomplete, 'widget', None)
+        if widget is not None and getattr(getattr(widget, 'model', None), 'is_active', False):
+            return False
+        return True
+
+    def _on_math_hover_enter(self, controller, x, y):
+        self._on_math_hover_motion(controller, x, y)
+
+    def _on_math_hover_leave(self, controller):
+        # 离开编辑区：取消驻留计时并收起预览弹窗。
+        self._math_hover_popdown()
+
+    def _on_math_hover_motion(self, controller, x, y):
+        math_preview_module = getattr(self.document, 'math_preview', None)
+        if not self._math_hover_allowed(controller):
+            self._math_hover_popdown()
+            return
+        found, iter_at_pos = self._iter_at_widget_coords(x, y)
+        if not found:
+            self._math_hover_popdown()
+            return
+        region = math_preview_module.get_region_at(iter_at_pos.get_offset())
+        if region is None:
+            self._math_hover_popdown()
+            return
+        if self._math_hover_region is not None and region == self._math_hover_region:
+            return  # 同一区域驻留中：定时器继续，不重置
+        # 换了区域：收起旧弹窗（若有），为新区域重新驻留计时。
+        self._math_hover_popdown()
+        self._math_hover_region = region
+        self._math_hover_timer_id = GLib.timeout_add(
+            math_preview.DWELL_MS, self._on_math_hover_dwell)
+
+    def _on_math_hover_dwell(self):
+        '''驻留到期：弹加载态弹窗并请求渲染（内存命中/磁盘缓存/后台编译）。'''
+        self._math_hover_timer_id = None
+        math_preview_module = getattr(self.document, 'math_preview', None)
+        region = self._math_hover_region
+        if math_preview_module is None or region is None:
+            return False
+        popover = self._ensure_math_hover_popover()
+        x, y, line_height = self._math_hover_region_rect(region)
+        popover.show_loading_at(x, y, line_height)
+        # request() 的回调一律异步（idle 回主线程），下面的赋值必然先于
+        # 回调执行，_on_math_preview_result 的比对因此可靠。
+        self._math_hover_request_id = math_preview_module.request(
+            region.start, self._on_math_preview_result)
+        if self._math_hover_request_id is None:
+            # 不可预览（编译器缺失/区域超长）：不留一个空转的加载气泡。
+            self._math_hover_popdown()
+        return False
+
+    def _on_math_preview_result(self, request_id, texture):
+        if request_id != self._math_hover_request_id or self._math_hover_region is None:
+            return  # 结果已过期：区域已换/已收起/文档已编辑
+        if texture is None:
+            self._math_hover_popdown()
+            return
+        self._math_hover_popover.show_texture(texture)
+
+    def _ensure_math_hover_popover(self):
+        if self._math_hover_popover is None:
+            self._math_hover_popover = MathPreviewPopover(self.view.source_view)
+        return self._math_hover_popover
+
+    def _math_hover_region_rect(self, region):
+        '''区域起点在 source_view 部件坐标系中的 (x, y, 行高)，用于弹窗定位。'''
+        buffer = self.document.source_buffer
+        iter_start = buffer.get_iter_at_offset(region.start)
+        location = self.view.source_view.get_iter_location(iter_start)
+        x, y = self.view.source_view.buffer_to_window_coords(
+            Gtk.TextWindowType.WIDGET, location.x, location.y)
+        line_height = location.height if location.height > 0 else 20
+        return x, y, line_height
+
     def _on_column_drag_begin(self, controller, x, y):
         """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。
 
@@ -476,6 +605,8 @@ class DocumentController(object):
         self._column_drag_start_iter = None
 
     def on_secondary_buttonpress(self, controller, n_press, x, y):
+        # 右键即将打开上下文菜单：预览弹窗是非 autohide 的，必须主动让位。
+        self._math_hover_popdown()
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if n_press == 1:
@@ -767,6 +898,9 @@ class DocumentController(object):
         buffer.end_user_action()
 
     def on_scroll(self, controller, dx, dy):
+        # 滚动后文本相对视口移动，锚定在区域起点的预览弹窗会错位：直接收起
+        # （Ctrl+滚轮缩放使文本重排，同样需要收起）。
+        self._math_hover_popdown()
         modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if controller.get_current_event_state() & modifiers == Gdk.ModifierType.CONTROL_MASK:
