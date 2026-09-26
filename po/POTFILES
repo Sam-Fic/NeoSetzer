@@ -206,6 +206,7 @@
 ./setzer/document/search/search.py
 ./setzer/document/search/search_viewgtk.py
 ./setzer/document/smart_list.py
+./setzer/document/smart_typing.py
 ./setzer/document/spellchecking/__init__.py
 ./setzer/document/spellchecking/spellchecking.py
 ./setzer/document/statusbar/__init__.py

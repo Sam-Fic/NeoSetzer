@@ -461,7 +461,10 @@
       </include>
     </context>
 
-    <context id="math-1" style-ref="math" class="no-spell-check">
+    <!-- class 里的 math 与 no-spell-check 并列：no-spell-check 供拼写检查跳过，
+         math 供编辑器区分「数学区」与同样被 no-spell-check 覆盖的 verbatim /
+         \url / 命令名（自动下标只在数学区内触发）。五个数学 context 都要带上。 -->
+    <context id="math-1" style-ref="math" class="no-spell-check math">
       <start>\$\$</start>
       <end>\$\$</end>
       <include>
@@ -471,7 +474,7 @@
       </include>
     </context>
 
-    <context id="math-2" style-ref="math" class="no-spell-check">
+    <context id="math-2" style-ref="math" class="no-spell-check math">
       <start>\\\[</start>
       <end>\\\]</end>
       <include>
@@ -481,7 +484,7 @@
       </include>
     </context>
 
-    <context id="math-env" style-ref="math" style-inside="true" class="no-spell-check">
+    <context id="math-env" style-ref="math" style-inside="true" class="no-spell-check math">
       <start>(\\begin)\{(math|displaymath|equation\*?|align\*?|alignat\*?|flalign\*?|eqnarray\*?|multline\*?|gather\*?)\}</start>
       <end>(\\end)\{(\%{2@start})\}</end>
       <include>
@@ -493,7 +496,7 @@
       </include>
     </context>
 
-    <context id="inline-math-1" style-ref="inline-math" class="no-spell-check">
+    <context id="inline-math-1" style-ref="inline-math" class="no-spell-check math">
       <start>\$</start>
       <end>\$</end>
       <include>
@@ -503,7 +506,7 @@
       </include>
     </context>
 
-    <context id="inline-math-2" style-ref="inline-math" class="no-spell-check">
+    <context id="inline-math-2" style-ref="inline-math" class="no-spell-check math">
       <start>\\\(</start>
       <end>\\\)</end>
       <include>

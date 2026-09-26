@@ -242,6 +242,12 @@ class Settings(Observable):
         self.defaults['preferences']['update_matching_blocks'] = True
         # 环境自动补：输入 \begin{ 时自动插入配对的 \end{}（含内容占位符）。默认关闭，避免干扰可选参数环境。
         self.defaults['preferences']['enable_environment_autocomplete'] = False
+        # 智能引号：打 " 时按上下文换成 `` / ''。默认开启——verbatim、\url、
+        # 命令名与数学区按语法 class 跳过，误伤面比环境自动补更小。
+        self.defaults['preferences']['enable_smart_quotes'] = True
+        # 自动下标/上标：数学区内 x_12 自动补成 x_{12}。默认关闭——它会改写
+        # 已输入的字符，与环境自动补同属「需要时再开」的一类。
+        self.defaults['preferences']['enable_auto_subscript'] = False
         # 自动保存（崩溃恢复模式）：定时把缓冲区内容写入
         # ~/.config/setzer/autosave/<hash>.tex，应用崩溃后下次启动弹恢复对话框。
         # 默认开启，间隔 60 秒（与 VS Code 默认 files.autoSave=off 不同；Setzer

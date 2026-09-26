@@ -33,6 +33,12 @@ from setzer.document.smart_list import (
     SmartListNewlineKind,
     get_smart_list_newline_action,
 )
+from setzer.document.smart_typing import (
+    get_smart_quote_insertion,
+    is_auto_subscript_group,
+    is_subscript_group_char,
+    should_open_subscript,
+)
 
 
 # on_keypress 每次按键都跑，Gdk.keyval_from_name 模块级预计算避免每次 C 查表。
@@ -53,6 +59,7 @@ _KEYVAL_PAGE_UP = Gdk.keyval_from_name('Page_Up')
 _KEYVAL_PAGE_DOWN = Gdk.keyval_from_name('Page_Down')
 _KEYVAL_D = Gdk.keyval_from_name('d')
 _KEYVAL_L = Gdk.keyval_from_name('l')
+_KEYVAL_QUOTEDBL = Gdk.keyval_from_name('quotedbl')
 # 纯导航键（方向/行首尾/翻页）：多光标激活时按下这些键先折叠附加光标，
 # 再交给默认处理移动主光标，避免隐形光标滞留原地。
 _NAV_KEYVALS = (_KEYVAL_UP, _KEYVAL_DOWN, _KEYVAL_LEFT, _KEYVAL_RIGHT,
@@ -118,6 +125,20 @@ class DocumentController(object):
         key_controller.connect('key-pressed', self.on_keypress)
         key_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.document.view.source_view.add_controller(key_controller)
+
+        # 自动下标/上标补出的 {…} 组：存闭合 } 处的 mark，下一次按键据此决定
+        # 续写还是跳出。None 表示当前没有挂起的组。
+        self._subscript_mark = None
+
+        # 智能引号与自动下标的按键入口。刻意挂在 scrolled_window（source_view 的
+        # 祖先）而不是 source_view：BracketCompletion 在 idle 里后挂到 source_view，
+        # 同一 widget 的 capture 控制器实测按挂载逆序执行，它会先于本类 on_keypress
+        # 看到按键并在「还在自动组里」的旧光标位置插配对字符（$x_i^2$ 打成
+        # x_{i}^{2$$}$）。祖先的 capture 早于目标自身，规则因此总能先完成跳出重定位。
+        smart_typing_controller = Gtk.EventControllerKey()
+        smart_typing_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        smart_typing_controller.connect('key-pressed', self.on_smart_typing_keypress)
+        self.document.view.scrolled_window.add_controller(smart_typing_controller)
 
         # 失去焦点时关闭 undo 分组，避免用户切走后再切回时 Ctrl+Z 仍作用于
         # 上一段连续输入。
@@ -797,6 +818,156 @@ class DocumentController(object):
         finally:
             buffer.end_user_action()
         return True
+
+    def on_smart_typing_keypress(self, controller, keyval, keycode, state):
+        '''智能输入规则入口：引号配对与自动下标/上标花括号。
+
+        独立于 on_keypress：multicursor 与其它编辑器子系统一样由 idle 延迟构造，
+        on_keypress 在它还不存在时直接早退，规则不该跟着失效。多光标时整体让路——
+        只改主光标会让各光标内容不一致。
+        '''
+        modifiers = Gtk.accelerator_get_default_mod_mask()
+        if state & modifiers & (Gdk.ModifierType.CONTROL_MASK
+                                | Gdk.ModifierType.ALT_MASK):
+            return False
+        mc = getattr(self.document, 'multicursor', None)
+        if mc is not None and (mc.has_multiple_cursors() or mc.is_column_mode()):
+            return False
+        if not self.document.is_latex_document():
+            return False
+        if keyval == _KEYVAL_QUOTEDBL:
+            return self.handle_smart_quote()
+        return self.handle_smart_subscript(keyval)
+
+    def handle_smart_quote(self):
+        r'''打字时把 " 换成 LaTeX 的 `` `` `` / ``''``（一次 user-action 两个字符）。'''
+        if not self.document.settings.get_value('preferences', 'enable_smart_quotes'):
+            return False
+        buffer = self.document.source_buffer
+        if buffer.get_has_selection() or self._completion_popup_is_active():
+            return False
+        insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        # verbatim / \url / 命令名 / 数学区都带 no-spell-check 语法 class，
+        # 这些位置保留字面 "（拼写检查用同一判据，见 spellchecking.py）。
+        if self._has_syntax_class(insert_iter, 'no-spell-check'):
+            return False
+        insertion = get_smart_quote_insertion(
+            self.document.get_chars_at_iter(insert_iter, -1))
+        buffer.begin_user_action()
+        try:
+            buffer.insert_at_cursor(insertion)
+        finally:
+            buffer.end_user_action()
+        return True
+
+    def handle_smart_subscript(self, keyval):
+        r'''把 _ / ^ 后的第一个字母数字包进花括号，组结束时把光标跳出去。
+
+        只有「吃掉一个字符」时返回 True；组内续写与跳出后落字符都返回 False，
+        把实际文本改动留给 GtkTextView 的默认插入——组内插入天然落在 } 之前，
+        跳出时已把光标移到 } 之后。
+        '''
+        if not self.document.settings.get_value('preferences', 'enable_auto_subscript'):
+            return False
+        unichar = Gdk.keyval_to_unicode(keyval)
+        # Tab=9 / Return=13 / BackSpace=8 都有非零 unicode，只挡 0 会让规则把它们
+        # 当成可打印字符：先跳出组再交回默认处理，结果是「跳出 + 插入制表符」。
+        # 控制字符一律不接管——Tab 的跳出本就由 tab_jump_brackets 负责。
+        if unichar < 0x20:
+            return False
+        typed_char = chr(unichar)
+        buffer = self.document.source_buffer
+        insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
+
+        group_end_iter = self._checked_subscript_group_end(insert_iter)
+        if group_end_iter is not None:
+            if is_subscript_group_char(typed_char):
+                return False
+            # 输入 } 直接跳出整组；其余字符先把光标移到 } 之后再让默认处理插入，
+            # x_{i}^2 才不会嵌进上一组花括号里。
+            group_end_iter.forward_char()
+            buffer.place_cursor(group_end_iter)
+            return typed_char == '}'
+
+        if buffer.get_has_selection() or self._completion_popup_is_active():
+            return False
+        if not should_open_subscript(
+                self.document.get_chars_at_iter(insert_iter, -4), typed_char,
+                self._has_syntax_class(insert_iter, 'math')):
+            return False
+
+        buffer.begin_user_action()
+        try:
+            buffer.insert_at_cursor('{' + typed_char + '}')
+        finally:
+            buffer.end_user_action()
+        insert_iter = buffer.get_iter_at_mark(buffer.get_insert())
+        insert_iter.backward_char()
+        # right gravity：组内继续插字符时 mark 随之后移，始终停在 } 上。
+        mark_name = 'auto_subscript_end' + str(
+            ServiceLocator.get_increment('auto_subscript_end'))
+        self._subscript_mark = buffer.create_mark(mark_name, insert_iter, False)
+        buffer.place_cursor(insert_iter)
+        return True
+
+    def _checked_subscript_group_end(self, insert_iter):
+        '''校验挂起的自动组，返回其 } 所在位置；不成立即丢弃 mark 返回 None。
+
+        mark 会随缓冲区编辑自动平移，光凭「存在」不足以外推组仍然有效：用户可能
+        删掉了 }，或把光标移开后又移回别处。因此每次都重读当前位置的字符与左侧
+        文本。
+        '''
+        mark = self._subscript_mark
+        if mark is None:
+            return None
+        buffer = self.document.source_buffer
+        group_end_iter = buffer.get_iter_at_mark(mark)
+        is_open_group = (
+            group_end_iter.get_offset() == insert_iter.get_offset()
+            and group_end_iter.get_char() == '}'
+            and is_auto_subscript_group(
+                self.document.get_chars_at_iter(insert_iter, -64)))
+        if not is_open_group:
+            self._drop_subscript_mark(mark)
+            return None
+        return group_end_iter
+
+    def _drop_subscript_mark(self, mark):
+        self._subscript_mark = None
+        self.document.source_buffer.delete_mark(mark)
+
+    def _completion_popup_is_active(self):
+        '''补全弹窗激活时两条规则让路。autocomplete 属于 LaTeX 延迟构造的子系统，
+        未就绪时文档上还没有该属性，不能直接取。'''
+        autocomplete = getattr(self.document, 'autocomplete', None)
+        return autocomplete is not None and autocomplete.is_active
+
+    def _has_syntax_class(self, text_iter, syntax_class):
+        '''查询语法引擎在 text_iter 处的 context class。
+
+        GtkSourceView 惰性解析，未解析区域查不到 class，所以先对当前行
+        ensure_highlight（实测热路径 ~2µs；跨行数学环境由解析器从最近的
+        有效状态继承，无需扫描整篇）。
+
+        行末/文档末尾的 iter 上没有字符可归属，class 恒为空——正敲到
+        verbatim 或数学区最后一字时光标就在那里，规则会误判为普通文本。
+        此时改问前一个字符：在它末尾插入的文本延续它的上下文。
+        '''
+        buffer = self.document.source_buffer
+        _, line_start = buffer.get_iter_at_line(text_iter.get_line())
+        line_end = line_start.copy()
+        if not line_end.ends_line():
+            line_end.forward_to_line_end()
+        buffer.ensure_highlight(line_start, line_end)
+        if buffer.iter_has_context_class(text_iter, syntax_class):
+            return True
+        if not text_iter.ends_line():
+            return False
+        previous = text_iter.copy()
+        if previous.get_offset() == 0:
+            return False
+        previous.backward_char()
+        return buffer.iter_has_context_class(previous, syntax_class)
 
     def _multi_cursor_indent(self, outdent=False):
         """多光标模式下的缩进/反缩进：对每个光标（及其选区覆盖）所在行执行操作。

@@ -267,6 +267,12 @@ class PageEditor(object):
         self.view.option_environment_autocomplete.set_active(self.settings.get_value('preferences', 'enable_environment_autocomplete'))
         self.view.option_environment_autocomplete.connect('notify::active', self.on_switch_toggled, 'enable_environment_autocomplete')
 
+        self.view.option_smart_quotes.set_active(self.settings.get_value('preferences', 'enable_smart_quotes'))
+        self.view.option_smart_quotes.connect('notify::active', self.on_switch_toggled, 'enable_smart_quotes')
+
+        self.view.option_auto_subscript.set_active(self.settings.get_value('preferences', 'enable_auto_subscript'))
+        self.view.option_auto_subscript.connect('notify::active', self.on_switch_toggled, 'enable_auto_subscript')
+
         # ---- 多光标编辑（标准编辑功能，各项可单独开关）----
         self.view.option_multicursor.set_enable_expansion(
             self.settings.get_value('preferences', 'multicursor_enabled'))
@@ -662,6 +668,8 @@ class PageEditor(object):
         self.view.option_tab_jump_brackets.set_active(defaults['tab_jump_brackets'])
         self.view.option_update_matching_blocks.set_active(defaults['update_matching_blocks'])
         self.view.option_environment_autocomplete.set_active(defaults['enable_environment_autocomplete'])
+        self.view.option_smart_quotes.set_active(defaults['enable_smart_quotes'])
+        self.view.option_auto_subscript.set_active(defaults['enable_auto_subscript'])
         # 重置多光标编辑开关（总开关写回后联动子开关可用状态）。
         self.view.option_multicursor.set_enable_expansion(defaults['multicursor_enabled'])
         for setting_name, switch in self.view.multicursor_switches.items():
@@ -1116,6 +1124,20 @@ class PageEditorView(Adw.PreferencesPage):
         # 创建并绑定到 self.snippets_group。
         self.snippets_group = SnippetsGroupView()
         self.add(self.snippets_group)
+
+        group_smart_typing = Adw.PreferencesGroup()
+        group_smart_typing.set_title(_('Smart Typing'))
+        self.add(group_smart_typing)
+
+        self.option_smart_quotes = Adw.SwitchRow()
+        self.option_smart_quotes.set_title(_('Automatically add LaTeX quotation marks'))
+        self.option_smart_quotes.set_subtitle(_("Replace a typed \" with `` or '', depending on what precedes the cursor."))
+        group_smart_typing.add(self.option_smart_quotes)
+
+        self.option_auto_subscript = Adw.SwitchRow()
+        self.option_auto_subscript.set_title(_('Automatically brace subscripts and superscripts'))
+        self.option_auto_subscript.set_subtitle(_('Turn x_12 into x_{12} while typing in math.'))
+        group_smart_typing.add(self.option_auto_subscript)
 
         group_brackets = Adw.PreferencesGroup()
         group_brackets.set_title(_('Brackets and Blocks'))

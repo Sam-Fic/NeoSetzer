@@ -49,6 +49,8 @@ foreach t : [
   ['test_parser_bibtex',          'test_parser_bibtex.py'],
   ['test_smart_list',             'test_smart_list.py'],
   ['test_smart_list_controller',  'test_smart_list_controller.py'],
+  ['test_smart_typing',           'test_smart_typing.py'],
+  ['test_smart_typing_controller', 'test_smart_typing_controller.py'],
   ['test_project_file_dependencies', 'test_project_file_dependencies.py'],
   ['test_project_build_configuration', 'test_project_build_configuration.py'],
   ['test_project_problem_center', 'test_project_problem_center.py'],
