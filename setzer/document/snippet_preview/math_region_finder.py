@@ -104,6 +104,47 @@ def _math_env_base(env_name: str) -> str:
     return env_name[:-1] if env_name.endswith('*') else env_name
 
 
+def _skip_verbatim(text: str, pos: int, env_name: str) -> Optional[int]:
+    '''verbatim 环境起点之后的下一个扫描位置；未闭合返回 None。
+
+    字面搜索 \\end{同名}（verbatim 内不做转义/注释解释），未闭合视为
+    其后全是字面文本。
+    '''
+    close_marker = '\\end{' + env_name + '}'
+    close_at = text.find(close_marker, pos)
+    if close_at == -1:
+        return None
+    return close_at + len(close_marker)
+
+
+_VERBATIM_BEGIN_REGEX = re.compile(r'\\begin\s*\{(?P<begin_env>' + _ENV_NAME + r')\}')
+
+
+def scan_verbatim_spans(text: str) -> List[tuple]:
+    '''返回 verbatim 类环境的字面文本区间 [start, end) 列表。
+
+    区间含两侧的 \\begin{...} / \\end{...} 标记本身。未闭合的环境其区间
+    延伸到文本结尾。供「按环境名在源码里找片段」的消费方排除示例代码：
+    文档里贴一段示例 \\begin{tikzpicture} 不该被当成可编译的图。
+    '''
+    spans: List[tuple] = []
+    pos = 0
+    while True:
+        match = _VERBATIM_BEGIN_REGEX.search(text, pos)
+        if match is None:
+            return spans
+        env_name = match.group('begin_env')
+        if env_name not in _VERBATIM_ENVIRONMENTS:
+            pos = match.end()
+            continue
+        next_pos = _skip_verbatim(text, match.end(), env_name)
+        if next_pos is None:
+            spans.append((match.start(), len(text)))
+            return spans
+        spans.append((match.start(), next_pos))
+        pos = next_pos
+
+
 def find_math_regions(text: str) -> List[MathRegion]:
     '''扫描 text，返回按 start 排序、互不重叠的 MathRegion 列表。'''
     regions = []
@@ -123,13 +164,11 @@ def find_math_regions(text: str) -> List[MathRegion]:
         begin_env = match.group('begin_env')
         if begin_env is not None:
             if begin_env in _VERBATIM_ENVIRONMENTS:
-                # verbatim 内全是字面文本：直接找字面 \end{同名}，
-                # 忽略其中的转义/注释/定界符。找不到就当 rest 全是 verbatim。
-                close_marker = '\\end{' + begin_env + '}'
-                close_at = text.find(close_marker, pos)
-                if close_at == -1:
+                # verbatim 内全是字面文本：忽略其中的转义/注释/定界符。
+                next_pos = _skip_verbatim(text, pos, begin_env)
+                if next_pos is None:
                     break
-                pos = close_at + len(close_marker)
+                pos = next_pos
             elif _math_env_base(begin_env) in _MATH_ENVIRONMENTS and open_start is None:
                 open_start = match.start()
                 open_kind = 'display'

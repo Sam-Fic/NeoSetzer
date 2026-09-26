@@ -9,11 +9,47 @@ verbatim 跳过、嵌套环境、EOF 未闭合丢弃、offset 往返与二分查
 
 import unittest
 
-from setzer.document.math_preview.math_region_finder import (
+from setzer.document.snippet_preview.math_region_finder import (
     MathRegion,
     find_math_regions,
     find_region_at,
+    scan_verbatim_spans,
 )
+
+
+class ScanVerbatimSpansTest(unittest.TestCase):
+
+    def test_no_verbatim(self):
+        self.assertEqual(scan_verbatim_spans('\\begin{tikzpicture}x\\end{tikzpicture}'),
+                         [])
+
+    def test_span_covers_markers_themselves(self):
+        text = 'a\\begin{lstlisting}\ncode\n\\end{lstlisting}b'
+        start, end = scan_verbatim_spans(text)[0]
+        self.assertEqual(text[start:end],
+                         '\\begin{lstlisting}\ncode\n\\end{lstlisting}')
+
+    def test_multiple_spans_are_ordered(self):
+        text = ('\\begin{verbatim}x\\end{verbatim} mid '
+                '\\begin{minted}y\\end{minted}')
+        spans = scan_verbatim_spans(text)
+        self.assertEqual(len(spans), 2)
+        self.assertLess(spans[0][0], spans[1][0])
+        self.assertTrue(all(0 <= start < end <= len(text)
+                            for start, end in spans))
+
+    def test_starred_variant_is_matched(self):
+        text = '\\begin{verbatim*}x\\end{verbatim*}'
+        self.assertEqual(len(scan_verbatim_spans(text)), 1)
+
+    def test_unclosed_extends_to_end(self):
+        text = 'a\\begin{verbatim}never closed'
+        self.assertEqual(scan_verbatim_spans(text),
+                         [(text.index('\\begin{verbatim}'), len(text))])
+
+    def test_non_verbatim_environment_is_ignored(self):
+        text = '\\begin{equation}x\\end{equation}'
+        self.assertEqual(scan_verbatim_spans(text), [])
 
 
 class FindMathRegionsTest(unittest.TestCase):

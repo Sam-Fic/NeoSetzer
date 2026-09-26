@@ -24,7 +24,7 @@ from setzer.project.problem_center import ProjectProblem
 # 实现（math_region_finder 本身 gi-free）；模块不存在（如只检出本提交）
 # 则跳过注入，此时 parser 也不引用该名字。
 try:
-    from setzer.document.math_preview.math_region_finder import find_math_regions
+    from setzer.document.snippet_preview.math_region_finder import find_math_regions
 except ImportError:
     find_math_regions = None
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles

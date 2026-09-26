@@ -40,6 +40,8 @@ class DocumentSettings():
         'use_latexmk',
         'cleanup_build_files',
         'enable_synctex',
+        'tikz_live_preview',
+        'tikz_preview_delay',
     )
 
     def get_document_override(document, preference_key):

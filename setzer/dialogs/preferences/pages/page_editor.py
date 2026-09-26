@@ -117,6 +117,12 @@ class PageEditor(object):
         self.view.option_math_hover_preview.set_active(self.settings.get_value('preferences', 'math_hover_preview'))
         self.view.option_math_hover_preview.connect('notify::active', self.on_switch_toggled, 'math_hover_preview')
 
+        self.view.option_tikz_live_preview.set_active(self.settings.get_value('preferences', 'tikz_live_preview'))
+        self.view.option_tikz_live_preview.connect('notify::active', self.on_switch_toggled, 'tikz_live_preview')
+        self.view.tikz_preview_delay_row.set_value(self.settings.get_value('preferences', 'tikz_preview_delay'))
+        self.view.tikz_preview_delay_row.connect('notify::value', self.on_tikz_preview_delay_changed)
+        self._sync_tikz_preview_delay_sensitivity()
+
         self.view.option_sticky_scroll.set_active(self.settings.get_value('preferences', 'enable_sticky_scroll'))
         self.view.option_sticky_scroll.connect('notify::active', self.on_switch_toggled, 'enable_sticky_scroll')
 
@@ -366,6 +372,18 @@ class PageEditor(object):
         # 实时同步到预览 SourceView，让用户在偏好设置界面就能看到效果。
         if preference_name in ('show_line_endings', 'show_whitespace'):
             self._apply_preview_space_drawer()
+        elif preference_name == 'tikz_live_preview':
+            self._sync_tikz_preview_delay_sensitivity()
+
+    def on_tikz_preview_delay_changed(self, spin_row, pspec):
+        # 单位是秒（0.3–10.0，一位小数）：TikzPreview 侧按浮点读取。
+        self.settings.set_value('preferences', 'tikz_preview_delay',
+                                round(float(spin_row.get_property('value')), 2))
+
+    def _sync_tikz_preview_delay_sensitivity(self):
+        '''总开关关闭时延迟输入无意义：置灰，避免用户调一个不起作用的旋钮。'''
+        self.view.tikz_preview_delay_row.set_sensitive(
+            self.view.option_tikz_live_preview.get_active())
 
     def on_multicursor_master_toggled(self, expander, pspec):
         '''多光标总开关写回设置并联动子开关的可用状态。'''
@@ -641,6 +659,9 @@ class PageEditor(object):
                 self._spellchecking_language_index(defaults['spellchecking_language']))
         # chktex：开关直接写回（缺 chktex 时开关已置灰，无需特殊处理）。
         self.view.option_chktex.set_active(defaults['chktex_enabled'])
+        self.view.option_tikz_live_preview.set_active(defaults['tikz_live_preview'])
+        self.view.tikz_preview_delay_row.set_value(defaults['tikz_preview_delay'])
+        self._sync_tikz_preview_delay_sensitivity()
         self.view.option_auto_save_enabled.set_active(defaults['auto_save_enabled'])
         self.view.auto_save_delay_row.set_property('value', defaults['auto_save_delay'])
         self.view.option_auto_reload_on_external_change.set_active(
@@ -882,6 +903,33 @@ class PageEditorView(Adw.PreferencesPage):
             'configured LaTeX interpreter using this document\'s preamble '
             'and results are cached.'))
         group_math_preview.add(self.option_math_hover_preview)
+
+        # 图形预览：TikZ 实时预览与它自己的编译延迟。与上面的「数学预览」
+        # 分开成组——一个是悬停浮窗、一个是侧栏常驻视图，触发与宿主都不同。
+        group_figure_preview = Adw.PreferencesGroup()
+        group_figure_preview.set_title(_('Figure Preview'))
+        self.add(group_figure_preview)
+
+        self.option_tikz_live_preview = Adw.SwitchRow()
+        self.option_tikz_live_preview.set_title(_('Live TikZ Preview'))
+        self.option_tikz_live_preview.set_subtitle(_('Render the tikzpicture under the cursor in the preview sidebar.'))
+        self.option_tikz_live_preview.set_tooltip_text(_(
+            'When the cursor is inside a tikzpicture and you stop typing, the '
+            'figure is compiled with the root document\'s preamble and shown in '
+            'the preview sidebar. The sidebar\'s file icon switches to this '
+            'mode; results are cached, so repeated edits are fast.'))
+        group_figure_preview.add(self.option_tikz_live_preview)
+
+        self.tikz_preview_delay_row = Adw.SpinRow()
+        self.tikz_preview_delay_row.set_title(_('Delay Before Compiling (seconds)'))
+        self.tikz_preview_delay_row.set_subtitle(_('Wait time after the last keystroke.'))
+        self.tikz_preview_delay_row.set_tooltip_text(_(
+            'How long to wait after the last keystroke before compiling the '
+            'figure. Values below three tenths of a second are clamped.'))
+        adjustment_tikz_delay = Gtk.Adjustment(value=0.6, lower=0.3, upper=10.0, step_increment=0.1)
+        self.tikz_preview_delay_row.set_adjustment(adjustment_tikz_delay)
+        self.tikz_preview_delay_row.set_digits(1)
+        group_figure_preview.add(self.tikz_preview_delay_row)
 
         group_highlighting = Adw.PreferencesGroup()
         group_highlighting.set_title(_('Highlighting'))

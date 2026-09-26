@@ -186,6 +186,14 @@ class Actions(object):
         self.main_window.add_action(recolor_action)
         self.actions['preview-recolor'] = recolor_action
 
+        # 预览栏两档（整篇 PDF / TikZ 片段图）。state 由 PreviewPanelPresenter
+        # 依实际模式同步，命令面板据此显示条目；刻意不绑默认快捷键。
+        snippet_mode_action = Gio.SimpleAction.new_stateful(
+            'toggle-preview-snippet-mode', None, GLib.Variant.new_boolean(False))
+        snippet_mode_action.connect('activate', self.toggle_preview_snippet_mode)
+        self.main_window.add_action(snippet_mode_action)
+        self.actions['toggle-preview-snippet-mode'] = snippet_mode_action
+
         self.add_action('show-preferences-dialog', self.show_preferences_dialog)
         self.add_action('show-document-properties', self.show_document_properties)
         self.add_action('show-shortcuts-dialog', self.show_shortcuts_dialog)
@@ -371,22 +379,27 @@ class Actions(object):
         # Preview context menu: sync recolor state and enable/disable.
         preview = getattr(document, 'preview', None) if document_active else None
         has_pdf = document_active and preview is not None and preview.pdf_filename is not None
-        self.actions['preview-rotate-cw'].set_enabled(has_pdf)
-        self.actions['preview-rotate-ccw'].set_enabled(has_pdf)
-        self.actions['preview-search-pdf'].set_enabled(has_pdf)
-        self.actions['preview-show-source'].set_enabled(document_active)
-        self.actions['preview-copy-text'].set_enabled(has_pdf)
-        self.actions['preview-copy-image'].set_enabled(has_pdf)
-        self.actions['preview-save-image'].set_enabled(has_pdf)
-        self.actions['preview-open-link'].set_enabled(has_pdf)
-        self.actions['preview-copy-link'].set_enabled(has_pdf)
+        # 片段模式下预览栏展示的是 tikzpicture 贴图而非 PDF：PDF 专属动作一律
+        # 禁用，命令面板里自然显示为不可用。
+        pdf_actions_enabled = has_pdf and self._preview_shows_pdf()
+        self.actions['preview-rotate-cw'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-rotate-ccw'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-search-pdf'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-show-source'].set_enabled(document_active and self._preview_shows_pdf())
+        self.actions['preview-copy-text'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-copy-image'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-save-image'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-open-link'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-copy-link'].set_enabled(pdf_actions_enabled)
         if preview is not None:
             self.actions['preview-recolor'].set_state(
                 GLib.Variant.new_boolean(preview.recolor_pdf))
-        self.actions['preview-recolor'].set_enabled(has_pdf)
-        self.actions['preview-zoom-in'].set_enabled(has_pdf)
-        self.actions['preview-zoom-out'].set_enabled(has_pdf)
-        self.actions['preview-print'].set_enabled(has_pdf)
+        self.actions['preview-recolor'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-zoom-in'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-zoom-out'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-print'].set_enabled(pdf_actions_enabled)
+        self.actions['preview-fit-mode'].set_enabled(self._preview_shows_pdf())
+        self.actions['preview-set-zoom-level'].set_enabled(self._preview_shows_pdf())
 
         # 每文档 LaTeX 解释器覆盖：活动文档为 LaTeX 时启用并反映当前选择。
         if document_active_is_latex:
@@ -1494,6 +1507,19 @@ class Actions(object):
             zoom_manager.set_zoom_fit_to_height()
 
     # --- Preview context menu actions -----------------------------------------
+
+    def _preview_shows_pdf(self):
+        '''预览栏当前是否展示整篇 PDF（片段模式下 PDF 专属 action 全部禁用）。'''
+        panel = getattr(self.main_window, 'preview_panel', None)
+        presenter = getattr(panel, 'presenter', None)
+        return presenter is None or presenter.get_mode() == 'pdf'
+
+    def toggle_preview_snippet_mode(self, action=None, parameter=None):
+        '''预览栏在整篇 PDF / TikZ 片段图之间切换（模式状态归 presenter）。'''
+        panel = getattr(self.main_window, 'preview_panel', None)
+        presenter = getattr(panel, 'presenter', None)
+        if presenter is not None:
+            presenter.toggle_mode()
 
     def _get_preview(self):
         '''Return the active document's preview, or None.'''

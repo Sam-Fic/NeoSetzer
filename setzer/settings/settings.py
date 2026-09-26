@@ -182,6 +182,12 @@ class Settings(Observable):
         # 与 use_magnifier 同例；修饰键/拖选/补全窗口期间不触发，可在
         # Editor 偏好中关闭。
         self.defaults['preferences']['math_hover_preview'] = True
+        # TikZ 片段实时预览：光标停在 tikzpicture 内、停止输入后把这一段
+        # 连同 root preamble 单独编译并渲染到右侧预览栏。默认**关闭**：
+        # 重 preamble 项目的单次编译可达数秒，应由用户主动开启（Editor
+        # 偏好页）。tikz_preview_delay 是停止输入到发起编译的等待秒数。
+        self.defaults['preferences']['tikz_live_preview'] = False
+        self.defaults['preferences']['tikz_preview_delay'] = 0.6
         self.defaults['preferences']['spaces_instead_of_tabs'] = True
         self.defaults['preferences']['tab_width'] = 4
         # 撤销栈深度上限（GtkSource.Buffer 的 max-undo-levels）。0 = 不限。

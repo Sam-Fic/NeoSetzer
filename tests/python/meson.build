@@ -84,6 +84,9 @@ foreach t : [
   ['test_snippet_wrapper', 'test_snippet_wrapper.py'],
   ['test_math_preview_cache', 'test_math_preview_cache.py'],
   ['test_math_preview_compiler', 'test_math_preview_compiler.py'],
+  ['test_tikz_region_finder', 'test_tikz_region_finder.py'],
+  ['test_root_context', 'test_root_context.py'],
+  ['test_snippet_retry_policy', 'test_snippet_retry_policy.py'],
 ]
   test(
     t[0],

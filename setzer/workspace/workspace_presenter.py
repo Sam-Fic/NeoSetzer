@@ -428,6 +428,14 @@ class WorkspacePresenter(object):
         if build_log.is_open and build_log.view.presenter is not None:
             build_log.view.presenter.populate()
 
+    def _preview_panel_shows_snippet(self):
+        '''侧栏是否正展示 TikZ 片段图。片段内容与「是否编译过 PDF」无关，
+        故「未编译过就自动收起预览栏」的规则不适用——否则用户在片段模式
+        下切文档/停手编译时，正在出图的侧栏会被这条 PDF 规则收起。'''
+        panel = getattr(self.main_window, 'preview_panel', None)
+        presenter = getattr(panel, 'presenter', None)
+        return presenter is not None and presenter.get_mode() == 'snippet'
+
     def update_preview_help_visibility(self, animate=True, suppress_unbuilt=True):
         show_preview = self.workspace.show_preview
         show_help = self.workspace.show_help
@@ -446,7 +454,8 @@ class WorkspacePresenter(object):
             # （on_build_state 在编译成功后回调本方法重新评估）。
             # 用户手动点预览按钮时传 suppress_unbuilt=False，始终展开（显示占位提示
             # 用户去编译）。help 侧栏与编译无关，始终尊重用户设置，不受此抑制影响。
-            if suppress_unbuilt and preview_help_visible and show_preview and not show_help:
+            if (suppress_unbuilt and preview_help_visible and show_preview
+                    and not show_help and not self._preview_panel_shows_snippet()):
                 # target_doc 可能是未挂接工具链的根文档（会话恢复后从未激活）：
                 # 无 build_system / preview 视同「从未编译且无 PDF」，抑制自动展开。
                 doc_build_system = getattr(target_doc, 'build_system', None)

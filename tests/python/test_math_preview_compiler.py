@@ -4,18 +4,56 @@
 # Copyright (C) 2026-present Sam-Fic
 # GPL-3.0-or-later
 
-'''math_preview_compiler 的纯逻辑测试：命令构造 + 注入 runner 的编译路径。'''
+'''snippet_compiler 的纯逻辑测试：命令构造 + 注入 runner 的编译路径 +
+失败原因提取。'''
 
 import os
 import subprocess
 import tempfile
 import unittest
 
-from setzer.document.math_preview.math_preview_compiler import (
+from setzer.document.snippet_preview.snippet_compiler import (
     build_compile_command,
     compile_snippet,
+    extract_failure_reason,
 )
-from setzer.document.math_preview.math_preview_cache import MathPreviewCache
+from setzer.document.snippet_preview.snippet_cache import SnippetCache
+
+
+class ExtractFailureReasonTest(unittest.TestCase):
+
+    def test_latex_error_line(self):
+        output = (
+            'This is pdfTeX, Version 3.141592653\n'
+            '(./snippet.tex\n'
+            "! LaTeX Error: File `microtype.sty' not found.\n"
+            'Type  X to quit or <RETURN> to proceed,\n'
+        )
+        self.assertEqual(extract_failure_reason(output),
+                         "LaTeX Error: File `microtype.sty' not found.")
+
+    def test_package_error_line(self):
+        output = "! Package pgf Error: No shape named `A' is known.\n"
+        self.assertEqual(extract_failure_reason(output),
+                         "Package pgf Error: No shape named `A' is known.")
+
+    def test_first_error_wins(self):
+        output = '! Undefined control sequence.\n! Emergency stop.\n'
+        self.assertEqual(extract_failure_reason(output),
+                         'Undefined control sequence.')
+
+    def test_engine_without_bang_marker(self):
+        self.assertEqual(extract_failure_reason('error: could not fetch bundle'),
+                         'error: could not fetch bundle')
+
+    def test_unrecognized_output_returns_empty(self):
+        self.assertEqual(extract_failure_reason('This is pdfTeX\n(./x.tex)'), '')
+        self.assertEqual(extract_failure_reason(''), '')
+        self.assertEqual(extract_failure_reason(None), '')
+
+    def test_bang_inside_a_line_is_not_an_error_block(self):
+        # 只认行首的 ``!``：正文里出现的 ! 不是错误块。
+        self.assertEqual(extract_failure_reason('see this ! note'), '')
 
 
 class BuildCompileCommandTest(unittest.TestCase):
@@ -47,7 +85,7 @@ class CompileSnippetTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.work_dir = os.path.join(self.tmp.name, 'work')
-        self.cache = MathPreviewCache(os.path.join(self.tmp.name, 'cache'))
+        self.cache = SnippetCache(os.path.join(self.tmp.name, 'cache'))
 
     def _fake_runner(self, writes_pdf=True, returncode=0):
         calls = []
@@ -82,6 +120,36 @@ class CompileSnippetTest(unittest.TestCase):
             'broken', 'xelatex', self.work_dir, self.cache, 'key2', runner=runner)
         self.assertIsNone(result)
         self.assertFalse(self.cache.has_pdf('key2'))
+
+    def test_failure_reason_is_reported(self):
+        def runner(cmd, cwd, timeout):
+            return subprocess.CompletedProcess(
+                cmd, 1, stdout="! LaTeX Error: File `microtype.sty' not found.\n")
+        diagnostics = dict()
+        result = compile_snippet(
+            'broken', 'xelatex', self.work_dir, self.cache, 'key6',
+            runner=runner, diagnostics=diagnostics)
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics['reason'],
+                         "LaTeX Error: File `microtype.sty' not found.")
+
+    def test_reason_stays_untouched_on_success(self):
+        diagnostics = dict()
+        result = compile_snippet(
+            '$x$', 'xelatex', self.work_dir, self.cache, 'key7',
+            runner=self._fake_runner(), diagnostics=diagnostics)
+        self.assertIsNotNone(result)
+        self.assertNotIn('reason', diagnostics)
+
+    def test_timeout_reason_is_reported(self):
+        def slow_runner(cmd, cwd, timeout):
+            raise subprocess.TimeoutExpired(cmd, timeout)
+        diagnostics = dict()
+        result = compile_snippet(
+            '$x$', 'xelatex', self.work_dir, self.cache, 'key8',
+            runner=slow_runner, diagnostics=diagnostics)
+        self.assertIsNone(result)
+        self.assertTrue(diagnostics['reason'])
 
     def test_timeout_returns_none(self):
         def slow_runner(cmd, cwd, timeout):

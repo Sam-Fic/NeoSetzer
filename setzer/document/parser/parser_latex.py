@@ -23,7 +23,7 @@ import bisect
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
 from setzer.helpers.timer import timer
-from setzer.document.math_preview.math_region_finder import find_math_regions
+from setzer.document.snippet_preview.math_region_finder import find_math_regions
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 from setzer.document.parser.latex_braces import scan_balanced_braced_argument
 from setzer.document.parser.structure_numbering import (
@@ -93,7 +93,7 @@ class ParserLaTeX(Observable):
         self.symbols['blocks'] = list()
         # 数学区域（$..$ / \(..\) / $$..$$ / \[..\] / equation|align|... 环境，
         # 含定界符本身），供公式 hover 预览按 offset 查询。见
-        # setzer/document/math_preview/math_region_finder.py。
+        # setzer/document/snippet_preview/math_region_finder.py。
         self.symbols['math_regions'] = list()
         # 以结构 block 的起始 offset 为键，保存不改变既有 block list 索引的
         # 章节编号/星号元数据。侧栏、折叠和导航仍可使用旧 block 形状。

@@ -1,4 +1,4 @@
-# generated on Sat Sep 26 01:44:59 PM UTC 2026
+# generated on Sat Sep 26 03:02:06 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -160,6 +160,9 @@
 ./setzer/document/build_widget/build_widget.py
 ./setzer/document/build_widget/build_widget_viewgtk.py
 ./setzer/document/build_widget/__init__.py
+./setzer/document/chktex/chktex_parser.py
+./setzer/document/chktex/chktex.py
+./setzer/document/chktex/__init__.py
 ./setzer/document/code_folding/code_folding.py
 ./setzer/document/code_folding/__init__.py
 ./setzer/document/document_controller.py
@@ -171,13 +174,6 @@
 ./setzer/document/__init__.py
 ./setzer/document/label_check.py
 ./setzer/document/magic_comments.py
-./setzer/document/math_preview/__init__.py
-./setzer/document/math_preview/math_preview_cache.py
-./setzer/document/math_preview/math_preview_compiler.py
-./setzer/document/math_preview/math_preview_popover.py
-./setzer/document/math_preview/math_preview.py
-./setzer/document/math_preview/math_region_finder.py
-./setzer/document/math_preview/snippet_wrapper.py
 ./setzer/document/multicursor/__init__.py
 ./setzer/document/multicursor/multicursor.py
 ./setzer/document/parser/beamer_frames.py
@@ -207,6 +203,19 @@
 ./setzer/document/search/search_viewgtk.py
 ./setzer/document/smart_list.py
 ./setzer/document/smart_typing.py
+./setzer/document/snippet_preview/__init__.py
+./setzer/document/snippet_preview/math_preview_popover.py
+./setzer/document/snippet_preview/math_preview.py
+./setzer/document/snippet_preview/math_region_finder.py
+./setzer/document/snippet_preview/render.py
+./setzer/document/snippet_preview/retry_policy.py
+./setzer/document/snippet_preview/root_context.py
+./setzer/document/snippet_preview/snippet_cache.py
+./setzer/document/snippet_preview/snippet_compiler.py
+./setzer/document/snippet_preview/snippet_engine.py
+./setzer/document/snippet_preview/snippet_wrapper.py
+./setzer/document/snippet_preview/tikz_preview.py
+./setzer/document/snippet_preview/tikz_region_finder.py
 ./setzer/document/spellchecking/__init__.py
 ./setzer/document/spellchecking/spellchecking.py
 ./setzer/document/statusbar/__init__.py
@@ -324,6 +333,7 @@
 ./setzer/workspace/preview_panel/preview_panel_presenter.py
 ./setzer/workspace/preview_panel/preview_panel.py
 ./setzer/workspace/preview_panel/preview_panel_viewgtk.py
+./setzer/workspace/preview_panel/snippet_preview_view.py
 ./setzer/workspace/shortcutsbar/__init__.py
 ./setzer/workspace/shortcutsbar/shortcutsbar.py
 ./setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py

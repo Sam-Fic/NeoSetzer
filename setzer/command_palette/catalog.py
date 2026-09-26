@@ -131,6 +131,7 @@ COMMANDS: tuple[CommandDescriptor, ...] = (
     CommandDescriptor('preview-source', _('Show Source from PDF'), _('Preview'), 'preview-show-source', ('synctex', 'pdf', 'source')),
     CommandDescriptor('preview-zoom-in', _('Zoom In PDF'), _('Preview'), 'preview-zoom-in', ('pdf', 'increase')),
     CommandDescriptor('preview-zoom-out', _('Zoom Out PDF'), _('Preview'), 'preview-zoom-out', ('pdf', 'decrease')),
+    CommandDescriptor('toggle-snippet-preview', _('TikZ Preview'), _('Preview'), 'toggle-preview-snippet-mode', ('tikz', 'picture', 'snippet', 'preview')),
     CommandDescriptor('preferences', _('Preferences'), _('Application'), 'show-preferences-dialog', ('settings', 'options'), 'show_preferences_dialog'),
     CommandDescriptor('document-properties', _('Document Properties'), _('Application'), 'show-document-properties', ('settings', 'document')),
     CommandDescriptor('keyboard-shortcuts', _('Keyboard Shortcuts'), _('Application'), 'show-shortcuts-dialog', ('shortcuts', 'help'), 'show_shortcuts'),

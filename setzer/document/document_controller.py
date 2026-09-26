@@ -26,8 +26,8 @@ from gi.repository import Gdk, GLib, Gtk, GObject, Pango, Adw
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
-from setzer.document.math_preview import math_preview
-from setzer.document.math_preview.math_preview_popover import MathPreviewPopover
+from setzer.document.snippet_preview import math_preview
+from setzer.document.snippet_preview.math_preview_popover import MathPreviewPopover
 from setzer.settings.document_settings import DocumentSettings
 from setzer.document.smart_list import (
     SmartListNewlineKind,

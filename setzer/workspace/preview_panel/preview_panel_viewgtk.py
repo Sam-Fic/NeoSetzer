@@ -18,9 +18,11 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+gi.require_version('Adw', '1')
+from gi.repository import Adw, Gtk
 
 from setzer.popovers.popover_manager import PopoverManager
+import setzer.workspace.preview_panel.snippet_preview_view as snippet_preview_view
 
 
 class PreviewPanelView(Gtk.Box):
@@ -57,6 +59,20 @@ class PreviewPanelView(Gtk.Box):
         self.switch_button.set_can_focus(False)
         self.switch_button.set_tooltip_text(_('Switch to Help'))
         self.switch_button.add_css_class('flat')
+
+        # 模式切换（整篇 PDF / 片段图）：Adw.ToggleGroup 分段控件（libadwaita
+        # 的 toggle group，图标档）。两档纯图标、无文字，tooltip 兼作无障碍名。
+        # presenter 按 active 索引裁决模式，并保证恒有一档亮着。
+        self.mode_switch = Adw.ToggleGroup()
+        self.mode_switch.set_valign(Gtk.Align.CENTER)
+        self.mode_switch.add(Adw.Toggle(
+            name='pdf', icon_name='view-paged-symbolic',
+            tooltip=_('Full PDF preview')))
+        self.mode_switch.add(Adw.Toggle(
+            name='snippet', icon_name='image-x-generic-symbolic',
+            tooltip=_('TikZ snippet preview')))
+        self.mode_switch.set_active(0)
+        self.toolbar.prepend(self.mode_switch)
 
         # 页码指示器（可输入跳转）— SpinButton + "of N" 标签
         self.page_spin = Gtk.SpinButton()
@@ -167,6 +183,11 @@ class PreviewPanelView(Gtk.Box):
         self.stack.set_overflow(Gtk.Overflow.HIDDEN)
         self.empty_placeholder = Gtk.Box()
         self.stack.add_named(self.empty_placeholder, 'empty')
+
+        # 片段图视图：全应用共享一个（与每文档一份的 PDF 视图不同），
+        # 只有当前可见文档驱动它——后台标签页不编译。
+        self.snippet_view = snippet_preview_view.SnippetPreviewView()
+        self.stack.add_named(self.snippet_view, 'snippet')
 
         self.append(self.stack)
 

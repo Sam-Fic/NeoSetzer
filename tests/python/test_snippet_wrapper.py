@@ -8,7 +8,8 @@
 
 import unittest
 
-from setzer.document.math_preview.snippet_wrapper import (
+from setzer.document.snippet_preview.snippet_wrapper import (
+    build_figure_document,
     build_snippet_document,
     cache_key,
     find_begin_document_offset,
@@ -75,6 +76,77 @@ class BuildSnippetDocumentTest(unittest.TestCase):
         self.assertTrue(wrapped.endswith('$x$\n\\end{document}\n'))
 
 
+class BuildFigureDocumentTest(unittest.TestCase):
+
+    FIGURE = '\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}'
+
+    ROOT_TEX = (
+        '\\documentclass{article}\n'
+        '\\usepackage{tikz}\n'
+        '\\usetikzlibrary{arrows.meta}\n'
+        '\\begin{document}\n'
+        'body\n'
+        '\\end{document}\n'
+    )
+
+    def test_reuses_root_preamble(self):
+        wrapped = build_figure_document(self.FIGURE, self.ROOT_TEX)
+        self.assertTrue(wrapped.startswith(
+            '\\documentclass{article}\n\\usepackage{tikz}\n'
+            '\\usetikzlibrary{arrows.meta}\n\\begin{document}\n'))
+        self.assertNotIn('body', wrapped)
+        self.assertTrue(wrapped.endswith(
+            '\\noindent\n' + self.FIGURE + '\n\\end{document}\n'))
+
+    def test_minimal_fallback_only_knows_tikz(self):
+        # 无 preamble 可用时不猜库：漏猜与猜错同样是编译失败。
+        wrapped = build_figure_document(self.FIGURE, None)
+        self.assertTrue(wrapped.startswith(
+            '\\documentclass{article}\n\\usepackage{tikz}\n\\begin{document}\n'))
+        self.assertNotIn('amssymb', wrapped)
+        self.assertNotIn('\\usetikzlibrary', wrapped)
+
+    def test_root_without_begin_document_falls_back(self):
+        wrapped = build_figure_document(self.FIGURE, '\\usepackage{tikz}\n')
+        self.assertNotIn('\\usetikzlibrary', wrapped)
+        self.assertIn('\\documentclass{article}', wrapped)
+
+    def test_beamer_root_wraps_figure_in_frame(self):
+        # beamer body 里裸放 tikzpicture 时 \node[right=of A] 这类依赖自动
+        # 命名的写法直接报 No shape named 'A' 且无 PDF；包 frame 后通过。
+        root = ('\\documentclass[10pt]{beamer}\n'
+                '\\usepackage{tikz}\n'
+                '\\begin{document}\n\\end{document}\n')
+        wrapped = build_figure_document(self.FIGURE, root)
+        self.assertIn('\\begin{frame}\n' + self.FIGURE + '\n\\end{frame}\n', wrapped)
+        self.assertNotIn('\\noindent', wrapped)
+
+    def test_beamer_with_options_and_comma_list(self):
+        root = ('\\documentclass[aspectratio=169,11pt]{article,beamer}\n'
+                '\\begin{document}\n\\end{document}\n')
+        wrapped = build_figure_document(self.FIGURE, root)
+        self.assertIn('\\begin{frame}', wrapped)
+
+    def test_non_beamer_class_containing_word_is_not_beamer(self):
+        root = ('\\documentclass{beamerthemer}\n'
+                '\\begin{document}\n\\end{document}\n')
+        self.assertNotIn('\\begin{frame}', build_figure_document(self.FIGURE, root))
+
+    def test_empty_page_style_after_begin_document(self):
+        root = ('\\documentclass{article}\n\\pagestyle{plain}\n'
+                '\\begin{document}\n\\end{document}\n')
+        wrapped = build_figure_document(self.FIGURE, root)
+        head, sep, body = wrapped.partition('\\begin{document}\n')
+        self.assertTrue(sep)
+        self.assertNotIn('\\pagestyle{empty}', head)
+        self.assertTrue(body.startswith('\\pagestyle{empty}\n\\thispagestyle{empty}\n'))
+
+    def test_figure_raw_is_stripped(self):
+        wrapped = build_figure_document('  ' + self.FIGURE + '  \n', None)
+        self.assertTrue(wrapped.endswith(
+            '\\noindent\n' + self.FIGURE + '\n\\end{document}\n'))
+
+
 class CacheKeyTest(unittest.TestCase):
 
     def test_deterministic(self):
@@ -85,6 +157,18 @@ class CacheKeyTest(unittest.TestCase):
 
     def test_differs_by_content(self):
         self.assertNotEqual(cache_key('$x$', 'xelatex'), cache_key('$y$', 'xelatex'))
+
+    def test_cwd_participates_in_key(self):
+        # 片段里的 \includegraphics{figs/x.png} 相对 cwd 解析：两个项目
+        # preamble 与片段字节相同而仅图不同时，键必须区分开。
+        self.assertNotEqual(cache_key('abc', 'pdflatex', '/p/a'),
+                            cache_key('abc', 'pdflatex', '/p/b'))
+
+    def test_none_cwd_matches_legacy_key(self):
+        self.assertEqual(cache_key('abc', 'xelatex'),
+                         cache_key('abc', 'xelatex', None))
+        self.assertEqual(cache_key('abc', 'xelatex'),
+                         cache_key('abc', 'xelatex', ''))
 
     def test_format(self):
         key = cache_key('abc', 'xelatex')

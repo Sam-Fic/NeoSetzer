@@ -46,7 +46,9 @@ import setzer.document.begin_end_highlight.begin_end_highlight as begin_end_high
 import setzer.document.spellchecking.spellchecking as spellchecking
 import setzer.document.build_diagnostics.build_diagnostics as build_diagnostics
 import setzer.document.chktex.chktex as chktex_linter
-import setzer.document.math_preview.math_preview as math_preview
+import setzer.document.snippet_preview.math_preview as math_preview
+import setzer.document.snippet_preview.snippet_engine as snippet_engine
+import setzer.document.snippet_preview.tikz_preview as tikz_preview
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
@@ -125,11 +127,17 @@ class Document(Observable):
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
         self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
-        # 公式 hover 预览（仅 LaTeX）：连接 parser 的 math_regions 与 settings，
-        # 不构造 UI（弹窗由 controller 懒创建），同步构造开销可忽略。
+        # 片段预览（仅 LaTeX）：共用的编译引擎（临时目录 + 缓存 + 编译编排）
+        # 先建，公式 hover 与 TikZ 侧栏两个前端注入其中。不构造 UI（弹窗与
+        # 侧栏视图分别由 document_controller 与预览栏懒创建），同步构造
+        # 开销可忽略。
+        self.snippet_engine = None
         self.math_preview = None
+        self.tikz_preview = None
         if self.is_latex_document():
-            self.math_preview = math_preview.MathPreview(self)
+            self.snippet_engine = snippet_engine.SnippetEngine(self)
+            self.math_preview = math_preview.MathPreview(self, self.snippet_engine)
+            self.tikz_preview = tikz_preview.TikzPreview(self, self.snippet_engine)
         self.gutter = gutter.Gutter(self, self.view)
         self.search = search.Search(self, self.view)
         # 状态栏：每文档一个，嵌入 editor-card 底部。监听光标移动与设置变化
@@ -345,12 +353,27 @@ class Document(Observable):
             except Exception:
                 pass
 
-        # math_preview 连接了 settings 单例信号 + buffer changed 信号，持有
-        # 会话级临时目录，需断开、作废挂起请求并清理目录。LaTeX 专属。
+        # 片段预览前端连接了 settings 单例信号 + buffer changed 信号，需
+        # 断开并作废各自的挂起请求；共用的编译引擎最后关闭（删除会话级
+        # 临时目录）。LaTeX 专属。
         mp = getattr(self, 'math_preview', None)
         if mp is not None:
             try:
                 mp.shutdown()
+            except Exception:
+                pass
+
+        tp = getattr(self, 'tikz_preview', None)
+        if tp is not None:
+            try:
+                tp.shutdown()
+            except Exception:
+                pass
+
+        engine = getattr(self, 'snippet_engine', None)
+        if engine is not None:
+            try:
+                engine.shutdown()
             except Exception:
                 pass
 

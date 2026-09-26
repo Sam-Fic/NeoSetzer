@@ -47,14 +47,11 @@ class PreviewPanelController(object):
         self.workspace.pop_out_preview()
 
     def on_zoom_in_button_clicked(self, button):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document != None:
-            document.preview.zoom_manager.zoom_in()
+        # 片段模式下同一个 zoom+ 作用于片段图，路由在 presenter 里。
+        self.view.presenter.zoom_in()
 
     def on_zoom_out_button_clicked(self, button):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document != None:
-            document.preview.zoom_manager.zoom_out()
+        self.view.presenter.zoom_out()
 
     def on_external_viewer_button_clicked(self, button):
         document = self.workspace.get_root_or_active_latex_document()

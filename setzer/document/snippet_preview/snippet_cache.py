@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-'''公式预览缓存：内存 LRU + 磁盘 PDF 缓存（纯逻辑，无 gi 依赖）。
+'''snippet 预览缓存：内存 LRU + 磁盘 PDF 缓存（纯逻辑，无 gi 依赖）。
+
+公式 hover 预览与 TikZ 侧栏预览共用同一份缓存：键是包装后的完整文档
++ 引擎 + 编译工作目录的哈希，两侧天然不会串味。
 
 - 内存层：存放渲染完成的贴图对象（Gdk.Texture 等任意不可变对象，
   本模块不感知类型），标准 LRU 逐出，容量可注入。所有读写都发生在
@@ -32,7 +35,7 @@ import shutil
 from collections import OrderedDict
 
 
-class MathPreviewCache(object):
+class SnippetCache(object):
 
     def __init__(self, cache_dir, max_items=128, max_disk_files=500):
         self.cache_dir = cache_dir

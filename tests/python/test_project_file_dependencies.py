@@ -18,7 +18,7 @@ import unittest
 # math preview 是并发开发中的特性：parser 引用 find_math_regions 时注入
 # 真实实现；模块不存在（如只检出不含该特性的提交）则跳过注入。
 try:
-    from setzer.document.math_preview.math_region_finder import find_math_regions
+    from setzer.document.snippet_preview.math_region_finder import find_math_regions
 except ImportError:
     find_math_regions = None
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
