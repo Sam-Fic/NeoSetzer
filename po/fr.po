@@ -2,11 +2,11 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
 "POT-Creation-Date: 2026-09-26 22:23+0800\n"
-"PO-Revision-Date: 2026-08-24 09:12+0800\n"
-"Last-Translator: NeoSetzer French translation contributors\n"
-"Language-Team: French <LL@li.org>\n"
+"PO-Revision-Date: 2026-09-26 22:17+0800\n"
+"Last-Translator: Sam-Fic <https://github.com/Sam-Fic>\n"
+"Language-Team: French <https://github.com/Sam-Fic/NeoSetzer>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1069,9 +1069,15 @@ msgstr ""
 msgid "Fork maintainer"
 msgstr "Mainteneur du fork"
 
-#: setzer/dialogs/about/about.py:76
+#: setzer/dialogs/about/about.py:77
+msgid "Contributors"
+msgstr "Contributeurs"
+
+#: setzer/dialogs/about/about.py:95
 msgid "translator-credits"
-msgstr "Crédits des traducteurs"
+msgstr ""
+"Lyes Saadi <mail@lyes.eu>\n"
+"Sam-Fic <https://github.com/Sam-Fic>"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34
 #: setzer/popovers/shortcutsbar/document_menu.py:32
@@ -5089,7 +5095,7 @@ msgstr "Affiche un aperçu rendu de la formule sous le curseur de la souris."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:872
 msgid "Hover the mouse over a formula without holding any modifier key to see a rendered preview. The formula is compiled with the configured LaTeX interpreter using this document's preamble and results are cached."
-msgstr "Survolez une formule avec la souris sans maintenir de touche modificatricepour en voir un aperçu rendu. La formule est compilée avec l’interpréteurLaTeX configuré en utilisant le préambule de ce document ; les résultatssont mis en cache."
+msgstr "Survolez une formule avec la souris sans maintenir de touche modificatrice pour en voir un aperçu rendu. La formule est compilée avec l’interpréteur LaTeX configuré en utilisant le préambule de ce document ; les résultats sont mis en cache."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:879
 msgid "Highlighting"

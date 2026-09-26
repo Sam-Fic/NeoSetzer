@@ -72,5 +72,24 @@ class AboutDialog(object):
         # Fork maintainer: shown as a separate credits section with a clickable
         # GitHub link. Adw.AboutDialog auto-detects URLs in credit entries.
         self.view.add_credit_section(_('Fork maintainer'), ['Sam-Fic https://github.com/Sam-Fic'])
+        # Upstream contributors with code commits (translators are listed via
+        # translator-credits). Names follow their git author identity.
+        self.view.add_credit_section(_('Contributors'), [
+            'Stephan Lachnit <stephanlachnit@protonmail.com>',
+            'Óscar Fernández Díaz https://github.com/oscfdezdz',
+            'Evamvid Sharma <evamvid@gmail.com>',
+            'Lyes Saadi <mail@lyes.eu>',
+            'kinten108101 <kinten108101@protonmail.com>',
+            'Brage Fuglseth https://github.com/bragefuglseth',
+            'Sabri Ünal <yakushabb@gmail.com>',
+            'Andras Molnar <molnarandris@gmail.com>',
+            'André Apitzsch <git@apitzsch.eu>',
+            'Stéphane FEUGA OSHIMA <sfeuga@member.fsf.org>',
+            'marco https://github.com/marcoSchr',
+            'Michele <michele.mondelli@protonmail.com>',
+            'david https://github.com/spekulatiusmensch',
+            'Kieran Elmes <kieran.elmes@postgrad.otago.ac.nz>',
+            'Robert Schütz <dev@schuetz-co.de>',
+        ])
         # TRANSLATORS: 'Name <email@domain.com>' or 'Name https://website.example'
         self.view.set_translator_credits(_('translator-credits'))

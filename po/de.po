@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
 "POT-Creation-Date: 2026-09-26 22:23+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
@@ -1073,9 +1073,16 @@ msgstr ""
 msgid "Fork maintainer"
 msgstr "Fork-Betreuer"
 
-#: setzer/dialogs/about/about.py:76
+#: setzer/dialogs/about/about.py:77
+msgid "Contributors"
+msgstr "Mitwirkende"
+
+#: setzer/dialogs/about/about.py:95
 msgid "translator-credits"
-msgstr "Stephan Lachnit <stephanlachnit@protonmail.com>"
+msgstr ""
+"Stephan Lachnit <stephanlachnit@protonmail.com>\n"
+"Norwid Behrnd <nbehrnd@yahoo.com>\n"
+"Óscar Fernández Díaz <oscfdezdz@tuta.io>"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34
 #: setzer/popovers/shortcutsbar/document_menu.py:32
@@ -5094,7 +5101,7 @@ msgstr "Zeigt eine gerenderte Vorschau der Formel unter dem Mauszeiger an."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:872
 msgid "Hover the mouse over a formula without holding any modifier key to see a rendered preview. The formula is compiled with the configured LaTeX interpreter using this document's preamble and results are cached."
-msgstr "Zeigen Sie ohne gedrückte Modifikationstaste mit der Maus auf eine Formel,um eine gerenderte Vorschau zu sehen. Die Formel wird mit demkonfigurierten LaTeX-Interpreter unter Verwendung der Präambel diesesDokuments kompiliert; die Ergebnisse werden zwischengespeichert."
+msgstr "Zeigen Sie ohne gedrückte Modifikationstaste mit der Maus auf eine Formel, um eine gerenderte Vorschau zu sehen. Die Formel wird mit dem konfigurierten LaTeX-Interpreter unter Verwendung der Präambel dieses Dokuments kompiliert; die Ergebnisse werden zwischengespeichert."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:879
 msgid "Highlighting"

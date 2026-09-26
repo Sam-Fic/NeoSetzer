@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
 "POT-Creation-Date: 2026-09-26 22:23+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
@@ -1075,9 +1075,13 @@ msgstr ""
 msgid "Fork maintainer"
 msgstr "派生維護者"
 
-#: setzer/dialogs/about/about.py:76
+#: setzer/dialogs/about/about.py:77
+msgid "Contributors"
+msgstr "貢獻者"
+
+#: setzer/dialogs/about/about.py:95
 msgid "translator-credits"
-msgstr "繁體中文翻譯：NeoSetzer 貢獻者"
+msgstr "Sam-Fic <https://github.com/Sam-Fic>"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34
 #: setzer/popovers/shortcutsbar/document_menu.py:32

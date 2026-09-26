@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
 "POT-Creation-Date: 2026-09-26 22:23+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
@@ -1075,9 +1075,15 @@ msgstr ""
 msgid "Fork maintainer"
 msgstr "Mantenedor do fork"
 
-#: setzer/dialogs/about/about.py:76
+#: setzer/dialogs/about/about.py:77
+msgid "Contributors"
+msgstr "Colaboradores"
+
+#: setzer/dialogs/about/about.py:95
 msgid "translator-credits"
-msgstr "Carlos <carlos157oliveira@gmail.com>"
+msgstr ""
+"Carlos <carlos157oliveira@gmail.com>\n"
+"Óscar Fernández Díaz <oscfdezdz@tuta.io>"
 
 #: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34
 #: setzer/popovers/shortcutsbar/document_menu.py:32
@@ -5095,7 +5101,7 @@ msgstr "Mostra uma pré-visualização renderizada da fórmula sob o cursor do m
 
 #: setzer/dialogs/preferences/pages/page_editor.py:872
 msgid "Hover the mouse over a formula without holding any modifier key to see a rendered preview. The formula is compiled with the configured LaTeX interpreter using this document's preamble and results are cached."
-msgstr "Passe o mouse sobre uma fórmula sem manter nenhuma tecla modificadorapressionada para ver uma pré-visualização renderizada. A fórmula écompilada com o interpretador de LaTeX configurado usando o preâmbulodeste documento e os resultados são armazenados em cache."
+msgstr "Passe o mouse sobre uma fórmula sem manter nenhuma tecla modificadora pressionada para ver uma pré-visualização renderizada. A fórmula é compilada com o interpretador de LaTeX configurado usando o preâmbulo deste documento e os resultados são armazenados em cache."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:879
 msgid "Highlighting"
