@@ -9,4 +9,3 @@
 | [RELEASE.md](RELEASE.md) | 发版流程：版本号、CHANGELOG、tag、GitHub Release、CI 验证 |
 | [ui-guidelines.md](ui-guidelines.md) | UI 规范：弹窗组件、HeaderBar 按钮布局 |
 | [packaging/](packaging/) | 各平台打包说明（Debian / Windows / macOS） |
-| [known-issues/](known-issues/) | 已知未解决问题与交接记录 |

@@ -12,4 +12,3 @@
 | 构建系统配置（meson.build 结构） | [meson.build](meson.build) + [po/meson.build](po/meson.build) |
 | CI workflow（test / build-deb / build-windows / build-macos） | [.github/workflows/](.github/workflows/) |
 | 示例项目结构与 Magic Comment | [data/resources/example_project/README.md](data/resources/example_project/README.md) |
-| 已知未解决问题 | [docs/known-issues/](docs/known-issues/) |
