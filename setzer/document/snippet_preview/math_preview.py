@@ -34,6 +34,12 @@ from setzer.document.snippet_preview.snippet_wrapper import build_snippet_docume
 # 本前端在引擎里的取消作用域标识。
 TAG = 'math'
 
+# hover 贴图的渲染密度（px/pt）。显示端以 texture/2 呈现（见
+# math_preview_popover），故 4.0 密度 = 公式以文档字号的 2 倍大小弹出，
+# 且在 1x/2x 显示器上都有 ≥2 渲染像素/设备像素的清晰度余量。
+# TikZ 侧栏不传 density，仍走引擎默认 RENDER_DENSITY=2.0，互不影响。
+HOVER_RENDER_DENSITY = 4.0
+
 # 单个公式的源文本上限：超长环境（数百行的 align 块）编译慢、贴图巨大，
 # hover 预览价值低，直接跳过。
 _MAX_REGION_CHARS = 3000
@@ -74,7 +80,8 @@ class MathPreview(Observable):
         if region.end - region.start > _MAX_REGION_CHARS:
             return None
         wrapped = build_snippet_document(region.raw, self._get_document_text())
-        return self.engine.request(wrapped, callback=callback, tag=TAG)
+        return self.engine.request(wrapped, callback=callback, tag=TAG,
+                                   density=HOVER_RENDER_DENSITY)
 
     # ---------- 信号 ----------
 

@@ -457,7 +457,14 @@ class DocumentController(object):
         self._on_math_hover_motion(controller, x, y)
 
     def _on_math_hover_leave(self, controller):
-        # 离开编辑区：取消驻留计时并收起预览弹窗。
+        # 弹窗展开（或驻留已就绪）期间忽略 leave：弹窗紧邻公式，指针稍一
+        # 移动就会进入弹窗表面，编辑器收到的是合成 crossing 而非真正离开
+        # ——此时收起会立刻触发「重驻留 → 再弹出 → 再盖住」的闪烁循环。
+        # 真正的收起路径：指针移出弹窗表面（弹窗内容盒上的 motion leave），
+        # 或指针移到公式区域外的文本（motion 判定区域为 None）。
+        self._math_hover_cancel_timer()
+        if self._math_hover_region is not None:
+            return
         self._math_hover_popdown()
 
     def _on_math_hover_motion(self, controller, x, y):
@@ -474,7 +481,13 @@ class DocumentController(object):
             self._math_hover_popdown()
             return
         if self._math_hover_region is not None and region == self._math_hover_region:
-            return  # 同一区域驻留中：定时器继续，不重置
+            # 同一区域：弹窗已展开则保持不动（不重定位、不闪烁）；弹窗已因
+            # 指针移出弹窗表面而收起时，重新驻留计时以便再次弹出。
+            if (self._math_hover_timer_id is None
+                    and not self._math_hover_popover_is_open()):
+                self._math_hover_timer_id = GLib.timeout_add(
+                    math_preview.DWELL_MS, self._on_math_hover_dwell)
+            return
         # 换了区域：收起旧弹窗（若有），为新区域重新驻留计时。
         self._math_hover_popdown()
         self._math_hover_region = region
@@ -489,8 +502,8 @@ class DocumentController(object):
         if math_preview_module is None or region is None:
             return False
         popover = self._ensure_math_hover_popover()
-        x, y, line_height = self._math_hover_region_rect(region)
-        popover.show_loading_at(x, y, line_height)
+        x, y, width, height = self._math_hover_region_rect(region)
+        popover.show_loading_at(x, y, width, height)
         # request() 的回调一律异步（idle 回主线程），下面的赋值必然先于
         # 回调执行，_on_math_preview_result 的比对因此可靠。
         self._math_hover_request_id = math_preview_module.request(
@@ -513,15 +526,49 @@ class DocumentController(object):
             self._math_hover_popover = MathPreviewPopover(self.view.source_view)
         return self._math_hover_popover
 
+    def _math_hover_popover_is_open(self):
+        return self._math_hover_popover is not None and self._math_hover_popover.is_visible()
+
     def _math_hover_region_rect(self, region):
-        '''区域起点在 source_view 部件坐标系中的 (x, y, 行高)，用于弹窗定位。'''
+        '''公式区域在 source_view 部件坐标系中的可见包围盒 (x, y, w, h)。
+
+        弹窗锚定这个矩形（set_pointing_to）——GTK 只会把它摆在矩形上方或
+        下方、绝不覆盖它，因此弹窗永远不会压在公式代码上，也不会压在停在
+        公式内的指针上（后者正是闪烁的成因）。矩形裁剪到可见区：区域超出
+        视口的部分对摆放毫无意义，长公式（几十行 align）不必让 GTK 处理
+        巨型矩形。
+        '''
         buffer = self.document.source_buffer
-        iter_start = buffer.get_iter_at_offset(region.start)
-        location = self.view.source_view.get_iter_location(iter_start)
-        x, y = self.view.source_view.buffer_to_window_coords(
-            Gtk.TextWindowType.WIDGET, location.x, location.y)
-        line_height = location.height if location.height > 0 else 20
-        return x, y, line_height
+        view = self.view.source_view
+        start_iter = buffer.get_iter_at_offset(region.start)
+        end_iter = buffer.get_iter_at_offset(min(region.end, buffer.get_char_count()))
+        start_loc = view.get_iter_location(start_iter)
+        end_loc = view.get_iter_location(end_iter)
+        line_height = start_loc.height if start_loc.height > 0 else 20
+
+        y_top = start_loc.y
+        y_bottom = end_loc.y + end_loc.height
+        if y_bottom <= y_top:  # 异常几何（空迭代器矩形等）：退化为单行
+            y_bottom = y_top + line_height
+        # 裁剪到可见区（get_visible_rect 为 buffer 坐标）。
+        visible = view.get_visible_rect()
+        if visible.height > 0:
+            y_top = max(y_top, visible.y)
+            y_bottom = min(y_bottom, visible.y + visible.height)
+            if y_bottom - y_top < line_height:  # 交叠异常：退回起始行
+                y_top = start_loc.y
+                y_bottom = y_top + line_height
+
+        # 单行区域横向覆盖公式首尾（箭头指向公式附近）；多行区域从起始
+        # 字符起 1px 宽即可，纵向包络已表达「整个公式」。
+        if end_loc.y == start_loc.y:
+            x = start_loc.x
+            width = max(1, (end_loc.x + end_loc.width) - start_loc.x)
+        else:
+            x = start_loc.x
+            width = 1
+        x, y = view.buffer_to_window_coords(Gtk.TextWindowType.WIDGET, x, y_top)
+        return x, y, width, y_bottom - y_top
 
     def _on_column_drag_begin(self, controller, x, y):
         """Alt+Drag 开始：检测 Alt 修饰键，设置起始位置。

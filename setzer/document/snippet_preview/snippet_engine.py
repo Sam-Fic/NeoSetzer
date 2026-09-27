@@ -53,6 +53,7 @@ from setzer.document.snippet_preview.snippet_cache import SnippetCache
 from setzer.document.snippet_preview.snippet_compiler import compile_snippet
 from setzer.document.snippet_preview.snippet_wrapper import cache_key
 from setzer.document.snippet_preview.render import (
+    RENDER_DENSITY,
     render_pdf_to_pixbuf,
     texture_from_pixbuf,
 )
@@ -70,9 +71,9 @@ class SnippetEngine(object):
         # 文档目录的文件监视与重建逻辑（外部 PDF 监视等）。
         self._work_dir = tempfile.mkdtemp(prefix=work_prefix)
         self._lock = threading.Lock()
-        self._running_key = None     # 工作线程正在处理的 key
-        self._pending = None         # 至多一个待编译 (key, wrapped, cwd)
-        self._waiting = dict()       # request_id -> (key, tag, callback)，仅主线程
+        self._running_job = None     # 工作线程正在处理的 (key, density)
+        self._pending = None         # 至多一个待编译 (key, wrapped, cwd, density)
+        self._waiting = dict()       # request_id -> (key, density, tag, callback)，仅主线程
         self._next_request_id = 0
         # 本次投递的失败原因：仅 _deliver_pixbuf 调用回调期间非 None。
         self._delivery_failure_reason = None
@@ -95,7 +96,7 @@ class SnippetEngine(object):
 
     # ---------- 请求 ----------
 
-    def request(self, wrapped_text, cwd=None, callback=None, tag=None):
+    def request(self, wrapped_text, cwd=None, callback=None, tag=None, density=None):
         '''请求 wrapped_text 的贴图。
 
         callback(request_id, texture_or_None) 恰好调用一次，总是异步
@@ -105,19 +106,25 @@ class SnippetEngine(object):
 
         cwd 为编译子进程的工作目录（None = 临时工作目录）：多文件项目的
         \\includegraphics 相对路径需要 root 文件所在目录才能解析。
+
+        density 为渲染密度（px/pt，None = RENDER_DENSITY）。同一内容可以
+        以不同密度被两个前端请求：PDF 编译与磁盘缓存按内容共享，贴图按
+        (内容, 密度) 各自渲染与缓存（贴图缓存键 = key@密度×10）。
         '''
         engine = self.get_engine_name()
         if shutil.which(engine) is None:
             return None
+        if density is None:
+            density = RENDER_DENSITY
         key = cache_key(wrapped_text, engine, cwd)
         request_id = self._next_request_id
         self._next_request_id += 1
-        self._waiting[request_id] = (key, tag, callback)
-        texture = self.cache.get(key)
+        self._waiting[request_id] = (key, density, tag, callback)
+        texture = self.cache.get(self._texture_key(key, density))
         if texture is not None:
             GLib.idle_add(self._deliver_texture, request_id, texture)
         else:
-            self._schedule(key, wrapped_text, cwd, engine)
+            self._schedule(key, wrapped_text, cwd, engine, density)
         return request_id
 
     def cancel_waiting(self, tag=None):
@@ -131,41 +138,50 @@ class SnippetEngine(object):
             waiting = list(self._waiting.items())
         else:
             waiting = [(rid, entry) for rid, entry in self._waiting.items()
-                       if entry[1] == tag]
-        for rid, (_key, _tag, _callback) in waiting:
+                       if entry[2] == tag]
+        for rid, (_key, _density, _tag, _callback) in waiting:
             del self._waiting[rid]
-        for rid, (_key, _tag, callback) in waiting:
+        for rid, (_key, _density, _tag, callback) in waiting:
             callback(rid, None)
 
     # ---------- 编排 ----------
 
-    def _schedule(self, key, wrapped_text, cwd, engine):
+    @staticmethod
+    def _texture_key(key, density):
+        '''贴图内存缓存键：内容键 + 密度后缀。
+
+        PDF 磁盘缓存与内容键一一对应（编译与密度无关）；同一内容被不同
+        前端以不同密度请求时，贴图各自渲染、各自缓存。
+        '''
+        return '%s@%d' % (key, round(density * 10))
+
+    def _schedule(self, key, wrapped_text, cwd, engine, density):
         '''主线程：启动或排队一次编译（至多一个在飞 + 一个待办）。'''
         with self._lock:
-            if key == self._running_key:
+            if self._running_job == (key, density):
                 return  # 已在上：本请求挂表等待其结果
             if self._pending is not None:
-                if self._pending[0] == key:
+                if self._pending[0] == key and self._pending[3] == density:
                     return  # 已排队：同上
                 # 让位给更新的请求：被顶掉的 key 以 None 收尾（回调契约
                 # 「恰好一次」），再由本次请求占据待办槽。
-                evicted_key = self._pending[0]
-                self._pending = (key, wrapped_text, cwd)
-                GLib.idle_add(self._deliver_pixbuf, evicted_key, None)
+                evicted_key, evicted_density = self._pending[0], self._pending[3]
+                self._pending = (key, wrapped_text, cwd, density)
+                GLib.idle_add(self._deliver_pixbuf, evicted_key, evicted_density, None)
                 return
-            if self._running_key is not None:
-                self._pending = (key, wrapped_text, cwd)
+            if self._running_job is not None:
+                self._pending = (key, wrapped_text, cwd, density)
                 return
-            self._running_key = key
-        self._start_worker(key, wrapped_text, cwd, engine)
+            self._running_job = (key, density)
+        self._start_worker(key, wrapped_text, cwd, engine, density)
 
-    def _start_worker(self, key, wrapped_text, cwd, engine):
+    def _start_worker(self, key, wrapped_text, cwd, engine, density):
         thread = threading.Thread(
             target=self._compile_worker,
-            args=(key, wrapped_text, cwd, engine), daemon=True)
+            args=(key, wrapped_text, cwd, engine, density), daemon=True)
         thread.start()
 
-    def _compile_worker(self, key, wrapped_text, cwd, engine):
+    def _compile_worker(self, key, wrapped_text, cwd, engine, density):
         '''工作线程：编译 + 渲染，然后接续待办槽里的下一个请求。
 
         异常不允许逃逸（会静默挂掉线程）：任何失败都降级为「不可预览」。
@@ -183,23 +199,24 @@ class SnippetEngine(object):
                 else:
                     pdf_path = self.cache.pdf_path(key)
                 if pdf_path is not None:
-                    pixbuf = render_pdf_to_pixbuf(pdf_path)
+                    pixbuf = render_pdf_to_pixbuf(pdf_path, density=density)
             except Exception:
                 pixbuf = None
-            GLib.idle_add(self._deliver_pixbuf, key, pixbuf, reason)
+            GLib.idle_add(self._deliver_pixbuf, key, density, pixbuf, reason)
 
             with self._lock:
                 if self._pending is None:
-                    self._running_key = None
+                    self._running_job = None
                     return
-                key, wrapped_text, cwd = self._pending
+                key, wrapped_text, cwd, density = self._pending
                 self._pending = None
-                self._running_key = key
+                self._running_job = (key, density)
 
     # ---------- 主线程交付 ----------
 
-    def _deliver_pixbuf(self, key, pixbuf, reason=''):
-        '''主线程：Pixbuf → Texture，入缓存，分发给所有等待该 key 的请求。
+    def _deliver_pixbuf(self, key, density, pixbuf, reason=''):
+        '''主线程：Pixbuf → Texture，入缓存，分发给所有等待该 (key, 密度)
+        的请求。
 
         reason 仅在**本次**回调期间经 get_delivery_failure_reason() 可读，
         循环结束即清空：它对取消/顶掉的投递恒为空串，调用方据此区分
@@ -207,14 +224,14 @@ class SnippetEngine(object):
         '''
         texture = texture_from_pixbuf(pixbuf)
         if texture is not None:
-            self.cache.put(key, texture)
+            self.cache.put(self._texture_key(key, density), texture)
         waiting = [(rid, entry) for rid, entry in self._waiting.items()
-                   if entry[0] == key]
+                   if entry[0] == key and entry[1] == density]
         for rid, _entry in waiting:
             del self._waiting[rid]
         self._delivery_failure_reason = reason if texture is None else ''
         try:
-            for rid, (_key, _tag, callback) in waiting:
+            for rid, (_key, _density, _tag, callback) in waiting:
                 callback(rid, texture)
         finally:
             self._delivery_failure_reason = None
@@ -224,7 +241,7 @@ class SnippetEngine(object):
         '''主线程：内存缓存命中的直接交付路径。'''
         entry = self._waiting.pop(request_id, None)
         if entry is not None:
-            _key, _tag, callback = entry
+            _key, _density, _tag, callback = entry
             callback(request_id, texture)
         return False
 
