@@ -36,6 +36,23 @@ class FileChooserButton(Gtk.Button):
     }
 
 
+# 样式档位表：(传给 LaTeX \\bibliographystyle 的名字, 界面标签)。
+# 控制器的 self.styles / self.natbib_styles 由这里派生，避免两处漂移。
+STYLE_OPTIONS = (
+    ('plain', 'Plain'),
+    ('abbrv', 'Abbrv'),
+    ('alpha', 'Alpha'),
+    ('apalike', 'Apalike'),
+    ('ieeetr', 'iEEEtr'),
+)
+NATBIB_STYLE_OPTIONS = (
+    ('plainnat', 'Plainnat'),
+    ('abbrvnat', 'Abbrvnat'),
+    ('unsrtnat', 'Unsrtnat'),
+    ('achemso', 'Achemso'),
+)
+
+
 class IncludeBibTeXFileView(DialogView):
 
     def __init__(self, main_window):
@@ -100,31 +117,24 @@ class IncludeBibTeXFileView(DialogView):
         self.main_window_ref = self.main_window
         self.filename = None
 
-        self.style_group = Adw.PreferencesGroup()
-        self.style_group.set_title(_('Standard Styles'))
-        self.style_row = Adw.ComboRow()
-        self.style_row.set_title(_('Bibliography style'))
-        self.style_row.set_model(Gtk.StringList.new([
-            _('Plain'),
-            _('Abbrv'),
-            _('Alpha'),
-            _('Apalike'),
-            _('iEEEtr'),
-        ]))
-        self.style_group.add(self.style_row)
+        # 样式选择用 Adw.ToggleGroup 分段控件（libadwaita 的「Group with
+        # Labels」）：档位全部平铺可见、单击即达，符合 HIG 对「少量互斥选项」
+        # 的建议，比 Adw.ComboRow 少一次展开。
+        #
+        # 这里刻意不把 ToggleGroup 放进 Adw.ActionRow / boxed-list 卡片：
+        # ToggleGroup 自带圆角背景，再套一层卡片就成了「框里再套一个框」。
+        # 直接把 ToggleGroup 作为 PreferencesGroup 的子级即可——按 GIR 文档，
+        # 非 Adw.PreferencesRow 的子级会被放到列表下方（不套卡片），
+        # 于是只保留 PreferencesGroup 的段落标题（heading h4，和上方「Bibliography」
+        # 卡片标题同款），分段控件只留自己那一层背景。
+        self.style_group = Adw.PreferencesGroup(title=_('Standard Styles'))
+        self.style_toggle_group = self._make_style_toggle_group(STYLE_OPTIONS)
+        self.style_group.add(self.style_toggle_group)
         self.content.append(self.style_group)
 
-        self.natbib_style_group = Adw.PreferencesGroup()
-        self.natbib_style_group.set_title(_('Natbib Styles'))
-        self.natbib_style_row = Adw.ComboRow()
-        self.natbib_style_row.set_title(_('Bibliography style'))
-        self.natbib_style_row.set_model(Gtk.StringList.new([
-            _('Plainnat'),
-            _('Abbrvnat'),
-            _('Unsrtnat'),
-            _('Achemso'),
-        ]))
-        self.natbib_style_group.add(self.natbib_style_row)
+        self.natbib_style_group = Adw.PreferencesGroup(title=_('Natbib Styles'))
+        self.natbib_toggle_group = self._make_style_toggle_group(NATBIB_STYLE_OPTIONS)
+        self.natbib_style_group.add(self.natbib_toggle_group)
         self.content.append(self.natbib_style_group)
 
         # 「natbib 样式」二进制选项：Adw.SwitchRow，外包 Adw.PreferencesGroup
@@ -156,6 +166,23 @@ class IncludeBibTeXFileView(DialogView):
 
         self.content.set_vexpand(True)
         self.topbox.append(self.content)
+
+    def _make_style_toggle_group(self, options):
+        """构建样式分段控件：每档一个带 label 的 Adw.Toggle。
+
+        can_shrink=False 让每档保持自然宽度——宁可变宽也不把 "Apalike"
+        省略成 "Apal…"。
+        """
+        group = Adw.ToggleGroup()
+        group.set_valign(Gtk.Align.CENTER)
+        # 撑满卡片行宽度并等分各档：空白让给档位，而不是全部挤在左侧。
+        # can_shrink=False 保证标签永不省略（宁可变宽也不出现 "Apal…"）。
+        group.set_hexpand(True)
+        group.set_homogeneous(True)
+        group.set_can_shrink(False)
+        for style, label in options:
+            group.add(Adw.Toggle(name=style, label=_(label)))
+        return group
 
     def _adjust_suffix_alignment(self):
         """获取 ActionRow 内部的 suffix box，并设置其垂直对齐为居中，避免拉伸按钮"""

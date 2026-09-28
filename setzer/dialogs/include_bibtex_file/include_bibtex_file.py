@@ -35,10 +35,10 @@ class IncludeBibTeXFile(object):
     def __init__(self, main_window):
         self.main_window = main_window
         self.settings = ServiceLocator.get_settings()
-        self.styles = ['plain', 'abbrv', 'alpha', 'apalike', 'ieeetr']
-        self.style_names = ['Plain', 'Abbrv', 'Alpha', 'Apalike', 'iEEEtr']
-        self.natbib_styles = ['plainnat', 'abbrvnat', 'unsrtnat', 'achemso']
-        self.natbib_style_names = ['Plainnat', 'Abbrvnat', 'Unsrtnat', 'Achemso']
+        # 档位表以 view 的 STYLE_OPTIONS / NATBIB_STYLE_OPTIONS 为唯一来源，
+        # 避免界面标签与写入 LaTeX 的样式名两处维护、彼此漂移。
+        self.styles = [style for style, _label in view.STYLE_OPTIONS]
+        self.natbib_styles = [style for style, _label in view.NATBIB_STYLE_OPTIONS]
         self.current_values = dict()
 
     def run(self, document):
@@ -50,10 +50,11 @@ class IncludeBibTeXFile(object):
         self.view.include_button.connect('clicked', self.on_include_button_clicked)
         self.setup()
 
-        # 用 ComboRow.set_selected() 初始化选中项；notify::selected 信号
-        # 会在设置后自动触发，完成预览栈的可见子项初始化。
-        self.view.style_row.set_selected(self.styles.index(self.current_values['style']))
-        self.view.natbib_style_row.set_selected(self.natbib_styles.index(self.current_values['natbib_style']))
+        # 用 Adw.ToggleGroup.set_active_name() 初始化选中档位；赋值后会自动
+        # 发射 notify::active，驱动 on_style_changed / on_natbib_style_changed
+        # 完成预览栈可见子项的初始化（无需再手动同步一次）。
+        self.view.style_toggle_group.set_active_name(self.current_values['style'])
+        self.view.natbib_toggle_group.set_active_name(self.current_values['natbib_style'])
         self.view.natbib_option.set_active(self.current_values['natbib_toggle'])
         self.update_style_chooser_visibility()
 
@@ -126,11 +127,10 @@ class IncludeBibTeXFile(object):
             image.set_can_shrink(False)
             self.view.natbib_preview_stack.add_named(image, style)
 
-        # ComboRow 的选项在 view 初始化时已通过 set_model 设置，
-        # 预览图片也已通过 add_named 添加到 stack。
-        # 这里只需连接信号。
-        self.view.style_row.connect('notify::selected', self.on_style_changed)
-        self.view.natbib_style_row.connect('notify::selected', self.on_natbib_style_changed)
+        # 档位与预览图片都已在 view 初始化时建好，这里只连接信号。
+        # Adw.ToggleGroup 没有 'toggled' 信号，用 notify::active 监听档位切换。
+        self.view.style_toggle_group.connect('notify::active', self.on_style_changed)
+        self.view.natbib_toggle_group.connect('notify::active', self.on_natbib_style_changed)
 
         self.view.file_chooser_button.connect('file-set', self.on_file_chosen)
         # natbib_option 已从 Gtk.CheckButton 换为 Adw.SwitchRow：后者没有
@@ -153,9 +153,12 @@ class IncludeBibTeXFile(object):
         self.view.natbib_preview_stack_wrapper.set_visible(self.view.natbib_option.get_active())
         self.view.natbib_style_group.set_visible(self.view.natbib_option.get_active())
 
-    def on_natbib_style_changed(self, row, pspec=None):
-        selected = self.view.natbib_style_row.get_selected()
-        style = self.natbib_styles[selected]
+    def on_natbib_style_changed(self, group, pspec=None):
+        # get_active_name() 在无选中时返回 None（ToggleGroup 允许全灭），
+        # 这里直接忽略，保持 current_values 不被写坏。
+        style = self.view.natbib_toggle_group.get_active_name()
+        if style is None:
+            return
         if self.natbib_styles.index(style) > self.natbib_styles.index(self.current_values['natbib_style']):
             self.view.natbib_preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         else:
@@ -163,9 +166,10 @@ class IncludeBibTeXFile(object):
         self.view.natbib_preview_stack.set_visible_child_name(style)
         self.current_values['natbib_style'] = style
 
-    def on_style_changed(self, row, pspec=None):
-        selected = self.view.style_row.get_selected()
-        style = self.styles[selected]
+    def on_style_changed(self, group, pspec=None):
+        style = self.view.style_toggle_group.get_active_name()
+        if style is None:
+            return
         if self.styles.index(style) > self.styles.index(self.current_values['style']):
             self.view.preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         else:
