@@ -209,6 +209,11 @@ class Settings(Observable):
         self.defaults['preferences']['line_spacing'] = 0
         self.defaults['preferences']['enable_code_folding'] = True
         self.defaults['preferences']['enable_sticky_scroll'] = True
+        # 编辑器软换行只是显示层行为（document_presenter 调 set_wrap_mode），
+        # 不会改写文件内容，也不影响 verbatim 等环境的实际文本。默认关闭以保持
+        # 「显示行 = 源文件行」一一对应：构建日志/警告行号、SyncTeX 跳转与
+        # 80 列右边距纪律都依赖它；代价是超长单行需要横向滚动。偏好 → 编辑器
+        # 中有独立开关，偏好整段回显的用户可随时打开。
         self.defaults['preferences']['enable_line_wrapping'] = False
         self.defaults['preferences']['highlight_current_line'] = True
         self.defaults['preferences']['highlight_matching_brackets'] = True
