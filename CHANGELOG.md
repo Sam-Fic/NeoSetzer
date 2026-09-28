@@ -1,5 +1,53 @@
 # Changelog
 
+## v84 — 2026-09-28
+
+### 主要改进
+
+- **新增 TikZ 片段实时预览**：预览面板新增「片段预览」模式，实时渲染选中的 TikZ 代码；整篇 PDF 预览与片段预览通过工具栏分段控件一键切换。
+
+- **新增数学公式悬停预览**：在编辑器中悬停数学公式即可看到渲染预览，并修复了悬停时的闪烁、改用同心圆角并以 2 倍清晰度显示。
+
+- **新增 chktex 实时 lint 集成**：编辑时实时检查 LaTeX 常见语法与排版问题，即时提示。
+
+- **新增智能引号与上下标自动花括号**：输入引号、上下标时自动补全/包裹花括号，减少手误。
+
+- **新增固定/取消固定文档标签页**：可固定常用文档标签页，便于在多文档间切换时保持常用文件常驻。
+
+- **新增标签页未使用/重复 label 检查**：侧栏可检测文档中未引用或重复的 `\label`，帮助清理。
+
+- **预览与侧栏面板切换统一为分段控件**：预览/帮助两工具栏与侧栏 Document Structure / Symbols 面板切换，全面改用 libadwaita `Adw.ToggleGroup` 图标档位（当前档高亮、单击直达），移除原先「图标显示目标面板」的互斥单按钮；默认侧栏面板改为 Document Structure。
+
+- **Fit to Width 按钮按下态**：预览 fit_to_width 模式下该按钮显示按下态，状态更直观。
+
+- **修复点击 PDF 目录跳到下一页**：修正 PDF 目录跳转目标偏移一页的问题。
+
+- **修复行号列顶部细亮条**：消除行号列顶部未绘制的细亮条瑕疵。
+
+- **构建系统回退提示**：latexmk 缺失时自动回退构建并给出针对性提示，便于排查环境。
+
+- **图标与资源精简**：替换多处按钮图标、精简 SVG 资源并调整渐变透明度。
+
+- **翻译与 About 完善**：include-bibtex 样式选择改用分段控件（样式名明确不翻译）；About 页面补全贡献者署名并修复 po 数据损坏。
+
+### Improvements
+
+- **feat**: TikZ snippet live preview in the preview panel, switchable with full-PDF preview via a segmented control.
+- **feat**: Math formula hover preview in the editor (flicker-free, concentric rounded corners, 2× display).
+- **feat**: Real-time chktex lint integration while editing.
+- **feat**: Smart quotes and automatic braces around sub/superscripts.
+- **feat**: Pin/unpin document tabs.
+- **feat**: Detect unused or duplicate `\label` entries in the sidebar.
+- **refactor**: Unified preview/help and sidebar panel switching onto libadwaita `Adw.ToggleGroup` segmented controls (active state highlighted, one-click navigation), replacing the old mutually-exclusive single button; default sidebar page is now Document Structure.
+- **feat**: Fit to Width button shows a pressed state in fit_to_width mode.
+- **fix**: PDF table-of-contents links jumping to the next page.
+- **fix**: Thin bright line at the top of the line-number gutter.
+- **fix**: Build system falls back gracefully with a targeted hint when latexmk is missing.
+- **style**: Replaced several button icons, trimmed SVG assets, adjusted gradient opacity.
+- **i18n**: Include-BibTeX style selection moved to a segmented control (style names explicitly untranslated); About page contributor credits completed and corrupted po data fixed.
+
+---
+
 ## v83 — 2026-09-18
 
 ### 主要改进
