@@ -38,6 +38,11 @@ class FileChooserButton(Gtk.Button):
 
 # 样式档位表：(传给 LaTeX \\bibliographystyle 的名字, 界面标签)。
 # 控制器的 self.styles / self.natbib_styles 由这里派生，避免两处漂移。
+#
+# 标签刻意不做翻译：这些是 BibTeX 的样式标识符（bst 文件名），本身没有
+# 语义可译——各语言的旧 po 里它们的 msgstr 全部恒等于 msgid（Plain→Plain、
+# Apalike→Apalike）。故不用 _() 包裹，也就不在 pot 里占条目，避免 9 条
+# 永远恒等的翻译噪音。同类先例见 insert_table 的 'Booktabs'。
 STYLE_OPTIONS = (
     ('plain', 'Plain'),
     ('abbrv', 'Abbrv'),
@@ -181,7 +186,10 @@ class IncludeBibTeXFileView(DialogView):
         group.set_homogeneous(True)
         group.set_can_shrink(False)
         for style, label in options:
-            group.add(Adw.Toggle(name=style, label=_(label)))
+            # label 不翻译，理由见上方 STYLE_OPTIONS 的注释。这里若写成
+            # _(label) 只会是「变量调用的翻译」，xgettext 不提取该 msgid，
+            # 既拿不到翻译，又让人误以为这些串已进 pot。
+            group.add(Adw.Toggle(name=style, label=label))
         return group
 
     def _adjust_suffix_alignment(self):
