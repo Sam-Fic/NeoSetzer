@@ -32,6 +32,20 @@ class InterpreterMissingDialog(object):
         self.view.choose(self.main_window, None, self.dialog_process_response)
 
     def setup(self, interpreter_name):
+        # latexmk 在主流发行版上是独立包（texlive-latex-base 等集合不包含它），
+        # 缺 latexmk 时给出针对性的安装提示与关闭入口，而非误导用户装引擎。
+        if interpreter_name == 'latexmk':
+            self.view = Adw.AlertDialog(
+                heading=_('LaTeX Interpreter is missing.'),
+                body=_('''Setzer is configured to run builds through "latexmk", which seems to be missing on this system.
+
+You can install it with:
+• Ubuntu/Debian: sudo apt install latexmk
+• Fedora: sudo dnf install latexmk
+• Arch Linux: sudo pacman -S latexmk
+
+Or turn off latexmk in Preferences ▸ Build System.'''))
+            return
         self.view = Adw.AlertDialog(
             heading=_('LaTeX Interpreter is missing.'),
             body=_('''Setzer is configured to use "{interpreter}" which seems to be missing on this system.

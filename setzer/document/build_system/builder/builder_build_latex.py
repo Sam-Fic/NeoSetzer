@@ -65,7 +65,14 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         if latex_interpreter == 'tectonic':
             build_command = build_command_defaults[latex_interpreter]
             build_command += ' --outdir "' + output_directory + '" "'
-        elif query.build_data['use_latexmk']:
+        elif query.build_data['use_latexmk'] and shutil.which('latexmk') is not None:
+            # 构建时再探测一次 latexmk 是否可用：use_latexmk 默认开启后，
+            # 未安装 latexmk 的用户第一次编译不应撞上报错——原实现里
+            # latexmk 引发的 FileNotFoundError 会以用户所选引擎的名字弹
+            # 「解释器缺失」对话框，误导用户去排查本已可用的引擎。此处
+            # 条件不满足即静默回退到下方 else 的直连引擎路线（仅本次构建）；
+            # latexmk 可用性探测与偏好开关回写仍由 Preferences 页的异步
+            # 检测负责（page_build_system._detect_interpreters）。
             if query.build_data.get('output_chain') == 'pdfps':
                 # PS 路线（上游 issue #223）：latex → dvips → ps2pdf。
                 # PSTricks/psfrag 等宏包的作图/文字替换代码以 \special{ps:...}
@@ -93,7 +100,12 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             self.process = self._spawn_process(build_command, os.path.dirname(query.tex_filename))
         except (FileNotFoundError, OSError):
             self.cleanup_files(query)
-            self.throw_build_error(query, 'interpreter_missing', latex_interpreter)
+            # Unix 路线 shlex.split 后 exec 的是命令首词：latexmk 路线缺失的
+            # 是 latexmk 本身（引擎由 latexmk 内部调用，不经 PATH spawn），
+            # 报 latexmk 而非用户所选引擎，避免误导（配合上方 which 回退，
+            # 此分支仅在 which 与 spawn 之间 latexmk 恰好消失的竞态下触达）。
+            missing_command = 'latexmk' if build_command.startswith('latexmk') else latex_interpreter
+            self.throw_build_error(query, 'interpreter_missing', missing_command)
             return
 
         self._watch_process()
