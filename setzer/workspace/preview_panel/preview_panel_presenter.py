@@ -39,6 +39,8 @@ class PreviewPanelPresenter(object):
         # 'pdf'（整篇）| 'snippet'（片段图）。会话级状态，不落设置文件。
         self.mode = 'pdf'
         self._syncing_mode_switch = False
+        # 帮助面板分段控件由 _sync_help_switch 回写时的抑制标志。
+        self._syncing_help_switch = False
 
         self.workspace.connect('new_document', self.on_new_document)
         self.workspace.connect('document_removed', self.on_document_removed)
@@ -53,18 +55,20 @@ class PreviewPanelPresenter(object):
         self.view.page_spin.connect('activate', self._on_page_spin_activate)
         self.view.fit_width_button.connect('clicked', self._on_fit_width_clicked)
 
-        self.view.switch_button.connect('clicked', self._on_switch_clicked)
-        self.main_window.help_panel.switch_button.connect('clicked', self._on_switch_clicked)
-
-        # 模式切换（整篇 PDF / TikZ 片段图）与片段视图的 Retry。
+        # 模式/面板切换（整篇 PDF / TikZ 片段图 / 帮助面板）与片段视图的 Retry。
         self.view.mode_switch.connect('notify::active', self._on_mode_switch_changed)
         self.view.snippet_view.retry_button.connect('clicked', self._on_snippet_retry_clicked)
+
+        # 帮助面板工具栏的分段控件（与预览工具栏相同的三档）：点 pdf/snippet
+        # 档切回预览（并顺带设好预览内部模式），help 档保持现状。
+        self.main_window.help_panel.mode_switch.connect(
+            'notify::active', self._on_help_switch_changed)
 
         # 反向挂到 view，便于其它地方（如 workspace_presenter 切换同步）
         # 通过 main_window.preview_panel.presenter 访问。
         self.view.presenter = self
 
-        # 按实际显示的面板同步一次按钮图标（图标始终展示"目标面板"）。
+        # 按实际显示的面板同步一次分段控件（图标档始终展示"目标面板"）。
         self._sync_switch_icons()
         self._sync_mode_switch()
         self._sync_mode_action_state()
@@ -127,9 +131,9 @@ class PreviewPanelPresenter(object):
         # 弹出后 preview_panel 搬进独立窗口，detach 按钮在那里无意义（收回走窗口 X）；
         # 收回后恢复可见。update_buttons 也会顺带刷新按钮敏感状态。
         self.view.detach_button.set_visible(not popped_out)
-        # 弹出时隐藏帮助面板的 switch 按钮：popped_out 下侧栏只有 help，
-        # 点 switch 会尝试切到已搬走的 preview，无意义且带来问题。收回后恢复。
-        self.main_window.help_panel.switch_button.set_visible(not popped_out)
+        # 弹出时禁用分段控件的 help 档（侧栏只显示 help，"切到帮助"无意义）
+        # 并隐藏帮助面板的 switch 按钮；收回后恢复。
+        self._sync_pop_state()
         self.update_buttons()
 
     def _preview_target(self):
@@ -220,8 +224,13 @@ class PreviewPanelPresenter(object):
             return
         active = group.get_active()
         if active < 0:
-            # 两档恒有一个亮着：ToggleGroup 允许全灭，这里拨回当前档。
+            # 各档恒有一个亮着：ToggleGroup 允许全灭，这里拨回当前档。
             self._sync_mode_switch()
+            return
+        if active == 2:
+            # 第三档：整个右侧边栏切到帮助面板（合并的原 switch to help）。
+            self._sync_mode_switch()
+            self.workspace.set_show_preview_or_help(False, True)
             return
         self.set_mode('pdf' if active == 0 else 'snippet')
 
@@ -461,8 +470,8 @@ class PreviewPanelPresenter(object):
         self.view.zoom_in_button.set_visible(True)
         # 弹出状态下隐藏 detach 按钮（preview_panel 已在独立窗口内，收回走窗口 X）。
         self.view.detach_button.set_visible(not self.workspace.is_preview_popped_out())
-        # 同步隐藏帮助面板的 switch 按钮：popped_out 时无法切到 preview。
-        self.main_window.help_panel.switch_button.set_visible(not self.workspace.is_preview_popped_out())
+        # 同步分段控件 help 档与帮助面板 switch 按钮的弹出态可见性。
+        self._sync_pop_state()
 
         if snippet_mode:
             # 有帧才谈得上缩放；上下限由视图钳制并弹 toast 提示。
@@ -530,31 +539,62 @@ class PreviewPanelPresenter(object):
         self._sync_fit_width_button()
 
     def _sync_switch_icons(self):
-        '''按当前显示的面板，把两个 switch 按钮的图标设为"目标面板"图标。
-        预览模式 → 显示 Help 图标（点击去 Help）；Help 模式 → 显示 PDF 图标。'''
-        visible_name = self.main_window.preview_help_stack.get_visible_child_name()
-        if visible_name == 'preview':
-            icon = 'help-browser-symbolic'
-        else:
-            icon = 'view-paged-symbolic'
-        self.view.switch_button.get_child().set_from_icon_name(icon)
-        self.main_window.help_panel.switch_button.get_child().set_from_icon_name(icon)
+        '''按当前显示的面板，同步两侧的分段控件与帮助面板 switch 档。
 
-    def _on_switch_clicked(self, button):
-        # 以 preview_help_stack 当前可见面板为唯一真相来源，决定切换到哪个、
-        # 以及按钮图标应展示的目标面板。不依赖独立的 _is_preview 布尔，
-        # 避免快捷键 / 状态恢复等其它切换路径导致布尔与实际显示失同步。
+        - 预览在侧栏显示时：预览工具栏 group 停在当前模式档（pdf/snippet），
+          help 档可用；帮助面板 group 同步亮同一模式档（此时它不在屏幕上，
+          只是为了切回时状态正确）。
+        - 帮助面板在侧栏显示时：两个 group 的 help 档亮起；预览 group 的
+          help 档禁用（点击无意义——已在 Help）；帮助面板 group 全档可用，
+          点 pdf/snippet 即切回预览。
+        '''
         visible_name = self.main_window.preview_help_stack.get_visible_child_name()
-        if visible_name == 'preview':
-            # 当前预览 → 切到 Help，按钮图标展示目标（Help）
-            self.view.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
-            self.main_window.help_panel.switch_button.get_child().set_from_icon_name('help-browser-symbolic')
-            self.workspace.set_show_preview_or_help(False, True)
-        else:
-            # 当前 Help → 切到预览，按钮图标展示目标（PDF）
-            self.view.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
-            self.main_window.help_panel.switch_button.get_child().set_from_icon_name('view-paged-symbolic')
-            self.workspace.set_show_preview_or_help(True, False)
+        showing_help = visible_name != 'preview'
+        self._sync_help_switch(showing_help)
+        self._sync_pop_state()
+
+    def _sync_help_switch(self, showing_help):
+        '''同步帮助面板的分段控件：帮助面板显示时亮 help 档，否则亮当前
+        预览模式档。set_active 触发的 notify 回调由 _syncing_help_switch
+        压掉，不会反向触发切换。'''
+        self._syncing_help_switch = True
+        try:
+            if showing_help:
+                self.main_window.help_panel.mode_switch.set_active(2)
+            else:
+                self.main_window.help_panel.mode_switch.set_active(
+                    0 if self.mode == 'pdf' else 1)
+        finally:
+            self._syncing_help_switch = False
+
+    def _on_help_switch_changed(self, group, parameter):
+        '''帮助面板分段控件的档位变化。
+
+        help 档（index 2）：已在此面板，同步回亮即可。pdf/snippet 档：把
+        整个右侧边栏切回预览，并设好预览内部模式。若这次变化是 _sync_help_switch
+        自己写出的（_syncing_help_switch），直接忽略。'''
+        if self._syncing_help_switch:
+            return
+        active = group.get_active()
+        if active == 2:
+            self._sync_help_switch(True)
+            return
+        if active < 0:
+            self._sync_help_switch(True)
+            return
+        # 切回预览并选中对应内部模式；set_mode 内部会 _sync_mode_switch。
+        self.set_mode('pdf' if active == 0 else 'snippet')
+        self.workspace.set_show_preview_or_help(True, False)
+
+    def _sync_pop_state(self):
+        '''预览弹出/收回后的两个分段控件同步。
+
+        弹出时：预览 group 的 help 档禁用（侧栏只显示 help，"切到帮助"
+        无意义），帮助面板 group 整体禁用（侧栏上根本没有帮助面板，无面板
+        可切）。收回时恢复。'''
+        popped_out = self.workspace.is_preview_popped_out()
+        self.view.help_toggle.set_enabled(not popped_out)
+        self.main_window.help_panel.mode_switch.set_sensitive(not popped_out)
 
     def _attach_target_bar(self, preview_view):
         revealer = preview_view.target_label_revealer

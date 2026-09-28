@@ -42,25 +42,32 @@ class Sidebar(object):
         self.view.add_named(self.document_structure_page, 'document_structure')
         self.view.add_named(self.symbols_page.view, 'symbols')
 
-        self.view.set_pages(self.document_structure_page, self.symbols_page.view)
+        # 两页工具栏各有一个面板切换器（图标档 + 当前档高亮），登记到 view
+        # 由它统一同步；点击后把选中面板写回 workspace（供隐藏侧栏后恢复）。
+        self.view.register_switch_group('document_structure', self.document_structure_page.switch_group)
+        self.view.register_switch_group('symbols', self.symbols_page.view.switch_group)
+        for group in (self.document_structure_page.switch_group,
+                      self.symbols_page.view.switch_group):
+            group.connect('notify::active', self.on_panel_switch_changed)
 
-        self.document_structure_page.switch_button.connect('clicked', lambda b: self.on_switch_button_clicked())
-        self.symbols_page.view.switch_button.connect('clicked', lambda b: self.on_switch_button_clicked())
-
-    def on_switch_button_clicked(self):
-        self.view.switch_page()
-        # 同步当前面板到 workspace，使隐藏侧栏后能恢复上一次所处的面板
-        if self.view._is_symbols:
-            self.workspace.set_sidebar_page('symbols')
-        else:
-            self.workspace.set_sidebar_page('document_structure')
-
+        # 一次性连接：原先这三行写在 on_switch_button_clicked() 里，每次点击都会
+        # 再挂一份，导致文档变更回调与 stats 定时器随点击次数重复触发。
         self.data_provider.connect('document_changed', self.on_document_changed)
 
         # Document Stats 定时器随可见性启停：切到 Symbols 页时暂停 stats 的
         # 1s/2s 定时器（stat + texcount spawn），回到 Structure 页时恢复。
         self.view.stack.connect('notify::visible-child', self.on_visible_child_changed)
 
+    def on_panel_switch_changed(self, group, pspec=None):
+        '''某页工具栏上的切换器被点击：切到对应面板。'''
+        if self.view._syncing_switch:
+            return
+        name = group.get_active_name()
+        if name is None:
+            return
+        self.view.set_visible_child_name(name)
+        # 同步当前面板到 workspace，使隐藏侧栏后能恢复上一次所处的面板
+        self.workspace.set_sidebar_page(name)
         self.view.stack.queue_draw()
 
     def on_visible_child_changed(self, stack, pspec):

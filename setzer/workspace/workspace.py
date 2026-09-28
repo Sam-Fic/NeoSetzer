@@ -97,7 +97,8 @@ class Workspace(Observable):
         # 解耦：后者在隐藏时被清成 False（仅用于驱动可见性），本属性持久化"上次选了哪个"。
         self.sidebar_page = self.settings.get_value('window_state', 'sidebar_page')
         if self.sidebar_page not in ('symbols', 'document_structure'):
-            self.sidebar_page = 'symbols'
+            # 值损坏 / 来自更早版本时的兜底，与 settings 默认保持一致。
+            self.sidebar_page = 'document_structure'
 
         # PDF 预览弹出独立窗口状态。不跨会话持久化（v1）：每次启动默认内嵌侧边栏，
         # 用户按需弹出。pdf_preview_window 懒创建（首次 pop_out 时构造），收回时
@@ -1241,10 +1242,10 @@ class Workspace(Observable):
         self.pdf_preview_window.set_panel(panel)
 
         self.preview_popped_out = True
-        # 隐藏 panel 内的 switch_button（预览/帮助互切）：help 留在侧边栏，
-        # 独立窗口里这个按钮无意义。pop_in 时恢复。
+        # 禁用分段控件的 help 档（预览/帮助/片段切换）：help 留在侧边栏，
+        # 独立窗口里"切到帮助"无意义。pop_in 时恢复。
         try:
-            panel.switch_button.set_visible(False)
+            panel.presenter._sync_pop_state()
         except AttributeError:
             pass
 
@@ -1282,9 +1283,9 @@ class Workspace(Observable):
             pass
         stack.set_visible_child_name('preview')
 
-        # 恢复 switch_button 可见。
+        # 恢复分段控件 help 档可用（预览收回侧栏，可再切到帮助）。
         try:
-            panel.switch_button.set_visible(True)
+            panel.presenter._sync_pop_state()
         except (AttributeError, RuntimeError):
             pass
 
@@ -1350,11 +1351,13 @@ class Workspace(Observable):
             self.set_show_symbols_or_document_structure(False, False)
         else:
             if not self.show_symbols and not self.show_document_structure:
-                # 之前未选中任何面板（隐藏过）：恢复上次记忆的面板，而非硬编码 Symbols
-                if self.sidebar_page == 'document_structure':
-                    self.set_show_symbols_or_document_structure(False, True)
-                else:
+                # 之前未选中任何面板（隐藏过）：恢复上次记忆的面板。
+                # 用显式白名单而非 else 兜底：sidebar_page 已被上面校验为两个
+                # 合法值之一，这样将来新增第三个面板时不会静默落到某一页。
+                if self.sidebar_page == 'symbols':
                     self.set_show_symbols_or_document_structure(True, False)
+                else:
+                    self.set_show_symbols_or_document_structure(False, True)
             else:
                 self.set_show_symbols_or_document_structure(self.show_symbols, self.show_document_structure)
 

@@ -97,12 +97,23 @@ class HelpPanelView(Gtk.Box):
         self.search_button.set_can_focus(False)
         self.toolbar.append(self.search_button)
 
-        # 切换到 PDF Preview 按钮：始终放在工具栏最右端（最后 append）。
-        self.switch_button = Gtk.Button()
-        self.switch_button.set_child(Gtk.Image(icon_name='view-paged-symbolic'))
-        self.switch_button.set_can_focus(False)
-        self.switch_button.set_tooltip_text(_('Switch to PDF Preview'))
-        self.switch_button.add_css_class('flat')
+        # 面板切换分段控件：与预览工具栏的 mode_switch 相同的三档
+        # （整篇 PDF / TikZ 片段 / 帮助面板），帮助面板显示时 help 档亮着、
+        # 另两档把右侧边栏切回预览。替换原先的互斥单按钮 switch_button。
+        # presenter（preview_panel_presenter._sync_help_switch）按当前侧栏
+        # 显示的面板同步 active 档位。
+        self.mode_switch = Adw.ToggleGroup()
+        self.mode_switch.set_valign(Gtk.Align.CENTER)
+        self.mode_switch.add(Adw.Toggle(
+            name='pdf', icon_name='view-paged-symbolic',
+            tooltip=_('Full PDF preview')))
+        self.mode_switch.add(Adw.Toggle(
+            name='snippet', icon_name='image-x-generic-symbolic',
+            tooltip=_('TikZ snippet preview')))
+        self.mode_switch.add(Adw.Toggle(
+            name='help', icon_name='help-browser-symbolic',
+            tooltip=_('Switch to Help')))
+        self.mode_switch.set_active(2)
 
         self.append(self.toolbar)
 
@@ -270,9 +281,9 @@ class HelpPanelView(Gtk.Box):
         self.append(self.search_content_box)
         self.search_content_box.set_visible(False)
 
-        # switch_button 始终最后 append 到 toolbar，确保在工具栏最右端
+        # mode_switch 始终最后 append 到 toolbar，确保在工具栏最右端
         # （在 search_button 和 js_info_button 之后）。
-        self.toolbar.append(self.switch_button)
+        self.toolbar.append(self.mode_switch)
 
         self.search_result_items = list()
 

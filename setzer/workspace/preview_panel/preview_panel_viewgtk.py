@@ -51,18 +51,10 @@ class PreviewPanelView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
 
-        # 预览/帮助切换按钮（单按钮，点击切换图标）
-        self.switch_button = Gtk.Button()
-        # 初始图标展示目标面板（Help），实际图标在 presenter 初始化时按当前
-        # 显示的面板统一同步（_sync_switch_icons），不依赖本地预设。
-        self.switch_button.set_child(Gtk.Image(icon_name='help-browser-symbolic'))
-        self.switch_button.set_can_focus(False)
-        self.switch_button.set_tooltip_text(_('Switch to Help'))
-        self.switch_button.add_css_class('flat')
-
-        # 模式切换（整篇 PDF / 片段图）：Adw.ToggleGroup 分段控件（libadwaita
-        # 的 toggle group，图标档）。两档纯图标、无文字，tooltip 兼作无障碍名。
-        # presenter 按 active 索引裁决模式，并保证恒有一档亮着。
+        # 模式/面板切换（整篇 PDF / 片段图 / 帮助面板）：Adw.ToggleGroup 分段
+        # 控件（libadwaita 的 toggle group，图标档）。三档纯图标、无文字，
+        # tooltip 兼作无障碍名。presenter 按 active 索引裁决：0/1 是预览内部
+        # 模式，2 会把整个右侧边栏切到帮助面板。恒有一档亮着。
         self.mode_switch = Adw.ToggleGroup()
         self.mode_switch.set_valign(Gtk.Align.CENTER)
         self.mode_switch.add(Adw.Toggle(
@@ -71,8 +63,14 @@ class PreviewPanelView(Gtk.Box):
         self.mode_switch.add(Adw.Toggle(
             name='snippet', icon_name='image-x-generic-symbolic',
             tooltip=_('TikZ snippet preview')))
+        # 第三档：切到帮助面板（合并了原先独立的 switch to help 按钮）。
+        # 弹出预览独立窗口时此档被禁用（见 presenter 的
+        # on_preview_pop_state_changed 与 workspace.pop_out / pop_in）。
+        self.help_toggle = Adw.Toggle(
+            name='help', icon_name='help-browser-symbolic',
+            tooltip=_('Switch to Help'))
+        self.mode_switch.add(self.help_toggle)
         self.mode_switch.set_active(0)
-        self.toolbar.prepend(self.mode_switch)
 
         # 页码指示器（可输入跳转）— SpinButton + "of N" 标签
         self.page_spin = Gtk.SpinButton()
@@ -171,7 +169,8 @@ class PreviewPanelView(Gtk.Box):
         self.detach_button.set_can_focus(False)
         self.toolbar.append(self.detach_button)
 
-        self.toolbar.append(self.switch_button)
+        # 分段控件最后 append：工具栏最右端（detach 之后）。
+        self.toolbar.append(self.mode_switch)
 
         self.append(self.toolbar)
 

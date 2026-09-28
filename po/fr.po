@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-09-26 23:02+0800\n"
+"POT-Creation-Date: 2026-09-28 23:25+0800\n"
 "PO-Revision-Date: 2026-09-26 22:17+0800\n"
 "Last-Translator: Sam-Fic <https://github.com/Sam-Fic>\n"
 "Language-Team: French <https://github.com/Sam-Fic/NeoSetzer>\n"
@@ -168,305 +168,6 @@ msgstr "Runtime Flatpak mis à jour vers GNOME 48"
 msgid "Mostly bugfixes, ..."
 msgstr "Principalement des corrections de bogues, …"
 
-#: data/resources/latexdb/languages/languages.xml:2
-#: data/resources/latexdb/languages/languages.xml:21
-#: data/resources/latexdb/languages/languages.xml:22
-#: data/resources/latexdb/languages/languages.xml:23
-#: data/resources/latexdb/languages/languages.xml:24
-#: data/resources/latexdb/languages/languages.xml:25
-msgid "English"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:3
-msgid "Español"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:4
-#: data/resources/latexdb/languages/languages.xml:29
-msgid "Français"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:5
-msgid "Русский"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:6
-#: data/resources/latexdb/languages/languages.xml:7
-msgid "Português"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:8
-#: data/resources/latexdb/languages/languages.xml:31
-#: data/resources/latexdb/languages/languages.xml:32
-#: data/resources/latexdb/languages/languages.xml:33
-msgid "Deutsch"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:9
-msgid "Italiano"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:10
-msgid "Afrikaans"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:11
-msgid "Azərbaycanca"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:12
-msgid "Euskara"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:13
-msgid "Brezhoneg"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:14
-msgid "Български"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:15
-msgid "Català"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:16
-msgid "中文"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:17
-msgid "Hrvatski"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:18
-msgid "Čeština"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:19
-msgid "Dansk"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:20
-msgid "Nederlands"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:26
-msgid "Esperanto"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:27
-msgid "Eesti"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:28
-msgid "Suomi"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:30
-msgid "Galego"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:34
-#: data/resources/latexdb/languages/languages.xml:35
-msgid "Ελληνικά"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:36
-msgid "עברית"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:37
-msgid "Íslenska"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:38
-msgid "Bahasa Indonesia"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:39
-msgid "Interlingua"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:40
-msgid "Gaeilge"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:41
-msgid "Latina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:42
-msgid "Dolnoserbšćina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:43
-msgid "Bahasa Melayu"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:44
-msgid "Davvisámegiella"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:45
-#: data/resources/latexdb/languages/languages.xml:46
-msgid "Norsk"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:47
-msgid "Polski"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:48
-msgid "Română"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:49
-msgid "Gàidhlig"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:50
-msgid "Slovenčina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:51
-msgid "Slovenščina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:52
-msgid "Svenska"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:53
-msgid "Српски"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:54
-msgid "Türkçe"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:55
-msgid "Українська"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:56
-msgid "Hornjoserbšćina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:57
-msgid "Cymraeg"
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:2
-msgid "additional math fonts from AMS."
-msgstr "polices mathématiques supplémentaires de l’AMS."
-
-#: data/resources/latexdb/packages/general.xml:3
-msgid "mathematics package from AMS."
-msgstr "paquet mathématiques de l’AMS."
-
-#: data/resources/latexdb/packages/general.xml:4
-msgid "mathematical symbols from AMS."
-msgstr "symboles mathématiques de l’AMS."
-
-#: data/resources/latexdb/packages/general.xml:5
-msgid "math theorems setting package from AMS."
-msgstr "paquet de l’AMS pour la composition de théorèmes mathématiques."
-
-#: data/resources/latexdb/packages/general.xml:6
-msgid "multilingual documents."
-msgstr "documents multilingues."
-
-#: data/resources/latexdb/packages/general.xml:7
-msgid "dirac braket and set notations."
-msgstr "notations bra-ket de Dirac et d’ensembles."
-
-#: data/resources/latexdb/packages/general.xml:8
-msgid "bibliographies in LaTeX."
-msgstr "bibliographies dans LaTeX."
-
-#: data/resources/latexdb/packages/general.xml:9
-msgid "simple arithmetic in LaTeX commands."
-msgstr "arithmétique simple dans les commandes LaTeX."
-
-#: data/resources/latexdb/packages/general.xml:10
-msgid "foreground and background colors."
-msgstr "couleurs de premier plan et d’arrière-plan."
-
-#: data/resources/latexdb/packages/general.xml:11
-msgid "colored tables."
-msgstr "tableaux colorés."
-
-#: data/resources/latexdb/packages/general.xml:12
-msgid "enumerate with redefinable labels."
-msgstr "listes enumerate à étiquettes redéfinissables."
-
-#: data/resources/latexdb/packages/general.xml:13
-msgid "interface to document dimensions."
-msgstr "interface vers les dimensions du document."
-
-#: data/resources/latexdb/packages/general.xml:14
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
-msgid "create a glossary for your document."
-msgstr "créer un glossaire pour votre document."
-
-#: data/resources/latexdb/packages/general.xml:15
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
-msgid "include graphics in your document."
-msgstr "inclure des graphiques dans votre document."
-
-#: data/resources/latexdb/packages/general.xml:16
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
-msgid "create hyperlinks within your document."
-msgstr "créer des hyperliens dans votre document."
-
-#: data/resources/latexdb/packages/general.xml:17
-msgid "conditional commands."
-msgstr "commandes conditionnelles."
-
-#: data/resources/latexdb/packages/general.xml:18
-msgid "provides a listing environment for embedding programming code."
-msgstr "fournit un environnement de listing pour intégrer du code de programmation."
-
-#: data/resources/latexdb/packages/general.xml:19
-msgid "provides additional bibliography and citation styles."
-msgstr "fournit des styles supplémentaires de bibliographie et de citation."
-
-#: data/resources/latexdb/packages/general.xml:20
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
-msgid "paragraphs without indentation."
-msgstr "des paragraphes sans indentation."
-
-#: data/resources/latexdb/packages/general.xml:21
-msgid "create plots in two and three dimensions."
-msgstr "crée des graphiques en deux et trois dimensions."
-
-#: data/resources/latexdb/packages/general.xml:22
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
-msgid "contains symbols to be used in textmode."
-msgstr "contient des symboles à utiliser en mode texte."
-
-#: data/resources/latexdb/packages/general.xml:23
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
-msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
-msgstr "définir des environnements de théorème (comme « definition », « lemma », …) avec une mise en forme personnalisée."
-
-#: data/resources/latexdb/packages/general.xml:24
-msgid "graphics and plotting."
-msgstr "graphiques et tracés."
-
-#: data/resources/latexdb/packages/general.xml:25
-msgid "set transparency for sections in your document."
-msgstr "définit la transparence des sections de votre document."
-
-#: data/resources/latexdb/packages/general.xml:26
-msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr "tapez des URL avec la commande \\\\url{..} sans les échapper."
-
-#: data/resources/latexdb/packages/general.xml:27
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
-msgid "enables colored text."
-msgstr "permet d'utiliser du texte en couleur."
-
 #: setzer/ai_fix/agent_runner.py:317
 msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
 msgstr "Aucun émulateur de terminal disponible. Installez gnome-terminal / xterm ou définissez un terminal personnalisé dans les Préférences."
@@ -526,7 +227,7 @@ msgstr "Envoyer à l'agent IA"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:81
 #: setzer/dialogs/go_to_line/go_to_line.py:41
 #: setzer/dialogs/go_to_page/go_to_page.py:42
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:45
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:59
 #: setzer/dialogs/preferences/pages/page_appearance.py:181
 #: setzer/dialogs/preferences/pages/page_appearance.py:319
 #: setzer/dialogs/preferences/pages/page_appearance.py:343
@@ -1500,7 +1201,7 @@ msgstr "Ouvrir un fichier BibTeX"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1137
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1587
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:104
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:105
 msgid "BibTeX Files"
 msgstr "Fichiers BibTeX"
 
@@ -1943,7 +1644,7 @@ msgid "Search Online"
 msgstr "Rechercher en ligne"
 
 #: setzer/dialogs/building_failed/building_failed.py:55
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:46
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:60
 msgid "Go to Preferences"
 msgstr "Aller aux préférences"
 
@@ -2035,7 +1736,7 @@ msgstr "Tabulations"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:54
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:52
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:69
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:43
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:64
@@ -2603,17 +2304,45 @@ msgstr "<b>Paquets AMS :</b>  fournissent des symboles mathématiques, des envir
 msgid "recommended"
 msgstr "recommandé"
 
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
+msgid "contains symbols to be used in textmode."
+msgstr "contient des symboles à utiliser en mode texte."
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
+msgid "include graphics in your document."
+msgstr "inclure des graphiques dans votre document."
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:188
 msgid "foreground and background color."
 msgstr "le premier plan et l'arrière-plan des couleurs."
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
+msgid "enables colored text."
+msgstr "permet d'utiliser du texte en couleur."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
 msgid "type urls with the \\url{..} command without escaping them."
 msgstr "saisir des URLs avec la commande \\url{..} sans avoir à les échapper."
 
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
+msgid "create hyperlinks within your document."
+msgstr "créer des hyperliens dans votre document."
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
+msgstr "définir des environnements de théorème (comme « definition », « lemma », …) avec une mise en forme personnalisée."
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:193
 msgid "provides the \\listing environment for embedding programming code."
 msgstr "fournit l'environnement \\listing pour intégrer du code de programmation."
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
+msgid "create a glossary for your document."
+msgstr "créer un glossaire pour votre document."
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
+msgid "paragraphs without indentation."
+msgstr "des paragraphes sans indentation."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:200
 msgid "Document properties"
@@ -3232,86 +2961,45 @@ msgstr "Saisissez un numéro de page (1–{pages})."
 msgid "Page number"
 msgstr "Numéro de page"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:49
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:66
 msgid "Include BibTeX file"
 msgstr "Inclure un fichier BibTeX"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:56
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:73
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:47
 msgid "_Include"
 msgstr "_Inclure"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:68
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:85
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:419
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:421
 msgid "Bibliography"
 msgstr "Bibliographie"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:72
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:89
 msgid "BibTeX file to include"
 msgstr "Fichier BibTeX à inclure"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:86
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:176
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:103
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:203
 #: setzer/widgets/filechooser_button/filechooser_button.py:37
 #: setzer/widgets/filechooser_button/filechooser_button.py:72
 msgid "(None)"
 msgstr "(Aucun)"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:104
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:130
 msgid "Standard Styles"
 msgstr "Styles standard"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:106
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:120
-msgid "Bibliography style"
-msgstr "Style de bibliographie"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
-msgid "Plain"
-msgstr "Plain"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:109
-msgid "Abbrv"
-msgstr "Abbrv"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:110
-msgid "Alpha"
-msgstr "Alpha"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:111
-msgid "Apalike"
-msgstr "Apalike"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:112
-msgid "iEEEtr"
-msgstr "iEEEtr"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:118
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:135
 msgid "Natbib Styles"
 msgstr "Styles Natbib"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:122
-msgid "Plainnat"
-msgstr "Plainnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:123
-msgid "Abbrvnat"
-msgstr "Abbrvnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:124
-msgid "Unsrtnat"
-msgstr "Unsrtnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:125
-msgid "Achemso"
-msgstr "Achemso"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:135
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:145
 msgid "Show bibliography styles for the 'natbib' package"
 msgstr "Afficher les styles de bibliographie pour le paquet « natbib »"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:193
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:220
 msgid "Select a BibTeX File"
 msgstr "Sélectionner un fichier BibTeX"
 
@@ -3980,11 +3668,24 @@ msgstr "Retirer cette plage fusionnée"
 msgid "Covered by a merged cell"
 msgstr "Couvert par une cellule fusionnée"
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:39
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:50
 msgid "LaTeX Interpreter is missing."
 msgstr "L'interpréteur LaTeX est introuvable."
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:37
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:40
+msgid ""
+"Setzer is configured to run builds through \"latexmk\", which seems to be missing on this system.\n"
+"\n"
+"You can install it with:\n"
+"• Ubuntu/Debian: sudo apt install latexmk\n"
+"• Fedora: sudo dnf install latexmk\n"
+"• Arch Linux: sudo pacman -S latexmk\n"
+"\n"
+"Or turn off latexmk in Preferences ▸ Build System."
+msgstr ""
+
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:51
 #, python-brace-format
 msgid ""
 "Setzer is configured to use \"{interpreter}\" which seems to be missing on this system.\n"
@@ -4163,12 +3864,12 @@ msgid "Zoom"
 msgstr "Zoom"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:99
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:140
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:136
 msgid "Zoom in"
 msgstr "Agrandir"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:100
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:114
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:110
 msgid "Zoom out"
 msgstr "Réduire"
 
@@ -5595,7 +5296,7 @@ msgid "Help"
 msgstr "Aide"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:130
-#: setzer/workspace/sidebar/sidebar.py:83
+#: setzer/workspace/sidebar/sidebar.py:90
 msgid "Document Structure"
 msgstr "Structure du document"
 
@@ -6830,24 +6531,24 @@ msgstr "Remplacer le résultat sélectionné"
 msgid "Replace All"
 msgstr "Tout remplacer"
 
-#: setzer/document/snippet_preview/math_preview_popover.py:67
+#: setzer/document/snippet_preview/math_preview_popover.py:163
 msgid "Rendering formula…"
 msgstr "Rendu de la formule…"
 
-#: setzer/document/snippet_preview/tikz_preview.py:210
+#: setzer/document/snippet_preview/tikz_preview.py:68
 msgid "TikZ Preview is turned off. Enable it in the Editor preferences."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:236
-#: setzer/document/snippet_preview/tikz_preview.py:262
+#: setzer/document/snippet_preview/tikz_preview.py:241
+#: setzer/document/snippet_preview/tikz_preview.py:267
 msgid "No LaTeX compiler was found for the snippet preview."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:241
+#: setzer/document/snippet_preview/tikz_preview.py:246
 msgid "This figure is too large for the live preview."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:280
+#: setzer/document/snippet_preview/tikz_preview.py:285
 msgid "Compilation failed."
 msgstr ""
 
@@ -6994,8 +6695,8 @@ msgid "Recent Documents"
 msgstr "Documents récents"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:60
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:118
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:116
 msgid "No Results"
 msgstr "Aucun résultat"
 
@@ -7118,7 +6819,7 @@ msgid "New Document from Template"
 msgstr "Nouveau document depuis un modèle"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:123
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:119
 msgid "Fit to Width"
 msgstr "Ajuster à la largeur"
 
@@ -7733,88 +7434,87 @@ msgstr "Suivant"
 msgid "Search help documentation"
 msgstr "Rechercher dans la documentation d'aide"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:104
-msgid "Switch to PDF Preview"
-msgstr "Passer à l'aperçu PDF"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:122
-msgid "Search help"
-msgstr "Rechercher dans l'aide"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:162
-msgid "No results found"
-msgstr "Aucun résultat trouvé"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:171
-msgid "Search Help"
-msgstr "Rechercher dans l'aide"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:172
-msgid "Type a keyword to search the documentation."
-msgstr "Saisissez un mot-clé pour rechercher dans la documentation."
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:212
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:224
-msgid "JavaScript is disabled"
-msgstr "JavaScript est désactivé"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:230
-msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
-msgstr "Les pages d'aide sont rendues avec JavaScript désactivé pour des raisons de sécurité. La documentation statique s'affiche normalement ; les exemples interactifs qui dépendent de JavaScript ne s'exécuteront pas."
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:252
-msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
-msgstr "Le rendu des pages d'aide nécessite WebKit6. La recherche reste disponible — cliquez sur un résultat pour l'ouvrir dans votre navigateur web."
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:364
-msgid "Maximum zoom level reached"
-msgstr "Niveau de zoom maximal atteint"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:366
-msgid "Minimum zoom level reached"
-msgstr "Niveau de zoom minimal atteint"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:407
-msgid "Build failed — showing the previous PDF"
-msgstr "Compilation échouée — affichage du PDF précédent"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:421
-msgid "of "
-msgstr "sur "
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:423
-msgid "No preview"
-msgstr "Aucun aperçu"
-
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:59
-msgid "Switch to Help"
-msgstr "Passer à l'aide"
-
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:69
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:109
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:62
 msgid "Full PDF preview"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:73
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:112
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:65
 msgid "TikZ snippet preview"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:134
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:115
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:71
+msgid "Switch to Help"
+msgstr "Passer à l'aide"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:133
+msgid "Search help"
+msgstr "Rechercher dans l'aide"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:173
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:182
+msgid "Search Help"
+msgstr "Rechercher dans l'aide"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:183
+msgid "Type a keyword to search the documentation."
+msgstr "Saisissez un mot-clé pour rechercher dans la documentation."
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:223
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:235
+msgid "JavaScript is disabled"
+msgstr "JavaScript est désactivé"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:241
+msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
+msgstr "Les pages d'aide sont rendues avec JavaScript désactivé pour des raisons de sécurité. La documentation statique s'affiche normalement ; les exemples interactifs qui dépendent de JavaScript ne s'exécuteront pas."
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:263
+msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
+msgstr "Le rendu des pages d'aide nécessite WebKit6. La recherche reste disponible — cliquez sur un résultat pour l'ouvrir dans votre navigateur web."
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:385
+msgid "Maximum zoom level reached"
+msgstr "Niveau de zoom maximal atteint"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:387
+msgid "Minimum zoom level reached"
+msgstr "Niveau de zoom minimal atteint"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:428
+msgid "Build failed — showing the previous PDF"
+msgstr "Compilation échouée — affichage du PDF précédent"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:442
+msgid "of "
+msgstr "sur "
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:444
+msgid "No preview"
+msgstr "Aucun aperçu"
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:130
 msgid "Set zoom level"
 msgstr "Définir le niveau de zoom"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:150
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:146
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "Loupe : maintenir le bouton gauche de la souris sur le PDF pour zoomer"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:153
 msgid "Match theme colors"
 msgstr "Harmoniser les couleurs avec le thème"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:163
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:159
 msgid "Open in external PDF viewer"
 msgstr "Ouvrir dans une visionneuse PDF externe"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:172
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:168
 msgid "Detach preview to separate window"
 msgstr "Détacher l'aperçu dans une fenêtre séparée"
 
@@ -7881,39 +7581,35 @@ msgstr "Sélection : <b>{words}</b> mots, <b>{chars}</b> caractères (<b>{chars_
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "Le comptage des mots nécessite <tt>texcount</tt> (inclus dans TeX Live), qui n'a pas été trouvé. Le comptage des caractères et des lignes reste disponible ci-dessus. Voir le <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">guide d'installation</a>."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
 msgid "No sections match your search"
 msgstr "Aucune section ne correspond à votre recherche"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:74
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
 msgid "No Document"
 msgstr "Aucun document"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
 msgid "Open a document to see its structure."
 msgstr "Ouvrez un document pour voir sa structure."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:151
 msgid "Jump to section"
 msgstr "Aller à la section"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:171
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:73
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:172
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:74
 msgid "Previous section"
 msgstr "Section précédente"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:178
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:79
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:179
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:80
 msgid "Next section"
 msgstr "Section suivante"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:189
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:190
 msgid "Search document structure"
 msgstr "Rechercher dans la structure du document"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:195
-msgid "Switch to Symbols"
-msgstr "Passer aux symboles"
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:35
 msgid "No files"
@@ -8144,35 +7840,35 @@ msgstr ""
 msgid "Commit selected changes and push to the remote"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:80
+#: setzer/workspace/sidebar/sidebar.py:87
 msgid "Files"
 msgstr "Fichiers"
 
-#: setzer/workspace/sidebar/sidebar.py:86
+#: setzer/workspace/sidebar/sidebar.py:93
 msgid "Labels"
 msgstr "Étiquettes"
 
-#: setzer/workspace/sidebar/sidebar.py:89
+#: setzer/workspace/sidebar/sidebar.py:96
 msgid "To-Dos"
 msgstr "Tâches"
 
-#: setzer/workspace/sidebar/sidebar.py:95
+#: setzer/workspace/sidebar/sidebar.py:102
 msgid "Git"
 msgstr "Git"
 
-#: setzer/workspace/sidebar/sidebar.py:99
+#: setzer/workspace/sidebar/sidebar.py:106
 msgid "Document Stats"
 msgstr "Statistiques du document"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:81
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:209
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:227
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:225
 msgid "Package"
 msgstr "Paquet"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:160
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:215
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:238
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:236
 msgid "Insert"
 msgstr "Insérer"
 
@@ -8188,51 +7884,47 @@ msgstr "Ajouter aux favoris"
 msgid "Copy LaTeX Command"
 msgstr "Copier la commande LaTeX"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:51
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:52
 msgid "Jump to category"
 msgstr "Aller à une catégorie"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:88
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:89
 msgid "Search symbols"
 msgstr "Rechercher des symboles"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:94
-msgid "Switch to Document Structure"
-msgstr "Passer à la structure du document"
-
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:119
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:117
 msgid "No symbols match your search"
 msgstr "Aucun symbole ne correspond à votre recherche"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:143
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:141
 msgid "Recent"
 msgstr "Récents"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:152
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
 msgid "Favorites"
 msgstr "Favoris"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:160
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:158
 msgid "Greek Letters"
 msgstr "Lettres grecques"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:161
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:159
 msgid "Arrows"
 msgstr "Flèches"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:160
 msgid "Relations"
 msgstr "Relations"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:161
 msgid "Operators"
 msgstr "Opérateurs"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:164
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
 msgid "Misc. Math"
 msgstr "Maths diverses"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:165
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
 msgid "Misc. Symbols"
 msgstr "Symboles divers"
 

@@ -26,6 +26,7 @@ import os
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.app.service_locator import ServiceLocator
+from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
 
 
 class SymbolsPageView(Gtk.Box):
@@ -88,12 +89,9 @@ class SymbolsPageView(Gtk.Box):
         self.search_button.set_tooltip_text(_('Search symbols'))
         self.toolbar.append(self.search_button)
 
-        self.switch_button = Gtk.Button()
-        self.switch_button.set_child(Gtk.Image(icon_name='view-list-symbolic'))
-        self.switch_button.set_can_focus(False)
-        self.switch_button.set_tooltip_text(_('Switch to Document Structure'))
-        self.switch_button.add_css_class('flat')
-        self.toolbar.append(self.switch_button)
+        # 与 Document Structure 页同款的面板切换器（互为镜像，见 sidebar_viewgtk）。
+        self.switch_group = build_panel_switch_group()
+        self.toolbar.append(self.switch_group)
 
         self.search_revealer = Gtk.Revealer()
         self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)

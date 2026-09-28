@@ -98,9 +98,12 @@ class Settings(Observable):
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
         # 侧栏当前选中的面板（symbols / document_structure），隐藏后再次显示时恢复，
-        # 避免每次都回退到 Symbols 面板。与 show_symbols/show_document_structure 解耦：
+        # 避免每次都回退到固定面板。与 show_symbols/show_document_structure 解耦：
         # 后者在隐藏时被清成 False 用于驱动可见性，本键专门记忆"上次选了哪个面板"。
-        self.defaults['window_state']['sidebar_page'] = 'symbols'
+        # 首次启动（尚无本键）默认 Document Structure：它按当前文档给出 Files /
+        # 章节 / 标签 / To-Dos 等导航入口，是打开文档后更常用的一页；Symbols 页
+        # 是查符号用的工具页，按需切换即可。
+        self.defaults['window_state']['sidebar_page'] = 'document_structure'
         self.defaults['window_state']['sidebar_paned_position'] = -1
         self.defaults['window_state']['sidebar_width_fraction'] = 0.20
         self.defaults['window_state']['show_help'] = False

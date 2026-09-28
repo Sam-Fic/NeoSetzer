@@ -23,6 +23,7 @@ from gi.repository import Gtk, GLib, GObject, Adw, Pango, Gio
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
+from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
 
 
 class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
@@ -189,12 +190,10 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.search_button.set_tooltip_text(_('Search document structure'))
         self.toolbar.append(self.search_button)
 
-        self.switch_button = Gtk.Button()
-        self.switch_button.set_child(Gtk.Image(icon_name='emoji-symbols-symbolic'))
-        self.switch_button.set_can_focus(False)
-        self.switch_button.set_tooltip_text(_('Switch to Symbols'))
-        self.switch_button.add_css_class('flat')
-        self.toolbar.append(self.switch_button)
+        # 面板切换：Adw.ToggleGroup 图标档（当前档高亮），取代原来「单按钮、
+        # 图标显示目标面板」的写法；同步由 Sidebar.set_visible_child_name() 统一做。
+        self.switch_group = build_panel_switch_group()
+        self.toolbar.append(self.switch_group)
 
         self.search_revealer = Gtk.Revealer()
         self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)

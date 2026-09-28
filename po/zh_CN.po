@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-09-26 23:02+0800\n"
+"POT-Creation-Date: 2026-09-28 23:25+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -173,305 +173,6 @@ msgstr "Flatpak 运行时更新至 GNOME 48"
 msgid "Mostly bugfixes, ..."
 msgstr "以错误修复为主，……"
 
-#: data/resources/latexdb/languages/languages.xml:2
-#: data/resources/latexdb/languages/languages.xml:21
-#: data/resources/latexdb/languages/languages.xml:22
-#: data/resources/latexdb/languages/languages.xml:23
-#: data/resources/latexdb/languages/languages.xml:24
-#: data/resources/latexdb/languages/languages.xml:25
-msgid "English"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:3
-msgid "Español"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:4
-#: data/resources/latexdb/languages/languages.xml:29
-msgid "Français"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:5
-msgid "Русский"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:6
-#: data/resources/latexdb/languages/languages.xml:7
-msgid "Português"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:8
-#: data/resources/latexdb/languages/languages.xml:31
-#: data/resources/latexdb/languages/languages.xml:32
-#: data/resources/latexdb/languages/languages.xml:33
-msgid "Deutsch"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:9
-msgid "Italiano"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:10
-msgid "Afrikaans"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:11
-msgid "Azərbaycanca"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:12
-msgid "Euskara"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:13
-msgid "Brezhoneg"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:14
-msgid "Български"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:15
-msgid "Català"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:16
-msgid "中文"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:17
-msgid "Hrvatski"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:18
-msgid "Čeština"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:19
-msgid "Dansk"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:20
-msgid "Nederlands"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:26
-msgid "Esperanto"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:27
-msgid "Eesti"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:28
-msgid "Suomi"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:30
-msgid "Galego"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:34
-#: data/resources/latexdb/languages/languages.xml:35
-msgid "Ελληνικά"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:36
-msgid "עברית"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:37
-msgid "Íslenska"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:38
-msgid "Bahasa Indonesia"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:39
-msgid "Interlingua"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:40
-msgid "Gaeilge"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:41
-msgid "Latina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:42
-msgid "Dolnoserbšćina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:43
-msgid "Bahasa Melayu"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:44
-msgid "Davvisámegiella"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:45
-#: data/resources/latexdb/languages/languages.xml:46
-msgid "Norsk"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:47
-msgid "Polski"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:48
-msgid "Română"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:49
-msgid "Gàidhlig"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:50
-msgid "Slovenčina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:51
-msgid "Slovenščina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:52
-msgid "Svenska"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:53
-msgid "Српски"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:54
-msgid "Türkçe"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:55
-msgid "Українська"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:56
-msgid "Hornjoserbšćina"
-msgstr ""
-
-#: data/resources/latexdb/languages/languages.xml:57
-msgid "Cymraeg"
-msgstr ""
-
-#: data/resources/latexdb/packages/general.xml:2
-msgid "additional math fonts from AMS."
-msgstr "来自 AMS 的附加数学字体。"
-
-#: data/resources/latexdb/packages/general.xml:3
-msgid "mathematics package from AMS."
-msgstr "来自 AMS 的数学宏包。"
-
-#: data/resources/latexdb/packages/general.xml:4
-msgid "mathematical symbols from AMS."
-msgstr "来自 AMS 的数学符号。"
-
-#: data/resources/latexdb/packages/general.xml:5
-msgid "math theorems setting package from AMS."
-msgstr "来自 AMS 的数学定理排版宏包。"
-
-#: data/resources/latexdb/packages/general.xml:6
-msgid "multilingual documents."
-msgstr "多语言文档。"
-
-#: data/resources/latexdb/packages/general.xml:7
-msgid "dirac braket and set notations."
-msgstr "狄拉克括号与集合记号。"
-
-#: data/resources/latexdb/packages/general.xml:8
-msgid "bibliographies in LaTeX."
-msgstr "在 LaTeX 中管理参考文献。"
-
-#: data/resources/latexdb/packages/general.xml:9
-msgid "simple arithmetic in LaTeX commands."
-msgstr "在 LaTeX 命令中进行简单算术。"
-
-#: data/resources/latexdb/packages/general.xml:10
-msgid "foreground and background colors."
-msgstr "前景色与背景色。"
-
-#: data/resources/latexdb/packages/general.xml:11
-msgid "colored tables."
-msgstr "彩色表格。"
-
-#: data/resources/latexdb/packages/general.xml:12
-msgid "enumerate with redefinable labels."
-msgstr "可重定义标签的 enumerate 列表。"
-
-#: data/resources/latexdb/packages/general.xml:13
-msgid "interface to document dimensions."
-msgstr "文档页面尺寸设置接口。"
-
-#: data/resources/latexdb/packages/general.xml:14
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
-msgid "create a glossary for your document."
-msgstr "为您的文档创建术语表"
-
-#: data/resources/latexdb/packages/general.xml:15
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
-msgid "include graphics in your document."
-msgstr "在您文档中包括图形"
-
-#: data/resources/latexdb/packages/general.xml:16
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
-msgid "create hyperlinks within your document."
-msgstr "在您文档内创建超链接"
-
-#: data/resources/latexdb/packages/general.xml:17
-msgid "conditional commands."
-msgstr "条件命令。"
-
-#: data/resources/latexdb/packages/general.xml:18
-msgid "provides a listing environment for embedding programming code."
-msgstr "提供嵌入程序代码的列表（listing）环境。"
-
-#: data/resources/latexdb/packages/general.xml:19
-msgid "provides additional bibliography and citation styles."
-msgstr "提供更多参考文献与引用样式。"
-
-#: data/resources/latexdb/packages/general.xml:20
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
-msgid "paragraphs without indentation."
-msgstr "不带缩进的段落"
-
-#: data/resources/latexdb/packages/general.xml:21
-msgid "create plots in two and three dimensions."
-msgstr "绘制二维与三维图表。"
-
-#: data/resources/latexdb/packages/general.xml:22
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
-msgid "contains symbols to be used in textmode."
-msgstr "包含在文本模式中使用的符号"
-
-#: data/resources/latexdb/packages/general.xml:23
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
-msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
-msgstr "使用自定义样式定义定理环境（如“定义”、“引理”等）"
-
-#: data/resources/latexdb/packages/general.xml:24
-msgid "graphics and plotting."
-msgstr "图形与绘图。"
-
-#: data/resources/latexdb/packages/general.xml:25
-msgid "set transparency for sections in your document."
-msgstr "为文档中的章节设置透明度。"
-
-#: data/resources/latexdb/packages/general.xml:26
-msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr "用 \\\\url{..} 命令输入网址，无需转义特殊字符。"
-
-#: data/resources/latexdb/packages/general.xml:27
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
-msgid "enables colored text."
-msgstr "启用彩色文本"
-
 #: setzer/ai_fix/agent_runner.py:317
 msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
 msgstr "没有可用的终端模拟器。请安装 gnome-terminal / xterm，或在首选项中设置自定义终端。"
@@ -531,7 +232,7 @@ msgstr "发送给 AI 代理"
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:81
 #: setzer/dialogs/go_to_line/go_to_line.py:41
 #: setzer/dialogs/go_to_page/go_to_page.py:42
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:45
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:59
 #: setzer/dialogs/preferences/pages/page_appearance.py:181
 #: setzer/dialogs/preferences/pages/page_appearance.py:319
 #: setzer/dialogs/preferences/pages/page_appearance.py:343
@@ -1504,7 +1205,7 @@ msgstr "打开 BibTeX 文件"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1137
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1587
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:104
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:105
 msgid "BibTeX Files"
 msgstr "BibTeX 文件"
 
@@ -1947,7 +1648,7 @@ msgid "Search Online"
 msgstr "在线搜索"
 
 #: setzer/dialogs/building_failed/building_failed.py:55
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:46
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:60
 msgid "Go to Preferences"
 msgstr "前往首选项"
 
@@ -2039,7 +1740,7 @@ msgstr "制表符"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:54
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:52
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:69
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:43
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:64
@@ -2601,17 +2302,45 @@ msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等…�
 msgid "recommended"
 msgstr "推荐"
 
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
+msgid "contains symbols to be used in textmode."
+msgstr "包含在文本模式中使用的符号"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
+msgid "include graphics in your document."
+msgstr "在您文档中包括图形"
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:188
 msgid "foreground and background color."
 msgstr "前景和背景颜色"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
+msgid "enables colored text."
+msgstr "启用彩色文本"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
 msgid "type urls with the \\url{..} command without escaping them."
 msgstr "使用 \\url{..} 命令键入网址而不对它们转义"
 
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
+msgid "create hyperlinks within your document."
+msgstr "在您文档内创建超链接"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
+msgstr "使用自定义样式定义定理环境（如“定义”、“引理”等）"
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:193
 msgid "provides the \\listing environment for embedding programming code."
 msgstr "提供用于内嵌编程代码的 \\listing 环境"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:194
+msgid "create a glossary for your document."
+msgstr "为您的文档创建术语表"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:195
+msgid "paragraphs without indentation."
+msgstr "不带缩进的段落"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:200
 msgid "Document properties"
@@ -3230,86 +2959,45 @@ msgstr "输入页码（1–{pages}）"
 msgid "Page number"
 msgstr "页码"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:49
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:66
 msgid "Include BibTeX file"
 msgstr "包括 BibTeX 文件"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:56
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:73
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:47
 msgid "_Include"
 msgstr "包括(_I)"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:68
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:85
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:419
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:421
 msgid "Bibliography"
 msgstr "参考文献"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:72
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:89
 msgid "BibTeX file to include"
 msgstr "要包括的 BibTeX 文件"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:86
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:176
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:103
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:203
 #: setzer/widgets/filechooser_button/filechooser_button.py:37
 #: setzer/widgets/filechooser_button/filechooser_button.py:72
 msgid "(None)"
 msgstr "（无）"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:104
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:130
 msgid "Standard Styles"
 msgstr "标准样式"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:106
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:120
-msgid "Bibliography style"
-msgstr "参考文献样式"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
-msgid "Plain"
-msgstr "Plain"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:109
-msgid "Abbrv"
-msgstr "Abbrv"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:110
-msgid "Alpha"
-msgstr "Alpha"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:111
-msgid "Apalike"
-msgstr "Apalike"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:112
-msgid "iEEEtr"
-msgstr "iEEEtr"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:118
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:135
 msgid "Natbib Styles"
 msgstr "Natbib 样式"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:122
-msgid "Plainnat"
-msgstr "Plainnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:123
-msgid "Abbrvnat"
-msgstr "Abbrvnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:124
-msgid "Unsrtnat"
-msgstr "Unsrtnat"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:125
-msgid "Achemso"
-msgstr "Achemso"
-
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:135
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:145
 msgid "Show bibliography styles for the 'natbib' package"
 msgstr "显示“natbib”宏包的参考文献样式"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:193
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:220
 msgid "Select a BibTeX File"
 msgstr "选择 BibTeX 文件"
 
@@ -3978,11 +3666,24 @@ msgstr "移除此合并范围"
 msgid "Covered by a merged cell"
 msgstr "由合并单元格覆盖"
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:36
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:39
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:50
 msgid "LaTeX Interpreter is missing."
 msgstr "LaTeX 解释器缺失"
 
-#: setzer/dialogs/interpreter_missing/interpreter_missing.py:37
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:40
+msgid ""
+"Setzer is configured to run builds through \"latexmk\", which seems to be missing on this system.\n"
+"\n"
+"You can install it with:\n"
+"• Ubuntu/Debian: sudo apt install latexmk\n"
+"• Fedora: sudo dnf install latexmk\n"
+"• Arch Linux: sudo pacman -S latexmk\n"
+"\n"
+"Or turn off latexmk in Preferences ▸ Build System."
+msgstr ""
+
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:51
 #, python-brace-format
 msgid ""
 "Setzer is configured to use \"{interpreter}\" which seems to be missing on this system.\n"
@@ -4161,12 +3862,12 @@ msgid "Zoom"
 msgstr "缩放"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:99
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:140
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:136
 msgid "Zoom in"
 msgstr "放大"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:100
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:114
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:110
 msgid "Zoom out"
 msgstr "缩小"
 
@@ -5591,7 +5292,7 @@ msgid "Help"
 msgstr "帮助"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:130
-#: setzer/workspace/sidebar/sidebar.py:83
+#: setzer/workspace/sidebar/sidebar.py:90
 msgid "Document Structure"
 msgstr "文档结构"
 
@@ -6826,24 +6527,24 @@ msgstr "替换选中的结果"
 msgid "Replace All"
 msgstr "全部替换"
 
-#: setzer/document/snippet_preview/math_preview_popover.py:67
+#: setzer/document/snippet_preview/math_preview_popover.py:163
 msgid "Rendering formula…"
 msgstr "正在渲染公式…"
 
-#: setzer/document/snippet_preview/tikz_preview.py:210
+#: setzer/document/snippet_preview/tikz_preview.py:68
 msgid "TikZ Preview is turned off. Enable it in the Editor preferences."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:236
-#: setzer/document/snippet_preview/tikz_preview.py:262
+#: setzer/document/snippet_preview/tikz_preview.py:241
+#: setzer/document/snippet_preview/tikz_preview.py:267
 msgid "No LaTeX compiler was found for the snippet preview."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:241
+#: setzer/document/snippet_preview/tikz_preview.py:246
 msgid "This figure is too large for the live preview."
 msgstr ""
 
-#: setzer/document/snippet_preview/tikz_preview.py:280
+#: setzer/document/snippet_preview/tikz_preview.py:285
 msgid "Compilation failed."
 msgstr ""
 
@@ -6990,8 +6691,8 @@ msgid "Recent Documents"
 msgstr "最近文档"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:60
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:118
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:116
 msgid "No Results"
 msgstr "无结果"
 
@@ -7114,7 +6815,7 @@ msgid "New Document from Template"
 msgstr "从模板新建文档"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:123
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:119
 msgid "Fit to Width"
 msgstr "适合宽度"
 
@@ -7727,88 +7428,87 @@ msgstr "前进"
 msgid "Search help documentation"
 msgstr "搜索帮助文档"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:104
-msgid "Switch to PDF Preview"
-msgstr "切换到 PDF 预览"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:122
-msgid "Search help"
-msgstr "搜索帮助"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:162
-msgid "No results found"
-msgstr "未找到结果"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:171
-msgid "Search Help"
-msgstr "搜索帮助"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:172
-msgid "Type a keyword to search the documentation."
-msgstr "输入关键字以搜索文档"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:212
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:224
-msgid "JavaScript is disabled"
-msgstr "JavaScript 已禁用"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:230
-msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
-msgstr "出于安全考虑，帮助页面在禁用 JavaScript 的情况下渲染。静态文档可正常显示；依赖 JavaScript 的交互式示例将无法运行"
-
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:252
-msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
-msgstr "帮助页面渲染需要 WebKit6。搜索仍可用——点击结果即可在网页浏览器中打开"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:364
-msgid "Maximum zoom level reached"
-msgstr "已达到最大缩放级别"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:366
-msgid "Minimum zoom level reached"
-msgstr "已达到最小缩放级别"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:407
-msgid "Build failed — showing the previous PDF"
-msgstr "构建失败——显示上一版 PDF"
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:421
-msgid "of "
-msgstr " 共 "
-
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:423
-msgid "No preview"
-msgstr "无预览"
-
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:59
-msgid "Switch to Help"
-msgstr "切换到帮助"
-
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:69
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:109
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:62
 msgid "Full PDF preview"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:73
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:112
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:65
 msgid "TikZ snippet preview"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:134
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:115
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:71
+msgid "Switch to Help"
+msgstr "切换到帮助"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:133
+msgid "Search help"
+msgstr "搜索帮助"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:173
+msgid "No results found"
+msgstr "未找到结果"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:182
+msgid "Search Help"
+msgstr "搜索帮助"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:183
+msgid "Type a keyword to search the documentation."
+msgstr "输入关键字以搜索文档"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:223
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:235
+msgid "JavaScript is disabled"
+msgstr "JavaScript 已禁用"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:241
+msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
+msgstr "出于安全考虑，帮助页面在禁用 JavaScript 的情况下渲染。静态文档可正常显示；依赖 JavaScript 的交互式示例将无法运行"
+
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:263
+msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
+msgstr "帮助页面渲染需要 WebKit6。搜索仍可用——点击结果即可在网页浏览器中打开"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:385
+msgid "Maximum zoom level reached"
+msgstr "已达到最大缩放级别"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:387
+msgid "Minimum zoom level reached"
+msgstr "已达到最小缩放级别"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:428
+msgid "Build failed — showing the previous PDF"
+msgstr "构建失败——显示上一版 PDF"
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:442
+msgid "of "
+msgstr " 共 "
+
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:444
+msgid "No preview"
+msgstr "无预览"
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:130
 msgid "Set zoom level"
 msgstr "设置缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:150
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:146
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "放大镜：按住左键在 PDF 上缩放"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:153
 msgid "Match theme colors"
 msgstr "匹配主题颜色"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:163
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:159
 msgid "Open in external PDF viewer"
 msgstr "在外部 PDF 查看器中打开"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:172
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:168
 msgid "Detach preview to separate window"
 msgstr "预览"
 
@@ -7875,39 +7575,35 @@ msgstr "选区：<b>{words}</b> 个词，<b>{chars}</b> 个字符（不含空白
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "字数统计需要 <tt>texcount</tt>（TeX Live 的一部分），但未找到。字符数与行数统计仍可用。参见 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">安装指南</a>"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
 msgid "No sections match your search"
 msgstr "没有章节匹配你的搜索"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:74
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
 msgid "No Document"
 msgstr "无文档"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
 msgid "Open a document to see its structure."
 msgstr "打开文档以查看其结构"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:151
 msgid "Jump to section"
 msgstr "下一章节"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:171
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:73
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:172
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:74
 msgid "Previous section"
 msgstr "上一章节"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:178
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:79
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:179
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:80
 msgid "Next section"
 msgstr "下一章节"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:189
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:190
 msgid "Search document structure"
 msgstr "搜索文档结构"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:195
-msgid "Switch to Symbols"
-msgstr "切换到符号"
 
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:35
 msgid "No files"
@@ -8138,35 +7834,35 @@ msgstr ""
 msgid "Commit selected changes and push to the remote"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:80
+#: setzer/workspace/sidebar/sidebar.py:87
 msgid "Files"
 msgstr "文件"
 
-#: setzer/workspace/sidebar/sidebar.py:86
+#: setzer/workspace/sidebar/sidebar.py:93
 msgid "Labels"
 msgstr "标签"
 
-#: setzer/workspace/sidebar/sidebar.py:89
+#: setzer/workspace/sidebar/sidebar.py:96
 msgid "To-Dos"
 msgstr "待办事项"
 
-#: setzer/workspace/sidebar/sidebar.py:95
+#: setzer/workspace/sidebar/sidebar.py:102
 msgid "Git"
 msgstr "Git"
 
-#: setzer/workspace/sidebar/sidebar.py:99
+#: setzer/workspace/sidebar/sidebar.py:106
 msgid "Document Stats"
 msgstr "文档统计"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:81
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:209
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:227
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:225
 msgid "Package"
 msgstr "宏包"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:160
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:215
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:238
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:236
 msgid "Insert"
 msgstr "插入"
 
@@ -8182,51 +7878,47 @@ msgstr "☆ 添加到收藏"
 msgid "Copy LaTeX Command"
 msgstr "LaTeX 命令"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:51
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:52
 msgid "Jump to category"
 msgstr "跳转"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:88
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:89
 msgid "Search symbols"
 msgstr "搜索符号"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:94
-msgid "Switch to Document Structure"
-msgstr "切换到文档结构"
-
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:119
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:117
 msgid "No symbols match your search"
 msgstr "没有符号匹配你的搜索"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:143
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:141
 msgid "Recent"
 msgstr "最近使用"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:152
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
 msgid "Favorites"
 msgstr "收藏"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:160
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:158
 msgid "Greek Letters"
 msgstr "希腊字母"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:161
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:159
 msgid "Arrows"
 msgstr "箭头"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:160
 msgid "Relations"
 msgstr "关系符号"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:161
 msgid "Operators"
 msgstr "运算符"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:164
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
 msgid "Misc. Math"
 msgstr "其他数学符号"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:165
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
 msgid "Misc. Symbols"
 msgstr "其他符号"
 
