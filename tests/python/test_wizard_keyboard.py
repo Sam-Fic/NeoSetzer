@@ -18,7 +18,8 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 def load_class(path, class_name):
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     return next(node for node in tree.body
                 if isinstance(node, ast.ClassDef) and node.name == class_name)
 

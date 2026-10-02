@@ -20,7 +20,8 @@ class _FakeGdk:
 def _load_controller_methods():
     path = os.path.join(REPO, 'setzer', 'document', 'preview',
                         'preview_controller.py')
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     class_node = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef)
                       and node.name == 'PreviewController')
@@ -41,7 +42,8 @@ def _load_controller_methods():
 def _load_renderer_invalidator():
     path = os.path.join(REPO, 'setzer', 'document', 'preview',
                         'preview_page_renderer.py')
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     class_node = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef)
                       and node.name == 'PreviewPageRenderer')

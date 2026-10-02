@@ -60,7 +60,8 @@ class _File:
 
 def _load_preview_methods():
     path = os.path.join(REPO, 'setzer/document/preview/preview.py')
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     class_node = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef) and node.name == 'Preview')
     names = {

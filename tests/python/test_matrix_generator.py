@@ -4,7 +4,6 @@
 import unittest
 
 from setzer.dialogs.insert_matrix.matrix_generator import (
-    ALIGNMENT_CENTER,
     ALIGNMENT_LEFT,
     ENVIRONMENT_BBMATRIX,
     ENVIRONMENT_BMATRIX,

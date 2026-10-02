@@ -18,7 +18,7 @@ from unittest.mock import patch
 import setzer.helpers.persistence as persistence
 from setzer.helpers.persistence import (
     load_json, save_json,
-    load_pickle_trusted, load_pickle_restricted, RestrictedUnpickler,
+    load_pickle_trusted, load_pickle_restricted,
     migrate_pickle_to_json, try_migrate_session_file_pickle,
 )
 

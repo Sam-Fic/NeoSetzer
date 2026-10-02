@@ -3,7 +3,6 @@
 
 import os
 import tempfile
-import time
 import unittest
 
 from setzer.document.preview.external_pdf_monitor import (

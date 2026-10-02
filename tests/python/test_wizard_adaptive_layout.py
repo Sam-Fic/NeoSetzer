@@ -13,7 +13,8 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def method_source(relative_path, class_name, method_name='__init__'):
     path = os.path.join(REPO, relative_path)
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     cls = next(node for node in tree.body
                if isinstance(node, ast.ClassDef) and node.name == class_name)
     method = next(node for node in cls.body

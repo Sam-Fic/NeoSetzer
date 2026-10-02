@@ -10,7 +10,8 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 def _load_method(path, class_name, method_name, namespace=None):
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     class_node = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef) and node.name == class_name)
     method = next(node for node in class_node.body

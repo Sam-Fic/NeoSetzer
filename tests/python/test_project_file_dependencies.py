@@ -80,7 +80,8 @@ def _inject_stdlib_imports(tree, namespace):
 
 
 def _extract_class(path, class_name, namespace):
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     constants = [node for node in tree.body if isinstance(node, ast.Assign)]
     _inject_stdlib_imports(tree, namespace)
     cls_node = next(node for node in tree.body

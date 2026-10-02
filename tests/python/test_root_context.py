@@ -50,7 +50,9 @@ class RootContextTest(unittest.TestCase):
             self._write(root, '\\documentclass{article}\n\\begin{document}\n\\end{document}\n')
             self._write(chapter, '% !TeX root = ../main.tex\n\\section{Intro}\n')
 
-            context = resolve_root_context(chapter, open(chapter).read())
+            with open(chapter, encoding='utf-8') as f:
+                chapter_text = f.read()
+            context = resolve_root_context(chapter, chapter_text)
             self.assertEqual(context.filename, root)
             self.assertIn('\\documentclass{article}', context.text)
             self.assertEqual(context.build_dir, project)
@@ -64,7 +66,9 @@ class RootContextTest(unittest.TestCase):
             self._write(chapter, '\\section{Intro}\n')
             ProjectBuildConfiguration(project).save({'root_document': 'main.tex'})
 
-            context = resolve_root_context(chapter, open(chapter).read())
+            with open(chapter, encoding='utf-8') as f:
+                chapter_text = f.read()
+            context = resolve_root_context(chapter, chapter_text)
             self.assertEqual(context.filename, root)
             self.assertEqual(context.build_dir, project)
 
@@ -78,7 +82,9 @@ class RootContextTest(unittest.TestCase):
             self._write(chapter, '% !TeX root = ../other.tex\n')
             ProjectBuildConfiguration(project).save({'root_document': 'main.tex'})
 
-            context = resolve_root_context(chapter, open(chapter).read())
+            with open(chapter, encoding='utf-8') as f:
+                chapter_text = f.read()
+            context = resolve_root_context(chapter, chapter_text)
             self.assertEqual(context.filename, magic)
 
     def test_open_sources_text_beats_disk(self):
@@ -89,7 +95,9 @@ class RootContextTest(unittest.TestCase):
             self._write(chapter, '% !TeX root = ../main.tex\n')
             unsaved = '\\documentclass{article}  % unsaved edit\n\\begin{document}\n\\end{document}\n'
 
-            context = resolve_root_context(chapter, open(chapter).read(),
+            with open(chapter, encoding='utf-8') as f:
+                chapter_text = f.read()
+            context = resolve_root_context(chapter, chapter_text,
                                            open_sources={root: unsaved})
             self.assertEqual(context.text, unsaved)
             # 未保存文本无 stat 可言：signature 的 mtime/size 位以 None/len 表示，
@@ -143,7 +151,9 @@ class RootContextTest(unittest.TestCase):
             self._write(root, '\\documentclass{article}\\begin{document}\\end{document}')
             self._write(chapter, '% !TeX root = ../main.tex\n')
 
-            context = resolve_root_context(chapter, open(chapter).read(),
+            with open(chapter, encoding='utf-8') as f:
+                chapter_text = f.read()
+            context = resolve_root_context(chapter, chapter_text,
                                            read_text=lambda filename: None)
             self.assertIsNone(context.filename)
             self.assertEqual(context.text, '')

@@ -20,7 +20,6 @@
 import ast
 import copy
 import os
-import sys
 import types
 import unittest
 import xml.etree.ElementTree as ET
@@ -46,7 +45,8 @@ def _load_document_wizard_class():
     避开顶层 `import setzer.dialogs.document_wizard.document_wizard_viewgtk`
     等触发的 Gtk 真实依赖。'''
     src_path = os.path.join(REPO, 'setzer/dialogs/document_wizard/document_wizard.py')
-    tree = ast.parse(open(src_path).read())
+    with open(src_path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     cls_node = next(n for n in tree.body
                     if isinstance(n, ast.ClassDef) and n.name == 'DocumentWizard')
 

@@ -10,7 +10,6 @@ verbatim 跳过、嵌套环境、EOF 未闭合丢弃、offset 往返与二分查
 import unittest
 
 from setzer.document.snippet_preview.math_region_finder import (
-    MathRegion,
     find_math_regions,
     find_region_at,
     scan_verbatim_spans,

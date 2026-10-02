@@ -28,7 +28,6 @@ r"""cite 命令带方括号可选项（页码）时的补全（上游 issue #312
   带可选参数命令（\textcolor 等）不误触发。
 """
 
-import re
 import unittest
 
 from setzer.app.latex_db import LaTeXDB

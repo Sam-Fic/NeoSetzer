@@ -243,7 +243,7 @@ class TestLegacySentinelNotFalsePositive(unittest.TestCase):
 
 
 class TestContentWithBraceChars(unittest.TestCase):
-    '''原正则 [^\{\[\(] 允许 } 出现在内容中（greedy），closing } 是最后一个 }。
+    r'''原正则 [^\{\[\(] 允许 } 出现在内容中（greedy），closing } 是最后一个 }。
 
     find_cursor_in_begin_end 复现此语义：扫描到第一个 forbidden char ({ [ ()
     为止，取最后一个 } 作为 closing。

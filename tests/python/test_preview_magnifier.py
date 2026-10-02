@@ -26,13 +26,13 @@ import unittest
 import cairo
 import numpy as np
 
-from setzer.document.preview.preview_magnifier import (
+from setzer.document.preview.magnifier_geometry import (
     MAGNIFICATION_FACTOR,
-    PreviewMagnifier,
     apply_magnifier_transform,
     compute_magnifier_params,
     compute_magnifier_placement,
 )
+from setzer.document.preview.preview_magnifier import PreviewMagnifier
 
 
 class MagnifierParamsTest(unittest.TestCase):

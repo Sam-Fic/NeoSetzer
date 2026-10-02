@@ -59,7 +59,8 @@ class _RegexServiceLocator:
 
 def _load_parser_class():
     path = os.path.join(REPO, 'setzer/document/parser/parser_latex.py')
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     constants = [node for node in tree.body if isinstance(node, ast.Assign)]
     cls_node = next(node for node in tree.body
                     if isinstance(node, ast.ClassDef) and node.name == 'ParserLaTeX')
@@ -127,7 +128,8 @@ class _StubLabelsSectionView:
 def _load_labels_section_class():
     path = os.path.join(
         REPO, 'setzer/workspace/sidebar/document_structure_page/labels.py')
-    tree = ast.parse(open(path, encoding='utf-8').read())
+    with open(path, encoding='utf-8') as f:
+        tree = ast.parse(f.read())
     constants = [node for node in tree.body if isinstance(node, ast.Assign)]
     cls_node = next(node for node in tree.body
                     if isinstance(node, ast.ClassDef) and node.name == 'LabelsSection')

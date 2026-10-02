@@ -193,7 +193,7 @@ class TestMigrationRoundTrip(unittest.TestCase):
 
     def test_legacy_pickle_gets_migrated_to_new_json(self):
         from setzer.helpers.persistence import (
-            load_pickle_trusted, save_json, load_json, migrate_pickle_to_json)
+            load_json, migrate_pickle_to_json)
         import pickle
         path = '/home/user/docs/old_paper.tex'
         new_json, _ = state_paths(path, self.tmp)
