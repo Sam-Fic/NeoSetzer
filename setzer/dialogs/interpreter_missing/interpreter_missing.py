@@ -35,27 +35,28 @@ class InterpreterMissingDialog(object):
         # latexmk 在主流发行版上是独立包（texlive-latex-base 等集合不包含它），
         # 缺 latexmk 时给出针对性的安装提示与关闭入口，而非误导用户装引擎。
         if interpreter_name == 'latexmk':
-            self.view = Adw.AlertDialog(
-                heading=_('LaTeX Interpreter is missing.'),
-                body=_('''Setzer is configured to run builds through "latexmk", which seems to be missing on this system.
+            body = _('''Setzer is configured to run builds through "latexmk", which seems to be missing on this system.
 
 You can install it with:
 • Ubuntu/Debian: sudo apt install latexmk
 • Fedora: sudo dnf install latexmk
 • Arch Linux: sudo pacman -S latexmk
 
-Or turn off latexmk in Preferences ▸ Build System.'''))
-            return
-        self.view = Adw.AlertDialog(
-            heading=_('LaTeX Interpreter is missing.'),
-            body=_('''Setzer is configured to use "{interpreter}" which seems to be missing on this system.
+Or turn off latexmk in Preferences ▸ Build System.''')
+        else:
+            body = _('''Setzer is configured to use "{interpreter}" which seems to be missing on this system.
 
 You can install it with:
 • Ubuntu/Debian: sudo apt install texlive-latex-base
 • Fedora: sudo dnf install texlive-scheme-medium
 • Arch Linux: sudo pacman -S texlive-core
 
-Or choose a different interpreter in Preferences.''').format(interpreter=interpreter_name))
+Or choose a different interpreter in Preferences.''').format(interpreter=interpreter_name)
+        # 两个分支共用同一组响应：无 add_response 的 AlertDialog 一个按钮都
+        # 没有，close response 也未注册，模态弹出后无法跳偏好或可靠关闭。
+        self.view = Adw.AlertDialog(
+            heading=_('LaTeX Interpreter is missing.'),
+            body=body)
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('preferences', _('Go to Preferences'))
         self.view.set_response_appearance('preferences', Adw.ResponseAppearance.SUGGESTED)
