@@ -14,7 +14,7 @@ gi.require_version('GtkSource', '5')
 gi.require_version('Gtk', '4.0')
 from gi.repository import GtkSource, Gtk
 
-import os, sys, time, io, contextlib, re, statistics
+import os, sys, time, io, contextlib, statistics
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -363,7 +363,7 @@ def bench_open_path():
 
         # sticky scroll 可见性单独计时
         t0 = time.perf_counter()
-        vis = ss._compute_section_visibility(parser.symbols['blocks'])
+        ss._compute_section_visibility(parser.symbols['blocks'])
         sticky_ms = (time.perf_counter() - t0) * 1000.0
 
         # O3: 全部折叠后重解析(旧实现此处为 O(B²) 展开风暴)。

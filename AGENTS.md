@@ -9,6 +9,7 @@
 | 发版（版本号、CHANGELOG、tag） | [docs/RELEASE.md](docs/RELEASE.md) |
 | 打包（Debian / Windows / macOS） | [docs/packaging/](docs/packaging/) |
 | 运行测试（`meson test`、`pytest`） | [CONTRIBUTING.md](CONTRIBUTING.md)「代码贡献」 |
+| 静态检查（ruff，`_`/`ngettext` 注入约定） | [CONTRIBUTING.md](CONTRIBUTING.md)「静态检查」 + [ruff.toml](ruff.toml) |
 | 构建系统配置（meson.build 结构） | [meson.build](meson.build) + [po/meson.build](po/meson.build) |
 | CI workflow（test / build-deb / build-windows / build-macos） | [.github/workflows/](.github/workflows/) |
 | 示例项目结构与 Magic Comment | [data/resources/example_project/README.md](data/resources/example_project/README.md) |

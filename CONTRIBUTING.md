@@ -18,6 +18,19 @@ ninja -C builddir
 ./scripts/dev/setzer.dev
 ```
 
+### 静态检查
+
+项目用 [ruff](https://docs.astral.sh/ruff/) 做静态检查（只启用 pyflakes 规则集），配置在根目录 `ruff.toml`。提交前建议跑一次，要求零告警：
+
+```bash
+ruff check .
+```
+
+两点项目约定已写进配置，不是误报也不是需要绕开的告警：
+
+- `_` / `ngettext` 翻译函数由 `setzer.in` 启动时注入 builtins（`builtins._ = trans.gettext`），各模块直接使用属正常写法，勿改成逐文件 import——那会破坏「界面语言偏好优先于系统语言」的机制；
+- 各包 `__init__.py` 里的导入是有意转出口，供其他模块短路径 import。
+
 ### 翻译文件 diff 优化
 
 `sync-po.sh` 会重排 po 条目并刷新行号引用，导致 `git diff` 展示数千行噪音。

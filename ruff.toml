@@ -1,0 +1,16 @@
+# ruff 静态检查配置（仅开发期使用，不影响应用运行时与打包）。
+# 运行：ruff check .
+
+# 翻译函数 _ / ngettext 由 setzer.in 启动时注入 builtins
+# （builtins._ = trans.gettext）。不声明的话，ruff 会把所有直接
+# 使用 _() / ngettext() 的地方误报为未定义名。
+builtins = ["_", "ngettext"]
+
+[lint]
+# 只启用 pyflakes 规则集（F），与此前 pyflakes 检查等价；
+# 之后想更严格可再逐步加 E/W/I 等规则集。
+select = ["F"]
+
+[lint.per-file-ignores]
+# 各包 __init__.py 里的导入是有意转出口（供其他模块短路径 import）。
+"__init__.py" = ["F401"]

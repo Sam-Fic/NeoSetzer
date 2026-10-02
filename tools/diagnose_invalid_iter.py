@@ -128,6 +128,6 @@ def _stress_tick():
 
 GLib.timeout_add(400, _stress_tick)
 
-from builddir import setzer_dev  # noqa: E402  导入即启动应用
+from builddir import setzer_dev  # noqa: E402, F401  导入即启动应用
 
 
