@@ -1,5 +1,30 @@
 # Changelog
 
+## v85 — 2026-10-02
+
+### 主要改进
+
+- **修复多处运行时崩溃**：本批崩溃均由新引入的静态检查流程发现，属单元测试覆盖不到的 GTK 运行路径——偏好设置快捷键捕获按下任意键即崩（缺 Gdk 导入）；构建日志行右键菜单弹出即崩（`GdkRectangle` 不是 PyGObject 暴露的名字，应为 `Gdk.Rectangle`）；取消「保存构建日志」对话框即崩（`except GLib.Error` 未导入 GLib）；AI 修复发送后执行阶段崩（`agent_runner` 为函数局部导入不跨方法共享，提升为模块级导入）。
+
+- **修复解释器缺失弹窗无法操作**：latexmk 缺失时弹窗没有任何按钮也无法可靠关闭；现两个分支共用「取消 / 前往偏好设置」响应组。
+
+- **修复预览分段控件全灭态判断**：`Adw.ToggleGroup` 未选中时 `get_active()` 返回 `G_MAXUINT` 而非负数，原来的 `active < 0` 兜底永不成立；改为按档位数判界，恒有一档亮着。
+
+- **恢复失焦时关闭 undo 分组**：document controller 中 `_on_focus_leave` 被后置的空占位实现静默覆盖，删除占位后「切走再切回时 Ctrl+Z 不再作用于上一段连续输入」的行为恢复生效。
+
+- **代码清理**：93 个文件清理未使用导入与未用局部变量；测试中行内 `open()` 改 with 语句消除 ResourceWarning，文档字符串加 r 前缀消除 SyntaxWarning；全仓库通过 `ruff check` 零告警。
+
+### Improvements
+
+- **fix**: Preference shortcut capture no longer crashes on any keypress (missing `Gdk` import).
+- **fix**: Build log crashes fixed — row context menu popup (`GdkRectangle` → `Gdk.Rectangle`), cancelling "Save log" (unimported `GLib.Error`), and the AI-fix execute step (`agent_runner` hoisted to a module-level import).
+- **fix**: Interpreter-missing dialog shares its Cancel / Go-to-Preferences responses across both branches; the latexmk branch previously produced a buttonless dialog that could not reliably be closed.
+- **fix**: Preview segmented control now handles the "no active toggle" state (`G_MAXUINT`, not negative) by falling back per toggle count.
+- **fix**: Focus-leave closes the undo group again (an empty stub overriding the real implementation was removed).
+- **refactor**: Removed unused imports and locals across 93 files; tests use with-open and raw docstrings (no more ResourceWarning/SyntaxWarning); the repo passes `ruff check` with zero warnings.
+
+---
+
 ## v84 — 2026-09-28
 
 ### 主要改进
