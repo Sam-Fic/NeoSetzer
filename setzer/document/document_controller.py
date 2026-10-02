@@ -1179,14 +1179,6 @@ class DocumentController(object):
             GLib.Source.remove(self._zoom_persist_timeout_id)
             self._persist_zoom()
 
-    def _on_focus_leave(self, controller):
-        """当 source_view 失去焦点时调用。
-
-        预留钩子：未来可在此结束可能进行的 undo 分组（GTK 4 暂无
-        inside_user_action 检测方法）。当前实现为空。
-        """
-        pass
-
     def _on_window_active_changed(self, window, gparam):
         '''窗口获得焦点时立即检查外部磁盘变更，缩短用户切回 Setzer 时的
         感知延迟（原仅靠 2s 轮询）。save_date_loop 内部有 dialog_shown
