@@ -15,12 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import Gdk, Adw, Gtk, Gio
+from gi.repository import Gdk, Adw, Gtk, Gio, GLib
 import os.path
 
 # 延迟导入避免循环：controller 引用 presenter 的 ALL_TYPES 常量及 classify_warning_type。
 import setzer.dialogs.build_log.build_log_dialog_presenter as presenter_module
 from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
+# agent_runner 是纯 stdlib 模块，无 GTK 依赖，可安全模块级导入：
+# _initiate_ai_fix 与 _execute 都要用，函数局部导入互不可见。
+from setzer.ai_fix import agent_runner
 
 
 class BuildLogDialogController(object):
@@ -429,7 +432,6 @@ class BuildLogDialogController(object):
 
         # 3. 取激活工具配置（agent_runner.resolve_tool_config 优先按 active_tool_name，
         #    找不到或不可用时回退到第一个 _which_on_host 可探测到的工具）。
-        from setzer.ai_fix import agent_runner
         # 本地化钩子（agent_runner 模块文档声明）：让返回的提示消息走 gettext。
         agent_runner._ = _
         active_tool_name = settings.get_value('preferences', 'ai_fix_active_tool')
@@ -503,7 +505,7 @@ class BuildLogDialogController(object):
             # 保存失败，中止 AI fix（toast 已由 save_to_disk 弹出）
             return
 
-        # agent_runner 已在 _initiate_ai_fix 顶部 import 过；Python 缓存复用。
+        # agent_runner 的本地化钩子已在 _initiate_ai_fix 设置（发送必经该入口）。
         filename = document.get_filename()
         terminal_cmd = self.build_log.settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed(

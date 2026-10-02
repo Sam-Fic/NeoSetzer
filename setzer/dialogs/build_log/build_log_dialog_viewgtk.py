@@ -478,7 +478,7 @@ class BuildLogList(Gtk.ListBox):
         else:
             self._menu_ignore_button.set_visible(False)
         self._row_menu.set_parent(row)
-        rect = GdkRectangle()
+        rect = Gdk.Rectangle()
         rect.x = int(x)
         rect.y = int(y)
         rect.width = 1
