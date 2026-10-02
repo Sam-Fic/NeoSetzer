@@ -223,8 +223,10 @@ class PreviewPanelPresenter(object):
         if self._syncing_mode_switch:
             return
         active = group.get_active()
-        if active < 0:
-            # 各档恒有一个亮着：ToggleGroup 允许全灭，这里拨回当前档。
+        if active >= group.get_n_toggles():
+            # 全灭兜底：get_active() 是 guint 索引，无选中时返回 G_MAXUINT
+            # 而非负数（GIR 文档：索引超出档位数即未选中），必须按档位数判界。
+            # ToggleGroup 允许全灭，这里拨回当前档，恒有一档亮着。
             self._sync_mode_switch()
             return
         if active == 2:
@@ -579,7 +581,8 @@ class PreviewPanelPresenter(object):
         if active == 2:
             self._sync_help_switch(True)
             return
-        if active < 0:
+        if active >= group.get_n_toggles():
+            # 全灭态（G_MAXUINT，非负数）兜底：拨回 help 档，恒有一档亮着。
             self._sync_help_switch(True)
             return
         # 切回预览并选中对应内部模式；set_mode 内部会 _sync_mode_switch。
