@@ -28,7 +28,6 @@ import tempfile
 import time
 
 from setzer.app.color_manager import ColorManager
-from setzer.helpers.timer import timer
 
 
 # synctex 正向同步高亮（编辑器 → PDF 预览）的最大 alpha。

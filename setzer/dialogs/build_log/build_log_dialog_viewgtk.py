@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk, Gio, GObject
+from gi.repository import Gtk, Adw, Gdk, GObject
 from setzer.widgets.search_highlight import highlight
 from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
 from setzer.dialogs.build_log.build_log_filter_popover import BuildLogFilterPopover

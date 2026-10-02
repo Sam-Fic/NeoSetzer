@@ -41,12 +41,6 @@ import cairo
 import math
 
 from setzer.app.color_manager import ColorManager
-from setzer.document.preview.magnifier_geometry import (
-    MAGNIFICATION_FACTOR,
-    apply_magnifier_transform,
-    compute_magnifier_params,
-    compute_magnifier_placement,
-)
 
 
 DEFAULT_DIAMETER = 240

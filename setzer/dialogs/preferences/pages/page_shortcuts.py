@@ -19,9 +19,8 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gio, GLib, Gdk
+from gi.repository import Gtk, Adw, Gio, Gdk
 import json
-import os
 import re
 
 from setzer.app.service_locator import ServiceLocator

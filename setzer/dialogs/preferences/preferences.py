@@ -19,7 +19,6 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
 
 import setzer.dialogs.preferences.preferences_viewgtk as view
 import setzer.dialogs.preferences.pages.page_build_system as page_build_system

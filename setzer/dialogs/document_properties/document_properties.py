@@ -18,7 +18,6 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
 
 import setzer.dialogs.document_properties.document_properties_viewgtk as view
 from setzer.dialogs.project_build_configuration import ProjectBuildConfigurationDialog

@@ -18,17 +18,15 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, Gio, GLib, GObject, Adw
+from gi.repository import Gtk, Gdk, Gio, GLib, Adw
 
 import setzer.workspace.sidebar.symbols_page.symbols_page_viewgtk as symbols_page_view
 from setzer.app.service_locator import ServiceLocator
-import setzer.helpers.timer as timer
 from setzer.helpers.symbol_categories import is_valid_category
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 from setzer.workspace.sidebar.symbols_page.symbol_preview import attach_symbol_hover_preview, attach_symbol_context_menu
 from setzer.settings.document_settings import DocumentSettings
 
-import math
 import xml.etree.ElementTree as ET
 import os
 

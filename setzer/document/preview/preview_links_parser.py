@@ -21,7 +21,6 @@ gi.require_version('Poppler', '0.18')
 from gi.repository import Poppler
 
 from setzer.helpers.observable import Observable
-from setzer.helpers.timer import timer
 
 
 class PreviewLinksParser(Observable):

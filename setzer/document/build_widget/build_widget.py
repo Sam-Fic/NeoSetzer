@@ -24,7 +24,6 @@ import setzer.document.build_widget.build_widget_viewgtk as build_widget_view
 from setzer.helpers.observable import Observable
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.app.service_locator import ServiceLocator
-from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.color_manager import ColorManager
 from setzer.settings.document_settings import DocumentSettings
 from setzer.document.magic_comments import parse_magic_comments

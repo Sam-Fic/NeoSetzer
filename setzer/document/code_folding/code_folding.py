@@ -18,7 +18,6 @@
 
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
-from setzer.helpers.timer import timer
 
 
 class CodeFolding(Observable):

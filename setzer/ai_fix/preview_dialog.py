@@ -32,15 +32,12 @@ prompt 的机会，发送动作本身就是同意执行。
                        on_send=lambda p, dont_ask: ...)
 """
 
-import os
 
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk
 
 from setzer.ai_fix.preview_dialog_viewgtk import PreviewDialogView
-from setzer.app.service_locator import ServiceLocator
 
 
 # 注意：模块顶层不允许调用 _()，因为 gettext.install 尚未执行

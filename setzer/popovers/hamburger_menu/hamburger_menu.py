@@ -20,7 +20,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, GLib, Gio
 import os.path
 
 from setzer.keyboard_shortcuts import shortcut_tooltips

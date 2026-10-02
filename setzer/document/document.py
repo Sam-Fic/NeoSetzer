@@ -24,7 +24,7 @@ from gi.repository import GtkSource, Gtk, GObject, Adw, GLib, Gdk
 
 import os.path, stat, time
 
-from setzer.helpers.file_io import read_text_with_encoding, write_text_with_encoding, detect_encoding
+from setzer.helpers.file_io import detect_encoding
 
 import setzer.document.document_controller as document_controller
 import setzer.document.document_presenter as document_presenter

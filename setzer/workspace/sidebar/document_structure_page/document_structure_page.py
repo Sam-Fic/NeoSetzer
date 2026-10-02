@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GLib, GObject, Adw, Pango, Gio
+from gi.repository import Gtk, GLib, Adw, Pango, Gio
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
@@ -384,7 +384,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self._section_actions = {}
 
         self._section_menu_section.remove_all()
-        groups = self.get_page_groups()
         for i, (name, group) in enumerate(self.sections.items()):
             if group.get_visible():
                 action_name = f'jump-{i}'

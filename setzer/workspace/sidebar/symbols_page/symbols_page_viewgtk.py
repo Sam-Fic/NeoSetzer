@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gdk, Gtk, Adw, Pango, Gio
+from gi.repository import Gtk, Adw, Pango
 
 import xml.etree.ElementTree as ET
 import os

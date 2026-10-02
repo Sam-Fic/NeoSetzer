@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import os.path
 
 import gi
 gi.require_version('Gtk', '4.0')
@@ -675,7 +674,6 @@ class DocumentController(object):
     def on_secondary_buttonpress(self, controller, n_press, x, y):
         # 右键即将打开上下文菜单：预览弹窗是非 autohide 的，必须主动让位。
         self._math_hover_popdown()
-        modifiers = Gtk.accelerator_get_default_mod_mask()
 
         if n_press == 1:
             # Detect label under cursor for right-click context menu

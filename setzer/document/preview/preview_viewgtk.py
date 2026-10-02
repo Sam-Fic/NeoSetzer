@@ -20,8 +20,6 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, GLib
-from gi.repository import Gdk
-from gi.repository import Gio
 from gi.repository import Adw
 
 from setzer.widgets.scrolling_widget.scrolling_widget import ScrollingWidget
@@ -268,7 +266,6 @@ class PreviewView(Gtk.Box):
 
     def set_link_target_at_top(self, at_top):
         '''链接目标提示已在卡片下方，不再需要上下翻转。保留接口兼容。'''
-        pass
 
     def set_page_indicator_click_handler(self, callback):
         '''注册点击徽章的回调。callback 签名: callback(page_number_1based)'''

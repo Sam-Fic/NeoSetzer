@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk, Gio, Pango
+from gi.repository import Gtk, Adw, Pango
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 

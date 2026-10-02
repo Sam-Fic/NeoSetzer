@@ -18,9 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
 
-import os.path
 
 import setzer.workspace.sidebar.document_structure_page.files_viewgtk as files_section_view
 

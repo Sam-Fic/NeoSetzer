@@ -30,7 +30,6 @@ from setzer.dialogs.insert_table.table_generator import (
     IMPORT_FORMAT_CSV_COMMA,
     IMPORT_FORMAT_CSV_SEMICOLON,
     IMPORT_FORMAT_TSV,
-    MAX_CELL_MERGES,
     MAX_COLUMNS,
     MAX_ROWS,
     PLACEMENTS,

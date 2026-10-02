@@ -20,15 +20,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 from gi.repository import GLib
-from gi.repository import Gdk
-from gi.repository import Gtk
 from gi.repository import GtkSource
 from gi.repository import Adw
 
 import setzer.document.search.search_viewgtk as search_view
 from setzer.helpers.observable import Observable
 from setzer.dialogs.dialog_locator import DialogLocator
-from setzer.helpers.timer import timer
 from setzer.app.service_locator import ServiceLocator
 
 

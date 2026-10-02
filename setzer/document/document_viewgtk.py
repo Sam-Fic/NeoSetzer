@@ -115,7 +115,6 @@ class DocumentView(Gtk.Box):
         GLib.idle_add(self._adjust_latex_indent, new_line)
 
     def _adjust_latex_indent(self, line_number):
-        buffer = self.source_buffer
         document = self.document
 
         prev_line = line_number - 1

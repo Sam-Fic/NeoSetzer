@@ -20,7 +20,6 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk
 from gi.repository import Adw
 
 import setzer.dialogs.add_remove_packages.add_remove_packages_viewgtk as view

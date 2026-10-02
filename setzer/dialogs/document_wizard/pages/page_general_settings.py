@@ -21,13 +21,9 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk
 from gi.repository import Adw
-from gi.repository import GLib
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
-from setzer.app.service_locator import ServiceLocator
 
-import os
-import re
 
 
 class GeneralSettingsPage(Page):

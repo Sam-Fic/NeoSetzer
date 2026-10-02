@@ -24,7 +24,6 @@ from setzer.widgets.search_highlight import highlight_fuzzy
 
 import os.path
 
-from setzer.app.service_locator import ServiceLocator
 
 
 class DocumentSwitcherView(object):

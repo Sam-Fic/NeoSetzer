@@ -18,7 +18,6 @@
 
 import os
 import os.path
-import shutil
 import subprocess
 from operator import itemgetter
 
@@ -66,7 +65,7 @@ class BuilderBuildBibTeX(builder_build.BuilderBuild):
 
     def parse_bibtex_log(self, query, log_filename):
         try: file = open(log_filename, 'rb')
-        except FileNotFoundError as e: pass
+        except FileNotFoundError: pass
         else:
             text = file.read().decode('utf-8', errors='ignore')
 

@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GLib, GObject, Gio, Gdk
+from gi.repository import Adw, Gtk, GLib, Gio, Gdk
 
 import os
 

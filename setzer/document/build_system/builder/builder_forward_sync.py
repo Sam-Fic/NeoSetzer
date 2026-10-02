@@ -36,8 +36,6 @@ class BuilderForwardSync(builder_build.BuilderBuild):
         self.process = None
 
     def run(self, query):
-        tex_filename = query.tex_filename
-
         if not query.can_sync:
             query.forward_sync_result = None
             return

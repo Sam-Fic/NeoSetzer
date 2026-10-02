@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk
 
 from setzer.app.service_locator import ServiceLocator
 import setzer.workspace.sidebar.document_structure_page.todos_viewgtk as todos_section_view
@@ -66,7 +66,6 @@ class TodosSection(object):
             return
 
         start_iter = document.source_buffer.get_iter_at_offset(offset)
-        end_iter = start_iter.copy()
 
         # Find the opening brace after \todo
         brace_iter = start_iter.copy()

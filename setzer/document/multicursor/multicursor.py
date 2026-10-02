@@ -10,7 +10,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, GtkSource, Gdk, GLib, GObject, Pango
+from gi.repository import Gtk, GtkSource, Gdk
 
 from setzer.app.color_manager import ColorManager
 

@@ -33,7 +33,6 @@ from setzer.document.bibtex.entry_store import (
     BibTeXEntry,
     BibTeXEntryError,
     BibTeXEntryStore,
-    BibTeXString,
 )
 from setzer.document.bibtex.file_session import (
     BibTeXExternalChangeError,

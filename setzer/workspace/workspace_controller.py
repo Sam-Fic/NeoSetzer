@@ -17,9 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.dialogs.dialog_locator import DialogLocator
 
-import time
 from gi.repository import GLib
 
 

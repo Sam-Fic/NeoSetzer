@@ -255,7 +255,6 @@ class StructureSection(object):
                 sections[block[0]] = {'document': block[6], 'offset_start': block[0], 'starting_line': block[2], 'block': block}
                 last_line = block[2]
 
-        current_level = 0
         nodes = list()
         nodes_in_line = list()
         # 动态生成 predecessor 字典：levels 有 N 个层级就初始化 N 个 None，

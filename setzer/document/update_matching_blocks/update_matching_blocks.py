@@ -22,7 +22,6 @@ from gi.repository import Gtk, Gdk
 
 import re
 
-from setzer.app.service_locator import ServiceLocator
 from setzer.document.update_matching_blocks.begin_end_match import (
     find_cursor_in_begin_end,
 )

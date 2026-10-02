@@ -22,7 +22,6 @@ import bisect
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
-from setzer.helpers.timer import timer
 from setzer.document.snippet_preview.math_region_finder import find_math_regions
 from setzer.document.parser.beamer_frames import extract_beamer_frame_titles
 from setzer.document.parser.latex_braces import scan_balanced_braced_argument

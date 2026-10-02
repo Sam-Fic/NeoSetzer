@@ -22,7 +22,7 @@ import builtins
 from dataclasses import dataclass
 import re
 import unicodedata
-from typing import Callable, Iterable, Sequence
+from typing import Iterable, Sequence
 
 
 def _(message: str) -> str:

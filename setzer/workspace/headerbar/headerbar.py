@@ -18,16 +18,11 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
-from gi.repository import Gio
-from gi.repository import GLib
 from gi.repository import Adw
 
 import os.path
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.dialogs.dialog_locator import DialogLocator
-from setzer.popovers.popover_manager import PopoverManager
 
 
 class HeaderBar(object):

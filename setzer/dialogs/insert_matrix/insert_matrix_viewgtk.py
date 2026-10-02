@@ -23,7 +23,6 @@ from gi.repository import Gtk, Adw
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 from setzer.dialogs.insert_matrix.matrix_generator import (
-    ALIGNMENTS,
     ENVIRONMENT_MATRIX_STAR,
     ENVIRONMENTS,
     MAX_COLUMNS,

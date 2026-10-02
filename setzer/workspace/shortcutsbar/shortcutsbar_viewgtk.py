@@ -22,7 +22,6 @@ from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import Gio
 
-from setzer.app.service_locator import ServiceLocator
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.popovers.shortcutsbar.document_menu import DocumentMenu

@@ -95,8 +95,6 @@ class BracketCompletion(object):
             return True
         if self.document.autocomplete.is_active: return False
 
-        modifiers = Gtk.accelerator_get_default_mod_mask()
-
         if self.source_buffer.get_has_selection():
             if keyval == _KEYVAL_BACKSLASH:
                 return self.bracket_selection('\\')

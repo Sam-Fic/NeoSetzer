@@ -72,8 +72,6 @@ class PreviewZoomManager(Observable):
         if self.preview.layout == None: return
         if self.view.get_allocated_width() < 300: return
 
-        old_level = self.zoom_level_fit_to_width
-
         self._in_update_dynamic_levels = True
         try:
             self.update_fit_to_width()

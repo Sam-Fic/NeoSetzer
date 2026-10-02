@@ -53,7 +53,6 @@ class GioMenuBuilder(object):
 
     def set_width(self, width):
         '''No-op: Gtk.PopoverMenu auto-sizes to content.'''
-        pass
 
     def add_page(self, pagename, label=None):
         if pagename not in self.pages:

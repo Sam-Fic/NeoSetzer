@@ -29,7 +29,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import builtins
 import re
-from typing import Iterable, Mapping
+from typing import Mapping
 
 
 _ENTRY_START = re.compile(r'@(?P<entry_type>[A-Za-z][A-Za-z0-9_-]*)\s*(?P<delimiter>[{(])')

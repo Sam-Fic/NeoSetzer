@@ -18,7 +18,6 @@
 
 import os
 import os.path
-import shutil
 import subprocess
 
 import setzer.document.build_system.builder.builder_build as builder_build

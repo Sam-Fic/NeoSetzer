@@ -16,16 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import Gio, GLib, Adw, Gtk, Gdk
+from gi.repository import Gio, GLib, Gtk, Gdk
 
-import time
 import weakref
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.dialogs.dialog_locator import DialogLocator
 
-import os.path
 
 
 class WorkspacePresenter(object):
@@ -290,7 +288,6 @@ class WorkspacePresenter(object):
         # 延迟激活文档视图：此时 mode_stack 和 OverlaySplitView 的首轮布局
         # 已完成，GtkSource.View 渲染不再与它们竞争资源。
         if self._pending_document_view is not None:
-            view = self._pending_document_view
             self._pending_document_view = None
             # Adw.TabView 已在 on_new_document 时把 view add_page 进栈；
             # 这里只需要把选中态同步到 tab view（_deferred_post_activate

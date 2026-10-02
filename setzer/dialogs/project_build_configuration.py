@@ -17,7 +17,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GObject
+from gi.repository import Adw, Gtk
 
 from setzer.project.build_configuration import (
     ProjectBuildConfiguration,
@@ -25,10 +25,6 @@ from setzer.project.build_configuration import (
     ALLOWED_TASK_TYPES,
     TASK_TYPE_LATEX,
     TASK_TYPE_BIBTEX,
-    TASK_TYPE_BIBER,
-    TASK_TYPE_MAKEINDEX,
-    TASK_TYPE_GLOSSARIES,
-    DEFAULT_PROFILE_NAME,
     project_relative_path,
 )
 

@@ -18,7 +18,6 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GLib
 
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.helpers.gio_menu_builder import GioMenuBuilder

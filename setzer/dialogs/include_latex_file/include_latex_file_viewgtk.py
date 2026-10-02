@@ -19,10 +19,8 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GLib, Adw
-from gi.repository import Gdk, GdkPixbuf
+from gi.repository import Gtk, Adw
 
-import os
 
 import setzer.widgets.filechooser_button.filechooser_button as filechooser_button
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView

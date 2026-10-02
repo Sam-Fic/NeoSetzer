@@ -19,12 +19,11 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo, GtkSource
+from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo
 
 import math
 import cairo
 
-from setzer.helpers.timer import timer
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager

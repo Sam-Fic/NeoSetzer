@@ -273,7 +273,6 @@ def _detect_by_script(raw_bytes):
     # Group encodings by script
     chinese_encs = ['gb18030', 'gbk', 'gb2312', 'big5']
     japanese_encs = ['shift_jis', 'euc_jp', 'iso2022_jp', 'cp932']
-    korean_encs = ['euc-kr', 'cp949']
 
     # Find the best encoding
     # Strategy: Prefer encodings that produce FEWER scripts (purity).

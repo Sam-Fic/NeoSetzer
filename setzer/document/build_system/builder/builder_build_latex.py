@@ -114,7 +114,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         try:
             if self.parse_build_log(query):
                 return
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.cleanup_files(query)
             self.throw_build_error(query, 'interpreter_not_working', 'log file missing')
             return
@@ -286,7 +286,6 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         log_items = self.latex_log_parser.parse_build_log(
             query.tex_filename, self.get_output_directory(query))
         additional_jobs = self.latex_log_parser.get_additional_jobs(log_items, query)
-        file_no = 0
 
         for job in additional_jobs:
             query.jobs.insert(0, job)

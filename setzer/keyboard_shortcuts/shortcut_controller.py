@@ -20,7 +20,6 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
-from setzer.app.service_locator import ServiceLocator
 
 
 class ShortcutController(Gtk.ShortcutController):

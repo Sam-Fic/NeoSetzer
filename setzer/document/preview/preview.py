@@ -38,7 +38,6 @@ import setzer.document.preview.preview_links_parser as preview_links_parser
 import setzer.document.preview.preview_zoom_manager as preview_zoom_manager
 import setzer.document.preview.context_menu.context_menu as context_menu
 from setzer.helpers.observable import Observable
-from setzer.helpers.timer import timer
 from setzer.document.preview.external_pdf_monitor import (
     ExternalPdfChangeTracker,
     ExternalPdfState,
@@ -357,7 +356,6 @@ class Preview(Observable):
         window_width = self.view.content.width
         margin = layout.get_horizontal_margin(window_width)
         scale = layout.scale_factor
-        rotation = layout.rotation
         first = max(0, layout.get_page_by_offset(y_min) - 1)
         last = min(max(0, layout.get_page_by_offset(y_max) - 1), doc.get_n_pages() - 1)
         for page in range(first, last + 1):

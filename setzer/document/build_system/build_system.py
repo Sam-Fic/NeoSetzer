@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import gi
-from gi.repository import GObject, GLib, Adw
+from gi.repository import GLib, Adw
 
-import threading, queue
+import threading
 import time, re, difflib, unicodedata, os, shlex
 
 from setzer.app.service_locator import ServiceLocator

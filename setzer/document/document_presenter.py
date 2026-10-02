@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, GtkSource, GLib
+from gi.repository import Gtk, GtkSource
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.settings.document_settings import DocumentSettings

@@ -301,8 +301,6 @@ class LaTeXDB():
         return commands
 
     def get_dynamic_proposals(word):
-        documents = []
-
         # 使用 init 时预编译的 ref/cite 正则，避免每次按键重新构建字符串 +
         # 重新查表。原实现每次都做 '|' + re.escape + .replace + 哈希查表。
         ref_match = LaTeXDB._ref_regex.match(word) if LaTeXDB._ref_regex is not None else None

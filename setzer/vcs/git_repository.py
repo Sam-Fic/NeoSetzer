@@ -132,7 +132,6 @@ def parse_num_diff(output):
             new = header[1][1:]
             old_parts = old.split(',')
             new_parts = new.split(',')
-            old_start = int(old_parts[0])
             old_count = int(old_parts[1]) if len(old_parts) > 1 else 1
             new_start = int(new_parts[0])
             new_count = int(new_parts[1]) if len(new_parts) > 1 else 1

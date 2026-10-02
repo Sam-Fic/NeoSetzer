@@ -27,11 +27,10 @@ import threading
 
 import setzer.workspace.sidebar.document_stats.document_stats_viewgtk as document_stats_section_view
 import setzer.helpers.path as path_helpers
-from setzer.helpers.timer import timer
 from setzer.workspace.sidebar.document_stats.stats_text import (
     format_whole_document_markup, format_current_file_markup,
-    format_chars_lines_markup_current,
-    format_selection_markup, format_texcount_missing_markup,
+    format_selection_markup,
+    format_texcount_missing_markup,
 )
 
 

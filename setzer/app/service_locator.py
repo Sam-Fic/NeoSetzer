@@ -27,7 +27,6 @@ from gi.repository import Adw
 import re
 import os, os.path
 import warnings
-import xml.etree.ElementTree as ET
 
 import setzer.settings.settings as settingscontroller
 

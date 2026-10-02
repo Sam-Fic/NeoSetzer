@@ -18,9 +18,7 @@
 
 from setzer.document.bibtex.entry_store import BibTeXEntryStore
 
-from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.observable import Observable
-from setzer.helpers.timer import timer
 
 
 class ParserBibTeX(Observable):

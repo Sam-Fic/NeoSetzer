@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, GLib
 
 import re, os.path
 
@@ -427,7 +427,6 @@ class Autocomplete(object):
         s_index = self.selected_item_index
         f_index = self.first_item_index
         page_size = min(len(self.items), 5)
-        length = len(self.items)
 
         if s_index >= page_size:
             self.selected_item_index -= page_size
@@ -608,7 +607,6 @@ class Autocomplete(object):
 
     def replace_current_word_in_buffer(self, text, select_dot_and_scroll):
         start_iter = self.source_buffer.get_iter_at_offset(self.current_word_offset)
-        insert_iter = self.source_buffer.get_iter_at_mark(self.source_buffer.get_insert())
 
         text = text[len(self.current_word):]
         text = self.document.replace_tabs_with_spaces_if_set(text)

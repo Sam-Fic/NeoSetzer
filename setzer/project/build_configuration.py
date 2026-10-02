@@ -15,7 +15,6 @@ reference a fixed whitelist of trusted build backends. No free-form command or
 shell string is ever run from a profile.
 '''
 
-import json
 import os
 import shlex
 

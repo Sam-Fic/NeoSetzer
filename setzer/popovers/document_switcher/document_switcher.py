@@ -23,7 +23,6 @@ import os.path
 
 from setzer.helpers.observable import Observable
 from setzer.popovers.document_switcher.document_switcher_viewgtk import DocumentSwitcherView
-from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
 
 

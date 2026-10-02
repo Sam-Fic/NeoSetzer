@@ -20,7 +20,7 @@ import builtins
 import gi
 gi.require_version('Gdk', '4.0')
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk
 
 from setzer.dialogs.insert_matrix.insert_matrix_viewgtk import InsertMatrixView
 from setzer.dialogs.insert_matrix.matrix_generator import MatrixSpec
@@ -68,7 +68,7 @@ class InsertMatrixController:
     def _refresh_preview(self, *args):
         try:
             self.view.set_preview(self._get_spec().render())
-        except ValueError as error:
+        except ValueError:
             self.view.set_preview('')
 
     def _on_environment_changed(self, row, pspec):
