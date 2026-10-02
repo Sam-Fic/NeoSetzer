@@ -361,51 +361,51 @@ msgstr ""
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
-msgstr ""
+msgstr "caratteri matematici aggiuntivi dall’AMS."
 
 #: data/resources/latexdb/packages/general.xml:3
 msgid "mathematics package from AMS."
-msgstr ""
+msgstr "pacchetto di matematica dall’AMS."
 
 #: data/resources/latexdb/packages/general.xml:4
 msgid "mathematical symbols from AMS."
-msgstr ""
+msgstr "simboli matematici dall’AMS."
 
 #: data/resources/latexdb/packages/general.xml:5
 msgid "math theorems setting package from AMS."
-msgstr ""
+msgstr "pacchetto per teoremi matematici dall’AMS."
 
 #: data/resources/latexdb/packages/general.xml:6
 msgid "multilingual documents."
-msgstr ""
+msgstr "documenti multilingua."
 
 #: data/resources/latexdb/packages/general.xml:7
 msgid "dirac braket and set notations."
-msgstr ""
+msgstr "notazioni di Dirac (bra-ket) e di insiemi."
 
 #: data/resources/latexdb/packages/general.xml:8
 msgid "bibliographies in LaTeX."
-msgstr ""
+msgstr "bibliografie in LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:9
 msgid "simple arithmetic in LaTeX commands."
-msgstr ""
+msgstr "aritmetica semplice nei comandi LaTeX."
 
 #: data/resources/latexdb/packages/general.xml:10
 msgid "foreground and background colors."
-msgstr ""
+msgstr "colori di primo piano e di sfondo."
 
 #: data/resources/latexdb/packages/general.xml:11
 msgid "colored tables."
-msgstr ""
+msgstr "tabelle colorate."
 
 #: data/resources/latexdb/packages/general.xml:12
 msgid "enumerate with redefinable labels."
-msgstr ""
+msgstr "enumerate con etichette ridefinibili."
 
 #: data/resources/latexdb/packages/general.xml:13
 msgid "interface to document dimensions."
-msgstr ""
+msgstr "interfaccia alle dimensioni del documento."
 
 #: data/resources/latexdb/packages/general.xml:14
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
@@ -424,15 +424,15 @@ msgstr "Crea collegamenti ipertestuali nel tuo documento"
 
 #: data/resources/latexdb/packages/general.xml:17
 msgid "conditional commands."
-msgstr ""
+msgstr "comandi condizionali."
 
 #: data/resources/latexdb/packages/general.xml:18
 msgid "provides a listing environment for embedding programming code."
-msgstr ""
+msgstr "fornisce un ambiente listing per incorporare codice sorgente."
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr ""
+msgstr "fornisce stili bibliografici e di citazione aggiuntivi."
 
 #: data/resources/latexdb/packages/general.xml:20
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
@@ -441,7 +441,7 @@ msgstr "Paragrafi senza indentazioni"
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
-msgstr ""
+msgstr "crea grafici in due e tre dimensioni."
 
 #: data/resources/latexdb/packages/general.xml:22
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:182
@@ -455,15 +455,15 @@ msgstr "Definisci ambienti teorematici (come \"definition\", \"lemma\", …) con
 
 #: data/resources/latexdb/packages/general.xml:24
 msgid "graphics and plotting."
-msgstr ""
+msgstr "grafica e grafici."
 
 #: data/resources/latexdb/packages/general.xml:25
 msgid "set transparency for sections in your document."
-msgstr ""
+msgstr "imposta la trasparenza delle sezioni del documento."
 
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
+msgstr "scrive gli url con il comando \\\\url{..} senza doverli escapare."
 
 #: data/resources/latexdb/packages/general.xml:27
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
@@ -964,7 +964,7 @@ msgstr "Riduci PDF"
 
 #: setzer/command_palette/catalog.py:134
 msgid "TikZ Preview"
-msgstr ""
+msgstr "Anteprima TikZ"
 
 #: setzer/command_palette/catalog.py:135 setzer/command_palette/catalog.py:136
 #: setzer/command_palette/catalog.py:137 setzer/command_palette/catalog.py:138
@@ -1896,19 +1896,19 @@ msgstr "Ignora gli avvisi “{label}”"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:95
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:107
 msgid "Lines:"
-msgstr ""
+msgstr "Righe:"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:112
 msgid "–"
-msgstr ""
+msgstr "–"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:120
 msgid "Show types"
-msgstr ""
+msgstr "Mostra tipi"
 
 #: setzer/dialogs/build_save/build_save.py:36
 #, python-brace-format
@@ -3127,34 +3127,34 @@ msgstr "PDF esportato in: {filename}"
 
 #: setzer/dialogs/export_project_package.py:26
 msgid "Save a LaTeX document before exporting its project."
-msgstr ""
+msgstr "Salvare un documento LaTeX prima di esportarne il progetto."
 
 #: setzer/dialogs/export_project_package.py:32
 #, python-brace-format
 msgid "Project package will record {count} missing dependency file(s)."
-msgstr ""
+msgstr "Il pacchetto del progetto registrerà {count} file di dipendenza mancanti."
 
 #: setzer/dialogs/export_project_package.py:36
 msgid "Export Project Package As…"
-msgstr ""
+msgstr "Esporta pacchetto del progetto come…"
 
 #: setzer/dialogs/export_project_package.py:42
 msgid "ZIP Archives"
-msgstr ""
+msgstr "Archivi ZIP"
 
 #: setzer/dialogs/export_project_package.py:59
 msgid "A file with that name already exists; choose a new name."
-msgstr ""
+msgstr "Esiste già un file con quel nome; sceglierne uno nuovo."
 
 #: setzer/dialogs/export_project_package.py:61
 #, python-brace-format
 msgid "Could not export project package: {error}"
-msgstr ""
+msgstr "Impossibile esportare il pacchetto del progetto: {error}"
 
 #: setzer/dialogs/export_project_package.py:64
 #, python-brace-format
 msgid "Project package exported to: {filename}"
-msgstr ""
+msgstr "Pacchetto del progetto esportato in: {filename}"
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:58
 msgid "Welcome to NeoSetzer"
@@ -3552,7 +3552,7 @@ msgstr "Copia il codice LaTeX generato senza modificare il documento"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:88
 msgid "Matrix Size"
-msgstr ""
+msgstr "Dimensione matrice"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:90
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:116
@@ -3561,7 +3561,7 @@ msgstr "Righe"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:91
 msgid "Number of matrix rows"
-msgstr ""
+msgstr "Numero di righe della matrice"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:96
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
@@ -3570,7 +3570,7 @@ msgstr "Colonne"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:97
 msgid "Number of matrix columns"
-msgstr ""
+msgstr "Numero di colonne della matrice"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:104
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:145
@@ -3581,19 +3581,19 @@ msgstr "Ambiente"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
 msgid "Matrix environment"
-msgstr ""
+msgstr "Ambiente matrice"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:107
 msgid "Bracketed variants come from amsmath; matrix* requires mathtools"
-msgstr ""
+msgstr "Le varianti tra parentesi provengono da amsmath; matrix* richiede mathtools"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:113
 msgid "Column alignment"
-msgstr ""
+msgstr "Allineamento colonne"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:114
 msgid "Only matrix* supports an alignment argument"
-msgstr ""
+msgstr "Solo matrix* supporta un argomento di allineamento"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:116
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
@@ -3602,11 +3602,11 @@ msgstr "Centro"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:122
 msgid "Required packages are added automatically"
-msgstr ""
+msgstr "I pacchetti richiesti vengono aggiunti automaticamente"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:123
 msgid "amsmath for bracketed matrices; mathtools for matrix*."
-msgstr ""
+msgstr "amsmath per le matrici tra parentesi; mathtools per matrix*."
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:129
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:292
@@ -3952,6 +3952,14 @@ msgid ""
 "\n"
 "Or turn off latexmk in Preferences ▸ Build System."
 msgstr ""
+"Setzer è configurato per eseguire le compilazioni tramite «latexmk», che sembra mancante su questo sistema.\n"
+"\n"
+"È possibile installarlo con:\n"
+"• Ubuntu/Debian: sudo apt install latexmk\n"
+"• Fedora: sudo dnf install latexmk\n"
+"• Arch Linux: sudo pacman -S latexmk\n"
+"\n"
+"Oppure disattivare latexmk in Preferenze ▸ Sistema di compilazione."
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:47
 #, python-brace-format
@@ -4329,41 +4337,41 @@ msgstr "Sessione Setzer"
 
 #: setzer/dialogs/preamble_assistant.py:65
 msgid "_Add suggested packages"
-msgstr ""
+msgstr "_Aggiungi pacchetti suggeriti"
 
 #: setzer/dialogs/preamble_assistant.py:77
 msgid "Suggestions are based on commands in the document; nothing changes until you confirm."
-msgstr ""
+msgstr "I suggerimenti si basano sui comandi del documento; finché non si conferma, nulla cambia."
 
 #: setzer/dialogs/preamble_assistant.py:164
 msgid "No missing package suggestions were found in this document."
-msgstr ""
+msgstr "In questo documento non sono stati trovati suggerimenti di pacchetti mancanti."
 
 #: setzer/dialogs/preamble_assistant.py:169
 msgid "available in NeoSetzer’s package database"
-msgstr ""
+msgstr "disponibile nella banca dati dei pacchetti di NeoSetzer"
 
 #: setzer/dialogs/preamble_assistant.py:171
 msgid "not listed in NeoSetzer’s package database"
-msgstr ""
+msgstr "non presente nella banca dati dei pacchetti di NeoSetzer"
 
 #: setzer/dialogs/preamble_assistant.py:182
 msgid "Add suggested packages?"
-msgstr ""
+msgstr "Aggiungere i pacchetti suggeriti?"
 
 #: setzer/dialogs/preamble_assistant.py:183
 #, python-brace-format
 msgid "This inserts {count} package declaration(s) into the document preamble."
-msgstr ""
+msgstr "Inserisce {count} dichiarazione/i di pacchetto nel preambolo del documento."
 
 #: setzer/dialogs/preamble_assistant.py:186
 msgid "_Add packages"
-msgstr ""
+msgstr "_Aggiungi pacchetti"
 
 #: setzer/dialogs/preamble_assistant.py:202
 #, python-brace-format
 msgid "Added {count} suggested package(s)."
-msgstr ""
+msgstr "Aggiunti {count} pacchetto/i suggerito/i."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:179
 msgid "Restart Required"
@@ -4839,7 +4847,7 @@ msgstr "Non disponibile: installare i dizionari pyenchant e hunspell per abilita
 
 #: setzer/dialogs/preferences/pages/page_editor.py:181
 msgid "Unavailable: install chktex to enable."
-msgstr ""
+msgstr "Non disponibile: installare chktex per abilitarlo."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:315
 msgid "Select previous suggestion"
@@ -5079,31 +5087,31 @@ msgstr "Passare il mouse su una formula senza tenere premuto alcun tasto modific
 
 #: setzer/dialogs/preferences/pages/page_editor.py:910
 msgid "Figure Preview"
-msgstr ""
+msgstr "Anteprima figure"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:914
 msgid "Live TikZ Preview"
-msgstr ""
+msgstr "Anteprima TikZ in tempo reale"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:915
 msgid "Render the tikzpicture under the cursor in the preview sidebar."
-msgstr ""
+msgstr "Renderizza il tikzpicture sotto il cursore nella barra laterale di anteprima."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:917
 msgid "When the cursor is inside a tikzpicture and you stop typing, the figure is compiled with the root document's preamble and shown in the preview sidebar. The sidebar's file icon switches to this mode; results are cached, so repeated edits are fast."
-msgstr ""
+msgstr "Quando il cursore è dentro un tikzpicture e si smette di digitare, la figura viene compilata con il preambolo del documento radice e mostrata nella barra laterale di anteprima. L’icona del file nella barra laterale passa a questa modalità; i risultati vengono messi in cache, così le modifiche ripetute sono rapide."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:924
 msgid "Delay Before Compiling (seconds)"
-msgstr ""
+msgstr "Ritardo prima della compilazione (secondi)"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:925
 msgid "Wait time after the last keystroke."
-msgstr ""
+msgstr "Tempo di attesa dopo l’ultimo tasto premuto."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:927
 msgid "How long to wait after the last keystroke before compiling the figure. Values below three tenths of a second are clamped."
-msgstr ""
+msgstr "Quanto attendere dopo l’ultimo tasto premuto prima di compilare la figura. I valori inferiori a tre decimi di secondo vengono limitati."
 
 #: setzer/dialogs/preferences/pages/page_editor.py:935
 msgid "Highlighting"
@@ -5183,11 +5191,11 @@ msgstr "Gestisci le parole che hai ignorato nella sessione corrente e le parole 
 
 #: setzer/dialogs/preferences/pages/page_editor.py:997
 msgid "Real-time linting (chktex)"
-msgstr ""
+msgstr "Controllo in tempo reale (chktex)"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:999
 msgid "Run chktex in the background and underline possible problems"
-msgstr ""
+msgstr "Esegue chktex in background e sottolinea i possibili problemi"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1004
 msgid "Visible Characters"
@@ -6041,60 +6049,60 @@ msgstr "Usa • per posizionare il cursore dopo l’inserimento del frammento."
 
 #: setzer/dialogs/project_build_configuration.py:126
 msgid "Active"
-msgstr ""
+msgstr "Attivo"
 
 #: setzer/dialogs/project_build_configuration.py:126
 #: setzer/dialogs/project_build_configuration_viewgtk.py:186
 msgid "Set active"
-msgstr ""
+msgstr "Imposta come attivo"
 
 #: setzer/dialogs/project_build_configuration.py:178
 msgid "Move up"
-msgstr ""
+msgstr "Sposta su"
 
 #: setzer/dialogs/project_build_configuration.py:181
 msgid "Move down"
-msgstr ""
+msgstr "Sposta giù"
 
 #: setzer/dialogs/project_build_configuration.py:185
 msgid "Remove task"
-msgstr ""
+msgstr "Rimuovi attività"
 
 #: setzer/dialogs/project_build_configuration.py:210
 msgid "New profile"
-msgstr ""
+msgstr "Nuovo profilo"
 
 #: setzer/dialogs/project_build_configuration.py:228
 msgid "copy"
-msgstr ""
+msgstr "copia"
 
 #: setzer/dialogs/project_build_configuration.py:254
 msgid "A profile with this name already exists."
-msgstr ""
+msgstr "Esiste già un profilo con questo nome."
 
 #: setzer/dialogs/project_build_configuration.py:328
 msgid "Select root document"
-msgstr ""
+msgstr "Seleziona documento radice"
 
 #: setzer/dialogs/project_build_configuration.py:334
 msgid "Select output directory"
-msgstr ""
+msgstr "Seleziona directory di output"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:171
 msgid "Build Profiles"
-msgstr ""
+msgstr "Profili di compilazione"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:174
 msgid "Profile"
-msgstr ""
+msgstr "Profilo"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:181
 msgid "Add profile"
-msgstr ""
+msgstr "Aggiungi profilo"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:182
 msgid "Duplicate profile"
-msgstr ""
+msgstr "Duplica profilo"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:183
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
@@ -6104,7 +6112,7 @@ msgstr "Rinomina"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:195
 msgid "Build settings"
-msgstr ""
+msgstr "Impostazioni di compilazione"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:197
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:207
@@ -6114,63 +6122,63 @@ msgstr "Documento principale"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:198
 #: setzer/dialogs/project_build_configuration_viewgtk.py:204
 msgid "Browse…"
-msgstr ""
+msgstr "Sfoglia…"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:203
 msgid "Output directory"
-msgstr ""
+msgstr "Directory di output"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:222
 msgid "Bibliography backend"
-msgstr ""
+msgstr "Motore bibliografico"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:225
 msgid "Additional arguments"
-msgstr ""
+msgstr "Argomenti aggiuntivi"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:229
 msgid "Runs LaTeX repeatedly (latexmk)"
-msgstr ""
+msgstr "Esegue LaTeX ripetutamente (latexmk)"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:232
 msgid "Clean up build files"
-msgstr ""
+msgstr "Pulisci i file di compilazione"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:235
 msgid "Allow shell escape"
-msgstr ""
+msgstr "Consenti shell escape"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:240
 msgid "Build tasks (in order)"
-msgstr ""
+msgstr "Attività di compilazione (in ordine)"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:253
 msgid "Add task"
-msgstr ""
+msgstr "Aggiungi attività"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:288
 msgid "Rename profile"
-msgstr ""
+msgstr "Rinomina profilo"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:311
 msgid "Delete profile?"
-msgstr ""
+msgstr "Eliminare il profilo?"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:312
 msgid "The profile «{}» will be removed."
-msgstr ""
+msgstr "Il profilo «{}» sarà rimosso."
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:329
 msgid "Notice"
-msgstr ""
+msgstr "Avviso"
 
 #: setzer/dialogs/project_search_replace.py:27
 msgid "Save a LaTeX document before searching its project."
-msgstr ""
+msgstr "Salvare un documento LaTeX prima di cercarne il progetto."
 
 #: setzer/dialogs/project_search_replace.py:50
 msgid "Replace with"
-msgstr ""
+msgstr "Sostituisci con"
 
 #: setzer/dialogs/project_search_replace.py:54
 #: setzer/document/search/search_viewgtk.py:110
@@ -6179,47 +6187,47 @@ msgstr "Maiuscole/minuscole"
 
 #: setzer/dialogs/project_search_replace.py:56
 msgid "Match whole word"
-msgstr ""
+msgstr "Parola intera"
 
 #: setzer/dialogs/project_search_replace.py:58
 msgid "Regular expression"
-msgstr ""
+msgstr "Espressione regolare"
 
 #: setzer/dialogs/project_search_replace.py:79
 msgid "_Preview"
-msgstr ""
+msgstr "_Anteprima"
 
 #: setzer/dialogs/project_search_replace.py:81
 #: setzer/dialogs/project_search_replace.py:140
 msgid "_Apply replacements"
-msgstr ""
+msgstr "_Applica sostituzioni"
 
 #: setzer/dialogs/project_search_replace.py:114
 #, python-brace-format
 msgid "Preview: {count} replacement(s) in {files} file(s)."
-msgstr ""
+msgstr "Anteprima: {count} sostituzione/i in {files} file."
 
 #: setzer/dialogs/project_search_replace.py:124
 msgid "Only the first 250 matches are shown."
-msgstr ""
+msgstr "Vengono mostrate solo le prime 250 corrispondenze."
 
 #: setzer/dialogs/project_search_replace.py:127
 msgid "Replacement is disabled because these open files have unsaved changes:"
-msgstr ""
+msgstr "La sostituzione è disabilitata perché questi file aperti hanno modifiche non salvate:"
 
 #: setzer/dialogs/project_search_replace.py:136
 msgid "Apply project-wide replacements?"
-msgstr ""
+msgstr "Applicare le sostituzioni a tutto il progetto?"
 
 #: setzer/dialogs/project_search_replace.py:137
 #, python-brace-format
 msgid "This writes the reviewed replacement plan to {count} file(s)."
-msgstr ""
+msgstr "Scrive il piano di sostituzione verificato in {count} file."
 
 #: setzer/dialogs/project_search_replace.py:160
 #, python-brace-format
 msgid "Applied replacements to {count} file(s)."
-msgstr ""
+msgstr "Sostituzioni applicate a {count} file."
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 #, python-brace-format
@@ -6268,51 +6276,51 @@ msgstr "Salvataggio della sessione non riuscito"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:84
 msgid "Your user dictionary is empty."
-msgstr ""
+msgstr "Il dizionario personale è vuoto."
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:86
 msgid "Remove from dictionary"
-msgstr ""
+msgstr "Rimuovi dal dizionario"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:108
 msgid "No words ignored this session."
-msgstr ""
+msgstr "Nessuna parola ignorata in questa sessione."
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:110
 msgid "Stop ignoring"
-msgstr ""
+msgstr "Smetti di ignorare"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:38
 msgid "Spell Checking Words"
-msgstr ""
+msgstr "Parole del controllo ortografico"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:45
 msgid "_Save"
-msgstr ""
+msgstr "_Salva"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:57
 msgid "User Dictionary"
-msgstr ""
+msgstr "Dizionario personale"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:59
 msgid "Words stored permanently in your personal dictionary. They are saved to a file and will never be marked as misspelled."
-msgstr ""
+msgstr "Parole salvate in modo permanente nel dizionario personale. Vengono salvate su file e non verranno mai segnalate come errate."
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:63
 msgid "Add a word"
-msgstr ""
+msgstr "Aggiungi una parola"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:64
 msgid "Add"
-msgstr ""
+msgstr "Aggiungi"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:73
 msgid "Ignored Words"
-msgstr ""
+msgstr "Parole ignorate"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:75
 msgid "Words ignored for the current session. They are not saved and will be checked again after restart."
-msgstr ""
+msgstr "Parole ignorate per la sessione corrente. Non vengono salvate e verranno ricontrollate dopo il riavvio."
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:78
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:133
@@ -6812,20 +6820,20 @@ msgstr "Rendering della formula…"
 
 #: setzer/document/snippet_preview/tikz_preview.py:68
 msgid "TikZ Preview is turned off. Enable it in the Editor preferences."
-msgstr ""
+msgstr "L’anteprima TikZ è disattivata. Abilitarla nelle preferenze dell’editor."
 
 #: setzer/document/snippet_preview/tikz_preview.py:241
 #: setzer/document/snippet_preview/tikz_preview.py:267
 msgid "No LaTeX compiler was found for the snippet preview."
-msgstr ""
+msgstr "Non è stato trovato alcun compilatore LaTeX per l’anteprima dei frammenti."
 
 #: setzer/document/snippet_preview/tikz_preview.py:246
 msgid "This figure is too large for the live preview."
-msgstr ""
+msgstr "Questa figura è troppo grande per l’anteprima in tempo reale."
 
 #: setzer/document/snippet_preview/tikz_preview.py:285
 msgid "Compilation failed."
-msgstr ""
+msgstr "Compilazione non riuscita."
 
 #: setzer/document/statusbar/statusbar.py:107
 #, python-brace-format
@@ -7589,47 +7597,47 @@ msgstr "Impossibile scrivere la libreria dei frammenti"
 
 #: setzer/vcs/git_repository.py:342
 msgid "git pull failed."
-msgstr ""
+msgstr "git pull non riuscito."
 
 #: setzer/vcs/git_repository.py:362
 msgid "Staging files failed."
-msgstr ""
+msgstr "Preparazione dei file non riuscita."
 
 #: setzer/vcs/git_repository.py:367
 msgid "Commit failed."
-msgstr ""
+msgstr "Commit non riuscito."
 
 #: setzer/vcs/git_repository.py:375
 msgid "Push failed."
-msgstr ""
+msgstr "Push non riuscito."
 
 #: setzer/vcs/git_repository.py:390
 msgid "Local and remote histories diverged. NeoSetzer only supports fast-forward pulls — please resolve this in a terminal (git pull / rebase)."
-msgstr ""
+msgstr "Le cronologie locale e remota sono diverse. NeoSetzer supporta solo pull fast-forward — risolvere in un terminale (git pull / rebase)."
 
 #: setzer/vcs/git_repository.py:394
 msgid "Working tree has uncommitted changes. Commit them first or use a terminal to stash."
-msgstr ""
+msgstr "L’albero di lavoro ha modifiche di cui non è stato fatto il commit. Eseguire prima il commit o usare un terminale per lo stash."
 
 #: setzer/vcs/git_repository.py:397
 msgid "Could not reach the remote repository. Check your network connection."
-msgstr ""
+msgstr "Impossibile raggiungere il repository remoto. Verificare la connessione di rete."
 
 #: setzer/vcs/git_repository.py:401
 msgid "Push failed: no stored credentials for this remote. Please configure a credential helper in a terminal (git config credential.helper). NeoSetzer never stores tokens or passwords."
-msgstr ""
+msgstr "Push non riuscito: nessuna credenziale salvata per questo remoto. Configurare un credential helper in un terminale (git config credential.helper). NeoSetzer non memorizza mai token né password."
 
 #: setzer/vcs/git_repository.py:406
 msgid "Push rejected: the remote has new commits. Pull first."
-msgstr ""
+msgstr "Push rifiutato: il remoto ha nuovi commit. Eseguire prima il pull."
 
 #: setzer/vcs/git_repository.py:409
 msgid "Git user name and email are not configured. Set them with: git config --global user.name / user.email"
-msgstr ""
+msgstr "Nome utente e email Git non sono configurati. Impostarli con: git config --global user.name / user.email"
 
 #: setzer/vcs/git_repository.py:412
 msgid "Nothing to commit: no files were selected."
-msgstr ""
+msgstr "Niente di cui fare il commit: nessun file selezionato."
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:63
 msgid "Choose File"
@@ -7724,12 +7732,12 @@ msgstr "Cerca nella documentazione di aiuto"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:109
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:62
 msgid "Full PDF preview"
-msgstr ""
+msgstr "Anteprima del PDF completo"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:112
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:65
 msgid "TikZ snippet preview"
-msgstr ""
+msgstr "Anteprima di frammenti TikZ"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:115
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:71
@@ -7807,7 +7815,7 @@ msgstr "Stacca l'anteprima in una finestra separata"
 
 #: setzer/workspace/preview_panel/snippet_preview_view.py:144
 msgid "Put the cursor inside a tikzpicture to preview it here."
-msgstr ""
+msgstr "Posizionare il cursore dentro un tikzpicture per vederlo qui."
 
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:126
 msgid "More options"
@@ -7920,19 +7928,19 @@ msgstr "Aggiungi \\label{...} per creare riferimenti a figure, sezioni e altro."
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
 msgid "This label is never referenced."
-msgstr ""
+msgstr "Questa etichetta non è mai referenziata."
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
 msgid "Unused"
-msgstr ""
+msgstr "Inutilizzata"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
 msgid "Duplicate"
-msgstr ""
+msgstr "Duplicata"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
 msgid "This label is defined more than once."
-msgstr ""
+msgstr "Questa etichetta è definita più di una volta."
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:103
 msgid "Copy \\ref{...}"
@@ -8024,76 +8032,76 @@ msgstr "Segna come completato"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:37
 msgid "Untracked"
-msgstr ""
+msgstr "Non tracciato"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:38
 msgid "Added"
-msgstr ""
+msgstr "Aggiunto"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:39
 msgid "Staged changes"
-msgstr ""
+msgstr "Modifiche preparate"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:40
 msgid "Modified"
-msgstr ""
+msgstr "Modificato"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:41
 msgid "Added + modified"
-msgstr ""
+msgstr "Aggiunto + modificato"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:42
 msgid "Deleted (staged)"
-msgstr ""
+msgstr "Eliminato (preparato)"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:43
 msgid "Deleted"
-msgstr ""
+msgstr "Eliminato"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:44
 msgid "Modified (staged + unstaged)"
-msgstr ""
+msgstr "Modificato (preparato + non preparato)"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:61
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:97
 msgid "Commit && Push"
-msgstr ""
+msgstr "Commit && push"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:72
 msgid "Commit"
-msgstr ""
+msgstr "Commit"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:88
 msgid "Commit message"
-msgstr ""
+msgstr "Messaggio di commit"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:93
 msgid "Changes to include:"
-msgstr ""
+msgstr "Modifiche da includere:"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:101
 msgid "No changes in this repository."
-msgstr ""
+msgstr "Nessuna modifica in questo repository."
 
 #: setzer/workspace/sidebar/git/git_section.py:133
 msgid "(no commits yet)"
-msgstr ""
+msgstr "(ancora nessun commit)"
 
 #: setzer/workspace/sidebar/git/git_section.py:143
 msgid "synced"
-msgstr ""
+msgstr "sincronizzato"
 
 #: setzer/workspace/sidebar/git/git_section.py:165
 msgid "Working tree clean"
-msgstr ""
+msgstr "Albero di lavoro pulito"
 
 #: setzer/workspace/sidebar/git/git_section.py:167
 msgid "Changed files"
-msgstr ""
+msgstr "File modificati"
 
 #: setzer/workspace/sidebar/git/git_section.py:178
 msgid "Trust This Repository?"
-msgstr ""
+msgstr "Considerare attendibile questo repository?"
 
 #: setzer/workspace/sidebar/git/git_section.py:179
 #, python-format
@@ -8102,30 +8110,33 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"Pull, commit e push eseguono comandi git in questo repository, il che può eseguirne gli hook:\n"
+"\n"
+"%s"
 
 #: setzer/workspace/sidebar/git/git_section.py:182
 msgid "Trust and Continue"
-msgstr ""
+msgstr "Considera attendibile e continua"
 
 #: setzer/workspace/sidebar/git/git_section.py:208
 msgid "Working tree has uncommitted changes. Commit them first, or use a terminal to stash."
-msgstr ""
+msgstr "L’albero di lavoro ha modifiche di cui non è stato fatto il commit. Eseguire prima il commit o usare un terminale per lo stash."
 
 #: setzer/workspace/sidebar/git/git_section.py:233
 msgid "No changes to commit."
-msgstr ""
+msgstr "Nessuna modifica di cui fare il commit."
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:92
 msgid "Pull"
-msgstr ""
+msgstr "Pull"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:94
 msgid "Update this branch from the remote (fast-forward only)"
-msgstr ""
+msgstr "Aggiorna questo branch dal remoto (solo fast-forward)"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:100
 msgid "Commit selected changes and push to the remote"
-msgstr ""
+msgstr "Esegui il commit delle modifiche selezionate ed esegui il push"
 
 #: setzer/workspace/sidebar/sidebar.py:87
 msgid "Files"

@@ -363,51 +363,51 @@ msgstr ""
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
-msgstr ""
+msgstr "來自 AMS 的附加數學字體。"
 
 #: data/resources/latexdb/packages/general.xml:3
 msgid "mathematics package from AMS."
-msgstr ""
+msgstr "來自 AMS 的數學排版巨集套件。"
 
 #: data/resources/latexdb/packages/general.xml:4
 msgid "mathematical symbols from AMS."
-msgstr ""
+msgstr "來自 AMS 的數學符號。"
 
 #: data/resources/latexdb/packages/general.xml:5
 msgid "math theorems setting package from AMS."
-msgstr ""
+msgstr "來自 AMS 的定理排版巨集套件。"
 
 #: data/resources/latexdb/packages/general.xml:6
 msgid "multilingual documents."
-msgstr ""
+msgstr "多語言文件。"
 
 #: data/resources/latexdb/packages/general.xml:7
 msgid "dirac braket and set notations."
-msgstr ""
+msgstr "狄拉克符号、bra-ket 与集合记号。"
 
 #: data/resources/latexdb/packages/general.xml:8
 msgid "bibliographies in LaTeX."
-msgstr ""
+msgstr "LaTeX 參考文獻書目。"
 
 #: data/resources/latexdb/packages/general.xml:9
 msgid "simple arithmetic in LaTeX commands."
-msgstr ""
+msgstr "在 LaTeX 指令中進行簡單算術運算。"
 
 #: data/resources/latexdb/packages/general.xml:10
 msgid "foreground and background colors."
-msgstr ""
+msgstr "前景色與背景色。"
 
 #: data/resources/latexdb/packages/general.xml:11
 msgid "colored tables."
-msgstr ""
+msgstr "彩色表格。"
 
 #: data/resources/latexdb/packages/general.xml:12
 msgid "enumerate with redefinable labels."
-msgstr ""
+msgstr "標籤可重新定義的列表環境。"
 
 #: data/resources/latexdb/packages/general.xml:13
 msgid "interface to document dimensions."
-msgstr ""
+msgstr "文件尺寸設定介面。"
 
 #: data/resources/latexdb/packages/general.xml:14
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
@@ -426,15 +426,15 @@ msgstr "在文件內建立超連結。"
 
 #: data/resources/latexdb/packages/general.xml:17
 msgid "conditional commands."
-msgstr ""
+msgstr "條件指令。"
 
 #: data/resources/latexdb/packages/general.xml:18
 msgid "provides a listing environment for embedding programming code."
-msgstr ""
+msgstr "提供用於嵌入程式碼的程式碼清單環境。"
 
 #: data/resources/latexdb/packages/general.xml:19
 msgid "provides additional bibliography and citation styles."
-msgstr ""
+msgstr "提供更多參考文獻與引用樣式。"
 
 #: data/resources/latexdb/packages/general.xml:20
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
@@ -443,7 +443,7 @@ msgstr "不縮排的段落。"
 
 #: data/resources/latexdb/packages/general.xml:21
 msgid "create plots in two and three dimensions."
-msgstr ""
+msgstr "繪製二維與三維圖形。"
 
 #: data/resources/latexdb/packages/general.xml:22
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:182
@@ -457,15 +457,15 @@ msgstr "以自訂樣式定義定理環境（如「定義」、「引理」等）
 
 #: data/resources/latexdb/packages/general.xml:24
 msgid "graphics and plotting."
-msgstr ""
+msgstr "圖形與繪圖。"
 
 #: data/resources/latexdb/packages/general.xml:25
 msgid "set transparency for sections in your document."
-msgstr ""
+msgstr "為文件中的章節設定透明度。"
 
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
-msgstr ""
+msgstr "使用 \\\\url{..} 指令輸入網址，無需轉義。"
 
 #: data/resources/latexdb/packages/general.xml:27
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
@@ -966,7 +966,7 @@ msgstr "縮小 PDF"
 
 #: setzer/command_palette/catalog.py:134
 msgid "TikZ Preview"
-msgstr ""
+msgstr "TikZ 预览"
 
 #: setzer/command_palette/catalog.py:135 setzer/command_palette/catalog.py:136
 #: setzer/command_palette/catalog.py:137 setzer/command_palette/catalog.py:138
@@ -1896,19 +1896,19 @@ msgstr "忽略「{label}」警告"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:95
 msgid "Type"
-msgstr ""
+msgstr "類型"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:107
 msgid "Lines:"
-msgstr ""
+msgstr "行數："
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:112
 msgid "–"
-msgstr ""
+msgstr "–"
 
 #: setzer/dialogs/build_log/build_log_filter_popover.py:120
 msgid "Show types"
-msgstr ""
+msgstr "顯示類型"
 
 #: setzer/dialogs/build_save/build_save.py:36
 #, python-brace-format
@@ -3129,34 +3129,34 @@ msgstr "PDF 已匯出至：{filename}"
 
 #: setzer/dialogs/export_project_package.py:26
 msgid "Save a LaTeX document before exporting its project."
-msgstr ""
+msgstr "匯出專案包前請先儲存 LaTeX 文件。"
 
 #: setzer/dialogs/export_project_package.py:32
 #, python-brace-format
 msgid "Project package will record {count} missing dependency file(s)."
-msgstr ""
+msgstr "專案包將記錄 {count} 個缺失的相依檔案。"
 
 #: setzer/dialogs/export_project_package.py:36
 msgid "Export Project Package As…"
-msgstr ""
+msgstr "專案包另存為…"
 
 #: setzer/dialogs/export_project_package.py:42
 msgid "ZIP Archives"
-msgstr ""
+msgstr "ZIP 封存檔"
 
 #: setzer/dialogs/export_project_package.py:59
 msgid "A file with that name already exists; choose a new name."
-msgstr ""
+msgstr "同名檔案已存在；請另選名稱。"
 
 #: setzer/dialogs/export_project_package.py:61
 #, python-brace-format
 msgid "Could not export project package: {error}"
-msgstr ""
+msgstr "無法匯出專案包：{error}"
 
 #: setzer/dialogs/export_project_package.py:64
 #, python-brace-format
 msgid "Project package exported to: {filename}"
-msgstr ""
+msgstr "專案包已匯出至：{filename}"
 
 #: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:58
 msgid "Welcome to NeoSetzer"
@@ -3554,7 +3554,7 @@ msgstr "複製產生的 LaTeX 程式碼，而不修改文件"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:88
 msgid "Matrix Size"
-msgstr ""
+msgstr "矩陣大小"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:90
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:116
@@ -3563,7 +3563,7 @@ msgstr "列"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:91
 msgid "Number of matrix rows"
-msgstr ""
+msgstr "矩陣列數"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:96
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
@@ -3572,7 +3572,7 @@ msgstr "欄"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:97
 msgid "Number of matrix columns"
-msgstr ""
+msgstr "矩陣行數"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:104
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:145
@@ -3583,19 +3583,19 @@ msgstr "環境"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
 msgid "Matrix environment"
-msgstr ""
+msgstr "矩陣環境"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:107
 msgid "Bracketed variants come from amsmath; matrix* requires mathtools"
-msgstr ""
+msgstr "帶括號變體來自 amsmath；matrix* 需要 mathtools"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:113
 msgid "Column alignment"
-msgstr ""
+msgstr "行對齊"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:114
 msgid "Only matrix* supports an alignment argument"
-msgstr ""
+msgstr "僅 matrix* 支援對齊參數"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:116
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:380
@@ -3604,11 +3604,11 @@ msgstr "置中"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:122
 msgid "Required packages are added automatically"
-msgstr ""
+msgstr "所需巨集套件會自動加入"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:123
 msgid "amsmath for bracketed matrices; mathtools for matrix*."
-msgstr ""
+msgstr "帶括號矩陣用 amsmath；matrix* 用 mathtools。"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:129
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:292
@@ -3954,6 +3954,14 @@ msgid ""
 "\n"
 "Or turn off latexmk in Preferences ▸ Build System."
 msgstr ""
+"Setzer 設定為透過 \"latexmk\" 執行建置，但系統中似乎未安裝它。\n"
+"\n"
+"可以用以下命令安裝：\n"
+"• Ubuntu/Debian: sudo apt install latexmk\n"
+"• Fedora: sudo dnf install latexmk\n"
+"• Arch Linux: sudo pacman -S latexmk\n"
+"\n"
+"或在偏好設定 ▸ 建置系統中關閉 latexmk。"
 
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:47
 #, python-brace-format
@@ -4331,41 +4339,41 @@ msgstr "NeoSetzer 作業階段"
 
 #: setzer/dialogs/preamble_assistant.py:65
 msgid "_Add suggested packages"
-msgstr ""
+msgstr "加入建議巨集套件(_A)"
 
 #: setzer/dialogs/preamble_assistant.py:77
 msgid "Suggestions are based on commands in the document; nothing changes until you confirm."
-msgstr ""
+msgstr "建議根據文件中的指令產生；確認前不會做任何變更。"
 
 #: setzer/dialogs/preamble_assistant.py:164
 msgid "No missing package suggestions were found in this document."
-msgstr ""
+msgstr "在此文件中未發現缺失的巨集套件建議。"
 
 #: setzer/dialogs/preamble_assistant.py:169
 msgid "available in NeoSetzer’s package database"
-msgstr ""
+msgstr "在 NeoSetzer 巨集套件資料庫中可用"
 
 #: setzer/dialogs/preamble_assistant.py:171
 msgid "not listed in NeoSetzer’s package database"
-msgstr ""
+msgstr "未列入 NeoSetzer 巨集套件資料庫"
 
 #: setzer/dialogs/preamble_assistant.py:182
 msgid "Add suggested packages?"
-msgstr ""
+msgstr "加入建議巨集套件？"
 
 #: setzer/dialogs/preamble_assistant.py:183
 #, python-brace-format
 msgid "This inserts {count} package declaration(s) into the document preamble."
-msgstr ""
+msgstr "這會在文件導言區插入 {count} 條巨集套件宣告。"
 
 #: setzer/dialogs/preamble_assistant.py:186
 msgid "_Add packages"
-msgstr ""
+msgstr "加入巨集套件(_A)"
 
 #: setzer/dialogs/preamble_assistant.py:202
 #, python-brace-format
 msgid "Added {count} suggested package(s)."
-msgstr ""
+msgstr "已加入 {count} 個建議巨集套件。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:179
 msgid "Restart Required"
@@ -4841,7 +4849,7 @@ msgstr "不可用：請安裝 pyenchant 與 hunspell 詞典以啟用。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:181
 msgid "Unavailable: install chktex to enable."
-msgstr ""
+msgstr "無法使用：安裝 chktex 後啟用。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:315
 msgid "Select previous suggestion"
@@ -5081,31 +5089,31 @@ msgstr "不按任何修飾鍵、將滑鼠懸停在公式上，即可檢視渲染
 
 #: setzer/dialogs/preferences/pages/page_editor.py:910
 msgid "Figure Preview"
-msgstr ""
+msgstr "圖形預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:914
 msgid "Live TikZ Preview"
-msgstr ""
+msgstr "TikZ 即時預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:915
 msgid "Render the tikzpicture under the cursor in the preview sidebar."
-msgstr ""
+msgstr "在預覽側欄中算繪游標所在的 tikzpicture。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:917
 msgid "When the cursor is inside a tikzpicture and you stop typing, the figure is compiled with the root document's preamble and shown in the preview sidebar. The sidebar's file icon switches to this mode; results are cached, so repeated edits are fast."
-msgstr ""
+msgstr "當游標位於 tikzpicture 內且停止輸入時，會以根文件的導言區編譯該圖形並顯示在預覽側欄。側欄的檔案圖示會切換到此模式；結果會被快取，因此反覆編輯時速度很快。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:924
 msgid "Delay Before Compiling (seconds)"
-msgstr ""
+msgstr "編譯前延遲（秒）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:925
 msgid "Wait time after the last keystroke."
-msgstr ""
+msgstr "最後一次按鍵後的等待時間。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:927
 msgid "How long to wait after the last keystroke before compiling the figure. Values below three tenths of a second are clamped."
-msgstr ""
+msgstr "最後一次按鍵後等待多久再編譯圖形。低於 0.3 秒的數值會被限制到下限。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:935
 msgid "Highlighting"
@@ -5185,11 +5193,11 @@ msgstr "管理你在本次工作階段中忽略的單字，以及永久儲存至
 
 #: setzer/dialogs/preferences/pages/page_editor.py:997
 msgid "Real-time linting (chktex)"
-msgstr ""
+msgstr "即時檢查（chktex）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:999
 msgid "Run chktex in the background and underline possible problems"
-msgstr ""
+msgstr "在背景執行 chktex 並為可能的問題標出底線"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1004
 msgid "Visible Characters"
@@ -6043,60 +6051,60 @@ msgstr "使用 • 在插入程式片段後定位游標。"
 
 #: setzer/dialogs/project_build_configuration.py:126
 msgid "Active"
-msgstr ""
+msgstr "使用中"
 
 #: setzer/dialogs/project_build_configuration.py:126
 #: setzer/dialogs/project_build_configuration_viewgtk.py:186
 msgid "Set active"
-msgstr ""
+msgstr "設為使用中"
 
 #: setzer/dialogs/project_build_configuration.py:178
 msgid "Move up"
-msgstr ""
+msgstr "上移"
 
 #: setzer/dialogs/project_build_configuration.py:181
 msgid "Move down"
-msgstr ""
+msgstr "下移"
 
 #: setzer/dialogs/project_build_configuration.py:185
 msgid "Remove task"
-msgstr ""
+msgstr "移除任務"
 
 #: setzer/dialogs/project_build_configuration.py:210
 msgid "New profile"
-msgstr ""
+msgstr "新增設定檔"
 
 #: setzer/dialogs/project_build_configuration.py:228
 msgid "copy"
-msgstr ""
+msgstr "副本"
 
 #: setzer/dialogs/project_build_configuration.py:254
 msgid "A profile with this name already exists."
-msgstr ""
+msgstr "同名設定檔已存在。"
 
 #: setzer/dialogs/project_build_configuration.py:328
 msgid "Select root document"
-msgstr ""
+msgstr "選擇根文件"
 
 #: setzer/dialogs/project_build_configuration.py:334
 msgid "Select output directory"
-msgstr ""
+msgstr "選擇輸出目錄"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:171
 msgid "Build Profiles"
-msgstr ""
+msgstr "建置設定檔"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:174
 msgid "Profile"
-msgstr ""
+msgstr "設定檔"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:181
 msgid "Add profile"
-msgstr ""
+msgstr "加入設定檔"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:182
 msgid "Duplicate profile"
-msgstr ""
+msgstr "複製設定檔"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:183
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
@@ -6106,7 +6114,7 @@ msgstr "重新命名"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:195
 msgid "Build settings"
-msgstr ""
+msgstr "建置設定"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:197
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:207
@@ -6116,63 +6124,63 @@ msgstr "根文件"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:198
 #: setzer/dialogs/project_build_configuration_viewgtk.py:204
 msgid "Browse…"
-msgstr ""
+msgstr "瀏覽…"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:203
 msgid "Output directory"
-msgstr ""
+msgstr "輸出目錄"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:222
 msgid "Bibliography backend"
-msgstr ""
+msgstr "參考文獻後端"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:225
 msgid "Additional arguments"
-msgstr ""
+msgstr "附加參數"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:229
 msgid "Runs LaTeX repeatedly (latexmk)"
-msgstr ""
+msgstr "反覆執行 LaTeX（latexmk）"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:232
 msgid "Clean up build files"
-msgstr ""
+msgstr "清理建置檔案"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:235
 msgid "Allow shell escape"
-msgstr ""
+msgstr "允許 shell escape"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:240
 msgid "Build tasks (in order)"
-msgstr ""
+msgstr "建置任務（按順序）"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:253
 msgid "Add task"
-msgstr ""
+msgstr "加入任務"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:288
 msgid "Rename profile"
-msgstr ""
+msgstr "重新命名設定檔"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:311
 msgid "Delete profile?"
-msgstr ""
+msgstr "刪除設定檔？"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:312
 msgid "The profile «{}» will be removed."
-msgstr ""
+msgstr "設定檔「{}」將被移除。"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:329
 msgid "Notice"
-msgstr ""
+msgstr "提示"
 
 #: setzer/dialogs/project_search_replace.py:27
 msgid "Save a LaTeX document before searching its project."
-msgstr ""
+msgstr "搜尋專案前請先儲存 LaTeX 文件。"
 
 #: setzer/dialogs/project_search_replace.py:50
 msgid "Replace with"
-msgstr ""
+msgstr "替換為"
 
 #: setzer/dialogs/project_search_replace.py:54
 #: setzer/document/search/search_viewgtk.py:110
@@ -6181,47 +6189,47 @@ msgstr "區分大小寫"
 
 #: setzer/dialogs/project_search_replace.py:56
 msgid "Match whole word"
-msgstr ""
+msgstr "全字符合"
 
 #: setzer/dialogs/project_search_replace.py:58
 msgid "Regular expression"
-msgstr ""
+msgstr "正規表示式"
 
 #: setzer/dialogs/project_search_replace.py:79
 msgid "_Preview"
-msgstr ""
+msgstr "預覽(_P)"
 
 #: setzer/dialogs/project_search_replace.py:81
 #: setzer/dialogs/project_search_replace.py:140
 msgid "_Apply replacements"
-msgstr ""
+msgstr "套用替換(_A)"
 
 #: setzer/dialogs/project_search_replace.py:114
 #, python-brace-format
 msgid "Preview: {count} replacement(s) in {files} file(s)."
-msgstr ""
+msgstr "預覽：{files} 個檔案共 {count} 處替換。"
 
 #: setzer/dialogs/project_search_replace.py:124
 msgid "Only the first 250 matches are shown."
-msgstr ""
+msgstr "僅顯示前 250 處符合。"
 
 #: setzer/dialogs/project_search_replace.py:127
 msgid "Replacement is disabled because these open files have unsaved changes:"
-msgstr ""
+msgstr "以下已開啟的檔案有未儲存的變更，替換已被停用："
 
 #: setzer/dialogs/project_search_replace.py:136
 msgid "Apply project-wide replacements?"
-msgstr ""
+msgstr "在整個專案中套用替換？"
 
 #: setzer/dialogs/project_search_replace.py:137
 #, python-brace-format
 msgid "This writes the reviewed replacement plan to {count} file(s)."
-msgstr ""
+msgstr "這會把已確認的替換方案寫入 {count} 個檔案。"
 
 #: setzer/dialogs/project_search_replace.py:160
 #, python-brace-format
 msgid "Applied replacements to {count} file(s)."
-msgstr ""
+msgstr "已對 {count} 個檔案套用替換。"
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:47
 #, python-brace-format
@@ -6270,51 +6278,51 @@ msgstr "儲存工作階段失敗"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:84
 msgid "Your user dictionary is empty."
-msgstr ""
+msgstr "你的使用者字典為空。"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:86
 msgid "Remove from dictionary"
-msgstr ""
+msgstr "從字典中移除"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:108
 msgid "No words ignored this session."
-msgstr ""
+msgstr "本次工作階段未忽略任何單字。"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words.py:110
 msgid "Stop ignoring"
-msgstr ""
+msgstr "停止忽略"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:38
 msgid "Spell Checking Words"
-msgstr ""
+msgstr "拼字檢查詞彙"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:45
 msgid "_Save"
-msgstr ""
+msgstr "儲存(_S)"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:57
 msgid "User Dictionary"
-msgstr ""
+msgstr "使用者字典"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:59
 msgid "Words stored permanently in your personal dictionary. They are saved to a file and will never be marked as misspelled."
-msgstr ""
+msgstr "永久儲存在個人字典中的單字。它們會存到檔案裡，永遠不會被標記為拼字錯誤。"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:63
 msgid "Add a word"
-msgstr ""
+msgstr "加入單字"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:64
 msgid "Add"
-msgstr ""
+msgstr "加入"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:73
 msgid "Ignored Words"
-msgstr ""
+msgstr "已忽略的單字"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:75
 msgid "Words ignored for the current session. They are not saved and will be checked again after restart."
-msgstr ""
+msgstr "僅目前工作階段忽略的單字。不會儲存，重新啟動後將重新檢查。"
 
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:78
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:133
@@ -6814,20 +6822,20 @@ msgstr "正在渲染公式…"
 
 #: setzer/document/snippet_preview/tikz_preview.py:68
 msgid "TikZ Preview is turned off. Enable it in the Editor preferences."
-msgstr ""
+msgstr "TikZ 預覽已關閉。可在編輯器偏好設定中啟用。"
 
 #: setzer/document/snippet_preview/tikz_preview.py:241
 #: setzer/document/snippet_preview/tikz_preview.py:267
 msgid "No LaTeX compiler was found for the snippet preview."
-msgstr ""
+msgstr "找不到可用於片段預覽的 LaTeX 編譯器。"
 
 #: setzer/document/snippet_preview/tikz_preview.py:246
 msgid "This figure is too large for the live preview."
-msgstr ""
+msgstr "此圖形過大，無法即時預覽。"
 
 #: setzer/document/snippet_preview/tikz_preview.py:285
 msgid "Compilation failed."
-msgstr ""
+msgstr "編譯失敗。"
 
 #: setzer/document/statusbar/statusbar.py:107
 #, python-brace-format
@@ -7594,47 +7602,47 @@ msgstr "無法寫入程式片段庫"
 
 #: setzer/vcs/git_repository.py:342
 msgid "git pull failed."
-msgstr ""
+msgstr "git pull 失敗。"
 
 #: setzer/vcs/git_repository.py:362
 msgid "Staging files failed."
-msgstr ""
+msgstr "暫存檔案失敗。"
 
 #: setzer/vcs/git_repository.py:367
 msgid "Commit failed."
-msgstr ""
+msgstr "提交失敗。"
 
 #: setzer/vcs/git_repository.py:375
 msgid "Push failed."
-msgstr ""
+msgstr "推送失敗。"
 
 #: setzer/vcs/git_repository.py:390
 msgid "Local and remote histories diverged. NeoSetzer only supports fast-forward pulls — please resolve this in a terminal (git pull / rebase)."
-msgstr ""
+msgstr "本地與遠端歷史已分叉。NeoSetzer 僅支援快進式拉取——請在終端機中處理（git pull / rebase）。"
 
 #: setzer/vcs/git_repository.py:394
 msgid "Working tree has uncommitted changes. Commit them first or use a terminal to stash."
-msgstr ""
+msgstr "工作區有未提交的變更。請先提交，或在終端機中用 git stash 暫存。"
 
 #: setzer/vcs/git_repository.py:397
 msgid "Could not reach the remote repository. Check your network connection."
-msgstr ""
+msgstr "無法連線遠端儲存庫。請檢查網路連線。"
 
 #: setzer/vcs/git_repository.py:401
 msgid "Push failed: no stored credentials for this remote. Please configure a credential helper in a terminal (git config credential.helper). NeoSetzer never stores tokens or passwords."
-msgstr ""
+msgstr "推送失敗：此遠端沒有已儲存的憑證。請在終端機中設定憑證助手（git config credential.helper）。NeoSetzer 絕不會儲存權杖或密碼。"
 
 #: setzer/vcs/git_repository.py:406
 msgid "Push rejected: the remote has new commits. Pull first."
-msgstr ""
+msgstr "推送被拒絕：遠端有新提交。請先拉取。"
 
 #: setzer/vcs/git_repository.py:409
 msgid "Git user name and email are not configured. Set them with: git config --global user.name / user.email"
-msgstr ""
+msgstr "尚未設定 Git 使用者名稱和信箱。請用以下命令設定：git config --global user.name / user.email"
 
 #: setzer/vcs/git_repository.py:412
 msgid "Nothing to commit: no files were selected."
-msgstr ""
+msgstr "沒有可提交的內容：未選取任何檔案。"
 
 #: setzer/widgets/filechooser_button/filechooser_button.py:63
 msgid "Choose File"
@@ -7729,12 +7737,12 @@ msgstr "搜尋說明文件"
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:109
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:62
 msgid "Full PDF preview"
-msgstr ""
+msgstr "整份 PDF 預覽"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:112
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:65
 msgid "TikZ snippet preview"
-msgstr ""
+msgstr "TikZ 片段預覽"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:115
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:71
@@ -7812,7 +7820,7 @@ msgstr "將預覽卸離為獨立視窗"
 
 #: setzer/workspace/preview_panel/snippet_preview_view.py:144
 msgid "Put the cursor inside a tikzpicture to preview it here."
-msgstr ""
+msgstr "把游標移入 tikzpicture 內即可在此預覽。"
 
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:126
 msgid "More options"
@@ -7925,19 +7933,19 @@ msgstr "加入 \\label{...} 以建立圖表、章節等的參照。"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
 msgid "This label is never referenced."
-msgstr ""
+msgstr "此 label 從未被引用。"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
 msgid "Unused"
-msgstr ""
+msgstr "未使用"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
 msgid "Duplicate"
-msgstr ""
+msgstr "重複"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
 msgid "This label is defined more than once."
-msgstr ""
+msgstr "此 label 定義了不止一次。"
 
 #: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:103
 msgid "Copy \\ref{...}"
@@ -8029,76 +8037,76 @@ msgstr "標記為已完成"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:37
 msgid "Untracked"
-msgstr ""
+msgstr "未追蹤"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:38
 msgid "Added"
-msgstr ""
+msgstr "已加入"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:39
 msgid "Staged changes"
-msgstr ""
+msgstr "已暫存的變更"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:40
 msgid "Modified"
-msgstr ""
+msgstr "已修改"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:41
 msgid "Added + modified"
-msgstr ""
+msgstr "已加入 + 已修改"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:42
 msgid "Deleted (staged)"
-msgstr ""
+msgstr "已刪除（已暫存）"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:43
 msgid "Deleted"
-msgstr ""
+msgstr "已刪除"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:44
 msgid "Modified (staged + unstaged)"
-msgstr ""
+msgstr "已修改（已暫存 + 未暫存）"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:61
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:97
 msgid "Commit && Push"
-msgstr ""
+msgstr "提交並推送"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:72
 msgid "Commit"
-msgstr ""
+msgstr "提交"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:88
 msgid "Commit message"
-msgstr ""
+msgstr "提交訊息"
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:93
 msgid "Changes to include:"
-msgstr ""
+msgstr "要包含的變更："
 
 #: setzer/workspace/sidebar/git/commit_dialog.py:101
 msgid "No changes in this repository."
-msgstr ""
+msgstr "此儲存庫中沒有變更。"
 
 #: setzer/workspace/sidebar/git/git_section.py:133
 msgid "(no commits yet)"
-msgstr ""
+msgstr "（尚無提交）"
 
 #: setzer/workspace/sidebar/git/git_section.py:143
 msgid "synced"
-msgstr ""
+msgstr "已同步"
 
 #: setzer/workspace/sidebar/git/git_section.py:165
 msgid "Working tree clean"
-msgstr ""
+msgstr "工作區乾淨"
 
 #: setzer/workspace/sidebar/git/git_section.py:167
 msgid "Changed files"
-msgstr ""
+msgstr "已變更的檔案"
 
 #: setzer/workspace/sidebar/git/git_section.py:178
 msgid "Trust This Repository?"
-msgstr ""
+msgstr "信任此儲存庫？"
 
 #: setzer/workspace/sidebar/git/git_section.py:179
 #, python-format
@@ -8107,30 +8115,33 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"拉取、提交和推送會在此儲存庫中執行 git 指令，這可能執行其掛鉤（hooks）：\n"
+"\n"
+"%s"
 
 #: setzer/workspace/sidebar/git/git_section.py:182
 msgid "Trust and Continue"
-msgstr ""
+msgstr "信任並繼續"
 
 #: setzer/workspace/sidebar/git/git_section.py:208
 msgid "Working tree has uncommitted changes. Commit them first, or use a terminal to stash."
-msgstr ""
+msgstr "工作區有未提交的變更。請先提交，或在終端機中用 git stash 暫存。"
 
 #: setzer/workspace/sidebar/git/git_section.py:233
 msgid "No changes to commit."
-msgstr ""
+msgstr "沒有可提交的變更。"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:92
 msgid "Pull"
-msgstr ""
+msgstr "拉取"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:94
 msgid "Update this branch from the remote (fast-forward only)"
-msgstr ""
+msgstr "從遠端更新此分支（僅限快進）"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:100
 msgid "Commit selected changes and push to the remote"
-msgstr ""
+msgstr "提交所選變更並推送到遠端"
 
 #: setzer/workspace/sidebar/sidebar.py:87
 msgid "Files"
