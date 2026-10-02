@@ -6891,15 +6891,15 @@ msgstr "已存在过多示例项目副本"
 #, python-brace-format
 msgid "{n} error"
 msgid_plural "{n} errors"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} 个错误"
+msgstr[1] "{n} 个错误"
 
 #: setzer/helpers/build_status_text.py:51
 #, python-brace-format
 msgid "{n} warning"
 msgid_plural "{n} warnings"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} 个警告"
+msgstr[1] "{n} 个警告"
 
 #: setzer/keyboard_shortcuts/shortcut_tooltips.py:68
 #: setzer/popovers/helpers/gio_menu_builder.py:137

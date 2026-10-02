@@ -51,7 +51,7 @@ xgettext data/resources/latexdb/*/*.xml \
 
 - [ ] `./po/sync-po.sh --check` 全部通过
 - [ ] `po/setzer.pot` 已同步至最新（如改动了可翻译字符串）
-- [ ] 翻译为人工完成，不使用机器翻译
+- [ ] 翻译由人工或大语言模型完成，禁用传统机器翻译引擎（Google 翻译、DeepL 等）
 
 ## 新增语言
 
