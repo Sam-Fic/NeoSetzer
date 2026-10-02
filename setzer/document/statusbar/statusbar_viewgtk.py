@@ -17,10 +17,10 @@
 
 '''编辑器底部状态栏视图。
 
-显示：行号/列号、语法语言、编码、缩进设置、选区行数。
+显示：行号/列号、语法语言、编码、缩进设置、选区行数、构建结果指示。
 位于编辑器圆角卡片下方，与窗口底边之间。
 
-布局：左侧信息标签组 + 右侧选区行数（仅有选区时可见）。
+布局：左侧信息标签组 + 右侧构建结果与选区行数。
 '''
 
 import gi
@@ -32,7 +32,7 @@ class StatusBarView(Gtk.Box):
     '''状态栏：水平 Gtk.Box，嵌入 editor-card 底部。
 
     各字段为独立 Gtk.Label，由 StatusBar presenter 在光标移动/
-    设置变化/选区变化时更新内容与可见性。
+    设置变化/选区变化/构建完成时更新内容与可见性。
     '''
 
     def __init__(self):
@@ -64,9 +64,20 @@ class StatusBarView(Gtk.Box):
             label.add_css_class('dim-label')
             self.info_box.append(label)
 
-        # 弹性间隔把选区词数推到右侧
+        # 弹性间隔把右侧字段推到窗口右端
         self.spacer = Gtk.Box()
         self.spacer.set_hexpand(True)
+
+        # 构建结果指示：根文档最近一次构建的错误/警告数，纯文字无符号。
+        # 无构建记录时隐藏；flat 按钮承载点击打开构建日志（连接在控制器）。
+        self.build_status_button = Gtk.Button()
+        self.build_status_button.add_css_class('flat')
+        self.build_status_button.set_tooltip_text(_('Show build log'))
+        self.build_status_button.set_visible(False)
+        self.build_status_label = Gtk.Label(label='')
+        self.build_status_label.add_css_class('caption')
+        self.build_status_label.add_css_class('dim-label')
+        self.build_status_button.set_child(self.build_status_label)
 
         # 右侧选区词数：仅有选区时可见（无选区时 set_visible(False)）
         self.selection_label = Gtk.Label(label='')
@@ -77,4 +88,5 @@ class StatusBarView(Gtk.Box):
 
         self.append(self.info_box)
         self.append(self.spacer)
+        self.append(self.build_status_button)
         self.append(self.selection_label)

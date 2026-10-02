@@ -397,6 +397,15 @@ class Document(Observable):
                 self.settings.disconnect('settings_changed', module.on_settings_changed)
             except (TypeError, KeyError, AttributeError):
                 pass
+
+        # statusbar 连接了 workspace.build_log(进程级单例),需断开,否则
+        # 关闭文档后构建完成仍回调已关闭文档的状态栏,单例持有引用阻碍 GC。
+        statusbar = getattr(self, 'statusbar', None)
+        if statusbar is not None:
+            try:
+                statusbar.shutdown()
+            except Exception:
+                pass
         # LaTeX 专属模块,可能尚未构造。
         # parser 挂有防抖定时器(GLib.timeout_add),需取消以免对已关闭文档
         # 的 buffer 触发解析回调。

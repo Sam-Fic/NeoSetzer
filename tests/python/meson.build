@@ -87,6 +87,7 @@ foreach t : [
   ['test_tikz_region_finder', 'test_tikz_region_finder.py'],
   ['test_root_context', 'test_root_context.py'],
   ['test_snippet_retry_policy', 'test_snippet_retry_policy.py'],
+  ['test_build_status_text', 'test_build_status_text.py'],
 ]
   test(
     t[0],

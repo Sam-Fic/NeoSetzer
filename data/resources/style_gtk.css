@@ -288,6 +288,15 @@ textview gutter {
 }
 
 /*
+ * 状态栏内的构建结果指示按钮：flat 按钮默认内边距会撑高状态栏，
+ * 压到与相邻 label 一致的视觉密度；文字样式由子 label 自带。
+ */
+.editor-statusbar > button {
+    padding: 0;
+    min-height: 0;
+}
+
+/*
  * 预览面板最外缘描边：来自两处 Libadwaita 原生分隔线——
  *   (1) Gtk.Paned 的 wide_handle 分隔条（编辑器与预览之间）带 border/阴影；
  *   (2) 预览底部 Gtk.ActionBar 顶缘的 inset 分隔线。

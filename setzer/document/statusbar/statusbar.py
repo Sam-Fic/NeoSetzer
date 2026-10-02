@@ -21,6 +21,7 @@
 - 光标移动（cursor_position_changed）：行/列、选区词数
 - 设置变化（settings_changed）：缩进设置
 - 文档加载/语言切换：语言、编码（一次性，构造时即定）
+- 构建完成 / 文档切换（build_log_finished_adding）：构建结果指示
 
 每个文档实例拥有自己的 StatusBar（与 Gutter / Search 同模式），
 DocumentView 在 Gtk.Stack 中切换时，对应文档的状态栏自然可见，
@@ -28,6 +29,7 @@ DocumentView 在 Gtk.Stack 中切换时，对应文档的状态栏自然可见�
 '''
 
 import setzer.document.statusbar.statusbar_viewgtk as statusbar_view
+from setzer.helpers.build_status_text import format_build_status
 from setzer.settings.document_settings import DocumentSettings
 from setzer.app.ui_zoom import UIZoomManager
 
@@ -65,6 +67,15 @@ class StatusBar(object):
         # 注意：'finished_parsing' 由 Parser（document.parser）发出，Document
         # 本身并不转发该信号，因此必须监听 document.parser 而非 document。
         document.parser.connect('finished_parsing', self.on_finished_parsing)
+
+        # 构建结果指示：workspace.build_log 恒指向当前文档的根文档（见
+        # workspace.set_build_log），与构建日志弹窗同源。build_log 是进程级
+        # 单例，文档关闭时 shutdown() 断开连接，防止阻碍 GC。
+        self._build_log = self._get_build_log()
+        if self._build_log is not None:
+            self._build_log.connect('build_log_finished_adding', self.on_build_log_changed)
+            self.view.build_status_button.connect('clicked', self.on_build_status_clicked)
+        self.update_build_status_field()
 
     def on_cursor_position_changed(self, document):
         self.update_cursor_fields()
@@ -139,6 +150,41 @@ class StatusBar(object):
     def on_finished_parsing(self, document):
         '''Parser 完成时更新 labels/todos 计数。'''
         self.update_labels_todos_count()
+
+    def _get_build_log(self):
+        '''workspace.build_log 单例（ServiceLocator 惰性导入，避免循环导入，
+        与 update_labels_todos_count 同样式）。workspace 未就绪时返回 None。'''
+        from setzer.app.service_locator import ServiceLocator
+        workspace = ServiceLocator.get_workspace()
+        return getattr(workspace, 'build_log', None) if workspace is not None else None
+
+    def on_build_log_changed(self, build_log, document_has_been_built):
+        '''构建完成或构建日志跟随的根文档变化时刷新构建结果指示。'''
+        self.update_build_status_field()
+
+    def update_build_status_field(self):
+        '''构建结果指示（纯文本）：根文档最近一次构建的错误/警告数，
+        与构建日志弹窗数字一致。尚未构建过时隐藏按钮。'''
+        document = self._build_log.document if self._build_log is not None else None
+        if document is None or not document.build_system.document_has_been_built:
+            self.view.build_status_button.set_visible(False)
+            return
+        data = document.build_system.build_log_data
+        self.view.build_status_label.set_text(
+            format_build_status(data['error_count'], data['warning_count']))
+        self.view.build_status_button.set_visible(True)
+
+    def on_build_status_clicked(self, button):
+        '''点击构建结果指示：打开构建日志弹窗（set_show_build_log 的
+        present 路径幂等，弹窗已开时无副作用）。'''
+        if self._build_log is not None and self._build_log.document is not None:
+            self._build_log.workspace.set_show_build_log(True)
+
+    def shutdown(self):
+        '''文档关闭时由 document.shutdown 调用：断开与进程级 build_log
+        单例的连接，否则单例持有本状态栏回调引用，已关闭文档无法 GC。'''
+        if self._build_log is not None:
+            self._build_log.disconnect('build_log_finished_adding', self.on_build_log_changed)
 
     def update_labels_todos_count(self):
         '''更新状态栏中的 Labels/Todos 计数标签。
