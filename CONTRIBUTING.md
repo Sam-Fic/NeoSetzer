@@ -57,7 +57,7 @@ type(scope): 简短描述
 
 ### CI
 
-所有 push 和 PR 会自动运行 [Run unit tests](.github/workflows/test.yml)，包括单元测试和翻译文件校验。PR 在 CI 通过后方可合入。
+所有 push 和 PR 会自动运行 [Run unit tests](.github/workflows/test.yml)，包括 ruff 静态检查、单元测试和翻译文件校验。PR 在 CI 通过后方可合入。
 
 ## 问题反馈
 

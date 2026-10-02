@@ -40,7 +40,11 @@ jobs:
             gir1.2-xdp-1.0
 
       - name: Install Python dependencies
-        run: pip install polib
+        run: pip install polib ruff
+
+      # 静态检查放在 meson setup 之前：失败时快速报错，不浪费时间配置构建。
+      - name: Static check (ruff)
+        run: ruff check .
 
       - name: Configure project
         run: meson setup builddir --prefix=/usr --buildtype=debug
