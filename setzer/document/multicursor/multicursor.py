@@ -81,10 +81,12 @@ class MultiCursor(object):
             for adjustment in (scrolled.get_hadjustment(), scrolled.get_vadjustment()):
                 handler = adjustment.connect('value-changed', self._queue_draw)
                 self._scroll_handlers.append((adjustment, handler))
-        self._size_handlers = []
-        for prop in ('notify::width', 'notify::height'):
-            handler = self.view.connect(prop, self._queue_draw)
-            self._size_handlers.append(handler)
+        # Resize: GTK4 widgets have no width/height properties, so the
+        # notify::width/height connections this used to make never fired and
+        # the extra cursors stayed painted at stale positions after a resize.
+        # DocumentView.do_size_allocate is the reliable per-frame hook.
+        self._document_view = document.view
+        self._document_view.add_size_observer(self._queue_draw)
 
         # Track buffer modifications to refresh the overlay (marks are
         # shifted automatically by GTK; only the painting needs refresh).
@@ -116,12 +118,10 @@ class MultiCursor(object):
             except Exception:
                 pass
         self._scroll_handlers = []
-        for handler in self._size_handlers:
-            try:
-                self.view.disconnect(handler)
-            except Exception:
-                pass
-        self._size_handlers = []
+        try:
+            self._document_view.remove_size_observer(self._queue_draw)
+        except Exception:
+            pass
         if self._changed_handler:
             try:
                 self.buffer.disconnect(self._changed_handler)

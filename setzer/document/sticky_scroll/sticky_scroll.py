@@ -17,7 +17,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Gdk, GLib, Pango, PangoCairo, Adw
 
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
@@ -65,16 +66,23 @@ class StickyScroll(Observable):
 
         self.layout = Pango.Layout(self.source_view.get_pango_context())
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
+        # 章节类型标签（Part/Section/...）用的第二个 Layout。draw 里原本每节
+        # 都新建两个 Pango.Layout，滚动/重排期间每帧数十次分配；改为复用实例。
+        self.type_layout = Pango.Layout(self.source_view.get_pango_context())
+        self._requested_height = None
+        self._colors_cache = None
+        # 当前套用到两个复用 Layout 上的字体描述（to_string 形式），变化时才
+        # 重新 set_font_description——缩放改字号、偏好换字体都会体现在这里。
+        self._font_desc_str = None
 
         self._refresh_idle_id = None
 
         self.adjustment = self.view.scrolled_window.get_vadjustment()
         self.adjustment.connect('value-changed', self.on_scroll)
-        # GTK 4: replaced 'size-allocate' signal with 'notify::width'/'notify::height'
-        # as size-allocate no longer exists in GTK 4
-        self.source_view.connect('notify::width', self.on_size_changed)
-        self.source_view.connect('notify::height', self.on_size_changed)
-        self.view.margin.connect('notify::width', self.on_margin_width_changed)
+        # 编辑器几何变化的唯一可靠入口是 DocumentView.do_size_allocate（GTK4
+        # 的 GtkWidget 没有 width/height 属性，原先这里连的 notify::width /
+        # notify::height 永不触发，等于尺寸变化时 sticky 从不重算）。
+        self.view.add_size_observer(self.on_size_changed)
 
         self.document.parser.connect('finished_parsing', self.on_parser_update)
         self.document.connect('cursor_position_changed', self.on_cursor_change)
@@ -86,14 +94,23 @@ class StickyScroll(Observable):
         self._update()
 
     def on_scheme_changed(self, buffer, pspec):
+        self._colors_cache = None
         self.drawing_area.queue_draw()
 
-    def on_margin_width_changed(self, widget, pspec):
+    def on_size_changed(self, width, height):
+        # margin（gutter 占位）宽度也随编辑器几何变化，一并同步。
         self._update_margin()
+        self._schedule_refresh()
 
     def _update_margin(self):
-        self._margin_width = self.view.margin.get_width()
-        self.drawing_area.set_margin_start(self._margin_width)
+        # 只在真的变了才写：set_margin_start 会 queue_resize，而本方法在
+        # do_size_allocate 派发链里被调用，无条件写入会在分配阶段再排一次
+        # 布局（侧栏动画期间每帧一次）。
+        margin_width = self.view.margin.get_width()
+        if margin_width == self._margin_width:
+            return
+        self._margin_width = margin_width
+        self.drawing_area.set_margin_start(margin_width)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -117,9 +134,6 @@ class StickyScroll(Observable):
         self._schedule_refresh()
 
     def on_scroll(self, adjustment):
-        self._schedule_refresh()
-
-    def on_size_changed(self, widget, gparam):
         self._schedule_refresh()
 
     def on_folding_state_changed(self, code_folding):
@@ -358,7 +372,14 @@ class StickyScroll(Observable):
         count = len(self.current_sections)
         if self._next_section is not None and self._offset > 0:
             count += 1
-        self.drawing_area.set_size_request(-1, count * self._section_height if count > 0 else 0)
+        height = count * self._section_height if count > 0 else 0
+        # gtk_widget_set_size_request 不做值比较，无条件 queue_resize 并向上
+        # 冒泡到窗口。本方法在滚动 / 光标移动 / 编辑器尺寸变化的 idle 里都会
+        # 跑到，而侧栏开合动画每帧都改编辑器宽度 → 每帧一次全子树重新测量。
+        # 高度没变就别碰它。
+        if height != self._requested_height:
+            self._requested_height = height
+            self.drawing_area.set_size_request(-1, height)
 
     def draw(self, drawing_area, ctx, width, height):
         if not self.visible:
@@ -372,6 +393,7 @@ class StickyScroll(Observable):
         ctx.rectangle(0, 0, width, height)
         ctx.clip()
 
+        self._sync_font_desc()
         fg, bg = self._get_colors()
 
         y_cursor = 0.0
@@ -415,6 +437,17 @@ class StickyScroll(Observable):
 
         ctx.restore()
 
+    def _sync_font_desc(self):
+        '''把 source_view 当前字体描述同步到两个复用 Layout（变化时才写）。'''
+        font_desc = self.source_view.get_pango_context().get_font_description()
+        desc_str = font_desc.to_string() if font_desc is not None else None
+        if desc_str == self._font_desc_str:
+            return
+        self._font_desc_str = desc_str
+        if font_desc is not None:
+            self.layout.set_font_description(font_desc)
+            self.type_layout.set_font_description(font_desc)
+
     def _draw_section(self, ctx, section, x, y, width, height, fg, bg, alpha, is_parent):
         section_type, title, _, _, level = section
 
@@ -427,12 +460,10 @@ class StickyScroll(Observable):
         ctx.rectangle(x, y, width, height)
         ctx.fill()
 
-        font_desc = self.source_view.get_pango_context().get_font_description()
-
         type_label = self._get_type_label(section_type)
-        ctx_type = Pango.Layout(self.source_view.get_pango_context())
-        if font_desc is not None:
-            ctx_type.set_font_description(font_desc)
+        ctx_type = self.type_layout
+        ctx_type.set_width(-1)
+        ctx_type.set_ellipsize(Pango.EllipsizeMode.NONE)
         ctx_type.set_text(type_label, -1)
         ctx_type.set_alignment(Pango.Alignment.LEFT)
         type_rect = ctx_type.get_extents().logical_rect
@@ -455,16 +486,18 @@ class StickyScroll(Observable):
         text_color.alpha = alpha
         Gdk.cairo_set_source_rgba(ctx, text_color)
 
-        ctx_text = Pango.Layout(self.source_view.get_pango_context())
-        if font_desc is not None:
-            ctx_text.set_font_description(font_desc)
+        ctx_text = self.layout
         display_title = title.strip() if title else '(unnamed)'
         ctx_text.set_text(display_title, -1)
         ctx_text.set_alignment(Pango.Alignment.LEFT)
         max_text_width = width - type_width - 28
+        # 宽度必须每帧显式设置：Layout 是复用实例，上一节留下的宽度会让这一节
+        # 在更窄的可用空间里被错误省略。没有可用宽度时回到 -1（不限制）。
         if max_text_width > 0:
-            ctx_text.set_width(max_text_width * Pango.SCALE)
+            ctx_text.set_width(int(max_text_width * Pango.SCALE))
             ctx_text.set_ellipsize(Pango.EllipsizeMode.END)
+        else:
+            ctx_text.set_width(-1)
         ctx.move_to(x + 12 + type_width + 4, text_y)
         PangoCairo.show_layout(ctx, ctx_text)
 
@@ -481,33 +514,50 @@ class StickyScroll(Observable):
         return labels.get(section_type, section_type)
 
     def _get_colors(self):
+        '''取编辑区前景/背景色（每次 draw 调一次）。
+
+        style.props.foreground/background 是字符串，_parse_hex 每次都要重新
+        int() 三次并分配 Gdk.RGBA；主题/配色不变时结果恒定。缓存的 key 直接
+        用这两个字符串加深浅色标志——深浅色切换会走 ColorManager 的回退色，
+        不体现在 style 字符串上，所以必须入 key。返回的 RGBA 实例只被调用方
+        读取后复制，可安全共享。'''
         scheme = self.source_buffer.get_style_scheme()
         style = scheme.get_style('text') if scheme else None
+        fg_hex = style.props.foreground if style else None
+        bg_hex = style.props.background if style else None
+        dark = Adw.StyleManager.get_default().get_dark()
+        key = (fg_hex, bg_hex, dark)
+        if self._colors_cache is not None and self._colors_cache[0] == key:
+            return self._colors_cache[1]
 
-        def _parse_hex(s):
-            if not s:
-                return None
-            s = s.strip().lstrip('#')
-            if len(s) == 6:
-                return Gdk.RGBA(red=int(s[0:2], 16) / 255.0,
-                               green=int(s[2:4], 16) / 255.0,
-                               blue=int(s[4:6], 16) / 255.0, alpha=1.0)
-            elif len(s) == 8:
-                return Gdk.RGBA(red=int(s[0:2], 16) / 255.0,
-                               green=int(s[2:4], 16) / 255.0,
-                               blue=int(s[4:6], 16) / 255.0,
-                               alpha=int(s[6:8], 16) / 255.0)
-            return None
-
-        fg = _parse_hex(style.props.foreground) if style else None
-        bg = _parse_hex(style.props.background) if style else None
+        fg = self._parse_hex(fg_hex)
+        bg = self._parse_hex(bg_hex)
         if fg is None:
             fg = ColorManager.get_ui_color('view_fg_color')
         if bg is None:
             bg = ColorManager.get_ui_color('view_bg_color')
+        self._colors_cache = (key, (fg, bg))
         return fg, bg
 
+    @staticmethod
+    def _parse_hex(s):
+        '''#rrggbb / #rrggbbaa → Gdk.RGBA，非法或空值返回 None。'''
+        if not s:
+            return None
+        s = s.strip().lstrip('#')
+        if len(s) == 6:
+            return Gdk.RGBA(red=int(s[0:2], 16) / 255.0,
+                           green=int(s[2:4], 16) / 255.0,
+                           blue=int(s[4:6], 16) / 255.0, alpha=1.0)
+        elif len(s) == 8:
+            return Gdk.RGBA(red=int(s[0:2], 16) / 255.0,
+                           green=int(s[2:4], 16) / 255.0,
+                           blue=int(s[4:6], 16) / 255.0,
+                           alpha=int(s[6:8], 16) / 255.0)
+        return None
+
     def shutdown(self):
+        self.view.remove_size_observer(self.on_size_changed)
         if self._refresh_idle_id is not None:
             GLib.source_remove(self._refresh_idle_id)
             self._refresh_idle_id = None
@@ -529,11 +579,6 @@ class StickyScroll(Observable):
 
         try:
             self.document.code_folding.disconnect('folding_state_changed', self.on_folding_state_changed)
-        except (TypeError, KeyError, AttributeError):
-            pass
-
-        try:
-            self.view.margin.disconnect_by_func(self.on_margin_width_changed)
         except (TypeError, KeyError, AttributeError):
             pass
 

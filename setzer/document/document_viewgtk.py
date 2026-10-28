@@ -85,6 +85,25 @@ class DocumentView(Gtk.Box):
         self.outer_vbox.append(self.vbox)
         self.append(self.outer_vbox)
 
+        # 编辑器几何（分配尺寸）变化的观察者。GTK4 的 GtkWidget 没有 width /
+        # height 属性，`connect('notify::width', ...)` 不会报错但永不触发
+        #（实测：TextView 从 300px 拉到 500px，do_size_allocate 各调一次、
+        # notify 零次），也没有 GTK3 的 size-allocate 信号，do_size_allocate
+        # 是唯一每帧可靠的几何入口。侧栏开合动画期间本方法每帧被调用一次，
+        # gutter（行号需与正文同帧重绘）与 sticky scroll（宽度/margin 跟随）
+        # 都从这里取事件。回调签名：callback(width, height)。
+        self._size_observers = []
+        self._last_allocated_size = None
+
+    def add_size_observer(self, callback):
+        self._size_observers.append(callback)
+
+    def remove_size_observer(self, callback):
+        try:
+            self._size_observers.remove(callback)
+        except ValueError:
+            pass
+
     def set_statusbar(self, statusbar_widget):
         '''由 document.py 在构造 StatusBar 后调用，将状态栏放在卡片下方。'''
         self.statusbar = statusbar_widget
@@ -103,6 +122,13 @@ class DocumentView(Gtk.Box):
         # 包含状态栏，状态栏高度变化（如换行）会改变编辑区可视高度但外层
         # 不变。取 source_view 高度更准确。
         self._update_bottom_margin(self.source_view.get_allocated_height())
+        # 尺寸真的变了才通知观察者。侧栏开合动画期间每帧一次；其余时候
+        # do_size_allocate 也会因 baseline/重新分配被反复调用，值比较挡掉。
+        size = (width, height)
+        if size != self._last_allocated_size:
+            self._last_allocated_size = size
+            for observer in self._size_observers:
+                observer(width, height)
 
     def on_insert_text(self, buffer, location_iter, text, text_length):
         '''处理 LaTeX 感知的自动缩进。'''

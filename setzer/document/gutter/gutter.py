@@ -120,6 +120,10 @@ class Gutter(object):
         self.document.connect('chktex_diagnostics_changed', self.on_chktex_diagnostics_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('changed', self.on_adjustment_changed)
         self.document_view.scrolled_window.get_vadjustment().connect('value-changed', self.on_adjustment_value_changed)
+        # 编辑器几何变化 → 同帧重绘（见 on_editor_size_changed）。GTK4 的
+        # GtkWidget 没有 width/height 属性，notify::width 永不触发，只能走
+        # DocumentView.do_size_allocate 的观察者。
+        self.document_view.add_size_observer(self.on_editor_size_changed)
         self.source_buffer.connect('notify::style-scheme', self.on_scheme_changed)
 
         # 注意：gutter 不再挂自己的 EventControllerScroll。编辑器滚动完全由
@@ -154,8 +158,10 @@ class Gutter(object):
         # surf_h = 视口高 + 2*MARGIN 行缓冲。滚动时优先平移旧 surface（命中）或
         # 增量补绘露出带（patch），避免每帧逐行 Pango 重绘。MARGIN 缓冲带保证
         # 小幅滚动不跨带、不重建；跨带时基于「带顶行」基准平移，向上/向下滚动
-        # 均正确覆盖，绝不空白（修复旧版 delta==0 顶部空白 bug）。
-        self._gutter_cache = None  # (first_line, height, surface_top_doc_y, surface)
+        # 均正确覆盖（修复旧版 delta==0 顶部空白 bug）。
+        # tuple 末位是几何指纹（编辑器列宽 + 文档总高），详见 _draw_cached_gutter：
+        # 自动换行下重排会改变所有行的文档 y，指纹不符必须整块重建。
+        self._gutter_cache = None
         self._GUTTER_MARGIN = 15
 
         # —— Git 行级 diff 标记（#216）——
@@ -230,6 +236,8 @@ class Gutter(object):
             GLib.source_remove(self._refresh_idle_id)
             self._refresh_idle_id = None
 
+        self.document_view.remove_size_observer(self.on_editor_size_changed)
+
         # 断开共享 GitRepository（进程级缓存单例）与文档信号，避免单例
         # 持有 gutter → document 引用阻碍 GC。
         self._teardown_git_diff()
@@ -289,6 +297,21 @@ class Gutter(object):
 
     def on_adjustment_changed(self, adjustment):
         self._schedule_refresh()
+
+    def on_editor_size_changed(self, width, height):
+        '''编辑器分配尺寸变化时立即重绘 gutter（理由同 on_adjustment_value_changed）。
+
+        gutter 是覆盖在 source_view 上的 DrawingArea，自身尺寸请求恒定
+        （total_width + left_margin），高由 overlay 撑满。开启自动换行时，
+        侧栏开合动画每帧改变编辑器列宽 → GtkTextView 把整篇文档的显示行
+        失效重排 → 正文行 y 全变；但 drawing_area 既没被标脏、尺寸也没变，
+        GTK 会直接复用它上一帧缓存的 render node，行号于是停在旧位置，
+        直到 adjustment 'changed' 的 idle 去抖路径补一次 queue_draw 才追上
+        ——正是「行号慢正文一拍」。这里在分配阶段同步标脏，让行号与正文
+        落在同一帧；离屏 surface 是否重建交给 _draw_cached_gutter 的几何
+        指纹判定，不在此处清缓存。
+        '''
+        self.drawing_area.queue_draw()
 
     def on_folding_state_changed(self, code_folding):
         self._schedule_refresh()
@@ -643,11 +666,20 @@ class Gutter(object):
         缓存 tuple 含 scale 字段，跨不同 DPI 显示器拖动时自动失效重建。
 
         缓存 tuple 语义：(band_line, 视口逻辑高, surface顶文档y, surface,
-        scale, surface逻辑高)。'''
+        scale, surface逻辑高, 几何指纹)。'''
         if width <= 0 or height <= 0:
             return
 
         scale = self.source_view.get_scale_factor() or 1
+        # 几何指纹 = 编辑器列宽 + 文档总高。开启自动换行时列宽每变一次，
+        # GtkTextView 就把整篇文档的显示行全部失效重排（GTK 的
+        # set_screen_width 在 wrapping 打开时 invalidate 整个 layout），同一
+        # buffer 行的文档 y 随之改变。侧栏开合动画每帧都在改列宽，而旧 surface
+        # 里的行号是按旧 y 画的：指纹不符时必须整块重建，否则会命中平移分支
+        # 把行号画在与正文错开的位置上（表现为「行号慢文字一拍」）。
+        # 两个读取都是 O(1) 属性访问，不进绘制热点。
+        geometry = (self.source_view.get_allocated_width(),
+                    int(self.adjustment.get_upper()))
 
         cache = self._gutter_cache
         # 计算缓冲带顶所在行（scroll_top 上移 MARGIN 行），作为 surface 顶基准。
@@ -677,7 +709,19 @@ class Gutter(object):
         new_surf_top = line0_doc_y
         surface_h = height + 2 * margin  # 逻辑高度
 
-        if cache is not None and cache[1] == height and cache[4] == scale:
+        # 覆盖守卫：缓冲带必须真的盖住当前可视区（带顶不高于 scroll_top，
+        # 带底不低于 scroll_top + 视口高）。重排进行中 get_line_at_y /
+        # get_line_yrange 可能返回基于未验证布局的估计值，使 new_surf_top 偏离
+        # scroll_top 成百上千像素；照它平移会把整块 surface 推出可视区，行号
+        # 于是整段时间空白（「行号甚至会消失一小段时间」）。这一帧改走不入缓存
+        # 的直绘：以 scroll_top 为基准逐行画，位置必然与正文一致。
+        if not (new_surf_top <= scroll_top
+                and new_surf_top + surface_h >= scroll_top + height):
+            self._paint_line_region(ctx, width, None, scroll_top, height, scroll_top)
+            return
+
+        if (cache is not None and cache[1] == height and cache[4] == scale
+                and cache[6] == geometry):
             surf_top = cache[2]
             surf_h_logical = cache[5]
             # 命中：可见区完全落在 surface 内 → 直接平移 paint（逻辑偏移，
@@ -729,7 +773,7 @@ class Gutter(object):
                     tctx.scale(scale, scale)
                     self._paint_line_region(tctx, width, band_line, new_surf_top, surf_h_logical, new_surf_top)
                     tctx.restore()
-                    self._gutter_cache = (band_line, height, new_surf_top, tmp, scale, surf_h_logical)
+                    self._gutter_cache = (band_line, height, new_surf_top, tmp, scale, surf_h_logical, geometry)
                     # 同命中分支：逻辑偏移 + scale(1/scale) 抵消 device_scale。
                     ctx.save()
                     ctx.translate(0, new_surf_top - scroll_top)
@@ -742,17 +786,20 @@ class Gutter(object):
                     # 增量异常：落整块重建兜底。
                     pass
 
-        # 整块重建（缓存为空 / 尺寸变化 / scale 变化 / 跨太多带 / 增量异常）。
+        # 整块重建（缓存为空 / 几何指纹变化 / 尺寸变化 / scale 变化 / 跨太多带 /
+        # 增量异常）。
         try:
             pw = int(width * scale)
             ph = int(max(surface_h * scale, 1))
             surface = cairo.ImageSurface(cairo.Format.ARGB32, pw, ph)
-            # 先存缓存，确保即使绘制中途因 buffer 并发修改抛异常，surface 也已
-            # 可用，下一帧平移命中而非无限重建。
-            self._gutter_cache = (band_line, height, new_surf_top, surface, scale, surface_h)
             sctx = cairo.Context(surface)
             sctx.scale(scale, scale)  # 逻辑坐标系：_paint_line_region 内全用逻辑坐标
             self._paint_line_region(sctx, width, band_line, new_surf_top, surface_h, new_surf_top)
+            # 画完才入缓存。若在绘制前登记，中途抛异常（buffer 正被并发修改时
+            # 会发生）就会把一张只画了背景色的 surface 当成有效缓存：要么本帧
+            # 直接跳到 except 什么都不画，要么下一帧命中平移分支把空白当内容
+            # 反复复用——两者都表现为「行号整段时间消失」。
+            self._gutter_cache = (band_line, height, new_surf_top, surface, scale, surface_h, geometry)
             # 逻辑偏移 + scale(1/scale) 抵消 device_scale，物理像素 1:1 落位。
             ctx.save()
             ctx.translate(0, new_surf_top - scroll_top)
@@ -761,8 +808,13 @@ class Gutter(object):
             ctx.paint()
             ctx.restore()
         except Exception:
-            # 绘制彻底失败：清空缓存，下次重建，避免缓存到半截 surface。
+            # 绘制失败：不留半截 surface，改在主 ctx 上直绘当前可见区兜底，
+            # 这一帧仍有行号，而不是整条空白。
             self._gutter_cache = None
+            try:
+                self._paint_line_region(ctx, width, None, scroll_top, height, scroll_top)
+            except Exception:
+                pass
 
     def _paint_line_region(self, ctx, width, start_line, surface_top, region_height, scroll_top_hint):
         '''在 ctx（离屏 surface 或主 ctx）上，相对 surface_top 绘制从 start_line
