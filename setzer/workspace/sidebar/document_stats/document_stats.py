@@ -132,9 +132,8 @@ class DocumentStats(object):
 
     def set_document(self):
         document = self.workspace.get_root_or_active_latex_document()
-        if self.document != document:
-            self.document = document
-            self.update_data()
+        self.document = document
+        self.update_data()
         self.update_view()
         # 选区跟踪跟随 active document（可能是 included 文件，与 root 不同）
         self._set_selection_document(self.workspace.get_active_document())
@@ -236,8 +235,10 @@ class DocumentStats(object):
         if self.document == None: return True
 
         filenames = {self.document.get_filename()}
-        if self.workspace.get_active_document() != None:
-            filenames |= {self.workspace.get_active_document().get_filename()}
+        active_document = self.workspace.get_active_document()
+        active_filename = active_document.get_filename() if active_document is not None else None
+        if active_filename is not None:
+            filenames.add(active_filename)
         for filename, _ in self.document.parser.symbols['included_latex_files']:
             filenames |= {path_helpers.get_abspath(filename, self.document.get_dirname())}
 
@@ -256,12 +257,13 @@ class DocumentStats(object):
                 except FileNotFoundError:
                     pass
                 else:
-                    if save_date > self.values[filename]['save_date']:
-                        self.values[filename]['save_date'] = save_date
+                    values = self.values[filename]
+                    if save_date != values['save_date'] and filename not in self._inflight:
+                        values['save_date'] = save_date
                         self.count_words(filename)
-                        # 纯 Python 字符/行数计数：读文件 + 计数对典型文档 < 10ms，
-                        # 直接在主线程做，避免起线程的开销。mtime 变了才重算。
+                    if filename == active_filename and save_date != values.get('python_save_date'):
                         self.count_chars_lines(filename)
+                        values['python_save_date'] = save_date
         return True
 
     def count_chars_lines(self, filename):
@@ -311,30 +313,23 @@ class DocumentStats(object):
                 GLib.idle_add(self._update_view_idle)
                 return
 
-            # 30 秒超时：texcount 处理损坏文件或网络文件系统时可能永久挂起，
-            # 超时后 kill 进程并置 counts=None，避免线程永久阻塞占用资源。
+            # Drain stdout while waiting, without holding the lock needed by GTK.
             try:
-                process.wait(timeout=30)
+                output = process.communicate(timeout=30)[0]
             except subprocess.TimeoutExpired:
                 process.kill()
-                process.wait()
+                process.communicate()
                 with self.values_lock:
                     self.values[filename]['counts'] = None
                 GLib.idle_add(self._update_view_idle)
                 return
 
-            # texcount 输出形如 "123+45+67 ..."（text+headers+outside 以 '+'
-            # 分隔）。但 texcount 缺失、文件不可读或版本输出格式变化时，stdout
-            # 可能是错误信息（无 '+'），split('+') 后不足 3 段，raw_result[1/2]
-            # 抛 IndexError 导致后台线程静默崩溃，update_view 永不被触发、视图
-            # 永久停滞在旧值。用 try/except 守卫：解析失败时置 counts=None，
-            # 视图回退到 '?' 显示。
             try:
+                raw_result = output.decode('utf-8').split('+')
+                count_0 = raw_result[0].split('\n')[-1]
+                count_1 = raw_result[1]
+                count_2 = raw_result[2].split(' ')[0]
                 with self.values_lock:
-                    raw_result = process.communicate()[0].decode('utf-8').split('+')
-                    count_0 = raw_result[0].split('\n')[-1]
-                    count_1 = raw_result[1]
-                    count_2 = raw_result[2].split(' ')[0]
                     self.values[filename]['counts'] = [count_0, count_1, count_2]
                     self.texcount_missing = False
             except (IndexError, UnicodeDecodeError):

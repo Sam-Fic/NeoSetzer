@@ -31,8 +31,8 @@ LaTeX 感知的跳过策略（两层）：
    （\\label{fig:intro}、\\cite{...}、\\includegraphics{...} 等）是标识符
    而非自然语言，检查只会误报，用 _ARG_SKIP_RE 按行跳过。
 
-检查调度：buffer 变更后防抖 400ms 触发一次全文检查；检查按 300 行分片
-在 idle 中执行，避免大文档单帧卡顿。新一轮检查通过 generation 计数使
+检查调度：buffer 变更后防抖 400ms 触发一次全文检查；按时间预算分片
+在 idle 中执行，避免大文档单帧卡顿。输入时通过 generation 计数使
 在途分片立即作废。错误标记用 Pango.Underline.ERROR 波浪线 + 主题
 error 色（深浅色主题切换时同步更新）。
 '''
@@ -74,8 +74,8 @@ _ARG_SKIP_RE = re.compile(
     r"|input|include|includeonly|bibliography|addbibresource|bibliographystyle"
     r"|lstinputlisting)\*?\s*(?:\[[^\]\n]*\]\s*)*\{[^{}\n]*\}")
 
-# 单次 idle 分片检查的行数：兼顾单帧耗时（大文档不卡 UI）与总完成时间。
 _CHUNK_LINES = 300
+_CHUNK_BUDGET_US = 3000
 # 用户停止输入后的防抖间隔（毫秒）。
 _DEBOUNCE_MS = 400
 # 右键建议列表最多显示条数。
@@ -259,8 +259,7 @@ class SpellChecker(object):
     def on_buffer_changed(self, buffer):
         if not self.enabled or self._is_shutdown:
             return
-        if self._debounce_id is not None:
-            GLib.Source.remove(self._debounce_id)
+        self._cancel_work()
         self._debounce_id = GLib.timeout_add(_DEBOUNCE_MS, self._on_debounce_timeout)
 
     def _on_debounce_timeout(self):
@@ -272,28 +271,26 @@ class SpellChecker(object):
         '''立即调度一次全文拼写检查（忽略/加词典后由外部调用）。'''
         if self._is_shutdown or not self.enabled:
             return
-        self._generation += 1
-        self._cancel_chunk_idle()
+        self._cancel_work()
         self._next_line = 0
         self._chunk_idle_id = GLib.idle_add(self._recheck_chunk, self._generation)
 
     def _recheck_chunk(self, generation):
-        # 本 source 即将结束；若还有剩余行，用新 source 续期（链式新 source
-        # 而非返回 True 常驻，使 shutdown 只需移除最后一个挂起的 id）。
-        self._chunk_idle_id = None
         if self._is_shutdown or not self.enabled:
             return False
         if generation != self._generation:
             return False
+        self._chunk_idle_id = None
 
         line_count = self.buffer.get_line_count()
-        start_line = self._next_line
-        if start_line >= line_count:
-            return False
-        end_line = min(start_line + _CHUNK_LINES, line_count)
-        self._check_line_range(start_line, end_line)
-        self._next_line = end_line
-        if end_line < line_count:
+        end_line = min(self._next_line + _CHUNK_LINES, line_count)
+        deadline = GLib.get_monotonic_time() + _CHUNK_BUDGET_US
+        while self._next_line < end_line:
+            self._check_line_range(self._next_line, self._next_line + 1)
+            self._next_line += 1
+            if GLib.get_monotonic_time() >= deadline:
+                break
+        if self._next_line < line_count:
             self._chunk_idle_id = GLib.idle_add(self._recheck_chunk, generation)
         return False
 

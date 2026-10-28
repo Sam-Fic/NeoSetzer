@@ -70,6 +70,21 @@ class UserSnippetStore:
             raise ValueError(_('A user data directory is required'))
         self.directory = os.path.join(os.path.abspath(user_data_directory), STORE_DIRECTORY)
         self.index_path = os.path.join(self.directory, INDEX_FILENAME)
+        self._revision_serial = 0
+        self._cached_revision = None
+        self._cached_snippets: tuple[UserSnippet, ...] | None = None
+
+    @property
+    def revision(self) -> tuple[tuple[int, int, int, int, int] | None, int]:
+        '''Return a file fingerprint and local invalidation serial, without reading JSON.'''
+        try:
+            stat = os.stat(self.index_path)
+        except FileNotFoundError:
+            return (None, self._revision_serial)
+        except OSError as error:
+            raise SnippetStoreError(_('The snippet library could not be read')) from error
+        fingerprint = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+        return (fingerprint, self._revision_serial)
 
     @staticmethod
     def validate_name(name: str) -> str:
@@ -112,7 +127,17 @@ class UserSnippetStore:
         return body
 
     def list_snippets(self) -> list[UserSnippet]:
-        return sorted(self._read_index(), key=lambda snippet: (snippet.trigger.casefold(), snippet.name.casefold()))
+        revision = self.revision
+        if self._cached_snippets is not None and self._cached_revision == revision:
+            return list(self._cached_snippets)
+
+        snippets = tuple(sorted(self._read_index(),
+                                key=lambda snippet: (snippet.trigger.casefold(), snippet.name.casefold())))
+        # A file replaced during the read must not be cached under its old revision.
+        if self.revision == revision:
+            self._cached_revision = revision
+            self._cached_snippets = snippets
+        return list(snippets)
 
     def create(self, name: str, trigger: str, body: str) -> UserSnippet:
         name = self.validate_name(name)
@@ -160,7 +185,8 @@ class UserSnippetStore:
         try:
             snippets = self.list_snippets()
         except SnippetStoreError:
-            # A manually corrupted snippet library must never disable editor completion.
+            # Retry transient failures even if the file fingerprint stays unchanged.
+            self._revision_serial += 1
             return []
         proposals = []
         for snippet in snippets:
@@ -259,6 +285,9 @@ class UserSnippetStore:
                 output_file.flush()
                 os.fsync(output_file.fileno())
             os.replace(temporary_path, self.index_path)
+            self._revision_serial += 1
+            self._cached_revision = None
+            self._cached_snippets = None
         except OSError as error:
             raise SnippetStoreError(_('The snippet library could not be written')) from error
         finally:

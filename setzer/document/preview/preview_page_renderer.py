@@ -78,22 +78,18 @@ class PreviewPageRenderer(Observable):
         self._magnifier_request_lock = threading.Lock()
         self._magnifier_latest_request_id = 0
 
-        # 惰性启动：后台渲染线程与 50ms 轮询定时器推迟到首次 activate() 才创建。
-        # 原实现在 __init__ 立即启动，导致每新建一个 LaTeX 文档（即便尚无 PDF、
-        # 预览不可见）就常驻一个线程 + 一个 50ms 定时器，且文档关闭后不释放。
+        # 后台线程惰性启动；结果只通过合并的一次性 idle 交付。
         self._render_thread_started = False
-        self._rendered_pages_timeout_id = None
-        # 渲染线程句柄。shutdown 时通过 join 等待线程退出，否则线程闭包
-        # render_page_loop（绑定方法）持有 self → preview → document 引用链，
-        # 整个文档对象图（含 GtkSource.Buffer、parser 符号表等）无法被 GC，
-        # 长会话反复开/关文档导致内存随会话时长线性增长。详见
-        # perf-10 问题 1 / perf-12 问题 1。
         self._render_thread = None
+        self._result_delivery_lock = threading.Lock()
+        self._rendered_pages_idle_id = None
+        self._magnifier_result_idle_id = None
         self._shutting_down = False
 
     def on_layout_or_position_changed(self, notifying_object):
         if self.preview.layout != None:
             self.update_rendered_pages()
+            self._request_rendered_pages_delivery()
         else:
             # layout 为 None 通常意味着 PDF 切换（preview.load_pdf 置 layout=None
             # 并发 layout_changed）。清空 page_render_count，使队列中所有积压
@@ -119,20 +115,23 @@ class PreviewPageRenderer(Observable):
             self.update_rendered_pages()
 
     def activate(self):
-        with self.is_active_lock:
-            self.is_active = True
+        with self._result_delivery_lock:
+            if self._shutting_down:
+                return
+            with self.is_active_lock:
+                self.is_active = True
         self._ensure_loops_started()
         self.update_rendered_pages()
+        self._request_rendered_pages_delivery()
 
     def _ensure_loops_started(self):
-        # 首次激活时才启动后台线程与轮询定时器，避免对从不显示预览的文档
-        # （如新建未保存的空文档）也常驻线程/定时器。
-        if not self._render_thread_started:
+        # 只启动渲染线程，不注册常驻结果轮询。
+        with self._result_delivery_lock:
+            if self._shutting_down or self._render_thread_started:
+                return
             self._render_thread_started = True
             self._render_thread = threading.Thread(target=self.render_page_loop, daemon=True)
             self._render_thread.start()
-        if self._rendered_pages_timeout_id is None:
-            self._rendered_pages_timeout_id = GObject.timeout_add(50, self.rendered_pages_loop)
 
     def invalidate_magnifier_requests(self):
         '''Discard active and queued lens work after a preview context change.'''
@@ -157,22 +156,15 @@ class PreviewPageRenderer(Observable):
         self.invalidate_magnifier_requests()
 
     def shutdown(self):
-        '''文档关闭时由 workspace.remove_document 调用：移除轮询定时器、
-        置 is_active=False、唤醒并 join 后台渲染线程、断开 settings 单例信号。
-
-        关键点（perf-10 问题 1 / perf-12 问题 1）：原实现仅置 is_active=False，
-        render_page_loop 检测到后进入 time.sleep(0.05) 永久空转循环，**从不退出**。
-        因线程入口是绑定方法 self.render_page_loop，闭包持 self → preview →
-        document 整条引用链，文档对象（含 GtkSource.Buffer 全文文本、parser
-        符号表、Gtk widget 树）无法被 GC，长会话内存随开/关文档数线性增长。
-
-        修复：用 _shutting_down 标志让循环退出，向 render_queue 投递哨兵 None
-        唤醒阻塞在 get(timeout=0.05) 上的线程（避免最长 50ms 等待），再 join(2s)
-        确保线程真的退出后才返回。daemon=True 是兜底，防止极端情况下死锁。'''
-        self._shutting_down = True
-        if self._rendered_pages_timeout_id is not None:
-            GLib.Source.remove(self._rendered_pages_timeout_id)
-            self._rendered_pages_timeout_id = None
+        '''禁止结果交付并取消 idle，唤醒后台线程退出而不阻塞 GTK 线程。'''
+        with self._result_delivery_lock:
+            self._shutting_down = True
+            if self._rendered_pages_idle_id is not None:
+                GLib.Source.remove(self._rendered_pages_idle_id)
+                self._rendered_pages_idle_id = None
+            if self._magnifier_result_idle_id is not None:
+                GLib.Source.remove(self._magnifier_result_idle_id)
+                self._magnifier_result_idle_id = None
         with self.is_active_lock:
             self.is_active = False
         self.rendered_pages = dict()
@@ -182,28 +174,16 @@ class PreviewPageRenderer(Observable):
         # PDF 切换后旧 PDF 高页号条目残留）。
         with self.page_render_count_lock:
             self.page_render_count = dict()
-        # 清空队列，避免 join 期间线程继续处理已失效的 todo（poppler_document
-        # 已可能被释放）。投递哨兵 None 唤醒阻塞 get。
-        try:
-            while True:
-                self.render_queue.get_nowait()
-        except queue.Empty:
-            pass
-        try:
-            while True:
-                self.render_queue_low_priority.get_nowait()
-        except queue.Empty:
-            pass
-        try:
-            while True:
-                self.magnified_pages_queue.get_nowait()
-        except queue.Empty:
-            pass
+        self._pending_page_renders.clear()
+        # 禁止新结果入队后释放积压任务和 surface，再投递退出哨兵。
+        for result_queue in (self.render_queue, self.render_queue_low_priority,
+                             self.rendered_pages_queue, self.magnified_pages_queue):
+            try:
+                while True:
+                    result_queue.get_nowait()
+            except queue.Empty:
+                pass
         self.render_queue.put(None)
-        if self._render_thread is not None and self._render_thread.is_alive():
-            self._render_thread.join(timeout=2.0)
-            if self._render_thread.is_alive():
-                print('Warning: PreviewPageRenderer render thread did not exit within 2s')
         try:
             self.preview.document.settings.disconnect('settings_changed', self._settings_callback)
         except (TypeError, KeyError, AttributeError):
@@ -287,29 +267,44 @@ class PreviewPageRenderer(Observable):
                         # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
                         surface = self._apply_theme_recolor(surface, colors)
 
-                    self.rendered_pages_queue.put({'page_number': todo['page_number'], 'render_count': todo['render_count'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
-                    # 结果产出后立即唤醒主循环安装（g_idle_add 线程安全），
-                    # 不等 50ms 轮询定时器——draft 兜底的低延迟全靠这一步。
-                    GObject.idle_add(self._wake_rendered_pages_loop)
+                    self._queue_rendered_page({'page_number': todo['page_number'], 'render_count': todo['render_count'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
                 except Exception:
                     # 释放失败的精修请求，后续布局/滚动通知可重试；draft
                     # 失败不释放，因为同一请求的全分辨率任务仍在队列里。
                     if not todo.get('draft', False):
-                        self.rendered_pages_queue.put({
+                        self._queue_rendered_page({
                             'page_number': todo['page_number'],
                             'render_count': todo['render_count'],
                             'item': None,
                         })
-                        GObject.idle_add(self._wake_rendered_pages_loop)
                     continue
 
-    def _wake_rendered_pages_loop(self):
-        '''渲染线程产出结果后的主线程唤醒回调：立即消费结果队列。
+    def _queue_rendered_page(self, result):
+        with self._result_delivery_lock:
+            if self._shutting_down:
+                return
+            self.rendered_pages_queue.put(result)
+        self._request_rendered_pages_delivery()
 
-        一次性回调：返回 False 自毁；50ms 轮询定时器仍保留作兜底。'''
-        if self._shutting_down:
-            return False
-        self.rendered_pages_loop()
+    def _request_rendered_pages_delivery(self):
+        with self._result_delivery_lock:
+            if self._shutting_down or self._rendered_pages_idle_id is not None:
+                return
+            with self.is_active_lock:
+                is_active = self.is_active
+            if not is_active or self.preview.layout is None or self.rendered_pages_queue.empty():
+                return
+            self._rendered_pages_idle_id = GObject.idle_add(self._wake_rendered_pages_loop)
+
+    def _wake_rendered_pages_loop(self):
+        '''一次性交付；消费期间保持 pending，结束后补唤醒迟到的结果。'''
+        try:
+            self.rendered_pages_loop()
+        finally:
+            with self._result_delivery_lock:
+                self._rendered_pages_idle_id = None
+            # 与生产者使用同一把锁，清标志后再次检查队列，避免丢失唤醒。
+            self._request_rendered_pages_delivery()
         return False
 
     def _apply_theme_recolor(self, surface, colors):
@@ -416,32 +411,40 @@ class PreviewPageRenderer(Observable):
         if colors != None:
             surface = self._apply_theme_recolor(surface, colors)
 
-        self.magnified_pages_queue.put({
-            'kind': 'magnifier',
-            'request_id': todo['request_id'],
-            'surface': surface,
-        })
-        # 跨线程唤醒主线程消费结果（g_idle_add_full 线程安全）。一次性回调：
-        # 返回 False 自毁；shutdown 后置守卫避免触碰已失效的信号连接。
-        GObject.idle_add(self.on_magnifier_result_produced)
+        with self._result_delivery_lock:
+            if self._shutting_down:
+                return
+            self.magnified_pages_queue.put({
+                'kind': 'magnifier',
+                'request_id': todo['request_id'],
+                'surface': surface,
+            })
+            if self._magnifier_result_idle_id is None:
+                self._magnifier_result_idle_id = GObject.idle_add(self.on_magnifier_result_produced)
 
     def on_magnifier_result_produced(self):
         '''主线程回调：发 change code 让 controller 消费 magnified_pages_queue。'''
-        if self._shutting_down:
-            return False
+        with self._result_delivery_lock:
+            self._magnifier_result_idle_id = None
+            if self._shutting_down:
+                return False
         self.add_change_code('magnifier_result_ready')
         return False
 
     def rendered_pages_loop(self):
+        '''消费当前可用结果，始终返回 False；不再作为重复定时器使用。'''
+        with self._result_delivery_lock:
+            if self._shutting_down:
+                return False
         with self.is_active_lock:
             is_active = self.is_active
-        if not is_active: return True
+        if not is_active: return False
 
         # 渲染期间可能发生缩放、换色或 PDF 重载。只接收仍对应当前请求
         # 和布局的结果，避免动画中间帧覆盖最终尺寸的纹理。
         layout = self.preview.layout
         if layout is None:
-            return True
+            return False
         current_version = self.preview.pdf_version
         changed = False
         while self.rendered_pages_queue.empty() == False:
@@ -469,7 +472,7 @@ class PreviewPageRenderer(Observable):
                 changed = True
         if changed:
             self.add_change_code('rendered_pages_changed')
-        return True
+        return False
 
     def update_rendered_pages(self):
         with self.is_active_lock:

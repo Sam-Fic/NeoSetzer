@@ -524,6 +524,7 @@ class PreviewController(object):
                         'back': back,
                         'input': (doc_x, doc_y),
                     }
+                    self.view.content.queue_draw()
                     print('[magnifier] cursor_doc=({:.1f},{:.1f}) page={} pt=({:.2f},{:.2f}) density={:.1f} back_to_canvas={}'.format(
                         doc_x, doc_y, page_number, x_pt, y_pt, params['density'], back),
                         file=sys.stderr)

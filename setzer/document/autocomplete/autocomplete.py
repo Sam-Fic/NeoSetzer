@@ -27,7 +27,7 @@ import setzer.document.autocomplete.autocomplete_widget as autocomplete_widget
 from setzer.app.latex_db import LaTeXDB
 from setzer.document.autocomplete.environment_templates import get_environment_completion_tail
 from setzer.app.service_locator import ServiceLocator
-from setzer.snippets.user_snippets import UserSnippetStore
+from setzer.snippets.user_snippets import SnippetStoreError, UserSnippetStore
 
 
 # activate_if_possible 在每次单字符插入时调用（打字热路径），预编译避免
@@ -318,10 +318,14 @@ class Autocomplete(object):
         self.db_error = (LaTeXDB.last_parse_error is not None and
                          LaTeXDB.is_dynamic_query(self.current_word))
 
-        # 缓存命中：current_word、last_tabbed_item、context 都未变时，
-        # LaTeXDB 查询结果必然相同，跳过遍历。context 纳入键——\begin{} 与
-        # 普通命令的补全数据源不同，必须区分。
-        cache_key = (self.current_word, self.last_tabbed_item, self.context)
+        snippet_revision = None
+        if self.context not in ('math', 'begin'):
+            try:
+                snippet_revision = self.snippet_store.revision
+            except SnippetStoreError:
+                # Keep completion usable and retry after a transient stat failure.
+                snippet_revision = object()
+        cache_key = (self.current_word, self.last_tabbed_item, self.context, snippet_revision)
         if cache_key != self._last_suggestions_key:
             self._last_suggestions_key = cache_key
             if self.context == 'begin':

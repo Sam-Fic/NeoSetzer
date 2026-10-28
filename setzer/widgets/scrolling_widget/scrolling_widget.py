@@ -285,7 +285,7 @@ class ScrollingWidget(Observable):
         # ScrolledWindow 通过移动该子控件实现滚动,GSK 会平移已渲染的纹理(由
         # set_draw_func 产生的 surface)而 *不* 重新调用 draw —— 这是纯 GPU 合成,
         # 每帧零 cairo 重绘,从而达成与显示器刷新率对齐的高帧率连续滚动。
-        # 真正的内容变化(缩放/布局/hover/点击/页面纹理就绪)由各自的调用方
+        # 真正的内容变化(缩放/布局/选择/页面纹理就绪)由各自的调用方
         # 显式 queue_draw,无需在此冗余重绘。
 
     def on_primary_button_press(self, controller, n_press, x, y):
@@ -326,7 +326,6 @@ class ScrollingWidget(Observable):
         if x != self.cursor_x or y != self.cursor_y:
             self.cursor_x, self.cursor_y = x, y
             self.add_change_code('hover_state_changed')
-            self.content.queue_draw()
 
     # ---- 双指缩放 (pinch-to-zoom) ----
 

@@ -80,19 +80,12 @@ class PreviewLayouter(Observable):
             # 形成四周呼吸空间。值取 page_gap 的 3 倍，与页间距视觉协调。
             layout.vertical_padding = layout.page_gap * 1
 
-            # ---- per-page 几何：从 poppler 读每页 size，按 rotation 换算
-            # 显示尺寸，乘 scale 得 canvas 像素高，再累加得 page_y_starts。
-            poppler_doc = self.preview.poppler_document
-            n_pages = poppler_doc.get_n_pages()
+            n_pages = len(self.preview.page_sizes)
             page_heights = []
             page_y_starts = []
             cumulative = layout.vertical_padding
-            for i in range(n_pages):
-                size = poppler_doc.get_page(i).get_size()
-                if rotation in (90, 270):
-                    page_disp_ph = size.width
-                else:
-                    page_disp_ph = size.height
+            for width, height in self.preview.page_sizes:
+                page_disp_ph = width if rotation in (90, 270) else height
                 ph_px = layout.scale_factor * page_disp_ph
                 page_heights.append(ph_px)
                 page_y_starts.append(cumulative)

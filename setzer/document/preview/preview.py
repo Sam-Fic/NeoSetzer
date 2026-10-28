@@ -25,7 +25,6 @@ from gi.repository import Gio
 from gi.repository import Gdk
 
 import os.path
-import time
 import math
 import unicodedata
 
@@ -97,6 +96,8 @@ class Preview(Observable):
         self.pdf_version = 0
         self.page_width = None
         self.page_height = None
+        self.page_sizes = []
+        self.page_heights = None
         self.layout = None
 
         self.rotation = 0
@@ -483,19 +484,12 @@ class Preview(Observable):
             self.pdf_version += 1
             # 字形框缓存绑定旧文档，必须一并清空。
             self._text_layout_cache = dict()
-            page_size = self.poppler_document.get_page(0).get_size()
-            self.page_width = page_size.width
-            self.page_height = page_size.height
-            # per-page PDF（未旋转）尺寸，用于：
-            # 1. PDF y-up ↔ 页面内 top-down y 转换（scroll_dest_on_screen
-            #    / _highlight_search / init_backward_sync 等需要 page_height
-            #    的转换点；不随 rotation 变化，仍是 un-rotated PDF height）
-            # 2. 为后续可能的 per-page 渲染与 hit testing 提供信息
-            # 兼容旧调用：page_width / page_height 仍设为首页值。
-            self.page_heights = [
-                self.poppler_document.get_page(i).get_size().height
-                for i in range(self.poppler_document.get_n_pages())
-            ]
+            self.page_sizes = []
+            for i in range(self.poppler_document.get_n_pages()):
+                size = self.poppler_document.get_page(i).get_size()
+                self.page_sizes.append((size.width, size.height))
+            self.page_width, self.page_height = self.page_sizes[0]
+            self.page_heights = [height for width, height in self.page_sizes]
             self.update_vertical_margin()
             self.layout = None
             # 新 PDF 的页码 / 几何与旧选择不再对应，清除选择。
@@ -535,6 +529,7 @@ class Preview(Observable):
         self.pdf_version += 1
         self.page_width = None
         self.page_height = None
+        self.page_sizes = []
         self.page_heights = None
         self.layout = None
         self.clear_text_selection()
@@ -821,7 +816,7 @@ class Preview(Observable):
 
         self.visible_synctex_rectangles = rectangles
         self.layouter.update_synctex_rectangles(self.layout)
-        self.visible_synctex_rectangles_time = time.time()
+        self.visible_synctex_rectangles_time = GLib.get_monotonic_time() / 1_000_000
 
         if len(rectangles) > 0:
             content = self.view.content

@@ -18,14 +18,13 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import GObject, Gdk, Gtk
+from gi.repository import Gdk, Gtk
 import cairo
 
 import os
 import os.path
 import math
 import tempfile
-import time
 
 from setzer.app.color_manager import ColorManager
 
@@ -100,8 +99,6 @@ class PreviewPresenter(object):
         if self.preview.poppler_document != None:
             # 成功加载新 PDF 时清除上次的构建失败提示。
             self.view.hide_pdf_load_failed()
-            # 关键：启动后台渲染线程与轮询定时器，否则 rendered_pages 永远为空，
-            # 预览只画白底、打印也无内容（page_renderer.activate 此前无任何调用方）。
             self.page_renderer.activate()
             self.show_pdf()
         else:
@@ -197,35 +194,31 @@ class PreviewPresenter(object):
         self.view.drawing_area.queue_draw()
 
     def start_fade_loop(self):
-        # 取消进行中的淡出动画，避免连续 sync 叠加多个 timeout 同时 queue_draw。
         self.cancel_fade_loop()
         self._current_time_factor = 1.0
 
-        def fade_tick():
-            elapsed = time.time() - self.preview.visible_synctex_rectangles_time
+        def fade_tick(widget, frame_clock):
+            elapsed = frame_clock.get_frame_time() / 1_000_000 - self.preview.visible_synctex_rectangles_time
             remaining = self.highlight_duration + 0.25 - elapsed
             if remaining <= 0:
-                # 淡出结束：在 fade loop 中统一清理，避免在 draw 回调里修改状态。
                 self.preview.set_synctex_rectangles(list())
                 self._fade_loop_id = None
                 self._current_time_factor = 0
                 self.view.drawing_area.queue_draw()
                 return False
 
-            # 将剩余时间映射到 0~1 范围：最后 0.25s 完成淡出
             time_factor = self.ease(min(remaining, 0.25) * 4)
-            self._current_time_factor = time_factor
-            self.view.drawing_area.queue_draw()
+            if time_factor != self._current_time_factor:
+                self._current_time_factor = time_factor
+                self.view.drawing_area.queue_draw()
             return True
 
         self.view.drawing_area.queue_draw()
-        self._fade_loop_id = GObject.timeout_add(30, fade_tick)
+        self._fade_loop_id = self.view.drawing_area.add_tick_callback(fade_tick)
 
     def cancel_fade_loop(self):
-        '''取消挂起的 synctex 高亮淡出动画。由 preview.shutdown 调用，
-        避免文档关闭后回调继续访问已销毁的 drawing_area。'''
         if self._fade_loop_id is not None:
-            GObject.source_remove(self._fade_loop_id)
+            self.view.drawing_area.remove_tick_callback(self._fade_loop_id)
             self._fade_loop_id = None
         self._current_time_factor = 0
 

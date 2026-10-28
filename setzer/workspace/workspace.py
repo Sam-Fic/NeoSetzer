@@ -241,11 +241,7 @@ class Workspace(Observable):
             self.unset_root_document()
         DocumentSettings.save_document_state(document)
 
-        # 释放文档级常驻定时器，避免关闭后仍占主循环配额。
-        # controller（save_date_loop 500ms）所有文档都有；
-        # preview.page_renderer（rendered_pages_loop 50ms）仅 latex 文档有。
-        # build_system 已改为事件驱动（worker 完成通过 GLib.idle_add 回调），
-        # shutdown 仅清理 active_query 引用，无定时器需移除。
+        # 关闭后不再进行文档磁盘状态轮询。
         try:
             document.controller.shutdown()
         except Exception as e:
@@ -269,8 +265,6 @@ class Workspace(Observable):
                     doc_build_system.shutdown()
                 except Exception as e:
                     print(f'Warning: document.build_system.shutdown() failed: {e}')
-            # 释放预览渲染器的 50ms 轮询定时器（后台线程靠 is_active=False 空转，
-            # 随进程退出）。避免关闭文档后定时器常驻泄漏。
             doc_preview = getattr(document, 'preview', None)
             if doc_preview is not None:
                 try:
@@ -700,7 +694,7 @@ class Workspace(Observable):
             content = document.source_buffer.get_text(
                 document.source_buffer.get_start_iter(),
                 document.source_buffer.get_end_iter(),
-                False
+                include_hidden_chars=True
             )
             path = self._untitled_content_path(untitled_id)
             atomic_write_text(path, content)
@@ -913,9 +907,10 @@ class Workspace(Observable):
                 if untitled_id is None:
                     untitled_id = str(uuid.uuid4())
                     document._untitled_id = untitled_id
-                # 保存内容到临时文件
-                self._save_untitled_content(document, untitled_id)
-                document._untitled_content_saved = True
+                # 仅正文变化时重写；失败保留未保存状态，供下次快照重试。
+                if getattr(document, '_untitled_content_saved', False) is not True:
+                    if self._save_untitled_content(document, untitled_id):
+                        document._untitled_content_saved = True
 
                 doc_data = {
                     'untitled_id': untitled_id,
@@ -973,8 +968,14 @@ class Workspace(Observable):
         return self.save_to_disk()
 
     def _watch_document_state(self, document):
-        '''监听会话恢复所需的低成本视图状态，不监听正文内容。'''
+        '''监听视图状态及正文变化；正文回调只标记未命名内容待保存。'''
         handlers = []
+        try:
+            handlers.append((document.source_buffer,
+                             document.source_buffer.connect(
+                                 'changed', self._on_document_content_changed, document)))
+        except (AttributeError, TypeError):
+            pass
         try:
             handlers.append((document.source_buffer,
                              document.source_buffer.connect(
@@ -999,6 +1000,11 @@ class Workspace(Observable):
 
     def _on_document_state_changed(self, *args):
         self.schedule_persistence()
+
+    def _on_document_content_changed(self, buffer, document):
+        document._untitled_content_saved = False
+        if document.get_filename() is None:
+            self.schedule_persistence()
 
     def save_to_disk(self):
         # 写入 workspace.json（原子替换）。旧 workspace.pickle 保留作备份。

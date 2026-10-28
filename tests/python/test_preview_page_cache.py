@@ -14,30 +14,61 @@ import math
 from pathlib import Path
 import queue
 import threading
+from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock
 
 
 RENDERER_SOURCE = (
     Path(__file__).resolve().parents[2] / 'setzer' / 'document' / 'preview'
     / 'preview_page_renderer.py'
 )
+RENDERER_TREE = ast.parse(RENDERER_SOURCE.read_text(encoding='utf-8'))
 
 
-def _renderer_method(name):
-    tree = ast.parse(RENDERER_SOURCE.read_text(encoding='utf-8'))
+def _renderer_method(name, **namespace):
     renderer = next(
-        node for node in tree.body
+        node for node in RENDERER_TREE.body
         if isinstance(node, ast.ClassDef) and node.name == 'PreviewPageRenderer'
     )
     method = next(
         node for node in renderer.body
         if isinstance(node, ast.FunctionDef) and node.name == name
     )
-    namespace = {'math': math}
+    namespace = {'math': math, 'queue': queue, 'threading': threading, **namespace}
     module = ast.Module(body=[method], type_ignores=[])
     exec(compile(ast.fix_missing_locations(module), str(RENDERER_SOURCE), 'exec'),
          namespace)
     return namespace[name]
+
+
+class _MainLoop:
+    def __init__(self):
+        self.sources = {}
+        self.added = []
+        self.removed = []
+        self.Source = SimpleNamespace(remove=self.remove)
+
+    def idle_add(self, callback):
+        source_id = len(self.added) + 1
+        self.added.append(source_id)
+        self.sources[source_id] = callback
+        return source_id
+
+    def timeout_add(self, *args):
+        raise AssertionError('Result delivery must not register a polling timer')
+
+    def remove(self, source_id):
+        self.removed.append(source_id)
+        del self.sources[source_id]
+
+    def dispatch(self):
+        source_id = next(iter(self.sources))
+        callback = self.sources[source_id]
+        result = callback()
+        if not result:
+            self.sources.pop(source_id, None)
+        return result
 
 
 class _Layout:
@@ -65,6 +96,12 @@ class _View:
 
 
 class _PopplerDocument:
+    def __init__(self):
+        self.page = SimpleNamespace(render=Mock())
+
+    def get_page(self, page_number):
+        return self.page
+
     @staticmethod
     def get_n_pages():
         return 1
@@ -78,29 +115,45 @@ class _Preview:
         self.recolor_pdf = False
         # 渲染缓存版本号 = 内存文档版本（编译期间磁盘 mtime 变化不影响它）。
         self.pdf_version = pdf_version
+        self.connect = Mock()
+        self.document = SimpleNamespace(settings=Mock())
 
 
 class _RendererHarness:
+    _initialize = _renderer_method(
+        '__init__', Observable=SimpleNamespace(__init__=lambda self: None))
     update_rendered_pages = _renderer_method('update_rendered_pages')
     rendered_pages_loop = _renderer_method('rendered_pages_loop')
+    activate = _renderer_method('activate')
+    deactivate = _renderer_method('deactivate')
+    on_layout_or_position_changed = _renderer_method('on_layout_or_position_changed')
+    on_recolor_pdf_changed = _renderer_method('on_recolor_pdf_changed')
+    on_settings_changed = _renderer_method('on_settings_changed')
+    invalidate_magnifier_requests = _renderer_method('invalidate_magnifier_requests')
+    _queue_rendered_page = _renderer_method('_queue_rendered_page')
+    _wake_rendered_pages_loop = _renderer_method('_wake_rendered_pages_loop')
+    on_magnifier_result_produced = _renderer_method('on_magnifier_result_produced')
 
     def __init__(self, pdf_version, cached_page=None):
-        self.is_active_lock = threading.Lock()
+        self.main_loop = _MainLoop()
+        self.thread_factory = Mock(side_effect=lambda **kwargs: Mock(
+            join=Mock(side_effect=AssertionError('GTK must not join the render thread'))))
+        cairo = SimpleNamespace(
+            Format=SimpleNamespace(ARGB32=0),
+            ImageSurface=lambda format, width, height: _FakeSurface(width, height),
+            Context=Mock(),
+        )
+        for name in ('_request_rendered_pages_delivery', 'shutdown',
+                     'render_page_loop', '_process_magnifier_todo'):
+            method = _renderer_method(name, GObject=self.main_loop, GLib=self.main_loop,
+                                      cairo=cairo, apply_magnifier_transform=Mock())
+            setattr(self, name, method.__get__(self))
+        self._ensure_loops_started = _renderer_method(
+            '_ensure_loops_started', GObject=self.main_loop, GLib=self.main_loop,
+            threading=SimpleNamespace(Thread=self.thread_factory)).__get__(self)
+        self._initialize(_Preview(pdf_version))
         self.is_active = True
-        self.preview = _Preview(pdf_version)
-        self.visible_pages_lock = threading.Lock()
-        self.visible_pages = []
-        self.visible_pages_additional = []
-        self.page_width = None
-        self.pdf_version = None
-        self.maximum_rendered_pixels = 20_000_000
         self.rendered_pages = ({0: cached_page} if cached_page is not None else {})
-        self.render_queue = queue.Queue()
-        self.render_queue_low_priority = queue.Queue()
-        self.page_render_count_lock = threading.Lock()
-        self.page_render_count = {}
-        self._pending_page_renders = {}
-        self.rendered_pages_queue = queue.Queue()
         self.change_codes = []
 
     def add_change_code(self, code):
@@ -262,6 +315,247 @@ class TestPreviewPageCache(unittest.TestCase):
         renderer.rendered_pages[10] = self.cached_page(1)
         renderer.update_rendered_pages()
         self.assertNotIn(10, renderer.rendered_pages)
+
+    @staticmethod
+    def result(item, render_count=1):
+        return dict(page_number=0, render_count=render_count, item=item)
+
+    def produce_in_thread(self, callback):
+        errors = []
+
+        def produce():
+            try:
+                callback()
+            except BaseException as error:
+                errors.append(error)
+
+        worker = threading.Thread(target=produce, daemon=True)
+        worker.start()
+        worker.join(timeout=2)
+        self.assertFalse(worker.is_alive(), 'Result producer blocked during delivery')
+        if errors:
+            raise errors[0]
+
+    def test_activation_starts_worker_once_without_polling(self):
+        renderer = _RendererHarness(1)
+        self.assertFalse(renderer._render_thread_started)
+        renderer.activate()
+        renderer.activate()
+        renderer.thread_factory.assert_called_once()
+        renderer._render_thread.start.assert_called_once()
+        self.assertEqual(renderer.main_loop.added, [])
+        self.assertIsNone(renderer._rendered_pages_idle_id)
+        self.assertIs(renderer.rendered_pages_loop(), False)
+
+    def test_many_results_share_one_idle_and_one_notification(self):
+        renderer = _RendererHarness(1)
+        renderer.update_rendered_pages()
+        final = self.cached_page(1)
+        for _ in range(20):
+            renderer._queue_rendered_page(self.result(self.cached_page(1, surface_width=25)))
+        renderer._queue_rendered_page(self.result(final))
+        self.assertEqual(renderer.main_loop.added, [1])
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], final)
+        self.assertEqual(renderer.change_codes, ['rendered_pages_changed'])
+        self.assertEqual(renderer._pending_page_renders, {})
+        self.assertTrue(renderer.rendered_pages_queue.empty())
+        self.assertIsNone(renderer._rendered_pages_idle_id)
+        self.assertEqual(renderer.main_loop.sources, {})
+
+    def test_result_produced_while_installing_is_consumed_in_same_idle(self):
+        renderer = _RendererHarness(1)
+        renderer.update_rendered_pages()
+        draft = self.cached_page(1, surface_width=25)
+        final = self.cached_page(1)
+
+        def get_width():
+            self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(final)))
+            self.assertEqual(renderer.main_loop.added, [1])
+            return 25
+
+        draft[0].get_width = get_width
+        renderer._queue_rendered_page(self.result(draft))
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], final)
+        self.assertEqual(renderer.main_loop.added, [1])
+        self.assertEqual(renderer.main_loop.sources, {})
+
+    def test_result_produced_after_drain_gets_followup_idle(self):
+        renderer = _RendererHarness(1)
+        renderer.update_rendered_pages()
+        draft = self.cached_page(1, surface_width=25)
+        final = self.cached_page(1)
+        notify = renderer.add_change_code
+
+        def on_changed(code):
+            notify(code)
+            renderer.add_change_code = notify
+            self.assertIsNotNone(renderer._rendered_pages_idle_id)
+            self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(final)))
+            self.assertEqual(renderer.main_loop.added, [1])
+
+        renderer.add_change_code = on_changed
+        renderer._queue_rendered_page(self.result(draft))
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], draft)
+        self.assertEqual(renderer.main_loop.added, [1, 2])
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], final)
+        self.assertEqual(renderer.change_codes, ['rendered_pages_changed'] * 2)
+        self.assertEqual(renderer.main_loop.sources, {})
+        self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(final)))
+        self.assertEqual(renderer.main_loop.added, [1, 2, 3])
+        self.assertIs(renderer.main_loop.dispatch(), False)
+
+    def test_inactive_results_wait_for_activation_without_idle(self):
+        renderer = _RendererHarness(1)
+        renderer.deactivate()
+        final = self.cached_page(1)
+        self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(final)))
+        self.assertIs(renderer.rendered_pages_loop(), False)
+        self.assertEqual(renderer.rendered_pages_queue.qsize(), 1)
+        self.assertEqual(renderer.main_loop.added, [])
+        renderer.activate()
+        self.assertEqual(renderer.main_loop.added, [1])
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], final)
+        self.assertEqual(renderer.main_loop.sources, {})
+
+    def test_pending_idle_stops_when_deactivated_and_resumes_on_activate(self):
+        renderer = _RendererHarness(1)
+        renderer.activate()
+        renderer._queue_rendered_page(self.result(self.cached_page(1)))
+        renderer.deactivate()
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertEqual(renderer.main_loop.sources, {})
+        self.assertIsNone(renderer._rendered_pages_idle_id)
+        self.assertEqual(renderer.rendered_pages_queue.qsize(), 1)
+        renderer.activate()
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertTrue(renderer.rendered_pages_queue.empty())
+        self.assertEqual(renderer.rendered_pages, {})
+        self.assertEqual(renderer.main_loop.added, [1, 2])
+
+    def test_layout_restoration_wakes_queue_and_rejects_old_pdf(self):
+        renderer = _RendererHarness(1)
+        renderer.activate()
+        renderer._queue_rendered_page(self.result(self.cached_page(1)))
+        renderer.preview.layout = None
+        renderer.preview.pdf_version = 2
+        renderer.on_layout_or_position_changed(renderer.preview)
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages_loop(), False)
+        self.assertEqual(renderer.main_loop.sources, {})
+        self.assertIsNone(renderer._rendered_pages_idle_id)
+        final = self.cached_page(2)
+        self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(final)))
+        self.assertEqual(renderer.main_loop.added, [1])
+        self.assertEqual(renderer.rendered_pages_queue.qsize(), 2)
+        renderer.preview.layout = _Layout()
+        renderer.on_layout_or_position_changed(renderer.preview)
+        self.assertEqual(renderer.main_loop.added, [1, 2])
+        self.assertIs(renderer.main_loop.dispatch(), False)
+        self.assertIs(renderer.rendered_pages[0], final)
+        self.assertEqual(renderer.change_codes, ['rendered_pages_changed'])
+        self.assertEqual(renderer.main_loop.sources, {})
+
+    def test_worker_success_and_failure_use_coalesced_delivery(self):
+        class WorkerIdle(Exception):
+            pass
+
+        for fail in (False, True):
+            with self.subTest(fail=fail):
+                renderer = _RendererHarness(1)
+                renderer.update_rendered_pages()
+                render = renderer.preview.poppler_document.page.render
+                if fail:
+                    render.side_effect = RuntimeError('Render failed')
+                get = renderer.render_queue.get
+
+                def get_task(block=True, timeout=None):
+                    if block and renderer.render_queue.empty():
+                        raise WorkerIdle
+                    return get(block=block, timeout=timeout)
+
+                renderer.render_queue.get = get_task
+                with self.assertRaises(WorkerIdle):
+                    renderer.render_page_loop()
+                self.assertEqual(render.call_count, 2)
+                self.assertEqual(renderer.rendered_pages_queue.qsize(), 1 if fail else 2)
+                self.assertEqual(renderer.main_loop.added, [1])
+                self.assertIs(renderer.main_loop.dispatch(), False)
+                self.assertEqual(renderer._pending_page_renders, {})
+                self.assertEqual(bool(renderer.rendered_pages), not fail)
+
+    @staticmethod
+    def magnifier_task():
+        return dict(request_id=0, page_number=0, out_css_size=100, hidpi_factor=1,
+                    density=1, center_x_pt=0, center_y_pt=0, rotation=0,
+                    matching_theme_colors=None)
+
+    def test_shutdown_cancels_idles_and_rejects_late_results_without_join(self):
+        renderer = _RendererHarness(1)
+        renderer.activate()
+        renderer._queue_rendered_page(self.result(self.cached_page(1)))
+        renderer._process_magnifier_todo(self.magnifier_task())
+        callbacks = list(renderer.main_loop.sources.values())
+        renderer.shutdown()
+        self.assertTrue(renderer._shutting_down)
+        self.assertFalse(renderer.is_active)
+        self.assertEqual(renderer.main_loop.removed, [1, 2])
+        self.assertIsNone(renderer._rendered_pages_idle_id)
+        self.assertIsNone(renderer._magnifier_result_idle_id)
+        self.assertTrue(renderer.rendered_pages_queue.empty())
+        self.assertTrue(renderer.magnified_pages_queue.empty())
+        self.assertTrue(renderer.render_queue_low_priority.empty())
+        self.assertIsNone(renderer.render_queue.get_nowait())
+        renderer._render_thread.join.assert_not_called()
+        renderer.preview.document.settings.disconnect.assert_called_once_with(
+            'settings_changed', renderer._settings_callback)
+        self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(None)))
+        self.produce_in_thread(lambda: renderer._process_magnifier_todo(self.magnifier_task()))
+        renderer.activate()
+        renderer._ensure_loops_started()
+        renderer.on_layout_or_position_changed(renderer.preview)
+        for callback in callbacks:
+            self.assertIs(callback(), False)
+        renderer.shutdown()
+        self.assertEqual(renderer.main_loop.added, [1, 2])
+        self.assertEqual(renderer.main_loop.removed, [1, 2])
+        self.assertEqual(renderer.main_loop.sources, {})
+        self.assertTrue(renderer.rendered_pages_queue.empty())
+        self.assertTrue(renderer.magnified_pages_queue.empty())
+        self.assertEqual(renderer.change_codes, [])
+        renderer.thread_factory.assert_called_once()
+
+    def test_shutdown_between_enqueue_and_request_prevents_idle_registration(self):
+        renderer = _RendererHarness(1)
+        renderer.update_rendered_pages()
+        request = renderer._request_rendered_pages_delivery
+        enqueued = threading.Event()
+        resume = threading.Event()
+
+        def request_after_shutdown():
+            enqueued.set()
+            if not resume.wait(timeout=2):
+                raise AssertionError('Shutdown did not release result producer')
+            request()
+
+        renderer._request_rendered_pages_delivery = request_after_shutdown
+        worker = threading.Thread(
+            target=renderer._queue_rendered_page,
+            args=(self.result(self.cached_page(1)),), daemon=True)
+        worker.start()
+        try:
+            self.assertTrue(enqueued.wait(timeout=2))
+            renderer.shutdown()
+        finally:
+            resume.set()
+            worker.join(timeout=2)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(renderer.main_loop.added, [])
+        self.assertTrue(renderer.rendered_pages_queue.empty())
 
 
 if __name__ == '__main__':

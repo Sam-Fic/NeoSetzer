@@ -137,6 +137,7 @@ def _build(rotation=0, sizes=None):
         poppler_document=_Document(sizes),
         page_width=sizes[0].width,
         page_height=sizes[0].height,
+        page_sizes=[(size.width, size.height) for size in sizes],
         rotation=rotation,
         visible_synctex_rectangles={},
     )
