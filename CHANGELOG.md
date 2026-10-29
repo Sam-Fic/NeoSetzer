@@ -1,5 +1,32 @@
 # Changelog
 
+## v86 — 2026-10-29
+
+### 主要改进
+
+- **新增「减弱动画」偏好开关**：偏好设置 → 外观新增「动画 / 减弱动画」（默认关闭，保持既有观感）。开启后关掉侧栏与预览栏的滑入滑出、各处淡入淡出与列表展开、侧栏目录跳转的滚动动画，以及 SyncTeX 双向跳转的高亮淡出。窗口与对话框自身的打开/关闭动画不受影响——`Adw.OverlaySplitView` 没有过渡时长属性，只能在同步的显隐调用期间临时关掉 `gtk-enable-animations` 并在返回后立即还原。
+
+- **修复开关侧栏时的卡顿、行号慢一拍与行号短暂消失**：开侧栏走 inline 动画，每帧改编辑器列宽；开着自动换行时整篇文档重排。行号滞后源于 gutter 覆盖层自身分配不变、GTK4 直接复用上一帧的 render node；行号消失源于整块重建的 surface 在绘制前就入缓存，以及重排期间按未验证的估计顶 y 平移把 surface 推出可视区。改为尺寸观察者驱动，gutter 缓存加几何指纹、覆盖守卫与「画完才发布」。顺带修掉一个静默失效的坑：GTK4 的 `GtkWidget` 没有 `width`/`height` 属性，`connect('notify::width', ...)` 不报错但永不触发，sticky scroll 与多光标原本挂的就是这样两条死连接。
+
+- **消除输入/预览/侧栏热路径上的冗余重算与重绘**：拼写检查改为按块增量重扫；预览淡出只在高亮矩形变化时标脏；页面尺寸加缓存、渲染结果改由回调投递以消除轮询唤醒；文档结构页订阅收窄到当前与根文档；侧栏统计在面板隐藏时挂起定时刷新；用户片段库按 mtime 缓存并让 revision 纳入补全缓存键；预览悬停移动不再连带重绘整页。
+
+- **新增状态栏构建结果指示**：右下角以纯文字显示根文档最近一次构建结果（如「构建成功」/「2 个错误，3 个警告」），点击打开构建日志弹窗；尚未构建过时隐藏，关闭文档时断开信号连接避免阻碍 GC。
+
+- **补齐积压翻译**：`{n} error(s)` / `{n} warning(s)` 及 v84/v85 新功能、改写后的 latexdb 宏包描述共 160 余条，在 7 种语言中全部补译；各语言未译条目降至 44 条，即语言选择器中按设计保持原语言的语言名。POTFILES 此前陈旧，顺带补进 81 个从未提取的字符串。
+
+- **测试**：新增 20 余个无界面回归测试模块/用例覆盖上述动画偏好、gutter 缓存、滚动节流与热路径调度，并加入源码扫描守卫防止 `notify::width` 死连接写法回流。
+
+### Improvements
+
+- **feat**: Add a "Reduce animations" preference (Preferences → Appearance, off by default). It turns off sidebar and preview sliding, crossfades, revealer expands, the sidebar list-scroll jump animation and the SyncTeX highlight fades. Window and dialog open/close animations are untouched — `Adw.OverlaySplitView` exposes no transition duration, so `gtk-enable-animations` is only flipped for the duration of the synchronous show/hide call and restored immediately.
+- **fix**: Sidebar toggle no longer stutters, and gutter line numbers no longer lag one frame behind the text or briefly disappear. The gutter overlay was being served a stale render node, its surface cache could publish a half-drawn block, and mid-reflow offsets were estimated. Also fixes silently dead `notify::width`/`::height` connections (GTK4 widgets have no such properties) that kept sticky scroll and multi-cursor overlays from ever recomputing.
+- **perf**: Removed redundant recomputation and repainting on typing/scrolling hot paths — incremental per-block spellchecking, preview fade only redraws on change, page-size caching with callback delivery instead of polling, narrowed structure-page and stats refresh scope, mtime-cached user snippets.
+- **feat**: Status bar now shows the last build result of the root document as plain text and opens the build log on click.
+- **i18n**: Translated 160+ backlog entries across all seven languages; untranslated count per language is now 44 (the language-picker autonyms, untranslated by design). POTFILES was stale and had never extracted 81 strings.
+- **test**: Added headless regression coverage for the animation preference, gutter cache, scroll throttling and hot-path scheduling, plus a source-scan guard against the dead `notify::width` pattern.
+
+---
+
 ## v85 — 2026-10-02
 
 ### 主要改进
