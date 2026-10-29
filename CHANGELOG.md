@@ -14,6 +14,8 @@
 
 - **补齐积压翻译**：`{n} error(s)` / `{n} warning(s)` 及 v84/v85 新功能、改写后的 latexdb 宏包描述共 160 余条，在 7 种语言中全部补译；各语言未译条目降至 44 条，即语言选择器中按设计保持原语言的语言名。POTFILES 此前陈旧，顺带补进 81 个从未提取的字符串。
 
+- **Windows 便携包构建环境迁移到 MSYS2 UCRT64**：MSYS2 自 2026-10 起逐步撤下 leaf 包的 MINGW64 构建，gtk4、libadwaita、gtksourceview5 等已无 mingw64 版本，构建因此切到官方建议的 UCRT64。便携包顶层目录随之由 `mingw64` 变为 `ucrt64`，启动方式变为 `ucrt64\bin\setzer.bat`，README 与打包文档同步更新。
+
 - **测试**：新增 20 余个无界面回归测试模块/用例覆盖上述动画偏好、gutter 缓存、滚动节流与热路径调度，并加入源码扫描守卫防止 `notify::width` 死连接写法回流。
 
 ### Improvements
@@ -23,6 +25,7 @@
 - **perf**: Removed redundant recomputation and repainting on typing/scrolling hot paths — incremental per-block spellchecking, preview fade only redraws on change, page-size caching with callback delivery instead of polling, narrowed structure-page and stats refresh scope, mtime-cached user snippets.
 - **feat**: Status bar now shows the last build result of the root document as plain text and opens the build log on click.
 - **i18n**: Translated 160+ backlog entries across all seven languages; untranslated count per language is now 44 (the language-picker autonyms, untranslated by design). POTFILES was stale and had never extracted 81 strings.
+- **Windows portable build moved to MSYS2 UCRT64**: MSYS2 has been dropping MINGW64 builds of leaf packages since 2026-10, and gtk4, libadwaita and gtksourceview5 no longer ship a mingw64 variant, so the build now uses the recommended UCRT64 environment. The portable package's top-level directory changes from `mingw64` to `ucrt64`; the launcher is now `ucrt64\bin\setzer.bat`. README and packaging docs updated accordingly.
 - **test**: Added headless regression coverage for the animation preference, gutter cache, scroll throttling and hot-path scheduling, plus a source-scan guard against the dead `notify::width` pattern.
 
 ---

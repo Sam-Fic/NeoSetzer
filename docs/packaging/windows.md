@@ -1,13 +1,15 @@
 # NeoSetzer Windows 打包与发布
 
-NeoSetzer 提供 **Windows x64 便携版**。正式包由 GitHub Actions 的 MSYS2 MINGW64 环境构建，文件名为 `setzer_<version>_windows_x64.zip`。
+NeoSetzer 提供 **Windows x64 便携版**。正式包由 GitHub Actions 的 MSYS2 UCRT64 环境构建，文件名为 `setzer_<version>_windows_x64.zip`。
+
+> **为什么用 UCRT64 而不是 MINGW64**：MSYS2 自 2026-10 起逐步撤下 leaf 包的 MINGW64 构建（gtk4、libadwaita、gtksourceview5 等已不再提供 mingw64 版本），官方建议改用 UCRT64 或 CLANG64。构建环境因此迁移到 UCRT64，便携包内的顶层目录相应从 `mingw64` 变为 `ucrt64`。
 
 ## 使用发布包
 
 下载并解压 ZIP 后，运行：
 
 ```text
-mingw64\bin\setzer.bat
+ucrt64\bin\setzer.bat
 ```
 
 便携包包含 Python、GTK4、libadwaita、运行时 DLL、GObject typelib、GLib schema、翻译、应用资源和 **Adwaita symbolic 图标主题**。最终用户无需预先安装 MSYS2。
@@ -27,16 +29,16 @@ Windows 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#�
 
 ## 本地构建（开发验证）
 
-本地打包应在 **MSYS2 MINGW64** 环境中执行，而不是 MSYS 或 UCRT64 环境。
+本地打包应在 **MSYS2 UCRT64** 环境中执行，而不是 MSYS 或 MINGW64 环境。
 
 ```bash
 pacman -S --needed \
-  mingw-w64-x86_64-meson mingw-w64-x86_64-ninja \
-  mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita \
-  mingw-w64-x86_64-gtksourceview5 mingw-w64-x86_64-poppler \
-  mingw-w64-x86_64-python mingw-w64-x86_64-python-cairo \
-  mingw-w64-x86_64-python-gobject mingw-w64-x86_64-python-numpy \
-  mingw-w64-x86_64-unzip gettext zip
+  mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-ninja \
+  mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita \
+  mingw-w64-ucrt-x86_64-gtksourceview5 mingw-w64-ucrt-x86_64-poppler \
+  mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-python-cairo \
+  mingw-w64-ucrt-x86_64-python-gobject mingw-w64-ucrt-x86_64-python-numpy \
+  unzip gettext zip
 
 meson setup builddir
 meson compile -C builddir
@@ -48,7 +50,8 @@ meson compile -C builddir
 
 | 现象 | 处理方式 |
 |---|---|
-| `pip install numpy` 找不到可用版本 | 使用 `pacman` 安装 `mingw-w64-x86_64-python-numpy`，不要从 PyPI 安装 NumPy。 |
-| 双击后无法找到 Python 或 GTK DLL | 使用完整的便携 ZIP，确认运行的是 `mingw64\bin\setzer.bat`。 |
-| 图标缺失 | 确认包内存在 `mingw64/share/icons/Adwaita/index.theme`；该检查已在 CI 中强制执行。 |
+| `pip install numpy` 找不到可用版本 | 使用 `pacman` 安装 `mingw-w64-ucrt-x86_64-python-numpy`，不要从 PyPI 安装 NumPy。 |
+| 双击后无法找到 Python 或 GTK DLL | 使用完整的便携 ZIP，确认运行的是 `ucrt64\bin\setzer.bat`。 |
+| 图标缺失 | 确认包内存在 `ucrt64/share/icons/Adwaita/index.theme`；该检查已在 CI 中强制执行。 |
+| `pacman` 报 `target not found: mingw-w64-x86_64-gtk4` | 环境仍是 MINGW64。gtk4 等包已无 mingw64 构建，请改用 UCRT64 环境并按上文重装。 |
 | 资产未进入 Release | 检查标签与项目版本是否一致，并查看 Windows 打包工作流日志。 |

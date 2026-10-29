@@ -29,17 +29,17 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 | Platform | Status | Runtime stack |
 |----------|--------|---------------|
 | Linux (Debian/Ubuntu 24.04+, Fedora, Arch, ...) | Fully supported | System GTK4 + libadwaita |
-| Windows 10/11 (x86_64) | Supported via MSYS2 | Portable MSYS2 mingw-w64 GTK4 stack |
+| Windows 10/11 (x86_64) | Supported via MSYS2 | Portable MSYS2 UCRT64 GTK4 stack |
 | macOS Apple Silicon (ARM64) | Supported | Self-contained `.app` release package |
 | WSL (Windows Subsystem for Linux) | Supported as Linux app | Linux distribution inside WSL |
 
-> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not packaged for MSYS2 `mingw64`**, so it cannot be installed on Windows. NeoSetzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
+> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not included in the Windows portable package**, so it is unavailable on Windows. NeoSetzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
 
 ## Installation
 
 This fork is **not** published on Flathub. Ways to get it:
 
-1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Extract anywhere and run `mingw64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
+1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Extract anywhere and run `ucrt64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
 2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Check there for the latest build.
 3. **macOS Apple Silicon application** — Download `setzer_<version>_macos_arm64.zip`, extract `Setzer.app`, and see [macOS packaging notes](docs/packaging/macos.md) for the current Gatekeeper and signing status.
 4. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
@@ -125,7 +125,7 @@ There are two ways to get it running:
    > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\NeoSetzer
    > ```
 
-3. Run **`mingw64\bin\setzer.bat`** inside the extracted folder — double-click it in File Explorer, or call it from cmd / PowerShell.
+3. Run **`ucrt64\bin\setzer.bat`** inside the extracted folder — double-click it in File Explorer, or call it from cmd / PowerShell.
 
    > **PowerShell note:** run it *without* quotes, or prefix it with the call operator (`& "…\setzer.bat"`). A bare quoted path is treated as a string and only echoed, not executed.
 
@@ -133,7 +133,7 @@ There are two ways to get it running:
 
 To uninstall, just delete the folder. Your settings live in `%LOCALAPPDATA%\setzer` (i.e. `C:\Users\<you>\AppData\Local\setzer`) and are kept across versions — remove that folder too if you want a completely clean state.
 
-> **Do I still need MSYS2?** No. Everything is bundled. Do **not** add the extracted `mingw64\bin` to your system `PATH` — if you also have MSYS2 installed, the two GTK4 stacks can shadow each other and cause hard-to-diagnose DLL errors.
+> **Do I still need MSYS2?** No. Everything is bundled. Do **not** add the extracted `ucrt64\bin` to your system `PATH` — if you also have MSYS2 installed, the two GTK4 stacks can shadow each other and cause hard-to-diagnose DLL errors.
 >
 > **LaTeX is still a separate install.** The zip contains the editor, not a LaTeX distribution — see "Installing a LaTeX distribution on Windows" below.
 

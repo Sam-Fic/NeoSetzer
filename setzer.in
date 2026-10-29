@@ -43,7 +43,7 @@ def _prepend_search_path(variable_name, path):
 
 
 # 非 Linux 包不依赖宿主机的 GNOME 资源。Windows 便携版从脚本位置定位
-# mingw64 根目录；macOS PyInstaller 应用包将资源放入 sys._MEIPASS。
+# 便携包根目录；macOS PyInstaller 应用包将资源放入 sys._MEIPASS。
 if sys.platform == 'win32':
     bundle_resources = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 elif sys.platform == 'darwin' and hasattr(sys, '_MEIPASS'):

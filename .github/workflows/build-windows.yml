@@ -20,28 +20,28 @@ jobs:
         shell: msys2 {0}
 
     steps:
-      - name: Set up MSYS2 MINGW64
+      - name: Set up MSYS2 UCRT64
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: true
           install: >-
             git
             gettext
             zip
             unzip
-            mingw-w64-x86_64-meson
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-gtk4
-            mingw-w64-x86_64-adwaita-icon-theme
-            mingw-w64-x86_64-libadwaita
-            mingw-w64-x86_64-gtksourceview5
-            mingw-w64-x86_64-poppler
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-python-cairo
-            mingw-w64-x86_64-python-gobject
-            mingw-w64-x86_64-python-numpy
-            mingw-w64-x86_64-python-pip
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-adwaita-icon-theme
+            mingw-w64-ucrt-x86_64-libadwaita
+            mingw-w64-ucrt-x86_64-gtksourceview5
+            mingw-w64-ucrt-x86_64-poppler
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-python-cairo
+            mingw-w64-ucrt-x86_64-python-gobject
+            mingw-w64-ucrt-x86_64-python-numpy
+            mingw-w64-ucrt-x86_64-python-pip
 
       - name: Check out source
         uses: actions/checkout@v5
@@ -58,7 +58,7 @@ jobs:
 
       - name: Configure and compile
         run: |
-          meson setup builddir --prefix=/mingw64 --buildtype=release -Dpython.bytecompile=-1
+          meson setup builddir --prefix=/ucrt64 --buildtype=release -Dpython.bytecompile=-1
           meson compile -C builddir
 
       - name: Build Windows portable package
@@ -76,19 +76,19 @@ jobs:
 
           test -f "$PACKAGE_ROOT/bin/setzer.bat"
           mkdir -p "$PACKAGE_ROOT/bin" "$PACKAGE_ROOT/lib" "$PACKAGE_ROOT/share"
-          cp /mingw64/bin/*.dll "$PACKAGE_ROOT/bin/"
-          cp /mingw64/bin/python.exe "$PACKAGE_ROOT/bin/"
-          cp /mingw64/bin/pythonw.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
-          cp /mingw64/bin/gdbus.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
-          cp /mingw64/bin/gspawn-win64-helper.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
-          cp /mingw64/bin/gspawn-win64-helper-console.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
-          cp -r /mingw64/lib/girepository-1.0 "$PACKAGE_ROOT/lib/"
-          cp -r /mingw64/lib/python3.* "$PACKAGE_ROOT/lib/"
-          cp -r /mingw64/lib/gdk-pixbuf-2.0 "$PACKAGE_ROOT/lib/" 2>/dev/null || true
-          cp -r /mingw64/share/glib-2.0 "$PACKAGE_ROOT/share/"
-          cp -r /mingw64/share/icons "$PACKAGE_ROOT/share/"
-          cp -r /mingw64/share/gtksourceview-5 "$PACKAGE_ROOT/share/" 2>/dev/null || true
-          cp -r /mingw64/share/locale "$PACKAGE_ROOT/share/" 2>/dev/null || true
+          cp /ucrt64/bin/*.dll "$PACKAGE_ROOT/bin/"
+          cp /ucrt64/bin/python.exe "$PACKAGE_ROOT/bin/"
+          cp /ucrt64/bin/pythonw.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /ucrt64/bin/gdbus.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /ucrt64/bin/gspawn-win64-helper.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp /ucrt64/bin/gspawn-win64-helper-console.exe "$PACKAGE_ROOT/bin/" 2>/dev/null || true
+          cp -r /ucrt64/lib/girepository-1.0 "$PACKAGE_ROOT/lib/"
+          cp -r /ucrt64/lib/python3.* "$PACKAGE_ROOT/lib/"
+          cp -r /ucrt64/lib/gdk-pixbuf-2.0 "$PACKAGE_ROOT/lib/" 2>/dev/null || true
+          cp -r /ucrt64/share/glib-2.0 "$PACKAGE_ROOT/share/"
+          cp -r /ucrt64/share/icons "$PACKAGE_ROOT/share/"
+          cp -r /ucrt64/share/gtksourceview-5 "$PACKAGE_ROOT/share/" 2>/dev/null || true
+          cp -r /ucrt64/share/locale "$PACKAGE_ROOT/share/" 2>/dev/null || true
           find "$PACKAGE_ROOT" -type d -name __pycache__ -prune -exec rm -rf {} +
           find "$PACKAGE_ROOT" -type f -name '*.pyc' -delete
 
@@ -97,12 +97,12 @@ jobs:
           test -d "$PACKAGE_ROOT/share/Setzer/resources"
           test -f "$PACKAGE_ROOT/share/icons/Adwaita/index.theme"
           test -f "$PACKAGE_ROOT/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg"
-          (cd "$(dirname "$PACKAGE_ROOT")" && zip -qr "$PACKAGE_FILE" mingw64)
+          (cd "$(dirname "$PACKAGE_ROOT")" && zip -qr "$PACKAGE_FILE" ucrt64)
           unzip -l "$PACKAGE_FILE" > package-contents.txt
-          grep -q 'mingw64/bin/setzer.bat' package-contents.txt
-          grep -q 'mingw64/share/Setzer/resources' package-contents.txt
-          grep -q 'mingw64/share/icons/Adwaita/index.theme' package-contents.txt
-          grep -q 'mingw64/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg' package-contents.txt
+          grep -q 'ucrt64/bin/setzer.bat' package-contents.txt
+          grep -q 'ucrt64/share/Setzer/resources' package-contents.txt
+          grep -q 'ucrt64/share/icons/Adwaita/index.theme' package-contents.txt
+          grep -q 'ucrt64/share/icons/Adwaita/symbolic/actions/document-open-symbolic.svg' package-contents.txt
 
           echo "artifact_file=$(cygpath -w "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
           echo "release_file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"

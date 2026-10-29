@@ -14,9 +14,11 @@ if not exist "%BLD_DIR%\setzer_dev.py" (
 
 cd /d "%SRC_DIR%"
 rem The setzer package is not installed into site-packages, so add the
-rem source root to PYTHONPATH. Also prepend mingw64\bin to PATH so the
+rem source root to PYTHONPATH. Also prepend ucrt64\bin to PATH so the
 rem GTK/libadwaita DLLs and the correct python are found.
 set "PYTHONPATH=%SRC_DIR%;%PYTHONPATH%"
 if exist "%MSYSTEM_PREFIX%\bin" set "PATH=%MSYSTEM_PREFIX%\bin;%PATH%"
+rem 后插入的前缀优先级更高：UCRT64 是当前的 Windows 构建环境。
 if exist "C:\msys64\mingw64\bin" set "PATH=C:\msys64\mingw64\bin;%PATH%"
+if exist "C:\msys64\ucrt64\bin" set "PATH=C:\msys64\ucrt64\bin;%PATH%"
 python "%BLD_DIR%\setzer_dev.py" %*

@@ -29,17 +29,17 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 | 平台 | 状态 | 运行时栈 |
 |------|------|----------|
 | Linux（Debian/Ubuntu 24.04+、Fedora、Arch 等） | 完全支持 | 系统 GTK4 + libadwaita |
-| Windows 10/11（x86_64） | 通过 MSYS2 支持 | 便携式 MSYS2 mingw-w64 GTK4 栈 |
+| Windows 10/11（x86_64） | 通过 MSYS2 支持 | 便携式 MSYS2 UCRT64 GTK4 栈 |
 | macOS Apple Silicon（ARM64） | 已支持 | 自包含 `.app` 发布包 |
 | WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
 
-> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）在 MSYS2 的 `mingw64` 中并未打包，因此无法在 Windows 上安装。当其不可用时 NeoSetzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
+> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）未包含在 Windows 便携包中，因此在 Windows 上不可用。当其不可用时 NeoSetzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
 
 ## 安装
 
 本 fork **未**发布在 Flathub 上。获取方式：
 
-1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `mingw64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
+1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `ucrt64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
 2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中。请在那里查看最新构建版本。
 3. **macOS Apple Silicon 应用包**——下载 `setzer_<版本号>_macos_arm64.zip` 并解压 `Setzer.app`；当前 Gatekeeper 与签名状态见 [macOS 打包说明](docs/packaging/macos.md)。
 4. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
@@ -125,7 +125,7 @@ NeoSetzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 
    > Expand-Archive setzer_74_windows_x64.zip -DestinationPath D:\Apps\NeoSetzer
    > ```
 
-3. 运行解压目录下的 **`mingw64\bin\setzer.bat`**——在资源管理器里双击，或从 cmd / PowerShell 调用。
+3. 运行解压目录下的 **`ucrt64\bin\setzer.bat`**——在资源管理器里双击，或从 cmd / PowerShell 调用。
 
    > **PowerShell 注意：** 运行时**不要加引号**，或者在前面加调用运算符（`& "…\setzer.bat"`）。只加引号的路径会被当作字符串回显，不会执行。
 
@@ -133,7 +133,7 @@ NeoSetzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 
 
 卸载时直接删除该文件夹即可。个人设置保存在 `%LOCALAPPDATA%\setzer`（即 `C:\Users\<你的用户名>\AppData\Local\setzer`），跨版本保留——想彻底清理的话把这个目录一并删掉。
 
-> **还需要装 MSYS2 吗？** 不需要，所有依赖都已打包。另外**不要**把解压出来的 `mingw64\bin` 加进系统 `PATH`——如果你机器上同时装了 MSYS2，两套 GTK4 运行时会互相遮蔽，引发很难排查的 DLL 报错。
+> **还需要装 MSYS2 吗？** 不需要，所有依赖都已打包。另外**不要**把解压出来的 `ucrt64\bin` 加进系统 `PATH`——如果你机器上同时装了 MSYS2，两套 GTK4 运行时会互相遮蔽，引发很难排查的 DLL 报错。
 >
 > **LaTeX 仍需单独安装。** zip 里只有编辑器，不含 LaTeX 发行版，参见下文「在 Windows 上安装 LaTeX 发行版」。
 
