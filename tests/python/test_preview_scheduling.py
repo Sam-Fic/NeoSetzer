@@ -50,8 +50,18 @@ class DrawingArea:
 
 class TestPreviewAnimation(unittest.TestCase):
     def setUp(self):
+        # start_fade_loop 在「减弱动画」下改走一次性 GLib timeout 而非 tick
+        # callback；本组测试针对的是**动画**路径，故注入 is_reduced()=False，
+        # 免得结果随开发者机器上真实的 ~/.config/setzer/settings.json 漂移。
+        namespace = {
+            'animation_prefs': SimpleNamespace(is_reduced=lambda: False),
+            'GLib': SimpleNamespace(
+                timeout_add=Mock(return_value=0),
+                Source=SimpleNamespace(remove=Mock())),
+        }
         cls = load_methods(PREVIEW + 'preview_presenter.py', 'PreviewPresenter',
-                           {'start_fade_loop', 'cancel_fade_loop', 'ease'})
+                           {'start_fade_loop', 'cancel_fade_loop', 'ease'},
+                           **namespace)
         self.presenter = cls()
         self.area = DrawingArea()
         self.presenter.view = SimpleNamespace(drawing_area=self.area)
@@ -59,6 +69,7 @@ class TestPreviewAnimation(unittest.TestCase):
             visible_synctex_rectangles_time=100.0, set_synctex_rectangles=Mock())
         self.presenter.highlight_duration = 1.5
         self.presenter._fade_loop_id = None
+        self.presenter._fade_timeout_id = None
         self.presenter._current_time_factor = 0
 
     def test_hold_does_not_redraw_unchanged_highlight(self):

@@ -22,6 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, GLib, Adw, Pango, Gio
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
+from setzer.helpers import animation_prefs
 from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
 
@@ -65,8 +66,8 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
         self.content_stack = Gtk.Stack()
         self.content_stack.set_vexpand(True)
-        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.content_stack.set_transition_duration(150)
+        animation_prefs.set_transition(
+            self.content_stack, Gtk.StackTransitionType.CROSSFADE, 150)
         self.content_stack.add_named(self.page, 'content')
         self.content_stack.add_named(self.no_results_status, 'no-results')
 
@@ -196,8 +197,8 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.toolbar.append(self.switch_group)
 
         self.search_revealer = Gtk.Revealer()
-        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
-        self.search_revealer.set_transition_duration(250)
+        animation_prefs.set_transition(
+            self.search_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 250)
         self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.search_box.add_css_class('sidebar-search-bar')
 

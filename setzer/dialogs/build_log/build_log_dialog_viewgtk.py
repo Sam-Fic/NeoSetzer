@@ -19,6 +19,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gdk, GObject
+from setzer.helpers import animation_prefs
 from setzer.widgets.search_highlight import highlight
 from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning_type
 from setzer.dialogs.build_log.build_log_filter_popover import BuildLogFilterPopover
@@ -147,8 +148,8 @@ class BuildLogDialogView(DialogView):
         # 模式，可能干扰 Adw.Dialog 自身的 Esc 关闭。Revealer + SearchEntry
         # 不挂任何顶层 key controller，Esc 始终交给 Adw.Dialog 原生处理。
         self.search_revealer = Gtk.Revealer()
-        self.search_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
-        self.search_revealer.set_transition_duration(150)
+        animation_prefs.set_transition(
+            self.search_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 150)
 
         search_clamp = Adw.Clamp()
         search_clamp.set_maximum_size(600)
@@ -218,8 +219,8 @@ class BuildLogDialogView(DialogView):
 
             # 用 Gtk.Revealer 包裹 BuildLogList，支持折叠动画
             revealer = Gtk.Revealer()
-            revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
-            revealer.set_transition_duration(150)
+            animation_prefs.set_transition(
+                revealer, Gtk.RevealerTransitionType.SLIDE_UP, 150)
             lst = BuildLogList(self.toast_overlay)
             revealer.set_child(lst)
             group.add(revealer)

@@ -24,6 +24,7 @@ from gi.repository import Gtk, Adw
 
 import setzer.widgets.filechooser_button.filechooser_button as filechooser_button
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers import animation_prefs
 
 
 class IncludeLaTeXFileView(DialogView):
@@ -85,6 +86,9 @@ class IncludeLaTeXFileView(DialogView):
         self.content.append(box)
 
         self.description_revealer = Gtk.Revealer()
+        # 显式登记 Revealer 的默认过渡（SLIDE_DOWN/250ms），使其跟随「减弱动画」。
+        animation_prefs.set_transition(
+            self.description_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 250)
         description = Gtk.Label()
         description.set_wrap(True)
         description.set_markup(_('<b>Relative Path:</b> Set the path relative to the main document. This is useful when the included file is in the same folder as the main document and you want to move around both of them together.') + ' (' + _('recommended') + ')\n\n' + _('<b>Absolute Path:</b> Specify the absolute location of the included file in your filesystem.'))

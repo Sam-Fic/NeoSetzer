@@ -22,6 +22,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, GLib
 from gi.repository import Adw
 
+from setzer.helpers import animation_prefs
 from setzer.widgets.scrolling_widget.scrolling_widget import ScrollingWidget
 from setzer.document.preview.preview_magnifier import PreviewMagnifier
 
@@ -140,8 +141,9 @@ class PreviewView(Gtk.Box):
             revealer = Gtk.Revealer()
             # CROSSFADE:透明度过渡,比 slide 系列更适合"圆角徽章浮在页面
             # 上"这种小元素(滑动方向感不强,容易让人误以为在重排)。
-            revealer.set_transition_type(Gtk.RevealerTransitionType.CROSSFADE)
-            revealer.set_transition_duration(self._page_indicator_fade_ms)
+            animation_prefs.set_transition(
+                revealer, Gtk.RevealerTransitionType.CROSSFADE,
+                self._page_indicator_fade_ms)
             # 定位：revealer 放在画布定位层（Gtk.Fixed）里，由
             # _update_indicator_button_positions 用画布坐标 move 到对应页
             # 右上角。不能用 Gtk margin 定位（gint16 上限 32767px，长 PDF
@@ -194,8 +196,8 @@ class PreviewView(Gtk.Box):
         # 在文档切换时挂到 PreviewPanelView 层级（stack 之外），避免被 stack 的
         # overflow:HIDDEN 裁剪到圆角内。
         self.target_label_revealer = Gtk.Revealer()
-        self.target_label_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
-        self.target_label_revealer.set_transition_duration(150)
+        animation_prefs.set_transition(
+            self.target_label_revealer, Gtk.RevealerTransitionType.SLIDE_UP, 150)
         self.target_label_revealer.add_css_class('preview-target-bar')
 
         self.target_label = Gtk.Label()
@@ -398,8 +400,8 @@ class BlankSlateView(Gtk.Box):
         self.status_page.set_icon_name('document-properties-symbolic')
 
         self.stack = Gtk.Stack()
-        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.stack.set_transition_duration(150)
+        animation_prefs.set_transition(
+            self.stack, Gtk.StackTransitionType.CROSSFADE, 150)
         self.stack.add_named(self.building_box, 'building')
         self.stack.add_named(self.status_page, 'status')
         self.append(self.stack)

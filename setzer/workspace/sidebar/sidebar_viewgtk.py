@@ -21,6 +21,8 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
+from setzer.helpers import animation_prefs
+
 
 # 侧栏两页的互斥切换档位：(面板名, 图标, 无障碍名/提示)。
 # 面板名同时用作 Gtk.Stack 的子页名与 ToggleGroup 的档位名。
@@ -60,8 +62,8 @@ class Sidebar(Gtk.Box):
 
         self.stack = Gtk.Stack()
         self.stack.set_vexpand(True)
-        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.stack.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self.stack, Gtk.StackTransitionType.CROSSFADE, 200)
         self.append(self.stack)
 
         # 面板名 -> 该页工具栏上的切换器。两个切换器互为镜像，权威状态是

@@ -20,6 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
+from setzer.helpers import animation_prefs
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.document.search.search_history_popup import SearchHistoryPopup
@@ -171,8 +172,8 @@ class SearchBar(Gtk.SearchBar):
         # 用 Revealer 包住替换行，使其在切换 replace 模式时随 SearchBar
         # 一起平滑滑出/收起，而不是生硬地显隐。
         self.replace_revealer = Gtk.Revealer()
-        self.replace_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
-        self.replace_revealer.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self.replace_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 200)
 
         self.replace_wrapper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.replace_wrapper.set_spacing(6)

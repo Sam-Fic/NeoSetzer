@@ -22,6 +22,7 @@ import weakref
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
+from setzer.helpers import animation_prefs
 from setzer.dialogs.dialog_locator import DialogLocator
 
 
@@ -383,7 +384,9 @@ class WorkspacePresenter(object):
     def update_sidebar_visibility(self, animate=True):
         sidebar_visible_for_latex_docs = self.workspace.show_symbols or self.workspace.show_document_structure
         show_sidebar = self.workspace.get_active_latex_document() and sidebar_visible_for_latex_docs
-        self.main_window.sidebar_split.set_show_sidebar(show_sidebar)
+        # Adw.OverlaySplitView 没有 transition-duration 属性，「减弱动画」只能
+        # 在这次同步调用期间临时关掉 gtk-enable-animations（见 animation_prefs）。
+        animation_prefs.set_show_sidebar(self.main_window.sidebar_split, show_sidebar)
 
     def update_build_log_visibility(self, animate=True):
         '''Pass-10: 从 set_visible 底部面板改为 present/close 弹窗。
@@ -463,7 +466,7 @@ class WorkspacePresenter(object):
                     preview_help_visible = False
         # preview_split 为 Adw.OverlaySplitView，set_show_sidebar() 自带滑入/滑出动画
         # （与 sidebar_split 一致），故 toggle preview / help 有滑入动画。
-        self.main_window.preview_split.set_show_sidebar(preview_help_visible)
+        animation_prefs.set_show_sidebar(self.main_window.preview_split, preview_help_visible)
         # 按钮无条件跟随面板真实状态：无 PDF 自动收起时按钮也要取消高亮，
         # 否则出现「面板已收起、按钮仍按下」的错位。
         self._sync_preview_toggle(preview_help_visible)

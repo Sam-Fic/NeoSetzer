@@ -50,6 +50,7 @@ import setzer.document.snippet_preview.math_preview as math_preview
 import setzer.document.snippet_preview.snippet_engine as snippet_engine
 import setzer.document.snippet_preview.tikz_preview as tikz_preview
 from setzer.helpers.observable import Observable
+from setzer.helpers import animation_prefs
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
@@ -1157,13 +1158,7 @@ class Document(Observable):
     def highlight_section(self, start_iter, end_iter):
         # 立即清除已有高亮：快速连续点击 PDF 不同位置时，旧高亮不应等自己的
         # 倒计时结束才消失，而应在新高亮出现的瞬间熄灭。
-        if self.highlight_tags:
-            buf_start = self.source_buffer.get_start_iter()
-            buf_end = self.source_buffer.get_end_iter()
-            for item in self.highlight_tags.values():
-                self.source_buffer.remove_tag(item['tag'], buf_start, buf_end)
-                self.source_buffer.get_tag_table().remove(item['tag'])
-            self.highlight_tags.clear()
+        self._clear_highlight_tags()
         if self._highlight_timeout_id is not None:
             try:
                 GLib.Source.remove(self._highlight_timeout_id)
@@ -1195,11 +1190,29 @@ class Document(Observable):
     def _start_highlight_fade(self):
         # 1.5s 等待结束：切换为 33ms 淡出循环。返回 False 让本一次性 source 移除。
         # 若此期间所有 tag 已被外部移除（极端情况），直接清空 id 不启动循环。
-        if self.highlight_tags:
-            self._highlight_timeout_id = GObject.timeout_add(33, self.remove_or_color_highlight_tags)
-        else:
+        if not self.highlight_tags:
             self._highlight_timeout_id = None
+            return False
+        if animation_prefs.is_reduced():
+            # 「减弱动画」：不跑 0.25s 逐帧淡出（约 7-8 次 tag 改色 + 重绘），
+            # 高亮保持满 1.5s 后一次性摘除。
+            self._highlight_timeout_id = None
+            self._clear_highlight_tags()
+            return False
+        self._highlight_timeout_id = GObject.timeout_add(33, self.remove_or_color_highlight_tags)
         return False
+
+    def _clear_highlight_tags(self):
+        '''立即摘除全部 SyncTeX 高亮 tag（无淡出）。'''
+        if not self.highlight_tags:
+            return
+        start = self.source_buffer.get_start_iter()
+        end = self.source_buffer.get_end_iter()
+        tag_table = self.source_buffer.get_tag_table()
+        for item in self.highlight_tags.values():
+            self.source_buffer.remove_tag(item['tag'], start, end)
+            tag_table.remove(item['tag'])
+        self.highlight_tags.clear()
 
     def remove_or_color_highlight_tags(self):
         # start/end iter 对所有 tag 相同，提到循环外避免每个过期 tag 各调一次

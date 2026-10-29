@@ -80,6 +80,8 @@ foreach t : [
   ['test_gutter_reflow_cache', 'test_gutter_reflow_cache.py'],
   ['test_document_view_geometry', 'test_document_view_geometry.py'],
   ['test_sticky_scroll_throttle', 'test_sticky_scroll_throttle.py'],
+  ['test_animation_prefs', 'test_animation_prefs.py'],
+  ['test_reduce_animations_sites', 'test_reduce_animations_sites.py'],
   ['test_structure_refresh', 'test_structure_refresh.py'],
   ['test_structure_top_alignment', 'test_structure_top_alignment.py'],
   ['test_structure_numbering', 'test_structure_numbering.py'],

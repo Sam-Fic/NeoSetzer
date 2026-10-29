@@ -24,6 +24,7 @@ from gi.repository import Adw, Gtk, GLib, Gio, Gdk
 import os
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers import animation_prefs
 
 import setzer.workspace.headerbar.headerbar_viewgtk as headerbar_view
 import setzer.workspace.shortcutsbar.shortcutsbar_viewgtk as shortcutsbar_view
@@ -167,8 +168,8 @@ class MainWindow(Adw.ApplicationWindow):
         # 的 set_show_sidebar() 提供，这里只补页面间切换的过渡，避免硬切。
         # 不用 Gtk.Revealer 包裹：那样需重构 widget 树且会与 OverlaySplitView
         # 的滑入动画叠加产生视觉冲突；Stack 内建 CROSSFADE 更轻量、更合适。
-        self.preview_help_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.preview_help_stack.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self.preview_help_stack, Gtk.StackTransitionType.CROSSFADE, 200)
 
         # preview_split: 横向 Adw.OverlaySplitView（预览/帮助在右 = sidebar）。
         # 与 sidebar_split 同款控件，set_show_sidebar() 自带滑入/滑出动画，
@@ -220,8 +221,8 @@ class MainWindow(Adw.ApplicationWindow):
         # 与 document_stack / preview_help_stack / headerbar center_widget 的
         # 过渡风格统一。200ms 与 headerbar 的 welcome↔document 切换等长，
         # 避免两者动画节奏不一致。
-        self.mode_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.mode_stack.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self.mode_stack, Gtk.StackTransitionType.CROSSFADE, 200)
 
         self.headerbar = headerbar_view.HeaderBar()
 
@@ -299,8 +300,8 @@ class MainWindow(Adw.ApplicationWindow):
         self._loading_overlay.append(self._loading_spinner)
 
         self._content_stack = Gtk.Stack()
-        self._content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self._content_stack.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self._content_stack, Gtk.StackTransitionType.CROSSFADE, 200)
         self._content_stack.add_named(self.content_overlay, 'content')
         self._content_stack.add_named(self._loading_overlay, 'loading')
         self.popoverlay.set_child(self._content_stack)

@@ -108,6 +108,7 @@ from setzer.dialogs.first_run_tutorial.first_run_tutorial import maybe_show_firs
 from setzer.app.color_manager import ColorManager
 from setzer.app.font_manager import FontManager
 from setzer.app.ui_zoom import UIZoomManager
+from setzer.helpers import animation_prefs
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.app.latex_db import LaTeXDB
 from setzer.settings.document_settings import DocumentSettings
@@ -260,6 +261,10 @@ class MainApplicationController(Adw.Application):
         # 调用（依赖 Gtk.Settings）；且在 Windows 上需晚于本文件开头强制写
         # 入的 96×1024 基准（见文件头注释），否则基准会被读成别的值。
         UIZoomManager.init(self.settings)
+        # 「减弱动画」偏好：接入 Settings 并把当前状态落到已登记的过渡控件上。
+        # 必须早于 Workspace / create_widgets —— 之后创建的控件在
+        # animation_prefs.set_transition 内即时取到正确状态。
+        animation_prefs.install(self.settings)
 
         self.workspace = Workspace()
 

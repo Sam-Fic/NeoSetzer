@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk, GLib
 import cairo
 
 import os
@@ -27,6 +27,7 @@ import math
 import tempfile
 
 from setzer.app.color_manager import ColorManager
+from setzer.helpers import animation_prefs
 
 
 # synctex 正向同步高亮（编辑器 → PDF 预览）的最大 alpha。
@@ -49,6 +50,8 @@ class PreviewPresenter(object):
         self.highlight_duration = 1.5
         self.count = 1
         self._fade_loop_id = None
+        # 减弱动画模式下取代 tick callback 的一次性清除定时器 id。
+        self._fade_timeout_id = None
         self._current_time_factor = 0.0
 
         self._build_in_progress = False
@@ -197,6 +200,16 @@ class PreviewPresenter(object):
         self.cancel_fade_loop()
         self._current_time_factor = 1.0
 
+        if animation_prefs.is_reduced():
+            # 「减弱动画」：不跑逐帧淡出（原本 highlight_duration+0.25 秒内每帧
+            # 一次 time_factor 计算 + 整页重绘）。高亮保持满 highlight_duration
+            # 后一次性清除，用一个 GLib timeout 取代 tick callback。
+            self.view.drawing_area.queue_draw()
+            self._fade_timeout_id = GLib.timeout_add(
+                int(self.highlight_duration * 1000),
+                self._finish_fade_without_animation)
+            return
+
         def fade_tick(widget, frame_clock):
             elapsed = frame_clock.get_frame_time() / 1_000_000 - self.preview.visible_synctex_rectangles_time
             remaining = self.highlight_duration + 0.25 - elapsed
@@ -216,10 +229,24 @@ class PreviewPresenter(object):
         self.view.drawing_area.queue_draw()
         self._fade_loop_id = self.view.drawing_area.add_tick_callback(fade_tick)
 
+    def _finish_fade_without_animation(self):
+        self._fade_timeout_id = None
+        self.preview.set_synctex_rectangles(list())
+        self._current_time_factor = 0
+        self.view.drawing_area.queue_draw()
+        return False
+
     def cancel_fade_loop(self):
         if self._fade_loop_id is not None:
             self.view.drawing_area.remove_tick_callback(self._fade_loop_id)
             self._fade_loop_id = None
+        # 减弱动画模式下的清除定时器（与 tick callback 互斥，但两个 id 都要清）。
+        if self._fade_timeout_id is not None:
+            try:
+                GLib.Source.remove(self._fade_timeout_id)
+            except (ValueError, RuntimeError):
+                pass
+            self._fade_timeout_id = None
         self._current_time_factor = 0
 
     #@timer

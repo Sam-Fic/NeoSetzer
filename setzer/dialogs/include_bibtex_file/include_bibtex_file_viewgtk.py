@@ -24,6 +24,7 @@ from gi.repository import Gtk, GLib, Adw, Gio, Pango, GObject
 import os
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers import animation_prefs
 
 
 class FileChooserButton(Gtk.Button):
@@ -156,6 +157,10 @@ class IncludeBibTeXFileView(DialogView):
         self.preview_stack_wrapper.set_halign(Gtk.Align.FILL)
         self.preview_stack_wrapper.set_valign(Gtk.Align.CENTER)
         self.preview_stack = Gtk.Stack()
+        # 登记过渡（初始 NONE 与 Gtk.Stack 默认一致）：样式切换时由控制器改成
+        # SLIDE_LEFT/RIGHT，走 animation_prefs 才能被「减弱动画」压成 NONE。
+        animation_prefs.set_transition(
+            self.preview_stack, Gtk.StackTransitionType.NONE, 200)
         self.preview_stack_wrapper.append(self.preview_stack)
         self.content.append(self.preview_stack_wrapper)
 
@@ -165,6 +170,8 @@ class IncludeBibTeXFileView(DialogView):
         self.natbib_preview_stack_wrapper.set_halign(Gtk.Align.FILL)
         self.natbib_preview_stack_wrapper.set_valign(Gtk.Align.CENTER)
         self.natbib_preview_stack = Gtk.Stack()
+        animation_prefs.set_transition(
+            self.natbib_preview_stack, Gtk.StackTransitionType.NONE, 200)
         self.natbib_preview_stack_wrapper.append(self.natbib_preview_stack)
         self.content.append(self.natbib_preview_stack_wrapper)
 

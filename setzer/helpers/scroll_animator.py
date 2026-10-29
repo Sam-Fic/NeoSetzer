@@ -19,6 +19,8 @@ import time
 
 from gi.repository import GObject
 
+from setzer.helpers import animation_prefs
+
 
 class ScrollAnimatorMixin:
     '''section 导航滚动动画的共享逻辑。
@@ -47,6 +49,10 @@ class ScrollAnimatorMixin:
             self._scroll_timeout_id = None
         scrolled_window = self._get_scrolled_window()
         adjustment = scrolled_window.get_vadjustment()
+        # 「减弱动画」：duration=0 让 do_scroll 首个 tick 直接落到目标位置
+        #（既有分支，无需另写跳转路径），kinetic scrolling 的开/关配对照常。
+        if animation_prefs.is_reduced():
+            duration = 0
         self.scroll_to = {'position_start': adjustment.get_value(), 'position_end': position, 'time_start': time.time(), 'duration': duration}
         scrolled_window.set_kinetic_scrolling(False)
         self._scroll_timeout_id = GObject.timeout_add(15, self.do_scroll)

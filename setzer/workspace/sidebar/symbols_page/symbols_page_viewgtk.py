@@ -24,6 +24,7 @@ from gi.repository import Gtk, Adw, Pango
 import xml.etree.ElementTree as ET
 import os
 
+from setzer.helpers import animation_prefs
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.app.service_locator import ServiceLocator
 from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
@@ -94,6 +95,10 @@ class SymbolsPageView(Gtk.Box):
         self.toolbar.append(self.switch_group)
 
         self.search_revealer = Gtk.Revealer()
+        # Gtk.Revealer 的默认过渡就是 SLIDE_DOWN/250ms；显式登记一次，让它
+        # 跟随「减弱动画」偏好（不登记则无从改回 NONE）。
+        animation_prefs.set_transition(
+            self.search_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 250)
         self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.search_box.add_css_class('sidebar-search-bar')
 
@@ -120,8 +125,8 @@ class SymbolsPageView(Gtk.Box):
 
         self.content_stack = Gtk.Stack()
         self.content_stack.set_vexpand(True)
-        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.content_stack.set_transition_duration(150)
+        animation_prefs.set_transition(
+            self.content_stack, Gtk.StackTransitionType.CROSSFADE, 150)
         self.content_stack.add_named(self.page, 'content')
         self.content_stack.add_named(self.no_results_status, 'no-results')
         self.append(self.content_stack)

@@ -89,6 +89,12 @@ class PageGeneral(object):
         self.view.theme_combo.set_selected(theme_index)
         self.view.theme_combo.connect('notify::selected', self.on_theme_changed)
 
+        # reduce animations
+        self.view.option_reduce_animations.set_active(
+            self.settings.get_value('preferences', 'reduce_animations'))
+        self.view.option_reduce_animations.connect(
+            'notify::active', self.on_switch_toggled, 'reduce_animations')
+
         # language
         current_lang = self.settings.get_value('preferences', 'language')
         lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
@@ -354,6 +360,7 @@ class PageGeneral(object):
             current_theme = defaults['app_theme_mode']
             theme_index = next((i for i, m in enumerate(THEME_MODES) if m[1] == current_theme), 0)
             self.view.theme_combo.set_selected(theme_index)
+            self.view.option_reduce_animations.set_active(defaults['reduce_animations'])
             # editor_style_scheme 默认 '' = 跟随系统主题。写回设置即可，
             # Editor 页监听 settings_changed 会重建方案网格并刷新预览配色。
             ServiceLocator.set_style_scheme_name('')
@@ -612,6 +619,18 @@ class PageGeneralView(Adw.PreferencesPage):
             theme_model.append(_(name))
         self.theme_combo.set_model(theme_model)
         group_theme.add(self.theme_combo)
+
+        # animations
+        group_animations = Adw.PreferencesGroup()
+        group_animations.set_title(_('Animations'))
+        self.add(group_animations)
+
+        self.option_reduce_animations = Adw.SwitchRow()
+        self.option_reduce_animations.set_title(_('Reduce animations'))
+        self.option_reduce_animations.set_subtitle(
+            _('Turn off sidebar sliding, fading and list scrolling animations. '
+              'Window opening and closing animations are not affected.'))
+        group_animations.add(self.option_reduce_animations)
 
         # language
         group_language = Adw.PreferencesGroup()

@@ -173,6 +173,10 @@ class Settings(Observable):
         # 切换变化。用户可在 Appearance 偏好中选择。
         self.defaults['preferences']['editor_style_scheme'] = ''
         self.defaults['preferences']['app_theme_mode'] = 'system'
+        # 「减弱动画」：关掉侧栏/预览栏滑入滑出、各处淡入淡出、侧栏列表滚动、
+        # SyncTeX 高亮淡出等应用内动画（窗口与对话框自身的打开/关闭动画不受
+        # 影响）。默认关闭 = 保持既有观感。见 setzer/helpers/animation_prefs.py。
+        self.defaults['preferences']['reduce_animations'] = False
         self.defaults['preferences']['language'] = 'en'
         self.defaults['preferences']['recolor_pdf'] = False
         # PDF 预览放大镜（按住左键放大）开关。默认开启保持既有行为；关闭后

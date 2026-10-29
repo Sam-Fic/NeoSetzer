@@ -21,6 +21,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
+from setzer.helpers import animation_prefs
 from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.popovers.popover_manager import PopoverManager
 
@@ -166,8 +167,8 @@ class HeaderBar(object):
         # welcome↔document 模式切换时加 CROSSFADE 过渡（200ms 与 libadwaita
         # 默认动画时长一致）。与 preview_help_stack / Sidebar 的过渡行为对称，
         # 避免标题中心区域在打开/关闭文档时硬切。
-        self.center_widget.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.center_widget.set_transition_duration(200)
+        animation_prefs.set_transition(
+            self.center_widget, Gtk.StackTransitionType.CROSSFADE, 200)
 
         self.widget.set_title_widget(self.center_widget)
 

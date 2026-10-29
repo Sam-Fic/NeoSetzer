@@ -23,6 +23,7 @@ from gi.repository import Gtk
 
 import setzer.dialogs.include_bibtex_file.include_bibtex_file_viewgtk as view
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers import animation_prefs
 
 # pickle 仅用于迁移期兼容旧 settings（presets 字段旧版是 bytes）。
 # settings.json 迁移完成后 presets 是 dict，isinstance(bytes) 分支不再触发。
@@ -160,9 +161,11 @@ class IncludeBibTeXFile(object):
         if style is None:
             return
         if self.natbib_styles.index(style) > self.natbib_styles.index(self.current_values['natbib_style']):
-            self.view.natbib_preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+            animation_prefs.set_transition(
+                self.view.natbib_preview_stack, Gtk.StackTransitionType.SLIDE_LEFT, 200)
         else:
-            self.view.natbib_preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+            animation_prefs.set_transition(
+                self.view.natbib_preview_stack, Gtk.StackTransitionType.SLIDE_RIGHT, 200)
         self.view.natbib_preview_stack.set_visible_child_name(style)
         self.current_values['natbib_style'] = style
 
@@ -171,9 +174,11 @@ class IncludeBibTeXFile(object):
         if style is None:
             return
         if self.styles.index(style) > self.styles.index(self.current_values['style']):
-            self.view.preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+            animation_prefs.set_transition(
+                self.view.preview_stack, Gtk.StackTransitionType.SLIDE_LEFT, 200)
         else:
-            self.view.preview_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+            animation_prefs.set_transition(
+                self.view.preview_stack, Gtk.StackTransitionType.SLIDE_RIGHT, 200)
         self.view.preview_stack.set_visible_child_name(style)
         self.current_values['style'] = style
 

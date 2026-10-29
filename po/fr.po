@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 16:20+0800\n"
+"POT-Creation-Date: 2026-10-29 04:40+0800\n"
 "PO-Revision-Date: 2026-09-26 22:17+0800\n"
 "Last-Translator: Sam-Fic <https://github.com/Sam-Fic>\n"
 "Language-Team: French <https://github.com/Sam-Fic/NeoSetzer>\n"
@@ -527,11 +527,11 @@ msgstr "Envoyer à l'agent IA"
 #: setzer/dialogs/go_to_line/go_to_line.py:41
 #: setzer/dialogs/go_to_page/go_to_page.py:42
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:60
-#: setzer/dialogs/preferences/pages/page_appearance.py:181
-#: setzer/dialogs/preferences/pages/page_appearance.py:319
-#: setzer/dialogs/preferences/pages/page_appearance.py:343
-#: setzer/dialogs/preferences/pages/page_appearance.py:573
-#: setzer/dialogs/preferences/pages/page_appearance.py:844
+#: setzer/dialogs/preferences/pages/page_appearance.py:187
+#: setzer/dialogs/preferences/pages/page_appearance.py:325
+#: setzer/dialogs/preferences/pages/page_appearance.py:349
+#: setzer/dialogs/preferences/pages/page_appearance.py:580
+#: setzer/dialogs/preferences/pages/page_appearance.py:863
 #: setzer/dialogs/preferences/pages/page_build_system.py:151
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:326
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:431
@@ -542,7 +542,7 @@ msgstr "Envoyer à l'agent IA"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:293
 #: setzer/dialogs/project_build_configuration_viewgtk.py:313
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:645
+#: setzer/document/preview/preview_controller.py:646
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:88
 #: setzer/workspace/actions/actions.py:450
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
@@ -610,7 +610,7 @@ msgstr "Ouvrir un document"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:393
-#: setzer/dialogs/preferences/pages/page_appearance.py:847
+#: setzer/dialogs/preferences/pages/page_appearance.py:866
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:112
 #: setzer/dialogs/preferences/pages/page_snippets.py:230
 #: setzer/dialogs/project_build_configuration_viewgtk.py:161
@@ -637,7 +637,7 @@ msgstr "Exporter le paquet du projet"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/document/preview/preview_presenter.py:550
+#: setzer/document/preview/preview_presenter.py:570
 msgid "Print"
 msgstr "Imprimer"
 
@@ -937,7 +937,7 @@ msgstr "Réinitialiser le zoom"
 #: setzer/command_palette/catalog.py:134
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:473
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:337
-#: setzer/dialogs/preferences/pages/page_appearance.py:646
+#: setzer/dialogs/preferences/pages/page_appearance.py:665
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:135
 msgid "Preview"
 msgstr "Aperçu"
@@ -1500,7 +1500,7 @@ msgstr "Ouvrir un fichier BibTeX"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1136
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1586
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:105
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:106
 msgid "BibTeX Files"
 msgstr "Fichiers BibTeX"
 
@@ -1645,7 +1645,7 @@ msgid "The log is empty, nothing to copy"
 msgstr "Le journal est vide, rien à copier"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:164
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:453
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
 msgid "Copied to clipboard"
 msgstr "Copié dans le presse-papiers"
@@ -1799,9 +1799,9 @@ msgstr "Avertissement"
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:408
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:413
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:447
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:57
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:63
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:232
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:58
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:64
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:233
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:134
 msgid "Build Log"
 msgstr "Journal de compilation"
@@ -1828,64 +1828,64 @@ msgid_plural "{amount} warnings or badboxes"
 msgstr[0] "{amount} avertissement ou badbox"
 msgstr[1] "{amount} avertissements ou badboxes"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:69
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:70
 msgid "Copy all log entries"
 msgstr "Copier toutes les entrées du journal"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:76
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:77
 msgid "Save log to file"
 msgstr "Enregistrer le journal dans un fichier"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:86
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:87
 msgid "Fix all errors with AI"
 msgstr "Corriger toutes les erreurs avec l'IA"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:97
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:98
 msgid "Filter log entries"
 msgstr "Filtrer les entrées du journal"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:106
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:107
 msgid "Restore ignored warnings"
 msgstr "Rétablir les avertissements ignorés"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:140
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:141
 msgid "Search build log"
 msgstr "Rechercher dans le journal de compilation"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:196
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:197
 #: setzer/dialogs/build_log/build_log_filter_popover.py:121
 msgid "Errors"
 msgstr "Erreurs"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:197
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:198
 #: setzer/dialogs/build_log/build_log_filter_popover.py:124
 msgid "Warnings"
 msgstr "Avertissements"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:198
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:199
 #: setzer/dialogs/build_log/build_log_filter_popover.py:127
 msgid "Badboxes"
 msgstr "Badboxes"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:233
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:234
 msgid "No build log items to show."
 msgstr "Aucun élément de journal à afficher."
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:300
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:301
 #, python-brace-format
 msgid "Restore {count} ignored warning type(s)"
 msgstr "Rétablir {count} type(s) d'avertissement ignoré(s)"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:422
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:473
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:423
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:474
 msgid "Copy to clipboard"
 msgstr "Copier dans le presse-papiers"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:434
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:435
 msgid "Fix this error with AI"
 msgstr "Corriger cette erreur avec l'IA"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:477
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:478
 #, python-brace-format
 msgid "Ignore “{label}” warnings"
 msgstr "Ignorer les avertissements « {label} »"
@@ -2035,8 +2035,8 @@ msgstr "Tabulations"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
 #: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:53
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:73
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:41
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:74
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:42
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:63
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:89
@@ -2598,7 +2598,7 @@ msgstr "<b>Paquets AMS :</b>  fournissent des symboles mathématiques, des envir
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:183
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:247
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
 #: setzer/dialogs/preferences/pages/page_build_system.py:414
 msgid "recommended"
 msgstr "recommandé"
@@ -2638,7 +2638,7 @@ msgstr "La date du document, utilisée dans la commande \\date{}. Utilisez \\tod
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
-#: setzer/dialogs/preferences/pages/page_appearance.py:618
+#: setzer/dialogs/preferences/pages/page_appearance.py:637
 #: setzer/dialogs/preferences/pages/page_editor.py:976
 msgid "Language"
 msgstr "Langue"
@@ -3232,45 +3232,45 @@ msgstr "Saisissez un numéro de page (1–{pages})."
 msgid "Page number"
 msgstr "Numéro de page"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:70
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:71
 msgid "Include BibTeX file"
 msgstr "Inclure un fichier BibTeX"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:77
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:45
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:78
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:46
 msgid "_Include"
 msgstr "_Inclure"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:89
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:90
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:418
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:420
 msgid "Bibliography"
 msgstr "Bibliographie"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:93
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:94
 msgid "BibTeX file to include"
 msgstr "Fichier BibTeX à inclure"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:107
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:210
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:217
 #: setzer/widgets/filechooser_button/filechooser_button.py:37
 #: setzer/widgets/filechooser_button/filechooser_button.py:72
 msgid "(None)"
 msgstr "(Aucun)"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:134
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:135
 msgid "Standard Styles"
 msgstr "Styles standard"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:139
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:140
 msgid "Natbib Styles"
 msgstr "Styles Natbib"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:149
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:150
 msgid "Show bibliography styles for the 'natbib' package"
 msgstr "Afficher les styles de bibliographie pour le paquet « natbib »"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:227
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:234
 msgid "Select a BibTeX File"
 msgstr "Sélectionner un fichier BibTeX"
 
@@ -3286,27 +3286,27 @@ msgstr "Chemin relatif"
 msgid "LaTeX Files"
 msgstr "Fichiers LaTeX"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:38
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:39
 msgid "Include LaTeX file"
 msgstr "Inclure un fichier LaTeX"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:56
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:57
 msgid "LaTeX file to include"
 msgstr "Fichier LaTeX à inclure"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:62
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:63
 msgid "Select a LaTeX File"
 msgstr "Sélectionner un fichier LaTeX"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:65
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:66
 msgid "Type of path to included file"
 msgstr "Type de chemin du fichier inclus"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
 msgid "<b>Absolute Path:</b> Specify the absolute location of the included file in your filesystem."
 msgstr "<b>Chemin absolu :</b>  Spécifie l'emplacement absolu du fichier inclus sur votre système de fichiers."
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:90
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
 msgid "<b>Relative Path:</b> Set the path relative to the main document. This is useful when the included file is in the same folder as the main document and you want to move around both of them together."
 msgstr "<b>Chemin relatif :</b>  Définit le chemin par rapport au document principal. Utile lorsque le fichier inclus se trouve dans le même dossier que le document principal et que vous souhaitez les déplacer ensemble."
 
@@ -3993,7 +3993,7 @@ msgid "Create new document"
 msgstr "Créer un nouveau document"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:45
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:52
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:53
 msgid "Open a document"
 msgstr "Ouvrir un document"
 
@@ -4002,7 +4002,7 @@ msgid "Show recent documents"
 msgstr "Afficher les documents récents"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:152
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:153
 msgid "Show open documents"
 msgstr "Afficher les documents ouverts"
 
@@ -4300,9 +4300,9 @@ msgid "Fraction"
 msgstr "Fraction"
 
 #: setzer/dialogs/open_document/open_document.py:39
-#: setzer/dialogs/preferences/pages/page_appearance.py:636
+#: setzer/dialogs/preferences/pages/page_appearance.py:655
 #: setzer/dialogs/preferences/pages/page_editor.py:990
-#: setzer/document/preview/preview_controller.py:646
+#: setzer/document/preview/preview_controller.py:647
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -4371,327 +4371,339 @@ msgstr "_Ajouter les paquets"
 msgid "Added {count} suggested package(s)."
 msgstr "{count} paquet(s) suggéré(s) ajouté(s)."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:179
+#: setzer/dialogs/preferences/pages/page_appearance.py:185
 msgid "Restart Required"
 msgstr "Redémarrage requis"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:180
+#: setzer/dialogs/preferences/pages/page_appearance.py:186
 msgid "The new language will take effect after the application is restarted."
 msgstr "La nouvelle langue prendra effet après le redémarrage de l'application."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:182
+#: setzer/dialogs/preferences/pages/page_appearance.py:188
 msgid "Restart"
 msgstr "Redémarrer"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:241
-#: setzer/dialogs/preferences/pages/page_appearance.py:779
+#: setzer/dialogs/preferences/pages/page_appearance.py:247
+#: setzer/dialogs/preferences/pages/page_appearance.py:798
 msgid "Export Settings"
 msgstr "Exporter les paramètres"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:267
+#: setzer/dialogs/preferences/pages/page_appearance.py:273
 msgid "Could not export settings: {}"
 msgstr "Impossible d'exporter les paramètres : {}"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:269
+#: setzer/dialogs/preferences/pages/page_appearance.py:275
 msgid "Settings exported."
 msgstr "Paramètres exportés."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:273
-#: setzer/dialogs/preferences/pages/page_appearance.py:788
+#: setzer/dialogs/preferences/pages/page_appearance.py:279
+#: setzer/dialogs/preferences/pages/page_appearance.py:807
 msgid "Import Settings"
 msgstr "Importer les paramètres"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:292
+#: setzer/dialogs/preferences/pages/page_appearance.py:298
 msgid "Could not read settings file: {}"
 msgstr "Impossible de lire le fichier de paramètres : {}"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:295
+#: setzer/dialogs/preferences/pages/page_appearance.py:301
 msgid "Invalid settings file."
 msgstr "Fichier de paramètres invalide."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:312
+#: setzer/dialogs/preferences/pages/page_appearance.py:318
 msgid "Settings imported. Reopen Preferences to see all changes."
 msgstr "Paramètres importés. Rouvrez les Préférences pour voir toutes les modifications."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:316
+#: setzer/dialogs/preferences/pages/page_appearance.py:322
 msgid "Reset all preferences?"
 msgstr "Réinitialiser toutes les préférences ?"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:317
+#: setzer/dialogs/preferences/pages/page_appearance.py:323
 msgid "This resets all preferences to their default values. Keyboard shortcuts and window layout are kept."
 msgstr "Cela rétablit toutes les préférences à leurs valeurs par défaut. Les raccourcis clavier et la disposition des fenêtres sont conservés."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:320
-#: setzer/dialogs/preferences/pages/page_appearance.py:344
-#: setzer/dialogs/preferences/pages/page_appearance.py:574
-#: setzer/dialogs/preferences/pages/page_appearance.py:799
+#: setzer/dialogs/preferences/pages/page_appearance.py:326
+#: setzer/dialogs/preferences/pages/page_appearance.py:350
+#: setzer/dialogs/preferences/pages/page_appearance.py:581
+#: setzer/dialogs/preferences/pages/page_appearance.py:818
 #: setzer/dialogs/preferences/pages/page_build_system.py:152
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:432
 msgid "Reset"
 msgstr "Réinitialiser"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:330
+#: setzer/dialogs/preferences/pages/page_appearance.py:336
 msgid "Preferences reset. Reopen Preferences to see all changes."
 msgstr "Préférences réinitialisées. Rouvrez les Préférences pour voir toutes les modifications."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:341
-#: setzer/dialogs/preferences/pages/page_appearance.py:570
+#: setzer/dialogs/preferences/pages/page_appearance.py:347
+#: setzer/dialogs/preferences/pages/page_appearance.py:577
 #: setzer/dialogs/preferences/pages/page_build_system.py:149
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:429
 msgid "Reset to Defaults?"
 msgstr "Rétablir les valeurs par défaut ?"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:342
+#: setzer/dialogs/preferences/pages/page_appearance.py:348
 msgid "All appearance settings will be restored to their default values."
 msgstr "Tous les paramètres d'apparence seront rétablis à leurs valeurs par défaut."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:449
+#: setzer/dialogs/preferences/pages/page_appearance.py:456
 msgid "(active)"
 msgstr "(actif)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:453
+#: setzer/dialogs/preferences/pages/page_appearance.py:460
 msgid "built-in"
 msgstr "intégré"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:455
+#: setzer/dialogs/preferences/pages/page_appearance.py:462
 msgid "custom"
 msgstr "personnalisé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:458
+#: setzer/dialogs/preferences/pages/page_appearance.py:465
 msgid "installed"
 msgstr "installé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:460
+#: setzer/dialogs/preferences/pages/page_appearance.py:467
 msgid "not installed"
 msgstr "non installé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:476
 msgid "Remove this custom tool"
 msgstr "Supprimer cet outil personnalisé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:487
+#: setzer/dialogs/preferences/pages/page_appearance.py:494
 msgid "No trusted directories yet"
 msgstr "Aucun répertoire de confiance pour l'instant"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:488
+#: setzer/dialogs/preferences/pages/page_appearance.py:495
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "Cochez « Ne plus demander » dans la boîte de dialogue d'aperçu pour en ajouter un."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:501
+#: setzer/dialogs/preferences/pages/page_appearance.py:508
 msgid "Remove from trusted list"
 msgstr "Retirer de la liste de confiance"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:571
+#: setzer/dialogs/preferences/pages/page_appearance.py:578
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "Tous les paramètres de l’agent IA seront rétablis à leurs valeurs par défaut. Les outils personnalisés et les répertoires de confiance seront supprimés."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:599
+#: setzer/dialogs/preferences/pages/page_appearance.py:606
 msgid "General"
 msgstr "Général"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:605
+#: setzer/dialogs/preferences/pages/page_appearance.py:612
 msgid "Theme"
 msgstr "Thème"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:609
+#: setzer/dialogs/preferences/pages/page_appearance.py:616
 msgid "Color Scheme"
 msgstr "Jeu de couleurs"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:622
+#: setzer/dialogs/preferences/pages/page_appearance.py:625
+msgid "Animations"
+msgstr "Animations"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:629
+msgid "Reduce animations"
+msgstr "Réduire les animations"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:631
+msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
+msgstr "Désactive le coulissement de la barre latérale, les fondus et les animations de défilement des listes. Les animations d'ouverture et de fermeture des fenêtres ne sont pas concernées."
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:641
 msgid "Interface Language"
 msgstr "Langue de l'interface"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:623
+#: setzer/dialogs/preferences/pages/page_appearance.py:642
 msgid "Changes take effect after the application is restarted."
 msgstr "Les modifications prennent effet après le redémarrage de l'application."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:632
+#: setzer/dialogs/preferences/pages/page_appearance.py:651
 msgid "On Startup"
 msgstr "Au démarrage"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:637
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Whether to restore the previous session or start with an empty workspace."
 msgstr "Indique s'il faut restaurer la session précédente ou démarrer avec un espace de travail vide."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:657
+#: setzer/dialogs/preferences/pages/page_appearance.py:676
 msgid "Preview Sidebar Width"
 msgstr "Largeur du panneau d'aperçu"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:658
+#: setzer/dialogs/preferences/pages/page_appearance.py:677
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "Pourcentage de la largeur de la fenêtre alloué à l'aperçu PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:666
+#: setzer/dialogs/preferences/pages/page_appearance.py:685
 msgid "Match PDF colors to theme"
 msgstr "Harmoniser les couleurs du PDF avec le thème"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:668
+#: setzer/dialogs/preferences/pages/page_appearance.py:687
 msgid "Recolor the PDF preview to match the light/dark theme."
 msgstr "Recolorer l'aperçu PDF pour l'adapter au thème clair/sombre."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:672
+#: setzer/dialogs/preferences/pages/page_appearance.py:691
 msgid "Default Zoom"
 msgstr "Zoom par défaut"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:674
+#: setzer/dialogs/preferences/pages/page_appearance.py:693
 msgid "Initial zoom mode for the PDF preview."
 msgstr "Mode de zoom initial de l'aperçu PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:676
+#: setzer/dialogs/preferences/pages/page_appearance.py:695
 msgid "Default zoom mode for the PDF preview. Fit Width fills the preview width; Fit Text Width fits the text column; Fit Height fills the preview height; Manual starts at 100%."
 msgstr "Mode de zoom par défaut de l'aperçu PDF. Ajuster à la largeur remplit la largeur de l'aperçu ; ajuster à la largeur du texte s'adapte à la colonne de texte ; ajuster à la hauteur remplit la hauteur de l'aperçu ; manuel démarre à 100 %."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:680
+#: setzer/dialogs/preferences/pages/page_appearance.py:699
 msgid "Fit Width"
 msgstr "Ajuster à la largeur"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:681
+#: setzer/dialogs/preferences/pages/page_appearance.py:700
 msgid "Fit Text Width"
 msgstr "Ajuster à la largeur du texte"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:682
+#: setzer/dialogs/preferences/pages/page_appearance.py:701
 msgid "Fit Height"
 msgstr "Ajuster à la hauteur"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:683
+#: setzer/dialogs/preferences/pages/page_appearance.py:702
 msgid "Manual (100%)"
 msgstr "Manuel (100 %)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:690
+#: setzer/dialogs/preferences/pages/page_appearance.py:709
 msgid "Sidebar"
 msgstr "Barre latérale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:701
+#: setzer/dialogs/preferences/pages/page_appearance.py:720
 msgid "Sidebar Width"
 msgstr "Largeur de la barre latérale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:702
+#: setzer/dialogs/preferences/pages/page_appearance.py:721
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "Pourcentage de la largeur de la fenêtre alloué à la barre latérale."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:710
+#: setzer/dialogs/preferences/pages/page_appearance.py:729
 msgid "AI Settings"
 msgstr "Paramètres de l’IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:714
+#: setzer/dialogs/preferences/pages/page_appearance.py:733
 msgid "Enable AI agent"
 msgstr "Activer l’agent IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:715
+#: setzer/dialogs/preferences/pages/page_appearance.py:734
 msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
 msgstr "Active la correction par IA dans la boîte de dialogue du journal de compilation et le bouton de terminal de l’agent dans la barre d’en-tête"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:719
+#: setzer/dialogs/preferences/pages/page_appearance.py:738
 msgid "Active agent tool"
 msgstr "Outil d'agent actif"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:720
+#: setzer/dialogs/preferences/pages/page_appearance.py:739
 msgid "Which CLI to invoke for AI features"
 msgstr "CLI à invoquer pour les fonctionnalités d’IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:724
+#: setzer/dialogs/preferences/pages/page_appearance.py:743
 msgid "Terminal command (optional)"
 msgstr "Commande de terminal (optionnelle)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:726
+#: setzer/dialogs/preferences/pages/page_appearance.py:745
 msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "Laisser vide pour une détection automatique (gnome-terminal / xterm / konsole / ...). Sous Flatpak, flatpak-spawn --host est ajouté automatiquement."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:731
+#: setzer/dialogs/preferences/pages/page_appearance.py:750
 msgid "Agent tools"
 msgstr "Outils d'agent"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:732
+#: setzer/dialogs/preferences/pages/page_appearance.py:751
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "Les préréglages intégrés ne peuvent pas être supprimés. Ajoutez un outil personnalisé pour intégrer d'autres CLI d'agent."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:738
+#: setzer/dialogs/preferences/pages/page_appearance.py:757
 msgid "+ Add custom tool"
 msgstr "+ Ajouter un outil personnalisé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:743
+#: setzer/dialogs/preferences/pages/page_appearance.py:762
 msgid "Trusted directories"
 msgstr "Répertoires de confiance"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:744
+#: setzer/dialogs/preferences/pages/page_appearance.py:763
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "Répertoires où la boîte de dialogue d'aperçu est ignorée. Cliquez sur supprimer pour révoquer la confiance d'un projet."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:752
-#: setzer/dialogs/preferences/pages/page_appearance.py:810
+#: setzer/dialogs/preferences/pages/page_appearance.py:771
+#: setzer/dialogs/preferences/pages/page_appearance.py:829
 #: setzer/dialogs/preferences/pages/page_build_system.py:435
 #: setzer/dialogs/preferences/pages/page_editor.py:1262
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:661
 msgid "Reset to Defaults"
 msgstr "Rétablir les valeurs par défaut"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:759
+#: setzer/dialogs/preferences/pages/page_appearance.py:778
 msgid "First-Run Tutorial"
 msgstr "Didacticiel de première utilisation"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:763
+#: setzer/dialogs/preferences/pages/page_appearance.py:782
 msgid "Show the tutorial again"
 msgstr "Afficher de nouveau le didacticiel"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:764
+#: setzer/dialogs/preferences/pages/page_appearance.py:783
 msgid "Open the welcome tips dialog."
 msgstr "Ouvrir la boîte de dialogue des astuces de bienvenue."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:765
+#: setzer/dialogs/preferences/pages/page_appearance.py:784
 msgid "Show"
 msgstr "Afficher"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:773
+#: setzer/dialogs/preferences/pages/page_appearance.py:792
 msgid "Backup and Restore"
 msgstr "Sauvegarde et restauration"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:774
+#: setzer/dialogs/preferences/pages/page_appearance.py:793
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "Exportez vos préférences et raccourcis clavier dans un fichier, ou importez-les sur une autre machine."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:780
+#: setzer/dialogs/preferences/pages/page_appearance.py:799
 msgid "Save your preferences and keyboard shortcuts to a file."
 msgstr "Enregistrez vos préférences et raccourcis clavier dans un fichier."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:781
+#: setzer/dialogs/preferences/pages/page_appearance.py:800
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:645
 msgid "Export"
 msgstr "Exporter"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:789
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Load preferences and keyboard shortcuts from a file."
 msgstr "Charger les préférences et raccourcis clavier depuis un fichier."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:790
+#: setzer/dialogs/preferences/pages/page_appearance.py:809
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:653
 msgid "Import"
 msgstr "Importer"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:797
+#: setzer/dialogs/preferences/pages/page_appearance.py:816
 msgid "Reset all preferences"
 msgstr "Réinitialiser toutes les préférences"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:798
+#: setzer/dialogs/preferences/pages/page_appearance.py:817
 msgid "Restore all preference values to their defaults."
 msgstr "Rétablir toutes les valeurs de préférences à leurs défauts."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:826
+#: setzer/dialogs/preferences/pages/page_appearance.py:845
 msgid "Add custom tool"
 msgstr "Ajouter un outil personnalisé"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:856
+#: setzer/dialogs/preferences/pages/page_appearance.py:875
 msgid "Tool name (unique)"
 msgstr "Nom de l'outil (unique)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:860
+#: setzer/dialogs/preferences/pages/page_appearance.py:879
 msgid "Executable (e.g. aider)"
 msgstr "Exécutable (p. ex. aider)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:864
+#: setzer/dialogs/preferences/pages/page_appearance.py:883
 msgid "Headed command template"
 msgstr "Modèle de commande avec fenêtre"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:866
+#: setzer/dialogs/preferences/pages/page_appearance.py:885
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "Arguments séparés par des espaces. Utilisez {prompt} / {file} / {cwd} comme espaces réservés. Exemple : aider --message {prompt} --no-auto-commits. Si laissé vide ou sans {prompt}, l'invite est copiée dans le presse-papiers."
@@ -5667,7 +5679,7 @@ msgid "Clear Multi-Cursor"
 msgstr "Effacer les curseurs multiples"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:186
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:60
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Create a new LaTeX document"
 msgstr "Créer un nouveau document LaTeX"
 
@@ -6178,7 +6190,7 @@ msgid "Replace with"
 msgstr "Remplacer par"
 
 #: setzer/dialogs/project_search_replace.py:54
-#: setzer/document/search/search_viewgtk.py:110
+#: setzer/document/search/search_viewgtk.py:111
 msgid "Match case"
 msgstr "Respecter la casse"
 
@@ -6529,7 +6541,7 @@ msgid "Failed"
 msgstr "Échec"
 
 #: setzer/document/build_widget/build_widget.py:170
-#: setzer/document/preview/preview_viewgtk.py:433
+#: setzer/document/preview/preview_viewgtk.py:435
 msgid "Build failed"
 msgstr "Compilation échouée"
 
@@ -6545,7 +6557,7 @@ msgstr "Nettoyer les fichiers de compilation"
 msgid "Pass {}"
 msgstr "Passe {}"
 
-#: setzer/document/document.py:772
+#: setzer/document/document.py:773
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr "Impossible d'enregistrer le document : {error}"
@@ -6606,7 +6618,7 @@ msgid "Next Match"
 msgstr "Occurrence suivante"
 
 #: setzer/document/preview/preview_controller.py:369
-#: setzer/document/preview/preview_controller.py:583
+#: setzer/document/preview/preview_controller.py:584
 msgid "Hold Ctrl and click to open this link"
 msgstr "Maintenez Ctrl et cliquez pour ouvrir ce lien"
 
@@ -6614,19 +6626,19 @@ msgstr "Maintenez Ctrl et cliquez pour ouvrir ce lien"
 msgid "Go to page "
 msgstr "Aller à la page "
 
-#: setzer/document/preview/preview_controller.py:626
+#: setzer/document/preview/preview_controller.py:627
 msgid "Could not open link"
 msgstr "Impossible d'ouvrir le lien"
 
-#: setzer/document/preview/preview_controller.py:635
+#: setzer/document/preview/preview_controller.py:636
 msgid "Link blocked: this link type is unsafe"
 msgstr "Lien bloqué : ce type de lien est dangereux"
 
-#: setzer/document/preview/preview_controller.py:643
+#: setzer/document/preview/preview_controller.py:644
 msgid "Open local file from this PDF?"
 msgstr "Ouvrir le fichier local de ce PDF ?"
 
-#: setzer/document/preview/preview_controller.py:644
+#: setzer/document/preview/preview_controller.py:645
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6637,72 +6649,72 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:504
+#: setzer/document/preview/preview_presenter.py:524
 msgid "Save Image As"
 msgstr "Enregistrer l'image sous"
 
-#: setzer/document/preview/preview_presenter.py:609
+#: setzer/document/preview/preview_presenter.py:629
 msgid "No printer available"
 msgstr "Aucune imprimante disponible"
 
-#: setzer/document/preview/preview_presenter.py:614
+#: setzer/document/preview/preview_presenter.py:634
 msgid "Could not prepare print data"
 msgstr "Impossible de préparer les données d'impression"
 
-#: setzer/document/preview/preview_presenter.py:619
+#: setzer/document/preview/preview_presenter.py:639
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
 msgid "Document"
 msgstr "Document"
 
-#: setzer/document/preview/preview_presenter.py:628
+#: setzer/document/preview/preview_presenter.py:648
 msgid "Printing failed"
 msgstr "Échec de l'impression"
 
-#: setzer/document/preview/preview_viewgtk.py:52
+#: setzer/document/preview/preview_viewgtk.py:53
 msgid "Scroll this page to the top"
 msgstr "Faire défiler cette page vers le haut"
 
-#: setzer/document/preview/preview_viewgtk.py:107
-#: setzer/document/preview/preview_viewgtk.py:246
+#: setzer/document/preview/preview_viewgtk.py:108
+#: setzer/document/preview/preview_viewgtk.py:248
 msgid "PDF build failed, showing previous version"
 msgstr "La compilation du PDF a échoué, affichage de la version précédente"
 
-#: setzer/document/preview/preview_viewgtk.py:186
-#: setzer/document/preview/preview_viewgtk.py:227
-#: setzer/document/preview/preview_viewgtk.py:228
+#: setzer/document/preview/preview_viewgtk.py:188
+#: setzer/document/preview/preview_viewgtk.py:229
+#: setzer/document/preview/preview_viewgtk.py:230
 msgid "Reload Preview"
 msgstr "Recharger l'aperçu"
 
-#: setzer/document/preview/preview_viewgtk.py:227
+#: setzer/document/preview/preview_viewgtk.py:229
 msgid "PDF changed on disk"
 msgstr "Le PDF a été modifié sur le disque"
 
-#: setzer/document/preview/preview_viewgtk.py:228
+#: setzer/document/preview/preview_viewgtk.py:230
 msgid "PDF is no longer available on disk; showing the previous version"
 msgstr "Le PDF n'est plus disponible sur le disque ; affichage de la version précédente"
 
-#: setzer/document/preview/preview_viewgtk.py:229
+#: setzer/document/preview/preview_viewgtk.py:231
 msgid "The changed PDF is not ready yet; showing the previous version"
 msgstr "Le PDF modifié n'est pas encore prêt ; affichage de la version précédente"
 
-#: setzer/document/preview/preview_viewgtk.py:229
+#: setzer/document/preview/preview_viewgtk.py:231
 msgid "Try Again"
 msgstr "Réessayer"
 
-#: setzer/document/preview/preview_viewgtk.py:391
+#: setzer/document/preview/preview_viewgtk.py:393
 msgid "Building…"
 msgstr "Compilation en cours…"
 
-#: setzer/document/preview/preview_viewgtk.py:429
+#: setzer/document/preview/preview_viewgtk.py:431
 msgid "No preview available"
 msgstr "Aucun aperçu disponible"
 
-#: setzer/document/preview/preview_viewgtk.py:430
+#: setzer/document/preview/preview_viewgtk.py:432
 msgid "To show a .pdf preview of your document, click the build button in the headerbar."
 msgstr "Pour afficher un aperçu .pdf de votre document, cliquez sur le bouton de compilation dans la barre d'en-tête."
 
-#: setzer/document/preview/preview_viewgtk.py:434
+#: setzer/document/preview/preview_viewgtk.py:436
 msgid "Check the build log for errors."
 msgstr "Consultez le journal de compilation pour les erreurs."
 
@@ -6717,7 +6729,7 @@ msgstr "Fin du document atteinte, reprise depuis le début"
 #: setzer/document/search/search.py:659 setzer/document/search/search.py:664
 #: setzer/document/search/search.py:674 setzer/document/search/search.py:692
 #: setzer/document/search/search.py:704
-#: setzer/document/search/search_viewgtk.py:204
+#: setzer/document/search/search_viewgtk.py:205
 msgid "Replace all results"
 msgstr "Remplacer tous les résultats"
 
@@ -6755,59 +6767,59 @@ msgstr "Effacer l'historique"
 msgid "Remove from history"
 msgstr "Retirer de l'historique"
 
-#: setzer/document/search/search_viewgtk.py:66
+#: setzer/document/search/search_viewgtk.py:67
 msgid "Search and replace"
 msgstr "Rechercher et remplacer"
 
-#: setzer/document/search/search_viewgtk.py:92
+#: setzer/document/search/search_viewgtk.py:93
 msgid "Search history"
 msgstr "Historique de recherche"
 
-#: setzer/document/search/search_viewgtk.py:119
+#: setzer/document/search/search_viewgtk.py:120
 msgid "Use regular expressions"
 msgstr "Utiliser les expressions régulières"
 
-#: setzer/document/search/search_viewgtk.py:128
+#: setzer/document/search/search_viewgtk.py:129
 msgid "Match entire word"
 msgstr "Mot entier"
 
-#: setzer/document/search/search_viewgtk.py:137
+#: setzer/document/search/search_viewgtk.py:138
 msgid "Preserve case"
 msgstr "Conserver la casse"
 
-#: setzer/document/search/search_viewgtk.py:146
+#: setzer/document/search/search_viewgtk.py:147
 msgid "Search in selection"
 msgstr "Rechercher dans la sélection"
 
-#: setzer/document/search/search_viewgtk.py:154
+#: setzer/document/search/search_viewgtk.py:155
 msgid "Previous result"
 msgstr "Résultat précédent"
 
-#: setzer/document/search/search_viewgtk.py:159
+#: setzer/document/search/search_viewgtk.py:160
 msgid "Next result"
 msgstr "Résultat suivant"
 
-#: setzer/document/search/search_viewgtk.py:165
+#: setzer/document/search/search_viewgtk.py:166
 msgid "Close search"
 msgstr "Fermer la recherche"
 
-#: setzer/document/search/search_viewgtk.py:183
+#: setzer/document/search/search_viewgtk.py:184
 msgid "Type replacement text…"
 msgstr "Saisissez le texte de remplacement…"
 
-#: setzer/document/search/search_viewgtk.py:190
+#: setzer/document/search/search_viewgtk.py:191
 msgid "Replacement history"
 msgstr "Historique de remplacement"
 
-#: setzer/document/search/search_viewgtk.py:196
+#: setzer/document/search/search_viewgtk.py:197
 msgid "Replace"
 msgstr "Remplacer"
 
-#: setzer/document/search/search_viewgtk.py:198
+#: setzer/document/search/search_viewgtk.py:199
 msgid "Replace selected result"
 msgstr "Remplacer le résultat sélectionné"
 
-#: setzer/document/search/search_viewgtk.py:202
+#: setzer/document/search/search_viewgtk.py:203
 msgid "Replace All"
 msgstr "Tout remplacer"
 
@@ -6989,8 +7001,8 @@ msgid "Recent Documents"
 msgstr "Documents récents"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:61
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:116
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:121
 msgid "No Results"
 msgstr "Aucun résultat"
 
@@ -7518,79 +7530,79 @@ msgstr "Référence d'équation"
 msgid "Page Reference"
 msgstr "Référence de page"
 
-#: setzer/snippets/user_snippets.py:77
-msgid "Snippet name must be text"
-msgstr "Le nom du snippet doit être du texte"
-
-#: setzer/snippets/user_snippets.py:80
-msgid "Snippet name cannot be empty"
-msgstr "Le nom du snippet ne peut pas être vide"
-
-#: setzer/snippets/user_snippets.py:82
-msgid "Snippet name is too long"
-msgstr "Le nom du snippet est trop long"
-
-#: setzer/snippets/user_snippets.py:84
-msgid "Snippet name contains unsupported characters"
-msgstr "Le nom du snippet contient des caractères non pris en charge"
-
-#: setzer/snippets/user_snippets.py:90
-msgid "Snippet trigger must be text"
-msgstr "Le déclencheur du snippet doit être du texte"
-
-#: setzer/snippets/user_snippets.py:94
-msgid "Snippet trigger must start with a backslash and use letters, numbers, or @"
-msgstr "Le déclencheur du snippet doit commencer par une barre oblique inverse et utiliser des lettres, des chiffres ou @"
-
-#: setzer/snippets/user_snippets.py:96
-msgid "Snippet trigger is too long"
-msgstr "Le déclencheur du snippet est trop long"
-
-#: setzer/snippets/user_snippets.py:102
-msgid "Snippet body must be text"
-msgstr "Le corps du snippet doit être du texte"
-
-#: setzer/snippets/user_snippets.py:107
-msgid "Snippet body must be valid UTF-8 text"
-msgstr "Le corps du snippet doit être du texte UTF-8 valide"
-
-#: setzer/snippets/user_snippets.py:109
-msgid "Snippet body cannot be empty"
-msgstr "Le corps du snippet ne peut pas être vide"
-
-#: setzer/snippets/user_snippets.py:111
-msgid "Snippet body is too large"
-msgstr "Le corps du snippet est trop volumineux"
-
-#: setzer/snippets/user_snippets.py:182
-msgid "A snippet with this trigger already exists"
-msgstr "Un snippet avec ce déclencheur existe déjà"
-
-#: setzer/snippets/user_snippets.py:191 setzer/snippets/user_snippets.py:230
-msgid "Snippet identifier is invalid"
-msgstr "L'identifiant du snippet n'est pas valide"
-
-#: setzer/snippets/user_snippets.py:195
-msgid "The selected snippet no longer exists"
-msgstr "Le snippet sélectionné n'existe plus"
-
-#: setzer/snippets/user_snippets.py:204
+#: setzer/snippets/user_snippets.py:85 setzer/snippets/user_snippets.py:230
 msgid "The snippet library could not be read"
 msgstr "La bibliothèque de snippets n'a pas pu être lue"
 
-#: setzer/snippets/user_snippets.py:207
+#: setzer/snippets/user_snippets.py:92
+msgid "Snippet name must be text"
+msgstr "Le nom du snippet doit être du texte"
+
+#: setzer/snippets/user_snippets.py:95
+msgid "Snippet name cannot be empty"
+msgstr "Le nom du snippet ne peut pas être vide"
+
+#: setzer/snippets/user_snippets.py:97
+msgid "Snippet name is too long"
+msgstr "Le nom du snippet est trop long"
+
+#: setzer/snippets/user_snippets.py:99
+msgid "Snippet name contains unsupported characters"
+msgstr "Le nom du snippet contient des caractères non pris en charge"
+
+#: setzer/snippets/user_snippets.py:105
+msgid "Snippet trigger must be text"
+msgstr "Le déclencheur du snippet doit être du texte"
+
+#: setzer/snippets/user_snippets.py:109
+msgid "Snippet trigger must start with a backslash and use letters, numbers, or @"
+msgstr "Le déclencheur du snippet doit commencer par une barre oblique inverse et utiliser des lettres, des chiffres ou @"
+
+#: setzer/snippets/user_snippets.py:111
+msgid "Snippet trigger is too long"
+msgstr "Le déclencheur du snippet est trop long"
+
+#: setzer/snippets/user_snippets.py:117
+msgid "Snippet body must be text"
+msgstr "Le corps du snippet doit être du texte"
+
+#: setzer/snippets/user_snippets.py:122
+msgid "Snippet body must be valid UTF-8 text"
+msgstr "Le corps du snippet doit être du texte UTF-8 valide"
+
+#: setzer/snippets/user_snippets.py:124
+msgid "Snippet body cannot be empty"
+msgstr "Le corps du snippet ne peut pas être vide"
+
+#: setzer/snippets/user_snippets.py:126
+msgid "Snippet body is too large"
+msgstr "Le corps du snippet est trop volumineux"
+
+#: setzer/snippets/user_snippets.py:208
+msgid "A snippet with this trigger already exists"
+msgstr "Un snippet avec ce déclencheur existe déjà"
+
+#: setzer/snippets/user_snippets.py:217 setzer/snippets/user_snippets.py:256
+msgid "Snippet identifier is invalid"
+msgstr "L'identifiant du snippet n'est pas valide"
+
+#: setzer/snippets/user_snippets.py:221
+msgid "The selected snippet no longer exists"
+msgstr "Le snippet sélectionné n'existe plus"
+
+#: setzer/snippets/user_snippets.py:233
 msgid "The snippet library has an unsupported format"
 msgstr "La bibliothèque de snippets a un format non pris en charge"
 
-#: setzer/snippets/user_snippets.py:210
+#: setzer/snippets/user_snippets.py:236
 msgid "The snippet library is invalid"
 msgstr "La bibliothèque de snippets n'est pas valide"
 
-#: setzer/snippets/user_snippets.py:224 setzer/snippets/user_snippets.py:237
+#: setzer/snippets/user_snippets.py:250 setzer/snippets/user_snippets.py:263
 msgid "Snippet metadata is invalid"
 msgstr "Les métadonnées du snippet ne sont pas valides"
 
-#: setzer/snippets/user_snippets.py:263
+#: setzer/snippets/user_snippets.py:292
 msgid "The snippet library could not be written"
 msgstr "La bibliothèque de snippets n'a pas pu être écrite"
 
@@ -7675,24 +7687,24 @@ msgstr "Compilation automatique différée — une compilation est déjà en cou
 msgid "Auto-build skipped — the document was busy building."
 msgstr "Compilation automatique ignorée — le document était en cours de compilation."
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:43
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:44
 msgid "Toggle sidebar (Document Structure / Symbols)"
 msgstr "Afficher/masquer la barre latérale (Structure du document / Symboles)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:92
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Afficher/masquer le panneau d'aperçu (Aperçu PDF / Aide)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:101
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:102
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:515
 msgid "Build log"
 msgstr "Journal de compilation"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:115
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:116
 msgid "Open AI agent in terminal"
 msgstr "Ouvrir l’agent IA dans un terminal"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:160
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:161
 msgid "Welcome to Setzer"
 msgstr "Bienvenue dans Setzer"
 
@@ -7830,15 +7842,15 @@ msgstr "Guillemets"
 msgid "Objects"
 msgstr "Objets"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:474
+#: setzer/workspace/sidebar/document_stats/document_stats.py:469
 msgid "Characters"
 msgstr "Caractères"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:474
+#: setzer/workspace/sidebar/document_stats/document_stats.py:469
 msgid "no spaces"
 msgstr "sans espaces"
 
-#: setzer/workspace/sidebar/document_stats/document_stats.py:476
+#: setzer/workspace/sidebar/document_stats/document_stats.py:471
 msgid "Lines"
 msgstr "Lignes"
 
@@ -7875,33 +7887,33 @@ msgstr "Sélection : <b>{words}</b> mots, <b>{chars}</b> caractères (<b>{chars_
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "Le comptage des mots nécessite <tt>texcount</tt> (inclus dans TeX Live), qui n'a pas été trouvé. Le comptage des caractères et des lignes reste disponible ci-dessus. Voir le <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">guide d'installation</a>."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:63
 msgid "No sections match your search"
 msgstr "Aucune section ne correspond à votre recherche"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
 msgid "No Document"
 msgstr "Aucun document"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:77
 msgid "Open a document to see its structure."
 msgstr "Ouvrez un document pour voir sa structure."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:151
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
 msgid "Jump to section"
 msgstr "Aller à la section"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:172
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:74
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:75
 msgid "Previous section"
 msgstr "Section précédente"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:179
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:80
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:180
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:81
 msgid "Next section"
 msgstr "Section suivante"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:190
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:191
 msgid "Search document structure"
 msgstr "Rechercher dans la structure du document"
 
@@ -8159,13 +8171,13 @@ msgstr "Statistiques du document"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:81
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:207
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:225
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:230
 msgid "Package"
 msgstr "Paquet"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:160
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:213
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:236
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:241
 msgid "Insert"
 msgstr "Insérer"
 
@@ -8181,47 +8193,47 @@ msgstr "Ajouter aux favoris"
 msgid "Copy LaTeX Command"
 msgstr "Copier la commande LaTeX"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:52
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:53
 msgid "Jump to category"
 msgstr "Aller à une catégorie"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:89
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:90
 msgid "Search symbols"
 msgstr "Rechercher des symboles"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:117
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:122
 msgid "No symbols match your search"
 msgstr "Aucun symbole ne correspond à votre recherche"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:141
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:146
 msgid "Recent"
 msgstr "Récents"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:155
 msgid "Favorites"
 msgstr "Favoris"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:158
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
 msgid "Greek Letters"
 msgstr "Lettres grecques"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:159
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:164
 msgid "Arrows"
 msgstr "Flèches"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:160
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:165
 msgid "Relations"
 msgstr "Relations"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:161
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:166
 msgid "Operators"
 msgstr "Opérateurs"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:167
 msgid "Misc. Math"
 msgstr "Maths diverses"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:168
 msgid "Misc. Symbols"
 msgstr "Symboles divers"
 
@@ -8315,32 +8327,32 @@ msgstr "{name} est déjà ouvert"
 msgid "Untitled Document {number}"
 msgstr "Document sans titre {number}"
 
-#: setzer/workspace/workspace.py:808
+#: setzer/workspace/workspace.py:802
 #, python-brace-format
 msgid "Session loaded, but no documents could be opened (files may have been moved or deleted): {name}"
 msgstr "Session chargée, mais aucun document n'a pu être ouvert (les fichiers ont peut-être été déplacés ou supprimés) : {name}"
 
-#: setzer/workspace/workspace.py:824
+#: setzer/workspace/workspace.py:818
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr "Impossible d'ouvrir la session : {name}"
 
-#: setzer/workspace/workspace.py:1028
+#: setzer/workspace/workspace.py:1034
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr "Impossible d'enregistrer l'état de l'espace de travail : {error}"
 
-#: setzer/workspace/workspace_viewgtk.py:330
-#: setzer/workspace/workspace_viewgtk.py:593
-#: setzer/workspace/workspace_viewgtk.py:600
+#: setzer/workspace/workspace_viewgtk.py:331
+#: setzer/workspace/workspace_viewgtk.py:594
+#: setzer/workspace/workspace_viewgtk.py:601
 msgid "Drop to open file"
 msgstr "Déposez pour ouvrir le fichier"
 
-#: setzer/workspace/workspace_viewgtk.py:598
+#: setzer/workspace/workspace_viewgtk.py:599
 #, python-brace-format
 msgid "Will open {count} files"
 msgstr "Va ouvrir {count} fichiers"
 
-#: setzer/workspace/workspace_viewgtk.py:602
+#: setzer/workspace/workspace_viewgtk.py:603
 msgid "Cannot open this file type"
 msgstr "Impossible d'ouvrir ce type de fichier"
