@@ -406,7 +406,7 @@ class ShortcutsBar(Gtk.Box):
 
     def insert_beamer_button(self):
         self.beamer_button = Gtk.MenuButton()
-        self.beamer_button.set_icon_name('presentation-symbolic')
+        self.beamer_button.set_icon_name('x-office-presentation-symbolic')
         self.beamer_button.set_tooltip_text(_('Beamer'))
         self._setup_menu_button(self.beamer_button, BeamerMenu())
         shortcut_tooltips.set_tooltip(self.beamer_button, _('Beamer'))

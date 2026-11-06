@@ -121,7 +121,7 @@ class FirstRunTutorialDialog(object):
 
         # 引导用户打开示例文档（与欢迎页入口保持一致）。
         example_button = Gtk.Button()
-        example_button.set_icon_name('document-open-symbolic')
+        example_button.set_icon_name('document-template-symbolic')
         example_button.set_label(_('Create Example Project…'))
         example_button.set_halign(Gtk.Align.CENTER)
         example_button.connect('clicked', self.on_open_example_clicked)
