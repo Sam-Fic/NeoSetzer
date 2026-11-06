@@ -21,25 +21,127 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, GLib
 
 
-_REF_COMMANDS = ('\\ref', '\\pageref', '\\eqref')
-_CITE_COMMANDS = ('\\cite', '\\citep', '\\citet', '\\parencite', '\\autocite', '\\textcite')
+# 交叉引用命令基础名（\ref/\pageref/\eqref/...）。
+_REF_BASES = {'ref', 'pageref', 'eqref', 'autoref', 'cref', 'Cref',
+              'vref', 'nameref', 'cpageref', 'Cpageref'}
+# 文献引用命令基础名（\cite 系列）。
+_CITE_BASES = {'cite', 'citep', 'citet', 'parencite', 'autocite', 'textcite'}
+
+# 环境名 → 图标（仅对 \begin{...}/\end{...} 生效，其余环境回落通用列表图标）。
+_ENV_ICONS = {
+    'itemize': 'view-list-bullet-symbolic',
+    'enumerate': 'view-list-ordered-symbolic',
+    'description': 'view-list-bullet-symbolic',
+    'figure': 'image-x-generic-symbolic',
+    'table': 'view-list-symbolic',
+    'frame': 'x-office-presentation-symbolic',
+    # 数学显示环境
+    'equation': 'own-symbols-misc-math-symbolic',
+    'displaymath': 'own-symbols-misc-math-symbolic',
+    'align': 'own-symbols-misc-math-symbolic',
+    'gather': 'own-symbols-misc-math-symbolic',
+    'multline': 'own-symbols-misc-math-symbolic',
+    'math': 'own-symbols-misc-math-symbolic',
+    'matrix': 'own-symbols-misc-math-symbolic',
+    'pmatrix': 'own-symbols-misc-math-symbolic',
+    'bmatrix': 'own-symbols-misc-math-symbolic',
+    'vmatrix': 'own-symbols-misc-math-symbolic',
+    'cases': 'own-symbols-misc-math-symbolic',
+    # 表格环境
+    'tabular': 'view-grid-symbolic',
+    'array': 'view-grid-symbolic',
+    # 抄录 / 代码环境
+    'verbatim': 'text-x-generic-symbolic',
+    'lstlisting': 'text-x-generic-symbolic',
+}
+
+# 章节/标题命令 → 图标（与文档结构侧边栏 icon_map 保持一致）。
+_SECTION_ICONS = {
+    'part': 'view-paged-symbolic',
+    'chapter': 'bookmark-new-symbolic',
+    'section': 'view-list-symbolic',
+    'subsection': 'view-list-bullet-symbolic',
+    'subsubsection': 'view-list-ordered-symbolic',
+    'paragraph': 'format-justify-left-symbolic',
+    'subparagraph': 'insert-text-symbolic',
+}
+
+# 其它语义命令 → 图标（环境见 _ENV_ICONS，章节见 _SECTION_ICONS，
+# 字体样式走下方精确分支，交叉引用/文献走 _REF_BASES/_CITE_BASES）。
+_CMD_ICONS = {
+    # 列表项
+    'item': 'view-list-bullet-symbolic',
+    # 图片
+    'includegraphics': 'image-x-generic-symbolic',
+    # 超链接 / URL
+    'href': 'insert-link-symbolic',
+    'url': 'web-browser-symbolic',
+    # 文件包含
+    'input': 'document-open-symbolic',
+    'include': 'document-open-symbolic',
+    # 行内抄录 / 代码
+    'verb': 'text-x-generic-symbolic',
+    'lstinline': 'text-x-generic-symbolic',
+    # 宏包 / 文档类
+    'usepackage': 'package-x-generic-symbolic',
+    # 锚点 / 标签
+    'label': 'bookmark-new-symbolic',
+    # 日期 / 时间
+    'date': 'x-office-calendar-symbolic',
+    'today': 'x-office-calendar-symbolic',
+    # 注释 / 备注（页脚注释，自定义 note-symbolic 图标）
+    'footnote': 'note-symbolic',
+}
+
+
+def _command_base(command):
+    '''返回命令基础名（去前导反斜杠与首个 {...}/[...] 参数）及是否为环境。
+
+    \\begin{section} → ('section', True)；\\textbf{...} → ('textbf', False)；
+    \\ref{...} → ('ref', False)。用于图标分类的精确匹配（避免
+    \\refstepcounter 被 startswith('\\ref') 误判为交叉引用）。
+    '''
+    if command.startswith(('\\begin{', '\\end{')):
+        start = command.index('{') + 1
+        end = command.rindex('}')
+        return command[start:end], True
+    base = command.lstrip('\\').split('{')[0].split('[')[0]
+    return base, False
 
 
 def _get_icon_name(item):
     '''根据补全项类型返回主题图标名（复刻 gnome-builder 补全行的图标列）。
 
-    - \\begin{...}/\\end{...} 环境 → 有序列表图标
-    - \\ref/\\cite 等交叉引用 → 标签图标
-    - onlymath 命令（希腊字母等）→ 数学符号图标
-    - 其他 → 通用文本图标
+    比早期实现更细的分类：环境按名细分（数学/表格/抄录等）、章节与字体
+    样式单独成类、交叉引用与文献引用用基础名精确匹配（而非前缀匹配，避免
+    \\refstepcounter 等被误判为 \\ref）、列表/图片/链接/文件包含/代码/宏包
+    等命令见 _CMD_ICONS，数学符号与片段各归其类，其余回落通用文本图标。
     '''
     command = item['command']
     if item.get('is_snippet'):
         return 'text-x-generic-symbolic'
-    if command.startswith(('\\begin{', '\\end{')):
-        return 'view-list-ordered-symbolic'
-    if command.startswith(_REF_COMMANDS) or command.startswith(_CITE_COMMANDS):
+
+    base, is_env = _command_base(command)
+    if is_env:
+        return _ENV_ICONS.get(base, 'view-list-symbolic')
+    if base in _SECTION_ICONS:
+        return _SECTION_ICONS[base]
+    if base in _CMD_ICONS:
+        return _CMD_ICONS[base]
+    if base in ('textbf', 'textmd'):
+        return 'format-text-bold-symbolic'
+    if base in ('textit', 'textsl', 'emph'):
+        return 'format-text-italic-symbolic'
+    if base in ('sout',):
+        return 'format-text-strikethrough-symbolic'
+    if base in ('underline',):
+        return 'format-text-underline-symbolic'
+    if base.startswith('text'):
+        return 'text-symbolic'
+    if base in _REF_BASES:
         return 'tag-symbolic'
+    if base in _CITE_BASES:
+        return 'library-symbolic'
     if item.get('onlymath'):
         return 'own-symbols-misc-math-symbolic'
     return 'text-symbolic'
@@ -173,8 +275,9 @@ class AutocompleteWidgetView(Gtk.ListBox):
                 command_text = command_text.replace('•', '<span alpha="60%">' + GLib.markup_escape_text(dotlabel) + '</span>', 1)
 
             # 复刻 gnome-builder 补全行的三列布局：图标 | 命令文本 | 详情（参数名）。
-            # - 图标列：_get_icon_name 按 \begin{}/\ref/\cite/onlymath 类型选取，
-            #   使用主题 symbolic 图标，set_pixel_size(16) 固定尺寸避免行高被撑大。
+            # - 图标列：_get_icon_name 按环境名 / 章节 / 字体样式 / 引用 / 数学 /
+            #   片段等类型选取主题 symbolic 图标，set_pixel_size(16) 固定尺寸
+            #   避免行高被撑大。
             # - 详情列：从 dotlabels 提取参数名（如 \dfrac 的 "num, den"），
             #   右对齐 + dim-label + caption 降级视觉权重，与查找/文件行的副标题风格一致。
             # 使用 Gtk.Grid 替代 Gtk.Box：Grid 默认透明，不会阻断 ListBoxRow 的背景色
