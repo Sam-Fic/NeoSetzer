@@ -10,7 +10,9 @@
 2. 切换偏好后新建的控件必须立刻拿到正确状态，而不是等下次切换；
 3. 对没有 transition 属性的 Adw.*SplitView，只能在 set_show_sidebar 这一次
    同步调用期间临时关掉 gtk-enable-animations —— 窗口/对话框的打开关闭动画
-   不在减弱范围内，所以这个开关绝不允许留在 False。
+   不在减弱范围内，所以这个开关绝不允许留在 False；
+4. 减弱动画对 Gtk.Revealer 只能把时长置 0，不能把 transition-type 置 NONE，
+   否则收起的 revealer 仍按子控件全高申请尺寸。
 '''
 
 import ast
@@ -55,7 +57,7 @@ class FakeSettings:
 
 
 class FakeWidget:
-    '''Gtk.Stack / Gtk.Revealer 替身：记录被写入的过渡类型与时长。'''
+    '''Gtk.Stack 替身：记录被写入的过渡类型与时长。'''
 
     def __init__(self):
         self.transition_type = None
@@ -66,6 +68,13 @@ class FakeWidget:
 
     def set_transition_duration(self, value):
         self.transition_duration = value
+
+
+class FakeRevealer(FakeWidget):
+    '''Gtk.Revealer 替身：带上 Revealer 专有 API 供 _is_revealer 识别。'''
+
+    def get_reveal_child(self):
+        return False
 
 
 class FakeGtkSettings:
@@ -113,18 +122,19 @@ class TestTransitionRegistration(AnimationPrefsTestCase):
     def test_flipping_preference_reaches_every_registered_widget(self):
         settings = self.install(False)
         stack = FakeWidget()
-        revealer = FakeWidget()
+        revealer = FakeRevealer()
         ap.set_transition(stack, 5, 200)
         ap.set_transition(revealer, 3, 150)
         settings.toggle_reduce(True)
         self.assertEqual((stack.transition_type, stack.transition_duration), (ap._NONE, 0))
-        self.assertEqual((revealer.transition_type, revealer.transition_duration), (ap._NONE, 0))
+        # Revealer 保留自己的滑动类型，只把时长置 0。
+        self.assertEqual((revealer.transition_type, revealer.transition_duration), (3, 0))
 
     def test_flipping_back_restores_each_widgets_own_transition(self):
         '''关掉再打开：各控件必须回到**自己**的过渡类型与时长，不能被串成同一份。'''
         settings = self.install(False)
         stack = FakeWidget()
-        revealer = FakeWidget()
+        revealer = FakeRevealer()
         ap.set_transition(stack, 5, 200)
         ap.set_transition(revealer, 3, 150)
         settings.toggle_reduce(True)
@@ -194,6 +204,44 @@ class TestTransitionRegistration(AnimationPrefsTestCase):
         ap.set_transition(broken, 3, 150)
         ap.apply_mode()
         self.assertEqual(good.transition_type, 5)
+
+
+class TestReducedRevealerLayout(AnimationPrefsTestCase):
+    '''GTK4 的 RevealerTransitionType.NONE 会让收起的 revealer 继续占高。
+
+    实测 GTK 4.22：SLIDE_DOWN 收起时申请高度 0px，NONE 收起时仍按子控件
+    全高申请 34px。纯搜索模式下隐藏的替换行因此留下一条空白，而 Stack 没有
+    这个问题。减弱动画必须按控件类型分别落地。
+    '''
+
+    def test_reduced_revealer_keeps_slide_type_with_zero_duration(self):
+        self.install(True)
+        revealer = FakeRevealer()
+        ap.set_transition(revealer, 5, 200)
+        self.assertEqual((revealer.transition_type, revealer.transition_duration), (5, 0))
+
+    def test_reduced_stack_still_uses_none(self):
+        self.install(True)
+        stack = FakeWidget()
+        ap.set_transition(stack, 5, 200)
+        self.assertEqual((stack.transition_type, stack.transition_duration), (ap._NONE, 0))
+
+    def test_revealer_created_while_reduced_keeps_slide_type(self):
+        settings = self.install(False)
+        settings.toggle_reduce(True)
+        revealer = FakeRevealer()
+        ap.set_transition(revealer, 5, 200)
+        self.assertEqual((revealer.transition_type, revealer.transition_duration), (5, 0))
+        settings.toggle_reduce(False)
+        self.assertEqual((revealer.transition_type, revealer.transition_duration), (5, 200))
+
+    def test_revealer_is_detected_without_gi(self):
+        '''gi 缺失（headless 单测）时仍按 duck typing 识别 Revealer。'''
+        self.install(True)
+        with mock.patch.object(ap, 'Gtk', None):
+            revealer = FakeRevealer()
+            ap.set_transition(revealer, 5, 200)
+            self.assertEqual(revealer.transition_type, 5)
 
 
 class TestLazyBootstrap(AnimationPrefsTestCase):

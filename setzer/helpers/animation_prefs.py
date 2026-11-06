@@ -24,7 +24,12 @@
 
 因此本模块绝不做「全局常关 gtk-enable-animations」：那会连窗口动画一起关掉。
 取而代之：
-  - 过渡类（Stack/Revealer）：把 transition-type 置 NONE、duration 置 0；
+  - Gtk.Stack：transition-type 置 NONE、duration 置 0；
+  - Gtk.Revealer：**只**把 duration 置 0，transition-type 保留原来的滑动类型。
+    GTK4 的 NONE 语义是「不裁剪子控件」：reveal_child=False 时仍按子控件
+    完整高度申请尺寸（实测 GTK 4.22：SLIDE_* 收起为 0px，NONE 收起仍为
+    子控件高度），会让收起的替换行留下一块空白。滑动类型 + 零时长才是
+    「零动画且收起后不占高」；
   - libadwaita 的 Adw.*SplitView 没有 transition 属性，只能在 set_show_sidebar
     这一次同步调用期间临时关掉 gtk-enable-animations（AdwAnimation 在
     update_state 时读到该设置即直接跳到末值），调用返回立刻恢复，窗口动画
@@ -59,7 +64,8 @@ _settings = None
 _observing = False
 
 # Gtk.StackTransitionType.NONE 与 Gtk.RevealerTransitionType.NONE 同为 0，
-# 且 PyGObject 接受把 int 赋给枚举属性，故无需按控件类型区分取值。
+# 且 PyGObject 接受把 int 赋给枚举属性。减弱动画时只有 Stack 用这个值，
+# Revealer 必须保留自己的滑动类型（见 _apply_widget）。
 _NONE = 0
 
 
@@ -135,6 +141,20 @@ def apply_mode():
         _apply_widget(widget)
 
 
+def _is_revealer(widget):
+    '''区分 Gtk.Revealer 与 Gtk.Stack（二者的减弱动画策略不同）。
+
+    优先用真实 GI 类型判断；无界面单测里的替身按 Revealer 专有的
+    ``get_reveal_child`` 兜底识别。gi 缺失或 ap.Gtk 被测试替换时也不能抛异常。
+    '''
+    try:
+        if Gtk is not None and isinstance(widget, Gtk.Revealer):
+            return True
+    except Exception:
+        pass
+    return hasattr(widget, 'get_reveal_child')
+
+
 def _apply_widget(widget):
     desired = getattr(widget, '_setzer_transition', None)
     if desired is None:
@@ -142,7 +162,12 @@ def _apply_widget(widget):
     transition_type, duration = desired
     try:
         if _reduced:
-            widget.set_transition_type(_NONE)
+            # Revealer 的 NONE 过渡在 GTK4 下即使收起也按子控件全高申请尺寸，
+            # 会在纯搜索模式的替换行（以及其它收起的 revealer）下方留一条空白。
+            # 保留滑动类型、把时长置 0：瞬时到位、无动画，同时收起高度为 0。
+            # Stack 没有这个布局问题，仍用 NONE。
+            reduced_type = transition_type if _is_revealer(widget) else _NONE
+            widget.set_transition_type(reduced_type)
             widget.set_transition_duration(0)
         else:
             widget.set_transition_type(transition_type)
