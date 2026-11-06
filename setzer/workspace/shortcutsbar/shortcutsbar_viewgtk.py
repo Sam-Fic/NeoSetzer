@@ -502,7 +502,7 @@ class ShortcutsBar(Gtk.Box):
 
     def insert_more_button(self):
         self.button_more = Gtk.MenuButton()
-        self.button_more.set_icon_name('open-menu-symbolic')
+        self.button_more.set_icon_name('view-more-symbolic')
         self.button_more.add_css_class('flat')
         self.button_more.set_popover(PopoverManager.create_popover('context_menu').view)
         shortcut_tooltips.set_tooltip(self.button_more, _('Context Menu'), 'context_menu')
