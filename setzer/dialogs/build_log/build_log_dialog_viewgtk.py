@@ -81,9 +81,9 @@ class BuildLogDialogView(DialogView):
 
         # AI Fix All 按钮：批量把当前可见错误发给 Agent CLI 修复。
         # 放在 HeaderBar 最左端（pack_end 后入先出，会排在 copy_all/save_log 左侧）。
-        # icon 用 applications-science-symbolic（魔法/科学隐喻），与行内按钮一致。
+        # icon 用 ai-slop-symbolic（生成式 AI 火花），与行内按钮一致。
         # 仅 Errors 类型才显示（presenter.populate 后由 controller 控制 sensitive）。
-        self.ai_fix_all_button = Gtk.Button(icon_name='applications-science-symbolic')
+        self.ai_fix_all_button = Gtk.Button(icon_name='ai-slop-symbolic')
         self.ai_fix_all_button.set_tooltip_text(_('Fix all errors with AI'))
         self.ai_fix_all_button.add_css_class('flat')
         self.ai_fix_all_button.set_can_focus(False)
@@ -430,8 +430,8 @@ class BuildLogList(Gtk.ListBox):
         # 行尾 AI 修复按钮：点击把此错误（+ 上下文）发给 Agent CLI。
         # 复用与 copy 按钮一致的 flat/center 样式；点击通过
         # ai_fix_row_callback 转发给 controller（不直接依赖 service）。
-        # icon 用 applications-science-symbolic，与顶栏 Fix All 一致。
-        ai_fix_button = Gtk.Button(icon_name='applications-science-symbolic')
+        # icon 用 ai-slop-symbolic，与顶栏 Fix All 一致。
+        ai_fix_button = Gtk.Button(icon_name='ai-slop-symbolic')
         ai_fix_button.set_tooltip_text(_('Fix this error with AI'))
         ai_fix_button.add_css_class('flat')
         ai_fix_button.set_valign(Gtk.Align.CENTER)
