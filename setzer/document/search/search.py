@@ -41,6 +41,14 @@ class Search(Observable):
         self.document_view = document_view
         self.document = document
         self.document_view.vbox.append(self.view)
+        # 收起的搜索栏仍会按整条查找行的最小宽度参与布局：GtkSearchBar 内部
+        # 只在竖直方向收起 Revealer，水平方向的最小宽度照常上报，并进入编辑器
+        # 列（Gtk.Box 横向 min 取各可见子控件的 min）。而 Adw.OverlaySplitView
+        # 给侧栏分配宽度时用「总宽 − 内容最小宽」封顶，于是预览侧栏会被压得
+        # 窄于设置里的占比（默认 1020px 窗口下约 39%，设置是 50%）。因此搜索栏
+        # 收起时隐藏整个控件，让它的最小宽度归零；打开前再显示回来。
+        self.view.set_visible(False)
+        self._search_view_hide_timeout_id = None
 
         self.search_settings = GtkSource.SearchSettings()
         self.search_context = GtkSource.SearchContext.new(self.document.source_buffer, self.search_settings)
@@ -155,7 +163,7 @@ class Search(Observable):
 
     def on_selection_might_have_changed(self, document):
         self.update_replace_button()
-        self.update_selection_toggle_visibility()
+        self.update_selection_toggle_sensitivity()
 
     def on_match_option_toggled(self, toggle_button=None):
         '''Apply case / regex / whole-word flags to GtkSource.SearchSettings
@@ -193,15 +201,21 @@ class Search(Observable):
         else:
             self.set_mode_search()
 
-    def update_selection_toggle_visibility(self):
+    def update_selection_toggle_sensitivity(self):
+        '''「在选区中搜索」只在跨行选区时可用。
+
+        注意：只切 sensitive，不切 visible。按钮显隐会改变查找行的最小宽度，
+        而编辑器列的最小宽度会参与 Adw.OverlaySplitView 的「总宽 − 内容最小宽」
+        封顶计算——那会在选中文字时把预览侧栏压窄，表现为预览宽度跳变、不再
+        跟随设置里的占比。按钮常驻占位可保证宽度恒定。
+        '''
         buffer = self.document.source_buffer
+        available = False
         if buffer.get_has_selection():
             start, end = buffer.get_selection_bounds()
-            if start.get_line() != end.get_line():
-                self.view.selection_toggle.set_visible(True)
-                return
-        self.view.selection_toggle.set_visible(False)
-        if self._search_in_selection:
+            available = start.get_line() != end.get_line()
+        self.view.selection_toggle.set_sensitive(available)
+        if not available and self._search_in_selection:
             self.view.selection_toggle.set_active(False)
 
     def on_search_close_button_click(self, button_object=None):
@@ -599,10 +613,12 @@ class Search(Observable):
         # handler_block 避免 set_active(False) 触发 on_selection_toggle_toggled
         # 回调链（该回调会在搜索栏已隐藏后再次调用 on_search_entry_changed，
         # 产生不必要的状态变更）。手动设置 _search_in_selection 等字段即可。
+        # 注意不能在这里隐藏按钮（它常驻占位以保持查找行宽度稳定），只复位
+        # active 与 sensitive 即可。
         toggle = self.view.selection_toggle
         toggle.handler_block(self._selection_toggle_handler)
         toggle.set_active(False)
-        toggle.set_visible(False)
+        toggle.set_sensitive(False)
         toggle.handler_unblock(self._selection_toggle_handler)
         self._search_in_selection = False
         self._selection_start = None
@@ -612,8 +628,35 @@ class Search(Observable):
         self.view.replace_mode_button.handler_unblock(self._replace_mode_handler)
         self.search_bar_mode = None
         self.add_change_code('mode_changed')
+        self._schedule_search_view_hide()
+
+    def _show_search_view(self):
+        '''显示搜索栏控件（收起时它被隐藏，以免占用编辑器列的最小宽度）。'''
+        if self._search_view_hide_timeout_id is not None:
+            GLib.source_remove(self._search_view_hide_timeout_id)
+            self._search_view_hide_timeout_id = None
+        self.view.set_visible(True)
+
+    def _schedule_search_view_hide(self):
+        '''收起动画结束后再隐藏控件，免得把搜索栏的收起动画直接掐断。
+
+        250ms 是 GtkSearchBar 内部 Revealer 的过渡时长（GTK 固定值，不受
+        preferences.reduce_animations 影响）。回调里再检查一次 search-mode，
+        期间若被重新打开则保持可见。
+        '''
+        if self._search_view_hide_timeout_id is not None:
+            GLib.source_remove(self._search_view_hide_timeout_id)
+        self._search_view_hide_timeout_id = GLib.timeout_add(
+            250, self._hide_search_view_when_closed)
+
+    def _hide_search_view_when_closed(self):
+        self._search_view_hide_timeout_id = None
+        if not self.view.get_search_mode():
+            self.view.set_visible(False)
+        return False
 
     def set_mode_search(self):
+        self._show_search_view()
         self.view.set_search_mode(True)
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'search'
@@ -624,6 +667,7 @@ class Search(Observable):
         self.add_change_code('mode_changed')
 
     def set_mode_replace(self):
+        self._show_search_view()
         self.view.set_search_mode(True)
         GLib.idle_add(self.search_entry_grab_focus, None)
         self.search_bar_mode = 'replace'

@@ -97,6 +97,7 @@ foreach t : [
   ['test_root_context', 'test_root_context.py'],
   ['test_snippet_retry_policy', 'test_snippet_retry_policy.py'],
   ['test_build_status_text', 'test_build_status_text.py'],
+  ['test_editor_chrome_min_width', 'test_editor_chrome_min_width.py'],
 ]
   test(
     t[0],

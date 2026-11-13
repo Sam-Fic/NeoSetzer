@@ -145,7 +145,10 @@ class SearchBar(Gtk.SearchBar):
         self.selection_toggle.add_css_class('flat')
         self.selection_toggle.add_css_class('search-toggle')
         self.selection_toggle.set_tooltip_text(_('Search in selection'))
-        self.selection_toggle.set_visible(False)
+        # 常驻按钮，只切换 sensitive（有跨行选区时可用）而不切换 visible：
+        # 显隐会改变查找行的最小宽度，进而撑大编辑器列的最小宽度、挤压预览
+        # 侧栏份额（见 search.Search.__init__ 的说明）。恒占位可保持宽度稳定。
+        self.selection_toggle.set_sensitive(False)
         options_box.append(self.selection_toggle)
 
         self.find_row.append(options_box)
