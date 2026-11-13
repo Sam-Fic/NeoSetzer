@@ -1,5 +1,26 @@
 # Changelog
 
+## v87 — 2026-11-13
+
+### 主要改进
+
+- **修复选中文字时预览侧栏宽度跳变**：`Adw.OverlaySplitView` 分配侧栏宽度用的是 `MIN(总宽 × 占比, 总宽 − 内容最小宽)`，内容即编辑器列。选中文字时状态栏出现「N lines selected」、搜索栏的「在选区中搜索」按钮显隐，都会改变编辑器列的最小宽度，预览侧栏因此被压到设置占比以下（实测 589px → 570px），取消选中后又弹回。另外 `GtkSearchBar` 收起时内部 Revealer 只在竖直方向收起，水平方向仍按整条查找行的最小宽度参与布局，默认 1020px 窗口下 50% 的预览实际只有约 39%。改为：状态栏标签启用 ellipsize（最小宽度固定为「…」，不随文本与可见性变化）、搜索栏收起时隐藏整个控件（打开前显示、收起动画结束后再隐藏）、「在选区中搜索」按钮常驻占位只切换 sensitive；新增无界面回归测试锁住这些约束。
+
+- **补全候选图标细化分类**：补全弹窗按候选项类型显示对应图标——章节/标题命令与文档结构侧栏同源，`\ref` 系列、`\cite` 系列、`\begin`/`\end` 环境（列表、图表、数学、表格、抄录等）各自使用合适的图标，无法归类时回落通用列表图标。
+
+- **修复「减弱动画」下收起的替换行仍占高度**：GTK4 的 `Gtk.Revealer` 在 `NONE` 过渡下语义是「不裁剪子控件」，`reveal_child=False` 时仍按子控件完整高度申请尺寸，会在搜索栏收起后留下一块空白。改为保留原来的滑动类型、只把过渡时长置 0，做到零动画且收起后不占高。
+
+- **界面图标更新**：首次运行向导与快捷栏改用 `document-template-symbolic`；Beamer 按钮改为 `presentation-symbolic`；「更多」按钮改为 `view-more-symbolic`；AI 相关图标统一为 `ai-slop-symbolic`；符号页的 library / quotes / regex / tag / text / uppercase 及向导图标更新为 Grappa 格式。
+
+### Improvements
+
+- **fix**: Preview sidebar no longer jumps when text is selected. `Adw.OverlaySplitView` sizes the sidebar as `MIN(width × fraction, width − content metric)`, and selecting text changed the editor column's minimum width (the "N lines selected" status label and the search-in-selection toggle), squeezing the preview below its configured fraction. A closed `GtkSearchBar` also kept reporting the full find row's minimum width (50% preview rendered as ~39% in the default 1020px window). Status bar labels are now ellipsized, the search bar widget is hidden while closed (shown before opening, hidden after the close animation), and the search-in-selection toggle stays in the layout and only flips sensitivity. Headless regression tests added.
+- **feat**: Autocomplete popup now picks icons by item kind — sectioning commands (shared with the document structure sidebar), `\ref` family, `\cite` family, and `\begin`/`\end` environments (lists, figures, math, tables, verbatim) each get a dedicated icon, falling back to a generic list icon.
+- **fix**: With "Reduce animations" enabled, a collapsed replace row no longer leaves blank space behind — `Gtk.Revealer` keeps its slide transition type and only the duration is set to 0, since `NONE` means "don't clip the child" in GTK4.
+- **chore**: Icon updates — first-run wizard and shortcuts bar now use `document-template-symbolic`, Beamer uses `presentation-symbolic`, the overflow button uses `view-more-symbolic`, AI actions share `ai-slop-symbolic`, and the symbols page (library, quotes, regex, tag, text, uppercase) and wizard icons were redrawn in Grappa format.
+
+---
+
 ## v86 — 2026-10-29
 
 ### 主要改进
