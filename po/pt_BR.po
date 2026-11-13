@@ -867,8 +867,8 @@ msgid "Manage Packages"
 msgstr "Gerenciar pacotes"
 
 #: setzer/command_palette/catalog.py:118
-#: setzer/dialogs/preamble_assistant.py:48
-#: setzer/dialogs/preamble_assistant.py:54
+#: setzer/dialogs/preamble_assistant.py:52
+#: setzer/dialogs/preamble_assistant.py:60
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:122
 msgid "Preamble Assistant"
 msgstr "Assistente de preâmbulo"
@@ -1530,7 +1530,7 @@ msgid "Manage @string Macros"
 msgstr "Gerenciar macros @string"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1356
-#: setzer/dialogs/preamble_assistant.py:61
+#: setzer/dialogs/preamble_assistant.py:67
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
 msgid "_Close"
 msgstr "_Fechar"
@@ -2046,7 +2046,7 @@ msgstr "Tabulações"
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:63
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:89
-#: setzer/dialogs/preamble_assistant.py:185
+#: setzer/dialogs/preamble_assistant.py:166
 #: setzer/dialogs/project_search_replace.py:77
 #: setzer/dialogs/project_search_replace.py:139
 msgid "_Cancel"
@@ -4339,40 +4339,36 @@ msgstr "Carregar Sessão"
 msgid "Setzer Session"
 msgstr "Sessão do Setzer"
 
-#: setzer/dialogs/preamble_assistant.py:65
+#: setzer/dialogs/preamble_assistant.py:71
 msgid "_Add suggested packages"
 msgstr "_Adicionar pacotes sugeridos"
 
-#: setzer/dialogs/preamble_assistant.py:77
-msgid "Suggestions are based on commands in the document; nothing changes until you confirm."
-msgstr "As sugestões baseiam-se nos comandos do documento; nada muda até você confirmar."
-
-#: setzer/dialogs/preamble_assistant.py:164
+#: setzer/dialogs/preamble_assistant.py:95
 msgid "No missing package suggestions were found in this document."
 msgstr "Nenhuma sugestão de pacote ausente foi encontrada neste documento."
 
-#: setzer/dialogs/preamble_assistant.py:169
+#: setzer/dialogs/preamble_assistant.py:145
 msgid "available in NeoSetzer’s package database"
 msgstr "disponível na base de dados de pacotes do NeoSetzer"
 
-#: setzer/dialogs/preamble_assistant.py:171
+#: setzer/dialogs/preamble_assistant.py:147
 msgid "not listed in NeoSetzer’s package database"
 msgstr "não listado na base de dados de pacotes do NeoSetzer"
 
-#: setzer/dialogs/preamble_assistant.py:182
+#: setzer/dialogs/preamble_assistant.py:163
 msgid "Add suggested packages?"
 msgstr "Adicionar os pacotes sugeridos?"
 
-#: setzer/dialogs/preamble_assistant.py:183
+#: setzer/dialogs/preamble_assistant.py:164
 #, python-brace-format
 msgid "This inserts {count} package declaration(s) into the document preamble."
 msgstr "Isso insere {count} declaração(ões) de pacote no preâmbulo do documento."
 
-#: setzer/dialogs/preamble_assistant.py:186
+#: setzer/dialogs/preamble_assistant.py:167
 msgid "_Add packages"
 msgstr "_Adicionar pacotes"
 
-#: setzer/dialogs/preamble_assistant.py:202
+#: setzer/dialogs/preamble_assistant.py:183
 #, python-brace-format
 msgid "Added {count} suggested package(s)."
 msgstr "{count} pacote(s) sugerido(s) adicionado(s)."

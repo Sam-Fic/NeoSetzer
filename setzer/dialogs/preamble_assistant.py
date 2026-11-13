@@ -20,7 +20,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gdk, Gtk
+from gi.repository import Adw, Gtk
 
 from setzer.app.latex_db import LaTeXDB
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
@@ -33,9 +33,13 @@ class PreambleAssistantDialog(DialogView):
     标准 DialogView 形态（与 spellchecking_words 等对话框一致）：
       - Adw.Dialog + DialogView 基类自带的 Adw.HeaderBar / Adw.ToolbarView，
         浮动呈现时有真正的标题栏（可拖拽、自动关闭按钮）；
-      - Close / Add 按钮放标题栏两侧（原为底部手拼按钮条）；
-      - 解释性长句放内容区顶部 dim-label（WindowTitle 的 subtitle 在
-        620px 宽度下会被省略号截断，故不作为 subtitle 使用）。
+      - Close / Add 按钮放标题栏两侧；
+      - 建议以 Gtk.ListBox（boxed-list）+ Adw.ActionRow 行呈现，卡片自带
+        背景与阴影，与弹窗背景分层；外层 Adw.Clamp 限宽 400px 居中，
+        不铺满弹窗宽度（对齐 libadwaita demo 的 Boxed Lists 页）；
+      - 弹窗尺寸恒定（620x410），不随建议条数变化；卡片只占真实行高，
+        短内容时下方留白是弹窗背景，多条时列表内部滚动；
+      - 无建议时用 Adw.StatusPage 作占位（ui-guidelines「空状态」）。
     '''
 
     def __init__(self, main_window):
@@ -46,10 +50,12 @@ class PreambleAssistantDialog(DialogView):
         self.suggestions = ()
 
         self.set_title(_('Preamble Assistant'))
+        # 高度恒定：不随建议条数跳动；宽度让 400px 列表居中留白。
+        # 卡片本身不膨胀（见下方 ScrolledWindow 注释），多余空间是弹窗背景。
         self.set_content_width(620)
-        self.set_content_height(420)
+        self.set_content_height(410)
 
-        # 标题栏标题；解释性长句见内容区 hint。
+        # 标题栏标题。
         self.headerbar.set_title_widget(
             Adw.WindowTitle(title=_('Preamble Assistant')))
         # 隐藏自动窗口控制按钮（右上角 ✕）：已有显式 Close 按钮与 Esc，
@@ -73,78 +79,46 @@ class PreambleAssistantDialog(DialogView):
         content.set_margin_start(12)
         content.set_margin_end(12)
 
-        # 说明文字：dim-label + 自动换行，替代原 Adw.WindowTitle 的 subtitle。
-        hint = Gtk.Label(label=_('Suggestions are based on commands in the document; '
-                                 'nothing changes until you confirm.'))
-        hint.add_css_class('dim-label')
-        hint.set_halign(Gtk.Align.START)
-        hint.set_xalign(0)
-        hint.set_wrap(True)
-        content.append(hint)
+        # 建议以 List 组件呈现：Gtk.ListBox + Adw.ActionRow。boxed-list 自带
+        # @card_bg_color 卡片背景 + box-shadow，浮在弹窗背景之上形成层级
+        # （libadwaita 的 AdwPreferencesGroup 用的是同一套样式）。
+        self.listbox = Gtk.ListBox()
+        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.listbox.add_css_class('boxed-list')
+        # 滚到底时最后一行不贴容器底边（wrap_content 同款处理）。
+        self.listbox.set_margin_bottom(12)
 
-        self.buffer = Gtk.TextBuffer()
-        view = Gtk.TextView(buffer=self.buffer)
-        view.set_editable(False)
-        view.set_cursor_visible(False)
-        view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        # 圆角卡片设计（ai_fix/preview_dialog_viewgtk 同款）：
-        # 文字与外框双层内缩——TextView margin 16px + CSS padding 12px，
-        # 让建议文本"陷"在圆角外框里。
-        view.set_left_margin(16)
-        view.set_right_margin(16)
-        view.set_top_margin(16)
-        view.set_bottom_margin(16)
-        view.add_css_class('preamble-suggestions-view')
+        # 无建议时的空状态占位（ui-guidelines「空状态」用 Adw.StatusPage）。
+        status = Adw.StatusPage()
+        status.set_icon_name('dialog-information-symbolic')
+        status.set_title(
+            _('No missing package suggestions were found in this document.'))
+        self.listbox.set_placeholder(status)
+
+        # 限宽居中：与 libadwaita demo 的 Boxed Lists 页一致
+        # (demo/pages/lists/adw-demo-page-lists.ui)，列表最大 400px，
+        # 不会铺满 620px 弹窗；窄于 tightening_threshold 时随弹窗收缩。
+        clamp = Adw.Clamp()
+        clamp.set_maximum_size(400)
+        clamp.set_tightening_threshold(300)
+        clamp.set_child(self.listbox)
+
         scroll = Gtk.ScrolledWindow()
-        scroll.set_vexpand(True)
-        # 外框有圆角时必须裁剪滚动 overshoot/undershoot 提示条，
-        # 否则滚动时上下浅灰条会溢出圆角矩形。
-        scroll.set_overflow(Gtk.Overflow.HIDDEN)
-        scroll.add_css_class('preamble-suggestions-scrolled')
-        scroll.set_child(view)
+        scroll.hscrollbar_policy = Gtk.PolicyType.NEVER
+        scroll.vscrollbar_policy = Gtk.PolicyType.AUTOMATIC
+        # 卡片高度跟随内容、不撑满弹窗：propagate_natural_height 让卡片只有
+        # 真实行高，短内容时下方留白是弹窗背景而非空壳卡片；超过
+        # max_content_height 才内部滚动（search_history_popup 同款范式）。
+        scroll.set_propagate_natural_height(True)
+        scroll.set_max_content_height(340)
+        scroll.set_child(clamp)
         content.append(scroll)
 
         # 内容替换基类的 topbox（spellchecking_words 同款做法），保留统一外边距。
         self.toolbar_view.set_content(content)
 
-        # 加载本弹窗专用 CSS（建议区圆角卡片外框与内边距）。
-        self._load_css()
-
-    def _load_css(self):
-        '''加载本弹窗专用的 CSS（建议区圆角卡片）。
-
-        与 ai_fix/preview_dialog_viewgtk._load_css 同款范式：应用级
-        provider 仅追加一次，重复 add_provider 会被 GTK 幂等处理。
-        命名色 @card_bg_color / @borders 自动跟随明暗主题。
-        '''
-        provider = Gtk.CssProvider()
-        css = '''
-        textview.preamble-suggestions-view {
-            background-color: @card_bg_color;
-            border: 1px solid @borders;
-            border-radius: 8px;
-        }
-        textview.preamble-suggestions-view text {
-            padding: 12px;
-        }
-        /* hide overshoot/undershoot indicators entirely: they paint on the
-           ScrolledWindow edge and are NOT clipped by widget overflow, so they
-           would bleed past the rounded frame. The rounded card already signals
-           a scrollable area. */
-        scrolledwindow.preamble-suggestions-scrolled overshoot,
-        scrolledwindow.preamble-suggestions-scrolled undershoot {
-            background-image: none;
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        '''
-        provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
-        )
+        # 记录已加入的行，便于每次 present() 重建列表时清除。
+        self.suggestion_rows = []
 
     def present(self, document):
         self.document = document
@@ -159,20 +133,27 @@ class PreambleAssistantDialog(DialogView):
         Adw.Dialog.present(self, self.main_window)
 
     def _render_suggestions(self):
+        # 清掉上一次 present() 留下的行，再按本次建议重建列表。
+        for row in self.suggestion_rows:
+            self.listbox.remove(row)
+        self.suggestion_rows.clear()
         if not self.suggestions:
-            self.buffer.set_text(
-                _('No missing package suggestions were found in this document.'))
+            # 列表为空时 set_placeholder 的 Adw.StatusPage 自动显示。
             self.add_button.set_sensitive(False)
             return
-        lines = []
         for suggestion in self.suggestions:
             availability = _('available in NeoSetzer’s package database') \
                 if suggestion.available_in_database else \
                 _('not listed in NeoSetzer’s package database')
-            lines.append('{insertion}\n{reason} ({availability})'.format(
-                insertion=suggestion.insertion, reason=suggestion.reason,
-                availability=availability))
-        self.buffer.set_text('\n\n'.join(lines))
+            row = Adw.ActionRow()
+            row.set_title(suggestion.insertion)
+            row.set_subtitle('{reason} ({availability})'.format(
+                reason=suggestion.reason, availability=availability))
+            # 默认副标题单行省略；此处允许完整换行显示原因与可用性说明。
+            row.set_subtitle_lines(0)
+            row.set_activatable(False)
+            self.listbox.append(row)
+            self.suggestion_rows.append(row)
         self.add_button.set_sensitive(True)
 
     def _on_add(self, *_args):
