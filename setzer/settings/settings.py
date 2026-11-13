@@ -474,6 +474,11 @@ class Settings(Observable):
             'symbols': ('<Control><Shift>s', 'F8'),
             'typewriter': ('<Control><Shift>t', '<Control><Shift>y'),
             'build_log': ('<Control><Shift>l', 'F4'),
+            # 旧默认 <Control>k 从未随版本迁移到新默认 <Control>slash，
+            # 老用户按下文档宣称的 Ctrl+/ 时没有应用快捷键匹配，事件落到
+            # GtkTextView 的内置 <Control>slash（全选），表现为「没注释，反而
+            # 全选」。只在值仍等于旧默认时迁移，用户自定义的键位保留。
+            'toggle_comment': ('<Control>k', '<Control>slash'),
             # 旧值 <Control><Shift>d 与下标（subscript）快捷键冲突，
             # 「选中所有相同词」从未按预期生效，迁到文档宣称的 <Control><Shift>l。
             'select_all_occurrences': ('<Control><Shift>d', '<Control><Shift>l'),

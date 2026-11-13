@@ -63,11 +63,31 @@ class Shortcuts(object):
         section, item, value = parameter
         if section == 'keyboard_shortcuts':
             register_global_accels(settings)
+            # 文档级控制器（cut/copy、注释、引号等）在创建时读取设置，不会
+            # 自动跟随偏好页的修改。重建已打开文档的控制器，使用户改键位
+            # 后立即生效——尤其 toggle_comment 此前只存在于 LaTeX 控制器，
+            # 偏好页的 update_shortcut_controller 只更新 app 控制器，改了也
+            # 不会影响当前文档。
+            self._refresh_document_shortcuts()
 
     def setup_document_shortcuts(self, document):
-        document.view.source_view.add_controller(ShortcutControllerDocument())
+        controller = ShortcutControllerDocument()
+        document.view.source_view.add_controller(controller)
+        document._shortcut_controller_document = controller
         if document.is_latex_document():
-            document.view.source_view.add_controller(ShortcutControllerLaTeX())
+            controller = ShortcutControllerLaTeX()
+            document.view.source_view.add_controller(controller)
+            document._shortcut_controller_latex = controller
+
+    def _refresh_document_shortcuts(self):
+        for document in self.workspace.open_documents:
+            for attribute in ('_shortcut_controller_document',
+                              '_shortcut_controller_latex'):
+                controller = getattr(document, attribute, None)
+                if controller is not None:
+                    document.view.source_view.remove_controller(controller)
+                    setattr(document, attribute, None)
+            self.setup_document_shortcuts(document)
 
     def on_popover_popup(self, name):
         # 仅在深度 0→1 转换时实际 remove_controller；深度 >0 时控制器

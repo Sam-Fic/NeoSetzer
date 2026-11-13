@@ -12,6 +12,7 @@ import os
 import pickle
 import tempfile
 import unittest
+from unittest.mock import Mock
 
 from tests.python import conftest_stub  # noqa: F401  必须先注入伪 gi
 
@@ -74,6 +75,34 @@ class TestMigratePresetsBytes(unittest.TestCase):
         result = migrate_presets_bytes(data)
         self.assertEqual(result['preferences'], {'tab_width': 4, 'auto_build': False})
         self.assertEqual(result['window_state'], {'width': 1020})
+
+
+class TestMigrateConflictingShortcutDefaults(unittest.TestCase):
+
+    def _settings(self, shortcuts, defaults):
+        settings = Settings.__new__(Settings)
+        settings.data = {'keyboard_shortcuts': shortcuts}
+        settings.defaults = {'keyboard_shortcuts': defaults}
+        settings.pickle = Mock()
+        return settings
+
+    def test_old_toggle_comment_default_migrates_to_slash(self):
+        # 老用户保存的仍是从未生效的 Ctrl+K；Ctrl+/ 在 GtkTextView 里是
+        # 内置全选，不迁移就会表现为「没注释，反而全选」。
+        settings = self._settings({'toggle_comment': '<Control>k'},
+                                  {'toggle_comment': '<Control>slash'})
+        settings._migrate_conflicting_shortcut_defaults()
+        self.assertEqual(settings.data['keyboard_shortcuts']['toggle_comment'],
+                         '<Control>slash')
+        settings.pickle.assert_called_once()
+
+    def test_custom_toggle_comment_binding_is_preserved(self):
+        settings = self._settings({'toggle_comment': '<Control><Alt>k'},
+                                  {'toggle_comment': '<Control>slash'})
+        settings._migrate_conflicting_shortcut_defaults()
+        self.assertEqual(settings.data['keyboard_shortcuts']['toggle_comment'],
+                         '<Control><Alt>k')
+        settings.pickle.assert_not_called()
 
 
 class TestEndToEndSettingsMigration(unittest.TestCase):
