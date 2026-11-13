@@ -85,6 +85,8 @@ gh run list --repo Sam-Fic/NeoSetzer --limit 5
 - Build Windows package
 - Build macOS package
 
+> macOS 任务若在 1–2 秒内被取消、提示 `The configuration 'macos-XX-...' is not supported`，说明运行器标签已被 GitHub 下线，改 `.github/workflows/build-macos.yml` 的 `runs-on` 即可，详见 [macOS 打包说明](packaging/macos.md#ci-运行器)。
+
 ### 7. 修复失败（如需要）
 
 **最常见的失败原因**：`meson.build` 版本号与 tag 不一致。

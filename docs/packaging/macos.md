@@ -25,6 +25,20 @@ macOS 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正
 | 代表性 symbolic SVG 图标 | 防止非 GNOME 平台图标回退失败。 |
 | Python site-packages 与 NumPy | 保证应用和预览模块的启动依赖完整。 |
 
+## CI 运行器
+
+macOS 包固定使用 `macos-15`（Apple Silicon）运行器。
+
+macos-14 的运行器配置（`macos-14-arm64-us-default`）已被 GitHub 下线：tag 触发的任务会在 1 秒内以 `The configuration 'macos-14-arm64-us-default' is not supported` 取消，既不产出资产，也不会有编译错误可看。**不要把 `runs-on` 改回 `macos-14`。**
+
+升级到更新的运行器时：
+
+1. 只改 `.github/workflows/build-macos.yml` 的 `runs-on` 一处（构建脚本按 `uname -m` 与 `brew --prefix` 取架构和路径，不绑系统版本）；
+2. 同步更新本节；
+3. 先在 `master` 上手动触发一次构建（`gh workflow run build-macos.yml --ref master`），确认任务能被调度且打包成功，再随 `v*` 标签发版。
+
+发布包在 macOS 15 环境下用 Homebrew 依赖构建，更旧的 macOS 版本不在验证范围内。
+
 ## 本地构建说明
 
 macOS 打包涉及 GTK、PyGObject、libadwaita、Python 运行时和 PyInstaller 资源收集。为避免本机环境差异，**GitHub Actions 是当前唯一受支持的正式构建路径**。开发者如需修改打包逻辑，应直接更新 `.github/workflows/build-macos.yml`，并通过手动触发工作流验证生成的应用包。

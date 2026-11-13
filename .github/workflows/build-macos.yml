@@ -13,6 +13,11 @@ permissions:
 jobs:
   build-macos:
     name: Build macOS application bundle
+    # 固定使用当前受支持的 Apple Silicon 运行器。macos-14 的配置
+    # （macos-14-arm64-us-default）已被 GitHub 下线，任务会在 1s 内以
+    # "configuration is not supported" 取消，不要改回 macos-14。
+    # 升级运行器时同步更新 docs/packaging/macos.md 的「CI 运行器」一节，
+    # 并手动触发一次 workflow_dispatch 验证可调度后再随 tag 发版。
     runs-on: macos-15
 
     steps:

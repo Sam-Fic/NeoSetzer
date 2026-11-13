@@ -98,6 +98,7 @@ foreach t : [
   ['test_snippet_retry_policy', 'test_snippet_retry_policy.py'],
   ['test_build_status_text', 'test_build_status_text.py'],
   ['test_editor_chrome_min_width', 'test_editor_chrome_min_width.py'],
+  ['test_ci_runner_labels', 'test_ci_runner_labels.py'],
 ]
   test(
     t[0],
