@@ -260,6 +260,16 @@ class PreviewView(Gtk.Box):
             self._current_link_target = target_string
             has_target = target_string != ''
             self.target_label.set_text(target_string)
+            # 减弱动画：.preview-card 的 margin-bottom 过渡（CSS 150ms）原本用来
+            # 配合 Revealer 的 150ms 滑动，避免同时进行时卡片底缘二次跳变。
+            # 减弱模式下 Revealer 已零时长瞬时到位，若这条 CSS 过渡还留着，
+            # 卡片底缘仍会自己滑 6px，看上去像提示栏在轻微上浮/下降。必须在
+            # 切换 target-visible 之前先把过渡关掉（同一次同步调用内不会重排，
+            # 但顺序上先关更稳妥）。
+            if animation_prefs.is_reduced():
+                self.card_box.add_css_class('no-transition')
+            else:
+                self.card_box.remove_css_class('no-transition')
             self.target_label_revealer.set_reveal_child(has_target)
             if has_target:
                 self.card_box.add_css_class('target-visible')
