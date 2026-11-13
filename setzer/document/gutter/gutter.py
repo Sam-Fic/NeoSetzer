@@ -32,6 +32,11 @@ from setzer.vcs.git_repository import GitRepository, DIFF_LINE_LIMIT
 
 class Gutter(object):
 
+    # 行号拖动选区：指针进入距视口上下边缘该像素数的区域时开始自动滚动；
+    # 每次定时器触发滚动约一行高（约 50ms 一次）。
+    _LINE_DRAG_EDGE = 16
+    _LINE_DRAG_SCROLL_INTERVAL_MS = 50
+
     def __init__(self, document, document_view):
         self.document = document
         self.document_view = document_view
@@ -63,6 +68,15 @@ class Gutter(object):
         self.hovered_folding_region = None
         self._folding_icon_nodes = dict()
         self._newline_icon_nodes = dict()
+
+        # 行号拖动选区（VS Code 风格）：按住行号纵向拖动，按整行扩展选区。
+        # 锚点行在按下时确定；拖动过程中当前行由指针 y 换算，锚点与当前行
+        # 之间的所有整行被选中。指针到达视口上下边缘时自动滚动。
+        self._line_drag_active = False
+        self._line_drag_anchor_line = None
+        self._line_drag_start_y = None
+        self._line_drag_scroll_direction = 0
+        self._line_drag_scroll_id = None
 
         # 配色缓存：_get_scheme_colors 原实现每帧（draw）对每个可见行都重新
         # 取 style-scheme 并解析一堆 hex 字符串构造 RGBA，纯属浪费。缓存后在
@@ -138,6 +152,18 @@ class Gutter(object):
         event_controller.connect('pressed', self.on_button_press)
         event_controller.set_button(1)
         self.drawing_area.add_controller(event_controller)
+
+        # 行号拖动选区。GestureDrag 与上面的 GestureClick 可以共存：按下时
+        # 两者都会收到事件（GTK 手势组内互不阻断），点击仍由 GestureClick
+        # 选中单行，拖动则由这里按整行扩展。drag-begin 在按下瞬间就会触发，
+        # 此时 x/y 为按下点，用于判断是否从行号区开始拖动。
+        drag_controller = Gtk.GestureDrag()
+        drag_controller.set_button(1)
+        drag_controller.connect('drag-begin', self.on_line_selection_drag_begin)
+        drag_controller.connect('drag-update', self.on_line_selection_drag_update)
+        drag_controller.connect('drag-end', self.on_line_selection_drag_end)
+        drag_controller.connect('cancel', self.on_line_selection_drag_cancel)
+        self.drawing_area.add_controller(drag_controller)
 
         event_controller = Gtk.EventControllerMotion()
         event_controller.connect('enter', self.on_enter)
@@ -235,6 +261,8 @@ class Gutter(object):
         if self._refresh_idle_id is not None:
             GLib.source_remove(self._refresh_idle_id)
             self._refresh_idle_id = None
+
+        self._stop_line_drag_autoscroll()
 
         self.document_view.remove_size_observer(self.on_editor_size_changed)
 
@@ -498,7 +526,7 @@ class Gutter(object):
         return False
 
     def on_button_press(self, event_controller, n_press, x, y):
-        cursor_area = self.get_cursor_area()
+        cursor_area = self.get_cursor_area(x)
         if cursor_area == 'code_folding' and self.hovered_folding_region != None:
             if self.hovered_folding_region['is_folded']:
                 self.document.code_folding.unfold(self.hovered_folding_region)
@@ -510,15 +538,138 @@ class Gutter(object):
             line = line_iter.get_line()
             self.document.bookmarks.toggle_bookmark(line)
         else:
-            offset = self.adjustment.get_value()
-            target = self.source_view.get_line_at_y(offset + y).target_iter
-            line_number = target.get_line()
-            line_start = self.source_buffer.get_iter_at_line(line_number)[1]
-            if line_number == self.source_buffer.get_line_count() - 1:
-                line_end = self.source_buffer.get_end_iter()
-            else:
-                line_end = self.source_buffer.get_iter_at_line(line_number + 1)[1]
-            self.source_buffer.select_range(line_start, line_end)
+            line_number = self._line_at_widget_y(y)
+            self._select_line_range(line_number, line_number)
+        return True
+
+    # —— 行号拖动选区 ————————————————————————————————————————————————
+
+    def on_line_selection_drag_begin(self, controller, x, y):
+        '''按住行号开始拖动：记录起始行作为选区锚点。
+
+        只有在行号区按下才进入拖动模式；折叠、书签等其它 gutter 区域
+        保持原有点击行为。drag-begin 在按下瞬间触发，即使最终只是单击，
+        后续 click 手势仍会正常选中单行，drag-end 再按锚点行兜底一次，
+        结果一致。
+        '''
+        self._reset_line_selection_drag()
+        if self.get_cursor_area(x) != 'line_numbers':
+            return
+        self._line_drag_active = True
+        self._line_drag_start_y = y
+        self._line_drag_anchor_line = self._line_at_widget_y(y)
+
+    def on_line_selection_drag_update(self, controller, offset_x, offset_y):
+        if not self._line_drag_active:
+            return
+        y = self._line_drag_start_y + offset_y
+        self._update_line_selection(self._clamp_line_drag_y(y))
+        self._update_line_drag_autoscroll(y)
+
+    def on_line_selection_drag_end(self, controller, offset_x, offset_y):
+        if self._line_drag_active:
+            # 补一次最终位置：拖动很快时最后一个 motion 未必产生 drag-update。
+            y = self._line_drag_start_y + offset_y
+            self._update_line_selection(self._clamp_line_drag_y(y))
+        self._reset_line_selection_drag()
+
+    def on_line_selection_drag_cancel(self, controller, *args):
+        self._reset_line_selection_drag()
+
+    def _reset_line_selection_drag(self):
+        self._stop_line_drag_autoscroll()
+        self._line_drag_active = False
+        self._line_drag_anchor_line = None
+        self._line_drag_start_y = None
+        self._line_drag_scroll_direction = 0
+
+    def _select_line_range(self, anchor_line, current_line):
+        '''选中 anchor_line 到 current_line 之间的整行（含两端）。
+
+        选区终点取末行下一行的行首（与单击行号、VS Code 的整行选择一致）；
+        末行则止于 buffer 末尾。行号来自指针 y 的换算，文档并发变化时
+        可能越界，这里统一钳制。
+        '''
+        line_count = self.source_buffer.get_line_count()
+        first = max(0, min(min(anchor_line, current_line), line_count - 1))
+        last = max(0, min(max(anchor_line, current_line), line_count - 1))
+        start_iter = self.source_buffer.get_iter_at_line(first)[1]
+        if last >= line_count - 1:
+            end_iter = self.source_buffer.get_end_iter()
+        else:
+            end_iter = self.source_buffer.get_iter_at_line(last + 1)[1]
+        self.source_buffer.select_range(start_iter, end_iter)
+
+    def _update_line_selection(self, y):
+        if self._line_drag_anchor_line is None:
+            return
+        self._select_line_range(self._line_drag_anchor_line,
+                                self._line_at_widget_y(y))
+
+    def _line_at_widget_y(self, y):
+        '''把 gutter 内的控件 y 换算成 buffer 行号（已加滚动偏移并钳制）。'''
+        offset = self.adjustment.get_value()
+        line = self.source_view.get_line_at_y(offset + y).target_iter.get_line()
+        line_count = self.source_buffer.get_line_count()
+        return max(0, min(line, line_count - 1))
+
+    def _line_drag_viewport_height(self):
+        height = self.source_view.get_allocated_height()
+        if not height or height <= 0:
+            height = self.drawing_area.get_allocated_height()
+        return height if height and height > 0 else 0
+
+    def _clamp_line_drag_y(self, y):
+        height = self._line_drag_viewport_height()
+        if height <= 0:
+            return y
+        return max(0, min(y, height - 1))
+
+    def _update_line_drag_autoscroll(self, y):
+        '''指针靠近视口上下边缘时启动自动滚动，离开边缘则停止。'''
+        height = self._line_drag_viewport_height()
+        if height <= 0:
+            self._stop_line_drag_autoscroll()
+            return
+        if y < self._LINE_DRAG_EDGE:
+            direction = -1
+        elif y > height - self._LINE_DRAG_EDGE:
+            direction = 1
+        else:
+            self._stop_line_drag_autoscroll()
+            return
+        self._line_drag_scroll_direction = direction
+        if self._line_drag_scroll_id is None:
+            self._line_drag_scroll_id = GLib.timeout_add(
+                self._LINE_DRAG_SCROLL_INTERVAL_MS,
+                self._line_drag_autoscroll_timeout)
+
+    def _stop_line_drag_autoscroll(self):
+        if self._line_drag_scroll_id is not None:
+            GLib.source_remove(self._line_drag_scroll_id)
+            self._line_drag_scroll_id = None
+
+    def _line_drag_autoscroll_timeout(self):
+        if not self._line_drag_active:
+            self._line_drag_scroll_id = None
+            return False
+        height = self._line_drag_viewport_height()
+        if height <= 0:
+            self._line_drag_scroll_id = None
+            return False
+
+        step = max(12, round((self.line_height or 18) * 0.9))
+        lower = self.adjustment.get_lower()
+        page_size = self.adjustment.get_page_size()
+        max_value = max(lower, self.adjustment.get_upper() - page_size)
+        current = self.adjustment.get_value()
+        new_value = current + self._line_drag_scroll_direction * step
+        new_value = max(lower, min(new_value, max_value))
+        if new_value != current:
+            self.adjustment.set_value(new_value)
+
+        y = 0 if self._line_drag_scroll_direction < 0 else height - 1
+        self._update_line_selection(y)
         return True
 
     def on_enter(self, controller, x, y):
@@ -1220,20 +1371,22 @@ class Gutter(object):
             ctx.rectangle(self.total_width - 1, yrange_1.y - self.adjustment.get_value(), 3, yrange_2.y - yrange_1.y + yrange_2.height)
             ctx.fill()
 
-    def get_cursor_area(self):
-        if self.cursor_x == None: return None
+    def get_cursor_area(self, x=None):
+        if x is None:
+            x = self.cursor_x
+        if x is None: return None
         offset = 0
 
         if self.line_numbers_visible:
             offset += self.line_numbers_width
-        if self.cursor_x <= offset: return 'line_numbers'
+        if x <= offset: return 'line_numbers'
 
         if self.code_folding_visible:
             offset += self.code_folding_width
-        if self.cursor_x <= offset: return 'code_folding'
+        if x <= offset: return 'code_folding'
 
         if self.bookmarks_width:
             offset += self.bookmarks_width
-        if self.cursor_x <= offset: return 'bookmarks'
+        if x <= offset: return 'bookmarks'
 
         return None

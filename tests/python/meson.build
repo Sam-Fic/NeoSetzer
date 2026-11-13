@@ -78,6 +78,7 @@ foreach t : [
   ['test_preview_dest_scroll', 'test_preview_dest_scroll.py'],
   ['test_preview_scheduling', 'test_preview_scheduling.py'],
   ['test_gutter_reflow_cache', 'test_gutter_reflow_cache.py'],
+  ['test_gutter_line_drag', 'test_gutter_line_drag.py'],
   ['test_document_view_geometry', 'test_document_view_geometry.py'],
   ['test_sticky_scroll_throttle', 'test_sticky_scroll_throttle.py'],
   ['test_animation_prefs', 'test_animation_prefs.py'],
