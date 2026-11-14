@@ -178,186 +178,186 @@ msgstr "Principalmente correzioni di bug, …"
 #: data/resources/latexdb/languages/languages.xml:24
 #: data/resources/latexdb/languages/languages.xml:25
 msgid "English"
-msgstr ""
+msgstr "Inglese"
 
 #: data/resources/latexdb/languages/languages.xml:3
 msgid "Español"
-msgstr ""
+msgstr "Spagnolo"
 
 #: data/resources/latexdb/languages/languages.xml:4
 #: data/resources/latexdb/languages/languages.xml:29
 msgid "Français"
-msgstr ""
+msgstr "Francese"
 
 #: data/resources/latexdb/languages/languages.xml:5
 msgid "Русский"
-msgstr ""
+msgstr "Russo"
 
 #: data/resources/latexdb/languages/languages.xml:6
 #: data/resources/latexdb/languages/languages.xml:7
 msgid "Português"
-msgstr ""
+msgstr "Portoghese"
 
 #: data/resources/latexdb/languages/languages.xml:8
 #: data/resources/latexdb/languages/languages.xml:31
 #: data/resources/latexdb/languages/languages.xml:32
 #: data/resources/latexdb/languages/languages.xml:33
 msgid "Deutsch"
-msgstr ""
+msgstr "Tedesco"
 
 #: data/resources/latexdb/languages/languages.xml:9
 msgid "Italiano"
-msgstr ""
+msgstr "Italiano"
 
 #: data/resources/latexdb/languages/languages.xml:10
 msgid "Afrikaans"
-msgstr ""
+msgstr "Afrikaans"
 
 #: data/resources/latexdb/languages/languages.xml:11
 msgid "Azərbaycanca"
-msgstr ""
+msgstr "Azero"
 
 #: data/resources/latexdb/languages/languages.xml:12
 msgid "Euskara"
-msgstr ""
+msgstr "Basco"
 
 #: data/resources/latexdb/languages/languages.xml:13
 msgid "Brezhoneg"
-msgstr ""
+msgstr "Bretone"
 
 #: data/resources/latexdb/languages/languages.xml:14
 msgid "Български"
-msgstr ""
+msgstr "Bulgaro"
 
 #: data/resources/latexdb/languages/languages.xml:15
 msgid "Català"
-msgstr ""
+msgstr "Catalano"
 
 #: data/resources/latexdb/languages/languages.xml:16
 msgid "中文"
-msgstr ""
+msgstr "Cinese"
 
 #: data/resources/latexdb/languages/languages.xml:17
 msgid "Hrvatski"
-msgstr ""
+msgstr "Croato"
 
 #: data/resources/latexdb/languages/languages.xml:18
 msgid "Čeština"
-msgstr ""
+msgstr "Ceco"
 
 #: data/resources/latexdb/languages/languages.xml:19
 msgid "Dansk"
-msgstr ""
+msgstr "Danese"
 
 #: data/resources/latexdb/languages/languages.xml:20
 msgid "Nederlands"
-msgstr ""
+msgstr "Olandese"
 
 #: data/resources/latexdb/languages/languages.xml:26
 msgid "Esperanto"
-msgstr ""
+msgstr "Esperanto"
 
 #: data/resources/latexdb/languages/languages.xml:27
 msgid "Eesti"
-msgstr ""
+msgstr "Estone"
 
 #: data/resources/latexdb/languages/languages.xml:28
 msgid "Suomi"
-msgstr ""
+msgstr "Finlandese"
 
 #: data/resources/latexdb/languages/languages.xml:30
 msgid "Galego"
-msgstr ""
+msgstr "Galiziano"
 
 #: data/resources/latexdb/languages/languages.xml:34
 #: data/resources/latexdb/languages/languages.xml:35
 msgid "Ελληνικά"
-msgstr ""
+msgstr "Greco"
 
 #: data/resources/latexdb/languages/languages.xml:36
 msgid "עברית"
-msgstr ""
+msgstr "Ebraico"
 
 #: data/resources/latexdb/languages/languages.xml:37
 msgid "Íslenska"
-msgstr ""
+msgstr "Islandese"
 
 #: data/resources/latexdb/languages/languages.xml:38
 msgid "Bahasa Indonesia"
-msgstr ""
+msgstr "Indonesiano"
 
 #: data/resources/latexdb/languages/languages.xml:39
 msgid "Interlingua"
-msgstr ""
+msgstr "Interlingua"
 
 #: data/resources/latexdb/languages/languages.xml:40
 msgid "Gaeilge"
-msgstr ""
+msgstr "Irlandese"
 
 #: data/resources/latexdb/languages/languages.xml:41
 msgid "Latina"
-msgstr ""
+msgstr "Latino"
 
 #: data/resources/latexdb/languages/languages.xml:42
 msgid "Dolnoserbšćina"
-msgstr ""
+msgstr "Basso sorbo"
 
 #: data/resources/latexdb/languages/languages.xml:43
 msgid "Bahasa Melayu"
-msgstr ""
+msgstr "Malese"
 
 #: data/resources/latexdb/languages/languages.xml:44
 msgid "Davvisámegiella"
-msgstr ""
+msgstr "Sami settentrionale"
 
 #: data/resources/latexdb/languages/languages.xml:45
 #: data/resources/latexdb/languages/languages.xml:46
 msgid "Norsk"
-msgstr ""
+msgstr "Norvegese"
 
 #: data/resources/latexdb/languages/languages.xml:47
 msgid "Polski"
-msgstr ""
+msgstr "Polacco"
 
 #: data/resources/latexdb/languages/languages.xml:48
 msgid "Română"
-msgstr ""
+msgstr "Rumeno"
 
 #: data/resources/latexdb/languages/languages.xml:49
 msgid "Gàidhlig"
-msgstr ""
+msgstr "Gaelico scozzese"
 
 #: data/resources/latexdb/languages/languages.xml:50
 msgid "Slovenčina"
-msgstr ""
+msgstr "Slovacco"
 
 #: data/resources/latexdb/languages/languages.xml:51
 msgid "Slovenščina"
-msgstr ""
+msgstr "Sloveno"
 
 #: data/resources/latexdb/languages/languages.xml:52
 msgid "Svenska"
-msgstr ""
+msgstr "Svedese"
 
 #: data/resources/latexdb/languages/languages.xml:53
 msgid "Српски"
-msgstr ""
+msgstr "Serbo"
 
 #: data/resources/latexdb/languages/languages.xml:54
 msgid "Türkçe"
-msgstr ""
+msgstr "Turco"
 
 #: data/resources/latexdb/languages/languages.xml:55
 msgid "Українська"
-msgstr ""
+msgstr "Ucraino"
 
 #: data/resources/latexdb/languages/languages.xml:56
 msgid "Hornjoserbšćina"
-msgstr ""
+msgstr "Alto sorbo"
 
 #: data/resources/latexdb/languages/languages.xml:57
 msgid "Cymraeg"
-msgstr ""
+msgstr "Gallese"
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
@@ -515,7 +515,7 @@ msgid "Send to AI Agent"
 msgstr "Invia all'agente AI"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:56
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:88
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:96
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:380
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:828
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:852
@@ -550,7 +550,7 @@ msgstr "Invia all'agente AI"
 #: setzer/workspace/actions/actions.py:450
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/commit_dialog.py:69
+#: setzer/workspace/sidebar/git/commit_dialog.py:68
 #: setzer/workspace/sidebar/git/git_section.py:181
 #: setzer/workspace/welcome_screen/welcome_screen.py:299
 msgid "Cancel"
@@ -1117,21 +1117,21 @@ msgstr "Pacchetti attualmente utilizzati da questo documento."
 msgid "Remove Package"
 msgstr "Rimuovi pacchetto"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:73
 msgid "Crash recovery"
 msgstr "Recupero dopo arresto anomalo"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:75
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
 #, python-brace-format
 msgid "Setzer did not exit cleanly last time. {n} unsaved document(s) were recovered:"
 msgstr "Setzer non è stato chiuso correttamente l'ultima volta. È stato recuperato {n} documento non salvato:"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:87
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:95
 #: setzer/dialogs/close_confirmation/close_confirmation.py:76
 msgid "Discard All"
 msgstr "Scarta tutto"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:89
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:97
 msgid "Restore All"
 msgstr "Ripristina tutto"
 
@@ -2642,6 +2642,7 @@ msgstr "La data del documento, usata nel comando \\date{}. Usa \\today per la da
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:354
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
 #: setzer/dialogs/preferences/pages/page_editor.py:976
 msgid "Language"
@@ -2657,6 +2658,7 @@ msgstr "La lingua principale per i modelli di sillabazione e le etichette automa
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:237
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:240
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:355
 msgid "Font package"
 msgstr "Pacchetto font"
 
@@ -2710,6 +2712,7 @@ msgid "Layout"
 msgstr "Layout"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:311
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:356
 msgid "Packages"
 msgstr "Pacchetti"
 
@@ -2725,36 +2728,47 @@ msgstr "Altri pacchetti"
 msgid "Comma-separated package names to include additionally."
 msgstr "Nomi di pacchetti da includere ulteriormente, separati da virgole."
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:347
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Ready to create"
 msgstr "Pronto per la creazione"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:369
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:353
+#: setzer/document/preview/preview_presenter.py:639
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
+msgid "Document"
+msgstr "Documento"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:380
 msgid "Saved source template"
 msgstr "Modello di sorgente salvato"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:371
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:385
 msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
 msgstr "“{}” verrà inserito esattamente come è stato salvato. Le impostazioni di classe del documento, lingua, pacchetti e metadati sopra indicate non verranno applicate."
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Document title required"
 msgstr "Titolo del documento obbligatorio"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "landscape"
 msgstr "orizzontale"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "portrait"
 msgstr "verticale"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:379
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:393
 msgid "no extra packages"
 msgstr "nessun pacchetto aggiuntivo"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:381
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
+msgid "default paper"
+msgstr "formato carta predefinito"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
 msgid ""
 "{} · {} · {} · {}\n"
 "Language: {}\n"
@@ -2766,23 +2780,19 @@ msgstr ""
 "Pacchetto di caratteri: {}\n"
 "Pacchetti: {}"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:382
-msgid "default paper"
-msgstr "formato carta predefinito"
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "enter a title to continue"
 msgstr "inserire un titolo per continuare"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "ready"
 msgstr "pronto"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "none"
 msgstr "nessuno"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "not set"
 msgstr "non impostato"
 
@@ -6660,12 +6670,6 @@ msgstr "Nessuna stampante disponibile"
 msgid "Could not prepare print data"
 msgstr "Impossibile preparare i dati di stampa"
 
-#: setzer/document/preview/preview_presenter.py:639
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
-msgid "Document"
-msgstr "Documento"
-
 #: setzer/document/preview/preview_presenter.py:648
 msgid "Printing failed"
 msgstr "Stampa non riuscita"
@@ -8075,19 +8079,19 @@ msgstr "Modificato (preparato + non preparato)"
 msgid "Commit && Push"
 msgstr "Commit && push"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:72
+#: setzer/workspace/sidebar/git/commit_dialog.py:71
 msgid "Commit"
 msgstr "Commit"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:88
+#: setzer/workspace/sidebar/git/commit_dialog.py:87
 msgid "Commit message"
 msgstr "Messaggio di commit"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:93
+#: setzer/workspace/sidebar/git/commit_dialog.py:92
 msgid "Changes to include:"
 msgstr "Modifiche da includere:"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:101
+#: setzer/workspace/sidebar/git/commit_dialog.py:100
 msgid "No changes in this repository."
 msgstr "Nessuna modifica in questo repository."
 

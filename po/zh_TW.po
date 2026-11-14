@@ -180,186 +180,186 @@ msgstr "以錯誤修復為主，……"
 #: data/resources/latexdb/languages/languages.xml:24
 #: data/resources/latexdb/languages/languages.xml:25
 msgid "English"
-msgstr ""
+msgstr "英語"
 
 #: data/resources/latexdb/languages/languages.xml:3
 msgid "Español"
-msgstr ""
+msgstr "西班牙語"
 
 #: data/resources/latexdb/languages/languages.xml:4
 #: data/resources/latexdb/languages/languages.xml:29
 msgid "Français"
-msgstr ""
+msgstr "法語"
 
 #: data/resources/latexdb/languages/languages.xml:5
 msgid "Русский"
-msgstr ""
+msgstr "俄語"
 
 #: data/resources/latexdb/languages/languages.xml:6
 #: data/resources/latexdb/languages/languages.xml:7
 msgid "Português"
-msgstr ""
+msgstr "葡萄牙語"
 
 #: data/resources/latexdb/languages/languages.xml:8
 #: data/resources/latexdb/languages/languages.xml:31
 #: data/resources/latexdb/languages/languages.xml:32
 #: data/resources/latexdb/languages/languages.xml:33
 msgid "Deutsch"
-msgstr ""
+msgstr "德語"
 
 #: data/resources/latexdb/languages/languages.xml:9
 msgid "Italiano"
-msgstr ""
+msgstr "義大利語"
 
 #: data/resources/latexdb/languages/languages.xml:10
 msgid "Afrikaans"
-msgstr ""
+msgstr "南非荷蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:11
 msgid "Azərbaycanca"
-msgstr ""
+msgstr "亞塞拜然語"
 
 #: data/resources/latexdb/languages/languages.xml:12
 msgid "Euskara"
-msgstr ""
+msgstr "巴斯克語"
 
 #: data/resources/latexdb/languages/languages.xml:13
 msgid "Brezhoneg"
-msgstr ""
+msgstr "布列塔尼語"
 
 #: data/resources/latexdb/languages/languages.xml:14
 msgid "Български"
-msgstr ""
+msgstr "保加利亞語"
 
 #: data/resources/latexdb/languages/languages.xml:15
 msgid "Català"
-msgstr ""
+msgstr "加泰隆尼亞語"
 
 #: data/resources/latexdb/languages/languages.xml:16
 msgid "中文"
-msgstr ""
+msgstr "中文"
 
 #: data/resources/latexdb/languages/languages.xml:17
 msgid "Hrvatski"
-msgstr ""
+msgstr "克羅埃西亞語"
 
 #: data/resources/latexdb/languages/languages.xml:18
 msgid "Čeština"
-msgstr ""
+msgstr "捷克語"
 
 #: data/resources/latexdb/languages/languages.xml:19
 msgid "Dansk"
-msgstr ""
+msgstr "丹麥語"
 
 #: data/resources/latexdb/languages/languages.xml:20
 msgid "Nederlands"
-msgstr ""
+msgstr "荷蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:26
 msgid "Esperanto"
-msgstr ""
+msgstr "世界語"
 
 #: data/resources/latexdb/languages/languages.xml:27
 msgid "Eesti"
-msgstr ""
+msgstr "愛沙尼亞語"
 
 #: data/resources/latexdb/languages/languages.xml:28
 msgid "Suomi"
-msgstr ""
+msgstr "芬蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:30
 msgid "Galego"
-msgstr ""
+msgstr "加利西亞語"
 
 #: data/resources/latexdb/languages/languages.xml:34
 #: data/resources/latexdb/languages/languages.xml:35
 msgid "Ελληνικά"
-msgstr ""
+msgstr "希臘語"
 
 #: data/resources/latexdb/languages/languages.xml:36
 msgid "עברית"
-msgstr ""
+msgstr "希伯來語"
 
 #: data/resources/latexdb/languages/languages.xml:37
 msgid "Íslenska"
-msgstr ""
+msgstr "冰島語"
 
 #: data/resources/latexdb/languages/languages.xml:38
 msgid "Bahasa Indonesia"
-msgstr ""
+msgstr "印尼語"
 
 #: data/resources/latexdb/languages/languages.xml:39
 msgid "Interlingua"
-msgstr ""
+msgstr "國際語"
 
 #: data/resources/latexdb/languages/languages.xml:40
 msgid "Gaeilge"
-msgstr ""
+msgstr "愛爾蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:41
 msgid "Latina"
-msgstr ""
+msgstr "拉丁語"
 
 #: data/resources/latexdb/languages/languages.xml:42
 msgid "Dolnoserbšćina"
-msgstr ""
+msgstr "下索布語"
 
 #: data/resources/latexdb/languages/languages.xml:43
 msgid "Bahasa Melayu"
-msgstr ""
+msgstr "馬來語"
 
 #: data/resources/latexdb/languages/languages.xml:44
 msgid "Davvisámegiella"
-msgstr ""
+msgstr "北薩米語"
 
 #: data/resources/latexdb/languages/languages.xml:45
 #: data/resources/latexdb/languages/languages.xml:46
 msgid "Norsk"
-msgstr ""
+msgstr "挪威語"
 
 #: data/resources/latexdb/languages/languages.xml:47
 msgid "Polski"
-msgstr ""
+msgstr "波蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:48
 msgid "Română"
-msgstr ""
+msgstr "羅馬尼亞語"
 
 #: data/resources/latexdb/languages/languages.xml:49
 msgid "Gàidhlig"
-msgstr ""
+msgstr "蘇格蘭蓋爾語"
 
 #: data/resources/latexdb/languages/languages.xml:50
 msgid "Slovenčina"
-msgstr ""
+msgstr "斯洛伐克語"
 
 #: data/resources/latexdb/languages/languages.xml:51
 msgid "Slovenščina"
-msgstr ""
+msgstr "斯洛維尼亞語"
 
 #: data/resources/latexdb/languages/languages.xml:52
 msgid "Svenska"
-msgstr ""
+msgstr "瑞典語"
 
 #: data/resources/latexdb/languages/languages.xml:53
 msgid "Српски"
-msgstr ""
+msgstr "塞爾維亞語"
 
 #: data/resources/latexdb/languages/languages.xml:54
 msgid "Türkçe"
-msgstr ""
+msgstr "土耳其語"
 
 #: data/resources/latexdb/languages/languages.xml:55
 msgid "Українська"
-msgstr ""
+msgstr "烏克蘭語"
 
 #: data/resources/latexdb/languages/languages.xml:56
 msgid "Hornjoserbšćina"
-msgstr ""
+msgstr "上索布語"
 
 #: data/resources/latexdb/languages/languages.xml:57
 msgid "Cymraeg"
-msgstr ""
+msgstr "威爾斯語"
 
 #: data/resources/latexdb/packages/general.xml:2
 msgid "additional math fonts from AMS."
@@ -517,7 +517,7 @@ msgid "Send to AI Agent"
 msgstr "傳送至 AI 代理"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:56
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:88
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:96
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:380
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:828
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:852
@@ -552,7 +552,7 @@ msgstr "傳送至 AI 代理"
 #: setzer/workspace/actions/actions.py:450
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/commit_dialog.py:69
+#: setzer/workspace/sidebar/git/commit_dialog.py:68
 #: setzer/workspace/sidebar/git/git_section.py:181
 #: setzer/workspace/welcome_screen/welcome_screen.py:299
 msgid "Cancel"
@@ -1117,21 +1117,21 @@ msgstr "此文件目前使用的套件。"
 msgid "Remove Package"
 msgstr "移除套件"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:73
 msgid "Crash recovery"
 msgstr "當機復原"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:75
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
 #, python-brace-format
 msgid "Setzer did not exit cleanly last time. {n} unsaved document(s) were recovered:"
 msgstr "NeoSetzer 上一次並未正常結束。已復原 {n} 個未儲存的文件："
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:87
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:95
 #: setzer/dialogs/close_confirmation/close_confirmation.py:76
 msgid "Discard All"
 msgstr "全部捨棄"
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:89
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:97
 msgid "Restore All"
 msgstr "全部復原"
 
@@ -2642,6 +2642,7 @@ msgstr "文件的日期，用於 \\date{} 指令。使用 \\\\today 表示目前
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:354
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
 #: setzer/dialogs/preferences/pages/page_editor.py:976
 msgid "Language"
@@ -2657,6 +2658,7 @@ msgstr "主要語言，用於連字規則與自動標籤（例如「Abstract」�
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:237
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:240
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:355
 msgid "Font package"
 msgstr "字型套件"
 
@@ -2710,6 +2712,7 @@ msgid "Layout"
 msgstr "版面配置"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:311
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:356
 msgid "Packages"
 msgstr "套件"
 
@@ -2725,36 +2728,47 @@ msgstr "其他套件"
 msgid "Comma-separated package names to include additionally."
 msgstr "額外包含的套件名稱，以逗號分隔。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:347
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Ready to create"
 msgstr "可以建立"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:369
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:353
+#: setzer/document/preview/preview_presenter.py:639
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
+msgid "Document"
+msgstr "文件"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:380
 msgid "Saved source template"
 msgstr "已儲存的原始碼文件範本"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:371
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:385
 msgid "“{}” will be inserted exactly as saved. Document class, language, package, and metadata settings above will not be applied."
 msgstr "將完全依照儲存時的內容插入「{}」。上方的文件類別、語言、套件和中繼資料設定不會套用。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Document title required"
 msgstr "需要文件標題"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "landscape"
 msgstr "橫向"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "portrait"
 msgstr "縱向"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:379
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:393
 msgid "no extra packages"
 msgstr "沒有額外套件"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:381
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
+msgid "default paper"
+msgstr "預設紙張"
+
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
 msgid ""
 "{} · {} · {} · {}\n"
 "Language: {}\n"
@@ -2766,23 +2780,19 @@ msgstr ""
 "字型套件：{}\n"
 "套件：{}"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:382
-msgid "default paper"
-msgstr "預設紙張"
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "enter a title to continue"
 msgstr "輸入標題後即可繼續"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "ready"
 msgstr "可建立"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "none"
 msgstr "無"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "not set"
 msgstr "未設定"
 
@@ -6662,12 +6672,6 @@ msgstr "沒有可用的印表機"
 msgid "Could not prepare print data"
 msgstr "無法準備列印資料"
 
-#: setzer/document/preview/preview_presenter.py:639
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
-msgid "Document"
-msgstr "文件"
-
 #: setzer/document/preview/preview_presenter.py:648
 msgid "Printing failed"
 msgstr "列印失敗"
@@ -8080,19 +8084,19 @@ msgstr "已修改（已暫存 + 未暫存）"
 msgid "Commit && Push"
 msgstr "提交並推送"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:72
+#: setzer/workspace/sidebar/git/commit_dialog.py:71
 msgid "Commit"
 msgstr "提交"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:88
+#: setzer/workspace/sidebar/git/commit_dialog.py:87
 msgid "Commit message"
 msgstr "提交訊息"
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:93
+#: setzer/workspace/sidebar/git/commit_dialog.py:92
 msgid "Changes to include:"
 msgstr "要包含的變更："
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:101
+#: setzer/workspace/sidebar/git/commit_dialog.py:100
 msgid "No changes in this repository."
 msgstr "此儲存庫中沒有變更。"
 
