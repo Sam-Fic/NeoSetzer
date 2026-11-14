@@ -255,7 +255,7 @@ msgid "Send to AI Agent"
 msgstr ""
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:56
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:88
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:96
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:380
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:828
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:852
@@ -290,7 +290,7 @@ msgstr ""
 #: setzer/workspace/actions/actions.py:450
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/commit_dialog.py:69
+#: setzer/workspace/sidebar/git/commit_dialog.py:68
 #: setzer/workspace/sidebar/git/git_section.py:181
 #: setzer/workspace/welcome_screen/welcome_screen.py:299
 msgid "Cancel"
@@ -852,23 +852,23 @@ msgstr ""
 msgid "Remove Package"
 msgstr ""
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:73
 msgid "Crash recovery"
 msgstr ""
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:75
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:74
 #, python-brace-format
 msgid ""
 "Setzer did not exit cleanly last time. {n} unsaved document(s) were "
 "recovered:"
 msgstr ""
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:87
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:95
 #: setzer/dialogs/close_confirmation/close_confirmation.py:76
 msgid "Discard All"
 msgstr ""
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:89
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:97
 msgid "Restore All"
 msgstr ""
 
@@ -2359,6 +2359,7 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:214
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:354
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
 #: setzer/dialogs/preferences/pages/page_editor.py:976
 msgid "Language"
@@ -2378,6 +2379,7 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:237
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:240
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:355
 msgid "Font package"
 msgstr ""
 
@@ -2435,6 +2437,7 @@ msgid "Layout"
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:311
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:356
 msgid "Packages"
 msgstr ""
 
@@ -2450,38 +2453,38 @@ msgstr ""
 msgid "Comma-separated package names to include additionally."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:347
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Ready to create"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:369
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:380
 msgid "Saved source template"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:371
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:385
 msgid ""
 "“{}” will be inserted exactly as saved. Document class, language, package, "
 "and metadata settings above will not be applied."
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:377
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:391
 msgid "Document title required"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "landscape"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:378
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:392
 msgid "portrait"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:379
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:393
 msgid "no extra packages"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:381
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
 msgid ""
 "{} · {} · {} · {}\n"
 "Language: {}\n"
@@ -2489,23 +2492,23 @@ msgid ""
 "Packages: {}"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:382
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
 msgid "default paper"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "ready"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:383
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:398
 msgid "enter a title to continue"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "not set"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
 msgid "none"
 msgstr ""
 
@@ -6604,6 +6607,7 @@ msgstr ""
 #: setzer/document/preview/preview_presenter.py:639
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:353
 msgid "Document"
 msgstr ""
 
@@ -8062,19 +8066,19 @@ msgstr ""
 msgid "Commit && Push"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:72
+#: setzer/workspace/sidebar/git/commit_dialog.py:71
 msgid "Commit"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:88
+#: setzer/workspace/sidebar/git/commit_dialog.py:87
 msgid "Commit message"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:93
+#: setzer/workspace/sidebar/git/commit_dialog.py:92
 msgid "Changes to include:"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:101
+#: setzer/workspace/sidebar/git/commit_dialog.py:100
 msgid "No changes in this repository."
 msgstr ""
 

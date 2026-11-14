@@ -66,23 +66,31 @@ class AutosaveRecoveryDialog(object):
                 time_str = dt.format('%x %H:%M') if dt is not None else ''
             else:
                 time_str = ''
-            names.append('• {}  <span alpha="50%">{}</span>'.format(
-                GLib.markup_escape_text(displayname), time_str))
+            names.append((displayname, time_str))
 
         n = len(entries)
         self.view = Adw.AlertDialog(
             heading=_('Crash recovery'),
             body=_('Setzer did not exit cleanly last time. {n} unsaved document(s) '
                    'were recovered:').format(n=n))
-        # 用 extra_child 显示文档列表（body 不支持多行 markup 列表）
-        list_label = Gtk.Label(label='\n'.join(names))
-        list_label.set_use_markup(True)
-        list_label.set_halign(Gtk.Align.START)
-        list_label.set_xalign(0.0)
-        list_label.set_margin_top(6)
-        list_label.set_margin_bottom(6)
-        list_label.set_wrap(True)
-        self.view.set_extra_child(list_label)
+        # extra_child 用 boxed-list 行呈现文档（title=文件名，subtitle=时间），
+        # 替代原单 Label 拼多行 markup 的伪列表；高度随内容收缩，超过
+        # 260px 内部滚动（preamble_assistant 同款范式）。
+        listbox = Gtk.ListBox()
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        listbox.add_css_class('boxed-list')
+        for displayname, time_str in names:
+            row = Adw.ActionRow()
+            row.set_title(displayname)
+            row.set_subtitle(time_str)
+            row.set_activatable(False)
+            listbox.append(row)
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_propagate_natural_height(True)
+        scrolled.set_max_content_height(260)
+        scrolled.set_child(listbox)
+        self.view.set_extra_child(scrolled)
 
         self.view.add_response('discard_all', _('Discard All'))
         self.view.add_response('cancel', _('Cancel'))

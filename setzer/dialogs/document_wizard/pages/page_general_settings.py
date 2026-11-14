@@ -343,14 +343,25 @@ class GeneralSettingsPageView(PageView):
         self.group_preview.add(self.preview_label)
 
         # Creation summary ---------------------------------------------------
+        # Property Rows 形态（libadwaita demo 同款）：一行一项，值在
+        # subtitle 中且 selectable（可复制）；.property 样式把标题缩小
+        # 压暗、值恢复正常字重，替代原先一整段多行 dim label。
         self.group_creation_summary = Adw.PreferencesGroup()
         self.group_creation_summary.set_title(_('Ready to create'))
-        self.creation_summary_label = Gtk.Label()
-        self.creation_summary_label.set_xalign(0)
-        self.creation_summary_label.set_wrap(True)
-        self.creation_summary_label.set_selectable(True)
-        self.creation_summary_label.add_css_class('dim-label')
-        self.group_creation_summary.add(self.creation_summary_label)
+        self.summary_rows = {}
+        for key, title in (
+            ('overview', _('Document')),
+            ('language', _('Language')),
+            ('font_package', _('Font package')),
+            ('packages', _('Packages')),
+        ):
+            row = Adw.ActionRow()
+            row.set_title(title)
+            row.add_css_class('property')
+            row.set_subtitle_selectable(True)
+            row.set_activatable(False)
+            self.group_creation_summary.add(row)
+            self.summary_rows[key] = row
 
         # Layout -------------------------------------------------------------
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -367,21 +378,29 @@ class GeneralSettingsPageView(PageView):
         '''Render a concise, non-editable description of the pending action.'''
         if plan.mode == 'source-template':
             self.group_creation_summary.set_title(_('Saved source template'))
-            self.creation_summary_label.set_text(
-                _('“{}” will be inserted exactly as saved. Document class, language, '
-                  'package, and metadata settings above will not be applied.').format(
-                      plan.template_name))
+            # 模板模式只有一条说明：其余行隐藏。
+            for key, row in self.summary_rows.items():
+                row.set_visible(key == 'overview')
+            self.summary_rows['overview'].set_subtitle(_(
+                '“{}” will be inserted exactly as saved. Document class, language, '
+                'package, and metadata settings above will not be applied.').format(
+                    plan.template_name))
             return
 
         self.group_creation_summary.set_title(
             _('Ready to create') if plan.ready else _('Document title required'))
         orientation = _('landscape') if plan.landscape else _('portrait')
         package_text = ', '.join(plan.packages) if plan.packages else _('no extra packages')
-        self.creation_summary_label.set_text(
-            _('{} · {} · {} · {}\nLanguage: {}\nFont package: {}\nPackages: {}').format(
-                plan.document_class, plan.page_format or _('default paper'), orientation,
-                _('ready') if plan.ready else _('enter a title to continue'),
-                plan.language or _('not set'), plan.font_package or _('none'), package_text))
+        for row in self.summary_rows.values():
+            row.set_visible(True)
+        self.summary_rows['overview'].set_subtitle(_('{} · {} · {} · {}').format(
+            plan.document_class, plan.page_format or _('default paper'), orientation,
+            _('ready') if plan.ready else _('enter a title to continue')))
+        self.summary_rows['language'].set_subtitle(
+            plan.language or _('not set'))
+        self.summary_rows['font_package'].set_subtitle(
+            plan.font_package or _('none'))
+        self.summary_rows['packages'].set_subtitle(package_text)
 
     def _create_package_row(self, label, name):
         row = Adw.SwitchRow()

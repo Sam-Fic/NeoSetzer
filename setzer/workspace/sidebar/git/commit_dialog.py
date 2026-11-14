@@ -30,7 +30,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Gtk, Adw
 
 
 STATUS_LABELS = {
@@ -59,9 +59,8 @@ class CommitDialog(Adw.Dialog):
         self.file_rows = []  # [(check_button, entry dict), ...]
 
         self.set_title(_('Commit && Push'))
-        self.set_content_size(440, 520)
-        # 工作区规范：禁用系统右上角关闭按钮，仅保留手动 Cancel 入口
-        self.set_show_end_title_buttons(False)
+        self.set_content_width(440)
+        self.set_content_height(520)
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
@@ -138,29 +137,23 @@ class CommitDialog(Adw.Dialog):
         self.label_empty.set_visible(len(files) == 0)
 
         for entry in files:
-            row = Gtk.ListBoxRow()
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-            box.set_margin_top(6)
-            box.set_margin_bottom(6)
-            box.set_margin_start(10)
-            box.set_margin_end(10)
-            row.set_child(box)
+            # Adw.ActionRow + prefix CheckButton（libadwaita demo "Rows Can
+            # Have Prefix Widgets" 范式）：行高/分隔线/激活区域由 row 组件
+            # 托管，替代手拼 ListBoxRow+Box+手调 margin。
+            row = Adw.ActionRow()
+            # title 默认单行省略；长路径从尾部省略的需求由 GTK ellipsize
+            # 默认 END 处理（AdwActionRow 未暴露自定义 ellipsize）。
+            row.set_title(entry['path'])
+            row.set_subtitle(STATUS_LABELS.get(entry['status'], entry['status']))
+            row.set_activatable(True)
 
             check = Gtk.CheckButton()
             check.set_active(not entry['untracked'])
+            check.set_valign(Gtk.Align.CENTER)
             check.connect('toggled', lambda c: self.update_commit_sensitivity())
-            box.append(check)
-
-            path_label = Gtk.Label(label=entry['path'])
-            path_label.set_hexpand(True)
-            path_label.set_xalign(0)
-            path_label.set_ellipsize(Pango.EllipsizeMode.START)
-            box.append(path_label)
-
-            status_label = Gtk.Label(label=STATUS_LABELS.get(entry['status'], entry['status']))
-            status_label.add_css_class('dim-label')
-            status_label.add_css_class('caption')
-            box.append(status_label)
+            row.add_prefix(check)
+            # 勾选状态与行激活区绑定：点击行任意处即可切换勾选。
+            row.set_activatable_widget(check)
 
             self.list_box.append(row)
             self.file_rows.append((check, entry))
