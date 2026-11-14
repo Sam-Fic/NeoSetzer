@@ -329,6 +329,11 @@ class TabViewClosePageGuardTests(unittest.TestCase):
         sentinel._page_to_doc = page_to_doc if page_to_doc is not None else {}
         sentinel.workspace = Mock()
         sentinel.workspace._confirmed_closes = set()
+        # is_document_pinned must mirror the production semantics
+        # (document._pinned), not return a truthy Mock for every call —
+        # otherwise every close lands in the pinned-rejection branch.
+        sentinel.workspace.is_document_pinned = Mock(
+            side_effect=lambda d: bool(getattr(d, '_pinned', False)))
         sentinel.workspace.actions = actions if actions is not None else Mock()
         sentinel._finish_page = _bound(
             presenter_methods['_finish_page'], sentinel)
@@ -341,18 +346,42 @@ class TabViewClosePageGuardTests(unittest.TestCase):
             sentinel)
         return sentinel, bound
 
-    def _mock_document(self, modified=False, filename='/tmp/foo.tex'):
-        # The real handler reads document.source_buffer.get_modified()
-        # and document.get_filename(); mirror those on a Mock so the
-        # extracted method can run unmodified.
+    def _mock_document(self, modified=False, filename='/tmp/foo.tex', pinned=False):
+        # The real handler reads document.source_buffer.get_modified(),
+        # document.get_filename() and (via workspace.is_document_pinned)
+        # document._pinned. _pinned must be a plain bool: a Mock auto
+        # attribute would be truthy and route every close into the new
+        # pinned-rejection branch.
         doc = Mock()
         doc.source_buffer = Mock()
         doc.source_buffer.get_modified = Mock(return_value=modified)
         doc.get_filename = Mock(return_value=filename)
+        doc._pinned = pinned
         return doc
 
-    def test_unknown_page_propagates_to_default_handler(self):
-        # Unknown page: the handler must return False so libadwaita's
+    def test_pinned_page_propagates_to_default_handler(self):
+        # Pinned page: the handler must bail out and let libadwaita's
+        # default class handler reject the close (finish(page, False) —
+        # pinned pages cannot be closed in the native protocol). The
+        # handler must NOT finish itself and must NOT remove the
+        # document. It must also clear the _closing_pages entry it just
+        # added: the page stays in the view, and a stale entry would make
+        # every later close attempt (after unpin) a silent no-op.
+        actions = Mock()
+        doc = self._mock_document(modified=False, pinned=True)
+        page = object()
+        sentinel, bound = self._harness(
+            page_to_doc={page: doc},
+            actions=actions,
+        )
+        tab_view = Mock()
+        result = bound(tab_view, page)
+        self.assertFalse(result)
+        tab_view.close_page_finish.assert_not_called()
+        sentinel.workspace.remove_document.assert_not_called()
+        self.assertNotIn(page, sentinel._closing_pages)
+
+    def test_unknown_page_propagates_to_default_handler(self):        # Unknown page: the handler must return False so libadwaita's
         # default class handler auto-finishes (confirm=True for
         # non-pinned pages). It must NOT call close_page_finish itself:
         # finishing and then propagating makes the default handler

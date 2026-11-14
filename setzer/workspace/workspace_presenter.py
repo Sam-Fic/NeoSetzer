@@ -235,6 +235,12 @@ class WorkspacePresenter(object):
             # 会触发 page_belongs_to_this_view 断言），都不重复发起。
             if (page not in self._closing_pages
                     and page not in self._finished_pages):
+                # 程序化批量关闭（close-all、会话 discard 等）允许关 pinned
+                # 页：先解除页面 pin，否则 close-page 处理器的 pinned 分支会
+                # 拒绝（默认处理器 finish(False)），留下永远关不掉的幽灵标签。
+                # 文档已从 workspace 移除，page 的 pin 状态随之作废，解除无副作用。
+                if self.main_window.document_stack.page_is_pinned(page):
+                    self.main_window.document_stack.set_page_pinned(page, False)
                 self._selecting += 1
                 try:
                     self.main_window.document_stack.close_page(page)
@@ -740,7 +746,7 @@ class WorkspacePresenter(object):
 
         返回值契约（libadwaita 的 close-page 是 RUN_LAST + 布尔累加器信号，
         类默认处理器 close_page_cb 会对非 pin 页以 confirm=TRUE 立即
-        auto-finish）：
+        auto-finish，对 pin 页以 confirm=FALSE 拒绝关闭）：
         - 返回 True（GDK_EVENT_STOP）：默认处理器不运行，page 保持
           closing 状态，由应用负责稍后 close_page_finish（同步路径或
           确认对话框回调）。
@@ -751,6 +757,8 @@ class WorkspacePresenter(object):
         Adwaita-CRITICAL）。若弹异步确认对话框时返回 False，默认处理器
         会在用户作答前就拆掉标签页，Cancel 无从恢复。故：
         - 未知 page → return False 放行默认处理器（不自行 finish）。
+        - 已知 pinned 文档 → return False 放行默认处理器（拒绝关闭，
+          与官方协议一致；先清 _closing_pages 防幽灵条目）。
         - 已知文档 → return True 接管（未修改/已确认由 _do_remove 同步
           finish；已修改弹 close_confirmation 对话框，回调里 finish）。
 
@@ -775,6 +783,15 @@ class WorkspacePresenter(object):
             # 找不到对应文档：放行默认处理器 auto-finish（confirm=TRUE），
             # 不自行 close_page_finish——否则默认处理器随后会对已 detach 的
             # page 再 finish，触发 page_belongs_to_this_view 断言。
+            return False
+
+        if self.workspace.is_document_pinned(document):
+            # Pinned 页拒绝用户关闭（点 X / 中键 / Alt+W），对齐 libadwaita
+            # 默认协议（默认处理器 finish(page, !pinned)）：放行默认处理器
+            # 以 confirm=False 拒绝并复位 closing 状态。unpin 后即可正常
+            # 关闭；程序化批量路径（_confirmed_closes）在 on_document_removed
+            # 里先解除页面 pin，不经过本分支。
+            self._closing_pages.discard(page)
             return False
 
         def _do_remove():
@@ -859,15 +876,19 @@ class WorkspacePresenter(object):
         '''把 document._pinned 同步到 Adw.TabPage。
 
         固定页在 TabBar 中收缩为纯图标（不显示标题文字），必须给 page 设
-        图标否则空白。图标按文档类型取与 document_switcher 一致的符号图；
-        非固定页不显示图标（标题模式），设了也无副作用，保持始终设置即可。
-        '''
+        图标否则空白。图标按文档类型取与 document_switcher 一致的符号图。
+        非固定页必须清掉图标：AdwTab.update_icons 只要 page.icon 非空就
+        会在标题旁渲染图标（pinned 与否不决定 icon 显隐），残留会让
+        unpin 后的标签一直显示「图标+标题」。'''
         page = self._doc_to_page.get(document)
         if page is None:
             return
         pinned = bool(getattr(document, '_pinned', False))
         self.main_window.document_stack.set_page_pinned(page, pinned)
-        page.set_icon(Gio.ThemedIcon.new(self._document_icon_name(document)))
+        if pinned:
+            page.set_icon(Gio.ThemedIcon.new(self._document_icon_name(document)))
+        else:
+            page.set_icon(None)
 
     def _document_icon_name(self, document):
         '''固定标签的图标名：与 document_switcher 的类型图标保持一致。'''

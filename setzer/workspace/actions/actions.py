@@ -73,8 +73,11 @@ class Actions(object):
         self.add_action('close-active-document', self.close_active_document)
         self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
         # 标签条右键菜单：固定/取消固定与关闭目标标签。无菜单打开（快捷键
-        # 路径）时目标回退为当前活跃文档，见各回调。
+        # 路径）时目标回退为当前活跃文档，见各回调。pin/unpin 拆成两个
+        # 动作供菜单按 pinned 状态二选一显示；enable 态在 update_actions
+        # 按活跃文档同步，setup-menu 时按目标文档覆盖。
         self.add_action('pin-tab', self.pin_tab)
+        self.add_action('unpin-tab', self.unpin_tab)
         self.add_action('close-tab', self.close_tab)
         self.add_action('go-to-line', self.go_to_line)
         self.add_action('toggle-bookmark', self.toggle_bookmark)
@@ -320,6 +323,7 @@ class Actions(object):
         # 的目标回退同为活跃文档，语义一致。
         self.actions['close-tab'].set_enabled(document_active)
         self.actions['pin-tab'].set_enabled(document_active)
+        self.actions['unpin-tab'].set_enabled(document_active)
         self.actions['reopen-last-closed-document'].set_enabled(len(self._closed_document_stack) > 0)
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
@@ -809,13 +813,29 @@ class Actions(object):
         return document
 
     def pin_tab(self, action=None, parameter=None):
-        '''固定/取消固定标签页（Ctrl+Alt+P 与标签条右键菜单共用）。'''
+        '''固定/取消固定标签页（Ctrl+Alt+P 与命令面板的 toggle 语义）。
+        标签条右键菜单不用本动作做取消固定——菜单按 pinned 状态二选一
+        显示 pin/unpin（hidden-when="action-disabled"），unpin 走
+        unpin_tab；快捷键保持 toggle，对无菜单路径最直观。'''
         self.workspace.toggle_pin_document(self._pin_or_close_target_document())
+
+    def unpin_tab(self, action=None, parameter=None):
+        '''取消固定标签页（与 pin_tab 共享目标解析；对未固定目标是幂等
+        no-op）。pin/unpin 拆成两个动作供右键菜单按 pinned 状态二选一
+        显示（hidden-when="action-disabled"，官方 libadwaita demo 模式）。'''
+        document = self._pin_or_close_target_document()
+        if document is not None and self.workspace.is_document_pinned(document):
+            self.workspace.toggle_pin_document(document)
 
     def close_tab(self, action=None, parameter=None):
         '''关闭标签条右键菜单的目标标签（无菜单时关闭活跃文档）。
-        未保存确认等协议统一走 close_document → remove_document 链路。'''
-        self.close_document(self._pin_or_close_target_document())
+        未保存确认等协议统一走 close_document → remove_document 链路。
+        Pinned 目标不关闭：libadwaita 默认协议拒绝关闭 pinned 页，
+        菜单项已禁用，这里兜底快捷键等绕过菜单的路径。'''
+        document = self._pin_or_close_target_document()
+        if document is not None and self.workspace.is_document_pinned(document):
+            return
+        self.close_document(document)
 
     def reopen_last_closed_document(self, action=None, parameter=None):
         if len(self._closed_document_stack) == 0: return

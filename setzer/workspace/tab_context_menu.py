@@ -17,131 +17,96 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, Gio, Gtk
+gi.require_version('Adw', '1')
+from gi.repository import Gio, GLib
 
 from setzer.app.service_locator import ServiceLocator
 
 
+def _(s):
+    '''翻译函数。运行时委托 ``builtins._``（由 setzer.in 注入
+    trans.gettext），未注入时回退原字符串（开发/测试）。'''
+    import builtins
+    fn = getattr(builtins, '_', None)
+    return s if fn is None else fn(s)
+
+
 class TabContextMenu(object):
-    '''标签条（Adw.TabBar）右键菜单。
+    '''标签条（Adw.TabBar）右键菜单——Adw.TabView 原生方案。
 
-    菜单对「指针下的标签」生效。libadwaita 没有公开的 per-tab 命中测试 API，
-    这里利用 TabBar 内部稳定结构反查：TabBar 的内容是两个 ScrolledWindow
-    （固定区带 css class 'pinned'）各包一个 AdwTabBox，每个标签是盒内的一个
-    tabboxchild，且盒内 tabboxchild 的排列顺序与该组页面（按页序过滤后）的
-    顺序一致。因此：pick 取指针下最深控件 → 沿祖先链找 tabboxchild → 算出
-    它在所属盒内的序号 → 对回该组页面的页序。任何一步与预期结构不符都回退
-    为当前选中页——宁可作用于可见的选中标签，也不让菜单失效或崩溃。
+    Adw.TabView 自带右键菜单支持：右键标签时 libadwaita 内部先 emit
+    setup-menu(page)，再用 view 的 menu-model 弹出菜单（菜单项的
+    action 前缀取 view 所在 widget 树上插入的动作组，此处为 main_window
+    的 'win' 组）。page 由 libadwaita 直接给出，无需自行做 per-tab 命中
+    测试——旧实现对 TabBar 私有结构（tabboxchild css 名、pinned class）
+    的反查已随该迁移整体删除。
 
-    菜单项是 'win.pin-tab' / 'win.close-tab'（actions.py 注册），目标文档由
-    get_target_document() 提供：菜单打开期间为右键命中的文档，菜单关闭即清
-    空——快捷键等无菜单路径由 actions 回退到当前活跃文档。
+    菜单项是 'win.pin-tab' / 'win.unpin-tab' / 'win.close-tab'
+    （actions.py 注册）。Pin/Unpin 共用 toggle 语义但拆成两个动作，
+    菜单项用 hidden-when="action-disabled" 按 pinned 状态二选一显示
+    （Gio.Menu 不支持动态文案，官方 libadwaita demo 同款模式）；
+    update_actions() 负责按当前活跃文档同步动作 enable 态，setup-menu
+    时再按目标文档覆盖一次。菜单把取消固定路由到 win.unpin-tab；快捷键
+    Ctrl+Alt+P 仍为 toggle（pin_tab），不受菜单拆分影响。
+    Close Tab 对 pinned 文档禁用——libadwaita 默认协议拒绝关闭 pinned
+    页，菜单语义保持一致。
+
+    目标文档由 get_target_document() 提供：菜单打开期间为 setup-menu
+    命中的文档，菜单关闭即清空——快捷键等无菜单路径由 actions 回退到
+    当前活跃文档。
     '''
 
     def __init__(self, workspace):
         self.workspace = workspace
-        self.main_window = ServiceLocator.get_main_window()
         self._target_document = None
 
-        # 父控件固定为标签条：pointing-to 坐标与 GestureClick 的 x/y 同属
-        # document_tabs 坐标系，无需像编辑器右键菜单那样在弹出时换父。
-        self.popover = Gtk.PopoverMenu()
-        self.popover.set_has_arrow(False)
-        self.popover.set_parent(self.main_window.document_tabs)
-        self.popover.connect('closed', self.on_popover_closed)
+        tab_view = ServiceLocator.get_main_window().document_stack
 
-        # 只监听副键：主键 press/released 已由 WorkspacePresenter 的
-        # release-sync 手势处理，拖拽排序走 libadwaita 内部主键手势，
-        # 副键手势不参与序列竞争，不会复现 tab-reorder 问题。
-        self.click = Gtk.GestureClick()
-        self.click.set_button(Gdk.BUTTON_SECONDARY)
-        self.click.connect('pressed', self.on_tab_bar_right_click)
-        self.main_window.document_tabs.add_controller(self.click)
+        # 命中标签 → 目标文档（菜单打开期间生效），并按目标状态调整
+        # pin/unpin/close 动作 enable 态。page 为 None 的 emit 来自
+        # libadwaita 的菜单复位（右键空白处等），此时清空目标即可。
+        tab_view.connect('setup-menu', self.on_setup_menu)
+
+        # 菜单模型：Pin/Unpin 二选一显示，Close 对 pinned 禁用。
+        section = Gio.Menu()
+        item = Gio.MenuItem.new(_('Pin Tab'), 'win.pin-tab')
+        item.set_attribute_value('hidden-when',
+                                 GLib.Variant.new_string('action-disabled'))
+        section.append_item(item)
+        item = Gio.MenuItem.new(_('Unpin Tab'), 'win.unpin-tab')
+        item.set_attribute_value('hidden-when',
+                                 GLib.Variant.new_string('action-disabled'))
+        section.append_item(item)
+        item = Gio.MenuItem.new(_('Close Tab'), 'win.close-tab')
+        item.set_attribute_value('hidden-when',
+                                 GLib.Variant.new_string('action-disabled'))
+        section.append_item(item)
+        model = Gio.Menu()
+        model.append_section(None, section)
+        tab_view.set_menu_model(model)
+
+        # 目标文档的清空无需自行监听菜单关闭：libadwaita 在弹出菜单关闭后
+        # 会 idle 发出 setup-menu(NULL) 复位（adw-tab-box.c 的
+        # reset_setup_menu_cb），on_setup_menu 的 page=None 分支负责清空。
+        # 时序安全：菜单项点击的动作激活发生在 popover 关闭之前，此时
+        # _target_document 仍有效。
 
     def get_target_document(self):
         '''右键菜单当前作用的目标文档；菜单未打开时为 None。'''
         return self._target_document
 
-    def on_popover_closed(self, popover):
-        self._target_document = None
-
-    def on_tab_bar_right_click(self, gesture, n_press, x, y):
-        if n_press != 1:
-            return
-        page = self._get_page_at_coords(x, y)
+    def on_setup_menu(self, tab_view, page):
         if page is None:
+            # 菜单关闭后的复位 emit（或右键空白处）：清空目标文档，之后
+            # 快捷键等无菜单路径由 actions 回退到当前活跃文档。
+            self._target_document = None
             return
         document = self.workspace.presenter._page_to_doc.get(page)
-        if document is None:
-            return
         self._target_document = document
-        self.popover.set_menu_model(self._build_menu_model(
-            self.workspace.is_document_pinned(document)))
-        rect = Gdk.Rectangle()
-        rect.x = int(x)
-        rect.y = int(y)
-        rect.width = 1
-        rect.height = 1
-        self.popover.set_pointing_to(rect)
-        self.popover.popup()
-
-    def _build_menu_model(self, pinned):
-        '''按目标文档的固定状态建菜单：固定/取消固定共用 win.pin-tab，
-        标签文案在弹出时确定（Gio.Menu 不支持动态文案）。'''
-        section = Gio.Menu()
-        if pinned:
-            section.append(_('Unpin Tab'), 'win.pin-tab')
-        else:
-            section.append(_('Pin Tab'), 'win.pin-tab')
-        section.append(_('Close Tab'), 'win.close-tab')
-        model = Gio.Menu()
-        model.append_section(None, section)
-        return model
-
-    def _get_page_at_coords(self, x, y):
-        '''标签条坐标 → Adw.TabPage。结构不符/异常时回退当前选中页。'''
-        view = self.main_window.document_stack
-        try:
-            widget = self.main_window.document_tabs.pick(x, y, Gtk.PickFlags.DEFAULT)
-            while widget is not None and widget.get_css_name() != 'tabboxchild':
-                widget = widget.get_parent()
-            if widget is None:
-                return view.get_selected_page()
-            index = self._tabboxchild_index(widget)
-            is_pinned = self._is_in_pinned_box(widget)
-            # get_nth_page 按页序排列；固定页排在前段且组内保持相对顺序，
-            # 按是否固定过滤即得两个盒子各自的页面顺序。
-            ordered = [view.get_nth_page(i) for i in range(view.get_n_pages())]
-            group = [p for p in ordered
-                     if bool(p.get_property('pinned')) == is_pinned]
-            if index is not None and 0 <= index < len(group):
-                return group[index]
-        except Exception:
-            pass
-        return view.get_selected_page()
-
-    @staticmethod
-    def _tabboxchild_index(tabboxchild):
-        '''tabboxchild 在所属盒内的序号（按同级 tabboxchild 计数）。'''
-        parent = tabboxchild.get_parent()
-        if parent is None:
-            return None
-        index = 0
-        child = parent.get_first_child()
-        while child is not None:
-            if child is tabboxchild:
-                return index
-            if child.get_css_name() == 'tabboxchild':
-                index += 1
-            child = child.get_next_sibling()
-        return None
-
-    @staticmethod
-    def _is_in_pinned_box(widget):
-        '''沿祖先链找包着标签盒的 ScrolledWindow，看是否带 'pinned' class。'''
-        ancestor = widget.get_parent()
-        while ancestor is not None:
-            if isinstance(ancestor, Gtk.ScrolledWindow) and 'pinned' in ancestor.get_css_classes():
-                return True
-            ancestor = ancestor.get_parent()
-        return False
+        # 按目标文档覆盖动作 enable 态：pin/unpin 二选一，close 对
+        # pinned 禁用。菜单关闭后 update_actions() 会按活跃文档恢复。
+        actions = self.workspace.actions.actions
+        pinned = self.workspace.is_document_pinned(document)
+        actions['pin-tab'].set_enabled(not pinned)
+        actions['unpin-tab'].set_enabled(pinned)
+        actions['close-tab'].set_enabled(not pinned)
