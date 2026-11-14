@@ -64,16 +64,22 @@ class CommitDialog(Adw.Dialog):
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-        header = Adw.HeaderBar()
+        # 与项目其它 Adw.Dialog 一致：Adw.ToolbarView 装顶栏 + 内容区。
+        # 底部已有手动 Cancel 按钮，按 ui-guidelines 禁用默认右上角关闭按钮，
+        # 只保留单一关闭入口。
         self.cancel_button = Gtk.Button(label=_('Cancel'))
         self.cancel_button.connect('clicked', lambda b: self.close())
-        header.pack_start(self.cancel_button)
         self.commit_button = Gtk.Button(label=_('Commit'))
         self.commit_button.add_css_class('suggested-action')
         self.commit_button.set_sensitive(False)
         self.commit_button.connect('clicked', self.on_commit_clicked)
+        self.toolbar_view = Adw.ToolbarView()
+        header = Adw.HeaderBar()
+        header.set_show_end_title_buttons(False)
+        header.pack_start(self.cancel_button)
         header.pack_end(self.commit_button)
-        main_box.append(header)
+        self.toolbar_view.add_top_bar(header)
+        main_box.append(self.toolbar_view)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         content.set_margin_top(12)
@@ -116,7 +122,7 @@ class CommitDialog(Adw.Dialog):
         scrolled.set_child(clamp)
 
         self.set_child(main_box)
-        main_box.append(scrolled)
+        self.toolbar_view.set_content(scrolled)
 
         self.populate_files()
 
