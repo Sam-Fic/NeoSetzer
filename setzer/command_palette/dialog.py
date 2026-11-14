@@ -24,7 +24,7 @@ import builtins
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gdk, Gtk
+from gi.repository import Adw, Gdk, GLib, Gtk
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.command_palette.catalog import (
@@ -278,8 +278,19 @@ class CommandPaletteDialog(DialogView):
     def execute(self, command: CommandDescriptor):
         # Re-check enablement at execution time: the active document or preview
         # may have changed while the dialog was open.
-        if self.catalog.execute(command):
-            self.record_recent_command(command)
-            self.close()
-        else:
+        if not self.catalog.is_available(command):
             self.refresh_results()
+            return
+        self.record_recent_command(command)
+        self.close()
+        # 必须先关面板、下一帧再激活命令：palette 与目标弹窗（如 Preamble
+        # Assistant）都是模态 Adw.Dialog。若先激活——action 处理器同步
+        # present 目标弹窗、叠在面板上方——再 close 关闭的是位于下层的
+        # dialog，libadwaita 的 modal/input-grab 状态会被弄坏：面板残留
+        # 屏幕，整个窗口对鼠标和键盘全部无响应。GLib.idle 等本帧关闭
+        # 流程走完后再触发 action。
+        GLib.idle_add(self._activate_command, command)
+
+    def _activate_command(self, command: CommandDescriptor) -> bool:
+        self.catalog.execute(command)
+        return GLib.SOURCE_REMOVE
