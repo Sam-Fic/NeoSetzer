@@ -164,6 +164,9 @@ class SnippetEditorDialog(Adw.Dialog):
 
         toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
+        # 底部已有手动 Cancel 按钮，按 ui-guidelines 禁用默认右上角关闭按钮，
+        # 只保留单一关闭入口。
+        header.set_show_end_title_buttons(False)
         toolbar.add_top_bar(header)
         self.set_child(toolbar)
 
