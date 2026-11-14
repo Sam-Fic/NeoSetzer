@@ -73,10 +73,10 @@ class PreferencesDialog(object):
         # 应用主题（Appearance 页）切换后，Editor 页的方案网格需按新深浅过滤
         # 候选并刷新预览配色。Editor 页已自连 Adw.StyleManager.notify::dark，
         # 此处补连 theme_combo 的显式切换（含「Light/Dark」非 System 选择）。
+        # 走 queue_scheme_grid_rebuild 去抖：同步重建会残留旧 allocation，
+        # 导致 tile 瞬间两倍高（见 PageEditor.queue_scheme_grid_rebuild 注释）。
         self.page_appearance.view.theme_combo.connect(
-            'notify::selected',
-            lambda *a: (self.page_editor.populate_scheme_flowbox(),
-                        self.page_editor.apply_preview_scheme()))
+            'notify::selected', self.page_editor.queue_scheme_grid_rebuild)
 
     def on_check_button_toggle(self, button, preference_name):
         self.settings.set_value('preferences', preference_name, button.get_active())

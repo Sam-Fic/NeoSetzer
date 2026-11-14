@@ -24,7 +24,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 gi.require_version('GtkSource', '5')
-from gi.repository import Gtk, Adw, Gdk
+from gi.repository import Gtk, Adw, Gdk, GLib
 from gi.repository import GtkSource
 from gi.repository import Pango
 
@@ -86,6 +86,9 @@ class PageEditor(object):
         # 用户点击网格 tile 时（on_scheme_activated）会写回设置并同步触发
         # settings_changed；为避免该回调重建整个网格造成闪烁，临时屏蔽重建。
         self._suppress_scheme_rebuild = False
+        # 主题变化触发的网格重建统一去抖推迟到 idle（见 queue_scheme_grid_
+        # rebuild 注释），此标志避免同一主题变化堆叠多个 idle 回调。
+        self._scheme_grid_rebuild_pending = False
 
     def init(self):
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
@@ -96,9 +99,13 @@ class PageEditor(object):
         self.populate_scheme_flowbox()
         self.setup_preview_buffer()
         # 系统主题（或「System」模式下 OS 深浅）变化时重建网格候选与预览配色。
+        # 不能同步重建：notify::dark 在 GTK 主题样式失效的同一布局周期内发出，
+        # 此时 remove+insert FlowBox children 会残留旧 allocation，tile 瞬间
+        # 变两倍高、滚动触发重新分配才恢复。推迟到 idle，待本帧布局结束后在
+        # 干净周期里重建。视图跨 present 复用不销毁（preferences.py 持有
+        # view），idle 回调访问控件安全。
         try:
-            Adw.StyleManager.get_default().connect('notify::dark',
-                lambda *a: (self.populate_scheme_flowbox(), self.apply_preview_scheme()))
+            Adw.StyleManager.get_default().connect('notify::dark', self.queue_scheme_grid_rebuild)
         except Exception:
             pass
         # 外部写回 editor_style_scheme（如 Appearance 页「Reset to Defaults」）
@@ -539,6 +546,25 @@ class PageEditor(object):
             return Adw.StyleManager.get_default().get_dark()
         except AttributeError:
             return False
+
+    def queue_scheme_grid_rebuild(self, *a):
+        '''请求重建配色网格：去抖 + 统一推迟到 idle 执行。
+
+        notify::dark / theme_combo 在 GTK 主题样式失效的同一布局周期内发出，
+        同步 remove+insert FlowBox children 会残留旧 allocation（tile 瞬间
+        变两倍高、滚动才恢复）。推迟到下一主循环迭代，待本帧布局结束后在
+        干净周期里重建。短时间多次触发（如深浅模式连续切换）只排一个 idle。
+        '''
+        if self._scheme_grid_rebuild_pending:
+            return
+        self._scheme_grid_rebuild_pending = True
+        GLib.idle_add(self._rebuild_scheme_grid_idle)
+
+    def _rebuild_scheme_grid_idle(self):
+        self._scheme_grid_rebuild_pending = False
+        self.populate_scheme_flowbox()
+        self.apply_preview_scheme()
+        return False  # GLib.idle_add：单次执行
 
     def populate_scheme_flowbox(self):
         '''重建编辑器配色方案网格（白名单经典方案 + 用户自定义方案）。
