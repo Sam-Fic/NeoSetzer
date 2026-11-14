@@ -1,5 +1,35 @@
 # Changelog
 
+## v88 — 2026-11-14
+
+### 主要改进
+
+- **修复含未命名文档的会话启动必崩**：untitled 会话恢复与自动恢复对话框未设 `_loading_from_disk` 就直写 `set_text`，`insert-text` 触发撤销分组逻辑开用户组并挂 500ms 定时器，`end_irreversible_action` 随即清空撤销栈；定时器触发时 `end_user_action` 在空撤销栈上取队尾条目，GTK 解引用 NULL 段错误。整篇写入收敛到 `Document.set_buffer_content`（自带守卫、还原旧值可嵌套），文件载入 / 会话恢复 / 自动恢复三处统一走该入口。
+
+- **修复命令面板执行命令后整窗输入失效**：面板与目标弹窗（如 Preamble Assistant）都是模态 `Adw.Dialog`，旧代码先激活命令再关闭面板，libadwaita 的 modal/input-grab 状态被破坏，面板残影留在屏幕上且整窗对鼠标键盘无响应。改为先关面板、GLib idle 等关闭流程走完后再激活命令。
+
+- **修复 Ctrl+/ 注释快捷键失效**：旧配置里 `toggle_comment` 残留历史默认值 Ctrl+K，Ctrl+/ 落到 GtkTextView 内置全选，「没注释反而全选」。启动时把仍等于旧默认值的 Ctrl+K 迁移到 Ctrl+/（自定义键位保留）；快捷键设置变化时重建已打开文档的文档级控制器，改键即时生效。附迁移回归测试。
+
+- **行号拖动扩展选区**：按住行号纵向拖动时连续选中经过的整行，支持上下两个方向，指针靠近视口边缘时自动滚动并继续扩展；单击行号仍保持原有单行选择，书签与折叠行为不变。附无界面回归测试。
+
+- **补全全部语言的向导语言名称翻译**：语言选择器中向导语言名称在各语言下全部完成翻译。
+
+- **弹窗与列表 UI 规范化**：文档标签右键菜单迁移到 `Adw.TabView` 原生 menu-model；文档结构、Recently opened 等三处列表改用 boxed-list/ActionRow 标准范式；Preamble Assistant 建议区改用 boxed-list 并精简弹窗；git 提交弹窗迁移 `Adw.ToolbarView` 顶栏范式；片段编辑器与 git 提交弹窗禁用 headerbar 默认关闭按钮，统一为单一关闭入口。
+
+- **修复「减弱动画」下预览链接提示栏仍带过渡**：开启减弱动画后停掉链接提示栏卡片的底边距过渡。
+
+### Improvements
+
+- **fix**: Startup segfault when the restored session contains untitled documents — `set_text` written outside the `_loading_from_disk` guard opened a user action whose 500ms close timer ran after `end_irreversible_action` had emptied the undo stack, and GTK dereferenced NULL in `end_user_action`. All programmatic full-buffer writes (file load, session restore, autosave recovery) now go through `Document.set_buffer_content`.
+- **fix**: Command palette commands now run after the panel has closed (via idle), fixing the whole window going unresponsive when the activated command presents another modal `Adw.Dialog`.
+- **fix**: Ctrl+/ toggles comments again — a stale historical Ctrl+K default is migrated to Ctrl+/ on startup (custom bindings preserved), and open documents rebuild their document-level controllers immediately after shortcut changes.
+- **feat**: Dragging the line numbers vertically extends a whole-line selection in both directions, with auto-scroll near the viewport edges; single-click line selection is unchanged.
+- **i18n**: Wizard language names are now translated in all languages.
+- **refactor**: Tab context menus moved to `Adw.TabView`'s native menu-model; three lists and the Preamble Assistant suggestion area use the boxed-list/ActionRow pattern; the git commit dialog moved to an `Adw.ToolbarView` header; the snippet editor and git commit dialog hide the default headerbar close button for a single close entry.
+- **fix**: With "Reduce animations" enabled, the preview link hint bar no longer animates its card's bottom margin.
+
+---
+
 ## v87 — 2026-11-13
 
 ### 主要改进
