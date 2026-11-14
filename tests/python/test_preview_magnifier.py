@@ -19,20 +19,49 @@
 过期判定、controller 更新路径坐标绑定。除 controller 路径用桩对象外
 均不依赖 GUI 环境。'''
 
+import ast
 import queue
 import math
 import unittest
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import cairo
 import numpy as np
 
 from setzer.document.preview.magnifier_geometry import (
     MAGNIFICATION_FACTOR,
+    MAGNIFIER_TILE_FACTOR,
+    apply_magnifier_crop_transform,
     apply_magnifier_transform,
     compute_magnifier_params,
     compute_magnifier_placement,
+    magnifier_tile_coverage,
 )
 from setzer.document.preview.preview_magnifier import PreviewMagnifier
+
+
+RENDERER_SOURCE = (
+    Path(__file__).resolve().parents[2] / 'setzer' / 'document' / 'preview'
+    / 'preview_page_renderer.py'
+)
+
+
+def _load_renderer_method(name, **namespace):
+    '''AST 加载 PreviewPageRenderer 的单个方法（与 test_preview_page_cache
+    同范式）：不 import 模块、不拉起 preview/document 对象图。'''
+    tree = ast.parse(RENDERER_SOURCE.read_text(encoding='utf-8'))
+    renderer = next(node for node in tree.body
+                    if isinstance(node, ast.ClassDef)
+                    and node.name == 'PreviewPageRenderer')
+    method = next(node for node in renderer.body
+                  if isinstance(node, ast.FunctionDef) and node.name == name)
+    namespace.setdefault('math', math)
+    module = ast.Module(body=[method], type_ignores=[])
+    exec(compile(ast.fix_missing_locations(module), str(RENDERER_SOURCE), 'exec'),
+         namespace)
+    return namespace[name]
 
 
 class MagnifierParamsTest(unittest.TestCase):
@@ -181,17 +210,20 @@ class MagnifierUpdatePathTest(unittest.TestCase):
         def __init__(self):
             self.magnified_pages_queue = queue.Queue()
             self.requests = list()
+            self.reply = None
 
-        def request_magnifier_render(self, *arguments):
+        def get_magnifier_surface(self, *arguments):
             self.requests.append(arguments)
-            return len(self.requests)
+            return self.reply
 
     def _make_controller(self):
         from types import SimpleNamespace
         from setzer.document.preview.preview_controller import PreviewController
 
         controller = object.__new__(PreviewController)
-        layout = SimpleNamespace(hidpi_factor=2.0, scale_factor=2.0)
+        layout = SimpleNamespace(
+            hidpi_factor=2.0, scale_factor=2.0,
+            page_width_original=100.0, page_height_original=200.0)
         content = SimpleNamespace(
             width=800, height=600,
             scrolling_offset_x=0.0, scrolling_offset_y=0.0,
@@ -204,15 +236,15 @@ class MagnifierUpdatePathTest(unittest.TestCase):
         controller.preview = SimpleNamespace(
             layout=layout,
             poppler_document=object(),
+            pdf_version=1,
             rotation=0,
             recolor_pdf=False,
             page_renderer=renderer,
         )
         controller._magnifier_active = True
         controller._magnifier_layout_ref = layout
-        controller._magnifier_pending_request_id = 0
-        controller._magnifier_last_enqueue_time = 0.0
-        controller._magnifier_last_enqueue_pos = None
+        controller._magnifier_last_update_time = 0.0
+        controller._magnifier_last_update_pos = None
         controller._MAGNIFIER_DIAMETER = 240
         controller._MAGNIFIER_MIN_INTERVAL_S = 0.0
         controller._MAGNIFIER_MIN_MOVE_PX = 3.0
@@ -224,7 +256,7 @@ class MagnifierUpdatePathTest(unittest.TestCase):
         controller._update_magnifier(doc_x=100.0, doc_y=200.0, page_data=(0, 10.0, 20.0))
         self.assertEqual(controller.view.magnifier.calls[0][0], 'present')
         self.assertEqual(len(controller.preview.page_renderer.requests), 1)
-        # 入队参数：页号 + top-down 点坐标原样透传。
+        # 裁剪参数：页号 + top-down 点坐标原样透传。
         request = controller.preview.page_renderer.requests[0]
         self.assertEqual(request[0], 0)
         self.assertAlmostEqual(request[1], 10.0)
@@ -246,6 +278,15 @@ class MagnifierUpdatePathTest(unittest.TestCase):
         controller._update_magnifier()  # cursor_* 为 None（leave）
         self.assertEqual(controller.view.magnifier.calls, [('dismiss',)])
         self.assertTrue(controller._magnifier_active)
+
+    def test_produced_surface_is_forwarded_to_the_lens_widget(self):
+        controller = self._make_controller()
+        renderer = controller.preview.page_renderer
+        renderer.reply = ('sentinel-surface',)
+        controller._update_magnifier(doc_x=100.0, doc_y=200.0, page_data=(0, 10.0, 20.0))
+        self.assertEqual(controller.view.magnifier.calls[0],
+                         ('surface', renderer.reply))
+        self.assertEqual(controller.view.magnifier.calls[1][0], 'present')
 
 
 class MagnifierWidgetDrawTest(unittest.TestCase):
@@ -322,40 +363,313 @@ class MagnifierWidgetDrawTest(unittest.TestCase):
         self.assertAlmostEqual(ys.mean(), 240.0, delta=2.0)
 
 
-class MagnifierRequestIdTest(unittest.TestCase):
-    '''request_id 过期语义：只有「最新」请求的结果被采用。
+class MagnifierTileCoverageTest(unittest.TestCase):
+    '''magnifier_tile_coverage：瓦片覆盖判定的 pt 尺度（纯函数）。
 
-    直接用 PreviewPageRenderer 会拉起 preview/document 对象图；这里以
-    最小桩复刻 request/process 的判定契约（单调取号 + 等值比较），锁定
-    「旧 id != 最新 id → 丢弃」这一行为不被回归。'''
+    背景：旧整页缓存方案按「页面 pt 面积 × density²」算像素上限，但调用
+    方传入的是随缩放变化的 css 尺寸，面积被多乘 scale²，hidpi=2 且缩放
+    ≥ ~111% 时密度被 clamp（缩放 ≥ ~156% 时 clamp 到整页密度 → 放大倍率
+    恰为 1×，表现为「根本没有放大」）。瓦片方案的像素量恒为
+    factor² × 镜面像素量（与缩放无关），密度永不需要 clamp。'''
 
-    class _StubRenderer:
-        def __init__(self):
-            self._lock_held = False
-            self.latest_request_id = 0
+    def test_tile_half_is_factor_times_lens_half(self):
+        tile_half, lens_half, threshold = magnifier_tile_coverage(480, 4.0)
+        self.assertAlmostEqual(lens_half, 480 / (2 * 4.0))
+        self.assertAlmostEqual(tile_half, MAGNIFIER_TILE_FACTOR * lens_half)
+        self.assertAlmostEqual(threshold, tile_half - 2 * lens_half)
 
-        def assign_request_id(self):
-            # 与 request_magnifier_render 相同的取号语义。
-            self.latest_request_id += 1
-            return self.latest_request_id
+    def test_threshold_stays_positive_and_leaves_a_lens_window_of_slack(self):
+        # 重建阈值比硬边界（tile_half − lens_half）提前一个镜头窗口，
+        # 给异步构建留软帧过渡余量；阈值必须为正（factor ≥ 4）。
+        for density in (2.0, 4.0, 8.0, 16.0):
+            tile_half, lens_half, threshold = magnifier_tile_coverage(480, density)
+            self.assertGreater(threshold, 0)
+            self.assertAlmostEqual(threshold, tile_half - 2 * lens_half)
+            self.assertLess(threshold, tile_half - lens_half)
 
-        @staticmethod
-        def is_stale(request_id, latest_request_id):
-            return request_id != latest_request_id
+    def test_travel_between_rebuilds_is_zoom_independent_in_css(self):
+        # 两次重建间的光标行程（pt）× scale = 常量 css：密度与缩放同比例
+        # 增长，行程的 css 长度不随缩放变化（= size_css × (factor−2)/2…）。
+        # 这里验证 pt 行程随密度反比缩放。
+        _, _, t1 = magnifier_tile_coverage(480, 4.0)
+        _, _, t2 = magnifier_tile_coverage(480, 8.0)
+        self.assertAlmostEqual(t1, 2 * t2)
 
-    def test_only_latest_request_survives(self):
-        renderer = self._StubRenderer()
-        ids = [renderer.assign_request_id() for _ in range(5)]
-        latest = renderer.latest_request_id
-        stale = [i for i in ids if renderer.is_stale(i, latest)]
-        self.assertEqual(stale, ids[:-1])
-        self.assertFalse(renderer.is_stale(latest, latest))
 
-    def test_ids_are_monotonic(self):
-        renderer = self._StubRenderer()
-        first = renderer.assign_request_id()
-        second = renderer.assign_request_id()
-        self.assertGreater(second, first)
+class MagnifierCropTest(unittest.TestCase):
+    '''apply_magnifier_crop_transform 与 _crop_magnifier_surface 的坐标
+    约定（回归锁定）。
+
+    约定与 apply_magnifier_transform 相同：消费布局映射返回的 top-down
+    页面点坐标，旋转方向与 presenter 的 ctx.rotate(radians(rotation)) 一致；
+    差别仅在源是预渲染 surface（1 px = 1/source_density pt），像素级裁剪
+    用例走端到端验证。'''
+
+    SIZE = 200
+    SOURCE_DENSITY = 2.0   # 源 surface：200 px = 100 pt 页
+    DENSITY = 4.0          # 镜头密度 = 2 × 整页
+
+    def _device_of(self, rotation, source_px, center_pt=(50.0, 50.0)):
+        ctx = cairo.Context(cairo.ImageSurface(cairo.Format.ARGB32,
+                                               self.SIZE, self.SIZE))
+        apply_magnifier_crop_transform(ctx, float(self.SIZE), self.DENSITY,
+                                       self.SOURCE_DENSITY, rotation,
+                                       center_pt[0], center_pt[1])
+        return [ctx.user_to_device(x, y) for x, y in source_px]
+
+    def test_page_point_at_center_lands_at_surface_center(self):
+        # 页面点 (50, 50) = 源 px (100, 100)：应落镜面正中。
+        (dx, dy) = self._device_of(0, [(100.0, 100.0)])[0]
+        self.assertAlmostEqual(dx, self.SIZE / 2, places=6)
+        self.assertAlmostEqual(dy, self.SIZE / 2, places=6)
+
+    def test_magnification_scales_by_density_over_source_density(self):
+        # 光标右侧 10pt 的点距中心 = 10pt × density 设备像素。
+        (dx, dy) = self._device_of(0, [(120.0, 100.0)])[0]
+        self.assertAlmostEqual(dx - self.SIZE / 2, 10 * self.DENSITY, places=6)
+
+    def test_rotation_matches_presenter_convention(self):
+        # 与 apply_magnifier_transform 同约定：光标右侧的点旋转 90° 后
+        # 出现在中心正下方。
+        (dx, dy) = self._device_of(90, [(120.0, 100.0)])[0]
+        self.assertAlmostEqual(dy - self.SIZE / 2, 10 * self.DENSITY, places=6)
+        self.assertAlmostEqual(dx, self.SIZE / 2, places=6)
+
+    def _crop_from_page_surface(self, rotation, ink_center_px):
+        '''端到端：源页面 surface 已知位置画墨迹 → _crop_magnifier_surface
+        裁剪 → 测量墨迹质心（设备 px）。'''
+        source = cairo.ImageSurface(cairo.Format.ARGB32, 200, 200)
+        sctx = cairo.Context(source)
+        sctx.set_source_rgb(1, 1, 1)
+        sctx.paint()
+        sctx.set_source_rgb(0, 0, 0)
+        sctx.arc(ink_center_px[0], ink_center_px[1], 4, 0, 2 * math.pi)
+        sctx.fill()
+
+        crop = _load_renderer_method(
+            '_crop_magnifier_surface', cairo=cairo,
+            apply_magnifier_crop_transform=apply_magnifier_crop_transform)
+        lens = crop(None, source, self.SOURCE_DENSITY, self.DENSITY,
+                    rotation, 50.0, 50.0, self.SIZE)
+
+        buf = np.frombuffer(lens.get_data(), dtype=np.uint8).reshape(
+            lens.get_height(), lens.get_width(), 4)
+        darkness = 765 - buf[..., 0].astype(int) - buf[..., 1].astype(int) - buf[..., 2].astype(int)
+        ys, xs = np.nonzero(darkness > 150)
+        self.assertGreater(len(xs), 0, '墨迹完全落在镜面裁剪窗外（裁剪数学反向的典型症状）')
+        return xs.mean(), ys.mean()
+
+    def test_crop_centers_the_cursor_page_point(self):
+        # 页面 pt (50, 50) = 源 px (100, 100) 的墨迹 → 质心在镜面正中。
+        cx, cy = self._crop_from_page_surface(0, (100.0, 100.0))
+        self.assertAlmostEqual(cx, self.SIZE / 2, delta=2.0)
+        self.assertAlmostEqual(cy, self.SIZE / 2, delta=2.0)
+
+    def test_crop_applies_rotation_like_the_presenter(self):
+        # 光标右侧 10pt 的墨迹（源 px (120, 100)）旋转 90° → 正中下方
+        # 10pt × density。
+        cx, cy = self._crop_from_page_surface(90, (120.0, 100.0))
+        self.assertAlmostEqual(cx, self.SIZE / 2, delta=2.0)
+        self.assertAlmostEqual(cy - self.SIZE / 2, 10 * self.DENSITY, delta=2.0)
+
+
+class MagnifierCachePipelineTest(unittest.TestCase):
+    '''_process_magnifier_cache_todo：任务身份过期判定与结果投递。
+
+    旧管线按 request_id 单调取号判过期；新管线每页一次构建，以任务 dict
+    身份判过期（invalidate 把 pending 置 None，在途任务完成后身份不一致
+    即丢弃）。本组用例锁定该契约。'''
+
+    def _make_harness(self, render_page=None):
+        import threading
+        page = (SimpleNamespace(render=render_page) if render_page is not None
+                else SimpleNamespace(render=Mock()))
+        return SimpleNamespace(
+            _magnifier_request_lock=threading.Lock(),
+            _magnifier_cache_pending=None,
+            _magnifier_page_cache=None,
+            _result_delivery_lock=threading.Lock(),
+            _shutting_down=False,
+            _magnifier_result_idle_id=None,
+            magnified_pages_queue=queue.Queue(),
+            on_magnifier_result_produced=lambda: False,
+            _apply_theme_recolor=lambda surface, colors: surface,
+            preview=SimpleNamespace(poppler_document=SimpleNamespace(
+                get_page=lambda page_number: page)),
+        )
+
+    @staticmethod
+    def _task():
+        return dict(kind='magnifier_cache', page_number=0,
+                    size_px=480, density=4.0, pdf_version=1,
+                    matching_theme_colors=None, colors_key=None,
+                    anchor_x_pt=50.0, anchor_y_pt=60.0)
+
+    def _process(self, harness, task):
+        process = _load_renderer_method(
+            '_process_magnifier_cache_todo', GObject=SimpleNamespace(idle_add=Mock(return_value=1)),
+            cairo=cairo, MAGNIFIER_TILE_FACTOR=MAGNIFIER_TILE_FACTOR)
+        process(harness, task)
+
+    def test_current_task_is_rendered_and_cached(self):
+        harness = self._make_harness()
+        task = self._task()
+        harness._magnifier_cache_pending = task
+
+        self._process(harness, task)
+
+        self.assertIsNotNone(harness._magnifier_page_cache)
+        cache = harness._magnifier_page_cache
+        self.assertEqual(cache['page'], 0)
+        self.assertEqual(cache['pdf_version'], 1)
+        self.assertAlmostEqual(cache['density'], 4.0)
+        self.assertAlmostEqual(cache['anchor_x_pt'], 50.0)
+        self.assertAlmostEqual(cache['anchor_y_pt'], 60.0)
+        self.assertIsInstance(cache['surface'], cairo.ImageSurface)
+        # 瓦片边长 = MAGNIFIER_TILE_FACTOR × 镜面设备 px（与页面尺寸无关）。
+        self.assertEqual(cache['surface'].get_width(),
+                         MAGNIFIER_TILE_FACTOR * 480)
+        self.assertEqual(cache['surface'].get_height(),
+                         MAGNIFIER_TILE_FACTOR * 480)
+        self.assertTrue(harness.magnified_pages_queue.get_nowait()
+                        .get('kind') == 'magnifier_cache')
+        self.assertIsNone(harness._magnifier_cache_pending)
+
+    def test_superseded_task_is_dropped_without_queueing(self):
+        harness = self._make_harness()
+        stale_task = self._task()
+        # pending 已被更新任务取代（身份不一致）→ 旧任务在渲染线程内即弃。
+        harness._magnifier_cache_pending = self._task()
+
+        self._process(harness, stale_task)
+
+        self.assertIsNone(harness._magnifier_page_cache)
+        self.assertTrue(harness.magnified_pages_queue.empty())
+
+    def test_no_pending_task_is_dropped_after_invalidation(self):
+        # invalidate 把 pending 置 None：在途任务完成后同样被丢弃。
+        harness = self._make_harness()
+
+        self._process(harness, self._task())
+
+        self.assertIsNone(harness._magnifier_page_cache)
+        self.assertTrue(harness.magnified_pages_queue.empty())
+
+    # ---- get_magnifier_surface：软帧密度与瓦片锚点裁剪（像素级） ----
+
+    def _make_get_harness(self, cache=None, rendered_item=None):
+        import threading
+        harness = self._make_harness()
+        harness._magnifier_page_cache = cache
+        harness.rendered_pages = ({0: rendered_item} if rendered_item is not None
+                                  else {})
+        crop = _load_renderer_method(
+            '_crop_magnifier_surface', cairo=cairo,
+            apply_magnifier_crop_transform=apply_magnifier_crop_transform)
+        # AST 加载的裸函数挂到 SimpleNamespace 不会绑定 self：显式吞掉 self。
+        harness._crop_magnifier_surface = (
+            lambda *arguments, _crop=crop: _crop(None, *arguments))
+        harness._magnifier_colors_key = lambda colors: None
+        # 请求走真实实现（含覆盖/锚点去重），只记录入队任务。
+        request = _load_renderer_method(
+            'request_magnifier_page_cache',
+            magnifier_tile_coverage=magnifier_tile_coverage,
+            MAGNIFIER_TILE_FACTOR=MAGNIFIER_TILE_FACTOR)
+        harness.render_queue = queue.Queue()
+        harness.request_magnifier_page_cache = request.__get__(harness)
+        return harness
+
+    def _get_surface(self, harness, **overrides):
+        get = _load_renderer_method(
+            'get_magnifier_surface', cairo=cairo,
+            apply_magnifier_crop_transform=apply_magnifier_crop_transform,
+            magnifier_tile_coverage=magnifier_tile_coverage,
+            MAGNIFIER_TILE_FACTOR=MAGNIFIER_TILE_FACTOR)
+        arguments = dict(page_number=0, center_x_pt=50.0, center_y_pt=50.0,
+                         out_css_size=240, hidpi_factor=2.0, density=8.0,
+                         rotation=0, colors=None, pdf_version=1,
+                         scale_factor=2.0)
+        arguments.update(overrides)
+        return get(harness, **arguments)
+
+    @staticmethod
+    def _ink_centroid(surface):
+        buf = np.frombuffer(surface.get_data(), dtype=np.uint8).reshape(
+            surface.get_height(), surface.get_width(), 4)
+        darkness = (765 - buf[..., 0].astype(int) - buf[..., 1].astype(int)
+                    - buf[..., 2].astype(int))
+        ys, xs = np.nonzero(darkness > 150)
+        return xs, ys
+
+    def test_soft_path_density_accounts_for_scale(self):
+        '''Bug B 回归：软帧源密度必须补乘 scale_factor。
+
+        整页纹理的 css 尺寸随缩放变化（item[1] = 页面 pt × scale），内容
+        密度 = surface px / 页面 pt = surface px × scale / css 宽。曾漏乘
+        scale：软帧取样位置错（c/s 处）、倍率错（s·h 倍），与瓦片帧切换
+        时取景/倍率跳变（闪烁）。scale=2 时墨点必须仍落在镜心。'''
+        # 页面 100×200pt，scale 2 → css 200×400；hidpi 2 → 纹理 400×800 px，
+        # 内容密度 = scale×hidpi = 4 px/pt。墨点画在页面 pt (50, 50)。
+        texture = cairo.ImageSurface(cairo.Format.ARGB32, 400, 800)
+        tctx = cairo.Context(texture)
+        tctx.set_source_rgb(1, 1, 1)
+        tctx.paint()
+        tctx.set_source_rgb(0, 0, 0)
+        tctx.arc(200, 200, 6, 0, 2 * math.pi)  # 密度 4 → px = pt × 4
+        tctx.fill()
+        item = [texture, 200, 400, 1, None]
+
+        harness = self._make_get_harness(rendered_item=item)
+        surface = self._get_surface(harness)
+
+        self.assertIsNotNone(surface)
+        self.assertEqual(surface.get_width(), 480)
+        xs, ys = self._ink_centroid(surface)
+        self.assertGreater(len(xs), 0, '墨点完全落在镜面外（软帧密度换算错误的典型症状）')
+        self.assertAlmostEqual(xs.mean(), 240.0, delta=2.0)
+        self.assertAlmostEqual(ys.mean(), 240.0, delta=2.0)
+        # 无论软硬路径都请求了瓦片构建（含锚点）。
+        task = harness.render_queue.get_nowait()
+        self.assertEqual((task['page_number'], task['size_px'], task['density'],
+                          task['pdf_version'], task['anchor_x_pt'],
+                          task['anchor_y_pt']),
+                         (0, 480, 8.0, 1, 50.0, 50.0))
+
+    def test_tile_crop_offsets_center_by_the_anchor(self):
+        '''瓦片裁剪回归：瓦片以锚点为原点，裁剪中心必须换成相对锚点坐标。
+
+        曾漏换：从瓦片裁剪时仍用绝对页面 pt 作中心，内容整体偏移
+        (c − anchor)×density 像素。锚点 (50, 50)、墨点在锚点右 5pt
+        （页面 pt (55, 55)），光标同处 → 墨点必须落在镜心。'''
+        ink_pt = (55.0, 55.0)
+        anchor = (50.0, 50.0)
+        density = 8.0
+
+        def render_page(ctx):
+            # 在瓦片构建的 pt 空间里画墨点（ctx 已 scale + translate）。
+            ctx.set_source_rgb(0, 0, 0)
+            ctx.arc(ink_pt[0], ink_pt[1], 3, 0, 2 * math.pi)
+            ctx.fill()
+
+        harness = self._make_harness(render_page=render_page)
+        task = dict(kind='magnifier_cache', page_number=0, size_px=480,
+                    density=density, pdf_version=1, matching_theme_colors=None,
+                    colors_key=None,
+                    anchor_x_pt=anchor[0], anchor_y_pt=anchor[1])
+        harness._magnifier_cache_pending = task
+        self._process(harness, task)
+        harness = self._make_get_harness(cache=harness._magnifier_page_cache)
+
+        surface = self._get_surface(harness, center_x_pt=ink_pt[0],
+                                    center_y_pt=ink_pt[1])
+
+        self.assertIsNotNone(surface)
+        xs, ys = self._ink_centroid(surface)
+        self.assertGreater(len(xs), 0, '墨点完全落在镜面外（瓦片锚点偏移未换算的典型症状）')
+        self.assertAlmostEqual(xs.mean(), 240.0, delta=2.0)
+        self.assertAlmostEqual(ys.mean(), 240.0, delta=2.0)
+        # 瓦片覆盖当前光标（drift 5pt ≤ 硬边界）→ 真实去重不重复入队。
+        self.assertTrue(harness.render_queue.empty())
 
 
 if __name__ == '__main__':

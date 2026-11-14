@@ -27,7 +27,11 @@ import math
 import numpy as np
 
 from setzer.app.color_manager import ColorManager
-from setzer.document.preview.magnifier_geometry import apply_magnifier_transform
+from setzer.document.preview.magnifier_geometry import (
+    MAGNIFIER_TILE_FACTOR,
+    apply_magnifier_crop_transform,
+    magnifier_tile_coverage,
+)
 from setzer.helpers.observable import Observable
 
 
@@ -67,16 +71,29 @@ class PreviewPageRenderer(Observable):
         self.render_queue_low_priority = queue.Queue()
         self.rendered_pages_queue = queue.Queue()
 
-        # 放大镜局部渲染管线：任务复用 render_queue（高优先级，跟手要求），
-        # 结果走独立队列，避免混入整页结果被 rendered_pages_loop 当成整页
-        # 缓存消费。过期判定与整页不同——不用 page_render_count，而用单调
-        # 递增的 request_id：光标移动中连续入队多个请求，只有 id 等于最新值
-        # 的结果会被采用，旧结果在渲染线程内即被丢弃（省渲染）或主线程丢弃。
-        # int 赋值受 GIL 保护，跨线程读写无需额外同步；锁仅保证「取号 +
-        # 入队」的原子性，使 id 单调与队列顺序一致。
+        # 放大镜页级瓦片缓存管线：光标所在页以镜头密度渲染一块固定尺寸
+        # 的瓦片（边长 = MAGNIFIER_TILE_FACTOR × 镜面，像素量与缩放无关，
+        # 密度永不需要设上限——任何缩放下放大倍率恒定）。瓦片锚定在光标
+        # 处，光标漂移超出重建阈值才重新入队构建（后台线程，任务复用
+        # render_queue 高优先级）；主线程每帧从瓦片纯 cairo 裁剪出镜面，
+        # 与光标严格同步（不再有 stale 丢弃竞态）。瓦片未就绪或镜头窗口
+        # 探出旧瓦片时，回退到 rendered_pages 整页纹理放大裁剪（内容位置
+        # 与倍率均正确，仅略软）。通知链沿用 magnified_pages_queue + idle
+        # → 'magnifier_result_ready'，结果条目带 kind='magnifier_cache'，
+        # controller 收到后重新裁剪。
+        # int/dict 赋值受 GIL 保护，跨线程读写无需额外同步；锁仅保证
+        # 「判重 + 入队」的原子性。
         self.magnified_pages_queue = queue.Queue()
         self._magnifier_request_lock = threading.Lock()
         self._magnifier_latest_request_id = 0
+        # 瓦片缓存条目：{'page', 'surface', 'density', 'pdf_version',
+        # 'colors_key', 'anchor_x_pt', 'anchor_y_pt'} 或 None。渲染线程
+        # 写入、主线程读取，单条目整替（GIL 下原子）。
+        self._magnifier_page_cache = None
+        # 在途构建任务（dict 身份比对判重 / 过期）；invalidate（取消 /
+        # 上下文变化）把 pending 置 None 并排空队列，在途任务完成后因身份
+        # 不一致被丢弃。
+        self._magnifier_cache_pending = None
 
         # 后台线程惰性启动；结果只通过合并的一次性 idle 交付。
         self._render_thread_started = False
@@ -134,9 +151,15 @@ class PreviewPageRenderer(Observable):
             self._render_thread.start()
 
     def invalidate_magnifier_requests(self):
-        '''Discard active and queued lens work after a preview context change.'''
+        '''Discard active and queued lens work after a preview context change.
+
+        同时丢弃页级缓存与在途构建任务：PDF / 布局（缩放、旋转）/ 反色的
+        任何变化都会使旧缓存像素与密度失效。属性赋值兼容测试中的
+        SimpleNamespace 桩。'''
         with self._magnifier_request_lock:
             self._magnifier_latest_request_id += 1
+        self._magnifier_page_cache = None
+        self._magnifier_cache_pending = None
         try:
             while True:
                 self.magnified_pages_queue.get_nowait()
@@ -175,6 +198,9 @@ class PreviewPageRenderer(Observable):
         with self.page_render_count_lock:
             self.page_render_count = dict()
         self._pending_page_renders.clear()
+        # 放大镜页级缓存（可达数十 MB）与在途构建任务一并释放。
+        self._magnifier_page_cache = None
+        self._magnifier_cache_pending = None
         # 禁止新结果入队后释放积压任务和 surface，再投递退出哨兵。
         for result_queue in (self.render_queue, self.render_queue_low_priority,
                              self.rendered_pages_queue, self.magnified_pages_queue):
@@ -215,10 +241,11 @@ class PreviewPageRenderer(Observable):
             # 哨兵 None（shutdown 投递）或 deactivate 期间积压的 None：跳过。
             if todo is None:
                 continue
-            # 放大镜任务走独立的过期判定（request_id）与结果投递路径，
-            # 不读 page_render_count / visible_pages（那些键不存在）。
-            if todo.get('kind') == 'magnifier':
-                self._process_magnifier_todo(todo)
+            # 放大镜缓存构建任务走独立的过期判定（任务身份 + generation）
+            # 与结果投递路径，不读 page_render_count / visible_pages（那些
+            # 键不存在）。
+            if todo.get('kind') == 'magnifier_cache':
+                self._process_magnifier_cache_todo(todo)
                 continue
             with self.page_render_count_lock:
                 # .get(-1) 哨兵避免 KeyError：on_layout_or_position_changed 在
@@ -331,15 +358,157 @@ class PreviewPageRenderer(Observable):
         temp_ctx.fill()
         return surface
 
-    # ---- 放大镜局部渲染 ----
+    # ---- 放大镜页级瓦片缓存 ----
 
-    def request_magnifier_render(self, page_number, center_x_pt, center_y_pt,
-                                 out_css_size, hidpi_factor, density, rotation, colors):
-        '''入队一个放大镜局部渲染任务（主线程调用），返回请求 id。
+    @staticmethod
+    def _magnifier_colors_key(colors):
+        '''反色配置的可哈希键（None 或 RGBA 分量元组），用于缓存有效性
+        判定；Gdk.RGBA 每次 get_ui_color 返回新引用，不可按身份比较。'''
+        if colors is None:
+            return None
+        return tuple((c.red, c.green, c.blue, c.alpha) for c in colors)
 
-        任务放 render_queue 高优先级队列——放大镜必须跟手，不能排在整页
-        渲染之后。返回的 request_id 由调用方保存，用于在结果到达时比对；
-        过期任务在渲染线程内即被丢弃（见 _process_magnifier_todo）。
+    def request_magnifier_page_cache(self, page_number, size_px, density,
+                                     pdf_version, colors,
+                                     anchor_x_pt, anchor_y_pt):
+        '''请求（去重）以 (anchor_x_pt, anchor_y_pt) 为锚点构建镜头密度
+        瓦片（主线程调用）。
+
+        去重两级：
+        1. 现有瓦片宽裕覆盖当前光标（光标离瓦片锚点 ≤ 重建阈值
+           tile_half − 2×lens_half）→ 不需要构建。⚠ 不能用硬边界
+           （tile_half − lens_half）判缓存命中：那会让重建推迟到镜头窗口
+           贴到瓦片边缘才触发，过渡期镜头探出瓦片露白——重建必须在
+           提前一个镜头窗口的阈值处触发，旧瓦片供帧到硬边界为止；
+        2. 在途任务的锚点已覆盖当前光标（光标离在途锚点 ≤ 重建阈值）→
+           不重复入队。连续快速移动时锚点每次替换都前移一个阈值距离，
+           构建频率随移动速度有界（约每 2×重建阈值 pt 一次），不会逐帧
+           替换饿死构建。
+
+        任务以 dict 身份做过期判定——invalidate（取消 / PDF / 布局 /
+        反色变化）把 pending 置 None 并排空队列，在途任务完成后因身份
+        不一致被丢弃。任务放 render_queue 高优先级队列——放大镜必须尽快
+        从软帧转清晰帧。'''
+        if self.preview.poppler_document is None:
+            return
+        tile_half_pt, lens_half_pt, rebuild_pt = magnifier_tile_coverage(
+            size_px, density)
+        colors_key = self._magnifier_colors_key(colors)
+        cache = self._magnifier_page_cache
+        if (cache is not None and cache['page'] == page_number
+                and cache['pdf_version'] == pdf_version
+                and cache['density'] == density
+                and cache['colors_key'] == colors_key
+                and max(abs(anchor_x_pt - cache['anchor_x_pt']),
+                        abs(anchor_y_pt - cache['anchor_y_pt']))
+                <= rebuild_pt):
+            return
+        with self._magnifier_request_lock:
+            pending = self._magnifier_cache_pending
+            if (pending is not None
+                    and pending['page_number'] == page_number
+                    and pending['density'] == density
+                    and pending['pdf_version'] == pdf_version
+                    and pending['colors_key'] == colors_key
+                    and max(abs(anchor_x_pt - pending['anchor_x_pt']),
+                            abs(anchor_y_pt - pending['anchor_y_pt']))
+                    <= rebuild_pt):
+                return
+            task = {
+                'kind': 'magnifier_cache',
+                'page_number': int(page_number),
+                'size_px': max(1, int(size_px)),
+                'density': float(density),
+                'pdf_version': pdf_version,
+                'matching_theme_colors': colors,
+                'colors_key': colors_key,
+                'anchor_x_pt': float(anchor_x_pt),
+                'anchor_y_pt': float(anchor_y_pt),
+            }
+            self._magnifier_cache_pending = task
+            self.render_queue.put(task)
+
+    def _process_magnifier_cache_todo(self, todo):
+        '''渲染线程内处理一个瓦片构建任务：身份过期即弃；否则以镜头密度
+        渲染锚点周围的固定尺寸瓦片（白底、构建期反色）后存入缓存，并
+        投递通知让主线程按当前光标重新裁剪。'''
+        with self._magnifier_request_lock:
+            if todo is not self._magnifier_cache_pending:
+                # 已被 invalidate 清空或被更新的任务取代：丢弃。
+                return
+
+        try:
+            doc = self.preview.poppler_document
+            if doc is None:
+                raise RuntimeError('PDF no longer available')
+            page = doc.get_page(todo['page_number'])
+            if page is None:
+                raise RuntimeError('PDF page no longer available')
+
+            density = todo['density']
+            tile_px = MAGNIFIER_TILE_FACTOR * max(1, int(todo['size_px']))
+            half_pt = tile_px / (2.0 * density)
+            surface = cairo.ImageSurface(cairo.Format.ARGB32, tile_px, tile_px)
+            ctx = cairo.Context(surface)
+
+            ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.rectangle(0, 0, tile_px, tile_px)
+            ctx.fill()
+
+            # 密度含 hidpi 与 factor；page.render 内部自带的 y 翻转负责把
+            # PDF 原生 y-up 内容落进与布局映射一致的 top-down 空间（同整页
+            # 渲染路径）。瓦片存未旋转页面像素，旋转由裁剪端应用。锚点
+            # 映射到瓦片中心（⚠ 不是原点——原点会让瓦片只含锚点右下方的
+            # 内容，光标向左上移动即采样到瓦片外）；越出页面的部分保留
+            # 白底，与屏幕纸面一致。
+            ctx.scale(density, density)
+            ctx.translate(-todo['anchor_x_pt'] + half_pt,
+                          -todo['anchor_y_pt'] + half_pt)
+            page.render(ctx)
+
+            colors = todo['matching_theme_colors']
+            if colors != None:
+                surface = self._apply_theme_recolor(surface, colors)
+        except Exception:
+            # shutdown / PDF 切换窗口期文档可能已被替换或释放（或内存不足）：
+            # 清 pending 允许下次重试，静默丢弃。
+            with self._magnifier_request_lock:
+                if self._magnifier_cache_pending is todo:
+                    self._magnifier_cache_pending = None
+            return
+
+        self._magnifier_page_cache = {
+            'page': todo['page_number'],
+            'surface': surface,
+            'density': density,
+            'pdf_version': todo['pdf_version'],
+            'colors_key': todo['colors_key'],
+            'anchor_x_pt': todo['anchor_x_pt'],
+            'anchor_y_pt': todo['anchor_y_pt'],
+        }
+        with self._magnifier_request_lock:
+            if self._magnifier_cache_pending is todo:
+                self._magnifier_cache_pending = None
+
+        with self._result_delivery_lock:
+            if self._shutting_down:
+                return
+            self.magnified_pages_queue.put({'kind': 'magnifier_cache'})
+            if self._magnifier_result_idle_id is None:
+                self._magnifier_result_idle_id = GObject.idle_add(self.on_magnifier_result_produced)
+
+    def get_magnifier_surface(self, page_number, center_x_pt, center_y_pt,
+                              out_css_size, hidpi_factor, density, rotation,
+                              colors, pdf_version, scale_factor):
+        '''主线程：产出当前光标处的镜面 ImageSurface（无可用内容返回 None）。
+
+        瓦片命中（且镜头窗口仍完整落在瓦片内）→ 从瓦片 1:1 裁剪（清晰，
+        恒定 MAGNIFICATION_FACTOR 倍放大）；瓦片未就绪或光标已漂到旧瓦片
+        边缘（重建在途）→ 回退到 rendered_pages 的整页纹理放大裁剪——该
+        纹理与屏幕上显示的是同一张图（draft 占位也一致），反色已烘入像素，
+        内容位置与放大倍率均正确，仅略软。两条路径共用同一 density 换算，
+        软→硬切换无取景/倍率跳变。无论命中哪条路径都确保瓦片构建任务已
+        请求（去重见 request_magnifier_page_cache）。
 
         参数:
             page_number: 0-based 页号
@@ -348,79 +517,84 @@ class PreviewPageRenderer(Observable):
                 的返回值同约定）
             out_css_size: 输出方形浮窗边长（css px）
             hidpi_factor: 设备像素比
-            density: 渲染密度（设备 px / PDF 点，= factor × scale × hidpi）
-            rotation: 预览旋转角（0/90/180/270）
-            colors: 反色主题色元组或 None
+            density: 镜头密度（= MAGNIFICATION_FACTOR × scale × hidpi）
+            rotation: 预览旋转角（0/90/180/270），在裁剪时应用
+            colors: 反色主题色元组或 None（仅用于构建任务；回退纹理已含反色）
+            pdf_version: 内存 PDF 版本（瓦片 / 纹理有效性比对）
+            scale_factor: 当前预览缩放（布局 css px / 页面 pt），用于回退
+                纹理的密度换算
         '''
-        if self.preview.poppler_document == None:
+        if self.preview.poppler_document is None:
             return None
-        with self._magnifier_request_lock:
-            self._magnifier_latest_request_id += 1
-            request_id = self._magnifier_latest_request_id
-            task = {
-                'kind': 'magnifier',
-                'request_id': request_id,
-                'page_number': int(page_number),
-                'center_x_pt': float(center_x_pt),
-                'center_y_pt': float(center_y_pt),
-                'out_css_size': max(1, int(out_css_size)),
-                'hidpi_factor': hidpi_factor,
-                'density': float(density),
-                'rotation': rotation,
-                'matching_theme_colors': colors,
-            }
-            self.render_queue.put(task)
-        return request_id
+        size_px = max(1, int(out_css_size * hidpi_factor))
+        colors_key = self._magnifier_colors_key(colors)
+        tile_half_pt, lens_half_pt, _rebuild_pt = magnifier_tile_coverage(
+            size_px, density)
 
-    def _process_magnifier_todo(self, todo):
-        '''渲染线程内处理一个放大镜任务：过期即弃，否则局部渲染后投递到
-        magnified_pages_queue 并通过 idle 回调通知主线程。'''
-        with self._magnifier_request_lock:
-            if todo['request_id'] != self._magnifier_latest_request_id:
-                return
+        src = None
+        source_density = 0.0
+        # 裁剪中心：软路径源以页面左上为原点（q = p·d_src）；瓦片以锚点
+        # 为中心（q = (p − anchor + H)·d_src，H = 瓦片半边长 pt），裁剪
+        # 中心须换成「光标相对瓦片左上角」的坐标 c − anchor + H，否则
+        # 内容整体偏移（曾把锚点放瓦片原点且漏加 H，双重错位）。
+        crop_center_x, crop_center_y = center_x_pt, center_y_pt
+        cache = self._magnifier_page_cache
+        if (cache is not None and cache['page'] == page_number
+                and cache['pdf_version'] == pdf_version
+                and cache['density'] == density
+                and cache['colors_key'] == colors_key
+                and isinstance(cache['surface'], cairo.ImageSurface)
+                and max(abs(center_x_pt - cache['anchor_x_pt']),
+                        abs(center_y_pt - cache['anchor_y_pt']))
+                <= tile_half_pt - lens_half_pt):
+            # 瓦片仍完整覆盖镜头窗口。光标越过重建阈值但未越硬边界的
+            # 过渡期也继续供帧（内容完整不露白），等待新瓦片构建完成。
+            src = cache['surface']
+            source_density = cache['density']
+            crop_center_x = (center_x_pt - cache['anchor_x_pt'] + tile_half_pt)
+            crop_center_y = (center_y_pt - cache['anchor_y_pt'] + tile_half_pt)
+        else:
+            item = self.rendered_pages.get(page_number)
+            if (item is not None and item[3] == pdf_version
+                    and isinstance(item[0], cairo.ImageSurface)
+                    and int(item[1] or 0) > 0 and item[0].get_width() > 0):
+                src = item[0]
+                # item[1] 是渲染时的页面 css 宽（int，随缩放变化，= 页面
+                # pt × scale）；纹理内容密度 = surface px / 页面 pt =
+                # surface px × scale / css 宽。⚠ 不能漏乘 scale——曾漏乘
+                # 导致软帧取样位置错（c/s 处）且倍率错（s·h 倍），与瓦片
+                # 帧切换时表现为取景/倍率跳变（闪烁）。由 surface 实际宽
+                # 反推可兼容 draft 占位（1/4 密度）。
+                source_density = (item[0].get_width() * scale_factor
+                                  / int(item[1]))
 
-        try:
-            page = self.preview.poppler_document.get_page(todo['page_number'])
-        except Exception:
-            # shutdown / PDF 切换窗口期文档可能已被替换或释放：静默丢弃。
-            return
+        self.request_magnifier_page_cache(
+            page_number, size_px, density, pdf_version, colors,
+            center_x_pt, center_y_pt)
 
-        size_px = todo['out_css_size'] * todo['hidpi_factor']
-        surface = cairo.ImageSurface(cairo.Format.ARGB32, int(size_px), int(size_px))
+        if src is None:
+            return None
+        return self._crop_magnifier_surface(src, source_density, density,
+                                            rotation, crop_center_x,
+                                            crop_center_y, size_px)
+
+    def _crop_magnifier_surface(self, src, source_density, density, rotation,
+                                center_x_pt, center_y_pt, size_px):
+        '''从页级 surface 裁剪出镜面：白底 + crop transform + paint。
+
+        采样区是源坐标下以 center 为中心、边长 size_px/density 的正方形
+        （源 1 px = 1/density pt；center 的原点取决于源——整页纹理为页面
+        左上，瓦片为其锚点）。旋转仅 90° 倍数，正方形旋转后仍轴对齐，
+        paint 全图可精确覆盖。越出源范围的部分保留白底，与屏幕纸面一致。'''
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, size_px, size_px)
         ctx = cairo.Context(surface)
-
-        density = todo['density']
-        half_pt = size_px / (2 * density)
-        cx = todo['center_x_pt']
-        cy = todo['center_y_pt']
-
-        # 变换链见 apply_magnifier_transform 文档：裁剪中心对到 surface
-        # 中心、密度为整页渲染的 factor 倍；page.render 内部自带的 y 翻转
-        # 负责把 PDF 原生 y-up 内容落进与布局映射一致的 top-down 空间，
-        # 这里绝不能再手动翻（双重翻转 = 镜像）。旋转仅 90° 倍数，轴对齐
-        # 裁剪区经旋转仍轴对齐，top-down 白底矩形可精确覆盖可见区域。
-        apply_magnifier_transform(ctx, size_px, density, todo['rotation'], cx, cy)
-
         ctx.set_source_rgba(1, 1, 1, 1)
-        ctx.rectangle(cx - half_pt, cy - half_pt, 2 * half_pt, 2 * half_pt)
-        ctx.fill()
-
-        page.render(ctx)
-
-        colors = todo['matching_theme_colors']
-        if colors != None:
-            surface = self._apply_theme_recolor(surface, colors)
-
-        with self._result_delivery_lock:
-            if self._shutting_down:
-                return
-            self.magnified_pages_queue.put({
-                'kind': 'magnifier',
-                'request_id': todo['request_id'],
-                'surface': surface,
-            })
-            if self._magnifier_result_idle_id is None:
-                self._magnifier_result_idle_id = GObject.idle_add(self.on_magnifier_result_produced)
+        ctx.paint()
+        apply_magnifier_crop_transform(ctx, size_px, density, source_density,
+                                       rotation, center_x_pt, center_y_pt)
+        ctx.set_source_surface(src, 0, 0)
+        ctx.paint()
+        return surface
 
     def on_magnifier_result_produced(self):
         '''主线程回调：发 change code 让 controller 消费 magnified_pages_queue。'''

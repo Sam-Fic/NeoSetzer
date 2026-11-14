@@ -87,15 +87,16 @@ class PreviewController(object):
         # ---- 放大镜（按住左键放大）状态 ----
         # 触发条件：无修饰键左键按下且光标下无链接（链接优先，不破坏既有
         # 跳转工作流）。跟手靠 hover_state_changed + scrolling_offset_changed
-        # （按住期间滚轮滚动也要跟着动）。节流：最短入队间隔 + 最小位移，
-        # 避免每像素一次渲染。缩放（Ctrl+滚轮 / 捏合）与 layout 重建即取消。
+        # （按住期间滚轮滚动也要跟着动）。节流：最短更新间隔 + 最小位移。
+        # 内容产出走页级缓存裁剪（renderer.get_magnifier_surface，每帧同步
+        # 完成无竞态），仅页级缓存构建是异步任务。缩放（Ctrl+滚轮 / 捏合）
+        # 与 layout 重建即取消。
         self._magnifier_active = False
         self._magnifier_layout_ref = None
-        self._magnifier_pending_request_id = 0
-        self._magnifier_last_enqueue_time = 0.0
-        self._magnifier_last_enqueue_pos = None
-        # 诊断（SETZER_MAGNIFIER_DEBUG=1）：最近一次入队的裁剪中心反算回
-        # 画布坐标，presenter.draw 据此在主视图上画高亮圆点。
+        self._magnifier_last_update_time = 0.0
+        self._magnifier_last_update_pos = None
+        # 诊断（SETZER_MAGNIFIER_DEBUG=1）：最近一次裁剪的中心反算回画布
+        # 坐标，presenter.draw 据此在主视图上画高亮圆点。
         self._magnifier_debug_pos = None
         self._MAGNIFIER_DIAMETER = self.view.magnifier.diameter
         self._MAGNIFIER_MIN_INTERVAL_S = 1.0 / 60.0
@@ -280,7 +281,11 @@ class PreviewController(object):
 
     def on_magnifier_context_changed(self, *arguments):
         '''Cancel a held lens as soon as its PDF pixels or layout may change.'''
-        self._cancel_magnifier('preview-context-changed')
+        if not self._cancel_magnifier('preview-context-changed'):
+            # 非激活时也要丢弃页级渲染缓存：PDF / 布局（缩放、旋转）/
+            # 反色变化使旧缓存的像素与密度失效。缓存跨按下保留以加速重复
+            # 激活，但绝不跨上下文保留（激活路径的取消已含 invalidate）。
+            self.preview.page_renderer.invalidate_magnifier_requests()
         # PDF / 布局变化后选择的页码、几何、旋转可能已失效，清除。
         self.preview.clear_text_selection()
 
@@ -442,17 +447,19 @@ class PreviewController(object):
         # 记住 layout 对象引用：后续更新时校验身份，layout 被重建
         # （缩放 / 重编译 / 旋转）即失效取消，避免用过期几何换算。
         self._magnifier_layout_ref = layout
-        self._magnifier_last_enqueue_pos = None
+        self._magnifier_last_update_pos = None
         self._update_magnifier(doc_x=doc_x, doc_y=doc_y, page_data=(page_number, x_pt, y_pt))
 
     def _cancel_magnifier(self, reason):
-        '''End a held lens and invalidate all renderer work belonging to it.'''
+        '''End a held lens and invalidate all renderer work belonging to it.
+
+        invalidate_magnifier_requests 同时丢弃页级渲染缓存与在途构建任务
+        （缓存可达数十 MB，松开即释放）。'''
         if not self._magnifier_active:
             return False
         self._magnifier_active = False
         self._magnifier_layout_ref = None
-        self._magnifier_pending_request_id += 1
-        self._magnifier_last_enqueue_pos = None
+        self._magnifier_last_update_pos = None
         self._magnifier_debug_pos = None
         self.preview.page_renderer.invalidate_magnifier_requests()
         self.view.magnifier.dismiss()
@@ -463,13 +470,16 @@ class PreviewController(object):
         '''End the lens after its primary-button gesture finishes.'''
         return self._cancel_magnifier('primary-button-release')
 
-    def _update_magnifier(self, doc_x=None, doc_y=None, page_data=None):
-        '''跟手主循环入口：换算光标文档坐标 → 节流入队渲染 → 定位浮窗。
+    def _update_magnifier(self, doc_x=None, doc_y=None, page_data=None, force=False):
+        '''跟手主循环入口：换算光标文档坐标 → 同步裁剪镜面 → 定位浮窗。
 
         doc_x / doc_y 为 None 时从 content.cursor_* + scrolling_offset 现算
         （motion / 滚动路径）；两者须成对提供——press 路径同时传
         doc_x / doc_y 与 page_data（调用方已做好页面映射），缺一会因局部
-        变量未绑定在按下瞬间抛 UnboundLocalError。'''
+        变量未绑定在按下瞬间抛 UnboundLocalError。
+
+        force=True 跳过节流：页级缓存构建完成的通知路径用，确保清晰帧
+        立即替换软帧（此时光标可能没动，常规节流会把裁剪跳过）。'''
         content = self.view.content
         layout = self.preview.layout
         if not self._magnifier_active or layout == None:
@@ -502,36 +512,37 @@ class PreviewController(object):
 
         now = time.monotonic()
         pos = (doc_x, doc_y)
-        last_pos = self._magnifier_last_enqueue_pos
+        last_pos = self._magnifier_last_update_pos
         moved = last_pos is None or abs(pos[0] - last_pos[0]) >= self._MAGNIFIER_MIN_MOVE_PX or abs(pos[1] - last_pos[1]) >= self._MAGNIFIER_MIN_MOVE_PX
-        if now - self._magnifier_last_enqueue_time >= self._MAGNIFIER_MIN_INTERVAL_S and moved:
-            colors = self._magnifier_colors()
-            request_id = self.preview.page_renderer.request_magnifier_render(
+        if force or (now - self._magnifier_last_update_time >= self._MAGNIFIER_MIN_INTERVAL_S and moved):
+            # 同步裁剪：瓦片命中 → 清晰帧；未就绪/漂出瓦片 → 整页纹理放大
+            # 软帧（与屏幕显示同一张图，位置与倍率均正确）。内容与光标严格
+            # 一致，不再有异步结果的 stale 丢弃竞态；瓦片构建任务由 renderer
+            # 按锚点覆盖关系去重入队。
+            surface = self.preview.page_renderer.get_magnifier_surface(
                 page_number, x_pt, y_pt,
                 self._MAGNIFIER_DIAMETER,
-                layout.hidpi_factor, params['density'], self.preview.rotation, colors)
-            if request_id is not None:
-                self._magnifier_pending_request_id = request_id
-                self._magnifier_last_enqueue_time = now
-                self._magnifier_last_enqueue_pos = pos
-                if _MAGNIFIER_DEBUG:
-                    # 反算回画布坐标：该点若与光标尖不重合，偏差在输入/
-                    # 映射段（渲染之前）；重合而镜内内容仍偏，则在渲染/
-                    # 浮窗显示段。presenter 在页面绘制之后画双标记：
-                    # 红点=反算点（映射+几何），蓝点=原始输入 doc 坐标。
-                    back = self.preview.original_to_canvas(page_number, x_pt, y_pt)
-                    self._magnifier_debug_pos = {
-                        'back': back,
-                        'input': (doc_x, doc_y),
-                    }
-                    self.view.content.queue_draw()
-                    print('[magnifier] cursor_doc=({:.1f},{:.1f}) page={} pt=({:.2f},{:.2f}) density={:.1f} back_to_canvas={}'.format(
-                        doc_x, doc_y, page_number, x_pt, y_pt, params['density'], back),
-                        file=sys.stderr)
-            if request_id is not None:
-                self._magnifier_pending_request_id = request_id
-                self._magnifier_last_enqueue_time = now
-                self._magnifier_last_enqueue_pos = pos
+                layout.hidpi_factor, params['density'], self.preview.rotation,
+                self._magnifier_colors(), self.preview.pdf_version,
+                layout.scale_factor)
+            if surface is not None:
+                self.view.magnifier.set_magnified_surface(surface)
+            self._magnifier_last_update_time = now
+            self._magnifier_last_update_pos = pos
+            if _MAGNIFIER_DEBUG:
+                # 反算回画布坐标：该点若与光标尖不重合，偏差在输入/
+                # 映射段（渲染之前）；重合而镜内内容仍偏，则在裁剪/
+                # 浮窗显示段。presenter 在页面绘制之后画双标记：
+                # 红点=反算点（映射+几何），蓝点=原始输入 doc 坐标。
+                back = self.preview.original_to_canvas(page_number, x_pt, y_pt)
+                self._magnifier_debug_pos = {
+                    'back': back,
+                    'input': (doc_x, doc_y),
+                }
+                self.view.content.queue_draw()
+                print('[magnifier] cursor_doc=({:.1f},{:.1f}) page={} pt=({:.2f},{:.2f}) density={:.1f} back_to_canvas={}'.format(
+                    doc_x, doc_y, page_number, x_pt, y_pt, params['density'], back),
+                    file=sys.stderr)
 
         viewport_w = max(content.width, 1)
         viewport_h = max(content.height, 1)
@@ -558,24 +569,21 @@ class PreviewController(object):
         return None
 
     def on_magnifier_result_ready(self, renderer):
-        '''渲染线程通知有新结果：排空队列，只采用匹配当前 pending id 的
-        surface（旧请求的结果直接丢弃）。'''
-        wanted = self._magnifier_pending_request_id
-        found = None
+        '''渲染线程通知页级缓存构建完成：排空队列并强制重裁剪，按当前
+        光标位置产出清晰帧替换软帧。未激活时仅消费通知（缓存已在取消
+        路径经 invalidate 清空，重建由下次激活触发）。'''
+        has_cache = False
         q = self.preview.page_renderer.magnified_pages_queue
         try:
             while True:
-                item = q.get_nowait()
-                if item['request_id'] == wanted and self._magnifier_active:
-                    found = item
+                if q.get_nowait().get('kind') == 'magnifier_cache':
+                    has_cache = True
         except queue.Empty:
             pass
-        if found is not None:
-            if _MAGNIFIER_DEBUG:
-                print('[magnifier] adopt id={} surface={}x{}'.format(
-                    found['request_id'], found['surface'].get_width(),
-                    found['surface'].get_height()), file=sys.stderr)
-            self.view.magnifier.set_magnified_surface(found['surface'])
+        if _MAGNIFIER_DEBUG and has_cache:
+            print('[magnifier] page cache ready, re-crop', file=sys.stderr)
+        if has_cache and self._magnifier_active:
+            self._update_magnifier(force=True)
 
     def _show_ctrl_hint_toast(self):
         '''普通点击 URI 链接时，提醒用户需按住 Ctrl 才打开。'''

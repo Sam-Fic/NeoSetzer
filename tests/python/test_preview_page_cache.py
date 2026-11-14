@@ -144,9 +144,10 @@ class _RendererHarness:
             Context=Mock(),
         )
         for name in ('_request_rendered_pages_delivery', 'shutdown',
-                     'render_page_loop', '_process_magnifier_todo'):
+                     'render_page_loop', '_process_magnifier_cache_todo'):
             method = _renderer_method(name, GObject=self.main_loop, GLib=self.main_loop,
-                                      cairo=cairo, apply_magnifier_transform=Mock())
+                                      cairo=cairo,
+                                      MAGNIFIER_TILE_FACTOR=4)
             setattr(self, name, method.__get__(self))
         self._ensure_loops_started = _renderer_method(
             '_ensure_loops_started', GObject=self.main_loop, GLib=self.main_loop,
@@ -490,15 +491,19 @@ class TestPreviewPageCache(unittest.TestCase):
 
     @staticmethod
     def magnifier_task():
-        return dict(request_id=0, page_number=0, out_css_size=100, hidpi_factor=1,
-                    density=1, center_x_pt=0, center_y_pt=0, rotation=0,
-                    matching_theme_colors=None)
+        return dict(kind='magnifier_cache', page_number=0,
+                    size_px=100, density=4.0, pdf_version=1,
+                    matching_theme_colors=None, colors_key=None,
+                    anchor_x_pt=50.0, anchor_y_pt=50.0)
 
     def test_shutdown_cancels_idles_and_rejects_late_results_without_join(self):
         renderer = _RendererHarness(1)
         renderer.activate()
         renderer._queue_rendered_page(self.result(self.cached_page(1)))
-        renderer._process_magnifier_todo(self.magnifier_task())
+        task = self.magnifier_task()
+        # 任务以 dict 身份判过期：预置 pending 使该构建任务被处理。
+        renderer._magnifier_cache_pending = task
+        renderer._process_magnifier_cache_todo(task)
         callbacks = list(renderer.main_loop.sources.values())
         renderer.shutdown()
         self.assertTrue(renderer._shutting_down)
@@ -514,7 +519,7 @@ class TestPreviewPageCache(unittest.TestCase):
         renderer.preview.document.settings.disconnect.assert_called_once_with(
             'settings_changed', renderer._settings_callback)
         self.produce_in_thread(lambda: renderer._queue_rendered_page(self.result(None)))
-        self.produce_in_thread(lambda: renderer._process_magnifier_todo(self.magnifier_task()))
+        self.produce_in_thread(lambda: renderer._process_magnifier_cache_todo(self.magnifier_task()))
         renderer.activate()
         renderer._ensure_loops_started()
         renderer.on_layout_or_position_changed(renderer.preview)
