@@ -17,6 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+from xml.etree import ElementTree
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -52,6 +55,24 @@ LATEX_PREVIEW_TEXT = (
 LANG_PREVIEWS = {
     'latex': LATEX_PREVIEW_TEXT,
 }
+
+# 配色网格白名单：只列出辨识度高、常用的经典方案（按浅色→深色排序），
+# 其余系统方案（如 iotas-* 家族的 17 个变体）预览几乎无差别，不再列出。
+# 白名单之外、但位于用户自定义 themes 目录（~/.config/.../themes）下的
+# 方案仍会追加列出，见 populate_scheme_flowbox()。
+SCHEME_WHITELIST = (
+    'classic', 'kate', 'tango', 'Yaru', 'solarized-light',   # 浅色
+    'cobalt', 'oblivion', 'Yaru-dark', 'solarized-dark',     # 深色
+)
+
+
+def _scheme_id_from_xml(path):
+    '''从 style-scheme XML 提取 id；解析失败或无 id 返回 None（跳过坏文件）。'''
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError):
+        return None
+    return root.get('id')
 
 
 class PageEditor(object):
@@ -520,15 +541,18 @@ class PageEditor(object):
             return False
 
     def populate_scheme_flowbox(self):
-        '''重建编辑器配色方案网格（列出全部方案，不过滤深浅）。
+        '''重建编辑器配色方案网格（白名单经典方案 + 用户自定义方案）。
 
-        首项为「Follow system theme」合成 tile（scheme_id=''），其余为
-        StyleSchemeManager 中的所有真实方案——**不**按当前 Adw 深浅主题过滤，
-        以便用户可在深色应用下选用浅色编辑器配色（或反之），恢复旧版 Setzer
-        「任意组合 app 主题与编辑器配色」的能力。
+        首项为「Follow system theme」合成 tile（scheme_id=''），其后按
+        SCHEME_WHITELIST 固定顺序列出经典方案——不再全量列出
+        StyleSchemeManager 中的所有方案：iotas-* 家族等变体预览几乎无差别，
+        只会增加选择负担。仍**不**按当前 Adw 深浅主题过滤，以便用户可在深色
+        应用下选用浅色编辑器配色（或反之），保留旧版 Setzer「任意组合
+        app 主题与编辑器配色」的能力。
 
-        说明：gnome-text-editor 参考项目会按当前主题只列同深浅方案；但 Setzer
-        用户习惯能独立选择，故这里列出全部。重建前清空旧 children。
+        兜底：白名单之外、但 XML 位于用户自定义 themes 目录下的方案仍追加
+        列出，保留 service_locator 刻意支持的 ~/.config/.../themes 能力。
+        重建前清空旧 children。
         '''
         while True:
             child = self.view.scheme_flowbox.get_first_child()
@@ -547,13 +571,36 @@ class PageEditor(object):
             preview = GtkSource.StyleSchemePreview.new(system_scheme)
             self._add_flowbox_child(preview, '')
 
-        # 2) 全部真实方案（不过滤深浅，允许用户任意组合 app 与编辑器配色）。
+        # 2) 白名单经典方案（浅色在前深色在后）；本机缺某方案时优雅跳过，
+        #    保证在其他发行版上不报错。
         scheme_manager = ServiceLocator.get_source_style_scheme_manager()
-        for scheme_id in scheme_manager.get_scheme_ids():
-            if scheme_id in ('default', 'default-dark'):
-                continue
+        listed_ids = set()
+        for scheme_id in SCHEME_WHITELIST:
             scheme = scheme_manager.get_scheme(scheme_id)
             if scheme is None:
+                continue
+            preview = GtkSource.StyleSchemePreview.new(scheme)
+            self._add_flowbox_child(preview, scheme_id)
+            listed_ids.add(scheme_id)
+
+        # 3) 用户自定义方案兜底：GtkSource 绑定无 StyleScheme.get_path，无法
+        #    按来源过滤，改为直接解析用户 themes 目录（service_locator 刻意
+        #    支持的 ~/.config/.../themes）下 XML 的 scheme id；白名单外且
+        #    manager 可解析的方案追加列出。用户文件若与已知方案同名（搜索
+        #    路径更靠前），已由白名单 tile / 跟随系统 tile 覆盖，此处自然跳过。
+        user_themes_dir = os.path.join(ServiceLocator.get_config_folder(), 'themes')
+        try:
+            filenames = os.listdir(user_themes_dir)
+        except OSError:
+            filenames = []
+        for filename in sorted(filenames):
+            if not filename.endswith('.xml'):
+                continue
+            scheme_id = _scheme_id_from_xml(os.path.join(user_themes_dir, filename))
+            scheme = None
+            if scheme_id:
+                scheme = scheme_manager.get_scheme(scheme_id)
+            if not scheme_id or scheme is None or scheme_id in listed_ids:
                 continue
             preview = GtkSource.StyleSchemePreview.new(scheme)
             self._add_flowbox_child(preview, scheme_id)
