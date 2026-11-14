@@ -128,10 +128,11 @@ class AutosaveRecoveryDialog(object):
             # 设置从临时文件检测到的编码和 BOM 状态
             document.file_encoding = encoding
             document.has_bom = has_bom
-            # 用临时文件内容替换缓冲区（irreversible_action 避免污染 undo 栈）
-            document.source_buffer.begin_irreversible_action()
-            document.source_buffer.set_text(text)
-            document.source_buffer.end_irreversible_action()
+            # 用临时文件内容替换缓冲区。必须经 set_buffer_content：直写
+            # set_text 会触发 insert-text → _ensure_undo_group 开组，
+            # end_irreversible_action 清空撤销栈后 500ms 定时器
+            # end_user_action 段错误。
+            document.set_buffer_content(text)
             # 标记为已修改，使 close_confirmation 能捕获（用户需 Save As 才能落地）
             document.source_buffer.set_modified(True)
             # 尝试恢复原显示名（add_document 会赋 "Untitled Document N"，

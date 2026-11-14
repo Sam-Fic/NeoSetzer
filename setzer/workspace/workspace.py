@@ -658,10 +658,11 @@ class Workspace(Observable):
         else:
             document = self.create_other_document()
 
-        # 设置内容并重置修改标记，避免恢复后显示为"已修改"
-        document.source_buffer.begin_irreversible_action()
-        document.source_buffer.set_text(content)
-        document.source_buffer.end_irreversible_action()
+        # 设置内容并重置修改标记，避免恢复后显示为"已修改"。
+        # 必须经 set_buffer_content：直写 set_text 会触发 insert-text →
+        # _ensure_undo_group 开组，end_irreversible_action 清空撤销栈后
+        # 500ms 定时器 end_user_action 段错误（与 _load_file_content 同因）。
+        document.set_buffer_content(content)
         document.source_buffer.set_modified(False)
         # 标记为未命名文档，记录 untitled_id 以便后续清理
         document._untitled_id = untitled_id

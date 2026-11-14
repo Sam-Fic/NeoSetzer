@@ -358,9 +358,7 @@ class TestWorkspaceRealtimePersistence(unittest.TestCase):
 
     def test_restored_saved_flag_survives_watching_and_view_snapshots(self):
         document = DocumentStub(text='restored')
-        document.source_buffer.begin_irreversible_action = Mock()
-        document.source_buffer.set_text = Mock()
-        document.source_buffer.end_irreversible_action = Mock()
+        document.set_buffer_content = Mock()
         self.workspace._load_untitled_content = Mock(return_value='restored')
         self.workspace.create_latex_document = Mock(return_value=document)
         self.workspace.add_document = Mock(side_effect=self._add_document)
@@ -370,7 +368,7 @@ class TestWorkspaceRealtimePersistence(unittest.TestCase):
             {'untitled_id': 'restored-id'}, attach_preview=False)
         self.assertIs(restored, document)
         self.assertIs(document._untitled_content_saved, True)
-        document.source_buffer.set_text.assert_called_once_with('restored')
+        document.set_buffer_content.assert_called_once_with('restored')
         document.source_buffer.emit('notify::cursor-position', None)
         document.adjustment.emit('value-changed')
         _, untitled = self.workspace._collect_open_documents_data()

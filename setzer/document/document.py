@@ -590,6 +590,25 @@ class Document(Observable):
             return b'\xfe\xff' + encoded_bytes
         return encoded_bytes
 
+    def set_buffer_content(self, text):
+        '''程序化整篇写入缓冲区（会话恢复、自动恢复等路径）。
+
+        自带 _loading_from_disk 纪律：进入置位、退出还原旧值（可嵌套）。
+        直写 set_text 会触发 insert-text 信号 → _ensure_undo_group 开用户组
+        并挂 500ms 定时器；随后 end_irreversible_action 清空撤销栈，定时器
+        触发时 end_user_action 在空撤销栈上取队尾条目（g_queue_peek_tail
+        返回 NULL 被直接解引用）——GTK 段错误。所有不经 _load_file_content
+        的整篇写入都必须走本方法。
+        '''
+        prev = self._loading_from_disk
+        self._loading_from_disk = True
+        try:
+            self.source_buffer.begin_irreversible_action()
+            self.source_buffer.set_text(text)
+            self.source_buffer.end_irreversible_action()
+        finally:
+            self._loading_from_disk = prev
+
     def _load_file_content(self):
         '''读取文件内容并填入 source_buffer。
 
@@ -632,9 +651,10 @@ class Document(Observable):
             # offset 做平移，破坏折叠状态。观察者以 None 判别"整篇载入"。
             if hasattr(self.parser, 'last_edit'):
                 self.parser.last_edit = None
-            self.source_buffer.begin_irreversible_action()
-            self.source_buffer.set_text(text)
-            self.source_buffer.end_irreversible_action()
+            # 整篇写入收敛到 set_buffer_content：其内部还原旧值，不影响本层
+            # 守卫，且防止 insert-text → _ensure_undo_group 在 irreversible
+            # action 期间开组（否则 500ms 后 end_user_action 段错误）。
+            self.set_buffer_content(text)
             self.source_buffer.set_modified(False)
 
             # set_text 会以单次 insert-text 信号提交全部内容，若不拦截，
