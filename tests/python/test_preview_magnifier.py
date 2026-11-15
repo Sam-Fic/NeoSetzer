@@ -558,7 +558,6 @@ class MagnifierCachePipelineTest(unittest.TestCase):
     # ---- get_magnifier_surface：软帧密度与瓦片锚点裁剪（像素级） ----
 
     def _make_get_harness(self, cache=None, rendered_item=None):
-        import threading
         harness = self._make_harness()
         harness._magnifier_page_cache = cache
         harness.rendered_pages = ({0: rendered_item} if rendered_item is not None
