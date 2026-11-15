@@ -8,7 +8,7 @@
 
 ---
 
-Simple yet full-featured LaTeX editor for Linux, Windows, and macOS, written in Python with GTK. (A fork of Setzer.)
+Simple yet full-featured LaTeX editor for Linux, Windows, and macOS, written in Python with GTK.
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
 > The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
