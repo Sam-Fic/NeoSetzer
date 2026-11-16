@@ -58,7 +58,8 @@ class GeneralSettingsPage(Page):
                 font_package = self.view.font_package_codes[selected]
                 self.current_values['font_package'] = font_package
                 # 报告 #6：选 fontspec 时显示编译引擎提示。
-                self.view.fontspec_note.set_visible(font_package == 'fontspec')
+                self.view.group_font.set_description(
+                    self.view.fontspec_note if font_package == 'fontspec' else '')
                 refresh_creation_status()
 
         def custom_packages_changed(entry, pspec):
@@ -254,13 +255,8 @@ class GeneralSettingsPageView(PageView):
         self.group_font.add(self.font_package_combo)
 
         # fontspec 提示（报告 #6）：选 fontspec 时显示，提醒需 XeLaTeX/LuaLaTeX。
-        self.fontspec_note = Gtk.Label()
-        self.fontspec_note.set_wrap(True)
-        self.fontspec_note.set_xalign(0)
-        self.fontspec_note.set_text(_('fontspec requires XeLaTeX or LuaLaTeX to compile; pdfLaTeX will fail.'))
-        self.fontspec_note.add_css_class('dim-label')
-        self.fontspec_note.set_visible(False)
-        self.group_font.add(self.fontspec_note)
+        # 组级说明写进 description，而不是塞一个裸标签（会被当成卡片行）。
+        self.fontspec_note = _('fontspec requires XeLaTeX or LuaLaTeX to compile; pdfLaTeX will fail.')
 
         # Packages -----------------------------------------------------------
         # Category groups: each group is an Adw.PreferencesGroup with a title.

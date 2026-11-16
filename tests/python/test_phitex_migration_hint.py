@@ -27,16 +27,14 @@ def load_method(relative_path, class_name, method_name, namespace):
     return namespace[method_name]
 
 
-class Hint:
+class Group:
+    '''提示现在走组的 description，显隐即"文本为空还是非空"。'''
+
     def __init__(self):
-        self.visible = None
-        self.label = None
+        self.description = ''
 
-    def set_visible(self, value):
-        self.visible = value
-
-    def set_label(self, value):
-        self.label = value
+    def set_description(self, value):
+        self.description = value
 
 
 class Doc:
@@ -63,50 +61,51 @@ class Doc:
 def run_hint(effective, configured, *, phitex_present=True, output_chain='pdf'):
     namespace = {'shutil': mock.Mock(which=mock.Mock(return_value='/usr/bin/phitex'
                                                       if phitex_present else None)),
+                 'GLib': mock.Mock(markup_escape_text=lambda text, length: text),
                  '_': lambda s: s}
     method = load_method(DIALOG, 'DocumentPropertiesDialog', '_sync_magic_hint', namespace)
-    hint = Hint()
+    group = Group()
     dialog = mock.Mock()
     dialog.document = Doc(effective, configured)
-    dialog.view.magic_comment_hint = hint
+    dialog.view.build_group = group
     dialog.settings.get_value.return_value = output_chain
     method(dialog)
-    return hint
+    return group
 
 
 class MigrationHintTest(unittest.TestCase):
 
     def test_shown_when_comment_overrides_and_phitex_can_fix_it(self):
-        hint = run_hint('xelatex', 'pdflatex')
-        self.assertTrue(hint.visible)
-        self.assertIn('xelatex', hint.label)
+        group = run_hint('xelatex', 'pdflatex')
+        self.assertTrue(group.description)
+        self.assertIn('xelatex', group.description)
 
     def test_hidden_without_a_comment(self):
         # 没有注释时 effective 就等于 configured，不存在顶掉。
-        self.assertFalse(run_hint('pdflatex', 'pdflatex').visible)
+        self.assertFalse(run_hint('pdflatex', 'pdflatex').description)
 
     def test_hidden_when_comment_matches_the_choice(self):
-        self.assertFalse(run_hint('xelatex', 'xelatex').visible)
+        self.assertFalse(run_hint('xelatex', 'xelatex').description)
 
     def test_hidden_when_already_on_phitex(self):
         # 选的就是 PhiTeX：引擎解析里注释不会替换它，本来就没冲突。
-        self.assertFalse(run_hint('phitex', 'phitex').visible)
+        self.assertFalse(run_hint('phitex', 'phitex').description)
 
     def test_hidden_when_comment_asks_for_phitex(self):
         # 注释已经在推 PhiTeX 且已生效，再建议一次只是重复。
-        self.assertFalse(run_hint('phitex', 'pdflatex').visible)
+        self.assertFalse(run_hint('phitex', 'pdflatex').description)
 
     def test_hidden_for_lualatex_documents(self):
         '''PhiTeX 明确不支持 lualatex，迁移过去文档直接编不出来。'''
-        self.assertFalse(run_hint('lualatex', 'pdflatex').visible)
+        self.assertFalse(run_hint('lualatex', 'pdflatex').description)
 
     def test_hidden_on_the_pdfps_output_chain(self):
         '''PSTricks/psfrag 走 latex→dvips→ps2pdf，PhiTeX 没有这条路线。'''
-        self.assertFalse(run_hint('xelatex', 'pdflatex', output_chain='pdfps').visible)
+        self.assertFalse(run_hint('xelatex', 'pdflatex', output_chain='pdfps').description)
 
     def test_hidden_when_phitex_is_not_installed(self):
         '''建议一件这台机器上做不了的事没有意义。'''
-        self.assertFalse(run_hint('xelatex', 'pdflatex', phitex_present=False).visible)
+        self.assertFalse(run_hint('xelatex', 'pdflatex', phitex_present=False).description)
 
 
 class SharedInterpreterResolverTest(unittest.TestCase):

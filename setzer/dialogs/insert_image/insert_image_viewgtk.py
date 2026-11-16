@@ -18,7 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Gtk, Adw, GLib, Pango
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 
@@ -128,7 +128,9 @@ class InsertImageView(DialogView):
         self.subdir_row.set_tooltip_text(_('Subfolder inside the document folder where the image is stored'))
         save_group.add(self.subdir_row)
 
-        save_group.add(self._note(_('Image will be saved as PNG into "<document folder>/<subfolder>/<file name>.png".')))
+        # description 按 Pango markup 解析，尖括号必须转义，否则会被当成标签。
+        save_group.set_description(GLib.markup_escape_text(_(
+            'Image will be saved as PNG into "<document folder>/<subfolder>/<file name>.png".'), -1))
 
         content.append(save_group)
 
@@ -218,7 +220,7 @@ class InsertImageView(DialogView):
         self.label_row.set_text('fig:')
         text_group.add(self.label_row)
 
-        text_group.add(self._note(_('Label is referenced with \\ref{label}. Leave "fig:" prefix or customize.')))
+        text_group.set_description(_('Label is referenced with \\ref{label}. Leave "fig:" prefix or customize.'))
 
         content.append(text_group)
 
@@ -238,15 +240,6 @@ class InsertImageView(DialogView):
                 walk(child)
                 child = child.get_next_sibling()
         walk(self.topbox)
-
-    def _note(self, text):
-        label = Gtk.Label(label=text)
-        label.set_wrap(True)
-        label.set_xalign(0)
-        label.add_css_class('dim-label')
-        label.set_margin_top(4)
-        label.set_margin_bottom(8)
-        return label
 
     # 工具属性
     @property

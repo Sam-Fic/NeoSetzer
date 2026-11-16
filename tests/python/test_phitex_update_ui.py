@@ -165,7 +165,8 @@ class PageStateTest(unittest.TestCase):
                                staticmethod(lambda: workspace)):
             result = self.end(obj)
         self.assertFalse(result)
-        obj.view.phitex_restart_note.set_visible.assert_called_with(True)
+        obj.view.group_phitex.set_description.assert_called_with(
+            obj.view.phitex_restart_note)
         # 断言 exec 命名空间里那个 threading（函数体真正用的那个）。
         self.threading.Thread.assert_called_once()
         self.threading.Thread.return_value.start.assert_called_once()

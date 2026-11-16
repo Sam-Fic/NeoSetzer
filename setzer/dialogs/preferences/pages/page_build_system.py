@@ -471,7 +471,7 @@ class PageBuildSystem(object):
         新配置重新 start。stop 是子进程调用，放后台线程避免批量关 session
         时卡主循环。
         '''
-        self.view.phitex_restart_note.set_visible(True)
+        self.view.group_phitex.set_description(self.view.phitex_restart_note)
         workspace = ServiceLocator.get_workspace()
         builders = []
         for document in workspace.open_documents:
@@ -587,13 +587,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         self.phitex_upgrade_row.set_activatable_widget(self.phitex_upgrade_button)
         group_phitex.add(self.phitex_upgrade_row)
 
-        self.phitex_restart_note = Gtk.Label()
-        self.phitex_restart_note.set_wrap(True)
-        self.phitex_restart_note.set_markup(_('Running PhiTeX sessions are ended after an upgrade, so the next build starts on the new version.'))
-        self.phitex_restart_note.set_xalign(0)
-        self.phitex_restart_note.add_css_class('caption')
-        self.phitex_restart_note.set_visible(False)
-        group_phitex.add(self.phitex_restart_note)
+        self.phitex_restart_note = _('Running PhiTeX sessions are ended after an upgrade, so the next build starts on the new version.')
 
         group_options = Adw.PreferencesGroup()
         group_options.set_title(_('Options'))

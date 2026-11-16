@@ -84,12 +84,9 @@ class DocumentPropertiesView(DialogView):
         # 仅当这条文档的 `% !TEX program` 注释真的顶掉了用户选的引擎、且
         # PhiTeX 可用又确实能解决冲突时才由控制器显示（见 _sync_magic_hint）。
         # 默认隐藏：常驻的说明文字会被当成界面装饰跳过。
-        self.magic_comment_hint = Gtk.Label()
-        self.magic_comment_hint.set_wrap(True)
-        self.magic_comment_hint.set_xalign(0)
-        self.magic_comment_hint.add_css_class('caption')
-        self.magic_comment_hint.set_visible(False)
-        build_group.add(self.magic_comment_hint)
+        # 组级说明走 description（见 preferences 页同款处理）：裸标签加进组会
+        # 被当成列表行、套上卡片背景。
+        self.build_group = build_group
 
         # Override build options row
         override_row = Adw.SwitchRow()

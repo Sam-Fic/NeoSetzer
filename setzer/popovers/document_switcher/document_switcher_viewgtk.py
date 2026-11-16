@@ -74,16 +74,7 @@ class DocumentSwitcherView(object):
 
         # 选择模式说明 + 取消按钮。
         self.explanation_group = Adw.PreferencesGroup()
-        self.explanation_label = Gtk.Label(label=_('Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements.'))
-        self.explanation_label.set_wrap(True)
-        self.explanation_label.set_xalign(0)
-        self.explanation_label.add_css_class('dim-label')
-        self.explanation_label.add_css_class('caption')
-        self.explanation_label.set_margin_start(12)
-        self.explanation_label.set_margin_end(12)
-        self.explanation_label.set_margin_top(10)
-        self.explanation_label.set_margin_bottom(6)
-        self.explanation_group.add(self.explanation_label)
+        self.explanation_group.set_description(_('Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements.'))
 
         self.cancel_button = Gtk.Button(label=_('Cancel'))
         self.cancel_button.set_tooltip_text(_('Exit root document selection mode'))

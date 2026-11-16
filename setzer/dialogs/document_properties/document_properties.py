@@ -18,6 +18,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
+from gi.repository import GLib
 
 import shutil
 
@@ -148,29 +149,26 @@ class DocumentPropertiesDialog(object):
         另外 phitex 不在 PATH 时不提——建议一件这台机器上做不了的事没有意义。
         '''
         doc = self.document
-        hint = self.view.magic_comment_hint
+        group = self.view.build_group
+        # 说明放组的 description：显隐靠清空文本，不留裸标签那种卡片行。
+        group.set_description('')
         if doc is None or not doc.is_latex_document():
-            hint.set_visible(False)
             return
         effective = doc.build_system.get_effective_interpreter()
         configured = doc.build_system.get_configured_interpreter()
         # effective == configured 说明没有注释、或注释与选择一致：不存在冲突。
         if effective == configured or effective == 'phitex' or effective == 'lualatex':
-            hint.set_visible(False)
             return
         if self.settings.get_value('preferences', 'latexmk_output_chain') == 'pdfps':
-            hint.set_visible(False)
             return
         if shutil.which('phitex') is None:
-            hint.set_visible(False)
             return
-        # 纯文本而非 markup：引擎名来自文档内容，set_label 免去转义。
-        hint.set_label(_(
+        # description 按 Pango markup 解析，引擎名来自文档内容，必须转义。
+        group.set_description(_(
             'This document\u2019s "% !TEX program = {engine}" comment overrides the '
             'engine you pick here. PhiTeX reads that comment itself and chooses the '
             'engine from the document, so picking it above ends the override without '
-            'editing the file.').format(engine=effective))
-        hint.set_visible(True)
+            'editing the file.').format(engine=GLib.markup_escape_text(effective, -1)))
 
     def _sync_combo(self, combo, override, global_value, options, effective):
         '''Set combo box active item based on override state.'''
