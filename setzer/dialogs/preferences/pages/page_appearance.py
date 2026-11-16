@@ -336,10 +336,12 @@ class PageGeneral(object):
         self._show_toast(_('Preferences reset. Reopen Preferences to see all changes.'))
 
     def _show_toast(self, message):
-        if self.view.toast_overlay is not None:
+        # 先试偏好对话框：它在主窗口之上，走主窗口的 overlay 会被挡住。
+        preferences_view = getattr(self.preferences, 'view', None)
+        if preferences_view is not None and hasattr(preferences_view, 'add_toast'):
+            preferences_view.add_toast(Adw.Toast(title=message))
+        elif self.view.toast_overlay is not None:
             self.view.toast_overlay.add_toast(Adw.Toast(title=message))
-        else:
-            self.preferences.view.add_toast(Adw.Toast(title=message))
 
     # ---- reset ----
     def on_reset_clicked(self, button):

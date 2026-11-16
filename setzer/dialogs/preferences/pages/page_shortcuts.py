@@ -328,7 +328,7 @@ class PageShortcuts(object):
         dialog.set_response_appearance('reassign', Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
-        dialog.choose(self.main_window, None, self.on_conflict_dialog_response)
+        dialog.choose(self.preferences.view, None, self.on_conflict_dialog_response)
 
     def on_conflict_dialog_response(self, dialog, result):
         response_id = dialog.choose_finish(result)
@@ -433,7 +433,7 @@ class PageShortcuts(object):
         dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
-        dialog.choose(self.main_window, None, self.on_reset_confirmed)
+        dialog.choose(self.preferences.view, None, self.on_reset_confirmed)
 
     def on_reset_confirmed(self, dialog, result):
         response_id = dialog.choose_finish(result)
@@ -577,7 +577,7 @@ class PageShortcuts(object):
         dialog.set_response_appearance('resolve', Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
-        dialog.choose(self.main_window, None, self.on_import_conflict_response)
+        dialog.choose(self.preferences.view, None, self.on_import_conflict_response)
 
     def on_import_conflict_response(self, dialog, result):
         response_id = dialog.choose_finish(result)
@@ -615,11 +615,18 @@ class PageShortcuts(object):
             self._show_toast(_('Failed to export shortcuts: {error}').format(error=str(e)))
 
     def _show_toast(self, message):
-        '''显示 toast 通知（导入/导出结果反馈）。'''
+        '''显示 toast 通知（导入/导出结果反馈）。
+
+        发到偏好对话框：主窗口被设置窗口盖住，发过去等于用户看不见。
+        '''
+        toast = Adw.Toast.new(message)
+        toast.set_timeout(5)
+        view = getattr(self.preferences, 'view', None)
+        if view is not None and hasattr(view, 'add_toast'):
+            view.add_toast(toast)
+            return
         main_window = ServiceLocator.get_main_window()
         if main_window and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(message)
-            toast.set_timeout(5)
             main_window.toast_overlay.add_toast(toast)
 
 

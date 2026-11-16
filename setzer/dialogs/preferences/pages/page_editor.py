@@ -533,10 +533,15 @@ class PageEditor(object):
         self.view.preview_source_view.set_pixels_inside_wrap(value)
 
     def _show_toast(self, message):
+        # 偏好对话框盖在主窗口之上，发到主窗口的 toast 用户看不见。
+        toast = Adw.Toast.new(message)
+        toast.set_timeout(4)
+        view = getattr(self.preferences, 'view', None)
+        if view is not None and hasattr(view, 'add_toast'):
+            view.add_toast(toast)
+            return
         main_window = self.main_window or ServiceLocator.get_main_window()
         if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(message)
-            toast.set_timeout(4)
             main_window.toast_overlay.add_toast(toast)
 
     # ---- editor color scheme grid (复刻 gnome-text-editor) ----

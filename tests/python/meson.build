@@ -102,6 +102,7 @@ foreach t : [
   ['test_backward_sync_match', 'test_backward_sync_match.py'],
   ['test_build_timer_preference', 'test_build_timer_preference.py'],
   ['test_phitex_update_ui', 'test_phitex_update_ui.py'],
+  ['test_dialog_toast_host', 'test_dialog_toast_host.py'],
   ['test_frequent_build_ui_feedback', 'test_frequent_build_ui_feedback.py'],
   ['test_preview_no_flash_on_rebuild', 'test_preview_no_flash_on_rebuild.py'],
   ['test_tikz_region_finder', 'test_tikz_region_finder.py'],

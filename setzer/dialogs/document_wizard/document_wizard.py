@@ -379,7 +379,7 @@ class DocumentWizard(object):
             document_class_page.refresh_document_templates()
 
         dialog.connect('response', on_response)
-        dialog.present(self.main_window)
+        dialog.present(self.view)
 
     def open_save_template_dialog(self):
         '''弹出对话框，将当前设置另存为命名模板（报告 #5）。'''
@@ -398,7 +398,7 @@ class DocumentWizard(object):
         def on_response(dialog, response):
             if response == 'save':
                 self.save_template(entry.get_text())
-        dialog.choose(self.main_window, None, on_response)
+        dialog.choose(self.view, None, on_response)
 
     def goto_page_next(self, button=None, data=None):
         # 页面流转集中在 page_map.next_page：避免本方法散落 0/1-5/6 魔法数字，
@@ -439,7 +439,7 @@ class DocumentWizard(object):
         dialog.add_response('ok', _('OK'))
         dialog.set_default_response('ok')
         dialog.set_close_response('ok')
-        dialog.choose(self.main_window, None, None)
+        dialog.choose(self.view, None, None)
 
     def goto_page(self, page_number):
         # 懒构造：进入页面前确保该页已建（首屏只建了第 0 页）。已建则 no-op。

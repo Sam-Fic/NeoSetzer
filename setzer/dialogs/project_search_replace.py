@@ -85,7 +85,11 @@ class ProjectSearchReplaceDialog:
         buttons.append(preview_button)
         buttons.append(self.apply_button)
         content.append(buttons)
-        self.dialog.set_child(content)
+        # 应用失败要留在弹窗里改条件重试，提示必须落在弹窗自身；发到主窗口
+        # 会藏在这个模态弹窗背后。用 ToastOverlay 包一层是最小改动。
+        self.toast_overlay = Adw.ToastOverlay()
+        self.toast_overlay.set_child(content)
+        self.dialog.set_child(self.toast_overlay)
 
     def _options(self):
         return {
@@ -175,4 +179,9 @@ class ProjectSearchReplaceDialog:
     def _show_toast(self, message):
         toast = Adw.Toast.new(message)
         toast.set_timeout(5)
-        self.main_window.toast_overlay.add_toast(toast)
+        # 弹窗打开时用它的 overlay；未打开（如"先保存文档"那条）才回退主窗口，
+        # 否则 toast 加到一个不在窗口里的 overlay 上什么都不会显示。
+        if self.dialog.get_mapped():
+            self.toast_overlay.add_toast(toast)
+        elif hasattr(self.main_window, 'toast_overlay'):
+            self.main_window.toast_overlay.add_toast(toast)
