@@ -68,6 +68,9 @@ class BuildWidget(Observable):
         self.view.clean_button.connect('clicked', self.on_clean_button_click)
 
         self.build_button_state = ('idle', int(time.time()*1000))
+        # auto 模式下"构建够久才让计时器现身"的那个一次性 source，见
+        # _apply_build_timer_policy 与 cancel_timer_reveal。
+        self._timer_reveal_id = None
         self.set_clean_button_state()
         self.update_build_button()
         self.update_build_button_tooltip()
@@ -89,6 +92,7 @@ class BuildWidget(Observable):
         进行中文档被关闭时计时器 timeout 永久泄漏。settings 连接由
         Document.shutdown 集中处理。'''
         self.view.stop_timer()
+        self.cancel_timer_reveal()
 
     def on_filename_change(self, document, filename=None):
         self.set_clean_button_state()
@@ -119,31 +123,75 @@ class BuildWidget(Observable):
                     self.view.clear_stage()
                     self.view.switch_to_building()
                     self.view.build_button.set_sensitive(True)
-                    show_timer = self._show_build_timer()
-                    self.view.set_timer_visible(show_timer)
-                    if show_timer:
-                        self.view.reset_timer()
-                        self.view.start_timer()
+                    self._apply_build_timer_policy()
         else:
+            self.cancel_timer_reveal()
             self.view.switch_to_idle()
             self.view.build_button.set_sensitive(True)
             self.update_build_button_tooltip()
             self.build_button_state = ('idle', int(time.time()*1000))
         self.set_clean_button_state()
 
-    def _show_build_timer(self):
-        '''构建按钮上的计时器本次要不要显示。
+    # auto 模式下计时器现身的门槛（毫秒）。
+    #
+    # 取 1000 是因为计时器的显示粒度就是一秒：不足一秒的构建里这个数字永远
+    # 停在 0:00，是个不含任何信息的摆设。超过一秒才开始有意义，也正好在
+    # 第一个真实值出现的那一刻出现。
+    AUTO_REVEAL_MS = 1000
 
-        auto 的含义是"计时器还有信息量时才显示"：传统引擎一轮一秒以上，
-        数字是用户判断等待的依据；PhiTeX 常驻 session 一轮约 18 ms、每 150 ms
-        触发一次，一秒一跳的数字只会抖成噪音，反而盖掉真正该看的停止入口。
+    def _build_timer_policy(self):
+        '''本次构建的计时器策略：'now' 立刻显示 / 'reveal' 满一秒才显示 / 'off' 不显示。
+
+        auto 按"这一次值不值得看"判定，与用哪个引擎无关。原先按引擎区分
+        （PhiTeX 隐藏）既把 build_widget 绑到了 phitex_session 上，也猜不准：
+        冷编译并不只在第一次——改启动期参数会重启 session 走全量，
+        `phitex clean` 之后同样是全量，那些都需要计时器；而"第一次"里也有
+        小文档半秒就完的，照样不需要。时长本身才是直接的依据。
         '''
         mode = self.settings.get_value('preferences', 'build_timer')
         if mode == 'always':
-            return True
+            return 'now'
         if mode == 'never':
+            return 'off'
+        return 'reveal'
+
+    def _apply_build_timer_policy(self):
+        self.cancel_timer_reveal()
+        policy = self._build_timer_policy()
+        if policy == 'now':
+            self.view.set_timer_visible(True)
+            self.view.reset_timer()
+            self.view.start_timer()
+        elif policy == 'reveal':
+            # 先藏起来；构建超过门槛再现身，并从真实已用时接着数。
+            self.view.set_timer_visible(False)
+            self._timer_reveal_id = GLib.timeout_add(
+                self.AUTO_REVEAL_MS, self._reveal_timer)
+        else:
+            self.view.set_timer_visible(False)
+
+    def _reveal_timer(self):
+        self._timer_reveal_id = None
+        if self.build_button_state[0] != 'building':
             return False
-        return not self.document.build_system.is_phitex_live_build()
+        if self.view.timer_active:
+            return False
+        self.view.timer = max(0, int(time.time() * 1000) - self.build_button_state[1])
+        self.view.refresh_timer()
+        self.view.set_timer_visible(True)
+        self.view.start_timer()
+        return False
+
+    def cancel_timer_reveal(self):
+        '''取消未到期的现身计时器。
+
+        不取消的话，一次 100 ms 的增量构建结束后那个 source 仍会在一秒后
+        醒来——虽然回调有 building 守卫不会误显示，但每轮构建都攒一个待触发的
+        source，150 ms 节奏下就是持续的空转唤醒。
+        '''
+        if self._timer_reveal_id is not None:
+            GLib.Source.remove(self._timer_reveal_id)
+            self._timer_reveal_id = None
 
     def on_build_stage(self, build_system, stage):
         # 仅在构建/building 态显示阶段；纯 forward/backward sync 模式按钮不在
@@ -233,22 +281,20 @@ class BuildWidget(Observable):
             self.apply_build_timer()
 
     def apply_build_timer(self):
-        '''把当前计时器可见性同步到按钮上（构建中途改设置也要立刻生效）。'''
+        '''把当前计时器策略同步到按钮上（构建中途改设置也要立刻生效）。'''
         if self.build_button_state[0] != 'building':
+            self.cancel_timer_reveal()
             return
-        if self._show_build_timer():
-            self.view.set_timer_visible(True)
-            if not self.view.timer_active:
-                # 从本次构建的真实已用时接着数，而不是从 0:00 重来。
-                self.view.timer = max(0, int(time.time() * 1000) - self.build_button_state[1])
-                self.view.refresh_timer()
-                self.view.start_timer()
-        else:
+        if self.view.timer_active and self._build_timer_policy() != 'now':
+            # 从 always 切走：已经跑起来的计数要停掉并藏起来，否则它会一直
+            # 挂着到构建结束，开关看起来没起作用。
             self.view.stop_timer()
             self.view.set_timer_visible(False)
+        self._apply_build_timer_policy()
 
     def show_message(self, message=''):
         self.view.stop_timer()
+        self.cancel_timer_reveal()
         self.view.switch_to_idle()
         self.update_build_button_tooltip()
 

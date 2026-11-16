@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # coding: utf-8
 #
-# 构建按钮计时器的三态显示。
+# 构建按钮计时器的三态策略。
 #
-# 三态而不是开关：`auto` 才是这次要的行为——慢引擎显示（数字是用户判断等待
-# 的依据），PhiTeX 常驻 session 隐藏（一轮约 18 ms，一秒一跳只会抖成噪音），
-# 同时用户在 PhiTeX 下仍要能把它打开。做成"默认关 + PhiTeX 强制关"就没有
-# 那个选择；做成两态又区分不出"没设过"和"设成了默认值"（settings.data 是
-# 稀疏的，但缺设置文件时它直接别名到 defaults，判断并不可靠）。
+# auto 的判据是"这次构建值不值得看"，而计时器的显示粒度就是一秒——不足一秒
+# 的构建里那个数字永远停在 0:00，是个不含信息的摆设。所以规则只看时长，不看
+# 用的是哪个引擎：这样 build_widget 也不用再依赖 phitex_session。
 
 import ast
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -18,116 +17,186 @@ ROOT = Path(__file__).resolve().parents[2]
 WIDGET = 'setzer/document/build_widget/build_widget.py'
 
 
-def load_widget_method(method_name):
+def load_widget_method(method_name, namespace=None):
     source = ROOT / WIDGET
     tree = ast.parse(source.read_text(encoding='utf-8'))
     cls = next(node for node in tree.body
                if isinstance(node, ast.ClassDef) and node.name == 'BuildWidget')
     fn = next(node for node in cls.body
               if isinstance(node, ast.FunctionDef) and node.name == method_name)
-    namespace = {'time': __import__('time')}
-    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(source), 'exec'), namespace)
-    return namespace[method_name]
+    ns = {'time': time, 'GLib': mock.Mock()}
+    if namespace:
+        ns.update(namespace)
+    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(source), 'exec'), ns)
+    return ns[method_name]
 
 
-class ShowTimerTest(unittest.TestCase):
+class PolicyTest(unittest.TestCase):
 
     def setUp(self):
-        self.show = load_widget_method('_show_build_timer')
+        self.policy = load_widget_method('_build_timer_policy')
 
-    def widget(self, mode, live):
+    def widget(self, mode):
         obj = mock.Mock()
         obj.settings.get_value.return_value = mode
-        obj.document.build_system.is_phitex_live_build.return_value = live
         return obj
 
-    def test_auto_shows_for_slow_builders(self):
-        self.assertTrue(self.show(self.widget('auto', False)))
+    def test_default_is_reveal(self):
+        self.assertEqual(self.policy(self.widget('auto')), 'reveal')
 
-    def test_auto_hides_for_phitex(self):
-        self.assertFalse(self.show(self.widget('auto', True)))
+    def test_explicit_choices_override(self):
+        self.assertEqual(self.policy(self.widget('always')), 'now')
+        self.assertEqual(self.policy(self.widget('never')), 'off')
 
-    def test_always_wins_over_phitex(self):
-        '''用户在 PhiTeX 下仍要能把计时器打开。'''
-        self.assertTrue(self.show(self.widget('always', True)))
+    def test_unknown_value_falls_back_to_reveal(self):
+        # 手改设置文件写了未定义的值时不该抛异常，按默认策略走。
+        self.assertEqual(self.policy(self.widget('banana')), 'reveal')
 
-    def test_never_wins_over_traditional_engine(self):
-        self.assertFalse(self.show(self.widget('never', False)))
+    def test_threshold_is_the_display_granularity(self):
+        source = (ROOT / WIDGET).read_text(encoding='utf-8')
+        self.assertIn('AUTO_REVEAL_MS = 1000', source)
 
-    def test_unknown_value_falls_back_to_auto(self):
-        # 手改设置文件写了个没定义的值时，按最保守的 auto 处理而不是抛异常。
-        self.assertTrue(self.show(self.widget('banana', False)))
-        self.assertFalse(self.show(self.widget('banana', True)))
+    def test_timer_logic_does_not_depend_on_phitex(self):
+        source = (ROOT / WIDGET).read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        names = [n.name for n in cls.body if isinstance(n, ast.FunctionDef)
+                 and 'timer' in n.name.lower()]
+        for name in names:
+            fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                      and n.name == name)
+            self.assertNotIn('is_phitex_live_build', ast.dump(fn), name)
+
+
+class ApplyPolicyTest(unittest.TestCase):
+
+    def setUp(self):
+        self.GLib = mock.Mock()
+        self.GLib.timeout_add.return_value = 77
+        self.apply = load_widget_method('_apply_build_timer_policy',
+                                        {'GLib': self.GLib})
+        # _apply_build_timer_policy 会调 _build_timer_policy；桩对象必须给回
+        # 真实的策略字符串，否则拿到 Mock、三条分支全部落到 else。
+        self.policy = load_widget_method('_build_timer_policy')
+
+    def widget(self, mode):
+        obj = mock.Mock()
+        obj.settings.get_value.return_value = mode
+        obj._timer_reveal_id = None
+        obj.AUTO_REVEAL_MS = 1000
+        obj.cancel_timer_reveal = lambda: None
+        obj.view.timer_active = False
+        obj._build_timer_policy = lambda: self.policy(obj)
+        return obj
+
+    def test_now_starts_the_timer_immediately(self):
+        obj = self.widget('always')
+        self.apply(obj)
+        obj.view.start_timer.assert_called_once()
+        obj.view.set_timer_visible.assert_called_with(True)
+        self.GLib.timeout_add.assert_not_called()
+
+    def test_reveal_hides_it_and_schedules_the_threshold(self):
+        obj = self.widget('auto')
+        self.apply(obj)
+        obj.view.set_timer_visible.assert_called_with(False)
+        obj.view.start_timer.assert_not_called()
+        self.GLib.timeout_add.assert_called_once_with(1000, obj._reveal_timer)
+
+    def test_off_schedules_nothing(self):
+        obj = self.widget('never')
+        self.apply(obj)
+        obj.view.set_timer_visible.assert_called_with(False)
+        self.GLib.timeout_add.assert_not_called()
+
+
+class RevealTest(unittest.TestCase):
+
+    def setUp(self):
+        self.reveal = load_widget_method('_reveal_timer')
+
+    def widget(self, state, elapsed_ms, active=False):
+        obj = mock.Mock()
+        obj.build_button_state = (state, int(time.time() * 1000) - elapsed_ms)
+        obj._timer_reveal_id = 77
+        obj.view.timer_active = active
+        obj.view.timer = 0
+        return obj
+
+    def test_seeds_the_real_elapsed_time_not_zero(self):
+        '''到点现身时应显示真实已用时，第一格就是 0:01 而不是重新开始数。'''
+        obj = self.widget('building', 1000)
+        self.reveal(obj)
+        self.assertGreaterEqual(obj.view.timer, 990)
+        obj.view.refresh_timer.assert_called_once()
+        obj.view.set_timer_visible.assert_called_once_with(True)
+        obj.view.start_timer.assert_called_once()
+
+    def test_ignored_once_the_build_finished(self):
+        obj = self.widget('idle', 300)
+        self.reveal(obj)
+        obj.view.start_timer.assert_not_called()
+        obj.view.set_timer_visible.assert_not_called()
+
+    def test_does_not_stack_a_second_timeout(self):
+        obj = self.widget('building', 1000, active=True)
+        self.reveal(obj)
+        obj.view.start_timer.assert_not_called()
+
+    def test_clears_its_own_source_id(self):
+        obj = self.widget('building', 1000)
+        self.reveal(obj)
+        self.assertIsNone(obj._timer_reveal_id)
+
+
+class LifecycleTest(unittest.TestCase):
+    '''待触发的现身 source 必须在离开构建态时取消。'''
+
+    def test_all_idle_paths_cancel_it(self):
+        '''三条回到空闲态的路径都要取消未到期的现身 source。'''
+        source = (ROOT / WIDGET).read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        for name in ('shutdown', 'show_message', 'apply_build_timer'):
+            fn = next((n for n in cls.body if isinstance(n, ast.FunctionDef)
+                       and n.name == name), None)
+            self.assertIsNotNone(fn, name)
+            self.assertIn('cancel_timer_reveal', ast.dump(fn), name)
+
+    def test_callback_is_guarded_even_if_cancellation_is_missed(self):
+        '''取消之外还要有守卫：漏一条路径也只是不显示，不会显示错。'''
+        reveal = load_widget_method('_reveal_timer')
+        obj = self.widget_idle()
+        reveal(obj)
+        obj.view.start_timer.assert_not_called()
+
+    @staticmethod
+    def widget_idle():
+        obj = mock.Mock()
+        obj.build_button_state = ('idle', int(time.time() * 1000))
+        obj._timer_reveal_id = 1
+        obj.view.timer_active = False
+        return obj
+
+
+class SettingsWiringTest(unittest.TestCase):
 
     def test_default_is_auto(self):
         source = (ROOT / 'setzer/settings/settings.py').read_text(encoding='utf-8')
         self.assertIn("['preferences']['build_timer'] = 'auto'", source)
 
-
-class ApplyWhileBuildingTest(unittest.TestCase):
-
-    def setUp(self):
-        self.apply = load_widget_method('apply_build_timer')
-
-    def presenter(self, state, show_timer, active=False):
-        obj = mock.Mock()
-        obj.build_button_state = (state, 1_000_000)
-        obj._show_build_timer.return_value = show_timer
-        obj.view.timer_active = active
-        obj.view.timer = 0
-        return obj
-
-    def test_noop_when_not_building(self):
-        obj = self.presenter('idle', True)
-        self.apply(obj)
-        obj.view.set_timer_visible.assert_not_called()
-        obj.view.start_timer.assert_not_called()
-
-    def test_hiding_stops_the_running_timeout(self):
-        '''只藏标签不停 timeout，那个每秒醒一次的源就还挂着。'''
-        obj = self.presenter('building', False)
-        obj.view.timer_active = True
-        self.apply(obj)
-        obj.view.stop_timer.assert_called_once()
-        obj.view.set_timer_visible.assert_called_once_with(False)
-
-    def test_showing_resumes_from_real_elapsed_time(self):
-        obj = self.presenter('building', True, active=False)
-        self.apply(obj)
-        obj.view.set_timer_visible.assert_called_once_with(True)
-        obj.view.refresh_timer.assert_called_once()
-        obj.view.start_timer.assert_called_once()
-        # 已用时从 build_button_state[1] 起算，不该从 0:00 重来
-        self.assertGreater(obj.view.timer, 0)
-
-    def test_showing_twice_does_not_stack_timeouts(self):
-        obj = self.presenter('building', True, active=True)
-        self.apply(obj)
-        obj.view.start_timer.assert_not_called()
-
-
-class SettingsWiringTest(unittest.TestCase):
-    '''偏好页的取值顺序必须和 build_timer_values 对齐。'''
-
-    def test_option_order_matches_values_list(self):
+    def test_labels_match_the_value_order(self):
         source = (ROOT / 'setzer/dialogs/preferences/pages/page_build_system.py'
                   ).read_text(encoding='utf-8')
-        order = source.index("build_timer_values = ['auto', 'always', 'never']")
-        labels = source.index("for label in [_('Show for slow builders, hide for PhiTeX'),")
-        self.assertLess(order, labels)
-        # 三态标签与取值必须一一对应，否则 set_selected 会越界。
-        labels = source[source.index("for label in [_('Show for slow builders"):]
+        self.assertIn("build_timer_values = ['auto', 'always', 'never']", source)
+        labels = source[source.index("for label in [_('Show once the build passes a second')"):]
         labels = labels[:labels.index(']')]
-        self.assertEqual(labels.count('_('), len(self.page_values()))
-
-    @staticmethod
-    def page_values():
-        return ['auto', 'always', 'never']
+        self.assertEqual(labels.count('_('), 3)
 
     def test_invalid_stored_value_does_not_crash_the_page(self):
         source = (ROOT / 'setzer/dialogs/preferences/pages/page_build_system.py'
                   ).read_text(encoding='utf-8')
-        self.assertIn("if build_timer not in self.build_timer_values:", source)
+        self.assertIn('if build_timer not in self.build_timer_values:', source)
 
 
 if __name__ == '__main__':

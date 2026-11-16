@@ -467,9 +467,9 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
 
         self.option_build_timer = Adw.ComboRow()
         self.option_build_timer.set_title(_('Elapsed-time counter on the build button'))
-        self.option_build_timer.set_subtitle(_('PhiTeX rebuilds a change in about 20 ms, where a counter that ticks once per second is noise rather than information.'))
+        self.option_build_timer.set_subtitle(_('The counter only moves in whole seconds, so a build that finishes sooner never shows a number worth reading.'))
         build_timer_model = Gtk.StringList()
-        for label in [_('Show for slow builders, hide for PhiTeX'),
+        for label in [_('Show once the build passes a second'),
                       _('Always show'),
                       _('Never show')]:
             build_timer_model.append(label)
