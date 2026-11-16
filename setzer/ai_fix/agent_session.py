@@ -79,6 +79,8 @@ class AgentSession(Observable):
         self.session_cwd = None
         self.last_error = None
         self._child_pid = None
+        self._generation = 0
+        self._exited_handler = None
         self._pending = []
         self._ready_idle_id = None
         self._ready_cap_id = None
@@ -93,7 +95,6 @@ class AgentSession(Observable):
             font_string = self.settings.get_value('preferences', 'font_string')
             if font_string:
                 self.terminal.set_font(Pango.FontDescription.from_string(font_string))
-            self.terminal.connect('child-exited', self._on_child_exited)
             self.terminal.connect('contents-changed', self._on_contents_changed)
 
     # ---- 状态 ----
@@ -155,6 +156,14 @@ class AgentSession(Observable):
 
         self.session_cwd = cwd
         self.last_error = None
+        # 代际隔离：restart 后旧子进程异步到达的 child-exited 不得踩新会话。
+        self._generation += 1
+        generation = self._generation
+        if self._exited_handler is not None:
+            self.terminal.disconnect(self._exited_handler)
+        self._exited_handler = self.terminal.connect(
+            'child-exited',
+            lambda t, status: self._on_child_exited(t, status, generation))
         self._set_state('starting')
         try:
             self.terminal.spawn_async(
@@ -182,11 +191,17 @@ class AgentSession(Observable):
         if self._child_pid == pid:
             self._child_pid = None
 
-    def _on_child_exited(self, terminal, status):
+    def _on_child_exited(self, terminal, status, generation):
+        if generation != self._generation:
+            return  # restart 遗留的旧子进程退出事件，忽略
+        # 主动结束会话后已是 idle：异步 child-exited 不得把状态拉回
+        # exited（否则关闭按钮第一下会闪黑屏、需点第二下）。
+        ended = self.state == 'idle'
         self._child_pid = None
         self._cancel_ready_timers()
         self._pending.clear()
-        self._set_state('exited')
+        if not ended:
+            self._set_state('exited')
 
     def end_session(self):
         '''主动结束会话（关闭按钮 / 新会话按钮 / 关闭独立窗口）。

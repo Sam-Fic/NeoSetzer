@@ -384,15 +384,24 @@ class HeaderBar(object):
         if (agent_session_module.VTE_AVAILABLE
                 and settings.get_value('preferences', 'ai_fix_embedded_terminal')):
             agent_session_module._ = _
-            self.workspace.set_show_ai_agent(True)
             session = self.workspace.get_agent_session()
             success, msg = session.ensure_started(cwd)
             if success:
+                # 侧栏开启 → 在侧栏 AI 页启动/复用；侧栏未开 → 默认弹出
+                # 独立窗口，不强行展开侧栏。
+                sidebar_open = (self.workspace.show_symbols
+                                or self.workspace.show_document_structure
+                                or self.workspace.show_ai_agent)
+                if sidebar_open:
+                    self.workspace.set_show_ai_agent(True)
+                else:
+                    self.workspace.pop_out_agent_terminal()
                 window = getattr(self.workspace, 'agent_terminal_window', None)
                 if window is not None and window.get_visible():
                     window.present()
                 if msg is None:
-                    msg = _('Agent session ready in the sidebar')
+                    msg = (_('Agent session ready in the sidebar') if sidebar_open
+                           else _('Agent session ready in a separate window'))
             self._toast(msg)
             return
 

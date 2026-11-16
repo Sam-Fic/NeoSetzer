@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 02:55+0800\n"
+"POT-Creation-Date: 2026-11-17 03:11+0800\n"
 "PO-Revision-Date: 2026-09-26 22:17+0800\n"
 "Last-Translator: Sam-Fic <https://github.com/Sam-Fic>\n"
 "Language-Team: French <https://github.com/Sam-Fic/NeoSetzer>\n"
@@ -513,7 +513,7 @@ msgstr "Aucun outil d’agent n’est configuré. Ajoutez-en un dans Préférenc
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
 #: setzer/workspace/headerbar/headerbar.py:365
-#: setzer/workspace/sidebar/ai_page/ai_page.py:299
+#: setzer/workspace/sidebar/ai_page/ai_page.py:321
 msgid "Please save the document first"
 msgstr "Veuillez d'abord enregistrer le document"
 
@@ -6592,7 +6592,8 @@ msgid "Save Annotation"
 msgstr "Enregistrer l'annotation"
 
 #: setzer/document/ai_annotations/annotation_popover.py:77
-#: setzer/workspace/sidebar/ai_page/ai_page.py:274
+#: setzer/workspace/sidebar/ai_page/ai_page.py:277
+#: setzer/workspace/sidebar/ai_page/ai_page.py:307
 msgid "Custom (no preset)"
 msgstr "Personnalisé (sans prédéfinition)"
 
@@ -7979,9 +7980,13 @@ msgstr "Compilation automatique différée — une compilation est déjà en cou
 msgid "Auto-build skipped — the document was busy building."
 msgstr "Compilation automatique ignorée — le document était en cours de compilation."
 
-#: setzer/workspace/headerbar/headerbar.py:395
+#: setzer/workspace/headerbar/headerbar.py:403
 msgid "Agent session ready in the sidebar"
-msgstr ""
+msgstr "Session de l'agent prête dans la barre latérale"
+
+#: setzer/workspace/headerbar/headerbar.py:404
+msgid "Agent session ready in a separate window"
+msgstr "Session de l'agent prête dans une fenêtre séparée"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:44
 msgid "Toggle sidebar (Document Structure / Symbols)"
@@ -8142,56 +8147,56 @@ msgstr "Objets"
 msgid "AI Agent"
 msgstr "Agent IA"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:161
+#: setzer/workspace/sidebar/ai_page/ai_page.py:160
 #, python-brace-format
 msgid "lines {range}"
 msgstr "lignes {range}"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:169
+#: setzer/workspace/sidebar/ai_page/ai_page.py:168
 msgid "Jump to source"
 msgstr "Aller au code source"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:170
+#: setzer/workspace/sidebar/ai_page/ai_page.py:169
 msgid "Edit annotation"
 msgstr "Modifier l'annotation"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:171
+#: setzer/workspace/sidebar/ai_page/ai_page.py:170
 msgid "Send this annotation"
 msgstr "Envoyer cette annotation"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+#: setzer/workspace/sidebar/ai_page/ai_page.py:171
 msgid "Copy prompt for this annotation"
 msgstr "Copier le prompt de cette annotation"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:173
+#: setzer/workspace/sidebar/ai_page/ai_page.py:172
 msgid "Delete annotation"
 msgstr "Supprimer l'annotation"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:293
+#: setzer/workspace/sidebar/ai_page/ai_page.py:315
 msgid "Session ended"
 msgstr "Session terminée"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:302
+#: setzer/workspace/sidebar/ai_page/ai_page.py:324
 msgid "Started a new agent session"
 msgstr "Nouvelle session d'agent démarrée"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:50
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:55
 msgid "Preset used when sending a selection directly"
 msgstr "Prédéfini utilisé lors de l'envoi direct d'une sélection"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:53
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:73
 msgid "Send All"
 msgstr "Tout envoyer"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:55
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:75
 msgid "Send all annotations to the agent"
 msgstr "Envoyer toutes les annotations à l'agent"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:107
 msgid "No Annotations"
 msgstr "Aucune annotation"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:109
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
 msgstr "Sélectionnez du texte dans l'éditeur et utilisez le menu contextuel ou un raccourci pour ajouter une annotation IA."
 

@@ -69,5 +69,32 @@ class EndSessionTest(unittest.TestCase):
         self.assertFalse(hasattr(session, 'last_prompt'))
 
 
+class ChildExitedRaceTest(unittest.TestCase):
+    '''child-exited 异步信号不得踩 idle（关闭按钮两下问题）与新会话（restart 竞争）。'''
+
+    def test_idle_not_pulled_back_to_exited(self):
+        session = AgentSession(FakeWorkspace())
+        session._generation = 1
+        session._set_state('idle')
+        session._on_child_exited(None, 0, 1)
+        self.assertEqual(session.state, 'idle')
+
+    def test_running_child_exit_goes_exited(self):
+        session = AgentSession(FakeWorkspace())
+        session._generation = 1
+        session._set_state('running')
+        session._on_child_exited(None, 0, 1)
+        self.assertEqual(session.state, 'exited')
+
+    def test_stale_generation_ignored(self):
+        session = AgentSession(FakeWorkspace())
+        session._generation = 2
+        session._set_state('starting')
+        session._child_pid = 4242
+        session._on_child_exited(None, 0, 1)
+        self.assertEqual(session.state, 'starting')
+        self.assertEqual(session._child_pid, 4242)
+
+
 if __name__ == '__main__':
     unittest.main()
