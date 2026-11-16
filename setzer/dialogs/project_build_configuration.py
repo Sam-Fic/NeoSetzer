@@ -191,6 +191,9 @@ class ProjectBuildConfigurationDialog():
 
         up.set_sensitive(position > 0)
         down.set_sensitive(position < len(profile['tasks']) - 1)
+        # 空任务列表存盘时会被 _validate_tasks 还原成默认 latex 步：既然
+        # 不允许为空，就在 UI 上挡住最后一项，而不是保存后悄悄加回来。
+        remove.set_sensitive(len(profile['tasks']) > 1)
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         box.append(up)

@@ -55,6 +55,7 @@ foreach t : [
   ['test_spellchecking_scheduling', 'test_spellchecking_scheduling.py'],
   ['test_project_file_dependencies', 'test_project_file_dependencies.py'],
   ['test_project_build_configuration', 'test_project_build_configuration.py'],
+  ['test_project_task_list_edit', 'test_project_task_list_edit.py'],
   ['test_project_problem_center', 'test_project_problem_center.py'],
   ['test_project_files', 'test_project_files.py'],
   ['test_project_search_replace', 'test_project_search_replace.py'],
