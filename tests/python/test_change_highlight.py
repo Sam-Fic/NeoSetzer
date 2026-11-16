@@ -213,5 +213,76 @@ class LivePathOnlyTest(unittest.TestCase):
         self.assertIn('is_phitex_live_build()', window)
 
 
+class MergeRectanglesTest(unittest.TestCase):
+    '''synctex 按排版片段返回盒子，两处改动实测给 40 个；合并只该在同一行内。
+
+    注意"合并后不得垂直重叠"是错的不变量：真实文本里小字号、下标、行内的
+    数学盒子本来就会与相邻行的垂直区间轻微交叠。真正的护栏是**不得跨行并**
+    ——所以断言看的是行高没有膨胀、不同行仍是独立横带。
+    '''
+
+    def setUp(self):
+        from setzer.document.change_highlight.change_highlight import merge_rectangles
+        self.merge = merge_rectangles
+
+    def box(self, page, x, v_bottom, w=100.0, h=9.0):
+        return {'page': page, 'h': x, 'v': v_bottom, 'width': w, 'height': h}
+
+    def test_same_line_fragments_merge(self):
+        rects = [self.box(14, 10, 400), self.box(14, 115, 400), self.box(14, 220, 400)]
+        merged = self.merge(rects)
+        self.assertEqual(len(merged), 1)
+        self.assertAlmostEqual(merged[0]['h'], 10)
+        self.assertAlmostEqual(merged[0]['width'], 220 + 100 - 10)
+
+    def test_distinct_lines_stay_separate(self):
+        '''12pt 行距的两行绝不能并成一条，否则就糊掉了未改动的文字。'''
+        rects = [self.box(14, 10, 400), self.box(14, 10, 412)]
+        merged = self.merge(rects)
+        self.assertEqual(len(merged), 2)
+
+    def test_pages_never_merge(self):
+        rects = [self.box(3, 10, 400), self.box(4, 10, 400)]
+        merged = self.merge(rects)
+        self.assertEqual({r['page'] for r in merged}, {3, 4})
+        self.assertEqual(len(merged), 2)
+
+    def test_band_height_does_not_bloat_across_lines(self):
+        merged = self.merge([self.box(14, 10, base) for base in (400, 412, 424, 436)])
+        self.assertEqual(len(merged), 4)
+        for band in merged:
+            self.assertLessEqual(band['height'], 9.1)
+
+    def test_every_input_is_covered(self):
+        '''合并不许丢盒子：每个原始盒子都要落在某条横带里。'''
+        rects = ([self.box(14, 10, 400), self.box(14, 115, 400),
+                  self.box(14, 10, 412), self.box(22, 50, 593)]
+                 + [self.box(14, 300, 424)])
+        merged = self.merge(rects)
+        for r in rects:
+            covered = any(
+                m['page'] == r['page']
+                and m['v'] - 2 <= r['v'] and r['v'] <= m['v'] + m['height'] + 2
+                and m['h'] - 2 <= r['h'] and r['h'] + r['width'] <= m['h'] + m['width'] + 2
+                for m in merged)
+            self.assertTrue(covered, r)
+
+    def test_real_world_scale_reduction(self):
+        '''每行两个片段该并成一条：40 个盒子收到 20 条带量级。
+
+        不是"越少越好"——并成一两条就意味着跨行糊掉了。
+        '''
+        rects = []
+        for line in range(20):
+            for frag in range(2):
+                rects.append(self.box(14 + line % 2, 10 + frag * 50, 400 + line * 12))
+        merged = self.merge(rects)
+        self.assertEqual(len(rects), 40)
+        self.assertEqual(len(merged), 20)
+
+    def test_empty_input(self):
+        self.assertEqual(self.merge([]), [])
+
+
 if __name__ == '__main__':
     unittest.main()

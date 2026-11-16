@@ -33,6 +33,60 @@ from gi.repository import GLib
 
 from setzer.helpers import synctex_query
 
+# 同一行上相邻碎片的合并间隙（PDF pt）。行间距远大于此值，所以用它把
+# "同一行的碎片"和"不同行"分开。
+_LINE_GAP_TOLERANCE = 2.0
+
+
+def merge_rectangles(rectangles):
+    '''把同一行上的 synctex 碎片并成一条横带。
+
+    synctex 按排版片段返回矩形，实测两处改动就给出 40 个盒子：一行文字会被
+    拆成好几个盒子，各自半透明叠加着画，看着既像糊了又像没涂满，每帧还要
+    做 40 次填充。
+
+    只并"垂直区间重叠或间隙小于 2pt"的——那是同一行输出的碎片，本来就该
+    看起来像荧光笔一笔划过。**不跨行并**：跨行取并集会把行间距和同一区间内
+    相邻的未改动文字一起涂进去，反而更像糊了一大块，信息量还丢了。
+
+    坐标：h=x 左，v=框底边距页顶（y 轴向上），所以垂直区间是 [v-height, v]。
+    '''
+    by_page = {}
+    for rectangle in rectangles:
+        by_page.setdefault(rectangle['page'], []).append(rectangle)
+
+    merged = []
+    for page in sorted(by_page):
+        boxes = sorted(by_page[page], key=lambda r: (-(r['v'] + r['height']), r['h']))
+        band = None
+        for box in boxes:
+            top = box['v'] + box['height']      # 区间上沿（y 向上则更大）
+            bottom = box['v']
+            if band is not None and bottom >= band['bottom'] - _LINE_GAP_TOLERANCE:
+                band['bottom'] = min(band['bottom'], bottom)
+                band['top'] = max(band['top'], top)
+                band['left'] = min(band['left'], box['h'])
+                band['right'] = max(band['right'], box['h'] + box['width'])
+            else:
+                if band is not None:
+                    merged.append(_band_to_rectangle(page, band))
+                band = {'top': top, 'bottom': bottom,
+                        'left': box['h'], 'right': box['h'] + box['width']}
+        if band is not None:
+            merged.append(_band_to_rectangle(page, band))
+    return merged
+
+
+def _band_to_rectangle(page, band):
+    '''把合并后的横带还原成 synctex 矩形的形状（v 仍是底边距页顶）。'''
+    height = band['top'] - band['bottom']
+    return {'page': page,
+            'h': band['left'],
+            'v': band['bottom'],
+            'width': band['right'] - band['left'],
+            'height': height}
+
+
 
 class ChangeHighlight(object):
     '''每文档一个；由 BuildSystem 在构建成功后调用。'''
@@ -98,7 +152,7 @@ class ChangeHighlight(object):
                 retry = self._stale
                 self._stale = False
         if rectangles:
-            GLib.idle_add(self._show, rectangles)
+            GLib.idle_add(self._show, merge_rectangles(rectangles))
         if retry:
             # 期间又完成了一次构建：按最新改动重查一次，否则最后一闪会丢。
             self.highlight_after_build(pdf_filename, tex_filename)
