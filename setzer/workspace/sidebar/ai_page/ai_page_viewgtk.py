@@ -28,7 +28,7 @@ ListBox(.boxed-list)。列表不设 vexpand，只占内容自然高度，空白�
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Pango
 
 from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
 
@@ -45,10 +45,30 @@ class AiPageView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
 
         # 直发选区时使用的默认预制提示词（批注各自携带自己的 preset）。
-        self.preset_dropdown = Gtk.DropDown()
-        self.preset_dropdown.set_hexpand(True)
-        self.preset_dropdown.set_tooltip_text(_('Preset used when sending a selection directly'))
-        self.toolbar.append(self.preset_dropdown)
+        # 与 document structure 的 section 菜单同款：Gtk.MenuButton + .flat +
+        # label + 右箭头，popover 用 .menu 样式（控制器侧接 Gio.Menu）。
+        self.preset_menu_button = Gtk.MenuButton()
+        self.preset_menu_button.add_css_class('flat')
+        self.preset_menu_button.set_can_focus(False)
+        self.preset_menu_button.set_halign(Gtk.Align.START)
+        self.preset_menu_button.set_hexpand(True)
+        self.preset_menu_button.set_tooltip_text(_('Preset used when sending a selection directly'))
+
+        menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+        self.preset_menu_label = Gtk.Label(label='')
+        # 正常正文颜色（不用 dim-label 灰字）。
+        self.preset_menu_label.set_xalign(0.0)
+        self.preset_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
+        menu_box.append(self.preset_menu_label)
+
+        # 箭头与 Gtk.DropDown 内置箭头同款：16px 正常亮度（结构页旧版
+        # 12px+dim 偏小偏灰，已统一修正）。
+        arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
+        arrow_icon.set_pixel_size(16)
+        menu_box.append(arrow_icon)
+
+        self.preset_menu_button.set_child(menu_box)
+        self.toolbar.append(self.preset_menu_button)
 
         self.send_all_button = Gtk.Button(label=_('Send All'))
         self.send_all_button.add_css_class('suggested-action')

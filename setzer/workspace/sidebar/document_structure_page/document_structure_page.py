@@ -153,14 +153,14 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
         menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.section_menu_label = Gtk.Label(label='')
-        self.section_menu_label.add_css_class('dim-label')
+        # 正常正文颜色（不用 dim-label 灰字）。
         self.section_menu_label.set_xalign(0.0)
         self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
         menu_box.append(self.section_menu_label)
 
         arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
-        arrow_icon.set_pixel_size(12)
-        arrow_icon.add_css_class('dim-label')
+        # 与 Gtk.DropDown 内置箭头同款：16px 正常亮度（旧版 12px+dim 偏小偏灰）。
+        arrow_icon.set_pixel_size(16)
         menu_box.append(arrow_icon)
 
         self.section_menu_button.set_child(menu_box)

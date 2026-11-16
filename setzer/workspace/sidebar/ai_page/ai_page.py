@@ -27,7 +27,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib, Pango
+from gi.repository import Gtk, Adw, GLib, Gio, Pango
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.ai_fix.agent_terminal_viewgtk import AgentTerminalView
@@ -58,12 +58,11 @@ class AiPage(object):
         self.workspace.connect('document_removed', self.on_document_list_changed)
 
         self.view.send_all_button.connect('clicked', self.on_send_all_clicked)
-        self.view.preset_dropdown.connect('notify::selected', self.on_preset_selected)
         self.terminal_view.close_session_button.connect('clicked', self.on_close_session_clicked)
         self.terminal_view.new_session_button.connect('clicked', self.on_new_session_clicked)
         self.terminal_view.pop_button.connect('clicked', self.on_pop_clicked)
 
-        self.rebuild_preset_dropdown()
+        self.rebuild_preset_menu()
         self.rebuild_list()
 
     # ---- 批注收集 ----
@@ -270,19 +269,42 @@ class AiPage(object):
     def _presets(self):
         return self.workspace.settings.get_value('preferences', 'ai_annotation_presets') or []
 
-    def rebuild_preset_dropdown(self):
-        labels = [_('Custom (no preset)')] + [p.get('name', '') for p in self._presets()]
-        self.view.preset_dropdown.set_model(Gtk.StringList.new(labels))
-        self.view.preset_dropdown.set_selected(0)
-
-    def on_preset_selected(self, dropdown, pspec):
-        selected = dropdown.get_selected()
+    def rebuild_preset_menu(self):
+        '''与 document structure section 菜单同款：Gio.Menu + 有状态 action
+        （state=当前 preset name，popover 自动给选中项打勾）。'''
         presets = self._presets()
-        # 索引 0 = 自定义（None）；其余对应 presets[selected-1]。
-        if selected <= 0 or selected > len(presets):
-            self.sender.default_preset = None
-        else:
-            self.sender.default_preset = presets[selected - 1].get('name')
+        menu = Gio.Menu()
+        item = Gio.MenuItem.new(_('Custom (no preset)'), 'preset.select')
+        item.set_action_and_target_value('preset.select', GLib.Variant('s', ''))
+        menu.append_item(item)
+        for preset in presets:
+            name = preset.get('name', '')
+            item = Gio.MenuItem.new(name, 'preset.select')
+            item.set_action_and_target_value('preset.select', GLib.Variant('s', name))
+            menu.append_item(item)
+        self.view.preset_menu_button.set_menu_model(menu)
+        popover = self.view.preset_menu_button.get_popover()
+        if popover is not None:
+            popover.add_css_class('menu')
+
+        if not hasattr(self, '_preset_action'):
+            self._preset_action = Gio.SimpleAction.new_stateful(
+                'select', GLib.VariantType('s'), GLib.Variant('s', ''))
+            self._preset_action.connect('change-state', self.on_preset_action)
+            group = Gio.SimpleActionGroup()
+            group.add_action(self._preset_action)
+            self.view.preset_menu_button.insert_action_group('preset', group)
+        self._sync_preset_state(self.sender.default_preset or '')
+
+    def on_preset_action(self, action, value):
+        action.set_state(value)
+        name = value.get_string()
+        self.sender.default_preset = name or None
+        self._sync_preset_state(name)
+
+    def _sync_preset_state(self, name):
+        self._preset_action.set_state(GLib.Variant('s', name))
+        self.view.preset_menu_label.set_text(name or _('Custom (no preset)'))
 
     def on_send_all_clicked(self, button):
         self.sender.send_annotations(self._all_entries())
