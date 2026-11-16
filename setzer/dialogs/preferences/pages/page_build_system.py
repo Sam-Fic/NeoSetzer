@@ -20,7 +20,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib
+from gi.repository import Gtk, Adw, GLib, Gdk
 
 import subprocess
 import sys
@@ -49,6 +49,11 @@ class PageBuildSystem(object):
 
         self.view.option_enable_synctex.set_active(self.settings.get_value('preferences', 'enable_synctex'))
         self.view.option_enable_synctex.connect('notify::active', self.on_switch_toggled, 'enable_synctex')
+
+        self.view.option_phitex_live_build.set_active(
+            self.settings.get_value('preferences', 'phitex_live_build'))
+        self.view.option_phitex_live_build.connect(
+            'notify::active', self.on_switch_toggled, 'phitex_live_build')
 
         # LaTeX interpreter combo
         self.view.option_latex_interpreter.connect('notify::selected', self.on_interpreter_selected)
@@ -89,6 +94,9 @@ class PageBuildSystem(object):
 
         self.setup_latex_interpreters()
 
+        self.view.copy_phitex_prompt_button.connect(
+            'clicked', self.on_copy_install_prompt_clicked)
+
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
     def on_auto_build_toggled(self, switch, pspec):
@@ -117,7 +125,7 @@ class PageBuildSystem(object):
             return
         interpreter = self.latex_interpreters[selected]
         self.settings.set_value('preferences', 'latex_interpreter', interpreter)
-        self.update_tectonic_element_visibility()
+        self.update_engine_specific_visibility()
 
     def on_autoshow_selected(self, combo, pspec):
         selected = combo.get_selected()
@@ -171,6 +179,7 @@ class PageBuildSystem(object):
                 self.view.option_use_latexmk.set_active(defaults['use_latexmk'])
             self.view.option_output_chain.set_selected(
                 self.output_chain_values.index(defaults['latexmk_output_chain']))
+            self.view.option_phitex_live_build.set_active(defaults['phitex_live_build'])
             # set_text 触发 changed 回调 → 自动写回设置
             self.view.option_texmf_home.set_text(defaults['texmf_home'])
 
@@ -196,7 +205,7 @@ class PageBuildSystem(object):
         popen_kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if sys.platform == 'win32':
             popen_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
-        for interpreter in ['xelatex', 'pdflatex', 'lualatex', 'tectonic']:
+        for interpreter in ['xelatex', 'pdflatex', 'lualatex', 'tectonic', 'phitex']:
             try:
                 process = subprocess.Popen([interpreter, '--version'], **popen_kwargs)
             except FileNotFoundError:
@@ -252,24 +261,92 @@ class PageBuildSystem(object):
             current = self.settings.get_value('preferences', 'latex_interpreter')
             self.view.option_latex_interpreter.set_selected(self.latex_interpreters.index(current))
 
-            self.update_tectonic_element_visibility()
+            self.update_engine_specific_visibility()
         return False
 
-    def update_tectonic_element_visibility(self):
+    def update_engine_specific_visibility(self):
         selected = self.view.option_latex_interpreter.get_selected()
-        tectonic_active = (selected != Gtk.INVALID_LIST_POSITION and
-                           self.latex_interpreters[selected] == 'tectonic')
-        if tectonic_active:
-            self.view.tectonic_warning_label.set_visible(True)
-            self.view.option_use_latexmk.set_visible(False)
-            self.view.option_system_commands.set_visible(False)
-            self.view.option_output_chain.set_visible(False)
-        else:
-            self.view.tectonic_warning_label.set_visible(False)
-            self.view.option_use_latexmk.set_visible(True)
-            self.view.option_system_commands.set_visible(True)
-            # tectonic 不参与 latexmk 路线；latexmk 不可用时同样隐藏
-            self.view.option_output_chain.set_visible(self.latexmk_available)
+        interpreter = (None if selected == Gtk.INVALID_LIST_POSITION
+                       else self.latex_interpreters[selected])
+        phitex_available = 'phitex' in self.latex_interpreters
+        # 没装才给安装入口；一个解释器都没检测到时（下拉框隐藏、列表为空），
+        # 也要能走到这里，否则 install row 永远出不来。
+        self.view.install_phitex_row.set_visible(not phitex_available)
+        if interpreter is None:
+            return
+
+        tectonic_active = (interpreter == 'tectonic')
+        phitex_active = (interpreter == 'phitex')
+        self.view.tectonic_warning_label.set_visible(tectonic_active)
+        self.view.phitex_note_label.set_visible(phitex_active)
+        self.view.option_phitex_live_build.set_visible(phitex_active)
+        self.view.option_system_commands.set_visible(not tectonic_active)
+        # latexmk 路线与其输出链对两个自带编排的引擎都没有意义：tectonic
+        # 走自己的构建图，phitex 一次调用即跑到不动点（BibTeX/biber/makeindex
+        # 在进程内）。构建时 builder 也按引擎分支跳过 latexmk，与此处的
+        # 隐藏一致，不会出现在开关开着但实际没生效的错觉。
+        hide_latexmk = tectonic_active or phitex_active
+        self.view.option_use_latexmk.set_visible(not hide_latexmk)
+        # tectonic 不参与 latexmk 路线；latexmk 不可用时同样隐藏
+        self.view.option_output_chain.set_visible(
+            self.latexmk_available and not hide_latexmk)
+
+        # PhiTeX 常驻 session 下这几项不再由用户决定，置灰而不是隐藏：
+        # 隐藏会让人以为设置丢了，置灰配上原因能读出"这个引擎接管了它"。
+        # 实际行为见 AutoBuild._auto_build_values 与 run_via_phitex_session。
+        self._set_row_state(
+            self.view.option_auto_build, not phitex_active,
+            _('PhiTeX rebuilds as you type, which needs each edit written to disk first — auto build is always on for it.'))
+        self._set_row_state(
+            self.view.option_auto_build_delay, not phitex_active,
+            _('PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, so a longer wait only delays the preview.'))
+        self._set_row_state(
+            self.view.option_cleanup_build_files, not phitex_active,
+            _('A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) to know what an edit affects, so they are kept.'))
+        # PhiTeX live 下这条已被无条件关掉（build_log.update_items），留着可点
+        # 就是"能打开但不生效"，与其它接管项同样处理。
+        self._set_row_state(
+            self.view.option_auto_build_autoshow_errors, not phitex_active,
+            _('With a PhiTeX session the build log never pops up on its own: errors show as squiggles in the text and highlighted areas in the preview.'))
+        # 这几项对 PhiTeX 有效，但只在 watch 启动那一刻读入；改动会结束当前
+        # session，下一轮构建按新设置重起（付一次完整构建），见 config_signature。
+        restart_note = _('Changing this ends the running PhiTeX session; the next build starts a new one with the new setting.')
+        for row in (self.view.option_enable_synctex, self.view.option_system_commands):
+            row.set_tooltip_text(restart_note if phitex_active else None)
+        self.view.option_texmf_home.set_tooltip_text(restart_note if phitex_active else None)
+
+    @staticmethod
+    def _set_row_state(row, enabled, reason_when_disabled):
+        row.set_sensitive(enabled)
+        row.set_tooltip_text(None if enabled else reason_when_disabled)
+
+    def on_copy_install_prompt_clicked(self, button):
+        '''把安装 PhiTeX 的说明复制进剪贴板，交给用户的 AI Agent 执行。
+
+        提示词只写意图、不写命令：具体下载哪个平台的包、怎么校验完整性、装到
+        哪儿，让 Agent 自己查 PhiTeX 仓库——这里写死 URL 和哈希会随版本漂移，
+        过时后反而误导。NeoSetzer 自己不下载、不执行远程脚本。
+        '''
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        # 刻意只讲意图和约束、不给命令：命令、URL、校验和写死在这里就会随
+        # PhiTeX 版本漂移，过时后是误导而不是帮助。约束留三条，都是这次适配
+        # 实测踩到的：装进用户 PATH（免 sudo，否则每次构建弹权限）、装完要能
+        # 验证、不要塞进 NeoSetzer 的包（AGPL-3.0-only 与 GPL-3 的打包纠缠）。
+        clipboard.set_content(Gdk.ContentProvider.new_for_value(_(
+            'Install PhiTeX on this computer for me: https://github.com/accl-kaust/PhiTeX '
+            '— a separately built TeX engine I want to use as the LaTeX interpreter in '
+            'NeoSetzer. Choose whatever is appropriate for this operating system, verify '
+            'what you download, and install it so that `phitex` is on PATH for my user '
+            'account without sudo and without writing into system directories. Then check '
+            'it works and show me what you did. Do not compile PhiTeX into NeoSetzer or '
+            'bundle it in a NeoSetzer package.')))
+        # 就地反馈：偏好对话框没有 toast overlay，换图标比弹新窗口打扰小。
+        button.set_icon_name('object-select-symbolic')
+        GLib.timeout_add_seconds(2, self._reset_copy_button, button)
+
+    def _reset_copy_button(self, button):
+        button.set_icon_name('edit-copy-symbolic')
+        return False
 
 
 class PageBuildSystemView(Adw.PreferencesPage):
@@ -312,6 +389,29 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         self.tectonic_warning_label.add_css_class('caption')
         group_interpreter.add(self.tectonic_warning_label)
 
+        self.phitex_note_label = Gtk.Label()
+        self.phitex_note_label.set_wrap(True)
+        self.phitex_note_label.set_markup(_('PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX\u2019s, but LuaLaTeX is not supported yet. Editing stays instant only while a PhiTeX session is running; without one, use another interpreter for the fastest full rebuilds.'))
+        self.phitex_note_label.set_xalign(0)
+        self.phitex_note_label.add_css_class('caption')
+        group_interpreter.add(self.phitex_note_label)
+
+        # 未检测到 phitex 时才出现（由 update_engine_specific_visibility 控制）：
+        # 提供一段可复制给 AI Agent 的安装提示词，而不是让 NeoSetzer 自己去
+        # 下载执行远程脚本。
+        self.install_phitex_row = Adw.ActionRow()
+        self.install_phitex_row.set_title(_('Install PhiTeX'))
+        self.install_phitex_row.set_subtitle(_('Not found on this machine. Copy the instructions and hand them to an AI agent — it will fetch and verify the release for your platform.'))
+        self.copy_phitex_prompt_button = Gtk.Button()
+        self.copy_phitex_prompt_button.set_icon_name('edit-copy-symbolic')
+        self.copy_phitex_prompt_button.set_valign(Gtk.Align.CENTER)
+        self.copy_phitex_prompt_button.set_tooltip_text(_('Copy the installation instructions to the clipboard'))
+        self.install_phitex_row.add_suffix(self.copy_phitex_prompt_button)
+        self.install_phitex_row.set_activatable_widget(self.copy_phitex_prompt_button)
+        # 同上：检测结果回来之前先藏起来。
+        self.install_phitex_row.set_visible(False)
+        group_interpreter.add(self.install_phitex_row)
+
         group_options = Adw.PreferencesGroup()
         group_options.set_title(_('Options'))
         self.add(group_options)
@@ -323,6 +423,14 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         self.option_use_latexmk = Adw.SwitchRow()
         self.option_use_latexmk.set_title(_('Use latexmk'))
         group_options.add(self.option_use_latexmk)
+
+        self.option_phitex_live_build = Adw.SwitchRow()
+        self.option_phitex_live_build.set_title(_('Keep a PhiTeX session running'))
+        self.option_phitex_live_build.set_subtitle(_('Rebuild only what the edit affects by reusing one running PhiTeX process per document. Turning this off re-starts PhiTeX for every build, which recompiles the whole document each time.'))
+        # 仅对 PhiTeX 有意义，初值隐藏，由 update_engine_specific_visibility
+        # 在检测结果回来后按需显示（与 option_use_latexmk 的处理一致）。
+        self.option_phitex_live_build.set_visible(False)
+        group_options.add(self.option_phitex_live_build)
 
         # 输出链（上游 issue #223）：仅 latexmk 路线可切换。'pdfps' 让 latexmk
         # 编排 latex → dvips → ps2pdf，PSTricks/psfrag 等只在 PostScript 阶段

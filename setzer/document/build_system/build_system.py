@@ -32,9 +32,12 @@ import setzer.document.build_system.builder.builder_build_makeindex as builder_b
 import setzer.document.build_system.builder.builder_build_glossaries as builder_build_glossaries
 import setzer.document.build_system.builder.builder_forward_sync as builder_forward_sync
 import setzer.document.build_system.builder.builder_backward_sync as builder_backward_sync
+import setzer.document.build_system.phitex_session.phitex_session as phitex_session
 import setzer.document.build_system.query.query as query
+from setzer.document.change_highlight.change_highlight import ChangeHighlight
 from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers.observable import Observable
+from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.project.build_configuration import ProjectBuildConfiguration
 
 
@@ -48,6 +51,13 @@ class BuildSystem(Observable):
         # 由 DocumentSettings 从文档状态文件加载/保存（见 document_settings.py）。
         self.latex_interpreter = None
         self.active_query = None
+        # 增量编译的改动高亮（仅 PhiTeX live 路径实际会用到，见 parse_result）。
+        self.change_highlight = ChangeHighlight(document)
+        # is_phitex_live_build 的 1s 缓存，见该方法与 invalidate_phitex_live_cache。
+        self._phitex_live_cache = None
+        # 相关偏好（latex_interpreter / phitex_live_build）一改就作废缓存，
+        # 否则最长要等一秒才反映新引擎（auto_build 与构建命令拼装都读它）。
+        self.settings.connect('settings_changed', self.invalidate_phitex_live_cache)
 
         # possible states: idle, ready_for_building
         # building_in_progress, building_to_stop
@@ -170,8 +180,24 @@ class BuildSystem(Observable):
     def shutdown(self):
         '''文档关闭时由 workspace.remove_document 调用。
         不再有定时器需移除；置 active_query=None 使任何在途的
-        worker 完成回调（_on_query_done）走 `is not query` 守卫被丢弃。'''
+        worker 完成回调（_on_query_done）走 `is not query` 守卫被丢弃。
+
+        同时结束本文档的 PhiTeX 常驻 watch——它不随 builder 对象一起消失，
+        不显式 stop 就会在关掉文档后继续占着内存里的增量图。stop 是一条
+        ~6ms 的子进程调用，放到后台线程，避免批量关文档（退出应用）时
+        主线程被串起来卡一下。在途 worker 若撞上 session 已死，会自行退回
+        一次性 `phitex build`（见 run_via_phitex_session 的 False 分支）。'''
         self.active_query = None
+        # 在途的改动高亮查询结束时用 idle_add 回主线程动 preview，而 preview 正
+        # 随文档销毁——先立牌子让它自己放弃（见 ChangeHighlight.shutdown）。
+        self.change_highlight.shutdown()
+        try:
+            self.settings.disconnect('settings_changed', self.invalidate_phitex_live_cache)
+        except Exception:
+            pass
+        builder = self.builders.get('build_latex')
+        if builder is not None and builder.phitex_session is not None:
+            threading.Thread(target=builder.stop_phitex_session, daemon=True).start()
 
     def change_build_state(self, state):
         self.build_state = state
@@ -217,7 +243,15 @@ class BuildSystem(Observable):
         self.start_building()
 
     def backward_sync(self, page, x, y, word, context, pdf_line_offset=None, pdf_line_text=None):
-        if not self.can_sync: return
+        if not self.can_sync:
+            # 反向同步最静默的一道拦截：can_sync 由 has_synctex_file 与
+            # poppler_document 共同决定，任意为空点了就没反应。
+            _sync_debug('backward_sync 被拦：can_sync=False '
+                        'has_synctex_file=%s poppler=%s build_state=%s' % (
+                            self.has_synctex_file,
+                            self.document.preview.poppler_document is not None,
+                            self.build_state))
+            return
 
         self.backward_sync_data = {'page': page, 'x': x, 'y': y, 'word': word, 'context': context, 'pdf_line_offset': pdf_line_offset, 'pdf_line_text': pdf_line_text}
         self.set_build_mode('backward_sync')
@@ -333,6 +367,13 @@ class BuildSystem(Observable):
                 if pdf_filename != None:
                     self.document.preview.set_pdf_filename(pdf_filename)
                     self.document.add_change_code('pdf_updated')
+                    # 改动高亮只在 PhiTeX 常驻 session 下启用：只有增量编译才有
+                    # "这一小块的排版变了"这个概念，传统引擎每次构建都是整份重编，
+                    # 闪哪里都等价于没闪。tex_filename 取自构建结果而非当前文档——
+                    # 带 % !TEX root 的子文件编译的是根文档。
+                    if self.is_phitex_live_build():
+                        self.change_highlight.highlight_after_build(
+                            pdf_filename, result_blob['build'].get('tex_filename'))
                 else:
                     if self.document.preview.poppler_document != None:
                         self.document.preview.set_pdf_is_stale(True)
@@ -372,13 +413,21 @@ class BuildSystem(Observable):
         elif result_blob['backward_sync'] != None:
             # 反查（PDF 点击 -> 源文件）。refactor 移除了字符级偏移/词匹配
             # 映射，这里保留行级定位作为最小可用版本。
+            target = result_blob['backward_sync']['filename']
+            current = self.document.get_filename()
+            # synctex 的 Input 带 `./` 段（`…/Example/./main.tex`），而文档注册
+            # 的是规整过的绝对路径，精确 == 永远不成立——表现就是"点了没反应"，
+            # 且界面上没有任何线索。is_root 那条分支走 open_document_by_filename，
+            # 其内部已 normpath，只有这里是裸比较。
+            same_file = (current is not None and target is not None
+                         and os.path.normpath(target) == os.path.normpath(current))
             if not self.document.root_is_set:
-                if result_blob['backward_sync']['filename'] == self.document.get_filename():
+                if same_file:
                     self.set_synctex_position(self.document, result_blob['backward_sync'])
                     self.document.scroll_cursor_to_center()
             elif self.document.is_root:
                 workspace = ServiceLocator.get_workspace()
-                document = workspace.open_document_by_filename(result_blob['backward_sync']['filename'])
+                document = workspace.open_document_by_filename(target)
                 if document != None:
                     self.set_synctex_position(document, result_blob['backward_sync'])
                     document.scroll_cursor_to_center()
@@ -452,6 +501,64 @@ class BuildSystem(Observable):
         # GLib.idle_add 线程安全，回调在主线程执行（代码库已有 10+ 处同范式）。
         GLib.idle_add(self._on_query_done, query)
 
+    def get_configured_interpreter(self, project_data=None):
+        '''不含 `% !TEX program` 的引擎选择链：每文档覆盖 > 项目 > 全局。
+
+        单独暴露是因为"注释有没有顶掉用户的选择"这个问题要有两边才能回答
+        （见 get_effective_interpreter）。文档属性对话框自己再实现一遍这条链
+        迟早和这里漂移，所以让它来问。
+        '''
+        if project_data is None:
+            project_data = self._project_build_data()[1]
+        return (self.latex_interpreter
+                or self._effective_build_value(
+                    'latex_interpreter', project_data, 'interpreter'))
+
+    def get_effective_interpreter(self, text=None):
+        '''本文档最终用哪个引擎编译。
+
+        解析链 `% !TEX program` 注释 > 每文档覆盖 > 项目配置 > 全局偏好，
+        但注释不能把 PhiTeX 换成 texlive 引擎（见下方分支）。抽成单一入口
+        是因为 auto_build 与偏好页也要问同一个问题：它们各自实现一遍这条
+        链，改一处就会漂移成"引擎明明是 PhiTeX 但 UI 显示别的"。
+
+        text 可由调用方传入（start_building 已经读过全文），避免重复取文本。
+        '''
+        project_configuration, project_data = self._project_build_data()
+        configured = self.get_configured_interpreter(project_data)
+        if configured == 'phitex':
+            return 'phitex'
+        if text is None:
+            text = self.document.get_all_text()
+        magic = parse_magic_comments(text)
+        return magic.program or configured
+
+    def is_phitex_live_build(self, text=None):
+        '''是否走 PhiTeX 的常驻 session（增量编译 + 实时预览的那个模式）。
+
+        引擎是 phitex 且 session 没被用户关掉、phitex 二进制还在 PATH 里。
+        三个条件少了任何一个，构建都会退回每轮冷启动的 `phitex build`。
+
+        auto_build 每次按键都要问它，而答案要读整份缓冲区加项目配置文件，
+        所以缓存一秒。缓存最多让"刚把注释改成 % !TEX program = phitex 的
+        第一个按键"晚一秒开始自动编译，下一键即命中新值。
+        '''
+        now = time.time()
+        if text is None and self._phitex_live_cache is not None \
+                and now - self._phitex_live_cache[0] < 1.0:
+            return self._phitex_live_cache[1]
+        value = (self.settings.get_value('preferences', 'phitex_live_build')
+                 and self.get_effective_interpreter(text) == 'phitex'
+                 and phitex_session.PhitexSession.available())
+        value = bool(value)
+        if text is None:
+            self._phitex_live_cache = (now, value)
+        return value
+
+    def invalidate_phitex_live_cache(self, *args):
+        '''引擎、项目配置或相关偏好变动后调用：下一次询问重新计算。'''
+        self._phitex_live_cache = None
+
     def start_building(self):
         if self.build_mode == 'forward_sync' and not self.has_synctex_file: return
         if self.build_mode == 'backward_sync' and self.backward_sync_data == None: return
@@ -468,13 +575,10 @@ class BuildSystem(Observable):
             text = self.document.get_all_text()
             # 文档内 `% !TEX program = ...` 仅影响本次构建，不写回设置。
             # parse_magic_comments 只返回 NeoSetzer 已支持的引擎名，故绝不会
-            # 将注释文本当作命令执行。
-            magic = parse_magic_comments(text)
+            # 将注释文本当作命令执行。解析链（含 PhiTeX 不被注释替换的特例）
+            # 收在 get_effective_interpreter 里，auto_build 与偏好页共用。
             project_configuration, project_data = self._project_build_data()
-            interpreter = (magic.program or self.latex_interpreter
-                           or self._effective_build_value(
-                               'latex_interpreter', project_data,
-                               'interpreter'))
+            interpreter = self.get_effective_interpreter(text)
             use_latexmk = self._effective_build_value(
                 'use_latexmk', project_data)
             output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
@@ -486,6 +590,13 @@ class BuildSystem(Observable):
 
             if interpreter == 'tectonic':
                 pass
+            elif interpreter == 'phitex':
+                # texlive 的 -no-shell-escape / -shell-restricted 不是 phitex
+                # 的选项（会被判为 usage error 直接退出码 2）。它默认就不跑
+                # 外部 TeX/BibTeX/\write18 命令，只有显式放开时才对应
+                # --shell-escape，故 disable/restricted 两档都映射为空。
+                if build_option_system_commands == 'enable':
+                    additional_arguments += ' --shell-escape'
             else:
                 lualatex_prefix = ' -' if interpreter == 'lualatex' else ' '
                 if build_option_system_commands == 'disable':
@@ -558,6 +669,12 @@ class BuildSystem(Observable):
         '''设置每文档 LaTeX 解释器覆盖并广播变更，使标题栏"保存并构建"
         按钮的 tooltip 能实时反映当前引擎名（见 build_widget.BuildWidget）。'''
         self.latex_interpreter = value
+        # 从 PhiTeX 切走就结束它的常驻 watch：否则那个进程会一直挂着，
+        # 而下次切回来时又会拉起一个新的（session 对象已被覆盖）。
+        effective = (value or self.settings.get_value('preferences', 'latex_interpreter'))
+        if effective != 'phitex' and self.builders['build_latex'].phitex_session is not None:
+            threading.Thread(target=self.builders['build_latex'].stop_phitex_session,
+                             daemon=True).start()
         self.add_change_code('latex_interpreter_changed')
 
     def set_synctex_position(self, document, position):

@@ -23,7 +23,7 @@ import re
 
 
 MAX_MAGIC_COMMENT_LINES = 50
-SUPPORTED_PROGRAMS = frozenset(('xelatex', 'pdflatex', 'lualatex', 'tectonic'))
+SUPPORTED_PROGRAMS = frozenset(('xelatex', 'pdflatex', 'lualatex', 'tectonic', 'phitex'))
 _MAGIC_COMMENT_RE = re.compile(
     r'^\s*%\s*!\s*tex\s+(?P<key>program|root)\s*(?:=|:)\s*(?P<value>.*?)\s*$',
     re.IGNORECASE,

@@ -79,6 +79,12 @@ class BuildLog(Observable):
             is_auto = getattr(self.document.build_system, 'is_auto_build', False)
             if is_auto and not self.settings.get_value('preferences', 'auto_build_autoshow_errors'):
                 return
+            # PhiTeX 常驻 session 下无条件不弹：那个开关的默认值是"开"，而自动
+            # 构建被强制打开、每 150ms 一轮——半条 \textbf{ 就会让面板每秒弹合
+            # 五六次。此时错误已经有行内波浪线、荧光高亮和计数三处表达，面板
+            # 只会挡在编辑器上。用户仍可从菜单手动打开，手动构建(F5)不受影响。
+            if is_auto and self.document.build_system.is_phitex_live_build():
+                return
             self.workspace.set_show_build_log(True)
 
     def signal_finish_adding(self):

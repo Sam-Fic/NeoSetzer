@@ -164,6 +164,9 @@ class TestPreviewPageSizes(unittest.TestCase):
         self.preview.pdf_is_stale = False
         self.preview.page_sizes = []
         self.preview.page_heights = None
+        # 真实 Preview.__init__ 会定义 layout（初始 None）；load_pdf 现在要读
+        # 它来判断几何是否变化，桩对象必须同样具备该属性。
+        self.preview.layout = None
         self.preview.page_width = self.preview.page_height = None
         self.preview._external_pdf_tracker = Mock()
         self.preview._text_layout_cache = {}

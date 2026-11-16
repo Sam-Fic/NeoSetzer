@@ -66,10 +66,13 @@ def build_compile_command(engine, tex_filename, out_dir):
     '''构造编译命令（参数列表形态，不经过 shell）。
 
     xelatex / pdflatex / lualatex 共用参数形态；tectonic 是单二进制
-    工作流，用 --outdir。返回列表便于测试断言，也避免 shell 注入。
+    工作流，用 --outdir；phitex 是子命令 + 位置参数，输出目录用 -o。
+    返回列表便于测试断言，也避免 shell 注入。
     '''
     if engine == 'tectonic':
         return ['tectonic', '--outdir', out_dir, tex_filename]
+    if engine == 'phitex':
+        return ['phitex', 'build', '-o', out_dir, tex_filename]
     return [
         engine,
         '-interaction=nonstopmode',

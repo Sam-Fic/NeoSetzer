@@ -19,11 +19,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
+import shutil
+
 import setzer.dialogs.document_properties.document_properties_viewgtk as view
 from setzer.dialogs.project_build_configuration import ProjectBuildConfigurationDialog
 from setzer.settings.document_settings import DocumentSettings
 from setzer.app.service_locator import ServiceLocator
-
 
 class DocumentPropertiesDialog(object):
     '''Per-document properties dialog: lets users override global preferences
@@ -42,6 +43,7 @@ class DocumentPropertiesDialog(object):
             ('pdfLaTeX', 'pdflatex'),
             ('LuaLaTeX', 'lualatex'),
             ('Tectonic', 'tectonic'),
+            ('PhiTeX', 'phitex'),
             ('latexmk', 'latexmk'),
         ]
 
@@ -117,6 +119,7 @@ class DocumentPropertiesDialog(object):
         interp_override = DocumentSettings.get_document_override(doc, 'latex_interpreter')
         self._sync_combo(self._combo_interpreter, interp_override, interp_global,
                          self._interpreter_options, interp)
+        self._sync_magic_hint()
 
         # --- Editor ---
         # Indent mode
@@ -130,6 +133,44 @@ class DocumentPropertiesDialog(object):
         tab_width_override = DocumentSettings.get_document_override(doc, 'tab_width')
         self._sync_combo(self._combo_tab_width, tab_width_override, None,
                          self._tab_width_options, tab_width)
+
+    def _sync_magic_hint(self):
+        '''注释顶掉了用户选的引擎时，建议改用 PhiTeX——但只在它真能解决时提。
+
+        这条提示说的是一个真实的冲突：`% !TEX program = ...` 优先于这里选的
+        引擎，用户改完 Apply、下一次构建仍是注释里那个，看起来像设置没生效。
+        PhiTeX 自己读这条注释并据此挑引擎，所以选它冲突就消失了，不用改文档。
+
+        三个不提的条件都是硬事实，说错比不说说更糟：
+        - lualatex：PhiTeX 明确还不支持，迁移过去文档直接编不出来
+        - pdfps 输出链：PSTricks/psfrag 走 latex→dvips→ps2pdf，PhiTeX 没这条路线
+        - 选的就是 PhiTeX 或注释与选择一致：本来就没有冲突
+        另外 phitex 不在 PATH 时不提——建议一件这台机器上做不了的事没有意义。
+        '''
+        doc = self.document
+        hint = self.view.magic_comment_hint
+        if doc is None or not doc.is_latex_document():
+            hint.set_visible(False)
+            return
+        effective = doc.build_system.get_effective_interpreter()
+        configured = doc.build_system.get_configured_interpreter()
+        # effective == configured 说明没有注释、或注释与选择一致：不存在冲突。
+        if effective == configured or effective == 'phitex' or effective == 'lualatex':
+            hint.set_visible(False)
+            return
+        if self.settings.get_value('preferences', 'latexmk_output_chain') == 'pdfps':
+            hint.set_visible(False)
+            return
+        if shutil.which('phitex') is None:
+            hint.set_visible(False)
+            return
+        # 纯文本而非 markup：引擎名来自文档内容，set_label 免去转义。
+        hint.set_label(_(
+            'This document\u2019s "% !TEX program = {engine}" comment overrides the '
+            'engine you pick here. PhiTeX reads that comment itself and chooses the '
+            'engine from the document, so picking it above ends the override without '
+            'editing the file.').format(engine=effective))
+        hint.set_visible(True)
 
     def _sync_combo(self, combo, override, global_value, options, effective):
         '''Set combo box active item based on override state.'''

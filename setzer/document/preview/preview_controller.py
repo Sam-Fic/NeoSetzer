@@ -29,6 +29,7 @@ import sys
 import os
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.sync_debug import sync_debug
 from setzer.app.color_manager import ColorManager
 from setzer.dialogs.go_to_page.go_to_page import GoToPageDialog
 from setzer.document.preview.magnifier_geometry import (
@@ -384,6 +385,8 @@ class PreviewController(object):
         x_offset, y_offset, state = data
 
         ctrl = (state & Gdk.ModifierType.CONTROL_MASK) != 0
+        sync_debug('点击 (%.0f, %.0f) ctrl=%s state=%s（反向跳转只在 Ctrl+点击时走）'
+                   % (x_offset, y_offset, ctrl, state))
 
         if ctrl:
             # Ctrl+点击：若命中 URI 链接则打开（需用户主动按住 Ctrl，

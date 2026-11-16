@@ -75,7 +75,7 @@ _PROFILE_KEYS = (
 # White-lists for free-form string values. Anything outside these sets is
 # dropped to None when a profile is saved or loaded, so a hostile project
 # file cannot steer the build towards arbitrary engines or shells.
-_INTERPRETERS = frozenset(('pdflatex', 'xelatex', 'lualatex', 'tectonic'))
+_INTERPRETERS = frozenset(('pdflatex', 'xelatex', 'lualatex', 'tectonic', 'phitex'))
 _SHELL_MODES = frozenset(('disable', 'restricted', 'enable'))
 _BIBLIOGRAPHY_BACKENDS = frozenset(('auto', 'bibtex', 'biber'))
 
@@ -88,6 +88,10 @@ _ARGUMENT_PREFIXES_BLOCKED = (
     '-output-directory', '--output-directory', '-jobname', '--jobname',
     '-shell-escape', '--shell-escape', '-shell-restricted',
     '--shell-restricted', '-no-shell-escape', '--no-shell-escape',
+    # phitex 的等价逃逸面：-o/--output-dir 与 --copy-pdf 把产物写到校验过的
+    # 输出目录之外，--engine 绕过上面的解释器白名单。texlive 系没有以 -o
+    # 开头的合法引擎选项（-output-directory 已在列），故前缀 -o 不会误伤。
+    '-o', '--output-dir', '--copy-pdf', '--engine',
 )
 
 

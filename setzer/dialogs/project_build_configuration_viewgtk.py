@@ -211,6 +211,7 @@ class ProjectBuildConfigurationView(DialogView):
             ('xelatex', 'XeLaTeX'),
             ('lualatex', 'LuaLaTeX'),
             ('tectonic', 'Tectonic'),
+            ('phitex', 'PhiTeX'),
         ))
         self.interpreter_combo.set_title(_('Interpreter'))
         settings_group.add(self.interpreter_combo)

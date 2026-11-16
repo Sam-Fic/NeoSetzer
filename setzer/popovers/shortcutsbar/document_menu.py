@@ -44,7 +44,8 @@ class DocumentMenu(GioMenuBuilder):
                         ('PDFLaTeX', 'pdflatex'),
                         ('XeLaTeX', 'xelatex'),
                         ('LuaLaTeX', 'lualatex'),
-                        ('Tectonic', 'tectonic')]
+                        ('Tectonic', 'tectonic'),
+                        ('PhiTeX', 'phitex')]
         for label, value in interpreters:
             self.add_action_button('interpreter-submenu', label,
                                    'win.set-build-interpreter', GLib.Variant('s', value))

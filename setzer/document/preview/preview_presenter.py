@@ -197,10 +197,25 @@ class PreviewPresenter(object):
         self.view.drawing_area.queue_draw()
 
     def start_fade_loop(self):
+        # 上一次淡出还没走完就又来一次高亮 = 构建比 highlight_duration 还密，
+        # 这正是 PhiTeX live 打字的节奏。此时逐帧 tick 会变成"打字期间常驻
+        # 60fps 全页重绘"，而淡出只作用在最后 0.25s——帧钱花在一个一直满强度
+        # 的高亮上。改走「减弱动画」那条一次性 timeout 路径：高亮在持续期间恒亮
+        # （这本来就是想要的效果），停手后统一淡出。
+        #
+        # 引擎判定走 build_system，但它在本类的单测里是按需抽取方法 + 桩命名空
+        # 间构造的（见 tests/python/test_preview_scheduling.py），拿不到就按
+        # 非 PhiTeX 处理，保持逐帧淡出的原手感。
+        re_flashing = (self._fade_loop_id is not None
+                       or self._fade_timeout_id is not None)
+        build_system = getattr(getattr(self.preview, 'document', None),
+                               'build_system', None)
+        phitex_live = (re_flashing and hasattr(build_system, 'is_phitex_live_build')
+                       and build_system.is_phitex_live_build())
         self.cancel_fade_loop()
         self._current_time_factor = 1.0
 
-        if animation_prefs.is_reduced():
+        if animation_prefs.is_reduced() or phitex_live:
             # 「减弱动画」：不跑逐帧淡出（原本 highlight_duration+0.25 秒内每帧
             # 一次 time_factor 计算 + 整页重绘）。高亮保持满 highlight_duration
             # 后一次性清除，用一个 GLib timeout 取代 tick callback。

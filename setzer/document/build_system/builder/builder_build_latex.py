@@ -28,6 +28,7 @@ from operator import itemgetter
 
 import setzer.document.build_system.builder.builder_build as builder_build
 import setzer.document.build_system.latex_log_parser.latex_log_parser as latex_log_parser
+import setzer.document.build_system.phitex_session.phitex_session as phitex_session
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.synctex_folder import synctex_folder
 
@@ -39,8 +40,15 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
         self.config_folder = ServiceLocator.get_config_folder()
         self.latex_log_parser = latex_log_parser.LaTeXLogParser()
+        # PhiTeX 的增量图活在常驻 watch 进程里，builder 与文档同生命周期，
+        # 故 session 挂在 builder 实例上天然做到每文档一个。
+        self.phitex_session = None
 
-    def run(self, query):
+    def get_build_command(self, query, output_directory):
+        '''按引擎拼装完整构建命令（含 tex 文件名）。
+
+        从 run() 抽出，使各引擎的参数形态可被单测逐一断言而不必真起子进程。
+        '''
         build_command_defaults = dict()
         enable_synctex = query.build_data.get('enable_synctex', True)
         if enable_synctex:
@@ -55,16 +63,22 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             build_command_defaults['tectonic'] = 'tectonic --keep-logs'
 
         latex_interpreter = query.build_data['latex_interpreter']
-        output_directory = self.get_output_directory(query)
-        try:
-            os.makedirs(output_directory, exist_ok=True)
-        except OSError:
-            self.throw_build_error(query, 'interpreter_not_working',
-                                   'output directory unavailable')
-            return
         if latex_interpreter == 'tectonic':
             build_command = build_command_defaults[latex_interpreter]
             build_command += ' --outdir "' + output_directory + '" "'
+        elif latex_interpreter == 'phitex':
+            # PhiTeX 一次调用就完成 latexmk 的全部编排（重跑到不动点、BibTeX、
+            # biber、makeindex 全部在进程内跑），且 PDF 与 pdflatex 逐字节一致，
+            # 因此既不套 latexmk（否则双重编排）也不拆多遍 job。参数形态与
+            # texlive 引擎不同：输出目录是 -o/--output-dir、SynTeX 是 --synctex
+            # 开关、文件名是位置参数。引擎由文档自行决定（fontspec → xelatex），
+            # 也可由 % !TEX program 注释或 phitex.toml 指定；lualatex 尚不支持。
+            build_command = 'phitex build'
+            build_command += query.build_data['additional_arguments']
+            build_command += ' -o "' + output_directory + '"'
+            if enable_synctex:
+                build_command += ' --synctex'
+            build_command += ' "'
         elif query.build_data['use_latexmk'] and shutil.which('latexmk') is not None:
             # 构建时再探测一次 latexmk 是否可用：use_latexmk 默认开启后，
             # 未安装 latexmk 的用户第一次编译不应撞上报错——原实现里
@@ -94,7 +108,32 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             build_command = build_command_defaults[latex_interpreter]
             build_command += query.build_data['additional_arguments']
             build_command += ' -output-directory="' + output_directory + '" "'
-        build_command += query.tex_filename + '"'
+        return build_command + query.tex_filename + '"'
+
+    def run(self, query):
+        enable_synctex = query.build_data.get('enable_synctex', True)
+        latex_interpreter = query.build_data['latex_interpreter']
+        output_directory = self.get_output_directory(query)
+        try:
+            os.makedirs(output_directory, exist_ok=True)
+        except OSError:
+            self.throw_build_error(query, 'interpreter_not_working',
+                                   'output directory unavailable')
+            return
+
+        # PhiTeX 走常驻 watch：增量图在进程内存里，每轮构建只做 wait + 取产物。
+        # session 起不来（没装 phitex、权限、超时）时静默退回一次性
+        # `phitex build`——它同样产出正确 PDF，只是每次冷启动、慢一个量级。
+        if latex_interpreter == 'phitex':
+            if self._live_build_enabled():
+                if self.run_via_phitex_session(query, output_directory, enable_synctex):
+                    return
+                self.stop_phitex_session()
+            else:
+                # 用户关掉 live build：已有的 watch 不再有用，收掉再走冷启动路线。
+                self.stop_phitex_session()
+
+        build_command = self.get_build_command(query, output_directory)
 
         try:
             self.process = self._spawn_process(build_command, os.path.dirname(query.tex_filename))
@@ -172,11 +211,99 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
         with query.build_result_lock:
             query.build_result = {'pdf_filename': pdf_filename, 
+                                  'tex_filename': query.tex_filename,
                                   'has_synctex_file': query.can_sync,
                                   'log_messages': query.log_messages,
                                   'bibtex_log_messages': query.bibtex_log_messages,
                                   'error': None,
                                   'error_arg': None}
+
+    def _live_build_enabled(self):
+        '''偏好 phitex_live_build（默认开）：是否用常驻 watch 构建。'''
+        try:
+            settings = ServiceLocator.get_settings()
+            if settings is None:
+                return True
+            return bool(settings.get_value('preferences', 'phitex_live_build'))
+        except Exception:
+            return True
+
+    def run_via_phitex_session(self, query, output_directory, enable_synctex):
+        '''经常驻 watch 跑一轮构建。
+
+        返回 True 表示本次结果已写好；False 表示拿不到 session，调用方退回
+        一次性 `phitex build`。
+        '''
+        session = self.phitex_session
+        candidate = phitex_session.PhitexSession(
+            query.tex_filename, output_directory, enable_synctex,
+            query.build_data['additional_arguments'])
+        # 启动期参数变了就必须换一个 watch：正在跑的 session 不会重新读这些
+        # 设置，继续复用会表现为"改了没反应"。指纹见 PhitexSession.config_signature。
+        if (session is None or session.pid is None
+                or session.config_signature != candidate.config_signature):
+            self.stop_phitex_session()
+            if not candidate.start():
+                return False
+            self.phitex_session = candidate
+            session = candidate
+
+        waited, status = session.build()
+        if not waited:
+            return False
+        problems = session.problems()
+        if problems is None:
+            return False
+
+        root = status.get('root') if isinstance(status, dict) else None
+        query.log_messages = phitex_session.to_log_messages(
+            problems, root, query.tex_filename)
+        query.error_count = sum(len(items['error'])
+                                for items in query.log_messages.values())
+
+        # 有错误时不把 PDF 交给预览（与其它引擎一致，由上层标为 stale）。
+        # 与直连路线的差别是这里绝不删文件：那是 watch 自己维护的产物，删掉
+        # 只会让下一个增量构建多做一轮无谓的完整写出。
+        pdf_filename = None
+        if query.error_count == 0:
+            pdf_filename = session.pdf_path(status)
+            if not self._is_pdf_valid(pdf_filename):
+                synthesized_msg = self._extract_silent_failure_reason(query)
+                query.error_count = 1
+                query.log_messages = {
+                    query.tex_filename: {
+                        'error': [(None, -1, synthesized_msg)],
+                        'warning': [],
+                        'badbox': [],
+                    }
+                }
+                pdf_filename = None
+
+        query.can_sync = False
+        if enable_synctex and pdf_filename is not None:
+            try:
+                query.can_sync = self.copy_synctex_file(query)
+            except OSError as e:
+                print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
+                query.can_sync = False
+
+        # do_cleanup 在 live 模式下故意不执行：watch 的增量图依赖输出目录里的
+        # .aux/.toc/.bbl，删掉等于下一轮必然完整重跑，正好丢掉本模式的意义。
+        with query.build_result_lock:
+            query.build_result = {'pdf_filename': pdf_filename,
+                                  'tex_filename': query.tex_filename,
+                                  'has_synctex_file': query.can_sync,
+                                  'log_messages': query.log_messages,
+                                  'bibtex_log_messages': query.bibtex_log_messages,
+                                  'error': None,
+                                  'error_arg': None}
+        return True
+
+    def stop_phitex_session(self):
+        '''结束本文档的常驻 watch（文档关闭、换引擎时调用）。'''
+        if self.phitex_session is not None:
+            self.phitex_session.stop()
+            self.phitex_session = None
 
     def _spawn_process(self, build_command, cwd):
         '''跨平台启动 LaTeX 构建进程。

@@ -37,6 +37,15 @@ class AutoBuild(object):
 
     RETRY_INTERVAL_MS = 1000
     MAX_RETRIES = 10
+    # 传统引擎的延迟下限：一次构建动辄一两秒，间隔再短只会让构建排队堆积。
+    MIN_DELAY_MS = 500
+    # PhiTeX 常驻 session 的延迟（毫秒）。实测从"写完文件"到"增量编译完 +
+    # PDF 落盘"只要 15–19ms，整个下游约 70–90ms，所以不必沿用 500ms 地板；
+    # 但也不取 0——每个按键都写盘会让 Poppler 重载和光栅化持续满载。见
+    # _auto_build_values。
+    PHITEX_DELAY_MS = 150
+    # PhiTeX 下的构建忙重试间隔：见 on_timer 的说明。
+    PHITEX_RETRY_INTERVAL_MS = 300
 
     def __init__(self, workspace):
         self.workspace = workspace
@@ -55,6 +64,27 @@ class AutoBuild(object):
         # attach to documents that were opened before this controller existed
         for document in list(self.workspace.open_documents):
             self.on_new_document(self.workspace, document)
+
+    def _auto_build_values(self, document):
+        '''返回 (是否自动编译, 延迟毫秒)。
+
+        延迟连同各自的下限在这里算完，调用处不再 max(..., 500)：上一版常数
+        (0.5s) 和调用处的 500ms 地板正好相等、叠在一起，把常数改小会被静默
+        夹回 500ms——降延迟改了没反应，还不报错。
+
+        PhiTeX live 模式下这两项不是偏好而是机制：watch 只对磁盘上的变化反应，
+        而"把缓冲区写到磁盘"正是本模块负责的——让用户关掉自动编译就等于关掉
+        实时预览，所以这里覆盖他的设置（偏好页对应行同步置灰，避免出现"能点
+        但不生效"）。
+
+        判定走 build_system.is_phitex_live_build（带 1s 缓存），不在每次按键
+        重复读全文与项目配置。
+        '''
+        if document.build_system.is_phitex_live_build():
+            return True, self.PHITEX_DELAY_MS
+        enabled = DocumentSettings.get_effective_value(document, self.settings, 'auto_build')
+        delay = DocumentSettings.get_effective_value(document, self.settings, 'auto_build_delay')
+        return enabled, max(int(delay * 1000), self.MIN_DELAY_MS)
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
@@ -79,19 +109,18 @@ class AutoBuild(object):
                 pass
 
     def on_document_changed(self, document):
-        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
-            return
         # 程序化读盘（会话恢复 / 懒加载 / 文件打开）触发的 buffer 'changed' 不算
         # 用户编辑——磁盘上的 PDF 通常已是最新，启动即重编毫无意义且拖慢启动。
-        # 仅在用户真实按键编辑后才排队构建。详见 Document._loading_from_disk。
+        # 先于引擎判定返回，免得白读一遍全文。详见 Document._loading_from_disk。
         if getattr(document, '_loading_from_disk', False):
+            return
+        auto_build, delay_ms = self._auto_build_values(document)
+        if not auto_build:
             return
         if document.get_filename() == None:
             self._warn_untitled(document)
             return
         self._retry_counts.pop(document, None)
-        delay = DocumentSettings.get_effective_value(document, self.settings, 'auto_build_delay')
-        delay_ms = max(int(delay * 1000), 500)
         self.schedule_build(document, delay_ms)
 
     def schedule_build_for_reload(self, document):
@@ -102,13 +131,12 @@ class AutoBuild(object):
         读盘时 set_text 会让 _loading_from_disk 置为 True，使 on_document_changed
         提前返回，故重载完成后须由调用方显式唤醒本计时器。这里复用与真实编辑
         一致的设置/延迟判定，若 auto_build 关闭或文档未命名则静默不触发。'''
-        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
+        auto_build, delay_ms = self._auto_build_values(document)
+        if not auto_build:
             return
         if document.get_filename() == None:
             return
         self._retry_counts.pop(document, None)
-        delay = DocumentSettings.get_effective_value(document, self.settings, 'auto_build_delay')
-        delay_ms = max(int(delay * 1000), 500)
         self.schedule_build(document, delay_ms)
 
     def on_document_saved(self, document, filename=None):
@@ -155,7 +183,7 @@ class AutoBuild(object):
         # this is a one-shot timeout, drop the stored id right away
         self.timers.pop(document, None)
 
-        if not DocumentSettings.get_effective_value(document, self.settings, 'auto_build'):
+        if not self._auto_build_values(document)[0]:
             return False
         if document not in self.workspace.open_documents:
             return False
@@ -169,7 +197,8 @@ class AutoBuild(object):
         if target.build_system.get_build_state() in ('building_in_progress', 'building_to_stop'):
             count = self._retry_counts.get(document, 0) + 1
             # 首次因文档占用而排队时给出一次性提示，让用户知道编辑不会被丢弃
-            # （见项 3：并发构建重试需有 UI 反馈，而非静默重试）。
+            # （见项 3：并发构建重试需有 UI 反馈，而非静默重试）。count==1 只在
+            # 每个"忙"片段开头出现，所以每次占用至多一条 toast。
             if count == 1:
                 self._show_toast(_('Auto-build deferred — a build is already in progress.'), timeout=2)
             if count > self.MAX_RETRIES:
@@ -177,7 +206,14 @@ class AutoBuild(object):
                 self._show_toast(_('Auto-build skipped — the document was busy building.'), timeout=3)
                 return False
             self._retry_counts[document] = count
-            self.schedule_build(document, self.RETRY_INTERVAL_MS)
+            # 重试间隔跟着构建节奏走：1s 是为"一次构建一两秒"设计的，PhiTeX
+            # 增量只要 ~90ms，撞车基本只发生在冷启动那一次；拿 1s 去等一次
+            # 90ms 的腾空，等于把预览白白拖慢一个数量级。取 300ms（约 2 倍
+            # 节奏），10 次仍覆盖 ~3s，够一次冷启动。
+            retry_ms = (self.PHITEX_RETRY_INTERVAL_MS
+                        if target.build_system.is_phitex_live_build()
+                        else self.RETRY_INTERVAL_MS)
+            self.schedule_build(document, retry_ms)
             return False
 
         self._retry_counts.pop(document, None)

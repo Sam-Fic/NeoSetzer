@@ -65,6 +65,9 @@ _HIGHLIGHT_SECTION_MAX_ALPHA = 0.20
 
 class Document(Observable):
 
+    # 改动高亮所用的脏行区间列表上限，见 _mark_dirty_lines。
+    MAX_DIRTY_LINE_RANGES = 32
+
     def __init__(self, language):
         Observable.__init__(self)
         self.language = language
@@ -173,6 +176,9 @@ class Document(Observable):
         # 编辑——auto_build 据此跳过启动即重编。仅 auto_build 读取此标志，
         # parser 等其它 'changed' 观察者仍照常收到通知以初始化文档结构。
         self._loading_from_disk = False
+        # 自上次构建以来被用户改过的行区间（0-based，闭区间），供增量编译的
+        # 改动高亮换成 PDF 矩形。上限与合并见 _mark_dirty_lines。
+        self._dirty_line_ranges = []
         # 延迟子系统 idle 对全部文档类型调度（sticky_scroll / multicursor
         # 对 bibtex / other 文档同样适用）。
         self._deferred_features_idle_id = GLib.idle_add(self._init_deferred_features)
@@ -1068,9 +1074,52 @@ class Document(Observable):
     # ------------------------------------------------------------------
     def _on_buffer_insert_text(self, buffer, location, text, length):
         self._ensure_undo_group()
+        # insert-text 在插入发生前发出：location 就是新文本首行的位置。
+        if self._records_user_edits():
+            start = location.get_line()
+            self._mark_dirty_lines(start, start + text.count('\n'))
 
     def _on_buffer_delete_range(self, buffer, start, end):
         self._ensure_undo_group()
+        # delete-range 同样在删除前发出，start..end 就是要消失的区间。
+        if self._records_user_edits():
+            self._mark_dirty_lines(start.get_line(), end.get_line())
+
+    def _records_user_edits(self):
+        '''本次 buffer 变化是否是用户真的在编辑。
+
+        与 _ensure_undo_group 用同一组守卫，理由也一致：程序化读盘（会话恢复、
+        外部文件重载）和撤销/重做都不是"我刚改的地方"，若照样记进脏行，恢复
+        一个文档或按一次 Ctrl+Z 就会在 PDF 上闪出一块无关的荧光。
+        '''
+        if self._is_shutdown or self._loading_from_disk or getattr(self, '_in_undo', False):
+            return False
+        return True
+
+    def _mark_dirty_lines(self, start_line, end_line):
+        '''记下 [start_line, end_line]（0-based 闭区间）被改过。
+
+        相邻或重叠的区间会合并——连续打一个字只该闪一次、闪一整段，而不是攒下
+        几十条单行区间。数量上限是防呆：长时间不构建（关闭自动构建、未保存的
+        草稿）时列表不该无界增长，溢出时丢最旧的，留下用户最近的改动。
+        '''
+        ranges = self._dirty_line_ranges
+        ranges.append((min(start_line, end_line), max(start_line, end_line)))
+        ranges.sort()
+        merged = []
+        for start, end in ranges:
+            if merged and start <= merged[-1][1] + 1:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+            else:
+                merged.append((start, end))
+        del merged[:-self.MAX_DIRTY_LINE_RANGES]
+        self._dirty_line_ranges = merged
+
+    def take_dirty_line_ranges(self):
+        '''取走并清空自上次构建以来的改动行区间。'''
+        ranges = self._dirty_line_ranges
+        self._dirty_line_ranges = []
+        return ranges
 
     def _ensure_undo_group(self):
         if self._is_shutdown:

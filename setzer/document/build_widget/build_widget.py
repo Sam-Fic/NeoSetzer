@@ -26,7 +26,6 @@ from setzer.keyboard_shortcuts import shortcut_tooltips
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.color_manager import ColorManager
 from setzer.settings.document_settings import DocumentSettings
-from setzer.document.magic_comments import parse_magic_comments
 
 import time
 import os.path
@@ -49,6 +48,7 @@ _INTERPRETER_DISPLAY = {
     'xelatex': 'XeLaTeX',
     'lualatex': 'LuaLaTeX',
     'tectonic': 'Tectonic',
+    'phitex': 'PhiTeX',
 }
 
 class BuildWidget(Observable):
@@ -59,6 +59,9 @@ class BuildWidget(Observable):
         self.settings = ServiceLocator.get_settings()
 
         self.items = list()
+        # PhiTeX live 自动构建下用于给失败 toast 去重的上一次错误数（见
+        # _suppress_result_toast）。None = 本次编辑会话还没报过。
+        self._last_toasted_error_count = None
 
         self.view = build_widget_view.BuildWidgetView()
         self.view.build_button.connect('clicked', self.on_build_button_click)
@@ -148,11 +151,17 @@ class BuildWidget(Observable):
         return self._stage_labels.get(job_name, job_name)
 
     def on_build_state(self, build_system, message):
+        # PhiTeX 常驻 session 下自动构建每 150ms 就能完成一次，而每条 toast 挂
+        # 3 秒——照原样发就是打字时 toast 叠成墙，挡住视线也挡住交互。成功不再
+        # 发（按钮区本来就有常驻的 Success!/Failed 文字承担这个职责），失败按
+        # 错误数去重：同一个没修好的错只报一次，数字变了才再报。
+        suppress_toast = self._suppress_result_toast(build_system, message)
         if message == '':
             self.show_message('')
         elif message == 'success':
             self.show_message(_('Success!'))
-            self._show_toast(_('Build succeeded'))
+            if not suppress_toast:
+                self._show_toast(_('Build succeeded'))
         elif message == 'error':
             error_count = build_system.get_error_count()
             error_color_rgba = ColorManager.get_ui_color_string('error_color')
@@ -167,7 +176,25 @@ class BuildWidget(Observable):
             error_text = GLib.markup_escape_text(errors_text, -1)
             message = '<span color="' + error_color_rgba + '">' + failed_text + '</span> (' + error_text + ')!'
             self.show_message(message)
-            self._show_toast(_('Build failed') + ' (' + errors_text + ')')
+            if not suppress_toast:
+                self._show_toast(_('Build failed') + ' (' + errors_text + ')')
+
+    def _suppress_result_toast(self, build_system, message):
+        '''本次构建结果要不要发 toast。'''
+        if message not in ('success', 'error'):
+            return False
+        if not (getattr(build_system, 'is_auto_build', False)
+                and build_system.is_phitex_live_build()):
+            return False
+        if message == 'success':
+            # 从报错恢复到成功时还是说一声：用户关心的恰是"我改对了"。
+            announced, self._last_toasted_error_count = self._last_toasted_error_count, 0
+            return announced in (None, 0)
+        error_count = build_system.get_error_count()
+        if error_count == self._last_toasted_error_count:
+            return True
+        self._last_toasted_error_count = error_count
+        return False
 
     def _show_toast(self, text):
         main_window = ServiceLocator.get_main_window()
@@ -235,10 +262,14 @@ class BuildWidget(Observable):
         self.view.build_button.set_sensitive(True)
 
     def _active_interpreter_display(self):
-        '''当前文档实际使用的引擎显示名：Magic Comment 优先于已保存设置。'''
-        magic = parse_magic_comments(self.document.get_all_text())
-        interp = magic.program or DocumentSettings.get_effective_value(
-            self.document, self.settings, 'latex_interpreter')
+        '''当前文档实际使用的引擎显示名。
+
+        走 build_system.get_effective_interpreter 而不是在这里再解一遍链：
+        那条链上有 `% !TEX program` 顶掉用户选择、以及选 PhiTeX 时不被注释替换
+        两个分支，自己抄一份就会和实际构建用的引擎不一致（tooltip 显示 XeLaTeX
+        但编出来的是 PhiTeX）。
+        '''
+        interp = self.document.build_system.get_effective_interpreter()
         return _INTERPRETER_DISPLAY.get(interp, interp)
 
     def update_build_button_tooltip(self, *args):

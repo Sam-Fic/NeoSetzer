@@ -145,6 +145,11 @@ class Settings(Observable):
         self.defaults['preferences']['cleanup_build_files'] = True
         self.defaults['preferences']['autoshow_build_log'] = 'errors_warnings'
         self.defaults['preferences']['latex_interpreter'] = 'xelatex'
+        # PhiTeX 专用：用常驻 `phitex watch` 构建（每文档一个进程），而不是
+        # 每次起一个新 `phitex build`。增量依赖图活在进程内存里，关掉它就等于
+        # 每轮都冷启动——实测 62 页文档改一行 6–14 ms 变成 1.25 s。
+        # 见 phitex_session.PhitexSession 与 builder_build_latex.run_via_phitex_session。
+        self.defaults['preferences']['phitex_live_build'] = True
         # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
         self.defaults['preferences']['on_startup'] = 'last_session'
         self.defaults['preferences']['use_latexmk'] = True

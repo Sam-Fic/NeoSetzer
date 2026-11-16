@@ -22,6 +22,7 @@ import subprocess
 import setzer.document.build_system.builder.builder_build as builder_build
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.decode_output import decode_process_output
+from setzer.helpers import synctex_query
 from setzer.helpers.synctex_folder import synctex_folder
 
 
@@ -31,7 +32,6 @@ class BuilderForwardSync(builder_build.BuilderBuild):
         builder_build.BuilderBuild.__init__(self)
 
         self.config_folder = ServiceLocator.get_config_folder()
-        self.forward_synctex_regex = ServiceLocator.get_regex_object(r'\nOutput:.*\nPage:([0-9]+)\nx:.*\ny:.*\nh:((?:[0-9]|\.)+)\nv:((?:[0-9]|\.)+)\nW:((?:[0-9]|\.)+)\nH:((?:[0-9]|\.)+)\nbefore:.*\noffset:.*\nmiddle:.*\nafter:.*')
 
         self.process = None
 
@@ -68,15 +68,9 @@ class BuilderForwardSync(builder_build.BuilderBuild):
             # UnicodeDecodeError 使后台线程崩溃（Windows 用户实测报告）。
             raw = decode_process_output(process.communicate()[0])
             self.process = None
-
-            for match in self.forward_synctex_regex.finditer(raw):
-                rectangle = dict()
-                rectangle['page'] = int(match.group(1))
-                rectangle['h'] = float(match.group(2))
-                rectangle['v'] = float(match.group(3))
-                rectangle['width'] = float(match.group(4))
-                rectangle['height'] = float(match.group(5))
-                rectangles.append(rectangle)
+            # 解析交给 synctex_query.parse_view_output：增量编译的改动高亮
+            # 要做同一次查询，两处各存一份输出正则迟早漂移。
+            rectangles = synctex_query.parse_view_output(raw)
 
         if len(rectangles) > 0:
             query.forward_sync_result = rectangles

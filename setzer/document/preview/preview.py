@@ -28,6 +28,8 @@ import os.path
 import math
 import unicodedata
 
+from setzer.helpers.sync_debug import sync_debug as _sync_debug
+
 import setzer.document.preview.preview_viewgtk as preview_view
 import setzer.document.preview.preview_layouter as preview_layouter
 import setzer.document.preview.preview_presenter as preview_presenter
@@ -471,6 +473,8 @@ class Preview(Observable):
 
     def load_pdf(self, external_reload=False):
         new_document = None
+        # 重建前的页面几何，用于判断能否沿用现有 layout（见下方说明）。
+        page_sizes_before = self.page_sizes
         if self.pdf_filename != None:
             try:
                 new_document = Poppler.Document.new_from_file(GLib.filename_to_uri(self.pdf_filename))
@@ -491,7 +495,13 @@ class Preview(Observable):
             self.page_width, self.page_height = self.page_sizes[0]
             self.page_heights = [height for width, height in self.page_sizes]
             self.update_vertical_margin()
-            self.layout = None
+            # layout 只在几何真的变了时才作废。增量重编译（PhiTeX 一次编辑后
+            # 页数与页面尺寸不变）是常态，原先每次构建都置 None：draw 见
+            # layout is None 会"建完布局就直接返回、这一帧什么都不画"，于是每
+            # 次编译预览区都闪一下白——构建慢时隔一两秒看不出来，构建只要十几
+            # 毫秒时就是持续闪烁。保留旧 layout 对象同时也保住了滚动位置。
+            if self.layout is not None and page_sizes_before != self.page_sizes:
+                self.layout = None
             # 新 PDF 的页码 / 几何与旧选择不再对应，清除选择。
             self.clear_text_selection()
             # Only a successfully opened Poppler document is accepted as the
@@ -811,40 +821,79 @@ class Preview(Observable):
             return
         self.set_synctex_rectangles([{'page': page + 1, 'h': h, 'v': top, 'width': width, 'height': height}])
 
-    def set_synctex_rectangles(self, rectangles):
-        if self.layout == None: return
-
+    def show_synctex_rectangles(self, rectangles):
+        '''把矩形交给绘制层并起淡出循环，不做任何滚动。'''
         self.visible_synctex_rectangles = rectangles
         self.layouter.update_synctex_rectangles(self.layout)
         self.visible_synctex_rectangles_time = GLib.get_monotonic_time() / 1_000_000
-
         if len(rectangles) > 0:
-            content = self.view.content
-            position = rectangles[0]
-            page_number = position['page']
-            sf = self.layout.scale_factor
-            # SyncTeX v 是包围框底部距页面顶部的距离 (即包围框的下边缘 y 坐标)。
-            # 要得到包围框上边缘 (cairo y)，需减去高度：top = v - height。
-            left = position['h'] * sf
-            top = (position['v'] - position['height']) * sf
-            width = position['width'] * sf
-            height = position['height'] * sf
-
-            x = max(min(left - 18, content.scrolling_offset_x), left + width - content.width + 18)
-            # per-page：page 1-based → 0-based，用 get_page_top。
-            page_top = self.layout.get_page_top(page_number - 1)
-            if page_top is None:
-                return
-            y = page_top + max(0, top - height / 2 - content.height * 0.3)
-
-            content.scroll_to_position([x, y])
             self.presenter.start_fade_loop()
+
+    def set_synctex_rectangles(self, rectangles):
+        if self.layout == None: return
+
+        self.show_synctex_rectangles(rectangles)
+
+        if len(rectangles) > 0 and not self._scroll_to_rectangle(rectangles[0]):
+            return
         # 通知独立窗口（若预览已 detach）present 自身，让用户看到正向跳转结果。
         # 仅发 change_code，不直接 import 窗口类——保持 model 与 UI 解耦。
         self.add_change_code('synctex_forward')
 
+    def _scroll_to_rectangle(self, position):
+        '''把矩形滚进视野，成功返回 True（页号越界则不动）。
+
+        坐标换算：SyncTeX 的 v 是包围框**下边缘**距页顶的距离（y 轴向上），
+        所以 cairo 的 top 要减掉高度，再乘 scale_factor 得到画布坐标；左右各留
+        18px 让文字不被贴边切掉。y 只在下缘高出视口 30% 时才动，免得一个小框
+        把整页顶出屏幕。
+        '''
+        content = self.view.content
+        sf = self.layout.scale_factor
+        left = position['h'] * sf
+        top = (position['v'] - position['height']) * sf
+        width = position['width'] * sf
+        height = position['height'] * sf
+
+        # per-page：page 1-based → 0-based，用 get_page_top。
+        page_top = self.layout.get_page_top(position['page'] - 1)
+        if page_top is None:
+            return False
+
+        x = max(min(left - 18, content.scrolling_offset_x), left + width - content.width + 18)
+        y = page_top + max(0, top - height / 2 - content.height * 0.3)
+        content.scroll_to_position([x, y])
+        return True
+
+    def flash_changed_rectangles(self, rectangles):
+        '''增量编译后闪一下改动处：默认不跳页，只有改动全在视口外才跳。
+
+        这条路径每半秒就会走一次，和正向同步的"跳过去"是两种手感：照
+        set_synctex_rectangles 那样无条件滚到第一个矩形，等于每次停顿输入都把
+        用户视野拽回改动点——慢编译器一小时跳一次看不出来，18ms 增量编译下就
+        是没法用的体验。但完全不平移也不对：改动落在视口外时高亮画在看不见的
+        地方，反馈等于零。所以判一次可见性，只在看不见时跳。
+
+        任一改动页在视口内就不跳：多处改动时用户看见其中一处闪动即可，全部
+        往第一处拽反而会盖掉其余的位置线索。
+        '''
+        if self.layout is None or not rectangles:
+            return False
+        self.show_synctex_rectangles(rectangles)
+
+        content = self.view.content
+        # get_page_by_offset 与 rectangle['page'] 都是 1-based。
+        top_page = self.layout.get_page_by_offset(content.scrolling_offset_y)
+        bottom_page = self.layout.get_page_by_offset(
+            content.scrolling_offset_y + content.height)
+        if not any(top_page <= r['page'] <= bottom_page for r in rectangles):
+            self._scroll_to_rectangle(rectangles[0])
+        return True
+
     def init_backward_sync(self, x_offset, y_offset):
-        if self.layout == None: return False
+        if self.layout == None:
+            _sync_debug('init_backward_sync: layout is None，不反查')
+            return False
 
         window_width = self.view.get_allocated_width()
         data = self.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
@@ -869,7 +918,9 @@ class Preview(Observable):
             page, x, y = data
 
         n_pages = self.poppler_document.get_n_pages()
-        if page < 0 or page >= n_pages: return False
+        if page < 0 or page >= n_pages:
+            _sync_debug('页号越界 page=%s n_pages=%s' % (page, n_pages))
+            return False
 
         poppler_page = self.poppler_document.get_page(page)
         # per-page：x / y 是 un-rotated PDF 坐标，clamp 用该页尺寸。
@@ -888,6 +939,8 @@ class Preview(Observable):
         # to align the cursor to the precise character, not just the line.
         pdf_line_offset, pdf_line_text = self._get_pdf_line_offset(poppler_page, x, y)
 
+        _sync_debug('反查提交 page(1-based)=%s x=%.1f y=%.1f can_sync=%s' % (
+            page + 1, x, y, self.document.build_system.can_sync))
         self.document.build_system.backward_sync(page + 1, x, y, word, context, pdf_line_offset, pdf_line_text)
         # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到反向跳转的源码位置。
         # 点击发生在独立窗口，抬起主窗口让源码跳转可见。
