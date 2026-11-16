@@ -69,20 +69,10 @@ class AnnotationSender(object):
         data = []
         sent_entries = []
         for document, annotation in entries:
-            model = getattr(document, 'ai_annotations', None)
-            if model is None:
-                continue
-            line_range = model.get_line_range(annotation)
-            if line_range is None:
+            entry_data = self._annotation_data(document, annotation)
+            if entry_data is None:
                 continue  # mark 已失效（如外部重载），跳过
-            data.append({
-                'filename': document.get_filename(),
-                'start_line': line_range[0],
-                'end_line': line_range[1],
-                'text': model.get_text(annotation),
-                'comment': annotation.get('comment', ''),
-                'preset': annotation.get('preset'),
-            })
+            data.append(entry_data)
             sent_entries.append((document, annotation))
         if not data:
             self._toast(_('No annotations to send'))
@@ -119,7 +109,50 @@ class AnnotationSender(object):
         }]
         self._send_data(data, document)
 
+    def copy_prompt(self, entries):
+        '''把批注对应的 prompt 复制到剪贴板（不发送、不保存文档、不移除批注）。'''
+        data = []
+        for document, annotation in entries:
+            entry_data = self._annotation_data(document, annotation)
+            if entry_data is not None:
+                data.append(entry_data)
+        if not data:
+            self._toast(_('No annotations to send'))
+            return
+        document = entries[0][0]
+        cwd = document.get_dirname()
+        if not cwd:
+            self._toast(_('Please save the document first'))
+            return
+        presets = self.settings.get_value('preferences', 'ai_annotation_presets')
+        prompt = annotation_prompt_builder.build_prompt_for_annotations(
+            data, cwd, interpreter=resolve_interpreter(document), presets=presets)
+        try:
+            display = Gdk.Display.get_default()
+            if display is not None:
+                display.get_clipboard().set(prompt)
+        except Exception:
+            pass
+        self._toast(_('Copied to clipboard'))
+
     # ---- 内部 ----
+
+    def _annotation_data(self, document, annotation):
+        '''单条批注 → prompt 数据块；模型缺失或 mark 失效返回 None。'''
+        model = getattr(document, 'ai_annotations', None)
+        if model is None:
+            return None
+        line_range = model.get_line_range(annotation)
+        if line_range is None:
+            return None
+        return {
+            'filename': document.get_filename(),
+            'start_line': line_range[0],
+            'end_line': line_range[1],
+            'text': model.get_text(annotation),
+            'comment': annotation.get('comment', ''),
+            'preset': annotation.get('preset'),
+        }
 
     def _check_enabled(self):
         if not self.settings.get_value('preferences', 'ai_fix_enabled'):

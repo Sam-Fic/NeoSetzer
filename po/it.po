@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 01:48+0800\n"
+"POT-Creation-Date: 2026-11-17 02:55+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/setzer/application/it/>\n"
@@ -470,131 +470,145 @@ msgstr "scrive gli url con il comando \\\\url{..} senza doverli escapare."
 msgid "enables colored text."
 msgstr "Abilita testo colorato"
 
-#: setzer/ai_fix/agent_runner.py:317
+#: setzer/ai_fix/agent_runner.py:319
 msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
 msgstr "Nessun emulatore di terminale disponibile. Installa gnome-terminal / xterm o imposta un terminale personalizzato in Preferenze."
 
-#: setzer/ai_fix/agent_runner.py:371
+#: setzer/ai_fix/agent_runner.py:373
 msgid "Terminal executable not found: {}"
 msgstr "Eseguibile del terminale non trovato: {}"
 
-#: setzer/ai_fix/agent_runner.py:373
+#: setzer/ai_fix/agent_runner.py:375
 msgid "Failed to launch terminal: {}"
 msgstr "Impossibile avviare il terminale: {}"
 
-#: setzer/ai_fix/agent_runner.py:416
+#: setzer/ai_fix/agent_runner.py:418
 msgid "Launched {} in terminal. Prompt copied to clipboard — paste it there."
 msgstr "Avviato {} nel terminale. Prompt copiato negli appunti — incollalo lì."
 
-#: setzer/ai_fix/agent_runner.py:417 setzer/ai_fix/agent_runner.py:449
+#: setzer/ai_fix/agent_runner.py:419 setzer/ai_fix/agent_runner.py:451
 msgid "Launched {} in terminal."
 msgstr "Avviato {} nel terminale."
 
-#: setzer/ai_fix/agent_runner.py:439
+#: setzer/ai_fix/agent_runner.py:441
 #, python-brace-format
 msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
 msgstr "{tool} non ha un eseguibile configurato. Impostane uno in Impostazioni → Generale → Impostazioni IA."
 
-#: setzer/ai_fix/agent_runner.py:442 setzer/ai_fix/agent_session.py:127
+#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:133
 #, python-brace-format
 msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
 msgstr "{tool} non è disponibile su questo sistema. Verifica il nome dell’eseguibile in Impostazioni → Generale → Impostazioni IA."
 
-#: setzer/ai_fix/agent_session.py:121 setzer/ai_fix/agent_session.py:264
+#: setzer/ai_fix/agent_session.py:126 setzer/ai_fix/agent_session.py:274
 msgid "Embedded terminal is not available on this system."
-msgstr ""
+msgstr "Il terminale integrato non è disponibile su questo sistema."
 
-#: setzer/ai_fix/agent_session.py:124 setzer/ai_fix/annotation_sender.py:183
+#: setzer/ai_fix/agent_session.py:129 setzer/ai_fix/annotation_sender.py:220
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:441
 #: setzer/workspace/headerbar/headerbar.py:378
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "Nessuno strumento agente configurato. Aggiungine uno in Impostazioni → Generale → Impostazioni IA."
 
-#: setzer/ai_fix/agent_session.py:131 setzer/ai_fix/annotation_sender.py:130
-#: setzer/ai_fix/annotation_sender.py:137
+#: setzer/ai_fix/agent_session.py:137 setzer/ai_fix/annotation_sender.py:125
+#: setzer/ai_fix/annotation_sender.py:165
+#: setzer/ai_fix/annotation_sender.py:174
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
 #: setzer/workspace/headerbar/headerbar.py:365
-#: setzer/workspace/sidebar/ai_page/ai_page.py:292
+#: setzer/workspace/sidebar/ai_page/ai_page.py:299
 msgid "Please save the document first"
 msgstr "Salva prima il documento"
 
-#: setzer/ai_fix/agent_session.py:157
+#: setzer/ai_fix/agent_session.py:165
 msgid "Failed to launch agent: {}"
-msgstr ""
+msgstr "Impossibile avviare l'agente: {}"
 
-#: setzer/ai_fix/agent_session.py:259
+#: setzer/ai_fix/agent_session.py:270
 msgid "Nothing to send"
-msgstr ""
+msgstr "Niente da inviare"
 
-#: setzer/ai_fix/agent_session.py:277
+#: setzer/ai_fix/agent_session.py:287
 #, python-brace-format
 msgid "Sent to {tool} (copied to clipboard as fallback)."
-msgstr ""
+msgstr "Inviato a {tool} (copiato negli appunti come riserva)."
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:61
-msgid "Copy last prompt"
-msgstr ""
+msgid "End session and stop the agent"
+msgstr "Termina la sessione e ferma l'agente"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:66
 msgid "New session (in the active document’s directory)"
-msgstr ""
+msgstr "Nuova sessione (nella cartella del documento attivo)"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:71
-#: setzer/ai_fix/agent_terminal_viewgtk.py:125
+#: setzer/ai_fix/agent_terminal_viewgtk.py:165
 msgid "Open in a separate window"
-msgstr ""
+msgstr "Apri in una finestra separata"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:89
-msgid "Embedded terminal unavailable"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:91
-msgid "VTE is not available on this system. Sending will open the agent in an external terminal instead; the prompt is also copied to the clipboard."
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:108
-msgid "Session active"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:110
-msgid "Starting…"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:112
-msgid "Session ended — next send starts a new one"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:114
+#: setzer/ai_fix/agent_terminal_viewgtk.py:95
+#: setzer/ai_fix/agent_terminal_viewgtk.py:145
 msgid "No active session"
-msgstr ""
+msgstr "Nessuna sessione attiva"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:122
+#: setzer/ai_fix/agent_terminal_viewgtk.py:96
+msgid "Send an annotation or a selection to start the agent in this terminal."
+msgstr "Invia un'annotazione o una selezione per avviare l'agente in questo terminale."
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:101
+msgid "Embedded terminal unavailable"
+msgstr "Terminale integrato non disponibile"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:102
+msgid "VTE is not available on this system. Sending will open the agent in an external terminal instead; the prompt is also copied to the clipboard."
+msgstr "VTE non è disponibile su questo sistema. L'invio aprirà l'agente in un terminale esterno; il prompt viene copiato anche negli appunti."
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:139
+msgid "Session active"
+msgstr "Sessione attiva"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:141
+msgid "Starting…"
+msgstr "Avvio…"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:143
+msgid "Session ended — next send starts a new one"
+msgstr "Sessione terminata: il prossimo invio ne avvierà una nuova"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:162
 msgid "Dock back into the sidebar"
-msgstr ""
+msgstr "Riaggancia alla barra laterale"
 
-#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:86
+#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78
+#: setzer/ai_fix/annotation_sender.py:120
 msgid "No annotations to send"
-msgstr ""
+msgstr "Nessuna annotazione da inviare"
 
-#: setzer/ai_fix/annotation_sender.py:93
+#: setzer/ai_fix/annotation_sender.py:85
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:425
 #: setzer/workspace/headerbar/headerbar.py:361
 msgid "No active document"
 msgstr "Nessun documento attivo"
 
-#: setzer/ai_fix/annotation_sender.py:99
+#: setzer/ai_fix/annotation_sender.py:91
 #: setzer/workspace/actions/actions.py:1272
 msgid "Select some text first"
-msgstr ""
+msgstr "Seleziona prima del testo"
 
-#: setzer/ai_fix/annotation_sender.py:124
+#: setzer/ai_fix/annotation_sender.py:136
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:164
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
+msgid "Copied to clipboard"
+msgstr "Copiato negli appunti"
+
+#: setzer/ai_fix/annotation_sender.py:159
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:419
 #: setzer/workspace/headerbar/headerbar.py:355
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "L’agente IA è disattivato. Attivalo in Impostazioni → Generale → Impostazioni IA."
 
-#: setzer/ai_fix/annotation_sender.py:172
+#: setzer/ai_fix/annotation_sender.py:209
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:490
 msgid "Added to trusted directories"
 msgstr "Aggiunto alle directory attendibili"
@@ -632,8 +646,8 @@ msgstr "Invia all'agente AI"
 #: setzer/dialogs/preferences/pages/page_appearance.py:192
 #: setzer/dialogs/preferences/pages/page_appearance.py:330
 #: setzer/dialogs/preferences/pages/page_appearance.py:356
-#: setzer/dialogs/preferences/pages/page_appearance.py:588
-#: setzer/dialogs/preferences/pages/page_appearance.py:887
+#: setzer/dialogs/preferences/pages/page_appearance.py:590
+#: setzer/dialogs/preferences/pages/page_appearance.py:889
 #: setzer/dialogs/preferences/pages/page_build_system.py:176
 #: setzer/dialogs/preferences/pages/page_build_system.py:445
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:330
@@ -713,7 +727,7 @@ msgstr "Apri documento"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:393
-#: setzer/dialogs/preferences/pages/page_appearance.py:890
+#: setzer/dialogs/preferences/pages/page_appearance.py:892
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:112
 #: setzer/dialogs/preferences/pages/page_snippets.py:233
 #: setzer/dialogs/project_build_configuration_viewgtk.py:161
@@ -1040,7 +1054,7 @@ msgstr "Reimposta zoom"
 #: setzer/command_palette/catalog.py:134
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:473
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:333
-#: setzer/dialogs/preferences/pages/page_appearance.py:678
+#: setzer/dialogs/preferences/pages/page_appearance.py:680
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:135
 msgid "Preview"
 msgstr "Anteprima"
@@ -1747,13 +1761,6 @@ msgstr "Impossibile aprire il file"
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:160
 msgid "The log is empty, nothing to copy"
 msgstr "Il log è vuoto, niente da copiare"
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:164
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
-#: setzer/workspace/sidebar/ai_page/ai_page.py:284
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
-msgid "Copied to clipboard"
-msgstr "Copiato negli appunti"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:169
 msgid "The log is empty, nothing to save"
@@ -2723,7 +2730,7 @@ msgstr "La data del documento, usata nel comando \\date{}. Usa \\today per la da
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:220
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
-#: setzer/dialogs/preferences/pages/page_appearance.py:650
+#: setzer/dialogs/preferences/pages/page_appearance.py:652
 #: setzer/dialogs/preferences/pages/page_editor.py:1054
 msgid "Language"
 msgstr "Lingua"
@@ -4384,7 +4391,7 @@ msgid "Fraction"
 msgstr "Frazione"
 
 #: setzer/dialogs/open_document/open_document.py:39
-#: setzer/dialogs/preferences/pages/page_appearance.py:668
+#: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
 #: setzer/document/preview/preview_controller.py:658
 msgid "Open"
@@ -4464,7 +4471,7 @@ msgid "Restart"
 msgstr "Riavvia"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:252
-#: setzer/dialogs/preferences/pages/page_appearance.py:822
+#: setzer/dialogs/preferences/pages/page_appearance.py:824
 msgid "Export Settings"
 msgstr "Esporta impostazioni"
 
@@ -4477,7 +4484,7 @@ msgid "Settings exported."
 msgstr "Impostazioni esportate."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:284
-#: setzer/dialogs/preferences/pages/page_appearance.py:831
+#: setzer/dialogs/preferences/pages/page_appearance.py:833
 msgid "Import Settings"
 msgstr "Importa impostazioni"
 
@@ -4503,8 +4510,8 @@ msgstr "Questo ripristina tutte le preferenze ai valori predefiniti. Le scorciat
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:331
 #: setzer/dialogs/preferences/pages/page_appearance.py:357
-#: setzer/dialogs/preferences/pages/page_appearance.py:589
-#: setzer/dialogs/preferences/pages/page_appearance.py:842
+#: setzer/dialogs/preferences/pages/page_appearance.py:591
+#: setzer/dialogs/preferences/pages/page_appearance.py:844
 #: setzer/dialogs/preferences/pages/page_build_system.py:177
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:436
 msgid "Reset"
@@ -4515,7 +4522,7 @@ msgid "Preferences reset. Reopen Preferences to see all changes."
 msgstr "Preferenze ripristinate. Riapri le Preferenze per vedere tutte le modifiche."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:354
-#: setzer/dialogs/preferences/pages/page_appearance.py:585
+#: setzer/dialogs/preferences/pages/page_appearance.py:587
 #: setzer/dialogs/preferences/pages/page_build_system.py:174
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:433
 msgid "Reset to Defaults?"
@@ -4525,277 +4532,277 @@ msgstr "Ripristinare i valori predefiniti?"
 msgid "All appearance settings will be restored to their default values."
 msgstr "Tutte le impostazioni di aspetto verranno ripristinate ai valori predefiniti."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:463
+#: setzer/dialogs/preferences/pages/page_appearance.py:465
 msgid "(active)"
 msgstr "(attivo)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:467
+#: setzer/dialogs/preferences/pages/page_appearance.py:469
 msgid "built-in"
 msgstr "integrato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:471
 msgid "custom"
 msgstr "personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:472
+#: setzer/dialogs/preferences/pages/page_appearance.py:474
 msgid "installed"
 msgstr "installato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:474
+#: setzer/dialogs/preferences/pages/page_appearance.py:476
 msgid "not installed"
 msgstr "non installato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:483
+#: setzer/dialogs/preferences/pages/page_appearance.py:485
 msgid "Remove this custom tool"
 msgstr "Rimuovi questo strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:501
+#: setzer/dialogs/preferences/pages/page_appearance.py:503
 msgid "No trusted directories yet"
 msgstr "Nessuna directory attendibile ancora"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:502
+#: setzer/dialogs/preferences/pages/page_appearance.py:504
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "Seleziona «Non chiedere più» nella finestra di anteprima per aggiungerne una."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:515
+#: setzer/dialogs/preferences/pages/page_appearance.py:517
 msgid "Remove from trusted list"
 msgstr "Rimuovi dall'elenco attendibile"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:586
+#: setzer/dialogs/preferences/pages/page_appearance.py:588
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "Tutte le impostazioni dell’agente IA verranno ripristinate ai valori predefiniti. Strumenti personalizzati e directory attendibili verranno rimossi."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:619
+#: setzer/dialogs/preferences/pages/page_appearance.py:621
 msgid "General"
 msgstr "Generale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:625
+#: setzer/dialogs/preferences/pages/page_appearance.py:627
 msgid "Theme"
 msgstr "Tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:629
+#: setzer/dialogs/preferences/pages/page_appearance.py:631
 msgid "Color Scheme"
 msgstr "Schema di colore"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:638
+#: setzer/dialogs/preferences/pages/page_appearance.py:640
 msgid "Animations"
 msgstr "Animazioni"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:642
+#: setzer/dialogs/preferences/pages/page_appearance.py:644
 msgid "Reduce animations"
 msgstr "Riduci le animazioni"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:644
+#: setzer/dialogs/preferences/pages/page_appearance.py:646
 msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
 msgstr "Disattiva lo scorrimento della barra laterale, le dissolvenze e le animazioni di scorrimento degli elenchi. Le animazioni di apertura e chiusura delle finestre non sono interessate."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:654
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Interface Language"
 msgstr "Lingua dell'interfaccia"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:655
+#: setzer/dialogs/preferences/pages/page_appearance.py:657
 msgid "Changes take effect after the application is restarted."
 msgstr "Le modifiche hanno effetto dopo il riavvio dell'applicazione."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:664
+#: setzer/dialogs/preferences/pages/page_appearance.py:666
 msgid "On Startup"
 msgstr "All'avvio"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:669
+#: setzer/dialogs/preferences/pages/page_appearance.py:671
 msgid "Whether to restore the previous session or start with an empty workspace."
 msgstr "Se ripristinare la sessione precedente o avviare con un'area di lavoro vuota."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:689
+#: setzer/dialogs/preferences/pages/page_appearance.py:691
 msgid "Preview Sidebar Width"
 msgstr "Larghezza della barra laterale di anteprima"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:690
+#: setzer/dialogs/preferences/pages/page_appearance.py:692
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "Percentuale della larghezza della finestra allocata all'anteprima PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:698
+#: setzer/dialogs/preferences/pages/page_appearance.py:700
 msgid "Match PDF colors to theme"
 msgstr "Abbina i colori del PDF al tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:700
+#: setzer/dialogs/preferences/pages/page_appearance.py:702
 msgid "Recolor the PDF preview to match the light/dark theme."
 msgstr "Ricolora l'anteprima del PDF per abbinarla al tema chiaro/scuro."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:704
+#: setzer/dialogs/preferences/pages/page_appearance.py:706
 msgid "Default Zoom"
 msgstr "Zoom predefinito"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:706
+#: setzer/dialogs/preferences/pages/page_appearance.py:708
 msgid "Initial zoom mode for the PDF preview."
 msgstr "Modalità di zoom iniziale per l'anteprima PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:708
+#: setzer/dialogs/preferences/pages/page_appearance.py:710
 msgid "Default zoom mode for the PDF preview. Fit Width fills the preview width; Fit Text Width fits the text column; Fit Height fills the preview height; Manual starts at 100%."
 msgstr "Modalità di zoom predefinita per l'anteprima PDF. 'Adatta alla larghezza' riempie la larghezza dell'anteprima; 'Adatta alla larghezza del testo' adatta alla colonna di testo; 'Adatta all'altezza' riempie l'altezza dell'anteprima; 'Manuale' parte al 100%."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:712
+#: setzer/dialogs/preferences/pages/page_appearance.py:714
 msgid "Fit Width"
 msgstr "Adatta alla larghezza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:713
+#: setzer/dialogs/preferences/pages/page_appearance.py:715
 msgid "Fit Text Width"
 msgstr "Adatta alla larghezza del testo"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:714
+#: setzer/dialogs/preferences/pages/page_appearance.py:716
 msgid "Fit Height"
 msgstr "Adatta all'altezza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:715
+#: setzer/dialogs/preferences/pages/page_appearance.py:717
 msgid "Manual (100%)"
 msgstr "Manuale (100%)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:724
 msgid "Sidebar"
 msgstr "Barra laterale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:733
+#: setzer/dialogs/preferences/pages/page_appearance.py:735
 msgid "Sidebar Width"
 msgstr "Larghezza della barra laterale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:734
+#: setzer/dialogs/preferences/pages/page_appearance.py:736
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "Percentuale della larghezza della finestra allocata alla barra laterale."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:742
+#: setzer/dialogs/preferences/pages/page_appearance.py:744
 msgid "AI Settings"
 msgstr "Impostazioni IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:746
+#: setzer/dialogs/preferences/pages/page_appearance.py:748
 msgid "Enable AI agent"
 msgstr "Attiva agente IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:747
+#: setzer/dialogs/preferences/pages/page_appearance.py:749
 msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
 msgstr "Abilita la correzione IA nella finestra di dialogo del registro di compilazione e il pulsante del terminale dell’agente nella barra superiore"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:751
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
 msgid "Embed agent terminal in the sidebar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:755
+#: setzer/dialogs/preferences/pages/page_appearance.py:757
 msgid "Run the agent in the AI Agent sidebar page and keep one session across sends"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:758
+#: setzer/dialogs/preferences/pages/page_appearance.py:760
 msgid "Embedded terminal (VTE) is not available on this system; an external terminal is used instead"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:762
+#: setzer/dialogs/preferences/pages/page_appearance.py:764
 msgid "Active agent tool"
 msgstr "Strumento agente attivo"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:763
+#: setzer/dialogs/preferences/pages/page_appearance.py:765
 msgid "Which CLI to invoke for AI features"
 msgstr "CLI da richiamare per le funzionalità IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:767
+#: setzer/dialogs/preferences/pages/page_appearance.py:769
 msgid "Terminal command (optional)"
 msgstr "Comando terminale (opzionale)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:769
+#: setzer/dialogs/preferences/pages/page_appearance.py:771
 msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "Lasciare vuoto per rilevamento automatico (gnome-terminal / xterm / konsole / ...). Sotto Flatpak, flatpak-spawn --host viene aggiunto automaticamente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:774
+#: setzer/dialogs/preferences/pages/page_appearance.py:776
 msgid "Agent tools"
 msgstr "Strumenti agente"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:775
+#: setzer/dialogs/preferences/pages/page_appearance.py:777
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "Le preimpostazioni integrate non possono essere rimosse. Aggiungere uno strumento personalizzato per integrare altre CLI agente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:781
+#: setzer/dialogs/preferences/pages/page_appearance.py:783
 msgid "+ Add custom tool"
 msgstr "+ Aggiungi strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:786
+#: setzer/dialogs/preferences/pages/page_appearance.py:788
 msgid "Trusted directories"
 msgstr "Directory attendibili"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:787
+#: setzer/dialogs/preferences/pages/page_appearance.py:789
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "Directory in cui la finestra di anteprima viene saltata. Fare clic su elimina per revocare la fiducia per un progetto."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:795
-#: setzer/dialogs/preferences/pages/page_appearance.py:853
+#: setzer/dialogs/preferences/pages/page_appearance.py:797
+#: setzer/dialogs/preferences/pages/page_appearance.py:855
 #: setzer/dialogs/preferences/pages/page_build_system.py:741
 #: setzer/dialogs/preferences/pages/page_editor.py:1340
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:672
 msgid "Reset to Defaults"
 msgstr "Ripristina i valori predefiniti"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:802
+#: setzer/dialogs/preferences/pages/page_appearance.py:804
 msgid "First-Run Tutorial"
 msgstr "Tutorial iniziale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:806
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Show the tutorial again"
 msgstr "Mostra di nuovo il tutorial"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:807
+#: setzer/dialogs/preferences/pages/page_appearance.py:809
 msgid "Open the welcome tips dialog."
 msgstr "Apri la finestra dei suggerimenti di benvenuto."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:808
+#: setzer/dialogs/preferences/pages/page_appearance.py:810
 msgid "Show"
 msgstr "Mostra"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:816
+#: setzer/dialogs/preferences/pages/page_appearance.py:818
 msgid "Backup and Restore"
 msgstr "Backup e ripristino"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:817
+#: setzer/dialogs/preferences/pages/page_appearance.py:819
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "Esporta le tue preferenze e le scorciatoie da tastiera in un file, o importale su un altro computer."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:823
+#: setzer/dialogs/preferences/pages/page_appearance.py:825
 msgid "Save your preferences and keyboard shortcuts to a file."
 msgstr "Salva le tue preferenze e le scorciatoie da tastiera in un file."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:824
+#: setzer/dialogs/preferences/pages/page_appearance.py:826
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:656
 msgid "Export"
 msgstr "Esporta"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:832
+#: setzer/dialogs/preferences/pages/page_appearance.py:834
 msgid "Load preferences and keyboard shortcuts from a file."
 msgstr "Carica le preferenze e le scorciatoie da tastiera da un file."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:833
+#: setzer/dialogs/preferences/pages/page_appearance.py:835
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:664
 msgid "Import"
 msgstr "Importa"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:840
+#: setzer/dialogs/preferences/pages/page_appearance.py:842
 msgid "Reset all preferences"
 msgstr "Ripristina tutte le preferenze"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:841
+#: setzer/dialogs/preferences/pages/page_appearance.py:843
 msgid "Restore all preference values to their defaults."
 msgstr "Ripristina tutte le preferenze ai valori predefiniti."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:869
+#: setzer/dialogs/preferences/pages/page_appearance.py:871
 msgid "Add custom tool"
 msgstr "Aggiungi strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:899
+#: setzer/dialogs/preferences/pages/page_appearance.py:901
 msgid "Tool name (unique)"
 msgstr "Nome strumento (unico)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:903
+#: setzer/dialogs/preferences/pages/page_appearance.py:905
 msgid "Executable (e.g. aider)"
 msgstr "Eseguibile (es. aider)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:907
+#: setzer/dialogs/preferences/pages/page_appearance.py:909
 msgid "Headed command template"
 msgstr "Template comando con intestazione"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:909
+#: setzer/dialogs/preferences/pages/page_appearance.py:911
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "Argomenti separati da spazi. Usare {prompt} / {file} / {cwd} come segnaposto. Esempio: aider --message {prompt} --no-auto-commits. Se lasciato vuoto o senza {prompt}, il prompt viene copiato negli appunti."
@@ -5902,7 +5909,7 @@ msgstr "Cancella multicursore"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:180
 msgid "Add AI Annotation"
-msgstr ""
+msgstr "Aggiungi annotazione IA"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:238
@@ -6577,20 +6584,20 @@ msgstr "Cancella tutto"
 
 #: setzer/document/ai_annotations/annotation_popover.py:45
 msgid "AI Annotation"
-msgstr ""
+msgstr "Annotazione IA"
 
 #: setzer/document/ai_annotations/annotation_popover.py:63
 msgid "Preset instruction"
-msgstr ""
+msgstr "Istruzione predefinita"
 
 #: setzer/document/ai_annotations/annotation_popover.py:66
 msgid "Save Annotation"
-msgstr ""
+msgstr "Salva annotazione"
 
 #: setzer/document/ai_annotations/annotation_popover.py:77
-#: setzer/workspace/sidebar/ai_page/ai_page.py:266
+#: setzer/workspace/sidebar/ai_page/ai_page.py:274
 msgid "Custom (no preset)"
-msgstr ""
+msgstr "Personalizzato (nessun predefinito)"
 
 #: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:347
 msgid "Label database unavailable (parse error)"
@@ -7222,7 +7229,7 @@ msgstr "Aggiungi «{word}» al dizionario"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:236
 msgid "Add AI Annotation…"
-msgstr ""
+msgstr "Aggiungi annotazione IA…"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:266
 msgid "Jump to Definition"
@@ -7952,9 +7959,9 @@ msgstr "Scegli posizione"
 msgid "The selected destination is not a local file."
 msgstr "La destinazione selezionata non è un file locale."
 
-#: setzer/workspace/actions/actions.py:1300
+#: setzer/workspace/actions/actions.py:1306
 msgid "Annotation added"
-msgstr ""
+msgstr "Annotazione aggiunta"
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
@@ -8134,56 +8141,60 @@ msgstr "Oggetti"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:48
 msgid "AI Agent"
-msgstr ""
+msgstr "Agente IA"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:160
+#: setzer/workspace/sidebar/ai_page/ai_page.py:161
 #, python-brace-format
 msgid "lines {range}"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page.py:168
-msgid "Jump to source"
-msgstr ""
+msgstr "righe {range}"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:169
-msgid "Edit annotation"
-msgstr ""
+msgid "Jump to source"
+msgstr "Vai al codice sorgente"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:170
-msgid "Send this annotation"
-msgstr ""
+msgid "Edit annotation"
+msgstr "Modifica annotazione"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:171
+msgid "Send this annotation"
+msgstr "Invia questa annotazione"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+msgid "Copy prompt for this annotation"
+msgstr "Copia il prompt di questa annotazione"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:173
 msgid "Delete annotation"
-msgstr ""
+msgstr "Elimina annotazione"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:286
-msgid "Nothing sent yet"
-msgstr ""
+#: setzer/workspace/sidebar/ai_page/ai_page.py:293
+msgid "Session ended"
+msgstr "Sessione terminata"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:295
+#: setzer/workspace/sidebar/ai_page/ai_page.py:302
 msgid "Started a new agent session"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:47
-msgid "Preset used when sending a selection directly"
-msgstr ""
+msgstr "Nuova sessione dell'agente avviata"
 
 #: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:50
+msgid "Preset used when sending a selection directly"
+msgstr "Predefinito usato nell'invio diretto di una selezione"
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:53
 msgid "Send All"
-msgstr ""
+msgstr "Invia tutto"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:52
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:55
 msgid "Send all annotations to the agent"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:85
-msgid "No Annotations"
-msgstr ""
+msgstr "Invia tutte le annotazioni all'agente"
 
 #: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+msgid "No Annotations"
+msgstr "Nessuna annotazione"
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
-msgstr ""
+msgstr "Seleziona del testo nell'editor e usa il menu contestuale o una scorciatoia per aggiungere un'annotazione IA."
 
 #: setzer/workspace/sidebar/document_stats/document_stats.py:469
 msgid "Characters"

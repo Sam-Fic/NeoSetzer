@@ -56,10 +56,10 @@ class AgentTerminalView(Gtk.Box):
         self.status_label.set_ellipsize(Pango.EllipsizeMode.END)
         self.toolbar.append(self.status_label)
 
-        self.copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
-        self.copy_button.add_css_class('flat')
-        self.copy_button.set_tooltip_text(_('Copy last prompt'))
-        self.toolbar.append(self.copy_button)
+        self.close_session_button = Gtk.Button(icon_name='process-stop-symbolic')
+        self.close_session_button.add_css_class('flat')
+        self.close_session_button.set_tooltip_text(_('End session and stop the agent'))
+        self.toolbar.append(self.close_session_button)
 
         self.new_session_button = Gtk.Button(icon_name='view-refresh-symbolic')
         self.new_session_button.add_css_class('flat')
@@ -73,28 +73,59 @@ class AgentTerminalView(Gtk.Box):
 
         self.append(self.toolbar)
 
-        # ---- 圆角卡片（仅 VTE / 回退说明）----
+        # ---- 圆角卡片（VTE / 无会话 status page / 回退说明）----
         self.card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.card.add_css_class('agent-terminal-card')
         self.card.set_overflow(Gtk.Overflow.HIDDEN)
         self.card.set_vexpand(True)
         self.append(self.card)
 
+        # 卡片内用 Stack 切换：idle 时黑屏 VTE 无信息量，改显 status page
+        # （与 document structure 空状态同款外观）；starting/running/exited
+        # 显终端（exited 保留滚回供读最后输出）。
+        self.card_stack = Gtk.Stack()
+        self.card_stack.set_vexpand(True)
+        self.card.append(self.card_stack)
+
+        self.idle_status = None
         if VTE_AVAILABLE and session.terminal is not None:
             session.terminal.set_vexpand(True)
-            self.card.append(session.terminal)
+            self.card_stack.add_named(session.terminal, 'terminal')
+            self.idle_status = self._make_status_page(
+                'utilities-terminal-symbolic', _('No active session'),
+                _('Send an annotation or a selection to start the agent in this terminal.'))
+            self.idle_status.set_vexpand(True)
+            self.card_stack.add_named(self.idle_status, 'idle')
         else:
-            status = Adw.StatusPage()
-            status.set_icon_name('utilities-terminal-symbolic')
-            status.set_title(_('Embedded terminal unavailable'))
-            status.set_description(_(
-                'VTE is not available on this system. Sending will open the agent '
-                'in an external terminal instead; the prompt is also copied to '
-                'the clipboard.'))
-            self.card.append(status)
+            status = self._make_status_page(
+                'utilities-terminal-symbolic', _('Embedded terminal unavailable'),
+                _('VTE is not available on this system. Sending will open the agent '
+                  'in an external terminal instead; the prompt is also copied to '
+                  'the clipboard.'))
+            status.set_vexpand(True)
+            self.card_stack.add_named(status, 'unavailable')
 
         session.connect('state_changed', self.on_session_state_changed)
         self.update_labels()
+
+    @staticmethod
+    def _make_status_page(icon_name, title, description):
+        '''与 document structure 空状态同款：.compact + .sidebar-empty-state
+        （48px 图标 / 0.95em 标题 / 0.85em 描述），内部 ScrolledWindow
+        propagate-natural-height 避免小高度时自滚动。'''
+        status = Adw.StatusPage()
+        status.set_icon_name(icon_name)
+        status.set_title(title)
+        status.set_description(description)
+        status.add_css_class('compact')
+        status.add_css_class('sidebar-empty-state')
+        child = status.get_first_child()
+        while child is not None:
+            if isinstance(child, Gtk.ScrolledWindow):
+                child.set_propagate_natural_height(True)
+                break
+            child = child.get_next_sibling()
+        return status
 
     def on_session_state_changed(self, session, state):
         self.update_labels()
@@ -113,6 +144,15 @@ class AgentTerminalView(Gtk.Box):
         else:
             text = _('No active session')
         self.status_label.set_text(text)
+        # 关闭会话仅在非 idle 时有意义（idle 已是未打开状态）。
+        self.close_session_button.set_sensitive(state != 'idle')
+        # 卡片内容随状态切换：无会话（idle）显 status page，其余显终端。
+        if self.idle_status is None:
+            self.card_stack.set_visible_child_name('unavailable')
+        elif state in ('starting', 'running', 'exited'):
+            self.card_stack.set_visible_child_name('terminal')
+        else:
+            self.card_stack.set_visible_child_name('idle')
 
     def set_popped_out(self, popped_out):
         '''弹出/收回时切换按钮图标与提示（收回不杀会话）。'''

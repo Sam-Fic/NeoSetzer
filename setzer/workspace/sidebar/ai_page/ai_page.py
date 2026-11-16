@@ -59,7 +59,7 @@ class AiPage(object):
 
         self.view.send_all_button.connect('clicked', self.on_send_all_clicked)
         self.view.preset_dropdown.connect('notify::selected', self.on_preset_selected)
-        self.terminal_view.copy_button.connect('clicked', self.on_copy_clicked)
+        self.terminal_view.close_session_button.connect('clicked', self.on_close_session_clicked)
         self.terminal_view.new_session_button.connect('clicked', self.on_new_session_clicked)
         self.terminal_view.pop_button.connect('clicked', self.on_pop_clicked)
 
@@ -169,6 +169,7 @@ class AiPage(object):
                 ('go-jump-symbolic', _('Jump to source'), self.on_jump_clicked),
                 ('document-edit-symbolic', _('Edit annotation'), self.on_edit_clicked),
                 ('mail-send-symbolic', _('Send this annotation'), self.on_send_one_clicked),
+                ('edit-copy-symbolic', _('Copy prompt for this annotation'), self.on_copy_row_clicked),
                 ('user-trash-symbolic', _('Delete annotation'), self.on_delete_clicked)):
             button = Gtk.Button(icon_name=icon)
             button.add_css_class('flat')
@@ -251,6 +252,12 @@ class AiPage(object):
             return
         self.sender.send_annotations([entry])
 
+    def on_copy_row_clicked(self, button, row):
+        entry = self._row_entry(row)
+        if entry is None:
+            return
+        self.sender.copy_prompt([entry])
+
     def on_delete_clicked(self, button, row):
         entry = self._row_entry(row)
         if entry is None:
@@ -280,11 +287,10 @@ class AiPage(object):
     def on_send_all_clicked(self, button):
         self.sender.send_annotations(self._all_entries())
 
-    def on_copy_clicked(self, button):
-        if self.session.copy_last_prompt():
-            self._toast(_('Copied to clipboard'))
-        else:
-            self._toast(_('Nothing sent yet'))
+    def on_close_session_clicked(self, button):
+        '''关闭会话：杀子进程 + 清屏，恢复未打开状态（节省资源）。'''
+        self.session.end_session()
+        self._toast(_('Session ended'))
 
     def on_new_session_clicked(self, button):
         document = self.workspace.get_active_document()

@@ -72,6 +72,7 @@ class FakeModel:
 class FakeDocument:
     def __init__(self, model):
         self.ai_annotations = model
+        self.saved = 0
 
     def get_filename(self):
         return '/tmp/doc.tex'
@@ -80,6 +81,7 @@ class FakeDocument:
         return '/tmp'
 
     def save_to_disk(self):
+        self.saved += 1
         return True
 
 
@@ -156,6 +158,35 @@ class ExecuteRemovalTest(unittest.TestCase):
                 mock.patch.object(sender_module.agent_runner, 'run_headed',
                                   return_value=(False, 'fail')):
             sender._execute('prompt', '/tmp', document, [(document, {'id': 'a'})])
+        self.assertEqual(model.removed, [])
+
+
+class CopyPromptTest(unittest.TestCase):
+
+    def test_copy_prompt_copies_without_sending_or_removing(self):
+        '''复制 prompt：上剪贴板，但不发送、不保存文档、不移除批注。'''
+        model = FakeModel([{'id': 'a', 'comment': '', 'preset': None}])
+        document = FakeDocument(model)
+        sender, session = make_sender()
+        clipboard = mock.Mock()
+        display = mock.Mock()
+        display.get_clipboard.return_value = clipboard
+        with mock.patch.object(sender_module, 'Gdk') as gdk, \
+                mock.patch.object(sender_module, 'resolve_interpreter', return_value='pdflatex'):
+            gdk.Display.get_default.return_value = display
+            sender.copy_prompt([(document, {'id': 'a', 'comment': '', 'preset': None})])
+        clipboard.set.assert_called_once()
+        prompt = clipboard.set.call_args[0][0]
+        self.assertIn('snippet', prompt)
+        self.assertEqual(model.removed, [])
+        self.assertEqual(document.saved, 0)
+        session.send.assert_not_called()
+
+    def test_copy_prompt_invalid_mark_noop(self):
+        model = FakeModel([{'id': 'dead'}], invalid_ids=('dead',))
+        document = FakeDocument(model)
+        sender, _session = make_sender()
+        sender.copy_prompt([(document, {'id': 'dead'})])
         self.assertEqual(model.removed, [])
 
 

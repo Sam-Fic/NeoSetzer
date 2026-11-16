@@ -88,6 +88,16 @@ class AiPageView(Gtk.Box):
         self.empty_status.set_description(_(
             'Select text in the editor and use the right-click menu or shortcut '
             'to add an AI annotation.'))
+        # 与 document structure 空状态同款外观（48px 图标 / 紧凑字号）。
+        self.empty_status.add_css_class('compact')
+        self.empty_status.add_css_class('sidebar-empty-state')
+        self.empty_status.set_vexpand(True)
+        child = self.empty_status.get_first_child()
+        while child is not None:
+            if isinstance(child, Gtk.ScrolledWindow):
+                child.set_propagate_natural_height(True)
+                break
+            child = child.get_next_sibling()
         self.list_stack.add_named(self.empty_status, 'empty')
         self.list_stack.set_visible_child_name('empty')
 

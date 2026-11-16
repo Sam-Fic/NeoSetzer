@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 01:48+0800\n"
+"POT-Creation-Date: 2026-11-17 02:55+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Traditional)\n"
@@ -472,131 +472,145 @@ msgstr "使用 \\\\url{..} 指令輸入網址，無需轉義。"
 msgid "enables colored text."
 msgstr "啟用彩色文字。"
 
-#: setzer/ai_fix/agent_runner.py:317
+#: setzer/ai_fix/agent_runner.py:319
 msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
 msgstr "找不到可用的終端機模擬器。請安裝 gnome-terminal / xterm，或在偏好設定中設定自訂終端機。"
 
-#: setzer/ai_fix/agent_runner.py:371
+#: setzer/ai_fix/agent_runner.py:373
 msgid "Terminal executable not found: {}"
 msgstr "找不到終端機執行檔：{}"
 
-#: setzer/ai_fix/agent_runner.py:373
+#: setzer/ai_fix/agent_runner.py:375
 msgid "Failed to launch terminal: {}"
 msgstr "啟動終端機失敗：{}"
 
-#: setzer/ai_fix/agent_runner.py:416
+#: setzer/ai_fix/agent_runner.py:418
 msgid "Launched {} in terminal. Prompt copied to clipboard — paste it there."
 msgstr "已在終端機啟動 {}。提示已複製到剪貼簿 — 請於該處貼上。"
 
-#: setzer/ai_fix/agent_runner.py:417 setzer/ai_fix/agent_runner.py:449
+#: setzer/ai_fix/agent_runner.py:419 setzer/ai_fix/agent_runner.py:451
 msgid "Launched {} in terminal."
 msgstr "已在終端機啟動 {}。"
 
-#: setzer/ai_fix/agent_runner.py:439
+#: setzer/ai_fix/agent_runner.py:441
 #, python-brace-format
 msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
 msgstr "{tool} 尚未設定可執行檔。請在偏好設定 → 一般 → AI 設定中設定。"
 
-#: setzer/ai_fix/agent_runner.py:442 setzer/ai_fix/agent_session.py:127
+#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:133
 #, python-brace-format
 msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
 msgstr "{tool} 在此系統上不可用。請在偏好設定 → 一般 → AI 設定中檢查可執行檔名稱。"
 
-#: setzer/ai_fix/agent_session.py:121 setzer/ai_fix/agent_session.py:264
+#: setzer/ai_fix/agent_session.py:126 setzer/ai_fix/agent_session.py:274
 msgid "Embedded terminal is not available on this system."
-msgstr ""
+msgstr "此系統不支援內嵌終端。"
 
-#: setzer/ai_fix/agent_session.py:124 setzer/ai_fix/annotation_sender.py:183
+#: setzer/ai_fix/agent_session.py:129 setzer/ai_fix/annotation_sender.py:220
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:441
 #: setzer/workspace/headerbar/headerbar.py:378
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "未設定 Agent 工具。請在偏好設定 → 一般 → AI 設定中新增。"
 
-#: setzer/ai_fix/agent_session.py:131 setzer/ai_fix/annotation_sender.py:130
-#: setzer/ai_fix/annotation_sender.py:137
+#: setzer/ai_fix/agent_session.py:137 setzer/ai_fix/annotation_sender.py:125
+#: setzer/ai_fix/annotation_sender.py:165
+#: setzer/ai_fix/annotation_sender.py:174
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
 #: setzer/workspace/headerbar/headerbar.py:365
-#: setzer/workspace/sidebar/ai_page/ai_page.py:292
+#: setzer/workspace/sidebar/ai_page/ai_page.py:299
 msgid "Please save the document first"
 msgstr "請先儲存檔案"
 
-#: setzer/ai_fix/agent_session.py:157
+#: setzer/ai_fix/agent_session.py:165
 msgid "Failed to launch agent: {}"
-msgstr ""
+msgstr "啟動 Agent 失敗：{}"
 
-#: setzer/ai_fix/agent_session.py:259
+#: setzer/ai_fix/agent_session.py:270
 msgid "Nothing to send"
-msgstr ""
+msgstr "沒有可傳送的內容"
 
-#: setzer/ai_fix/agent_session.py:277
+#: setzer/ai_fix/agent_session.py:287
 #, python-brace-format
 msgid "Sent to {tool} (copied to clipboard as fallback)."
-msgstr ""
+msgstr "已傳送到 {tool}（同時複製到剪貼簿備援）。"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:61
-msgid "Copy last prompt"
-msgstr ""
+msgid "End session and stop the agent"
+msgstr "結束工作階段並停止 Agent"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:66
 msgid "New session (in the active document’s directory)"
-msgstr ""
+msgstr "新工作階段（在目前文件目錄中）"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:71
-#: setzer/ai_fix/agent_terminal_viewgtk.py:125
+#: setzer/ai_fix/agent_terminal_viewgtk.py:165
 msgid "Open in a separate window"
-msgstr ""
+msgstr "在獨立視窗中開啟"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:89
-msgid "Embedded terminal unavailable"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:91
-msgid "VTE is not available on this system. Sending will open the agent in an external terminal instead; the prompt is also copied to the clipboard."
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:108
-msgid "Session active"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:110
-msgid "Starting…"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:112
-msgid "Session ended — next send starts a new one"
-msgstr ""
-
-#: setzer/ai_fix/agent_terminal_viewgtk.py:114
+#: setzer/ai_fix/agent_terminal_viewgtk.py:95
+#: setzer/ai_fix/agent_terminal_viewgtk.py:145
 msgid "No active session"
-msgstr ""
+msgstr "無活躍工作階段"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:122
+#: setzer/ai_fix/agent_terminal_viewgtk.py:96
+msgid "Send an annotation or a selection to start the agent in this terminal."
+msgstr "傳送批註或選取範圍，即可在此終端啟動 Agent。"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:101
+msgid "Embedded terminal unavailable"
+msgstr "內嵌終端不可用"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:102
+msgid "VTE is not available on this system. Sending will open the agent in an external terminal instead; the prompt is also copied to the clipboard."
+msgstr "此系統沒有 VTE。傳送時將改為在外部終端開啟 Agent；prompt 同時複製到剪貼簿。"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:139
+msgid "Session active"
+msgstr "工作階段活躍"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:141
+msgid "Starting…"
+msgstr "正在啟動…"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:143
+msgid "Session ended — next send starts a new one"
+msgstr "工作階段已結束——下次傳送將開啟新工作階段"
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:162
 msgid "Dock back into the sidebar"
-msgstr ""
+msgstr "收回側邊欄"
 
-#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:86
+#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78
+#: setzer/ai_fix/annotation_sender.py:120
 msgid "No annotations to send"
-msgstr ""
+msgstr "沒有可傳送的批註"
 
-#: setzer/ai_fix/annotation_sender.py:93
+#: setzer/ai_fix/annotation_sender.py:85
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:425
 #: setzer/workspace/headerbar/headerbar.py:361
 msgid "No active document"
 msgstr "沒有作用中的檔案"
 
-#: setzer/ai_fix/annotation_sender.py:99
+#: setzer/ai_fix/annotation_sender.py:91
 #: setzer/workspace/actions/actions.py:1272
 msgid "Select some text first"
-msgstr ""
+msgstr "請先選取文字"
 
-#: setzer/ai_fix/annotation_sender.py:124
+#: setzer/ai_fix/annotation_sender.py:136
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:164
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
+msgid "Copied to clipboard"
+msgstr "已複製到剪貼簿"
+
+#: setzer/ai_fix/annotation_sender.py:159
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:419
 #: setzer/workspace/headerbar/headerbar.py:355
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "AI 代理已停用。請在偏好設定 → 一般 → AI 設定中啟用。"
 
-#: setzer/ai_fix/annotation_sender.py:172
+#: setzer/ai_fix/annotation_sender.py:209
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:490
 msgid "Added to trusted directories"
 msgstr "已加入信任目錄"
@@ -634,8 +648,8 @@ msgstr "傳送至 AI 代理"
 #: setzer/dialogs/preferences/pages/page_appearance.py:192
 #: setzer/dialogs/preferences/pages/page_appearance.py:330
 #: setzer/dialogs/preferences/pages/page_appearance.py:356
-#: setzer/dialogs/preferences/pages/page_appearance.py:588
-#: setzer/dialogs/preferences/pages/page_appearance.py:887
+#: setzer/dialogs/preferences/pages/page_appearance.py:590
+#: setzer/dialogs/preferences/pages/page_appearance.py:889
 #: setzer/dialogs/preferences/pages/page_build_system.py:176
 #: setzer/dialogs/preferences/pages/page_build_system.py:445
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:330
@@ -715,7 +729,7 @@ msgstr "開啟文件"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:393
-#: setzer/dialogs/preferences/pages/page_appearance.py:890
+#: setzer/dialogs/preferences/pages/page_appearance.py:892
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:112
 #: setzer/dialogs/preferences/pages/page_snippets.py:233
 #: setzer/dialogs/project_build_configuration_viewgtk.py:161
@@ -1042,7 +1056,7 @@ msgstr "重設縮放"
 #: setzer/command_palette/catalog.py:134
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:473
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:333
-#: setzer/dialogs/preferences/pages/page_appearance.py:678
+#: setzer/dialogs/preferences/pages/page_appearance.py:680
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:135
 msgid "Preview"
 msgstr "預覽"
@@ -1747,13 +1761,6 @@ msgstr "無法開啟檔案"
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:160
 msgid "The log is empty, nothing to copy"
 msgstr "記錄為空，無內容可複製"
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:164
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
-#: setzer/workspace/sidebar/ai_page/ai_page.py:284
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
-msgid "Copied to clipboard"
-msgstr "已複製到剪貼簿"
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:169
 msgid "The log is empty, nothing to save"
@@ -2723,7 +2730,7 @@ msgstr "文件的日期，用於 \\date{} 指令。使用 \\\\today 表示目前
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:220
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
-#: setzer/dialogs/preferences/pages/page_appearance.py:650
+#: setzer/dialogs/preferences/pages/page_appearance.py:652
 #: setzer/dialogs/preferences/pages/page_editor.py:1054
 msgid "Language"
 msgstr "語言"
@@ -4386,7 +4393,7 @@ msgid "Fraction"
 msgstr "分數"
 
 #: setzer/dialogs/open_document/open_document.py:39
-#: setzer/dialogs/preferences/pages/page_appearance.py:668
+#: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
 #: setzer/document/preview/preview_controller.py:658
 msgid "Open"
@@ -4466,7 +4473,7 @@ msgid "Restart"
 msgstr "重新啟動"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:252
-#: setzer/dialogs/preferences/pages/page_appearance.py:822
+#: setzer/dialogs/preferences/pages/page_appearance.py:824
 msgid "Export Settings"
 msgstr "匯出設定"
 
@@ -4479,7 +4486,7 @@ msgid "Settings exported."
 msgstr "設定已匯出。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:284
-#: setzer/dialogs/preferences/pages/page_appearance.py:831
+#: setzer/dialogs/preferences/pages/page_appearance.py:833
 msgid "Import Settings"
 msgstr "匯入設定"
 
@@ -4505,8 +4512,8 @@ msgstr "這會將所有偏好設定還原為預設值，但會保留鍵盤快捷
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:331
 #: setzer/dialogs/preferences/pages/page_appearance.py:357
-#: setzer/dialogs/preferences/pages/page_appearance.py:589
-#: setzer/dialogs/preferences/pages/page_appearance.py:842
+#: setzer/dialogs/preferences/pages/page_appearance.py:591
+#: setzer/dialogs/preferences/pages/page_appearance.py:844
 #: setzer/dialogs/preferences/pages/page_build_system.py:177
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:436
 msgid "Reset"
@@ -4517,7 +4524,7 @@ msgid "Preferences reset. Reopen Preferences to see all changes."
 msgstr "偏好設定已重設。請重新開啟偏好設定以查看所有變更。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:354
-#: setzer/dialogs/preferences/pages/page_appearance.py:585
+#: setzer/dialogs/preferences/pages/page_appearance.py:587
 #: setzer/dialogs/preferences/pages/page_build_system.py:174
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:433
 msgid "Reset to Defaults?"
@@ -4527,277 +4534,277 @@ msgstr "重設為預設值？"
 msgid "All appearance settings will be restored to their default values."
 msgstr "所有外觀設定都將恢復為預設值。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:463
+#: setzer/dialogs/preferences/pages/page_appearance.py:465
 msgid "(active)"
 msgstr "（目前）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:467
+#: setzer/dialogs/preferences/pages/page_appearance.py:469
 msgid "built-in"
 msgstr "內建"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:471
 msgid "custom"
 msgstr "自訂"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:472
+#: setzer/dialogs/preferences/pages/page_appearance.py:474
 msgid "installed"
 msgstr "已安裝"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:474
+#: setzer/dialogs/preferences/pages/page_appearance.py:476
 msgid "not installed"
 msgstr "未安裝"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:483
+#: setzer/dialogs/preferences/pages/page_appearance.py:485
 msgid "Remove this custom tool"
 msgstr "移除此自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:501
+#: setzer/dialogs/preferences/pages/page_appearance.py:503
 msgid "No trusted directories yet"
 msgstr "尚無受信任目錄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:502
+#: setzer/dialogs/preferences/pages/page_appearance.py:504
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "在預覽對話方塊中勾選「不再詢問」以加入。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:515
+#: setzer/dialogs/preferences/pages/page_appearance.py:517
 msgid "Remove from trusted list"
 msgstr "從信任清單中移除"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:586
+#: setzer/dialogs/preferences/pages/page_appearance.py:588
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "所有 AI 代理設定都將恢復為預設值。自訂工具與受信任目錄將被移除。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:619
+#: setzer/dialogs/preferences/pages/page_appearance.py:621
 msgid "General"
 msgstr "一般"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:625
+#: setzer/dialogs/preferences/pages/page_appearance.py:627
 msgid "Theme"
 msgstr "主題"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:629
+#: setzer/dialogs/preferences/pages/page_appearance.py:631
 msgid "Color Scheme"
 msgstr "配色方案"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:638
+#: setzer/dialogs/preferences/pages/page_appearance.py:640
 msgid "Animations"
 msgstr "動畫"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:642
+#: setzer/dialogs/preferences/pages/page_appearance.py:644
 msgid "Reduce animations"
 msgstr "減弱動畫"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:644
+#: setzer/dialogs/preferences/pages/page_appearance.py:646
 msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
 msgstr "關閉側邊欄滑入滑出、各處淡入淡出與清單捲動動畫。視窗的開啟關閉動畫不受影響。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:654
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Interface Language"
 msgstr "介面語言"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:655
+#: setzer/dialogs/preferences/pages/page_appearance.py:657
 msgid "Changes take effect after the application is restarted."
 msgstr "變更將在應用程式重新啟動後生效。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:664
+#: setzer/dialogs/preferences/pages/page_appearance.py:666
 msgid "On Startup"
 msgstr "啟動時"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:669
+#: setzer/dialogs/preferences/pages/page_appearance.py:671
 msgid "Whether to restore the previous session or start with an empty workspace."
 msgstr "是否還原先前的作業階段，或以空白工作區啟動。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:689
+#: setzer/dialogs/preferences/pages/page_appearance.py:691
 msgid "Preview Sidebar Width"
 msgstr "預覽側邊欄寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:690
+#: setzer/dialogs/preferences/pages/page_appearance.py:692
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "分配給 PDF 預覽的視窗寬度百分比。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:698
+#: setzer/dialogs/preferences/pages/page_appearance.py:700
 msgid "Match PDF colors to theme"
 msgstr "讓 PDF 顏色符合主題"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:700
+#: setzer/dialogs/preferences/pages/page_appearance.py:702
 msgid "Recolor the PDF preview to match the light/dark theme."
 msgstr "重新為 PDF 預覽著色，以符合亮色/暗色主題。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:704
+#: setzer/dialogs/preferences/pages/page_appearance.py:706
 msgid "Default Zoom"
 msgstr "預設縮放"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:706
+#: setzer/dialogs/preferences/pages/page_appearance.py:708
 msgid "Initial zoom mode for the PDF preview."
 msgstr "PDF 預覽的初始縮放模式。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:708
+#: setzer/dialogs/preferences/pages/page_appearance.py:710
 msgid "Default zoom mode for the PDF preview. Fit Width fills the preview width; Fit Text Width fits the text column; Fit Height fills the preview height; Manual starts at 100%."
 msgstr "PDF 預覽的預設縮放模式。「符合寬度」會填滿預覽寬度；「符合文字寬度」會貼合文字欄寬；「符合高度」會填滿預覽高度；「手動」則以 100% 起始。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:712
+#: setzer/dialogs/preferences/pages/page_appearance.py:714
 msgid "Fit Width"
 msgstr "符合寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:713
+#: setzer/dialogs/preferences/pages/page_appearance.py:715
 msgid "Fit Text Width"
 msgstr "符合文字寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:714
+#: setzer/dialogs/preferences/pages/page_appearance.py:716
 msgid "Fit Height"
 msgstr "符合高度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:715
+#: setzer/dialogs/preferences/pages/page_appearance.py:717
 msgid "Manual (100%)"
 msgstr "手動（100%）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:724
 msgid "Sidebar"
 msgstr "側邊欄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:733
+#: setzer/dialogs/preferences/pages/page_appearance.py:735
 msgid "Sidebar Width"
 msgstr "側邊欄寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:734
+#: setzer/dialogs/preferences/pages/page_appearance.py:736
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "分配給側邊欄的視窗寬度百分比"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:742
+#: setzer/dialogs/preferences/pages/page_appearance.py:744
 msgid "AI Settings"
 msgstr "AI 設定"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:746
+#: setzer/dialogs/preferences/pages/page_appearance.py:748
 msgid "Enable AI agent"
 msgstr "啟用 AI 代理"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:747
+#: setzer/dialogs/preferences/pages/page_appearance.py:749
 msgid "Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar"
 msgstr "啟用建置日誌對話方塊中的 AI 修復按鈕和標題列中的 Agent 終端按鈕"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:751
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
 msgid "Embed agent terminal in the sidebar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:755
+#: setzer/dialogs/preferences/pages/page_appearance.py:757
 msgid "Run the agent in the AI Agent sidebar page and keep one session across sends"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:758
+#: setzer/dialogs/preferences/pages/page_appearance.py:760
 msgid "Embedded terminal (VTE) is not available on this system; an external terminal is used instead"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:762
+#: setzer/dialogs/preferences/pages/page_appearance.py:764
 msgid "Active agent tool"
 msgstr "目前 Agent 工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:763
+#: setzer/dialogs/preferences/pages/page_appearance.py:765
 msgid "Which CLI to invoke for AI features"
 msgstr "AI 功能呼叫的 CLI"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:767
+#: setzer/dialogs/preferences/pages/page_appearance.py:769
 msgid "Terminal command (optional)"
 msgstr "終端機指令（選用）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:769
+#: setzer/dialogs/preferences/pages/page_appearance.py:771
 msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "留空自動偵測（gnome-terminal / xterm / konsole / ...）。在 Flatpak 下，自動加入 flatpak-spawn --host。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:774
+#: setzer/dialogs/preferences/pages/page_appearance.py:776
 msgid "Agent tools"
 msgstr "Agent 工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:775
+#: setzer/dialogs/preferences/pages/page_appearance.py:777
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "內建預設無法刪除。加入自訂工具以整合其他 Agent CLI。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:781
+#: setzer/dialogs/preferences/pages/page_appearance.py:783
 msgid "+ Add custom tool"
 msgstr "+ 加入自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:786
+#: setzer/dialogs/preferences/pages/page_appearance.py:788
 msgid "Trusted directories"
 msgstr "受信任目錄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:787
+#: setzer/dialogs/preferences/pages/page_appearance.py:789
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的信任。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:795
-#: setzer/dialogs/preferences/pages/page_appearance.py:853
+#: setzer/dialogs/preferences/pages/page_appearance.py:797
+#: setzer/dialogs/preferences/pages/page_appearance.py:855
 #: setzer/dialogs/preferences/pages/page_build_system.py:741
 #: setzer/dialogs/preferences/pages/page_editor.py:1340
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:672
 msgid "Reset to Defaults"
 msgstr "重設為預設值"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:802
+#: setzer/dialogs/preferences/pages/page_appearance.py:804
 msgid "First-Run Tutorial"
 msgstr "首次執行教學"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:806
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Show the tutorial again"
 msgstr "再次顯示教學"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:807
+#: setzer/dialogs/preferences/pages/page_appearance.py:809
 msgid "Open the welcome tips dialog."
 msgstr "開啟歡迎提示對話框。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:808
+#: setzer/dialogs/preferences/pages/page_appearance.py:810
 msgid "Show"
 msgstr "顯示"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:816
+#: setzer/dialogs/preferences/pages/page_appearance.py:818
 msgid "Backup and Restore"
 msgstr "備份與還原"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:817
+#: setzer/dialogs/preferences/pages/page_appearance.py:819
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "將您的偏好設定與鍵盤快捷鍵匯出至檔案，或在其他電腦上匯入。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:823
+#: setzer/dialogs/preferences/pages/page_appearance.py:825
 msgid "Save your preferences and keyboard shortcuts to a file."
 msgstr "將您的偏好設定與鍵盤快捷鍵儲存至檔案。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:824
+#: setzer/dialogs/preferences/pages/page_appearance.py:826
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:656
 msgid "Export"
 msgstr "匯出"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:832
+#: setzer/dialogs/preferences/pages/page_appearance.py:834
 msgid "Load preferences and keyboard shortcuts from a file."
 msgstr "從檔案載入偏好設定與鍵盤快捷鍵。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:833
+#: setzer/dialogs/preferences/pages/page_appearance.py:835
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:664
 msgid "Import"
 msgstr "匯入"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:840
+#: setzer/dialogs/preferences/pages/page_appearance.py:842
 msgid "Reset all preferences"
 msgstr "重設所有偏好設定"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:841
+#: setzer/dialogs/preferences/pages/page_appearance.py:843
 msgid "Restore all preference values to their defaults."
 msgstr "將所有偏好設定值恢復為預設值。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:869
+#: setzer/dialogs/preferences/pages/page_appearance.py:871
 msgid "Add custom tool"
 msgstr "加入自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:899
+#: setzer/dialogs/preferences/pages/page_appearance.py:901
 msgid "Tool name (unique)"
 msgstr "工具名稱（唯一）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:903
+#: setzer/dialogs/preferences/pages/page_appearance.py:905
 msgid "Executable (e.g. aider)"
 msgstr "可執行檔（如 aider）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:907
+#: setzer/dialogs/preferences/pages/page_appearance.py:909
 msgid "Headed command template"
 msgstr "有頭指令範本"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:909
+#: setzer/dialogs/preferences/pages/page_appearance.py:911
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "以空格分隔的引數。使用 {prompt} / {file} / {cwd} 作為佔位符。例如：aider --message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示資訊將複製到剪貼簿。"
@@ -5904,7 +5911,7 @@ msgstr "按 Escape 清除多游標"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:180
 msgid "Add AI Annotation"
-msgstr ""
+msgstr "新增 AI 批註"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:238
@@ -6579,20 +6586,20 @@ msgstr "全部清除"
 
 #: setzer/document/ai_annotations/annotation_popover.py:45
 msgid "AI Annotation"
-msgstr ""
+msgstr "AI 批註"
 
 #: setzer/document/ai_annotations/annotation_popover.py:63
 msgid "Preset instruction"
-msgstr ""
+msgstr "預製指令"
 
 #: setzer/document/ai_annotations/annotation_popover.py:66
 msgid "Save Annotation"
-msgstr ""
+msgstr "儲存批註"
 
 #: setzer/document/ai_annotations/annotation_popover.py:77
-#: setzer/workspace/sidebar/ai_page/ai_page.py:266
+#: setzer/workspace/sidebar/ai_page/ai_page.py:274
 msgid "Custom (no preset)"
-msgstr ""
+msgstr "自訂（無預製）"
 
 #: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:347
 msgid "Label database unavailable (parse error)"
@@ -7224,7 +7231,7 @@ msgstr "將「{word}」加入詞典"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:236
 msgid "Add AI Annotation…"
-msgstr ""
+msgstr "新增 AI 批註…"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:266
 msgid "Jump to Definition"
@@ -7957,9 +7964,9 @@ msgstr "選擇位置"
 msgid "The selected destination is not a local file."
 msgstr "所選目標不是本機檔案。"
 
-#: setzer/workspace/actions/actions.py:1300
+#: setzer/workspace/actions/actions.py:1306
 msgid "Annotation added"
-msgstr ""
+msgstr "批註已新增"
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
@@ -8139,56 +8146,60 @@ msgstr "物件"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:48
 msgid "AI Agent"
-msgstr ""
+msgstr "AI Agent"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:160
+#: setzer/workspace/sidebar/ai_page/ai_page.py:161
 #, python-brace-format
 msgid "lines {range}"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page.py:168
-msgid "Jump to source"
-msgstr ""
+msgstr "第 {range} 行"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:169
-msgid "Edit annotation"
-msgstr ""
+msgid "Jump to source"
+msgstr "跳轉到原始碼"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:170
-msgid "Send this annotation"
-msgstr ""
+msgid "Edit annotation"
+msgstr "編輯批註"
 
 #: setzer/workspace/sidebar/ai_page/ai_page.py:171
+msgid "Send this annotation"
+msgstr "傳送此批註"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+msgid "Copy prompt for this annotation"
+msgstr "複製此批註的 prompt"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:173
 msgid "Delete annotation"
-msgstr ""
+msgstr "刪除批註"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:286
-msgid "Nothing sent yet"
-msgstr ""
+#: setzer/workspace/sidebar/ai_page/ai_page.py:293
+msgid "Session ended"
+msgstr "工作階段已結束"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:295
+#: setzer/workspace/sidebar/ai_page/ai_page.py:302
 msgid "Started a new agent session"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:47
-msgid "Preset used when sending a selection directly"
-msgstr ""
+msgstr "已開啟新的 Agent 工作階段"
 
 #: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:50
+msgid "Preset used when sending a selection directly"
+msgstr "直發選取範圍時使用的預製提示詞"
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:53
 msgid "Send All"
-msgstr ""
+msgstr "全部傳送"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:52
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:55
 msgid "Send all annotations to the agent"
-msgstr ""
-
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:85
-msgid "No Annotations"
-msgstr ""
+msgstr "將所有批註傳送到 Agent"
 
 #: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+msgid "No Annotations"
+msgstr "暫無批註"
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
-msgstr ""
+msgstr "在編輯器中選取文字，使用右鍵選單或快捷鍵新增 AI 批註。"
 
 #: setzer/workspace/sidebar/document_stats/document_stats.py:469
 msgid "Characters"

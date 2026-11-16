@@ -77,7 +77,6 @@ class AgentSession(Observable):
 
         self.state = 'idle'
         self.session_cwd = None
-        self.last_prompt = None
         self.last_error = None
         self._child_pid = None
         self._pending = []
@@ -190,10 +189,13 @@ class AgentSession(Observable):
         self._set_state('exited')
 
     def end_session(self):
-        '''主动结束会话（关闭独立窗口 / 新会话按钮）。下次发送开新会话。'''
+        '''主动结束会话（关闭按钮 / 新会话按钮 / 关闭独立窗口）。
+        杀子进程 + 清屏与滚回，恢复未打开状态；下次发送开新会话。'''
         self._kill_child()
         self._cancel_ready_timers()
         self._pending.clear()
+        if self.terminal is not None:
+            self.terminal.reset(True, True)
         self._set_state('idle')
 
     def restart(self, cwd):
@@ -266,7 +268,6 @@ class AgentSession(Observable):
         '''
         if not prompt:
             return (False, _('Nothing to send'))
-        self.last_prompt = prompt
         self._copy_to_clipboard(prompt)
 
         if not VTE_AVAILABLE or self.terminal is None:
@@ -308,13 +309,6 @@ class AgentSession(Observable):
                 display.get_clipboard().set(prompt)
         except Exception:
             pass  # 剪贴板失败不阻止发送
-
-    def copy_last_prompt(self):
-        '''工具栏「复制」：复制最近一次发送的 prompt。'''
-        if self.last_prompt:
-            self._copy_to_clipboard(self.last_prompt)
-            return True
-        return False
 
     def shutdown(self):
         self._kill_child()
