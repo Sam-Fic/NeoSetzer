@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 04:40+0800\n"
+"POT-Creation-Date: 2026-11-16 16:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -275,22 +275,22 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_appearance.py:349
 #: setzer/dialogs/preferences/pages/page_appearance.py:580
 #: setzer/dialogs/preferences/pages/page_appearance.py:863
-#: setzer/dialogs/preferences/pages/page_build_system.py:151
+#: setzer/dialogs/preferences/pages/page_build_system.py:159
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:326
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:431
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:575
 #: setzer/dialogs/preferences/pages/page_snippets.py:73
-#: setzer/dialogs/preferences/pages/page_snippets.py:228
+#: setzer/dialogs/preferences/pages/page_snippets.py:231
 #: setzer/dialogs/project_build_configuration_viewgtk.py:158
-#: setzer/dialogs/project_build_configuration_viewgtk.py:293
-#: setzer/dialogs/project_build_configuration_viewgtk.py:313
+#: setzer/dialogs/project_build_configuration_viewgtk.py:294
+#: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:646
+#: setzer/document/preview/preview_controller.py:654
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:88
-#: setzer/workspace/actions/actions.py:450
+#: setzer/workspace/actions/actions.py:454
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/commit_dialog.py:68
+#: setzer/workspace/sidebar/git/commit_dialog.py:70
 #: setzer/workspace/sidebar/git/git_section.py:181
 #: setzer/workspace/welcome_screen/welcome_screen.py:299
 msgid "Cancel"
@@ -359,7 +359,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/document_wizard.py:393
 #: setzer/dialogs/preferences/pages/page_appearance.py:866
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:112
-#: setzer/dialogs/preferences/pages/page_snippets.py:230
+#: setzer/dialogs/preferences/pages/page_snippets.py:233
 #: setzer/dialogs/project_build_configuration_viewgtk.py:161
 msgid "Save"
 msgstr ""
@@ -384,7 +384,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/document/preview/preview_presenter.py:570
+#: setzer/document/preview/preview_presenter.py:585
 msgid "Print"
 msgstr ""
 
@@ -408,7 +408,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:86
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:174
-#: setzer/workspace/tab_context_menu.py:95
+#: setzer/workspace/tab_context_menu.py:72
 msgid "Pin Tab"
 msgstr ""
 
@@ -443,7 +443,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:92
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:331
-#: setzer/dialogs/preferences/pages/page_editor.py:809
+#: setzer/dialogs/preferences/pages/page_editor.py:882
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:142
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:108
 msgid "Undo"
@@ -599,7 +599,7 @@ msgstr ""
 #: setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121
 #: setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123
 #: setzer/command_palette/catalog.py:124
-#: setzer/document/build_widget/build_widget.py:141
+#: setzer/document/build_widget/build_widget.py:144
 #: setzer/project/build_configuration.py:50
 msgid "LaTeX"
 msgstr ""
@@ -874,13 +874,13 @@ msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:54
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:202
-#: setzer/popovers/shortcutsbar/document_menu.py:55
+#: setzer/popovers/shortcutsbar/document_menu.py:56
 msgid "Author"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:55
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:199
-#: setzer/popovers/shortcutsbar/document_menu.py:56
+#: setzer/popovers/shortcutsbar/document_menu.py:57
 msgid "Title"
 msgstr ""
 
@@ -921,8 +921,8 @@ msgid "URL"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:65
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:130
-#: setzer/dialogs/preferences/pages/page_editor.py:712
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:140
+#: setzer/dialogs/preferences/pages/page_editor.py:785
 msgid "Editor"
 msgstr ""
 
@@ -1189,7 +1189,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:81
 #: setzer/dialogs/preferences/pages/page_snippets.py:74
 #: setzer/dialogs/project_build_configuration_viewgtk.py:184
-#: setzer/dialogs/project_build_configuration_viewgtk.py:314
+#: setzer/dialogs/project_build_configuration_viewgtk.py:315
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:116
 #: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete"
@@ -1310,7 +1310,7 @@ msgstr ""
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1454
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:240
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:288
-#: setzer/dialogs/preferences/pages/page_snippets.py:181
+#: setzer/dialogs/preferences/pages/page_snippets.py:184
 msgid "Name"
 msgstr ""
 
@@ -1378,7 +1378,7 @@ msgstr ""
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1650
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1658
 #: setzer/dialogs/document_wizard/document_wizard.py:439
-#: setzer/dialogs/project_build_configuration_viewgtk.py:330
+#: setzer/dialogs/project_build_configuration_viewgtk.py:331
 msgid "OK"
 msgstr ""
 
@@ -1763,23 +1763,31 @@ msgstr ""
 msgid "Keep Open"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties.py:40
-#: setzer/dialogs/document_properties/document_properties.py:49
-#: setzer/dialogs/document_properties/document_properties.py:55
+#: setzer/dialogs/document_properties/document_properties.py:41
+#: setzer/dialogs/document_properties/document_properties.py:51
+#: setzer/dialogs/document_properties/document_properties.py:57
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:32
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:41
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:47
 msgid "Follow global default"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties.py:50
+#: setzer/dialogs/document_properties/document_properties.py:52
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:42
 msgid "Spaces"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties.py:51
+#: setzer/dialogs/document_properties/document_properties.py:53
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:43
 msgid "Tabs"
+msgstr ""
+
+#: setzer/dialogs/document_properties/document_properties.py:169
+#, python-brace-format
+msgid ""
+"This document’s \"% !TEX program = {engine}\" comment overrides the engine "
+"you pick here. PhiTeX reads that comment itself and chooses the engine from "
+"the document, so picking it above ends the override without editing the file."
 msgstr ""
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:58
@@ -1800,12 +1808,12 @@ msgid "_Apply"
 msgstr ""
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:73
-#: setzer/dialogs/preferences/pages/page_build_system.py:279
+#: setzer/dialogs/preferences/pages/page_build_system.py:356
 msgid "Build System"
 msgstr ""
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:77
-#: setzer/dialogs/preferences/pages/page_build_system.py:283
+#: setzer/dialogs/preferences/pages/page_build_system.py:360
 msgid "LaTeX Interpreter"
 msgstr ""
 
@@ -1813,68 +1821,68 @@ msgstr ""
 msgid "Engine used to compile this document"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:86
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:96
 msgid "Override build options"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:87
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:97
 msgid "Use document-specific settings instead of global defaults"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:93
-#: setzer/dialogs/preferences/pages/page_build_system.py:346
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:103
+#: setzer/dialogs/preferences/pages/page_build_system.py:454
 msgid "Auto Build"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:104
 msgid "Automatically build when the document changes"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:100
-#: setzer/dialogs/preferences/pages/page_build_system.py:324
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:110
+#: setzer/dialogs/preferences/pages/page_build_system.py:424
 msgid "Use latexmk"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:101
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:111
 msgid "Use latexmk instead of running the engine directly"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:107
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:117
 msgid "Cleanup Build Files"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:108
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:118
 msgid "Automatically remove auxiliary files after building"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:113
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:123
 #: setzer/dialogs/project_build_configuration_viewgtk.py:145
 #: setzer/dialogs/project_build_configuration_viewgtk.py:150
 msgid "Project Build Configuration"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:115
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:125
 msgid "Configure shared settings in .neosetzer/build.json"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:117
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:127
 msgid "_Configure"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:134
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:144
 msgid "Indent Mode"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:135
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:145
 msgid "Use spaces or tabs for indentation"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:143
-#: setzer/dialogs/preferences/pages/page_editor.py:797
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:153
+#: setzer/dialogs/preferences/pages/page_editor.py:870
 msgid "Tab Width"
 msgstr ""
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:144
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:154
 msgid "Number of spaces per indent level"
 msgstr ""
 
@@ -2084,7 +2092,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:168
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:355
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:165
-#: setzer/dialogs/preferences/pages/page_build_system.py:316
+#: setzer/dialogs/preferences/pages/page_build_system.py:416
 msgid "Options"
 msgstr ""
 
@@ -2281,7 +2289,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:247
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
-#: setzer/dialogs/preferences/pages/page_build_system.py:414
+#: setzer/dialogs/preferences/pages/page_build_system.py:522
 msgid "recommended"
 msgstr ""
 
@@ -2347,7 +2355,7 @@ msgid "The document author, used in the \\author{} command."
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:205
-#: setzer/popovers/shortcutsbar/document_menu.py:57
+#: setzer/popovers/shortcutsbar/document_menu.py:58
 msgid "Date"
 msgstr ""
 
@@ -2361,7 +2369,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:354
 #: setzer/dialogs/preferences/pages/page_appearance.py:637
-#: setzer/dialogs/preferences/pages/page_editor.py:976
+#: setzer/dialogs/preferences/pages/page_editor.py:1049
 msgid "Language"
 msgstr ""
 
@@ -2458,6 +2466,13 @@ msgstr ""
 msgid "Ready to create"
 msgstr ""
 
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:353
+#: setzer/document/preview/preview_presenter.py:654
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
+msgid "Document"
+msgstr ""
+
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:380
 msgid "Saved source template"
 msgstr ""
@@ -2484,12 +2499,8 @@ msgstr ""
 msgid "no extra packages"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
-msgid ""
-"{} · {} · {} · {}\n"
-"Language: {}\n"
-"Font package: {}\n"
-"Packages: {}"
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:396
+msgid "{} · {} · {} · {}"
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:397
@@ -2508,7 +2519,7 @@ msgstr ""
 msgid "not set"
 msgstr ""
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:400
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:402
 msgid "none"
 msgstr ""
 
@@ -3644,7 +3655,7 @@ msgid "Stop editing the selected merged range"
 msgstr ""
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:218
-#: setzer/dialogs/preferences/pages/page_editor.py:719
+#: setzer/dialogs/preferences/pages/page_editor.py:792
 msgid "Appearance"
 msgstr ""
 
@@ -3882,7 +3893,7 @@ msgid "Tools"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
-#: setzer/document/build_widget/build_widget.py:250
+#: setzer/document/build_widget/build_widget.py:281
 #: setzer/document/build_widget/build_widget_viewgtk.py:59
 #: setzer/document/build_widget/build_widget_viewgtk.py:85
 msgid "Save and build .pdf-file from document"
@@ -4135,8 +4146,8 @@ msgstr ""
 
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:655
-#: setzer/dialogs/preferences/pages/page_editor.py:990
-#: setzer/document/preview/preview_controller.py:647
+#: setzer/dialogs/preferences/pages/page_editor.py:1063
+#: setzer/document/preview/preview_controller.py:655
 msgid "Open"
 msgstr ""
 
@@ -4257,7 +4268,7 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_appearance.py:350
 #: setzer/dialogs/preferences/pages/page_appearance.py:581
 #: setzer/dialogs/preferences/pages/page_appearance.py:818
-#: setzer/dialogs/preferences/pages/page_build_system.py:152
+#: setzer/dialogs/preferences/pages/page_build_system.py:160
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:432
 msgid "Reset"
 msgstr ""
@@ -4268,7 +4279,7 @@ msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:347
 #: setzer/dialogs/preferences/pages/page_appearance.py:577
-#: setzer/dialogs/preferences/pages/page_build_system.py:149
+#: setzer/dialogs/preferences/pages/page_build_system.py:157
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:429
 msgid "Reset to Defaults?"
 msgstr ""
@@ -4479,8 +4490,8 @@ msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:771
 #: setzer/dialogs/preferences/pages/page_appearance.py:829
-#: setzer/dialogs/preferences/pages/page_build_system.py:435
-#: setzer/dialogs/preferences/pages/page_editor.py:1262
+#: setzer/dialogs/preferences/pages/page_build_system.py:543
+#: setzer/dialogs/preferences/pages/page_editor.py:1335
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:661
 msgid "Reset to Defaults"
 msgstr ""
@@ -4561,30 +4572,71 @@ msgid ""
 "without {prompt}, the prompt is copied to clipboard."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:150
+#: setzer/dialogs/preferences/pages/page_build_system.py:158
 msgid "All build system settings will be restored to their default values."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:297
+#: setzer/dialogs/preferences/pages/page_build_system.py:299
+msgid ""
+"PhiTeX rebuilds as you type, which needs each edit written to disk first — "
+"auto build is always on for it."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:302
+msgid ""
+"PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, "
+"so a longer wait only delays the preview."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:305
+msgid ""
+"A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) "
+"to know what an edit affects, so they are kept."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:310
+msgid ""
+"With a PhiTeX session the build log never pops up on its own: errors show as "
+"squiggles in the text and highlighted areas in the preview."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:313
+msgid ""
+"Changing this ends the running PhiTeX session; the next build starts a new "
+"one with the new setting."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:336
+msgid ""
+"Install PhiTeX on this computer for me: https://github.com/accl-kaust/PhiTeX "
+"— a separately built TeX engine I want to use as the LaTeX interpreter in "
+"NeoSetzer. Choose whatever is appropriate for this operating system, verify "
+"what you download, and install it so that `phitex` is on PATH for my user "
+"account without sudo and without writing into system directories. Then check "
+"it works and show me what you did. Do not compile PhiTeX into NeoSetzer or "
+"bundle it in a NeoSetzer package."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:374
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a "
 "terminal and run the following command:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:300
+#: setzer/dialogs/preferences/pages/page_build_system.py:377
 msgid ""
 "No LaTeX interpreter found. For instructions on installing LaTeX see <a "
 "href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://"
 "en.wikibooks.org/wiki/LaTeX/Installation</a>"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:305
-#: setzer/dialogs/project_build_configuration_viewgtk.py:215
+#: setzer/dialogs/preferences/pages/page_build_system.py:382
+#: setzer/dialogs/project_build_configuration_viewgtk.py:216
 msgid "Interpreter"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:310
+#: setzer/dialogs/preferences/pages/page_build_system.py:387
 msgid ""
 "Please note: the Tectonic backend uses only the V1 command-line interface. "
 "Tectonic.toml configuration files are ignored. For custom build "
@@ -4592,417 +4644,451 @@ msgid ""
 "tectonic-typesetting.github.io/tectonic/\">Tectonic documentation</a>)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:320
+#: setzer/dialogs/preferences/pages/page_build_system.py:394
+msgid ""
+"PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so "
+"the latexmk options below do not apply. Its PDF is byte-identical to "
+"pdfLaTeX’s, but LuaLaTeX is not supported yet. Editing stays instant only "
+"while a PhiTeX session is running; without one, use another interpreter for "
+"the fastest full rebuilds."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:403
+msgid "Install PhiTeX"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:404
+msgid ""
+"Not found on this machine. Copy the instructions and hand them to an AI "
+"agent — it will fetch and verify the release for your platform."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:408
+msgid "Copy the installation instructions to the clipboard"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:420
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:331
+#: setzer/dialogs/preferences/pages/page_build_system.py:428
+msgid "Keep a PhiTeX session running"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:429
+msgid ""
+"Rebuild only what the edit affects by reusing one running PhiTeX process per "
+"document. Turning this off re-starts PhiTeX for every build, which "
+"recompiles the whole document each time."
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:439
 msgid "Output chain"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:332
+#: setzer/dialogs/preferences/pages/page_build_system.py:440
 msgid ""
 "PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; "
 "your interpreter choice is ignored on this route."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:334
+#: setzer/dialogs/preferences/pages/page_build_system.py:442
 msgid "Direct PDF"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:335
+#: setzer/dialogs/preferences/pages/page_build_system.py:443
 msgid "PDF via PostScript (DVI → dvips → ps2pdf)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:341
+#: setzer/dialogs/preferences/pages/page_build_system.py:449
 msgid "Generate SyncTeX for preview sync"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:342
+#: setzer/dialogs/preferences/pages/page_build_system.py:450
 msgid ""
 "Enables forward/reverse sync between editor and PDF preview. Disabling makes "
 "builds slightly faster."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:350
+#: setzer/dialogs/preferences/pages/page_build_system.py:458
 msgid "Automatically build and save after changes"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:351
+#: setzer/dialogs/preferences/pages/page_build_system.py:459
 msgid ""
 "When you stop typing, the document is saved and rebuilt after a short delay."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:355
+#: setzer/dialogs/preferences/pages/page_build_system.py:463
 msgid "Delay (seconds)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:357
+#: setzer/dialogs/preferences/pages/page_build_system.py:465
 msgid "Shorter delays update the preview faster but use more CPU while typing."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:368
+#: setzer/dialogs/preferences/pages/page_build_system.py:476
 msgid "Pop up build log on auto-build errors"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:370
+#: setzer/dialogs/preferences/pages/page_build_system.py:478
 msgid ""
 "When auto-build is on, automatically show the build log when errors occur. "
 "Disable to avoid interruptions while typing."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:375
+#: setzer/dialogs/preferences/pages/page_build_system.py:483
 msgid "Automatically show build log"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:379
-#: setzer/document/statusbar/statusbar_viewgtk.py:75
+#: setzer/dialogs/preferences/pages/page_build_system.py:487
+#: setzer/document/statusbar/statusbar_viewgtk.py:81
 msgid "Show build log"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:381
+#: setzer/dialogs/preferences/pages/page_build_system.py:489
 msgid ".. only when errors occurred."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:382
+#: setzer/dialogs/preferences/pages/page_build_system.py:490
 msgid ".. on errors and warnings."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:383
+#: setzer/dialogs/preferences/pages/page_build_system.py:491
 msgid ".. on errors, warnings and badboxes."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:384
+#: setzer/dialogs/preferences/pages/page_build_system.py:492
 msgid ".. never."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:390
+#: setzer/dialogs/preferences/pages/page_build_system.py:498
 msgid "Embedded system commands"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:404
+#: setzer/dialogs/preferences/pages/page_build_system.py:512
 msgid ""
 "Warning: enable this only if you have to. It can cause security problems "
 "when building files from untrusted sources."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:412
+#: setzer/dialogs/preferences/pages/page_build_system.py:520
 msgid "System commands"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:414
+#: setzer/dialogs/preferences/pages/page_build_system.py:522
 msgid "Disable"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:415
+#: setzer/dialogs/preferences/pages/page_build_system.py:523
 msgid "Enable restricted \\write18{SHELL COMMAND}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:416
+#: setzer/dialogs/preferences/pages/page_build_system.py:524
 msgid "Fully enable \\write18{SHELL COMMAND}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:423
+#: setzer/dialogs/preferences/pages/page_build_system.py:531
 msgid "Personal TeX tree"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:424
+#: setzer/dialogs/preferences/pages/page_build_system.py:532
 msgid ""
 "Directory with your own packages, classes and bibliography styles (kpathsea "
 "TEXMFHOME). Applied to every build; leave empty to use your environment or "
 "the TeX Live default (~/texmf)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:428
+#: setzer/dialogs/preferences/pages/page_build_system.py:536
 msgid "TEXMFHOME directory"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:429
+#: setzer/dialogs/preferences/pages/page_build_system.py:537
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:169
+#: setzer/dialogs/preferences/pages/page_editor.py:197
 msgid "Unavailable: install pyenchant and hunspell dictionaries to enable."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:181
+#: setzer/dialogs/preferences/pages/page_editor.py:209
 msgid "Unavailable: install chktex to enable."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:315
+#: setzer/dialogs/preferences/pages/page_editor.py:343
 msgid "Select previous suggestion"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:316
+#: setzer/dialogs/preferences/pages/page_editor.py:344
 msgid "Move the selection up one item in the completion popup."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:317
+#: setzer/dialogs/preferences/pages/page_editor.py:345
 msgid "Select next suggestion"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:318
+#: setzer/dialogs/preferences/pages/page_editor.py:346
 msgid "Move the selection down one item in the completion popup."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:319
+#: setzer/dialogs/preferences/pages/page_editor.py:347
 msgid "Previous page"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:320
+#: setzer/dialogs/preferences/pages/page_editor.py:348
 msgid "Scroll the completion popup up one page."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:321
+#: setzer/dialogs/preferences/pages/page_editor.py:349
 msgid "Next page"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:322
+#: setzer/dialogs/preferences/pages/page_editor.py:350
 msgid "Scroll the completion popup down one page."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:323
+#: setzer/dialogs/preferences/pages/page_editor.py:351
 msgid "Accept suggestion"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:324
+#: setzer/dialogs/preferences/pages/page_editor.py:352
 msgid "Insert the currently selected completion."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:325
+#: setzer/dialogs/preferences/pages/page_editor.py:353
 msgid "Dismiss popup"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:326
+#: setzer/dialogs/preferences/pages/page_editor.py:354
 msgid "Close the completion popup without inserting anything."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:332
+#: setzer/dialogs/preferences/pages/page_editor.py:360
 msgid "Disabled"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:412
+#: setzer/dialogs/preferences/pages/page_editor.py:440
 msgid "Press a shortcut… (Esc to cancel)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:494
+#: setzer/dialogs/preferences/pages/page_editor.py:522
 msgid "Font size is too small; clamped to 6pt minimum."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:496
+#: setzer/dialogs/preferences/pages/page_editor.py:524
 msgid "Font size is too large; clamped to 24pt maximum."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:753
+#: setzer/dialogs/preferences/pages/page_editor.py:826
 msgid "Font"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:758
+#: setzer/dialogs/preferences/pages/page_editor.py:831
 msgid "Use the system fixed width font"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:761
+#: setzer/dialogs/preferences/pages/page_editor.py:834
 msgid ""
 "Use the system fixed-width font for editing. When enabled, the font set "
 "below is overridden."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:768
+#: setzer/dialogs/preferences/pages/page_editor.py:841
 msgid "Set Editor Font"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:771
+#: setzer/dialogs/preferences/pages/page_editor.py:844
 msgid ""
 "Choose a custom font for the LaTeX editor. Only active when \"Use the system "
 "fixed width font\" is off."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:776
+#: setzer/dialogs/preferences/pages/page_editor.py:849
 msgid "Line Spacing"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:777
+#: setzer/dialogs/preferences/pages/page_editor.py:850
 msgid "Extra vertical space between lines in pixels."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:779
+#: setzer/dialogs/preferences/pages/page_editor.py:852
 msgid ""
 "Extra vertical space between lines, in pixels. Affects readability and line "
 "density in the editor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:786
+#: setzer/dialogs/preferences/pages/page_editor.py:859
 msgid "Tab Stops"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:790
+#: setzer/dialogs/preferences/pages/page_editor.py:863
 msgid "Insert spaces instead of tabs"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:791
+#: setzer/dialogs/preferences/pages/page_editor.py:864
 msgid "Use spaces when pressing Tab, instead of a tab character."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:793
+#: setzer/dialogs/preferences/pages/page_editor.py:866
 msgid "When enabled, pressing Tab inserts spaces instead of a tab character."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:801
+#: setzer/dialogs/preferences/pages/page_editor.py:874
 msgid ""
 "Number of spaces a tab character occupies when \"Insert spaces instead of "
 "tabs\" is enabled."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:813
+#: setzer/dialogs/preferences/pages/page_editor.py:886
 msgid "Maximum undo depth"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:814
+#: setzer/dialogs/preferences/pages/page_editor.py:887
 msgid "Maximum number of undo steps. 0 = unlimited."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:816
+#: setzer/dialogs/preferences/pages/page_editor.py:889
 msgid ""
 "Limit the number of undoable actions kept in memory. Lower values save "
 "memory for very large documents. 0 keeps an unlimited history."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:824
+#: setzer/dialogs/preferences/pages/page_editor.py:897
 msgid "Line Numbers"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:828
+#: setzer/dialogs/preferences/pages/page_editor.py:901
 msgid "Show line numbers"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:829
+#: setzer/dialogs/preferences/pages/page_editor.py:902
 msgid "Display line numbers in the editor gutter."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:831
+#: setzer/dialogs/preferences/pages/page_editor.py:904
 msgid "Display line numbers in the left gutter of the editor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:835
+#: setzer/dialogs/preferences/pages/page_editor.py:908
 msgid "Right Margin"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:839
+#: setzer/dialogs/preferences/pages/page_editor.py:912
 msgid "Show right margin guide"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:840
+#: setzer/dialogs/preferences/pages/page_editor.py:913
 msgid "Display a vertical line at a fixed column."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:842
+#: setzer/dialogs/preferences/pages/page_editor.py:915
 msgid ""
 "Display a vertical line at a fixed column position to help keep lines within "
 "a recommended width."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:847
+#: setzer/dialogs/preferences/pages/page_editor.py:920
 msgid "Right margin column"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:848
+#: setzer/dialogs/preferences/pages/page_editor.py:921
 msgid "Column position for the right margin guide."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:850
+#: setzer/dialogs/preferences/pages/page_editor.py:923
 msgid ""
 "Column position for the right margin guide vertical line. LaTeX documents "
 "are typically kept within 80 columns."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:857
+#: setzer/dialogs/preferences/pages/page_editor.py:930
 msgid "Line Wrapping"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:861
+#: setzer/dialogs/preferences/pages/page_editor.py:934
 msgid "Enable line wrapping"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:862
+#: setzer/dialogs/preferences/pages/page_editor.py:935
 msgid "Wrap long lines instead of scrolling horizontally."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:864
+#: setzer/dialogs/preferences/pages/page_editor.py:937
 msgid ""
 "Wrap long lines to fit within the editor window instead of scrolling "
 "horizontally."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:869
+#: setzer/dialogs/preferences/pages/page_editor.py:942
 msgid "Code Folding"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:873
+#: setzer/dialogs/preferences/pages/page_editor.py:946
 msgid "Enable code folding"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:874
+#: setzer/dialogs/preferences/pages/page_editor.py:947
 msgid "Allow collapsing blocks of code such as environments."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:876
+#: setzer/dialogs/preferences/pages/page_editor.py:949
 msgid ""
 "Allow collapsing and expanding code blocks such as LaTeX environments, "
 "sections, and functions."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:881
+#: setzer/dialogs/preferences/pages/page_editor.py:954
 msgid "Sticky Scroll"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:885
+#: setzer/dialogs/preferences/pages/page_editor.py:958
 msgid "Enable sticky scroll for sections"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:886
+#: setzer/dialogs/preferences/pages/page_editor.py:959
 msgid ""
 "Show the current section header at the top of the editor while scrolling."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:888
+#: setzer/dialogs/preferences/pages/page_editor.py:961
 msgid ""
 "Displays a sticky header at the top of the editor showing the current "
 "section hierarchy (chapter, section, subsection, etc.) as you scroll through "
 "long documents."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:894
+#: setzer/dialogs/preferences/pages/page_editor.py:967
 msgid "Math Preview"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:898
+#: setzer/dialogs/preferences/pages/page_editor.py:971
 msgid "Math Preview on Hover"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:899
+#: setzer/dialogs/preferences/pages/page_editor.py:972
 msgid "Show a rendered preview of the formula under the mouse cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:901
+#: setzer/dialogs/preferences/pages/page_editor.py:974
 msgid ""
 "Hover the mouse over a formula without holding any modifier key to see a "
 "rendered preview. The formula is compiled with the configured LaTeX "
 "interpreter using this document's preamble and results are cached."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:910
+#: setzer/dialogs/preferences/pages/page_editor.py:983
 msgid "Figure Preview"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:914
+#: setzer/dialogs/preferences/pages/page_editor.py:987
 msgid "Live TikZ Preview"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:915
+#: setzer/dialogs/preferences/pages/page_editor.py:988
 msgid "Render the tikzpicture under the cursor in the preview sidebar."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:917
+#: setzer/dialogs/preferences/pages/page_editor.py:990
 msgid ""
 "When the cursor is inside a tikzpicture and you stop typing, the figure is "
 "compiled with the root document's preamble and shown in the preview sidebar. "
@@ -5010,487 +5096,487 @@ msgid ""
 "repeated edits are fast."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:924
+#: setzer/dialogs/preferences/pages/page_editor.py:997
 msgid "Delay Before Compiling (seconds)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:925
+#: setzer/dialogs/preferences/pages/page_editor.py:998
 msgid "Wait time after the last keystroke."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:927
+#: setzer/dialogs/preferences/pages/page_editor.py:1000
 msgid ""
 "How long to wait after the last keystroke before compiling the figure. "
 "Values below three tenths of a second are clamped."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:935
+#: setzer/dialogs/preferences/pages/page_editor.py:1008
 msgid "Highlighting"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:939
+#: setzer/dialogs/preferences/pages/page_editor.py:1012
 msgid "Highlight current line"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:940
+#: setzer/dialogs/preferences/pages/page_editor.py:1013
 msgid "Visually emphasize the line containing the cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:942
+#: setzer/dialogs/preferences/pages/page_editor.py:1015
 msgid "Visually highlight the line where the cursor is located."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:946
+#: setzer/dialogs/preferences/pages/page_editor.py:1019
 msgid "Highlight matching brackets"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:947
+#: setzer/dialogs/preferences/pages/page_editor.py:1020
 msgid "Highlight the bracket matching the one next to the cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:949
+#: setzer/dialogs/preferences/pages/page_editor.py:1022
 msgid "Highlight the bracket that matches the one next to the cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:953
+#: setzer/dialogs/preferences/pages/page_editor.py:1026
 msgid "Highlight matching \\begin/\\end"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:954
+#: setzer/dialogs/preferences/pages/page_editor.py:1027
 msgid ""
 "Highlight the environment matching the \\begin or \\end command next to the "
 "cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:956
+#: setzer/dialogs/preferences/pages/page_editor.py:1029
 msgid ""
 "Highlight the \\begin{...}/\\end{...} pair that matches the one next to the "
 "cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:961
+#: setzer/dialogs/preferences/pages/page_editor.py:1034
 msgid "Spell Checking"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:965
+#: setzer/dialogs/preferences/pages/page_editor.py:1038
 msgid "Check spelling as you type"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:967
+#: setzer/dialogs/preferences/pages/page_editor.py:1040
 msgid ""
 "Underline misspelled words in the text. Commands, math and verbatim regions "
 "are skipped."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:970
+#: setzer/dialogs/preferences/pages/page_editor.py:1043
 msgid ""
 "Check spelling as you type using enchant/hunspell dictionaries. LaTeX "
 "commands, math mode and verbatim environments are not checked. Right-click a "
 "marked word for suggestions."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:977
+#: setzer/dialogs/preferences/pages/page_editor.py:1050
 msgid "Dictionary used for spell checking"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:979
+#: setzer/dialogs/preferences/pages/page_editor.py:1052
 msgid ""
 "The dictionary language for spell checking. Additional languages can be "
 "installed via hunspell/aspell packages."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:984
+#: setzer/dialogs/preferences/pages/page_editor.py:1057
 msgid "Manage Words"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:986
+#: setzer/dialogs/preferences/pages/page_editor.py:1059
 msgid "View and edit ignored words and your user dictionary"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:988
+#: setzer/dialogs/preferences/pages/page_editor.py:1061
 msgid ""
 "Manage the words you ignored for the current session and the words saved "
 "permanently to your user dictionary."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:997
+#: setzer/dialogs/preferences/pages/page_editor.py:1070
 msgid "Real-time linting (chktex)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:999
+#: setzer/dialogs/preferences/pages/page_editor.py:1072
 msgid "Run chktex in the background and underline possible problems"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1004
+#: setzer/dialogs/preferences/pages/page_editor.py:1077
 msgid "Visible Characters"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1008
+#: setzer/dialogs/preferences/pages/page_editor.py:1081
 msgid "Show line endings"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1009
+#: setzer/dialogs/preferences/pages/page_editor.py:1082
 msgid "Display line ending characters (¶) at the end of each line."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1011
+#: setzer/dialogs/preferences/pages/page_editor.py:1084
 msgid ""
 "Display a paragraph symbol (¶) at the end of each line to help identify "
 "trailing whitespace and line ending issues."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1016
+#: setzer/dialogs/preferences/pages/page_editor.py:1089
 msgid "Show whitespace"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1017
+#: setzer/dialogs/preferences/pages/page_editor.py:1090
 msgid "Display whitespace characters (· for spaces, → for tabs)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1019
+#: setzer/dialogs/preferences/pages/page_editor.py:1092
 msgid ""
 "Display symbols for spaces (·) and tabs (→) to help debug indentation and "
 "trailing whitespace issues."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1025
+#: setzer/dialogs/preferences/pages/page_editor.py:1098
 msgid "Shortcuts Bar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1029
+#: setzer/dialogs/preferences/pages/page_editor.py:1102
 msgid "Show shortcuts bar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1030
+#: setzer/dialogs/preferences/pages/page_editor.py:1103
 msgid "Display the shortcuts bar above the editor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1032
+#: setzer/dialogs/preferences/pages/page_editor.py:1105
 msgid "Display a bar of keyboard shortcuts above the editor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1036
+#: setzer/dialogs/preferences/pages/page_editor.py:1109
 msgid "Tab Bar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1040
+#: setzer/dialogs/preferences/pages/page_editor.py:1113
 msgid "Show tab bar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1041
+#: setzer/dialogs/preferences/pages/page_editor.py:1114
 msgid "Display the multi-document tab bar above the shortcuts bar."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1043
+#: setzer/dialogs/preferences/pages/page_editor.py:1116
 msgid ""
 "Display a bar of open documents above the shortcuts bar. When enabled, a "
 "single open document hides the bar automatically."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1050
+#: setzer/dialogs/preferences/pages/page_editor.py:1123
 msgid "Auto Save"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1054
+#: setzer/dialogs/preferences/pages/page_editor.py:1127
 msgid "Enable auto save (crash recovery)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1055
+#: setzer/dialogs/preferences/pages/page_editor.py:1128
 msgid "Periodically save buffer to a temp file for crash recovery"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1057
+#: setzer/dialogs/preferences/pages/page_editor.py:1130
 msgid ""
 "Periodically save the buffer to a temporary file for crash recovery. Setzer "
 "can restore unsaved edits after an unexpected application exit."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1063
+#: setzer/dialogs/preferences/pages/page_editor.py:1136
 msgid "Auto save interval (seconds)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1067
+#: setzer/dialogs/preferences/pages/page_editor.py:1140
 msgid ""
 "Time interval in seconds between automatic saves when auto save is enabled."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1073
+#: setzer/dialogs/preferences/pages/page_editor.py:1146
 msgid "External Changes"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1077
+#: setzer/dialogs/preferences/pages/page_editor.py:1150
 msgid "Automatically reload changed files"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1079
+#: setzer/dialogs/preferences/pages/page_editor.py:1152
 msgid "Reload files modified by external applications without prompting"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1081
+#: setzer/dialogs/preferences/pages/page_editor.py:1154
 msgid ""
 "Automatically reload files modified by external applications without showing "
 "a prompt. Unsaved changes in the editor will be lost."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1089
+#: setzer/dialogs/preferences/pages/page_editor.py:1162
 msgid "Git Integration"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1093
+#: setzer/dialogs/preferences/pages/page_editor.py:1166
 msgid "Enable Git integration"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1094
+#: setzer/dialogs/preferences/pages/page_editor.py:1167
 msgid "Detect repositories and run git commands for open documents"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1098
+#: setzer/dialogs/preferences/pages/page_editor.py:1171
 msgid "Show change marks in the line number column"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1099
+#: setzer/dialogs/preferences/pages/page_editor.py:1172
 msgid "Added, modified and deleted lines relative to HEAD"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1103
+#: setzer/dialogs/preferences/pages/page_editor.py:1176
 msgid "Show the Git sidebar panel"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1107
+#: setzer/dialogs/preferences/pages/page_editor.py:1180
 msgid "Branch status with pull and commit &amp; push actions"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1112
+#: setzer/dialogs/preferences/pages/page_editor.py:1185
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:110
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:390
 msgid "New Document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1116
+#: setzer/dialogs/preferences/pages/page_editor.py:1189
 msgid "Default Encoding"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1118
+#: setzer/dialogs/preferences/pages/page_editor.py:1191
 msgid "Encoding used when creating new documents"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1120
+#: setzer/dialogs/preferences/pages/page_editor.py:1193
 msgid ""
 "Default character encoding for new documents. UTF-8 is the recommended "
 "choice for cross-platform collaboration."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1123
+#: setzer/dialogs/preferences/pages/page_editor.py:1196
 msgid "UTF-8"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1124
+#: setzer/dialogs/preferences/pages/page_editor.py:1197
 msgid "ISO-8859-1"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1125
+#: setzer/dialogs/preferences/pages/page_editor.py:1198
 msgid "Windows-1252"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1126
+#: setzer/dialogs/preferences/pages/page_editor.py:1199
 msgid "UTF-16"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1132
+#: setzer/dialogs/preferences/pages/page_editor.py:1205
 msgid "Default Line Ending"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1134
+#: setzer/dialogs/preferences/pages/page_editor.py:1207
 msgid "Line ending format for new documents"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1136
+#: setzer/dialogs/preferences/pages/page_editor.py:1209
 msgid ""
 "Default line ending format for new documents. LF is Unix/macOS style; CRLF "
 "is Windows style; CR is old macOS style."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1139
+#: setzer/dialogs/preferences/pages/page_editor.py:1212
 msgid "LF (Unix)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1140
+#: setzer/dialogs/preferences/pages/page_editor.py:1213
 msgid "CRLF (Windows)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1141
+#: setzer/dialogs/preferences/pages/page_editor.py:1214
 msgid "CR (Old macOS)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1148
+#: setzer/dialogs/preferences/pages/page_editor.py:1221
 msgid "Autocomplete"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1152
+#: setzer/dialogs/preferences/pages/page_editor.py:1225
 msgid "Suggest matching LaTeX Commands"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1153
+#: setzer/dialogs/preferences/pages/page_editor.py:1226
 msgid "Show a completion popup as you type LaTeX commands."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1157
+#: setzer/dialogs/preferences/pages/page_editor.py:1230
 msgid "Manual trigger key"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1158
+#: setzer/dialogs/preferences/pages/page_editor.py:1231
 msgid "Press to capture a shortcut that opens the completion popup."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1165
+#: setzer/dialogs/preferences/pages/page_editor.py:1238
 msgid "Completion Navigation"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1166
+#: setzer/dialogs/preferences/pages/page_editor.py:1239
 msgid "Keys used to move and confirm within the completion popup."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1177
+#: setzer/dialogs/preferences/pages/page_editor.py:1250
 msgid "Smart Typing"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1181
+#: setzer/dialogs/preferences/pages/page_editor.py:1254
 msgid "Automatically add LaTeX quotation marks"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1182
+#: setzer/dialogs/preferences/pages/page_editor.py:1255
 msgid ""
 "Replace a typed \" with `` or '', depending on what precedes the cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1186
+#: setzer/dialogs/preferences/pages/page_editor.py:1259
 msgid "Automatically brace subscripts and superscripts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1187
+#: setzer/dialogs/preferences/pages/page_editor.py:1260
 #, python-brace-format
 msgid "Turn x_12 into x_{12} while typing in math."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1191
+#: setzer/dialogs/preferences/pages/page_editor.py:1264
 msgid "Brackets and Blocks"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1195
+#: setzer/dialogs/preferences/pages/page_editor.py:1268
 msgid "Automatically add closing brackets"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1196
+#: setzer/dialogs/preferences/pages/page_editor.py:1269
 msgid "Insert a matching closing bracket when you type an opening one."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1200
+#: setzer/dialogs/preferences/pages/page_editor.py:1273
 msgid "Add brackets to selected text, instead of replacing it with them"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1201
+#: setzer/dialogs/preferences/pages/page_editor.py:1274
 msgid "Wrap the selected text in brackets, keeping it selected."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1205
+#: setzer/dialogs/preferences/pages/page_editor.py:1278
 msgid "Jump over closing brackets with Tab"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1206
+#: setzer/dialogs/preferences/pages/page_editor.py:1279
 msgid "Press Tab to move past an automatically inserted closing bracket."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1210
+#: setzer/dialogs/preferences/pages/page_editor.py:1283
 msgid "Update matching begin / end blocks"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1211
+#: setzer/dialogs/preferences/pages/page_editor.py:1284
 msgid "Keep matching \\begin{} / \\end{} blocks in sync when you edit one."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1215
+#: setzer/dialogs/preferences/pages/page_editor.py:1288
 msgid "Automatically add matching \\end{}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1216
+#: setzer/dialogs/preferences/pages/page_editor.py:1289
 msgid ""
 "When you type \\begin{, automatically insert the matching \\end{} (use Tab "
 "to jump to the content placeholder)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1222
+#: setzer/dialogs/preferences/pages/page_editor.py:1295
 msgid "Multi-Cursor"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1226
+#: setzer/dialogs/preferences/pages/page_editor.py:1299
 msgid "Multi-cursor editing"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1228
+#: setzer/dialogs/preferences/pages/page_editor.py:1301
 msgid "Place multiple cursors and edit them simultaneously."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1234
+#: setzer/dialogs/preferences/pages/page_editor.py:1307
 msgid "Alt+Click to add or remove a cursor"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1235
+#: setzer/dialogs/preferences/pages/page_editor.py:1308
 msgid "Add a cursor at the clicked position, or remove an existing one."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1236
+#: setzer/dialogs/preferences/pages/page_editor.py:1309
 msgid "Alt+Drag column selection"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1237
+#: setzer/dialogs/preferences/pages/page_editor.py:1310
 msgid "Drag to create a column (rectangular) selection."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1238
+#: setzer/dialogs/preferences/pages/page_editor.py:1311
 msgid "Select next occurrence"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1239
+#: setzer/dialogs/preferences/pages/page_editor.py:1312
 msgid "Select the next match of the selected text or word."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1240
+#: setzer/dialogs/preferences/pages/page_editor.py:1313
 msgid "Select all occurrences"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1241
+#: setzer/dialogs/preferences/pages/page_editor.py:1314
 msgid "Select every match of the selected text or word."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1242
+#: setzer/dialogs/preferences/pages/page_editor.py:1315
 msgid "Add cursor above"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1243
+#: setzer/dialogs/preferences/pages/page_editor.py:1316
 msgid "Add a cursor on the line above each cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1244
+#: setzer/dialogs/preferences/pages/page_editor.py:1317
 msgid "Add cursor below"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1245
+#: setzer/dialogs/preferences/pages/page_editor.py:1318
 msgid "Add a cursor on the line below each cursor."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1246
+#: setzer/dialogs/preferences/pages/page_editor.py:1319
 msgid "Escape clears extra cursors"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1247
+#: setzer/dialogs/preferences/pages/page_editor.py:1320
 msgid "Press Escape to remove all additional cursors."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1248
+#: setzer/dialogs/preferences/pages/page_editor.py:1321
 msgid "Edit at all cursors"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1249
+#: setzer/dialogs/preferences/pages/page_editor.py:1322
 msgid "Typing, deleting and indenting apply to every cursor."
 msgstr ""
 
@@ -5983,15 +6069,15 @@ msgstr ""
 msgid "Add Snippet"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_snippets.py:186
+#: setzer/dialogs/preferences/pages/page_snippets.py:189
 msgid "Trigger"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_snippets.py:191
+#: setzer/dialogs/preferences/pages/page_snippets.py:194
 msgid "Snippet Body"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_snippets.py:212
+#: setzer/dialogs/preferences/pages/page_snippets.py:215
 msgid "Use • to place the cursor after inserting the snippet."
 msgstr ""
 
@@ -6053,7 +6139,7 @@ msgid "Duplicate profile"
 msgstr ""
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:183
-#: setzer/dialogs/project_build_configuration_viewgtk.py:294
+#: setzer/dialogs/project_build_configuration_viewgtk.py:295
 #: setzer/workspace/sidebar/document_structure_page/structure.py:364
 msgid "Rename"
 msgstr ""
@@ -6076,47 +6162,47 @@ msgstr ""
 msgid "Output directory"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:222
+#: setzer/dialogs/project_build_configuration_viewgtk.py:223
 msgid "Bibliography backend"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:225
+#: setzer/dialogs/project_build_configuration_viewgtk.py:226
 msgid "Additional arguments"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:229
+#: setzer/dialogs/project_build_configuration_viewgtk.py:230
 msgid "Runs LaTeX repeatedly (latexmk)"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:232
+#: setzer/dialogs/project_build_configuration_viewgtk.py:233
 msgid "Clean up build files"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:235
+#: setzer/dialogs/project_build_configuration_viewgtk.py:236
 msgid "Allow shell escape"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:240
+#: setzer/dialogs/project_build_configuration_viewgtk.py:241
 msgid "Build tasks (in order)"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:253
+#: setzer/dialogs/project_build_configuration_viewgtk.py:254
 msgid "Add task"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:288
+#: setzer/dialogs/project_build_configuration_viewgtk.py:289
 msgid "Rename profile"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:311
+#: setzer/dialogs/project_build_configuration_viewgtk.py:312
 msgid "Delete profile?"
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:312
+#: setzer/dialogs/project_build_configuration_viewgtk.py:313
 msgid "The profile «{}» will be removed."
 msgstr ""
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:329
+#: setzer/dialogs/project_build_configuration_viewgtk.py:330
 msgid "Notice"
 msgstr ""
 
@@ -6282,7 +6368,7 @@ msgstr ""
 msgid "Clear All"
 msgstr ""
 
-#: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:244
+#: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:347
 msgid "Label database unavailable (parse error)"
 msgstr ""
 
@@ -6438,56 +6524,56 @@ msgstr ""
 msgid "The bibliography changed outside Setzer"
 msgstr ""
 
-#: setzer/document/build_system/build_system.py:414
+#: setzer/document/build_system/build_system.py:446
 msgid "Previous build cancelled"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:142
+#: setzer/document/build_widget/build_widget.py:145
 #: setzer/project/build_configuration.py:51
 msgid "BibTeX"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:143
+#: setzer/document/build_widget/build_widget.py:146
 #: setzer/project/build_configuration.py:52
 msgid "Biber"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:144
+#: setzer/document/build_widget/build_widget.py:147
 #: setzer/project/build_configuration.py:53
 msgid "MakeIndex"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:145
+#: setzer/document/build_widget/build_widget.py:148
 #: setzer/project/build_configuration.py:54
 msgid "Glossaries"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:146
+#: setzer/document/build_widget/build_widget.py:149
 msgid "Sync"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:154
+#: setzer/document/build_widget/build_widget.py:162
 msgid "Success!"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:155
+#: setzer/document/build_widget/build_widget.py:164
 #: setzer/helpers/build_status_text.py:46
 msgid "Build succeeded"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:165
+#: setzer/document/build_widget/build_widget.py:174
 #, python-brace-format
 msgid "{count} error"
 msgid_plural "{count} errors"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/build_widget/build_widget.py:166
+#: setzer/document/build_widget/build_widget.py:175
 msgid "Failed"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:170
-#: setzer/document/preview/preview_viewgtk.py:435
+#: setzer/document/build_widget/build_widget.py:180
+#: setzer/document/preview/preview_viewgtk.py:445
 msgid "Build failed"
 msgstr ""
 
@@ -6507,7 +6593,7 @@ msgstr ""
 msgid "No PDF available for forward sync. Build the document first."
 msgstr ""
 
-#: setzer/document/document.py:773
+#: setzer/document/document.py:799
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr ""
@@ -6563,28 +6649,28 @@ msgstr ""
 msgid "Next Match"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:369
-#: setzer/document/preview/preview_controller.py:584
+#: setzer/document/preview/preview_controller.py:374
+#: setzer/document/preview/preview_controller.py:592
 msgid "Hold Ctrl and click to open this link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:371
+#: setzer/document/preview/preview_controller.py:376
 msgid "Go to page "
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:627
+#: setzer/document/preview/preview_controller.py:635
 msgid "Could not open link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:636
+#: setzer/document/preview/preview_controller.py:644
 msgid "Link blocked: this link type is unsafe"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:644
+#: setzer/document/preview/preview_controller.py:652
 msgid "Open local file from this PDF?"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:645
+#: setzer/document/preview/preview_controller.py:653
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6592,26 +6678,19 @@ msgid ""
 "{uri}"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:524
+#: setzer/document/preview/preview_presenter.py:539
 msgid "Save Image As"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:629
+#: setzer/document/preview/preview_presenter.py:644
 msgid "No printer available"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:634
+#: setzer/document/preview/preview_presenter.py:649
 msgid "Could not prepare print data"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:639
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:353
-msgid "Document"
-msgstr ""
-
-#: setzer/document/preview/preview_presenter.py:648
+#: setzer/document/preview/preview_presenter.py:663
 msgid "Printing failed"
 msgstr ""
 
@@ -6646,21 +6725,21 @@ msgstr ""
 msgid "Try Again"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:393
+#: setzer/document/preview/preview_viewgtk.py:403
 msgid "Building…"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:431
+#: setzer/document/preview/preview_viewgtk.py:441
 msgid "No preview available"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:432
+#: setzer/document/preview/preview_viewgtk.py:442
 msgid ""
 "To show a .pdf preview of your document, click the build button in the "
 "headerbar."
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:436
+#: setzer/document/preview/preview_viewgtk.py:446
 msgid "Check the build log for errors."
 msgstr ""
 
@@ -6676,37 +6755,37 @@ msgstr ""
 msgid "Remove from history"
 msgstr ""
 
-#: setzer/document/search/search.py:428
+#: setzer/document/search/search.py:442
 msgid "已到文档末尾，从头继续"
 msgstr ""
 
-#: setzer/document/search/search.py:428
+#: setzer/document/search/search.py:442
 msgid "已到文档开头，从末尾继续"
 msgstr ""
 
-#: setzer/document/search/search.py:659 setzer/document/search/search.py:664
-#: setzer/document/search/search.py:674 setzer/document/search/search.py:692
-#: setzer/document/search/search.py:704
-#: setzer/document/search/search_viewgtk.py:205
+#: setzer/document/search/search.py:703 setzer/document/search/search.py:708
+#: setzer/document/search/search.py:718 setzer/document/search/search.py:736
+#: setzer/document/search/search.py:748
+#: setzer/document/search/search_viewgtk.py:208
 msgid "Replace all results"
 msgstr ""
 
-#: setzer/document/search/search.py:661
+#: setzer/document/search/search.py:705
 msgid "No matches"
 msgstr ""
 
-#: setzer/document/search/search.py:670
+#: setzer/document/search/search.py:714
 msgid "Searching…"
 msgstr ""
 
-#: setzer/document/search/search.py:681
+#: setzer/document/search/search.py:725
 #, python-brace-format
 msgid "{total} match"
 msgid_plural "{total} matches"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/search/search.py:689
+#: setzer/document/search/search.py:733
 #, python-brace-format
 msgid "Replace all {amount} match"
 msgid_plural "Replace all {amount} matches"
@@ -6737,35 +6816,35 @@ msgstr ""
 msgid "Search in selection"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:155
+#: setzer/document/search/search_viewgtk.py:158
 msgid "Previous result"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:160
+#: setzer/document/search/search_viewgtk.py:163
 msgid "Next result"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:166
+#: setzer/document/search/search_viewgtk.py:169
 msgid "Close search"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:184
+#: setzer/document/search/search_viewgtk.py:187
 msgid "Type replacement text…"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:191
+#: setzer/document/search/search_viewgtk.py:194
 msgid "Replacement history"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:197
+#: setzer/document/search/search_viewgtk.py:200
 msgid "Replace"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:199
+#: setzer/document/search/search_viewgtk.py:202
 msgid "Replace selected result"
 msgstr ""
 
-#: setzer/document/search/search_viewgtk.py:203
+#: setzer/document/search/search_viewgtk.py:206
 msgid "Replace All"
 msgstr ""
 
@@ -7176,7 +7255,7 @@ msgid "Cite Year with Brackets"
 msgstr ""
 
 #: setzer/popovers/shortcutsbar/document_menu.py:33
-#: setzer/popovers/shortcutsbar/document_menu.py:54
+#: setzer/popovers/shortcutsbar/document_menu.py:55
 msgid "Document Info"
 msgstr ""
 
@@ -7189,7 +7268,7 @@ msgid "Show Title"
 msgstr ""
 
 #: setzer/popovers/shortcutsbar/document_menu.py:42
-#: setzer/popovers/shortcutsbar/document_menu.py:51
+#: setzer/popovers/shortcutsbar/document_menu.py:52
 msgid "Build Interpreter"
 msgstr ""
 
@@ -7197,7 +7276,7 @@ msgstr ""
 msgid "Use Global Default"
 msgstr ""
 
-#: setzer/popovers/shortcutsbar/document_menu.py:58
+#: setzer/popovers/shortcutsbar/document_menu.py:59
 msgid "Date Today"
 msgstr ""
 
@@ -7614,38 +7693,38 @@ msgstr ""
 msgid "Choose File"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:440
+#: setzer/workspace/actions/actions.py:444
 msgid "No .tex files were found in your Templates folder."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:447
-#: setzer/workspace/actions/actions.py:477
+#: setzer/workspace/actions/actions.py:451
+#: setzer/workspace/actions/actions.py:481
 msgid "Create document from template"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:448
+#: setzer/workspace/actions/actions.py:452
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:451
+#: setzer/workspace/actions/actions.py:455
 msgid "Choose location"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:498
+#: setzer/workspace/actions/actions.py:502
 msgid "The selected destination is not a local file."
 msgstr ""
 
-#: setzer/workspace/auto_build/auto_build.py:123
+#: setzer/workspace/auto_build/auto_build.py:151
 msgid ""
 "Auto-build is not available for unsaved documents. Save the document to "
 "enable it."
 msgstr ""
 
-#: setzer/workspace/auto_build/auto_build.py:174
+#: setzer/workspace/auto_build/auto_build.py:203
 msgid "Auto-build deferred — a build is already in progress."
 msgstr ""
 
-#: setzer/workspace/auto_build/auto_build.py:177
+#: setzer/workspace/auto_build/auto_build.py:206
 msgid "Auto-build skipped — the document was busy building."
 msgstr ""
 
@@ -8066,19 +8145,19 @@ msgstr ""
 msgid "Commit && Push"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:71
+#: setzer/workspace/sidebar/git/commit_dialog.py:72
 msgid "Commit"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:87
+#: setzer/workspace/sidebar/git/commit_dialog.py:93
 msgid "Commit message"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:92
+#: setzer/workspace/sidebar/git/commit_dialog.py:98
 msgid "Changes to include:"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:100
+#: setzer/workspace/sidebar/git/commit_dialog.py:106
 msgid "No changes in this repository."
 msgstr ""
 
@@ -8225,11 +8304,11 @@ msgstr ""
 msgid "Misc. Symbols"
 msgstr ""
 
-#: setzer/workspace/tab_context_menu.py:93
+#: setzer/workspace/tab_context_menu.py:76
 msgid "Unpin Tab"
 msgstr ""
 
-#: setzer/workspace/tab_context_menu.py:96
+#: setzer/workspace/tab_context_menu.py:80
 msgid "Close Tab"
 msgstr ""
 
@@ -8319,19 +8398,19 @@ msgstr ""
 msgid "Untitled Document {number}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:802
+#: setzer/workspace/workspace.py:803
 #, python-brace-format
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:818
+#: setzer/workspace/workspace.py:819
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:1034
+#: setzer/workspace/workspace.py:1035
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr ""
