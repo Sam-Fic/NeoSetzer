@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 16:07+0800\n"
+"POT-Creation-Date: 2026-11-16 17:14+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -577,7 +577,7 @@ msgstr "发送给 AI 代理"
 #: setzer/dialogs/preferences/pages/page_appearance.py:349
 #: setzer/dialogs/preferences/pages/page_appearance.py:580
 #: setzer/dialogs/preferences/pages/page_appearance.py:863
-#: setzer/dialogs/preferences/pages/page_build_system.py:159
+#: setzer/dialogs/preferences/pages/page_build_system.py:172
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:326
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:431
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:575
@@ -587,7 +587,7 @@ msgstr "发送给 AI 代理"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
 #: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:654
+#: setzer/document/preview/preview_controller.py:657
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:88
 #: setzer/workspace/actions/actions.py:454
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
@@ -901,7 +901,7 @@ msgstr "文档向导"
 #: setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121
 #: setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123
 #: setzer/command_palette/catalog.py:124
-#: setzer/document/build_widget/build_widget.py:144
+#: setzer/document/build_widget/build_widget.py:161
 #: setzer/project/build_configuration.py:50
 msgid "LaTeX"
 msgstr "LaTeX 文件"
@@ -2128,12 +2128,12 @@ msgid "_Apply"
 msgstr "应用"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:73
-#: setzer/dialogs/preferences/pages/page_build_system.py:356
+#: setzer/dialogs/preferences/pages/page_build_system.py:371
 msgid "Build System"
 msgstr "构建系统"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:77
-#: setzer/dialogs/preferences/pages/page_build_system.py:360
+#: setzer/dialogs/preferences/pages/page_build_system.py:375
 msgid "LaTeX Interpreter"
 msgstr "LaTeX 解释器"
 
@@ -2150,7 +2150,7 @@ msgid "Use document-specific settings instead of global defaults"
 msgstr "设置"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:103
-#: setzer/dialogs/preferences/pages/page_build_system.py:454
+#: setzer/dialogs/preferences/pages/page_build_system.py:480
 msgid "Auto Build"
 msgstr "自动构建"
 
@@ -2159,7 +2159,7 @@ msgid "Automatically build when the document changes"
 msgstr "更改后自动构建并保存"
 
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:110
-#: setzer/dialogs/preferences/pages/page_build_system.py:424
+#: setzer/dialogs/preferences/pages/page_build_system.py:439
 msgid "Use latexmk"
 msgstr "使用 Latexmk"
 
@@ -2501,7 +2501,7 @@ msgstr "没有主题与此次搜索匹配。"
 #: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:168
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:355
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:165
-#: setzer/dialogs/preferences/pages/page_build_system.py:416
+#: setzer/dialogs/preferences/pages/page_build_system.py:431
 msgid "Options"
 msgstr "选项"
 
@@ -2696,7 +2696,7 @@ msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等…�
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:247
 #: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:94
-#: setzer/dialogs/preferences/pages/page_build_system.py:522
+#: setzer/dialogs/preferences/pages/page_build_system.py:548
 msgid "recommended"
 msgstr "推荐"
 
@@ -4200,7 +4200,7 @@ msgid "Tools"
 msgstr "工具"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
-#: setzer/document/build_widget/build_widget.py:281
+#: setzer/document/build_widget/build_widget.py:317
 #: setzer/document/build_widget/build_widget_viewgtk.py:59
 #: setzer/document/build_widget/build_widget_viewgtk.py:85
 msgid "Save and build .pdf-file from document"
@@ -4454,7 +4454,7 @@ msgstr "分数"
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:655
 #: setzer/dialogs/preferences/pages/page_editor.py:1063
-#: setzer/document/preview/preview_controller.py:655
+#: setzer/document/preview/preview_controller.py:658
 msgid "Open"
 msgstr "打开"
 
@@ -4576,7 +4576,7 @@ msgstr "将所有首选项恢复为默认值。键盘快捷键和窗口布局会
 #: setzer/dialogs/preferences/pages/page_appearance.py:350
 #: setzer/dialogs/preferences/pages/page_appearance.py:581
 #: setzer/dialogs/preferences/pages/page_appearance.py:818
-#: setzer/dialogs/preferences/pages/page_build_system.py:160
+#: setzer/dialogs/preferences/pages/page_build_system.py:173
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:432
 msgid "Reset"
 msgstr "重置"
@@ -4587,7 +4587,7 @@ msgstr "首选项已重置。重新打开首选项以查看所有更改。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:347
 #: setzer/dialogs/preferences/pages/page_appearance.py:577
-#: setzer/dialogs/preferences/pages/page_build_system.py:157
+#: setzer/dialogs/preferences/pages/page_build_system.py:170
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:429
 msgid "Reset to Defaults?"
 msgstr "恢复为默认值？"
@@ -4800,7 +4800,7 @@ msgstr "跳过预览对话框的目录。点击删除可撤销对项目的信任
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:771
 #: setzer/dialogs/preferences/pages/page_appearance.py:829
-#: setzer/dialogs/preferences/pages/page_build_system.py:543
+#: setzer/dialogs/preferences/pages/page_build_system.py:569
 #: setzer/dialogs/preferences/pages/page_editor.py:1335
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:661
 msgid "Reset to Defaults"
@@ -4884,41 +4884,41 @@ msgstr ""
 "以空格分隔的参数。使用 {prompt} / {file} / {cwd} 作为占位符。例如：aider --message {prompt} "
 "--no-auto-commits。如果留空或不包含 {prompt}，提示信息将复制到剪贴板。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:158
+#: setzer/dialogs/preferences/pages/page_build_system.py:171
 msgid "All build system settings will be restored to their default values."
 msgstr "所有构建系统设置都将恢复为默认值。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:299
+#: setzer/dialogs/preferences/pages/page_build_system.py:314
 msgid ""
 "PhiTeX rebuilds as you type, which needs each edit written to disk first — "
 "auto build is always on for it."
 msgstr "PhiTeX 会随打字重新构建，而这要求每次改动先写入磁盘——因此它始终开启自动构建。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:302
+#: setzer/dialogs/preferences/pages/page_build_system.py:317
 msgid ""
 "PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, "
 "so a longer wait only delays the preview."
 msgstr "PhiTeX 使用一个较短的固定延迟：增量重编译约需 20 毫秒，等得更久只会拖慢预览。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:305
+#: setzer/dialogs/preferences/pages/page_build_system.py:320
 msgid ""
 "A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl)"
 " to know what an edit affects, so they are kept."
 msgstr "运行中的 PhiTeX 会话需要它写出的辅助文件（.aux、.toc、.bbl）来判断一次改动影响到哪些部分，因此这些文件会被保留。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:310
+#: setzer/dialogs/preferences/pages/page_build_system.py:325
 msgid ""
 "With a PhiTeX session the build log never pops up on its own: errors show as"
 " squiggles in the text and highlighted areas in the preview."
 msgstr "使用 PhiTeX 会话时构建日志不会自动弹出：错误以正文中的波浪线和预览里的高亮区域呈现。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:313
+#: setzer/dialogs/preferences/pages/page_build_system.py:328
 msgid ""
 "Changing this ends the running PhiTeX session; the next build starts a new "
 "one with the new setting."
 msgstr "更改此项会结束当前运行中的 PhiTeX 会话；下一次构建会按新设置启动一个新会话。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:336
+#: setzer/dialogs/preferences/pages/page_build_system.py:351
 msgid ""
 "Install PhiTeX on this computer for me: https://github.com/accl-kaust/PhiTeX"
 " — a separately built TeX engine I want to use as the LaTeX interpreter in "
@@ -4933,7 +4933,7 @@ msgstr ""
 "`phitex` 出现在 PATH 中，不要用 sudo，也不要写入系统目录。装好后确认它能运行，并把你做了什么告诉我。不要把 PhiTeX 编译进 "
 "NeoSetzer，也不要把它打进 NeoSetzer 的安装包。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:374
+#: setzer/dialogs/preferences/pages/page_build_system.py:389
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
@@ -4941,7 +4941,7 @@ msgstr ""
 "未找到 LaTeX 解释器。若要在 Flatpak 中安装解释器，请打开终端并运行以下命令：    flatpak install "
 "org.freedesktop.Sdk.Extension.texlive"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:377
+#: setzer/dialogs/preferences/pages/page_build_system.py:392
 msgid ""
 "No LaTeX interpreter found. For instructions on installing LaTeX see <a "
 "href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
@@ -4949,12 +4949,12 @@ msgstr ""
 "未找到 LaTeX 解释器。有关安装 LaTeX 的说明，请参阅 <a "
 "href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:382
+#: setzer/dialogs/preferences/pages/page_build_system.py:397
 #: setzer/dialogs/project_build_configuration_viewgtk.py:216
 msgid "Interpreter"
 msgstr "解释器"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:387
+#: setzer/dialogs/preferences/pages/page_build_system.py:402
 msgid ""
 "Please note: the Tectonic backend uses only the V1 command-line interface. "
 "Tectonic.toml configuration files are ignored. For custom build "
@@ -4963,7 +4963,7 @@ msgid ""
 "documentation</a>)."
 msgstr "请注意：Tectonic 后端仅使用 V1 命令行接口。Tectonic.toml 配置文件将被忽略。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:394
+#: setzer/dialogs/preferences/pages/page_build_system.py:409
 msgid ""
 "PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so "
 "the latexmk options below do not apply. Its PDF is byte-identical to "
@@ -4975,29 +4975,29 @@ msgstr ""
 " pdfLaTeX 逐字节一致，但暂不支持 LuaLaTeX。只有在 PhiTeX "
 "会话运行时编辑才能即时生效；没有会话时，想要最快的完整重编译请改用其他解释器。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:403
+#: setzer/dialogs/preferences/pages/page_build_system.py:418
 msgid "Install PhiTeX"
 msgstr "安装 PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:404
+#: setzer/dialogs/preferences/pages/page_build_system.py:419
 msgid ""
 "Not found on this machine. Copy the instructions and hand them to an AI "
 "agent — it will fetch and verify the release for your platform."
 msgstr "本机未找到。复制这段说明交给 AI Agent，它会为你的平台下载并校验发布包。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:408
+#: setzer/dialogs/preferences/pages/page_build_system.py:423
 msgid "Copy the installation instructions to the clipboard"
 msgstr "复制安装说明到剪贴板"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:420
+#: setzer/dialogs/preferences/pages/page_build_system.py:435
 msgid "Automatically remove helper files (.log, .dvi, …) after building .pdf."
 msgstr "在构建 PDF 后自动移除辅助文件（.log、.dvi 等……）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:428
+#: setzer/dialogs/preferences/pages/page_build_system.py:443
 msgid "Keep a PhiTeX session running"
 msgstr "保持 PhiTeX 会话常驻运行"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:429
+#: setzer/dialogs/preferences/pages/page_build_system.py:444
 msgid ""
 "Rebuild only what the edit affects by reusing one running PhiTeX process per"
 " document. Turning this off re-starts PhiTeX for every build, which "
@@ -5005,11 +5005,11 @@ msgid ""
 msgstr ""
 "每个文档复用一个常驻的 PhiTeX 进程，只重编译改动影响到的部分。关闭后每次构建都会重新启动 PhiTeX，每次都要完整重编译整份文档。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:439
+#: setzer/dialogs/preferences/pages/page_build_system.py:454
 msgid "Output chain"
 msgstr "输出链"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:440
+#: setzer/dialogs/preferences/pages/page_build_system.py:455
 msgid ""
 "PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; "
 "your interpreter choice is ignored on this route."
@@ -5017,108 +5017,130 @@ msgstr ""
 "经 PostScript 生成 PDF 运行 latex → dvips → ps2pdf。PSTricks/psfrag "
 "需要；此路线忽略您选择的解释器。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:442
+#: setzer/dialogs/preferences/pages/page_build_system.py:457
 msgid "Direct PDF"
 msgstr "直接 PDF"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:443
+#: setzer/dialogs/preferences/pages/page_build_system.py:458
 msgid "PDF via PostScript (DVI → dvips → ps2pdf)"
 msgstr "经 PostScript 生成 PDF（DVI → dvips → ps2pdf）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:449
+#: setzer/dialogs/preferences/pages/page_build_system.py:464
 msgid "Generate SyncTeX for preview sync"
 msgstr "为预览同步生成 SyncTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:450
+#: setzer/dialogs/preferences/pages/page_build_system.py:465
 msgid ""
 "Enables forward/reverse sync between editor and PDF preview. Disabling makes"
 " builds slightly faster."
 msgstr "启用编辑器与 PDF 预览之间的正向/反向同步。禁用可让构建略快。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:458
+#: setzer/dialogs/preferences/pages/page_build_system.py:469
+msgid "Elapsed-time counter on the build button"
+msgstr "构建按钮上的计时器"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:470
+msgid ""
+"PhiTeX rebuilds a change in about 20 ms, where a counter that ticks once per"
+" second is noise rather than information."
+msgstr "PhiTeX 重编译一处改动只要约 20 毫秒，此时一秒一跳的计时器只是噪音，算不上信息。"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:472
+msgid "Show for slow builders, hide for PhiTeX"
+msgstr "慢编译器显示，PhiTeX 隐藏"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:473
+msgid "Always show"
+msgstr "始终显示"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:474
+msgid "Never show"
+msgstr "从不显示"
+
+#: setzer/dialogs/preferences/pages/page_build_system.py:484
 msgid "Automatically build and save after changes"
 msgstr "更改后自动构建并保存"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:459
+#: setzer/dialogs/preferences/pages/page_build_system.py:485
 msgid ""
 "When you stop typing, the document is saved and rebuilt after a short delay."
 msgstr "停止输入后，文档会在短暂延迟后保存并重新构建"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:463
+#: setzer/dialogs/preferences/pages/page_build_system.py:489
 msgid "Delay (seconds)"
 msgstr "延迟（秒）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:465
+#: setzer/dialogs/preferences/pages/page_build_system.py:491
 msgid ""
 "Shorter delays update the preview faster but use more CPU while typing."
 msgstr "预览"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:476
+#: setzer/dialogs/preferences/pages/page_build_system.py:502
 msgid "Pop up build log on auto-build errors"
 msgstr "自动构建出错时弹出构建日志"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:478
+#: setzer/dialogs/preferences/pages/page_build_system.py:504
 msgid ""
 "When auto-build is on, automatically show the build log when errors occur. "
 "Disable to avoid interruptions while typing."
 msgstr "启用自动构建时，出错会自动显示构建日志。关闭可避免在输入时受到干扰"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:483
+#: setzer/dialogs/preferences/pages/page_build_system.py:509
 msgid "Automatically show build log"
 msgstr "自动显示构建日志"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:487
+#: setzer/dialogs/preferences/pages/page_build_system.py:513
 #: setzer/document/statusbar/statusbar_viewgtk.py:81
 msgid "Show build log"
 msgstr "显示构建日志"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:489
+#: setzer/dialogs/preferences/pages/page_build_system.py:515
 msgid ".. only when errors occurred."
 msgstr "仅当错误发生时"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:490
+#: setzer/dialogs/preferences/pages/page_build_system.py:516
 msgid ".. on errors and warnings."
 msgstr "发生错误和警告时"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:491
+#: setzer/dialogs/preferences/pages/page_build_system.py:517
 msgid ".. on errors, warnings and badboxes."
 msgstr "发生错误、警告和排版溢出（Badbox）时"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:492
+#: setzer/dialogs/preferences/pages/page_build_system.py:518
 msgid ".. never."
 msgstr "从不自动显示构建日志"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:498
+#: setzer/dialogs/preferences/pages/page_build_system.py:524
 msgid "Embedded system commands"
 msgstr "嵌入式系统命令"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:512
+#: setzer/dialogs/preferences/pages/page_build_system.py:538
 msgid ""
 "Warning: enable this only if you have to. It can cause security problems "
 "when building files from untrusted sources."
 msgstr "警告：仅当您不得不时启用该选项。它可以在构建不可信来源文件时导致安全问题。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:520
+#: setzer/dialogs/preferences/pages/page_build_system.py:546
 msgid "System commands"
 msgstr "系统命令"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:522
+#: setzer/dialogs/preferences/pages/page_build_system.py:548
 msgid "Disable"
 msgstr "禁用"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:523
+#: setzer/dialogs/preferences/pages/page_build_system.py:549
 msgid "Enable restricted \\write18{SHELL COMMAND}"
 msgstr "启用有限的 \\write18{SHELL 命令}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:524
+#: setzer/dialogs/preferences/pages/page_build_system.py:550
 msgid "Fully enable \\write18{SHELL COMMAND}"
 msgstr "完全启用 \\write18{SHELL 命令}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:531
+#: setzer/dialogs/preferences/pages/page_build_system.py:557
 msgid "Personal TeX tree"
 msgstr "个人 TeX 树"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:532
+#: setzer/dialogs/preferences/pages/page_build_system.py:558
 msgid ""
 "Directory with your own packages, classes and bibliography styles (kpathsea "
 "TEXMFHOME). Applied to every build; leave empty to use your environment or "
@@ -5127,11 +5149,11 @@ msgstr ""
 "存放您自己的宏包、类和文献样式的目录（kpathsea TEXMFHOME）。应用于每次构建；留空则使用您的环境或 TeX Live "
 "默认值（~/texmf）。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:536
+#: setzer/dialogs/preferences/pages/page_build_system.py:562
 msgid "TEXMFHOME directory"
 msgstr "TEXMFHOME 目录"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:537
+#: setzer/dialogs/preferences/pages/page_build_system.py:563
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr "前导“~”会展开为您的主目录。例如：~/.texmf"
 
@@ -6854,55 +6876,55 @@ msgstr "所选 BibTeX 路径不是常规文件"
 msgid "The bibliography changed outside Setzer"
 msgstr "参考文献库已在 Setzer 外部被更改"
 
-#: setzer/document/build_system/build_system.py:446
+#: setzer/document/build_system/build_system.py:463
 msgid "Previous build cancelled"
 msgstr "上一次构建已取消"
 
-#: setzer/document/build_widget/build_widget.py:145
+#: setzer/document/build_widget/build_widget.py:162
 #: setzer/project/build_configuration.py:51
 msgid "BibTeX"
 msgstr "BibTeX 文件"
 
-#: setzer/document/build_widget/build_widget.py:146
+#: setzer/document/build_widget/build_widget.py:163
 #: setzer/project/build_configuration.py:52
 msgid "Biber"
 msgstr "Biber"
 
-#: setzer/document/build_widget/build_widget.py:147
+#: setzer/document/build_widget/build_widget.py:164
 #: setzer/project/build_configuration.py:53
 msgid "MakeIndex"
 msgstr "MakeIndex"
 
-#: setzer/document/build_widget/build_widget.py:148
+#: setzer/document/build_widget/build_widget.py:165
 #: setzer/project/build_configuration.py:54
 msgid "Glossaries"
 msgstr "词汇表"
 
-#: setzer/document/build_widget/build_widget.py:149
+#: setzer/document/build_widget/build_widget.py:166
 msgid "Sync"
 msgstr "同步"
 
-#: setzer/document/build_widget/build_widget.py:162
+#: setzer/document/build_widget/build_widget.py:179
 msgid "Success!"
 msgstr "成功！"
 
-#: setzer/document/build_widget/build_widget.py:164
+#: setzer/document/build_widget/build_widget.py:181
 #: setzer/helpers/build_status_text.py:46
 msgid "Build succeeded"
 msgstr "构建成功"
 
-#: setzer/document/build_widget/build_widget.py:174
+#: setzer/document/build_widget/build_widget.py:191
 #, python-brace-format
 msgid "{count} error"
 msgid_plural "{count} errors"
 msgstr[0] "{count} 个错误"
 msgstr[1] "{count} 个错误"
 
-#: setzer/document/build_widget/build_widget.py:175
+#: setzer/document/build_widget/build_widget.py:192
 msgid "Failed"
 msgstr "失败"
 
-#: setzer/document/build_widget/build_widget.py:180
+#: setzer/document/build_widget/build_widget.py:197
 #: setzer/document/preview/preview_viewgtk.py:445
 msgid "Build failed"
 msgstr "构建失败"
@@ -6915,7 +6937,7 @@ msgstr "停止构建"
 msgid "Cleanup build files"
 msgstr "清理构建文件"
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:118
+#: setzer/document/build_widget/build_widget_viewgtk.py:131
 msgid "Pass {}"
 msgstr "传给 {}"
 
@@ -6979,28 +7001,28 @@ msgstr "查找上一个匹配"
 msgid "Next Match"
 msgstr "查找下一个匹配"
 
-#: setzer/document/preview/preview_controller.py:374
-#: setzer/document/preview/preview_controller.py:592
+#: setzer/document/preview/preview_controller.py:375
+#: setzer/document/preview/preview_controller.py:595
 msgid "Hold Ctrl and click to open this link"
 msgstr "按住 Ctrl 并点击以打开此链接"
 
-#: setzer/document/preview/preview_controller.py:376
+#: setzer/document/preview/preview_controller.py:377
 msgid "Go to page "
 msgstr "跳转至页 "
 
-#: setzer/document/preview/preview_controller.py:635
+#: setzer/document/preview/preview_controller.py:638
 msgid "Could not open link"
 msgstr "无法打开链接"
 
-#: setzer/document/preview/preview_controller.py:644
+#: setzer/document/preview/preview_controller.py:647
 msgid "Link blocked: this link type is unsafe"
 msgstr "链接已阻止：此链接类型不安全"
 
-#: setzer/document/preview/preview_controller.py:652
+#: setzer/document/preview/preview_controller.py:655
 msgid "Open local file from this PDF?"
 msgstr "从此 PDF 打开本地文件？"
 
-#: setzer/document/preview/preview_controller.py:653
+#: setzer/document/preview/preview_controller.py:656
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
