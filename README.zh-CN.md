@@ -37,18 +37,10 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 
 ## 安装
 
-本 fork **未**发布在 Flathub 上。获取方式：
-
 1. **Windows 便携 zip**——本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中的 `setzer_<版本号>_windows_x64.zip`。解压到任意目录后运行 `ucrt64\bin\setzer.bat` 即可，无需 MSYS2、无需安装程序。详见[使用便携 zip](#使用便携-zip)。
 2. **Debian 系软件包**——预编译的 `.deb` 包已发布在本 fork 的 [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) 中。请在那里查看最新构建版本。
 3. **macOS Apple Silicon 应用包**——下载 `setzer_<版本号>_macos_arm64.zip` 并解压 `Setzer.app`；当前 Gatekeeper 与签名状态见 [macOS 打包说明](docs/packaging/macos.md)。
 4. **从源码构建**（见下文）——适用于任何 Linux 发行版或 Windows（通过 MSYS2），只要依赖可用。
-
-## 使用 GNOME Builder 运行 NeoSetzer
-
-要使用 GNOME Builder 运行 NeoSetzer，只需在启动屏幕上点击“克隆”按钮，粘贴 `https://github.com/Sam-Fic/NeoSetzer.git`，等待克隆完成后按下运行按钮。它会构建 NeoSetzer 及其依赖项，然后启动应用。
-
-警告：这种方式构建 NeoSetzer 可能需要较长时间。
 
 ## 在 Debian/Ubuntu 上运行 NeoSetzer
 
@@ -165,9 +157,10 @@ Windows 便携包流程见 [docs/packaging/windows.md](docs/packaging/windows.md
 
 ## 致谢
 
-NeoSetzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同，尽管我仍在不断更改/整理它们。自动补全建议大多与 Texmaker 相同。我从 Gnome Builder 取用了一些图标。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
+NeoSetzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同，尽管我仍在不断更改/整理它们。自动补全建议大多与 Texmaker 相同。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
 
-用户界面的部分设计参考了 [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)。
+图标：[Icon Library](https://gitlab.gnome.org/World/design/icon-library)
+用户界面部分设计参考：[GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)
 
 ## 许可证
 

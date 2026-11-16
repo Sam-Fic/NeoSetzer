@@ -37,18 +37,10 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 
 ## Installation
 
-This fork is **not** published on Flathub. Ways to get it:
-
 1. **Windows portable zip** — `setzer_<version>_windows_x64.zip` in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Extract anywhere and run `ucrt64\bin\setzer.bat`; no MSYS2 or installer needed. See [Using the portable zip](#using-the-portable-zip).
 2. **Debian/Ubuntu package** — Prebuilt `.deb` packages are published in the [GitHub Releases](https://github.com/Sam-Fic/NeoSetzer/releases) of this fork. Check there for the latest build.
 3. **macOS Apple Silicon application** — Download `setzer_<version>_macos_arm64.zip`, extract `Setzer.app`, and see [macOS packaging notes](docs/packaging/macos.md) for the current Gatekeeper and signing status.
 4. **Build from source** (see below) — works on any Linux distribution or Windows (via MSYS2) with the dependencies available.
-
-## Running NeoSetzer with GNOME Builder
-
-To run NeoSetzer with GNOME Builder, click the "Clone" button on the start screen, paste `https://github.com/Sam-Fic/NeoSetzer.git`, wait for the clone to finish, and press the play button. GNOME Builder will build NeoSetzer and its dependencies before launching it.
-
-> **Warning:** Building NeoSetzer this way may take a long time.
 
 ## Running NeoSetzer on Debian/Ubuntu
 
@@ -165,9 +157,10 @@ For the original upstream project, see [https://github.com/cvfosammmm/setzer](ht
 
 ## Acknowledgements
 
-NeoSetzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. I took some icons from Gnome Builder. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
+NeoSetzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
 
-Parts of the user interface are modeled after [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor).
+Icons: [Icon Library](https://gitlab.gnome.org/World/design/icon-library)  
+UI Design Reference: [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)
 
 ## License
 
