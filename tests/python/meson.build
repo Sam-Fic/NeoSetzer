@@ -102,6 +102,7 @@ foreach t : [
   ['test_auto_build_phitex_delay', 'test_auto_build_phitex_delay.py'],
   ['test_backward_sync_match', 'test_backward_sync_match.py'],
   ['test_build_timer_preference', 'test_build_timer_preference.py'],
+  ['test_build_button_geometry', 'test_build_button_geometry.py'],
   ['test_phitex_update_ui', 'test_phitex_update_ui.py'],
   ['test_dialog_toast_host', 'test_dialog_toast_host.py'],
   ['test_interpreter_restore', 'test_interpreter_restore.py'],
