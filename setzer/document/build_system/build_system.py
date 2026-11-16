@@ -38,6 +38,7 @@ from setzer.document.change_highlight.change_highlight import ChangeHighlight
 from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers.observable import Observable
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
+from setzer.helpers.synctex_line_repair import repair_line
 from setzer.project.build_configuration import ProjectBuildConfiguration
 
 
@@ -78,6 +79,9 @@ class BuildSystem(Observable):
         self.last_build_start_time = None
 
         self.has_synctex_file = False
+        # 上一次真正跑构建用的引擎。PhiTeX 的 .synctex.gz 行号不可靠
+        # （见 synctex_line_repair），反查时要据此决定是否按 PDF 文本纠正。
+        self.last_build_interpreter = None
         self.backward_sync_data = None
         self.forward_sync_arguments = None
         self.can_sync = False
@@ -264,10 +268,20 @@ class BuildSystem(Observable):
 
     def set_forward_sync_arguments(self, active_document):
         sb = active_document.source_buffer
+        insert = sb.get_iter_at_mark(sb.get_insert())
         self.forward_sync_arguments = dict()
         self.forward_sync_arguments['filename'] = active_document.get_filename()
-        self.forward_sync_arguments['line'] = sb.get_iter_at_mark(sb.get_insert()).get_line() + 1
-        self.forward_sync_arguments['line_offset'] = sb.get_iter_at_mark(sb.get_insert()).get_line_offset() + 1
+        self.forward_sync_arguments['line'] = insert.get_line() + 1
+        self.forward_sync_arguments['line_offset'] = insert.get_line_offset() + 1
+        # phitex 的 synctex 行号不可靠（见 synctex_line_repair），预览层要用
+        # 光标所在行的文字反查 PDF 行。这里先抓下来，构建结束后 source_buffer
+        # 可能已经变了。
+        start = insert.copy()
+        start.set_line_offset(0)
+        end = insert.copy()
+        if not end.ends_line():
+            end.forward_to_line_end()
+        self.forward_sync_arguments['text'] = sb.get_text(start, end, False)
 
     def set_build_log_items(self, log_items):
         # 单次遍历 log_items 完成计数与 (filename, items) 分组，并附加阶段（stage）信息。
@@ -346,6 +360,10 @@ class BuildSystem(Observable):
         build_result = query.get_build_result()
         forward_sync_result = query.get_forward_sync_result()
         backward_sync_result = query.get_backward_sync_result()
+        # 只有构建 query 带 build_data；同步 query 不带，别把记录冲成 None。
+        interpreter = query.build_data.get('latex_interpreter')
+        if interpreter:
+            self.last_build_interpreter = interpreter
         if forward_sync_result != None or backward_sync_result != None or build_result != None:
             self.parse_result({'build': build_result, 'forward_sync': forward_sync_result, 'backward_sync': backward_sync_result})
         self.active_query = None
@@ -379,7 +397,14 @@ class BuildSystem(Observable):
                         self.document.preview.set_pdf_is_stale(True)
 
             if result_blob['forward_sync'] != None:
-                self.document.preview.set_synctex_rectangles(result_blob['forward_sync'])
+                # 仅 phitex 需要按源码行文字纠正：它的 synctex 行号会把大段
+                # 内容归到后面的章节命令上，矩形框因此落在错误位置。
+                source_text = None
+                if (self._phitex_synctex_lines_unreliable()
+                        and self.forward_sync_arguments):
+                    source_text = self.forward_sync_arguments.get('text')
+                self.document.preview.set_synctex_rectangles(
+                    result_blob['forward_sync'], source_text)
                 self.show_build_state('')
 
             if result_blob['build'] != None:
@@ -421,11 +446,15 @@ class BuildSystem(Observable):
             # 其内部已 normpath，只有这里是裸比较。
             same_file = (current is not None and target is not None
                          and os.path.normpath(target) == os.path.normpath(current))
-            if not self.document.root_is_set:
-                if same_file:
-                    self.set_synctex_position(self.document, result_blob['backward_sync'])
-                    self.document.scroll_cursor_to_center()
-            elif self.document.is_root:
+            # root_is_set 只在显式指定了根文档时为 True；很多工程靠
+            # % !TEX root 魔术注释确定根文件，root_document 一直是空的。
+            # 旧逻辑在这种情况下只允许"目标就是当前文件"的反查，跳到
+            # chapters/*.tex 这类被 include 的文件一律无反应。
+            if same_file:
+                self.set_synctex_position(self.document, result_blob['backward_sync'])
+                self.document.scroll_cursor_to_center()
+            elif ((not self.document.root_is_set or self.document.is_root)
+                  and target is not None and os.path.isfile(target)):
                 workspace = ServiceLocator.get_workspace()
                 document = workspace.open_document_by_filename(target)
                 if document != None:
@@ -677,8 +706,33 @@ class BuildSystem(Observable):
                              daemon=True).start()
         self.add_change_code('latex_interpreter_changed')
 
+    def _phitex_synctex_lines_unreliable(self):
+        '''本次 synctex 是否由 PhiTeX 生成。
+
+        phitex 1.0.2 的 --synctex 行号取自最后一次引擎运行的输入行，标题、
+        列表项会成片落到后面某个章节命令上。其它引擎逐节点记录行号，不需要
+        也不该二次纠正。没跑过构建（会话恢复后直接点击）时退回当前设置里的
+        引擎判断。
+        '''
+        interpreter = self.last_build_interpreter
+        if interpreter is None:
+            interpreter = self.get_effective_interpreter()
+        return interpreter == 'phitex'
+
+    @staticmethod
+    def _document_lines(document):
+        buffer = document.source_buffer
+        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False).split('\n')
+
     def set_synctex_position(self, document, position):
-        position_found, start = document.source_buffer.get_iter_at_line(position['line'])
+        line = position['line']
+        if self._phitex_synctex_lines_unreliable():
+            repaired = repair_line(line, position.get('pdf_line_text'),
+                                   self._document_lines(document))
+            if repaired != line:
+                _sync_debug('phitex synctex 行号 %d 不可靠，按 PDF 文本纠正为 %d' % (line, repaired))
+                line = repaired
+        position_found, start = document.source_buffer.get_iter_at_line(line)
         end = start.copy()
         if not start.ends_line():
             end.forward_to_line_end()

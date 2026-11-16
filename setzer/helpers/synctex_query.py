@@ -39,7 +39,7 @@ def _regex():
     global _VIEW_REGEX
     if _VIEW_REGEX is None:
         _VIEW_REGEX = ServiceLocator.get_regex_object(
-            r'\nOutput:.*\nPage:([0-9]+)\nx:.*\ny:.*\nh:((?:[0-9]|\.)+)\nv:((?:[0-9]|\.)+)\nW:((?:[0-9]|\.)+)\nH:((?:[0-9]|\.)+)\nbefore:.*\noffset:.*\nmiddle:.*\nafter:.*')
+            r'\nOutput:.*\nPage:([0-9]+)\nx:.*\ny:.*\nh:(-?(?:[0-9]|\.)+)\nv:((?:[0-9]|\.)+)\nW:((?:[0-9]|\.)+)\nH:((?:[0-9]|\.)+)\nbefore:.*\noffset:.*\nmiddle:.*\nafter:.*')
     return _VIEW_REGEX
 
 

@@ -435,6 +435,21 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
+        if self.phitex_session is not None:
+            # PhiTeX 的 watch 先落 PDF，约 30ms 后才写 .synctex.gz。等待
+            # 返回后立刻 copy 会拿到上一轮编译的 synctex（跳转位置整体
+            # 偏移一次编译），或者文件还没生成而 copy 失败——can_sync
+            # 变 False，Ctrl+点击完全没反应。等它追平 PDF 的 mtime 再复制。
+            pdf_filename = self.get_output_filename(query, '.pdf')
+            deadline = time.time() + 0.5
+            while time.time() < deadline:
+                try:
+                    if os.path.getmtime(move_from) >= os.path.getmtime(pdf_filename):
+                        break
+                except OSError:
+                    pass
+                time.sleep(0.01)
+
         try: shutil.copyfile(move_from, move_to)
         except (FileNotFoundError, OSError): return False
         else: return True

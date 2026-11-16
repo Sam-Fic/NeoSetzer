@@ -29,6 +29,7 @@ import math
 import unicodedata
 
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
+from setzer.helpers.synctex_line_repair import has_matchable_text, match_pdf_line
 
 import setzer.document.preview.preview_viewgtk as preview_view
 import setzer.document.preview.preview_layouter as preview_layouter
@@ -829,8 +830,17 @@ class Preview(Observable):
         if len(rectangles) > 0:
             self.presenter.start_fade_loop()
 
-    def set_synctex_rectangles(self, rectangles):
+    def set_synctex_rectangles(self, rectangles, source_text=None):
         if self.layout == None: return
+
+        # phitex 的 synctex 行号不可靠（见 synctex_line_repair）：矩形可能落在
+        # 页面上完全不相干的位置。页面上的文字是对的，用源码行文字反查 PDF
+        # 文本行来定位；匹配不到就保持 synctex 的结果。
+        if source_text:
+            matched = self._find_rectangle_for_source_text(source_text, rectangles)
+            if matched is not None:
+                _sync_debug('正向同步按源码行文本纠正矩形: page %s' % matched['page'])
+                rectangles = [matched]
 
         self.show_synctex_rectangles(rectangles)
 
@@ -839,6 +849,84 @@ class Preview(Observable):
         # 通知独立窗口（若预览已 detach）present 自身，让用户看到正向跳转结果。
         # 仅发 change_code，不直接 import 窗口类——保持 model 与 UI 解耦。
         self.add_change_code('synctex_forward')
+
+    def _get_pdf_text_lines(self, page_index):
+        '''Return [(text, (x1, y1, x2, y2)), ...] for a page, top-down points.
+
+        get_text_layout() 的矩形与 get_text() 的字符一一对应（与
+        _get_pdf_line_offset 同一约定），按其中的换行符切行即可拿到每行的
+        文字与包围盒，无需额外猜测行边界。
+        '''
+        try:
+            poppler_page = self.poppler_document.get_page(page_index)
+            ok, rects = poppler_page.get_text_layout()
+            page_text = poppler_page.get_text()
+        except Exception:
+            return list()
+        if not ok or not rects or len(rects) != len(page_text):
+            return list()
+
+        lines = list()
+        chars = list()
+        box = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+        for char, rect in zip(page_text, rects):
+            if char in ('\n', '\r'):
+                if chars:
+                    lines.append((''.join(chars), tuple(box)))
+                chars = list()
+                box = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+                continue
+            if rect.x2 <= rect.x1 and rect.y2 <= rect.y1:
+                continue
+            chars.append(char)
+            box[0] = min(box[0], rect.x1)
+            box[1] = min(box[1], rect.y1)
+            box[2] = max(box[2], rect.x2)
+            box[3] = max(box[3], rect.y2)
+        if chars:
+            lines.append((''.join(chars), tuple(box)))
+        return lines
+
+    def _find_rectangle_for_source_text(self, source_text, rectangles):
+        '''用源码行文字在 PDF 里找对应文本行，返回 synctex 格式矩形。
+
+        synctex 给的页通常是对的，所以先只查这些页；phitex 也可能把一段
+        文字归到另一页的节点上（实测代码清单被指到第 10 页），那一页找不到
+        时再顺序扫全文档，命中即停。找到后转成与 synctex 一致的约定：
+        v 是包围框底边距页顶的距离（_scroll_to_rectangle 会再减 height）。
+        '''
+        if not has_matchable_text(source_text):
+            return None
+
+        candidate_pages = list()
+        for rect in rectangles:
+            page = rect.get('page')
+            if isinstance(page, int) and page not in candidate_pages:
+                candidate_pages.append(page)
+
+        try:
+            page_count = self.poppler_document.get_n_pages()
+        except Exception:
+            page_count = 0
+
+        pages = [page for page in candidate_pages if 1 <= page <= page_count]
+        pages += [page for page in range(1, page_count + 1)
+                  if page not in pages]
+
+        for page in pages:
+            lines = self._get_pdf_text_lines(page - 1)
+            if not lines:
+                continue
+            index = match_pdf_line(source_text, [text for text, _ in lines])
+            if index is None:
+                continue
+            x1, y1, x2, y2 = lines[index][1]
+            return {'page': page,
+                    'h': x1,
+                    'v': y2,
+                    'width': max(x2 - x1, 1.0),
+                    'height': max(y2 - y1, 1.0)}
+        return None
 
     def _scroll_to_rectangle(self, position):
         '''把矩形滚进视野，成功返回 True（页号越界则不动）。

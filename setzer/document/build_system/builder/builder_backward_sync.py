@@ -31,7 +31,9 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
         builder_build.BuilderBuild.__init__(self)
 
         self.config_folder = ServiceLocator.get_config_folder()
-        self.backward_synctex_regex = ServiceLocator.get_regex_object(r'\nOutput:.*\nInput:(.*\.tex)\nLine:([0-9]+)\nColumn:(?:[0-9]|-)+\nOffset:(?:[0-9]|-)+\nContext:.*\n')
+        # Input 不限于 .tex：\lstinputlisting 等引入的 .m/.py 文件、bbl/bib
+        # 也会出现在 synctex 记录里，限定 .tex 会让点击这些内容毫无反应。
+        self.backward_synctex_regex = ServiceLocator.get_regex_object(r'\nOutput:.*\nInput:(.*)\nLine:([0-9]+)\nColumn:(?:[0-9]|-)+\nOffset:(?:[0-9]|-)+\nContext:.*\n')
 
         self.process = None
 
@@ -66,7 +68,7 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
             self.process = None
 
             match = self.backward_synctex_regex.search(raw)
-            if match != None:
+            if match != None and match.group(1):
                 result = dict()
                 result['filename'] = match.group(1)
                 result['line'] = max(int(match.group(2)) - 1, 0)
