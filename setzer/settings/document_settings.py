@@ -140,6 +140,21 @@ class DocumentSettings():
         except OSError:
             return False
 
+    @staticmethod
+    def restore_interpreter_override(document, document_data):
+        '''恢复每文档的引擎选择。
+
+        它与编译日志的新鲜度无关：引擎选择不依赖 .tex 自上次构建后改没改过。
+        原先这行写在 _restore_build_log_state 的 mtime 门控里，于是"构建后
+        编辑过"或"从未构建过"的文档一重启就退回默认引擎；更糟的是随后
+        save_document_state 会把 None 写回存档，用户的选择就此永久消失。
+        '''
+        if not document.is_latex_document():
+            return
+        if not DocumentSettings._has_latex_toolchain(document):
+            return
+        document.build_system.latex_interpreter = document_data.get('latex_interpreter')
+
     def _restore_build_log_state(document, document_data):
         '''恢复持久化的编译日志 / SyncTeX 状态到 document.build_system。
 
@@ -157,7 +172,6 @@ class DocumentSettings():
                 document.build_system.build_log_data = document_data['build_log_data']
                 document.build_system.document_has_been_built = document_data['has_been_built']
                 document.build_system.build_time = document_data['build_time']
-                document.build_system.latex_interpreter = document_data.get('latex_interpreter')
                 document.build_system.has_synctex_file = document_data['has_synctex_file']
                 document.build_system.build_log_mtime = build_log_mtime
                 document.build_system.update_can_sync()
@@ -222,6 +236,7 @@ class DocumentSettings():
         update_document 的尾部完全一致（build log → save_date 守卫 → 折叠
         区域 → 预览），抽出共用以防行为漂移。
         '''
+        DocumentSettings.restore_interpreter_override(document, document_data)
         DocumentSettings._restore_build_log_state(document, document_data)
         if DocumentSettings._is_save_date_stale(document, document_data):
             return
@@ -234,6 +249,7 @@ class DocumentSettings():
         document._per_document_overrides = dict(
             document_data.get('per_document_overrides', {})
         )
+        DocumentSettings.restore_interpreter_override(document, document_data)
 
         # 最近符号按文档区分：优先取状态文件中的 recent_symbols，缺失则保持默认空列表。
         # 放在最前，确保即便后续因 save_date 或 PDF 缺失等提前 return，最近符号仍被恢复。
