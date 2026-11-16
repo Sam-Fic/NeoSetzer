@@ -78,6 +78,16 @@ class Gutter(object):
         self._line_drag_scroll_direction = 0
         self._line_drag_scroll_id = None
 
+        # Shift+点击行号扩展选区：锚点行是「上一次点击的行号」，Shift+点击
+        # 时选中锚点行到本次点击行之间的整行（含两端）。尚未点击过行号时，
+        # 以当前光标所在行为锚点——等价于从光标处扩展选区。
+        # _range_anchor_expected_cursor_line 记录 gutter 自身选区动作后光标
+        # 应处的行号，用于识别「用户另行挪动了光标」并作废过期锚点。
+        self._range_anchor_line = None
+        self._range_anchor_expected_cursor_line = None
+        # Shift+点击是否已经处理过本次按下的选区：为真时拖动手势不得覆盖它。
+        self._shift_selection_pending = False
+
         # 配色缓存：_get_scheme_colors 原实现每帧（draw）对每个可见行都重新
         # 取 style-scheme 并解析一堆 hex 字符串构造 RGBA，纯属浪费。缓存后在
         # notify::style-scheme 时失效（见 on_scheme_changed）。
@@ -312,6 +322,8 @@ class Gutter(object):
 
     def on_cursor_change(self, document):
         self._schedule_refresh()
+        # 光标被挪到别处 → 行号锚点过期，后续 Shift+点击行号改用光标行。
+        self._invalidate_range_anchor_if_cursor_moved()
 
     def on_adjustment_value_changed(self, adjustment):
         '''滚动时必须立即重绘 gutter，否则行号/高亮会滞后 source_view 一帧。
@@ -539,7 +551,15 @@ class Gutter(object):
             self.document.bookmarks.toggle_bookmark(line)
         else:
             line_number = self._line_at_widget_y(y)
-            self._select_line_range(line_number, line_number)
+            if self._shift_pressed(event_controller):
+                # Shift+点击：选中「上一次点击的行号」到本次点击行之间的整行。
+                self._shift_selection_pending = True
+                self._select_line_range_to(line_number)
+            else:
+                self._shift_selection_pending = False
+                self._range_anchor_line = line_number
+                self._range_anchor_expected_cursor_line = line_number
+                self._select_line_range(line_number, line_number)
         return True
 
     # —— 行号拖动选区 ————————————————————————————————————————————————
@@ -555,6 +575,11 @@ class Gutter(object):
         self._reset_line_selection_drag()
         if self.get_cursor_area(x) != 'line_numbers':
             return
+        if self._shift_selection_pending or self._shift_pressed(controller):
+            # Shift+点击行号由 on_button_press 处理（扩展到锚点行）；
+            # 这里必须退出拖动模式，否则 drag-end 会把选区收回到单行。
+            self._shift_selection_pending = True
+            return
         self._line_drag_active = True
         self._line_drag_start_y = y
         self._line_drag_anchor_line = self._line_at_widget_y(y)
@@ -562,18 +587,23 @@ class Gutter(object):
     def on_line_selection_drag_update(self, controller, offset_x, offset_y):
         if not self._line_drag_active:
             return
+        if self._shift_selection_pending:
+            # Shift+点击的选区已由 on_button_press 决定，拖动不得覆盖它。
+            return
         y = self._line_drag_start_y + offset_y
         self._update_line_selection(self._clamp_line_drag_y(y))
         self._update_line_drag_autoscroll(y)
 
     def on_line_selection_drag_end(self, controller, offset_x, offset_y):
-        if self._line_drag_active:
+        if self._line_drag_active and not self._shift_selection_pending:
             # 补一次最终位置：拖动很快时最后一个 motion 未必产生 drag-update。
             y = self._line_drag_start_y + offset_y
             self._update_line_selection(self._clamp_line_drag_y(y))
+        self._shift_selection_pending = False
         self._reset_line_selection_drag()
 
     def on_line_selection_drag_cancel(self, controller, *args):
+        self._shift_selection_pending = False
         self._reset_line_selection_drag()
 
     def _reset_line_selection_drag(self):
@@ -600,6 +630,92 @@ class Gutter(object):
             end_iter = self.source_buffer.get_iter_at_line(last + 1)[1]
         self.source_buffer.select_range(start_iter, end_iter)
 
+    # —— Shift+点击行号扩展选区 ———————————————————————————————————————
+
+    def _shift_pressed(self, event_controller):
+        '''判断该次鼠标事件发生时 Shift 键是否处于按下状态。
+
+        优先用事件控制器记录的当前事件状态（与 document_controller 里
+        Ctrl/Alt 的判定方式一致，实测在 'pressed' / 'drag-begin' 回调中
+        都能读到 Shift 位）；拿不到时退回控制器当前事件里的修饰键状态。
+        '''
+        state = None
+        if event_controller is not None:
+            try:
+                state = event_controller.get_current_event_state()
+            except (AttributeError, TypeError):
+                state = None
+        if not state and event_controller is not None:
+            event = None
+            try:
+                event = event_controller.get_current_event()
+            except (AttributeError, TypeError):
+                event = None
+            if event is not None:
+                try:
+                    state = event.get_modifier_state()
+                except (AttributeError, TypeError):
+                    state = None
+        if not state:
+            return False
+        try:
+            shift_mask = Gdk.ModifierType.SHIFT_MASK
+        except (AttributeError, NameError):
+            return False
+        return bool(state & shift_mask)
+
+    def _cursor_line(self):
+        '''当前光标（插入标记）所在行号，越界时钳制到文档范围内。
+
+        注意：GTK4 的 ``Gtk.TextBuffer.get_insert()`` 返回的是
+        ``Gtk.TextMark``（不是 TextIter），不能直接对它调 ``get_line()``；
+        必须先用 ``get_iter_at_mark()`` 换成迭代器。写错会导致这里恒返回
+        0，行号锚点每次都被误判成「光标已被挪走」而作废，Shift+点击行号
+        总是从文档第一行开始选。
+        '''
+        try:
+            mark = self.source_buffer.get_insert()
+            iter_ = self.source_buffer.get_iter_at_mark(mark)
+            line = iter_.get_line()
+        except (AttributeError, TypeError):
+            return 0
+        line_count = self.source_buffer.get_line_count()
+        if not line_count:
+            return 0
+        return max(0, min(line, line_count - 1))
+
+    def _select_line_range_to(self, current_line):
+        '''Shift+点击行号：选中锚点行到 current_line 之间的整行。
+
+        锚点取「上一次点击的行号」；还没点过行号时退化为当前光标所在行，
+        效果相当于从光标处扩展选区。选完后锚点更新为 current_line，于是
+        「按住 Shift 依次点击两个行号」得到的就是这两行之间的范围。
+
+        锚点与期望光标行都在 select_range 之前写好：gutter 自身的选区动作
+        会把光标放到选区起点（两行中较小的那一行），比对一致即认定这次
+        光标变化来自 gutter，不会作废锚点。
+        '''
+        anchor = self._range_anchor_line
+        if anchor is None:
+            anchor = self._cursor_line()
+        self._range_anchor_line = current_line
+        self._range_anchor_expected_cursor_line = min(anchor, current_line)
+        self._select_line_range(anchor, current_line)
+
+    def _invalidate_range_anchor_if_cursor_moved(self):
+        '''用户把光标挪到别处时作废行号锚点。
+
+        行号锚点只在「连续点击行号」这一小段交互里有意义；一旦用户用键盘
+        或在文本区点击改变了光标位置，再按 Shift+点击行号就应该以新的
+        光标行为起点，而不是继续沿用早已过期的行号锚点。
+        '''
+        if self._range_anchor_line is None:
+            return
+        if self._cursor_line() == self._range_anchor_expected_cursor_line:
+            return
+        self._range_anchor_line = None
+        self._range_anchor_expected_cursor_line = None
+
     def _update_line_selection(self, y):
         if self._line_drag_anchor_line is None:
             return
@@ -607,7 +723,13 @@ class Gutter(object):
                                 self._line_at_widget_y(y))
 
     def _line_at_widget_y(self, y):
-        '''把 gutter 内的控件 y 换算成 buffer 行号（已加滚动偏移并钳制）。'''
+        '''把 gutter 内的控件 y 换算成 buffer 行号（已加滚动偏移并钳制）。
+
+        GTK4 的 ``get_line_at_y()`` 收的是 **buffer 坐标**（不是控件坐标），
+        所以这里要把滚动偏移加回去：控件 y + 滚动 = buffer y。绘制行号用的
+        也是 buffer 坐标（``get_iter_location().y - 滚动``），命中判定与绘制
+        因此保持同一套坐标。
+        '''
         offset = self.adjustment.get_value()
         line = self.source_view.get_line_at_y(offset + y).target_iter.get_line()
         line_count = self.source_buffer.get_line_count()

@@ -40,6 +40,8 @@ METHOD_NAMES = {
     '_update_line_drag_autoscroll',
     '_stop_line_drag_autoscroll',
     '_line_drag_autoscroll_timeout',
+    # Shift+点击行号扩展选区：拖动起点需识别 Shift（Shift+点击不走拖动模式）
+    '_shift_pressed',
 }
 
 
@@ -140,6 +142,7 @@ class GutterHarness:
         self.gutter._line_drag_start_y = None
         self.gutter._line_drag_scroll_direction = 0
         self.gutter._line_drag_scroll_id = None
+        self.gutter._shift_selection_pending = False
 
     def _load(self):
         source = ROOT / GUTTER
