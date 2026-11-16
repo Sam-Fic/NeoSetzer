@@ -100,6 +100,7 @@ foreach t : [
   ['test_change_highlight', 'test_change_highlight.py'],
   ['test_auto_build_phitex_delay', 'test_auto_build_phitex_delay.py'],
   ['test_backward_sync_match', 'test_backward_sync_match.py'],
+  ['test_build_timer_preference', 'test_build_timer_preference.py'],
   ['test_frequent_build_ui_feedback', 'test_frequent_build_ui_feedback.py'],
   ['test_preview_no_flash_on_rebuild', 'test_preview_no_flash_on_rebuild.py'],
   ['test_tikz_region_finder', 'test_tikz_region_finder.py'],

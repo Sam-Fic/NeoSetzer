@@ -119,14 +119,31 @@ class BuildWidget(Observable):
                     self.view.clear_stage()
                     self.view.switch_to_building()
                     self.view.build_button.set_sensitive(True)
-                    self.view.reset_timer()
-                    self.view.start_timer()
+                    show_timer = self._show_build_timer()
+                    self.view.set_timer_visible(show_timer)
+                    if show_timer:
+                        self.view.reset_timer()
+                        self.view.start_timer()
         else:
             self.view.switch_to_idle()
             self.view.build_button.set_sensitive(True)
             self.update_build_button_tooltip()
             self.build_button_state = ('idle', int(time.time()*1000))
         self.set_clean_button_state()
+
+    def _show_build_timer(self):
+        '''构建按钮上的计时器本次要不要显示。
+
+        auto 的含义是"计时器还有信息量时才显示"：传统引擎一轮一秒以上，
+        数字是用户判断等待的依据；PhiTeX 常驻 session 一轮约 18 ms、每 150 ms
+        触发一次，一秒一跳的数字只会抖成噪音，反而盖掉真正该看的停止入口。
+        '''
+        mode = self.settings.get_value('preferences', 'build_timer')
+        if mode == 'always':
+            return True
+        if mode == 'never':
+            return False
+        return not self.document.build_system.is_phitex_live_build()
 
     def on_build_stage(self, build_system, stage):
         # 仅在构建/building 态显示阶段；纯 forward/backward sync 模式按钮不在
@@ -210,6 +227,25 @@ class BuildWidget(Observable):
         elif item == 'latex_interpreter':
             # 全局默认引擎变化：刷新 tooltip 中的引擎名。
             self.update_build_button_tooltip()
+        elif item == 'build_timer':
+            # 改这个开关时可能正在构建：立刻生效，否则要等下一次构建才看得见
+            # 变化，用户会以为没起作用。
+            self.apply_build_timer()
+
+    def apply_build_timer(self):
+        '''把当前计时器可见性同步到按钮上（构建中途改设置也要立刻生效）。'''
+        if self.build_button_state[0] != 'building':
+            return
+        if self._show_build_timer():
+            self.view.set_timer_visible(True)
+            if not self.view.timer_active:
+                # 从本次构建的真实已用时接着数，而不是从 0:00 重来。
+                self.view.timer = max(0, int(time.time() * 1000) - self.build_button_state[1])
+                self.view.refresh_timer()
+                self.view.start_timer()
+        else:
+            self.view.stop_timer()
+            self.view.set_timer_visible(False)
 
     def show_message(self, message=''):
         self.view.stop_timer()

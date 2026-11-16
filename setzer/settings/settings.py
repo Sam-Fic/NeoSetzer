@@ -150,6 +150,14 @@ class Settings(Observable):
         # 每轮都冷启动——实测 62 页文档改一行 6–14 ms 变成 1.25 s。
         # 见 phitex_session.PhitexSession 与 builder_build_latex.run_via_phitex_session。
         self.defaults['preferences']['phitex_live_build'] = True
+        # 构建按钮上的计时器（0:01、0:02…）。三态而非开关：
+        #   always / never 由用户定；auto = 慢引擎显示、PhiTeX 常驻 session
+        #   隐藏。计时器的价值是"还要等多久"，而 PhiTeX 增量一轮约 18 ms
+        #   且按 150 ms 节奏连续触发，一秒一跳的数字只会抖成噪音。
+        # 不做成"默认关 + PhiTeX 强制关"，那样用户在 PhiTeX 下想看得不到
+        # 选项；也不做成两态，因为 data 是稀疏的、区分不出"没设过"与"设成
+        # 默认值"（self.data 在缺设置文件时直接别名到 defaults）。
+        self.defaults['preferences']['build_timer'] = 'auto'
         # 启动行为：'last_session' 恢复上次会话；'empty' 启动空白工作区（见 ③）。
         self.defaults['preferences']['on_startup'] = 'last_session'
         self.defaults['preferences']['use_latexmk'] = True

@@ -87,17 +87,30 @@ class BuildWidgetView(Gtk.Box):
         self.build_button.remove_css_class('destructive-action')
         self.build_button.add_css_class('suggested-action')
 
+    def set_timer_visible(self, visible):
+        '''计时器标签是否参与布局。
+
+        Gtk.Box 只为可见子部件分配空间与间距，所以隐藏标签后按钮里就只剩
+        停止图标，宽度自然收窄，不需要额外的宽度补偿。
+        '''
+        self.timer_label.set_visible(visible)
+
     def start_timer(self):
         self.timer_active = True
         # 1000ms 间隔（原 500ms）：显示精度为 1 秒，无需更高频率。
         # 用 timeout_add_seconds 允许系统聚合定时器以节省功耗。
         self._timer_timeout_id = GLib.timeout_add_seconds(1, self.increment_timer)
 
+    def refresh_timer(self):
+        '''按当前 self.timer 渲染标签（从别处续上已用时时用）。'''
+        self.timer_label.set_text(
+            '{}:{:02}'.format(self.timer // 60000, (self.timer % 60000) // 1000))
+
     def increment_timer(self):
         if self.timer_active:
             self.timer += 1000
             if self.timer // 1000 >= 1:
-                self.timer_label.set_text('{}:{:02}'.format(self.timer // 60000, (self.timer % 60000) // 1000))
+                self.refresh_timer()
         else:
             self._timer_timeout_id = None
         return self.timer_active

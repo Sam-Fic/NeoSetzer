@@ -34,6 +34,7 @@ class PageBuildSystem(object):
     autoshow_values = ['errors', 'errors_warnings', 'all', 'never']
     shell_values = ['disable', 'restricted', 'enable']
     output_chain_values = ['pdf', 'pdfps']
+    build_timer_values = ['auto', 'always', 'never']
 
     def __init__(self, preferences, settings):
         self.view = PageBuildSystemView()
@@ -92,6 +93,12 @@ class PageBuildSystem(object):
             'notify::active', self.on_switch_toggled, 'auto_build_autoshow_errors')
         self.update_auto_build_autoshow_errors_sensitivity()
 
+        build_timer = self.settings.get_value('preferences', 'build_timer')
+        if build_timer not in self.build_timer_values:
+            build_timer = 'auto'
+        self.view.option_build_timer.set_selected(self.build_timer_values.index(build_timer))
+        self.view.option_build_timer.connect('notify::selected', self.on_build_timer_selected)
+
         self.setup_latex_interpreters()
 
         self.view.copy_phitex_prompt_button.connect(
@@ -145,6 +152,12 @@ class PageBuildSystem(object):
             return
         self.settings.set_value('preferences', 'latexmk_output_chain', self.output_chain_values[selected])
 
+    def on_build_timer_selected(self, combo, pspec):
+        selected = combo.get_selected()
+        if selected == Gtk.INVALID_LIST_POSITION:
+            return
+        self.settings.set_value('preferences', 'build_timer', self.build_timer_values[selected])
+
     def on_texmf_home_changed(self, entry):
         self.settings.set_value('preferences', 'texmf_home', entry.get_text().strip())
 
@@ -180,6 +193,8 @@ class PageBuildSystem(object):
             self.view.option_output_chain.set_selected(
                 self.output_chain_values.index(defaults['latexmk_output_chain']))
             self.view.option_phitex_live_build.set_active(defaults['phitex_live_build'])
+            self.view.option_build_timer.set_selected(
+                self.build_timer_values.index(defaults['build_timer']))
             # set_text 触发 changed 回调 → 自动写回设置
             self.view.option_texmf_home.set_text(defaults['texmf_home'])
 
@@ -449,6 +464,17 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         self.option_enable_synctex.set_title(_('Generate SyncTeX for preview sync'))
         self.option_enable_synctex.set_subtitle(_('Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster.'))
         group_options.add(self.option_enable_synctex)
+
+        self.option_build_timer = Adw.ComboRow()
+        self.option_build_timer.set_title(_('Elapsed-time counter on the build button'))
+        self.option_build_timer.set_subtitle(_('PhiTeX rebuilds a change in about 20 ms, where a counter that ticks once per second is noise rather than information.'))
+        build_timer_model = Gtk.StringList()
+        for label in [_('Show for slow builders, hide for PhiTeX'),
+                      _('Always show'),
+                      _('Never show')]:
+            build_timer_model.append(label)
+        self.option_build_timer.set_model(build_timer_model)
+        group_options.add(self.option_build_timer)
 
         group_auto_build = Adw.PreferencesGroup()
         group_auto_build.set_title(_('Auto Build'))
