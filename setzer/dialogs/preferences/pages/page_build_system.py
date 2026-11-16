@@ -249,14 +249,18 @@ class PageBuildSystem(object):
         '''主线程 idle 回调：用检测结果更新 UI。'''
         self.latex_interpreters = latex_interpreters
         self.latexmk_available = latexmk_available
+        # 必须在动任何控件之前读：set_model 会把下拉重置到第 0 项并发出
+        # notify::selected，而那个回调会把这个"选择"写回设置。
+        stored = self.settings.get_value('preferences', 'latex_interpreter')
 
         if len(self.latex_interpreters) == 0:
             self.view.set_interpreter_note(self.view.no_interpreter_note)
             self.view.option_latex_interpreter.set_visible(False)
         else:
             self.view.option_latex_interpreter.set_visible(True)
-            if self.settings.get_value('preferences', 'latex_interpreter') not in self.latex_interpreters:
-                self.settings.set_value('preferences', 'latex_interpreter', self.latex_interpreters[0])
+            if stored not in self.latex_interpreters:
+                stored = self.latex_interpreters[0]
+                self.settings.set_value('preferences', 'latex_interpreter', stored)
 
             if self.latexmk_available:
                 self.view.option_use_latexmk.set_visible(True)
@@ -275,9 +279,15 @@ class PageBuildSystem(object):
             string_list = Gtk.StringList()
             for interpreter in self.latex_interpreters:
                 string_list.append(interpreter)
-            self.view.option_latex_interpreter.set_model(string_list)
-            current = self.settings.get_value('preferences', 'latex_interpreter')
-            self.view.option_latex_interpreter.set_selected(self.latex_interpreters.index(current))
+            combo = self.view.option_latex_interpreter
+            # 回填期间断开 notify：set_model 的一次重置会被当成用户选择写盘，
+            # 于是每打开一次偏好页就把保存的引擎换成第一个可用引擎。
+            combo.handler_block_by_func(self.on_interpreter_selected)
+            try:
+                combo.set_model(string_list)
+                combo.set_selected(self.latex_interpreters.index(stored))
+            finally:
+                combo.handler_unblock_by_func(self.on_interpreter_selected)
 
             self.update_engine_specific_visibility()
         return False
