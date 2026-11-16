@@ -103,6 +103,7 @@ foreach t : [
   ['test_backward_sync_match', 'test_backward_sync_match.py'],
   ['test_build_timer_preference', 'test_build_timer_preference.py'],
   ['test_interpreter_pref_backfill', 'test_interpreter_pref_backfill.py'],
+  ['test_interpreter_display', 'test_interpreter_display.py'],
   ['test_build_button_geometry', 'test_build_button_geometry.py'],
   ['test_phitex_update_ui', 'test_phitex_update_ui.py'],
   ['test_dialog_toast_host', 'test_dialog_toast_host.py'],

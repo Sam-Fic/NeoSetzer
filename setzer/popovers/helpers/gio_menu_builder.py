@@ -68,7 +68,8 @@ class GioMenuBuilder(object):
         submenu = self.pages.get(menu_name)
         if submenu is None:
             submenu = self.add_page(menu_name, title)
-        self._get_or_create_section('main').append_submenu(title, submenu)
+        self._get_or_create_section('main').append_item(
+            Gio.MenuItem.new_submenu(title, submenu))
 
     def add_before_after_item(self, pagename, title, commands, icon=None, shortcut=None):
         item = Gio.MenuItem.new(title, 'win.insert-before-after')
@@ -81,6 +82,12 @@ class GioMenuBuilder(object):
         item.set_action_and_target_value('win.insert-symbol', GLib.Variant('as', command))
         self._apply_icon_and_accel(item, icon, shortcut)
         self._get_or_create_section(pagename).append_item(item)
+
+    def add_label_item(self, pagename, title):
+        '''Append a non-activatable informational row (action-less item).'''
+        item = Gio.MenuItem.new(title, None)
+        self._get_or_create_section(pagename).append_item(item)
+        return item
 
     def add_action_button(self, pagename, title, action_name, parameter=None, icon=None, shortcut=None):
         item = Gio.MenuItem.new(title, action_name)

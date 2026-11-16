@@ -123,8 +123,8 @@ class SharedInterpreterResolverTest(unittest.TestCase):
     def test_hint_does_not_reimplement_the_chain(self):
         '''提示只看 build_system 的两个取值，不再自己读 DocumentSettings。
 
-        组合框自己的状态同步仍要读 per-document 覆盖，那是另一件事；这里
-        约束的是 _sync_magic_hint 这一个方法体。
+        组合框（缩进等）自己的状态同步仍要读 per-document 覆盖，那是另一件事；
+        这里约束的是 _sync_magic_hint 这一个方法体。
         '''
         source = (ROOT / DIALOG).read_text(encoding='utf-8')
         tree = ast.parse(source)

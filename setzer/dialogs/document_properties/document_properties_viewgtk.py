@@ -28,15 +28,6 @@ class DocumentPropertiesView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
-        interpreter_labels = [
-            _('Follow global default'),
-            'XeLaTeX',
-            'pdfLaTeX',
-            'LuaLaTeX',
-            'Tectonic',
-            'latexmk',
-        ]
-
         indent_labels = [
             _('Follow global default'),
             _('Spaces'),
@@ -72,14 +63,12 @@ class DocumentPropertiesView(DialogView):
         build_group = Adw.PreferencesGroup()
         build_group.set_title(_('Build System'))
 
-        # Interpreter row
-        interp_row = Adw.ComboRow()
-        interp_row.set_title(_('LaTeX Interpreter'))
-        interp_row.set_subtitle(_('Engine used to compile this document'))
-        interp_model = Gtk.StringList.new(interpreter_labels)
-        interp_row.set_model(interp_model)
-        self.combo_interpreter = interp_row
-        build_group.add(interp_row)
+        # Interpreter row：只读显示当前生效引擎与来源。每文档的切换入口
+        # 统一放在侧栏「文档」菜单，这里不再放第二个下拉，避免同一份选择
+        # 有两处入口、两边状态还会漂移。
+        self.row_interpreter = Adw.ActionRow()
+        self.row_interpreter.set_title(_('LaTeX Interpreter'))
+        build_group.add(self.row_interpreter)
 
         # 仅当这条文档的 `% !TEX program` 注释真的顶掉了用户选的引擎、且
         # PhiTeX 可用又确实能解决冲突时才由控制器显示（见 _sync_magic_hint）。

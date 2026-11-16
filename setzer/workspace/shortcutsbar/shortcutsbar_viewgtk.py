@@ -404,6 +404,27 @@ class ShortcutsBar(Gtk.Box):
         shortcut_tooltips.set_tooltip(self.document_button, _('Document'))
         self._add_left_button(self.document_button)
 
+    def rebuild_document_menu(self, document=None):
+        '''重建文档菜单模型。
+
+        菜单里"当前引擎 / 来源"是构建模型那一刻的快照（Gio.Menu 不会跟随
+        之后的数据变化），而生效引擎取决于活动文档、全局偏好和文档开头
+        的 `% !TEX program` 注释——都可能在菜单关闭期间变化，所以每次
+        展开前重建一次。
+        '''
+        build_system = getattr(document, 'build_system', None) if document else None
+        interpreter_info = None
+        if build_system is not None:
+            interpreter_info = build_system.describe_interpreter()
+        self._setup_menu_button(self.document_button,
+                                DocumentMenu(interpreter_info=interpreter_info))
+        # overflow 菜单里存的是同一模型的副本，需要一并刷新，否则从 overflow
+        # 打开的子菜单还会显示旧标题。
+        if (self.document_button in self._pending_overflow_buttons
+                and not self._menu_refresh_pending):
+            self._menu_refresh_pending = True
+            GLib.idle_add(self._deferred_refresh_overflow_list)
+
     def insert_beamer_button(self):
         self.beamer_button = Gtk.MenuButton()
         self.beamer_button.set_icon_name('x-office-presentation-symbolic')

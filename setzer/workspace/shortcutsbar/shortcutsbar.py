@@ -33,6 +33,9 @@ class ShortcutsBar(object):
 
         self.view.button_search.connect('clicked', self.on_find_button_clicked)
 
+        # 文档菜单展开前重建：子菜单标题要显示当前生效的解释器及其来源。
+        self.view.document_button.connect('notify::active', self.on_document_menu_active)
+
         self.workspace.connect('document_removed', self.on_document_removed)
         self.workspace.connect('new_active_document', self.on_new_active_document)
         self.workspace.connect('show_build_log_state_change', self.update_buttons)
@@ -161,6 +164,11 @@ class ShortcutsBar(object):
 
     def on_build_log_button_clicked(self, toggle_button, parameter=None):
         self.workspace.set_show_build_log(toggle_button.get_active())
+
+    def on_document_menu_active(self, button, parameter=None):
+        if not button.get_active():
+            return
+        self.view.rebuild_document_menu(self.workspace.active_document)
 
     def on_find_button_clicked(self, button=None):
         if button.get_active():

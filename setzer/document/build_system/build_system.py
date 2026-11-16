@@ -154,14 +154,20 @@ class BuildSystem(Observable):
     def _effective_build_value(self, preference_key, project_data,
                                project_key=None):
         '''Resolve document override > project configuration > global setting.'''
+        return self._effective_build_value_with_source(
+            preference_key, project_data, project_key)[0]
+
+    def _effective_build_value_with_source(self, preference_key, project_data,
+                                           project_key=None):
+        '''同上，并返回取值来源（document / project / global）。'''
         override = DocumentSettings.get_document_override(
             self.document, preference_key)
         if override is not None:
-            return override
+            return override, 'document'
         project_value = project_data.get(project_key or preference_key)
         if project_value is not None:
-            return project_value
-        return self.settings.get_value('preferences', preference_key)
+            return project_value, 'project'
+        return self.settings.get_value('preferences', preference_key), 'global'
 
     def _set_query_build_data(self, query_obj, text, interpreter, use_latexmk,
                               output_chain, additional_arguments, do_cleanup,
@@ -543,24 +549,40 @@ class BuildSystem(Observable):
                 or self._effective_build_value(
                     'latex_interpreter', project_data, 'interpreter'))
 
+    def describe_interpreter(self, text=None):
+        '''返回 (引擎, 来源)。来源：comment / document / project / global。
+
+        界面需要说明"为什么是它"（文档菜单、文档属性页），而引擎名本身
+        无法回答这个问题。解析链仍只在这里实现一次，与
+        get_effective_interpreter 共用；注释被 PhiTeX 顶掉时来源保持原样，
+        因为那条注释根本没有生效。
+        '''
+        project_configuration, project_data = self._project_build_data()
+        if self.latex_interpreter:
+            configured, source = self.latex_interpreter, 'document'
+        else:
+            configured, source = self._effective_build_value_with_source(
+                'latex_interpreter', project_data, 'interpreter')
+        if configured == 'phitex':
+            return 'phitex', source
+        if text is None:
+            text = self.document.get_all_text()
+        magic = parse_magic_comments(text)
+        if magic.program:
+            return magic.program, 'comment'
+        return configured, source
+
     def get_effective_interpreter(self, text=None):
         '''本文档最终用哪个引擎编译。
 
         解析链 `% !TEX program` 注释 > 每文档覆盖 > 项目配置 > 全局偏好，
-        但注释不能把 PhiTeX 换成 texlive 引擎（见下方分支）。抽成单一入口
-        是因为 auto_build 与偏好页也要问同一个问题：它们各自实现一遍这条
-        链，改一处就会漂移成"引擎明明是 PhiTeX 但 UI 显示别的"。
+        但注释不能把 PhiTeX 换成 texlive 引擎（见 describe_interpreter）。
+        抽成单一入口是因为 auto_build 与偏好页也要问同一个问题：它们各自
+        实现一遍这条链，改一处就会漂移成"引擎明明是 PhiTeX 但 UI 显示别的"。
 
         text 可由调用方传入（start_building 已经读过全文），避免重复取文本。
         '''
-        project_configuration, project_data = self._project_build_data()
-        configured = self.get_configured_interpreter(project_data)
-        if configured == 'phitex':
-            return 'phitex'
-        if text is None:
-            text = self.document.get_all_text()
-        magic = parse_magic_comments(text)
-        return magic.program or configured
+        return self.describe_interpreter(text)[0]
 
     def is_phitex_live_build(self, text=None):
         '''是否走 PhiTeX 的常驻 session（增量编译 + 实时预览的那个模式）。

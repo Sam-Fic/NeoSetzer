@@ -20,12 +20,19 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import GLib
 
+from setzer.helpers.interpreter_labels import interpreter_name, interpreter_source
 from setzer.popovers.helpers.gio_menu_builder import GioMenuBuilder
 
 
 class DocumentMenu(GioMenuBuilder):
 
-    def __init__(self, popover_manager=None):
+    def __init__(self, popover_manager=None, interpreter_info=None):
+        '''interpreter_info: (引擎, 来源) 元组，来自
+        BuildSystem.describe_interpreter()；None 表示当前文档没有构建系统。
+
+        菜单模型是构建时的静态快照（Gio.Menu 不会跟随 MenuItem 后续改动），
+        所以调用方在每次展开菜单前重新构造本对象。
+        '''
         GioMenuBuilder.__init__(self)
 
         self.add_insert_symbol_item('main', '\\documentclass', ['\\documentclass[•]{•}'])
@@ -39,7 +46,22 @@ class DocumentMenu(GioMenuBuilder):
         self.add_action_button('main', _('Include LaTeX File') + ' (\\input)...', 'win.include-latex-file')
 
         # 每文档 LaTeX 解释器覆盖子菜单（对应 actions.on_set_build_interpreter）。
-        self.add_page('interpreter-submenu', _('Build Interpreter'))
+        # 子菜单标题直接带出当前生效的引擎：两个选择入口（本文档 / 全局）
+        # 并存时，用户最需要知道的是"这次到底会用哪个"。
+        engine, source = interpreter_info or (None, None)
+        if engine:
+            title = _('Build Interpreter: {engine}').format(
+                engine=interpreter_name(engine))
+        else:
+            title = _('Build Interpreter')
+        self.add_page('interpreter-submenu', title)
+        if engine:
+            self.add_label_item(
+                'interpreter-submenu',
+                _('Currently using {engine} ({source})').format(
+                    engine=interpreter_name(engine),
+                    source=interpreter_source(source)))
+            self.add_separator('interpreter-submenu')
         interpreters = [(_('Use Global Default'), 'default'),
                         ('PDFLaTeX', 'pdflatex'),
                         ('XeLaTeX', 'xelatex'),
@@ -49,7 +71,7 @@ class DocumentMenu(GioMenuBuilder):
         for label, value in interpreters:
             self.add_action_button('interpreter-submenu', label,
                                    'win.set-build-interpreter', GLib.Variant('s', value))
-        self.add_menu_button(_('Build Interpreter'), 'interpreter-submenu')
+        self.add_menu_button(title, 'interpreter-submenu')
 
         # document info submenu
         self.add_page('document_info', _('Document Info'))

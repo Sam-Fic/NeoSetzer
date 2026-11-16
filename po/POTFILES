@@ -1,4 +1,4 @@
-# generated on Fri Oct  2 08:18:51 AM UTC 2026
+# generated on Mon Nov 16 01:45:02 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -155,11 +155,15 @@
 ./setzer/document/build_system/__init__.py
 ./setzer/document/build_system/latex_log_parser/__init__.py
 ./setzer/document/build_system/latex_log_parser/latex_log_parser.py
+./setzer/document/build_system/phitex_session/__init__.py
+./setzer/document/build_system/phitex_session/phitex_session.py
 ./setzer/document/build_system/query/__init__.py
 ./setzer/document/build_system/query/query.py
 ./setzer/document/build_widget/build_widget.py
 ./setzer/document/build_widget/build_widget_viewgtk.py
 ./setzer/document/build_widget/__init__.py
+./setzer/document/change_highlight/change_highlight.py
+./setzer/document/change_highlight/__init__.py
 ./setzer/document/chktex/chktex_parser.py
 ./setzer/document/chktex/chktex.py
 ./setzer/document/chktex/__init__.py
@@ -229,6 +233,7 @@
 ./setzer/example_project/__init__.py
 ./setzer/example_project/opener.py
 ./setzer/example_project/project_store.py
+./setzer/helpers/animation_prefs.py
 ./setzer/helpers/build_status_text.py
 ./setzer/helpers/decode_output.py
 ./setzer/helpers/document_state_paths.py
@@ -236,13 +241,17 @@
 ./setzer/helpers/file_io.py
 ./setzer/helpers/help_search.py
 ./setzer/helpers/__init__.py
+./setzer/helpers/interpreter_labels.py
 ./setzer/helpers/malloc_trim.py
 ./setzer/helpers/observable.py
 ./setzer/helpers/path.py
 ./setzer/helpers/persistence.py
 ./setzer/helpers/scroll_animator.py
 ./setzer/helpers/symbol_categories.py
+./setzer/helpers/sync_debug.py
 ./setzer/helpers/synctex_folder.py
+./setzer/helpers/synctex_line_repair.py
+./setzer/helpers/synctex_query.py
 ./setzer/helpers/timer.py
 ./setzer/helpers/zoom_css.py
 ./setzer/helpers/zoom_math.py

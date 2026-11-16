@@ -24,6 +24,7 @@ import shutil
 
 import setzer.dialogs.document_properties.document_properties_viewgtk as view
 from setzer.dialogs.project_build_configuration import ProjectBuildConfigurationDialog
+from setzer.helpers.interpreter_labels import interpreter_name, interpreter_source
 from setzer.settings.document_settings import DocumentSettings
 from setzer.app.service_locator import ServiceLocator
 
@@ -37,16 +38,6 @@ class DocumentPropertiesDialog(object):
         self.settings = ServiceLocator.get_settings()
         self.view = None
         self.document = None
-
-        self._interpreter_options = [
-            (_('Follow global default'), None),
-            ('XeLaTeX', 'xelatex'),
-            ('pdfLaTeX', 'pdflatex'),
-            ('LuaLaTeX', 'lualatex'),
-            ('Tectonic', 'tectonic'),
-            ('PhiTeX', 'phitex'),
-            ('latexmk', 'latexmk'),
-        ]
 
         self._indent_options = [
             (_('Follow global default'), None),
@@ -76,7 +67,6 @@ class DocumentPropertiesDialog(object):
 
         # Build System group
         self._switch_override_build = self.view.switch_override_build
-        self._combo_interpreter = self.view.combo_interpreter
         self._switch_auto_build = self.view.switch_auto_build
         self._switch_use_latexmk = self.view.switch_use_latexmk
         self._switch_cleanup = self.view.switch_cleanup
@@ -114,12 +104,9 @@ class DocumentPropertiesDialog(object):
         self._switch_override_build.handler_unblock_by_func(self._on_build_override_toggled)
         self._sync_build_switches()
 
-        # Interpreter (keeps its own "Follow global default" option)
-        interp = DocumentSettings.get_effective_value(doc, s, 'latex_interpreter')
-        interp_global = s.get_value('preferences', 'latex_interpreter')
-        interp_override = DocumentSettings.get_document_override(doc, 'latex_interpreter')
-        self._sync_combo(self._combo_interpreter, interp_override, interp_global,
-                         self._interpreter_options, interp)
+        # Interpreter: 只读展示生效值。切换入口在侧栏「文档」菜单，
+        # Apply 不再写 latex_interpreter。
+        self._sync_interpreter_row()
         self._sync_magic_hint()
 
         # --- Editor ---
@@ -135,11 +122,27 @@ class DocumentPropertiesDialog(object):
         self._sync_combo(self._combo_tab_width, tab_width_override, None,
                          self._tab_width_options, tab_width)
 
+    def _sync_interpreter_row(self):
+        '''只读行：显示当前生效的引擎及其来源（注释 / 本文档 / 项目 / 偏好）。'''
+        row = self.view.row_interpreter
+        doc = self.document
+        build_system = getattr(doc, 'build_system', None) if doc is not None else None
+        if build_system is None:
+            row.set_subtitle('')
+            return
+        engine, source = build_system.describe_interpreter()
+        if not engine:
+            row.set_subtitle('')
+            return
+        row.set_subtitle(_('{engine} ({source})').format(
+            engine=interpreter_name(engine),
+            source=interpreter_source(source)))
+
     def _sync_magic_hint(self):
         '''注释顶掉了用户选的引擎时，建议改用 PhiTeX——但只在它真能解决时提。
 
-        这条提示说的是一个真实的冲突：`% !TEX program = ...` 优先于这里选的
-        引擎，用户改完 Apply、下一次构建仍是注释里那个，看起来像设置没生效。
+        这条提示说的是一个真实的冲突：`% !TEX program = ...` 优先于为本文档
+        选的引擎，用户改完设置、下一次构建仍是注释里那个，看起来像设置没生效。
         PhiTeX 自己读这条注释并据此挑引擎，所以选它冲突就消失了，不用改文档。
 
         三个不提的条件都是硬事实，说错比不说说更糟：
@@ -166,9 +169,10 @@ class DocumentPropertiesDialog(object):
         # description 按 Pango markup 解析，引擎名来自文档内容，必须转义。
         group.set_description(_(
             'This document\u2019s "% !TEX program = {engine}" comment overrides the '
-            'engine you pick here. PhiTeX reads that comment itself and chooses the '
-            'engine from the document, so picking it above ends the override without '
-            'editing the file.').format(engine=GLib.markup_escape_text(effective, -1)))
+            'interpreter chosen for it. PhiTeX reads that comment itself and chooses '
+            'the engine from the document, so selecting PhiTeX in the Document menu '
+            'ends the override without editing the file.').format(
+                engine=GLib.markup_escape_text(effective, -1)))
 
     def _sync_combo(self, combo, override, global_value, options, effective):
         '''Set combo box active item based on override state.'''
@@ -221,13 +225,8 @@ class DocumentPropertiesDialog(object):
         doc = self.document
 
         # --- Build System ---
-        # Interpreter
-        interp_idx = self._combo_interpreter.get_selected()
-        if interp_idx == 0:
-            DocumentSettings.set_document_override(doc, 'latex_interpreter', None)
-        else:
-            value = self._interpreter_options[interp_idx][1]
-            DocumentSettings.set_document_override(doc, 'latex_interpreter', value)
+        # Interpreter 不在此保存：每文档引擎由「文档」菜单（或注释）设置，
+        # 本对话框只读展示。
 
         # Build options: either save all three as document overrides or clear them
         if self._switch_override_build.get_active():
