@@ -1,5 +1,50 @@
 # Changelog
 
+## v89 — 2026-11-17
+
+### 主要改进
+
+- **接入 PhiTeX 常驻 session 增量编译与实时预览**：PhiTeX 的增量依赖图活在进程内存里，单独起 `phitex build` 每次都冷启动——实测 62 页文档改一行要 1250 ms，反而比 pdflatex 的 258 ms 慢；而同一文档的常驻 watch 只要 18 ms，还能报出改动落在哪一页。所以适配的关键不是换一条命令，而是换进程生命周期：一次 start，之后每轮只做 wait 加取结果，复用既有的 worker/query/parse_result 链路，不新造异步管道。顺带处理三件被这个节奏暴露出来的事——预览闪白（`load_pdf` 原先每次构建都置 `layout=None`，18 ms 一次就是持续闪烁，改为几何没变就沿用现有布局）；高频反馈（结果 toast 与构建日志面板按来源抑制自动构建刷屏，失败 toast 改按错误数去重）；反向同步失效（synctex 的 Input 带 `./` 段，裸字符串比较永远不成立且静默 return，界面表现为「点了没反应」，规整化后修复——这条 pdflatex 同样会中招，只是实时预览让它常被用到）。新增每文档一个常驻 watch 的控制面、改动行级 diff 接 synctex 的荧光高亮（只闪不跳，改动全在视口外才平移）、`% !TEX program` 顶掉引擎选择时的迁移提示（lualatex 与 pdfps 两个否决项下不出现）、PhiTeX 未安装时可复制给 AI Agent 的安装说明（应用自身不下载、不执行远程脚本）。PhiTeX 是独立第三方二进制（AGPL-3.0-only），只按 PATH 探测，不打包进应用。附适配回归测试。
+
+- **偏好设置露出版本与更新入口**：PhiTeX 的 update-check 默认关闭，它自己不会提醒有新版，NeoSetzer 此前在界面上也没有任何入口。新增一个 PhiTeX 组（仅检测到该引擎时出现）：版本读本地 `phitex --version`（零网络）；「允许检查更新」写 PhiTeX 的用户级配置，只在用户点击时发生；「升级到最新版」二次确认后跑 `phitex upgrade -y`。三个刻意的边界——不自己联网（下载、SHA256 校验、替换自身全部由用户装的那个二进制完成，有测试禁止本模块出现 urllib/requests/http.client/api.github.com）；必须带 `-y`（源码里写明非终端环境下 `phitex upgrade` 什么都不问、也什么都不装，stdout 是管道，少了 `-y` 会「界面报成功而二进制没变」）；不自己改它的 toml（键写法、注释保留、项目级覆盖的优先级都是 PhiTeX 的职责，走 `phitex config update-check on|off`）。升级成功后结束所有文档的常驻 session（它们跑的是旧二进制），并 toast 说明。
+
+- **构建计时器改三态可关，auto 改按时长判定**：计时器表达的是「还要等多久」，PhiTeX 增量一轮约 18 ms、每 150 ms 触发一次，一秒一跳的数字只会抖成噪音。偏好里新增 auto（默认）/ always / never 三态——auto 下计时器到 1000 ms 才现身（不足一秒的构建里那个数字永远停在 0:00，本来就不含信息），现身时从真实已用时起算，第一格就是 0:01；构建中途改开关立即生效，不必等下一次构建。auto 判定从「PhiTeX 隐藏、其它显示」改为只看时长本身：改启动期参数会重启 session 走全量、`phitex clean` 之后同样是全量，这些冷编译都要等好几秒，旧规则反而判成「不显示」。副作用是传统引擎那些 0.3 秒左右的构建也不再闪一个转瞬即逝的 0:00，要恢复「立刻显示」仍有 always 可选。
+
+- **荧光高亮把同一行的碎片并成横带**：synctex 按排版片段返回矩形，实测两处改动给出 40 个盒子——一行文字被拆成好几个，各自半透明叠着画，既像糊了又像没涂满，每帧还要做 40 次填充。只并「垂直区间重叠或间隙小于 2pt」的，那是同一行输出的碎片，合起来才是荧光笔一笔划过的观感；不跨行并——跨行取并集会把行间距和相邻未改动文字一起涂进去，反而更像糊了一大块。实测 40 → 16 条横带，12pt 行距的相邻行仍是各自独立的带。
+
+- **每文档引擎只留一个入口，菜单显示生效引擎与来源**：文档属性页的 LaTeX Interpreter 下拉与侧栏「文档」菜单的引擎子菜单是同一份选择的两个入口，两处状态还会漂移（属性页的 Apply 写 DocumentSettings 覆盖，菜单读 build_system.latex_interpreter）。属性页改为只读行，显示当前生效引擎及来源（注释 / 本文档 / 项目配置 / 偏好）；菜单子菜单标题带出生效引擎（如「Build Interpreter: XeLaTeX」），顶部说明行给出取值来源；菜单模型是构建时快照，改为每次展开前按当前文档重建。BuildSystem 抽出 `describe_interpreter()` 统一返回 (引擎, 来源)，避免为显示再实现一遍优先链。
+
+- **行号拖动与 Shift+点击扩展选区**：按住行号纵向拖动时连续选中经过的整行，支持上下两个方向，指针靠近视口边缘时自动滚动并继续扩展；Shift+点击行号从锚点行扩展选区到点击行，光标移动时作废过期锚点；单击行号仍保持原有单行选择，书签与折叠行为不变。附无界面回归测试。
+
+- **修复每文档引擎选择被丢弃**：文档菜单里选的 Build Interpreter 存在 `build_system.latex_interpreter`（菜单写入）与 DocumentSettings 覆盖容器（文档属性写入）两处，菜单这条的恢复被塞进了 `_restore_build_log_state`——那个方法只在「.tex 自上次构建后没改过」时才恢复诊断行号，于是引擎选择被同一个 mtime 门控连带丢弃（构建后改过文件、或从未构建过，选择都回到默认），下一次 save_document_state 还会把 None 写回存档，选择永久消失。改为独立恢复 `restore_interpreter_override`：只看文档是否是 LaTeX、工具链是否已挂接，不看构建日志。
+
+- **修复打开偏好页把引擎选择重置为第一个可用引擎**：检测线程回调里先 `set_model` 再读当前值——`Adw.ComboRow.set_model` 会把选中项重置到第 0 项并发出 notify::selected，回调把这个重置写回设置，随后读到的是刚被覆盖的值。结果是每个会话第一次打开偏好页，保存的引擎都被换成 xelatex。改为先读保存值，回填期间断开 notify，仅在所选引擎未检测到时才回退。
+
+- **修复按 PDF 文本纠正 PhiTeX 的 synctex 行号**：PhiTeX 1.0.2 的 `--synctex` 会把大段标题、列表项成片记到后面某个章节命令的行号上（h/v 却是准的），双向跳转于是落在错误位置。反查用点击处的 PDF 文本行回源码匹配，替换明显不符的行号，并按 PDF 行内字符偏移定位光标；正查记录光标所在行文字，在 PDF 里找到对应文本行并构造矩形，匹配不到时回退 synctex 结果。顺带：synctex view 解析允许负 h（列表项的正查结果不再被整条丢弃）；反查不再限定 `.tex`，`\lstinputlisting` 引入的 `.m`/`.py` 也能跳转；未显式设置根文档时也允许跳入被 include 的文件；复制 synctex 前等待其 mtime 追平 PDF，避免拿到上一轮的行号。
+
+- **修复放大镜在图片页卡顿/空白与倍率退化**：放大镜改页级瓦片缓存，按需渲染并缓存页面瓦片，图片页不再整页重绘；附倍率回归测试。顺带修掉深浅色切换瞬间配色网格 tile 变两倍高的布局问题。
+
+- **配色方案网格改白名单**：原先全量列出 StyleSchemeManager 的所有方案（本机 26 个 id），其中 iotas-* 家族 17 个变体预览几乎无差别，选择负担远大于收益。改为白名单：浅色 classic / kate / tango / Yaru / solarized-light，深色 cobalt / oblivion / Yaru-dark / solarized-dark，浅色在前深色在后；「跟随系统主题」tile 仍居首，网格从 ~25 tile 缩到 10 个。用户自定义方案兜底——白名单外且 manager 可解析的自定义方案仍追加列出；已保存的白名单外 id 行为不变，编辑器继续沿用原配色，仅网格中无选中标记。
+
+- **翻译**：补齐版本与更新入口、构建计时器三态、PhiTeX 相关条目在 7 种语言中的翻译。
+
+### Improvements
+
+- **feat**: PhiTeX integration via a persistent per-document watch session — incremental builds now run 18 ms instead of a 1250 ms cold start (measured on a 62-page document), reusing the existing worker/query/parse_result pipeline. Also fixes preview flashing (`load_pdf` reset `layout=None` on every build), toast/log-panel spam from 150 ms auto-builds (suppressed by source, failure toasts deduplicated by error count), and forward-sync silently no-oping on `./`-prefixed synctex Input paths. Adds a per-document watch control surface, line-level diff-driven synctex highlight, a `% !TEX program` migration hint (not shown for lualatex/pdfps), and copyable PhiTeX installation instructions for AI agents when the binary is missing.
+- **feat**: Preferences → PhiTeX group (shown only when the engine is detected) exposes version, "Allow update checks" (writes PhiTeX's user config) and "Upgrade to latest" (`phitex upgrade -y` after confirmation). The app itself never goes online — downloading, SHA256 verification and self-replacement are all left to the user's installed binary.
+- **feat**: Build timer is now a tri-state (auto / always / never); auto shows it only once a build exceeds 1000 ms, counting from real elapsed time. Previously auto keyed on the engine, which misjudged cold full builds after session restarts and `phitex clean`.
+- **feat**: Preview diff highlight merges same-line synctex fragments into horizontal bands (40 boxes → 16 bands) so a highlighter looks like one stroke instead of stacked translucent rectangles.
+- **feat**: One interpreter entry per document — the document-properties page now shows the effective engine and its source (comment / document / project / preferences) as a read-only row, and the "Document" menu submenu title carries the engine name. The menu model is rebuilt before each expansion.
+- **feat**: Dragging the line numbers vertically extends a whole-line selection in both directions with auto-scroll near the viewport edges; Shift+click extends from an anchor line; single-click selection, bookmarks and folding are unchanged.
+- **fix**: Per-document interpreter choice was lost when the `.tex` file changed after the last build or had never been built — restore was gated by `_restore_build_log_state`'s mtime check, and a later save wrote `None` back to the archive. Restoration is now independent (`restore_interpreter_override`).
+- **fix**: Opening Preferences no longer resets the saved interpreter to the first available engine — `Adw.ComboRow.set_model` fires before the saved value is read back.
+- **fix**: PhiTeX synctex line numbers are corrected against the PDF text — PhiTeX 1.0.2 records long headings/list items under a later sectioning command's line number (h/v are correct), so both jump directions landed on the wrong line. Forward lookup now builds a rectangle from the source line's text; reverse lookup is no longer limited to `.tex`, accepts negative `h`, and waits for the synctex mtime to catch up with the PDF.
+- **perf**: Preview magnifier switched to per-page tile caching, fixing stutter/blank pages on image documents and a magnification regression.
+- **refactor**: Color scheme grid uses a whitelist (light: classic/kate/tango/Yaru/solarized-light, dark: cobalt/oblivion/Yaru-dark/solarized-dark) instead of listing all 26 system schemes; custom schemes still appear as a fallback and saved out-of-whitelist ids keep working.
+- **i18n**: Translated the version/update entry points, build-timer tri-state and PhiTeX-related strings in all seven languages.
+
+---
+
 ## v88 — 2026-11-14
 
 ### 主要改进
