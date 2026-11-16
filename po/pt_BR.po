@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 17:14+0800\n"
+"POT-Creation-Date: 2026-11-16 17:28+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/setzer/application/pt_BR/>\n"
@@ -959,7 +959,7 @@ msgstr "Assistente de documentos"
 #: setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121
 #: setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123
 #: setzer/command_palette/catalog.py:124
-#: setzer/document/build_widget/build_widget.py:161
+#: setzer/document/build_widget/build_widget.py:209
 #: setzer/project/build_configuration.py:50
 msgid "LaTeX"
 msgstr "LaTeX"
@@ -4397,7 +4397,7 @@ msgid "Tools"
 msgstr "Ferramentas"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
-#: setzer/document/build_widget/build_widget.py:317
+#: setzer/document/build_widget/build_widget.py:363
 #: setzer/document/build_widget/build_widget_viewgtk.py:59
 #: setzer/document/build_widget/build_widget_viewgtk.py:85
 msgid "Save and build .pdf-file from document"
@@ -5304,15 +5304,15 @@ msgstr "Contador de tempo no botão de compilação"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:470
 msgid ""
-"PhiTeX rebuilds a change in about 20 ms, where a counter that ticks once per"
-" second is noise rather than information."
+"The counter only moves in whole seconds, so a build that finishes sooner "
+"never shows a number worth reading."
 msgstr ""
-"O PhiTeX recompila uma alteração em cerca de 20 ms; nesse ritmo um contador "
-"que avança a cada segundo é ruído, não informação."
+"O contador só avança em segundos inteiros; uma compilação que termina antes "
+"nunca mostra um número que valha a pena ler."
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:472
-msgid "Show for slow builders, hide for PhiTeX"
-msgstr "Mostrar para compiladores lentos, ocultar para PhiTeX"
+msgid "Show once the build passes a second"
+msgstr "Mostrar quando a compilação passa de um segundo"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:473
 msgid "Always show"
@@ -7264,51 +7264,51 @@ msgstr "A bibliografia foi alterada fora do Setzer"
 msgid "Previous build cancelled"
 msgstr "Compilação anterior cancelada"
 
-#: setzer/document/build_widget/build_widget.py:162
+#: setzer/document/build_widget/build_widget.py:210
 #: setzer/project/build_configuration.py:51
 msgid "BibTeX"
 msgstr "BibTeX"
 
-#: setzer/document/build_widget/build_widget.py:163
+#: setzer/document/build_widget/build_widget.py:211
 #: setzer/project/build_configuration.py:52
 msgid "Biber"
 msgstr "Biber"
 
-#: setzer/document/build_widget/build_widget.py:164
+#: setzer/document/build_widget/build_widget.py:212
 #: setzer/project/build_configuration.py:53
 msgid "MakeIndex"
 msgstr "MakeIndex"
 
-#: setzer/document/build_widget/build_widget.py:165
+#: setzer/document/build_widget/build_widget.py:213
 #: setzer/project/build_configuration.py:54
 msgid "Glossaries"
 msgstr "Glossários"
 
-#: setzer/document/build_widget/build_widget.py:166
+#: setzer/document/build_widget/build_widget.py:214
 msgid "Sync"
 msgstr "Sincronizar"
 
-#: setzer/document/build_widget/build_widget.py:179
+#: setzer/document/build_widget/build_widget.py:227
 msgid "Success!"
 msgstr "Sucesso!"
 
-#: setzer/document/build_widget/build_widget.py:181
+#: setzer/document/build_widget/build_widget.py:229
 #: setzer/helpers/build_status_text.py:46
 msgid "Build succeeded"
 msgstr "Compilação bem-sucedida"
 
-#: setzer/document/build_widget/build_widget.py:191
+#: setzer/document/build_widget/build_widget.py:239
 #, python-brace-format
 msgid "{count} error"
 msgid_plural "{count} errors"
 msgstr[0] "{count} erro"
 msgstr[1] "{count} erros"
 
-#: setzer/document/build_widget/build_widget.py:192
+#: setzer/document/build_widget/build_widget.py:240
 msgid "Failed"
 msgstr "Falhou"
 
-#: setzer/document/build_widget/build_widget.py:197
+#: setzer/document/build_widget/build_widget.py:245
 #: setzer/document/preview/preview_viewgtk.py:445
 msgid "Build failed"
 msgstr "Falha na Compilação"

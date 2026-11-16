@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 17:14+0800\n"
+"POT-Creation-Date: 2026-11-16 17:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -599,7 +599,7 @@ msgstr ""
 #: setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121
 #: setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123
 #: setzer/command_palette/catalog.py:124
-#: setzer/document/build_widget/build_widget.py:161
+#: setzer/document/build_widget/build_widget.py:209
 #: setzer/project/build_configuration.py:50
 msgid "LaTeX"
 msgstr ""
@@ -3893,7 +3893,7 @@ msgid "Tools"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
-#: setzer/document/build_widget/build_widget.py:317
+#: setzer/document/build_widget/build_widget.py:363
 #: setzer/document/build_widget/build_widget_viewgtk.py:59
 #: setzer/document/build_widget/build_widget_viewgtk.py:85
 msgid "Save and build .pdf-file from document"
@@ -4716,12 +4716,12 @@ msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:470
 msgid ""
-"PhiTeX rebuilds a change in about 20 ms, where a counter that ticks once per "
-"second is noise rather than information."
+"The counter only moves in whole seconds, so a build that finishes sooner "
+"never shows a number worth reading."
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:472
-msgid "Show for slow builders, hide for PhiTeX"
+msgid "Show once the build passes a second"
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:473
@@ -6550,51 +6550,51 @@ msgstr ""
 msgid "Previous build cancelled"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:162
+#: setzer/document/build_widget/build_widget.py:210
 #: setzer/project/build_configuration.py:51
 msgid "BibTeX"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:163
+#: setzer/document/build_widget/build_widget.py:211
 #: setzer/project/build_configuration.py:52
 msgid "Biber"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:164
+#: setzer/document/build_widget/build_widget.py:212
 #: setzer/project/build_configuration.py:53
 msgid "MakeIndex"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:165
+#: setzer/document/build_widget/build_widget.py:213
 #: setzer/project/build_configuration.py:54
 msgid "Glossaries"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:166
+#: setzer/document/build_widget/build_widget.py:214
 msgid "Sync"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:179
+#: setzer/document/build_widget/build_widget.py:227
 msgid "Success!"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:181
+#: setzer/document/build_widget/build_widget.py:229
 #: setzer/helpers/build_status_text.py:46
 msgid "Build succeeded"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:191
+#: setzer/document/build_widget/build_widget.py:239
 #, python-brace-format
 msgid "{count} error"
 msgid_plural "{count} errors"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/build_widget/build_widget.py:192
+#: setzer/document/build_widget/build_widget.py:240
 msgid "Failed"
 msgstr ""
 
-#: setzer/document/build_widget/build_widget.py:197
+#: setzer/document/build_widget/build_widget.py:245
 #: setzer/document/preview/preview_viewgtk.py:445
 msgid "Build failed"
 msgstr ""
