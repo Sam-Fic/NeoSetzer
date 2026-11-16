@@ -182,8 +182,15 @@ class RunHeadedTest(unittest.TestCase):
 class ResolveToolConfigTest(unittest.TestCase):
     '''resolve_tool_config：HeaderBar 与 Build Log AI Fix 共用的工具选择 helper。'''
 
-    def test_empty_tools(self):
-        assert agent_runner.resolve_tool_config([], 'opencode') is None
+    def test_empty_tools_self_heals_to_builtin(self):
+        '''空列表只可能来自异常落盘/旧实例回写（内置预设不可经 UI 删除）：
+        自愈回退内置预设，不再返回 None 让发送路径报“未配置工具”。'''
+        from setzer.ai_fix.presets import builtin_names
+        with mock.patch.object(agent_runner, 'check_tool_available', return_value=True):
+            result = agent_runner.resolve_tool_config([], 'opencode')
+        assert result is not None
+        assert result['name'] == 'opencode'
+        assert result['name'] in builtin_names()
 
     def test_active_tool_available(self):
         '''active_tool_name 命中且 executable 在 PATH：直接返回它。'''

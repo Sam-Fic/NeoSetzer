@@ -142,8 +142,9 @@ class AiPage(object):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         box.set_margin_top(8)
         box.set_margin_bottom(8)
-        box.set_margin_start(10)
-        box.set_margin_end(10)
+        # 水平内边距对齐 Adw.ActionRow（document structure 行）的 12px。
+        box.set_margin_start(12)
+        box.set_margin_end(12)
 
         # 行 1：文件名 + 行区间 + 操作按钮
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)

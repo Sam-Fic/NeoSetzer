@@ -391,10 +391,12 @@ class PageGeneral(object):
     # ---------- AI 代理设置（自 Build System 页迁入） ----------
 
     def _get_tools(self):
-        '''读 ai_fix_tools；确保是 list（防御旧版 settings 缺失字段）。'''
+        '''读 ai_fix_tools；确保是非空 list（防御旧版 settings 缺失字段，
+        以及异常落盘/旧实例回写导致的空列表——空时自愈回内置预设）。'''
         tools = self.settings.get_value('preferences', 'ai_fix_tools')
-        if not isinstance(tools, list):
+        if not isinstance(tools, list) or not tools:
             tools = default_tools()
+            self._save_tools(tools)
         return tools
 
     def _save_tools(self, tools):

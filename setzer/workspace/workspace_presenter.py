@@ -239,7 +239,9 @@ class WorkspacePresenter(object):
                 # 页：先解除页面 pin，否则 close-page 处理器的 pinned 分支会
                 # 拒绝（默认处理器 finish(False)），留下永远关不掉的幽灵标签。
                 # 文档已从 workspace 移除，page 的 pin 状态随之作废，解除无副作用。
-                if self.main_window.document_stack.page_is_pinned(page):
+                # pin 状态查询用 Adw.TabPage.get_pinned()：TabView 只有
+                # set_page_pinned 写入端，没有 page_is_pinned 查询 API。
+                if page.get_pinned():
                     self.main_window.document_stack.set_page_pinned(page, False)
                 self._selecting += 1
                 try:

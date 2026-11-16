@@ -17,8 +17,11 @@
 
 """侧栏 AI 页视图：批注列表（上）+ Agent 终端卡片（下）。
 
-上半部普通平铺 Gtk.ListBox（不做文件分组头）；下半部终端区由
-AgentTerminalView 提供（迷你工具栏在卡片外、圆角卡片仅 VTE）。
+上半部批注列表用与 document structure 页同款组件栈：
+Adw.PreferencesPage → PreferencesGroup(.sidebar-section-group) →
+ListBox(.boxed-list)。列表不设 vexpand，只占内容自然高度，空白处
+露出页面背景；到侧栏两边的间距由 Adw 样式表提供，与结构页一致。
+下半部终端区由 AgentTerminalView 提供（迷你工具栏在卡片外、圆角卡片仅 VTE）。
 两半用垂直 Gtk.Paned 分隔，用户可拖动调整占比。
 """
 
@@ -67,18 +70,17 @@ class AiPageView(Gtk.Box):
         self.list_stack = Gtk.Stack()
         self.list_stack.set_vexpand(True)
 
-        self.list_scrolled = Gtk.ScrolledWindow()
-        self.list_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.list_scrolled.set_vexpand(True)
+        # 与 document structure 页同款：PreferencesPage 自带滚动与边距，
+        # ListBox 不 vexpand → 只占内容高度，下方空白是背景而非列表延伸。
+        self.list_page = Adw.PreferencesPage()
+        self.list_group = Adw.PreferencesGroup()
+        self.list_group.add_css_class('sidebar-section-group')
         self.list_box = Gtk.ListBox()
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.list_box.add_css_class('boxed-list')
-        self.list_box.set_margin_top(6)
-        self.list_box.set_margin_bottom(6)
-        self.list_box.set_margin_start(6)
-        self.list_box.set_margin_end(6)
-        self.list_scrolled.set_child(self.list_box)
-        self.list_stack.add_named(self.list_scrolled, 'list')
+        self.list_group.add(self.list_box)
+        self.list_page.add(self.list_group)
+        self.list_stack.add_named(self.list_page, 'list')
 
         self.empty_status = Adw.StatusPage()
         self.empty_status.set_icon_name('ai-slop-symbolic')

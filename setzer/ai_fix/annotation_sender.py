@@ -67,6 +67,7 @@ class AnnotationSender(object):
             if not self._save_document(document):
                 return
         data = []
+        sent_entries = []
         for document, annotation in entries:
             model = getattr(document, 'ai_annotations', None)
             if model is None:
@@ -82,10 +83,11 @@ class AnnotationSender(object):
                 'comment': annotation.get('comment', ''),
                 'preset': annotation.get('preset'),
             })
+            sent_entries.append((document, annotation))
         if not data:
             self._toast(_('No annotations to send'))
             return
-        self._send_data(data, documents[0])
+        self._send_data(data, documents[0], sent_entries)
 
     def send_selection(self, document, comment='', preset=None):
         '''单条直发：当前选区作为临时批注发送（不落批注模型）。'''
@@ -131,7 +133,9 @@ class AnnotationSender(object):
             return False
         return bool(document.save_to_disk())
 
-    def _send_data(self, data, document):
+    def _send_data(self, data, document, sent_entries=None):
+        '''sent_entries: 成功发送后需从批注模型移除的 [(document, annotation)]；
+        选区直发（不落模型）传 None。'''
         cwd = document.get_dirname()
         if not cwd:
             self._toast(_('Please save the document first'))
@@ -145,7 +149,7 @@ class AnnotationSender(object):
         cwd_real = os.path.realpath(cwd)
         trusted_real = {os.path.realpath(d) for d in trusted_dirs}
         if cwd_real in trusted_real:
-            self._execute(prompt, cwd, document)
+            self._execute(prompt, cwd, document, sent_entries)
             return
 
         agent_runner._ = _
@@ -157,10 +161,10 @@ class AnnotationSender(object):
             tool_name=(tool_config or {}).get('name', 'agent'),
             cwd=cwd,
             on_send_cb=lambda edited_prompt, dont_ask: self._on_send_confirmed(
-                edited_prompt, dont_ask, cwd, document),
+                edited_prompt, dont_ask, cwd, document, sent_entries),
         )
 
-    def _on_send_confirmed(self, prompt, dont_ask, cwd, document):
+    def _on_send_confirmed(self, prompt, dont_ask, cwd, document, sent_entries=None):
         if dont_ask:
             trusted = self.settings.get_value('preferences', 'ai_fix_trusted_dirs') or []
             cwd_real = os.path.realpath(cwd)
@@ -170,14 +174,14 @@ class AnnotationSender(object):
                 self.settings.set_value('preferences', 'ai_fix_trusted_dirs', trusted)
                 self.settings.pickle()
                 self._toast(_('Added to trusted directories'))
-        self._execute(prompt, cwd, document)
+        self._execute(prompt, cwd, document, sent_entries)
 
     def _tool_config(self):
         active = self.settings.get_value('preferences', 'ai_fix_active_tool')
         tools = self.settings.get_value('preferences', 'ai_fix_tools')
         return agent_runner.resolve_tool_config(tools, active)
 
-    def _execute(self, prompt, cwd, document):
+    def _execute(self, prompt, cwd, document, sent_entries=None):
         tool_config = self._tool_config()
         if tool_config is None:
             self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
@@ -190,6 +194,9 @@ class AnnotationSender(object):
             session = self.workspace.get_agent_session()
             success, msg = session.send(prompt, cwd)
             if success:
+                # 发送成功：批注已完成使命，从列表移除（annotations_changed
+                # 信号自动触发 AI 页重建）。
+                self._remove_sent(sent_entries)
                 # 让用户看到终端：切到侧栏 AI 页；已弹出则抬起独立窗口。
                 self.workspace.set_show_ai_agent(True)
                 window = getattr(self.workspace, 'agent_terminal_window', None)
@@ -209,7 +216,16 @@ class AnnotationSender(object):
         terminal_cmd = self.settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed(
             tool_config, prompt, cwd, document.get_filename(), terminal_cmd=terminal_cmd)
+        if success:
+            self._remove_sent(sent_entries)
         self._toast(msg)
+
+    def _remove_sent(self, sent_entries):
+        '''发送成功后移除已发出的批注；失败/取消则保留供重试。'''
+        for document, annotation in (sent_entries or []):
+            model = getattr(document, 'ai_annotations', None)
+            if model is not None:
+                model.remove(annotation['id'])
 
     def _get_preview_dialog(self):
         if self._preview_dialog is None:

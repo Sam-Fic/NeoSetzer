@@ -40,7 +40,7 @@ import shutil
 import subprocess
 import sys
 
-from setzer.ai_fix.presets import PLACEHOLDER_PROMPT, PLACEHOLDER_FILE, PLACEHOLDER_CWD
+from setzer.ai_fix.presets import PLACEHOLDER_PROMPT, PLACEHOLDER_FILE, PLACEHOLDER_CWD, default_tools
 
 
 # 终端检测链：按优先级尝试。
@@ -254,7 +254,9 @@ def resolve_tool_config(tools, active_tool_name):
     检查前移到选择阶段：选出来的工具至少 executable 在 host PATH 里。
     '''
     if not tools:
-        return None
+        # 内置预设不可经 UI 删除，空列表只可能来自异常落盘/旧实例回写：
+        # 回退内置预设，避免发送路径报“未配置工具”（与偏好页 _get_tools 自愈一致）。
+        tools = default_tools()
     match = next((t for t in tools if t.get('name') == active_tool_name), None)
     if match is not None and check_tool_available(match):
         return match
