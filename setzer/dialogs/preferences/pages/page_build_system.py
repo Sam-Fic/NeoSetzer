@@ -27,6 +27,7 @@ import sys
 import threading
 
 from setzer.app.service_locator import ServiceLocator
+import setzer.document.build_system.phitex_session.phitex_session as phitex_session
 
 
 class PageBuildSystem(object):
@@ -103,6 +104,9 @@ class PageBuildSystem(object):
 
         self.view.copy_phitex_prompt_button.connect(
             'clicked', self.on_copy_install_prompt_clicked)
+        self.view.phitex_update_check_switch.connect(
+            'notify::active', self.on_phitex_update_check_toggled)
+        self.view.phitex_upgrade_button.connect('clicked', self.on_phitex_upgrade_clicked)
 
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
@@ -287,6 +291,11 @@ class PageBuildSystem(object):
         # 没装才给安装入口；一个解释器都没检测到时（下拉框隐藏、列表为空），
         # 也要能走到这里，否则 install row 永远出不来。
         self.view.install_phitex_row.set_visible(not phitex_available)
+        # 装了才给版本与更新入口；每次进这一页都重读一次（PhiTeX 可能被用户
+        # 在终端里升级过，或改过 update-check）。
+        self.view.group_phitex.set_visible(phitex_available)
+        if phitex_available:
+            self.refresh_phitex_state()
         if interpreter is None:
             return
 
@@ -363,6 +372,119 @@ class PageBuildSystem(object):
         button.set_icon_name('edit-copy-symbolic')
         return False
 
+    # —— PhiTeX 版本与更新 ——
+    #
+    # 三条控制命令都是子进程（实测约 4 ms），升级要下载所以慢且必须后台跑。
+    # 版本与开关状态在后台读、idle 回主线程回填，避免打开偏好时卡住。
+
+    def refresh_phitex_state(self):
+        threading.Thread(target=self._read_phitex_state, daemon=True).start()
+
+    def _read_phitex_state(self):
+        version = phitex_session.PhitexSession.installed_version()
+        update_check = phitex_session.PhitexSession.update_check_enabled()
+        GLib.idle_add(self._apply_phitex_state, version, update_check)
+
+    def _apply_phitex_state(self, version, update_check):
+        if version is None:
+            self.view.phitex_version_row.set_subtitle(_('Not found'))
+            self.view.phitex_upgrade_row.set_sensitive(False)
+            self.view.phitex_update_check_switch.set_sensitive(False)
+            return False
+        self.view.phitex_version_row.set_subtitle(version)
+        # 回填前先断开：set_active 会触发 notify::active，回调会去写配置文件。
+        self.view.phitex_update_check_switch.handler_block_by_func(
+            self.on_phitex_update_check_toggled)
+        self.view.phitex_update_check_switch.set_active(update_check)
+        self.view.phitex_update_check_switch.handler_unblock_by_func(
+            self.on_phitex_update_check_toggled)
+        self.view.phitex_upgrade_row.set_sensitive(True)
+        self.view.phitex_update_check_switch.set_sensitive(True)
+        return False
+
+    def on_phitex_update_check_toggled(self, switch, pspec):
+        '''把开关状态写进 PhiTeX 的用户级配置。
+
+        走 PhiTeX 自己的 `phitex config` 而不是改它的 toml：键写法、注释保留、
+        项目级覆盖的优先级都是它的职责，我们重复实现就是未来的漂移点。
+        默认不开（`refresh_phitex_state` 只读不写），这一写只发生在用户点击时。
+        '''
+        enabled = switch.get_active()
+        def apply():
+            ok = phitex_session.PhitexSession.set_update_check(enabled)
+            if not ok:
+                GLib.idle_add(self._show_toast,
+                              _('Could not change PhiTeX’s update check setting.'))
+        threading.Thread(target=apply, daemon=True).start()
+
+    def on_phitex_upgrade_clicked(self, button):
+        '''确认后让 PhiTeX 自己升级，成功后结束所有常驻 session。
+
+        必须显式 `-y`：非终端环境下（我们这里 stdout 是管道）`phitex upgrade`
+        什么都不问、也什么都不装，界面上会看起来成功而二进制纹丝不动。
+        下载、SHA256 校验和替换自身都由 PhiTeX 完成，NeoSetzer 只触发它——
+        这与"应用不下载/不执行远程脚本"的立场一致：联网的是用户自己装的二进制。
+        '''
+        dialog = Adw.AlertDialog(
+            heading=_('Upgrade PhiTeX?'),
+            body=_('PhiTeX will download its latest release, verify it and replace its own binary. NeoSetzer does not download anything. Running sessions are ended so the next build uses the new version.'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('upgrade', _('Upgrade'))
+        dialog.set_response_appearance('upgrade', Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.choose(self.main_window, None, self._on_upgrade_confirmed)
+
+    def _on_upgrade_confirmed(self, dialog, result):
+        if dialog.choose_finish(result) != 'upgrade':
+            return
+        self.view.phitex_upgrade_row.set_sensitive(False)
+        threading.Thread(target=self._run_upgrade, daemon=True).start()
+
+    def _run_upgrade(self):
+        returncode, stdout = phitex_session.PhitexSession.upgrade()
+        output = (stdout or '').strip()
+        if returncode == 0:
+            GLib.idle_add(self._end_phitex_sessions)
+            message = (_('PhiTeX upgraded.') + (' ' + output.splitlines()[0]
+                                                if output.splitlines() else ''))
+        elif returncode is None:
+            message = _('PhiTeX could not be upgraded: the command did not run.')
+        else:
+            message = _('PhiTeX could not be upgraded: ') + (output.splitlines()[-1]
+                                                             if output.splitlines()
+                                                             else str(returncode))
+        GLib.idle_add(self._show_toast, message)
+        GLib.idle_add(self.refresh_phitex_state)
+
+    def _end_phitex_sessions(self):
+        '''升级后结束所有文档的常驻 watch，否则新版本要等重启才生效。
+
+        session 进程是升级前的二进制，还在跑就仍在用旧引擎；下一次构建会按
+        新配置重新 start。stop 是子进程调用，放后台线程避免批量关 session
+        时卡主循环。
+        '''
+        self.view.phitex_restart_note.set_visible(True)
+        workspace = ServiceLocator.get_workspace()
+        builders = []
+        for document in workspace.open_documents:
+            build_system = getattr(document, 'build_system', None)
+            if build_system is None:
+                continue
+            builder = build_system.builders.get('build_latex')
+            if builder is not None and builder.phitex_session is not None:
+                builders.append(builder)
+        for builder in builders:
+            threading.Thread(target=builder.stop_phitex_session, daemon=True).start()
+        return False
+
+    def _show_toast(self, text, timeout=4):
+        if hasattr(self.main_window, 'toast_overlay'):
+            toast = Adw.Toast.new(text)
+            toast.set_timeout(timeout)
+            self.main_window.toast_overlay.add_toast(toast)
+        return False
+
 
 class PageBuildSystemView(Adw.PreferencesPage):
 
@@ -426,6 +548,40 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         # 同上：检测结果回来之前先藏起来。
         self.install_phitex_row.set_visible(False)
         group_interpreter.add(self.install_phitex_row)
+
+        # PhiTeX 自身的版本与更新入口。只在检测到时整组出现，见
+        # _apply_interpreter_results。版本读本地 `phitex --version`，零网络。
+        group_phitex = Adw.PreferencesGroup()
+        group_phitex.set_title(_('PhiTeX'))
+        group_phitex.set_visible(False)
+        self.group_phitex = group_phitex
+        self.add(group_phitex)
+
+        self.phitex_version_row = Adw.ActionRow()
+        self.phitex_version_row.set_title(_('Version'))
+        group_phitex.add(self.phitex_version_row)
+
+        self.phitex_update_check_switch = Adw.SwitchRow()
+        self.phitex_update_check_switch.set_title(_('Let PhiTeX check for updates'))
+        self.phitex_update_check_switch.set_subtitle(_('PhiTeX checks at most once a day, on its own, from its own binary. NeoSetzer never downloads or queries anything for it.'))
+        group_phitex.add(self.phitex_update_check_switch)
+
+        self.phitex_upgrade_row = Adw.ActionRow()
+        self.phitex_upgrade_row.set_title(_('Upgrade to the latest release'))
+        self.phitex_upgrade_row.set_subtitle(_('PhiTeX downloads and verifies its own release, then replaces its binary by rename. NeoSetzer only runs the command.'))
+        self.phitex_upgrade_button = Gtk.Button(label=_('Upgrade'))
+        self.phitex_upgrade_button.set_valign(Gtk.Align.CENTER)
+        self.phitex_upgrade_row.add_suffix(self.phitex_upgrade_button)
+        self.phitex_upgrade_row.set_activatable_widget(self.phitex_upgrade_button)
+        group_phitex.add(self.phitex_upgrade_row)
+
+        self.phitex_restart_note = Gtk.Label()
+        self.phitex_restart_note.set_wrap(True)
+        self.phitex_restart_note.set_markup(_('Running PhiTeX sessions are ended after an upgrade, so the next build starts on the new version.'))
+        self.phitex_restart_note.set_xalign(0)
+        self.phitex_restart_note.add_css_class('caption')
+        self.phitex_restart_note.set_visible(False)
+        group_phitex.add(self.phitex_restart_note)
 
         group_options = Adw.PreferencesGroup()
         group_options.set_title(_('Options'))

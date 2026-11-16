@@ -37,6 +37,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 
 from setzer.document.build_system.builder.builder_build import build_env, popen_no_window
 
@@ -80,6 +81,85 @@ class PhitexSession:
     @staticmethod
     def available():
         return shutil.which('phitex') is not None
+
+    @staticmethod
+    def run(*args, timeout=_CALL_TIMEOUT_S):
+        '''直接跑一条 phitex 子命令，返回 (returncode, stdout)。
+
+        给"读版本 / 读写用户配置 / 升级"这类非构建路径的控制命令用。它们在
+        偏好页里被调用，那里没有 query 对象，也不该复用实例的 _call。
+        调用方负责放到后台线程——每条都是子进程，实测约 4 ms。
+        '''
+        executable = shutil.which('phitex')
+        if executable is None:
+            return None, None
+        try:
+            kwargs = dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, errors='replace')
+            if sys.platform == 'win32':
+                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+            process = subprocess.Popen([executable] + list(args), **kwargs)
+        except (FileNotFoundError, OSError):
+            return None, None
+        try:
+            stdout, _ = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, _ = process.communicate()
+            return None, None
+        return process.returncode, stdout or ''
+
+    @classmethod
+    def installed_version(cls):
+        '''`phitex 1.0.2` 里的版本号，取不到返回 None（本地命令，不联网）。'''
+        returncode, stdout = cls.run('--version')
+        if returncode != 0 or not stdout:
+            return None
+        parts = stdout.split()
+        if len(parts) >= 2 and parts[0] == 'phitex':
+            return parts[1]
+        return None
+
+    @classmethod
+    def update_check_enabled(cls):
+        '''用户配置里 update-check 是否开启。
+
+        PhiTeX 自己每日后台检查并把提示给编辑器；默认关。这里读它的值，
+        不替它做检查——NeoSetzer 不联网获取第三方版本信息。
+        '''
+        returncode, stdout = cls.run('config', 'update-check')
+        if returncode != 0 or not stdout:
+            return False
+        # 输出形如 "  update-check  true (yours)" 或 "  update-check  off (default)"。
+        for line in stdout.splitlines():
+            stripped = line.strip()
+            if stripped.startswith('update-check'):
+                value = stripped[len('update-check'):].strip().split()[:1]
+                if value:
+                    return value[0].lower() in ('true', 'on')
+        return False
+
+    @classmethod
+    def set_update_check(cls, enabled):
+        '''写用户级配置（`phitex config update-check on|off`），可逆。
+
+        刻意只走 PhiTeX 自己的命令、不自己改它的 toml：键的写法、注释保留、
+        与项目级配置的优先级都是它的职责范围，我们重复实现一遍就是漂移点。
+        '''
+        returncode, stdout = cls.run('config', 'update-check',
+                                     'on' if enabled else 'off')
+        return returncode == 0
+
+    @classmethod
+    def upgrade(cls):
+        '''跑 `phitex upgrade -y`，返回 (returncode, 输出)。
+
+        必须显式 -y：非终端环境下（我们这里 stdout 是管道）PhiTeX 什么都不问、
+        也什么都不装，不带 -y 会静默变成空操作——界面上看起来"升级成功"而二进制
+        没变。下载与校验都由 PhiTeX 自己做，NeoSetzer 只是触发它。
+        '''
+        return cls.run('upgrade', '-y', timeout=600)
+
 
     def start(self):
         '''拉起（或复用）该文档的 watch，成功返回 True。
