@@ -364,7 +364,8 @@ class PageBuildSystem(object):
             'account without sudo and without writing into system directories. Then check '
             'it works and show me what you did. Do not compile PhiTeX into NeoSetzer or '
             'bundle it in a NeoSetzer package.')))
-        # 就地反馈：偏好对话框没有 toast overlay，换图标比弹新窗口打扰小。
+        # 就地反馈：不弹 toast。"Copied" 这类瞬时提示会盖住紧接着要看的开关，
+        # 而按钮本身就在鼠标下，换图标既不打断视线也不用等它消失。
         button.set_icon_name('object-select-symbolic')
         GLib.timeout_add_seconds(2, self._reset_copy_button, button)
 
@@ -433,7 +434,10 @@ class PageBuildSystem(object):
         dialog.set_response_appearance('upgrade', Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
-        dialog.choose(self.main_window, None, self._on_upgrade_confirmed)
+        # 父窗口取偏好对话框而非主窗口：后者此时被设置窗口盖住，确认框会
+        # 出现在它背后。libadwaita 1.5+ 支持 dialog 以 dialog 为父。
+        parent = getattr(self.preferences, 'view', None) or self.main_window
+        dialog.choose(parent, None, self._on_upgrade_confirmed)
 
     def _on_upgrade_confirmed(self, dialog, result):
         if dialog.choose_finish(result) != 'upgrade':
@@ -479,9 +483,19 @@ class PageBuildSystem(object):
         return False
 
     def _show_toast(self, text, timeout=4):
-        if hasattr(self.main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(text)
-            toast.set_timeout(timeout)
+        '''在偏好对话框内弹 toast，而不是主窗口。
+
+        升级、写配置都发生在设置窗口里，用户的眼睛也在这里。发到主窗口就是
+        错位的：设置窗口盖在主窗口之上，toast 会凭空出现在它背后，用户既
+        看不到也点不到。Adw.PreferencesDialog 自带 add_toast（libadwaita
+        1.5+），不需要我们自己包一层 ToastOverlay。
+        '''
+        toast = Adw.Toast.new(text)
+        toast.set_timeout(timeout)
+        preferences_view = getattr(self.preferences, 'view', None)
+        if preferences_view is not None and hasattr(preferences_view, 'add_toast'):
+            preferences_view.add_toast(toast)
+        elif hasattr(self.main_window, 'toast_overlay'):
             self.main_window.toast_overlay.add_toast(toast)
         return False
 

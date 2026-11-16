@@ -114,11 +114,26 @@ class PageStateTest(unittest.TestCase):
               'ServiceLocator': service_locator_class()}
         self.apply = load_method(PAGE, 'PageBuildSystem', '_apply_phitex_state', ns)
         self.end = load_method(PAGE, 'PageBuildSystem', '_end_phitex_sessions', ns)
+        toast_ns = dict(ns, Adw=mock.Mock())
+        self.toast = load_method(PAGE, 'PageBuildSystem', '_show_toast', toast_ns)
 
     def page(self):
         obj = mock.Mock()
         obj.on_phitex_update_check_toggled = mock.Mock()
         return obj
+
+    def test_toast_stays_in_the_preferences_window(self):
+        '''设置窗口盖在主窗口之上，toast 发到主窗口就会出现在它背后。'''
+        obj = self.page()
+        self.toast(obj, 'PhiTeX upgraded.')
+        obj.preferences.view.add_toast.assert_called_once()
+        obj.main_window.toast_overlay.add_toast.assert_not_called()
+
+    def test_toast_falls_back_when_no_preferences_window(self):
+        obj = self.page()
+        obj.preferences.view = None
+        self.toast(obj, 'x')
+        obj.main_window.toast_overlay.add_toast.assert_called_once()
 
     def test_backfill_does_not_write_the_config(self):
         '''回填必须先断开信号，否则打开偏好页就替用户改了设置。'''
