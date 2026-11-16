@@ -251,10 +251,9 @@ class PageBuildSystem(object):
         self.latexmk_available = latexmk_available
 
         if len(self.latex_interpreters) == 0:
-            self.view.no_interpreter_label.set_visible(True)
+            self.view.set_interpreter_note(self.view.no_interpreter_note)
             self.view.option_latex_interpreter.set_visible(False)
         else:
-            self.view.no_interpreter_label.set_visible(False)
             self.view.option_latex_interpreter.set_visible(True)
             if self.settings.get_value('preferences', 'latex_interpreter') not in self.latex_interpreters:
                 self.settings.set_value('preferences', 'latex_interpreter', self.latex_interpreters[0])
@@ -301,8 +300,12 @@ class PageBuildSystem(object):
 
         tectonic_active = (interpreter == 'tectonic')
         phitex_active = (interpreter == 'phitex')
-        self.view.tectonic_warning_label.set_visible(tectonic_active)
-        self.view.phitex_note_label.set_visible(phitex_active)
+        if tectonic_active:
+            self.view.set_interpreter_note(self.view.tectonic_note)
+        elif phitex_active:
+            self.view.set_interpreter_note(self.view.phitex_note)
+        else:
+            self.view.set_interpreter_note('')
         self.view.option_phitex_live_build.set_visible(phitex_active)
         self.view.option_system_commands.set_visible(not tectonic_active)
         # latexmk 路线与其输出链对两个自带编排的引擎都没有意义：tectonic
@@ -502,17 +505,26 @@ class PageBuildSystem(object):
 
 class PageBuildSystemView(Adw.PreferencesPage):
 
+    def set_interpreter_note(self, text):
+        '''组级说明用 PreferencesGroup 的 description。
+
+        裸 Gtk.Label 加进组会被当成列表行、套上卡片背景；description 是
+        libadwaita 给组级说明留的槽位（dim 小字、不占卡片），项目里其它
+        页也一律这么写。
+        '''
+        self.group_interpreter.set_description(text)
+
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
         self.set_title(_('Build System'))
         self.set_icon_name('system-run-symbolic')
 
-        group_interpreter = Adw.PreferencesGroup()
-        group_interpreter.set_title(_('LaTeX Interpreter'))
-        self.add(group_interpreter)
+        self.group_interpreter = Adw.PreferencesGroup()
+        self.group_interpreter.set_title(_('LaTeX Interpreter'))
+        self.add(self.group_interpreter)
 
-        self.no_interpreter_label = Gtk.Label()
-        self.no_interpreter_label.set_wrap(True)
+        # 引擎说明走组的 description，而不是往组里塞裸 Gtk.Label：后者会被
+        # 当成列表行、套上卡片背景，一段话看起来像设置项。
         running_under_flatpak = False
         try:
             gi.require_version('Xdp', '1.0')
@@ -522,30 +534,16 @@ class PageBuildSystemView(Adw.PreferencesPage):
             # Xdp (xdg-desktop-portal) GI namespace not available in this runtime.
             pass
         if running_under_flatpak:
-            self.no_interpreter_label.set_markup(_('''No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:
-flatpak install org.freedesktop.Sdk.Extension.texlive'''))
+            self.no_interpreter_note = _('''No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:
+flatpak install org.freedesktop.Sdk.Extension.texlive''')
         else:
-            self.no_interpreter_label.set_markup(_('No LaTeX interpreter found. For instructions on installing LaTeX see <a href="https://en.wikibooks.org/wiki/LaTeX/Installation">https://en.wikibooks.org/wiki/LaTeX/Installation</a>'))
-        self.no_interpreter_label.set_xalign(0)
-        group_interpreter.add(self.no_interpreter_label)
+            self.no_interpreter_note = _('No LaTeX interpreter found. For instructions on installing LaTeX see <a href="https://en.wikibooks.org/wiki/LaTeX/Installation">https://en.wikibooks.org/wiki/LaTeX/Installation</a>')
+        self.tectonic_note = _('Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href="https://tectonic-typesetting.github.io/tectonic/">Tectonic documentation</a>).')
+        self.phitex_note = _('PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX\u2019s, but LuaLaTeX is not supported yet. Editing stays instant only while a PhiTeX session is running; without one, use another interpreter for the fastest full rebuilds.')
 
         self.option_latex_interpreter = Adw.ComboRow()
         self.option_latex_interpreter.set_title(_('Interpreter'))
-        group_interpreter.add(self.option_latex_interpreter)
-
-        self.tectonic_warning_label = Gtk.Label()
-        self.tectonic_warning_label.set_wrap(True)
-        self.tectonic_warning_label.set_markup(_('Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href="https://tectonic-typesetting.github.io/tectonic/">Tectonic documentation</a>).'))
-        self.tectonic_warning_label.set_xalign(0)
-        self.tectonic_warning_label.add_css_class('caption')
-        group_interpreter.add(self.tectonic_warning_label)
-
-        self.phitex_note_label = Gtk.Label()
-        self.phitex_note_label.set_wrap(True)
-        self.phitex_note_label.set_markup(_('PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX\u2019s, but LuaLaTeX is not supported yet. Editing stays instant only while a PhiTeX session is running; without one, use another interpreter for the fastest full rebuilds.'))
-        self.phitex_note_label.set_xalign(0)
-        self.phitex_note_label.add_css_class('caption')
-        group_interpreter.add(self.phitex_note_label)
+        self.group_interpreter.add(self.option_latex_interpreter)
 
         # 未检测到 phitex 时才出现（由 update_engine_specific_visibility 控制）：
         # 提供一段可复制给 AI Agent 的安装提示词，而不是让 NeoSetzer 自己去
@@ -561,7 +559,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
         self.install_phitex_row.set_activatable_widget(self.copy_phitex_prompt_button)
         # 同上：检测结果回来之前先藏起来。
         self.install_phitex_row.set_visible(False)
-        group_interpreter.add(self.install_phitex_row)
+        self.group_interpreter.add(self.install_phitex_row)
 
         # PhiTeX 自身的版本与更新入口。只在检测到时整组出现，见
         # _apply_interpreter_results。版本读本地 `phitex --version`，零网络。
