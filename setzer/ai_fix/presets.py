@@ -99,3 +99,44 @@ def default_tools():
 def builtin_names():
     '''返回内置预设的 name 列表，供「不可删除」判断使用。'''
     return [t['name'] for t in BUILTIN_TOOLS]
+
+
+# 批注预制提示词：选区批注 / 单条直发时可选的指令模板。
+# name 同时用作显示名与 settings.ai_annotation_presets 的键；
+# instruction 是注入 prompt 的英文指令（与 build_log AI fix 的 prompt 一致，
+# 面向模型用英文）。用户批注（comment）作为附加要求拼在指令之后。
+ANNOTATION_PRESETS = [
+    {
+        'name': 'Improve writing',
+        'instruction': 'Improve the wording, clarity and flow of the annotated passages. '
+                       'Keep the LaTeX markup intact and preserve the original meaning.',
+    },
+    {
+        'name': 'Fix LaTeX code',
+        'instruction': 'Fix the LaTeX code in the annotated passages (syntax, packages, '
+                       'typography). Make sure the document still compiles.',
+    },
+    {
+        'name': 'Explain',
+        'instruction': 'Explain the annotated passages. Do not modify any files; '
+                       'answer in the chat only.',
+    },
+    {
+        'name': 'Refactor',
+        'instruction': 'Refactor the annotated passages for better structure and '
+                       'maintainability without changing the rendered output.',
+    },
+]
+
+
+def default_annotation_presets():
+    '''返回批注预制提示词的深拷贝，供 settings 默认值使用。'''
+    return copy.deepcopy(ANNOTATION_PRESETS)
+
+
+def annotation_preset_instruction(presets, name):
+    '''按 name 查指令文本；找不到（含 None/自定义）返回空串。'''
+    if not name:
+        return ''
+    match = next((p for p in (presets or []) if p.get('name') == name), None)
+    return match.get('instruction', '') if match else ''

@@ -116,6 +116,11 @@ class Actions(object):
         self.add_action('spell-replace', self.spell_replace, GLib.VariantType('as'))
         self.add_action('spell-ignore', self.spell_ignore, GLib.VariantType('s'))
         self.add_action('spell-add', self.spell_add, GLib.VariantType('s'))
+        # AI 批注：添加批注（popover 写要求 + 预制提示词，落模型）与直发
+        # 选区（不落批注，经统一发送控制器进 Agent 会话）。快捷键路径同效。
+        self.add_action('ai-add-annotation', self.ai_add_annotation)
+        self.add_action('ai-send-selection', self.ai_send_selection)
+        self._ai_annotation_popover = None
         self.add_action('forward-sync', self.forward_sync)
 
         # Label context menu actions (right-click on \ref{...})
@@ -1252,6 +1257,62 @@ class Actions(object):
         spell = getattr(document, 'spellchecking', None) if document is not None else None
         if spell is not None:
             spell.add_to_dictionary(word)
+
+    def ai_add_annotation(self, action=None, parameter=None):
+        '''右键/快捷键「添加 AI 批注」：弹 popover 写要求，保存即落模型并高亮。
+
+        选区在弹出时捕获（offset 对）：popover 抢焦点后用户可能改变选区，
+        保存时先恢复原选区再登记，保证批注锚定的就是触发时的选区。
+        '''
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        bounds = document.source_buffer.get_selection_bounds()
+        if not bounds:
+            self._show_file_template_toast(_('Select some text first'))
+            return
+        start, end = bounds
+        start_offset, end_offset = start.get_offset(), end.get_offset()
+
+        if self._ai_annotation_popover is None:
+            from setzer.document.ai_annotations.annotation_popover import AnnotationPopover
+            self._ai_annotation_popover = AnnotationPopover()
+        popover = self._ai_annotation_popover
+        presets = self.settings.get_value('preferences', 'ai_annotation_presets') or []
+        popover.set_presets(presets)
+
+        # 锚定选区末尾：buffer 坐标 → source_view widget 坐标。
+        # 新旧 PyGObject 命名差异：GTK4 原生 buffer_to_widget_coords，
+        # 部分版本仍暴露 GTK3 风格 buffer_to_window_coords（仓库既有惯例）。
+        source_view = document.view.source_view
+        location = source_view.get_iter_location(end)
+        if hasattr(source_view, 'buffer_to_widget_coords'):
+            wx, wy = source_view.buffer_to_widget_coords(location.x, location.y + location.height)
+        else:
+            wx, wy = source_view.buffer_to_window_coords(
+                Gtk.TextWindowType.WIDGET, location.x, location.y + location.height)
+        rect = Gdk.Rectangle()
+        rect.x = wx
+        rect.y = wy
+        rect.width = max(location.width, 1)
+        rect.height = max(location.height, 1)
+
+        def on_save(comment, preset):
+            buffer = document.source_buffer
+            buffer.select_range(buffer.get_iter_at_offset(start_offset),
+                                buffer.get_iter_at_offset(end_offset))
+            model = getattr(document, 'ai_annotations', None)
+            if model is not None and model.add_from_selection(comment, preset) is not None:
+                self._show_file_template_toast(_('Annotation added'))
+
+        popover.present_for(source_view, rect, on_save_cb=on_save)
+
+    def ai_send_selection(self, action=None, parameter=None):
+        '''右键/快捷键「直发选区」：不落批注，立即经统一发送控制器发送。'''
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        self.workspace.get_annotation_sender().send_selection(document)
 
     def toggle_comment(self, action=None, parameter=None):
         if self.workspace.get_active_document() == None: return

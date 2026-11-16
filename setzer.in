@@ -180,6 +180,8 @@ class MainApplicationController(Adw.Application):
                     DocumentSettings.save_document_state(document)
                 self.workspace.save_to_disk()
                 self.save_window_state()
+                # 结束内嵌 Agent 会话子进程（未创建过则零开销）。
+                self.workspace.shutdown_agent_session()
         except Exception:
             pass
         Adw.Application.do_shutdown(self)
@@ -313,6 +315,7 @@ class MainApplicationController(Adw.Application):
         self.settings.set_value('window_state', 'show_build_log', self.workspace.show_build_log)
         self.settings.set_value('window_state', 'show_symbols', self.workspace.show_symbols)
         self.settings.set_value('window_state', 'show_document_structure', self.workspace.show_document_structure)
+        self.settings.set_value('window_state', 'show_ai_agent', self.workspace.show_ai_agent)
         self.settings.set_value('window_state', 'sidebar_width_fraction', main_window.sidebar_split.get_sidebar_width_fraction())
         self.settings.flush_persistence()
 

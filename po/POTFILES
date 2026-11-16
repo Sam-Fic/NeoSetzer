@@ -1,8 +1,12 @@
-# generated on Mon Nov 16 01:45:02 PM UTC 2026
+# generated on Mon Nov 16 05:48:14 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
 ./setzer/ai_fix/agent_runner.py
+./setzer/ai_fix/agent_session.py
+./setzer/ai_fix/agent_terminal_viewgtk.py
+./setzer/ai_fix/annotation_prompt_builder.py
+./setzer/ai_fix/annotation_sender.py
 ./setzer/ai_fix/__init__.py
 ./setzer/ai_fix/presets.py
 ./setzer/ai_fix/preview_dialog.py
@@ -124,6 +128,9 @@
 ./setzer/dialogs/spellchecking_words/__init__.py
 ./setzer/dialogs/spellchecking_words/spellchecking_words.py
 ./setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py
+./setzer/document/ai_annotations/ai_annotations.py
+./setzer/document/ai_annotations/annotation_popover.py
+./setzer/document/ai_annotations/__init__.py
 ./setzer/document/autocomplete/autocomplete_controller.py
 ./setzer/document/autocomplete/autocomplete.py
 ./setzer/document/autocomplete/autocomplete_widget.py
@@ -319,6 +326,8 @@
 ./setzer/widgets/search_highlight.py
 ./setzer/workspace/actions/actions.py
 ./setzer/workspace/actions/__init__.py
+./setzer/workspace/agent_terminal_window/agent_terminal_window.py
+./setzer/workspace/agent_terminal_window/__init__.py
 ./setzer/workspace/auto_build/auto_build.py
 ./setzer/workspace/auto_build/__init__.py
 ./setzer/workspace/auto_save/auto_save.py
@@ -347,6 +356,9 @@
 ./setzer/workspace/shortcutsbar/__init__.py
 ./setzer/workspace/shortcutsbar/shortcutsbar.py
 ./setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py
+./setzer/workspace/sidebar/ai_page/ai_page.py
+./setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py
+./setzer/workspace/sidebar/ai_page/__init__.py
 ./setzer/workspace/sidebar/document_stats/document_stats.py
 ./setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py
 ./setzer/workspace/sidebar/document_stats/__init__.py

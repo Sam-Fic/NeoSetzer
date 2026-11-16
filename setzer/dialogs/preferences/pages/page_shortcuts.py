@@ -176,7 +176,9 @@ class PageShortcuts(object):
                 'select_all_occurrences': _('Select All Occurrences'),
                 'add_cursor_above': _('Add Cursor Above'),
                 'add_cursor_below': _('Add Cursor Below'),
-                'clear_multi_cursor': _('Clear Multi-Cursor')
+                'clear_multi_cursor': _('Clear Multi-Cursor'),
+                'ai_add_annotation': _('Add AI Annotation'),
+                'ai_send_selection': _('Send Selection to Agent')
             }
         return self._action_titles.get(action_name, action_name)
 
@@ -250,7 +252,9 @@ class PageShortcuts(object):
                 'select_all_occurrences': _('Select all occurrences of the selected text or word (multi-cursor)'),
                 'add_cursor_above': _('Add a cursor on the line above (multi-cursor)'),
                 'add_cursor_below': _('Add a cursor on the line below (multi-cursor)'),
-                'clear_multi_cursor': _('Clear all additional cursors (multi-cursor)')
+                'clear_multi_cursor': _('Clear all additional cursors (multi-cursor)'),
+                'ai_add_annotation': _('Annotate the selected text for the AI agent'),
+                'ai_send_selection': _('Send the selected text to the AI agent immediately')
             }
         return self._action_descriptions.get(action_name, '')
 

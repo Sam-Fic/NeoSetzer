@@ -14,6 +14,8 @@ ucrt64\bin\setzer.bat
 
 便携包包含 Python、GTK4、libadwaita、运行时 DLL、GObject typelib、GLib schema、翻译、应用资源和 **Adwaita symbolic 图标主题**。最终用户无需预先安装 MSYS2。
 
+> **AI 内嵌终端在 Windows 上不可用**：内嵌 Agent 终端依赖 Linux 的 VTE（`Vte-3.91` typelib），便携包不包含它。应用会自动回退：AI 发送（选区批注、构建日志 AI 修复）改为打开外部终端运行 Agent，并同时把 prompt 复制到剪贴板备用。这是预期行为，无需修复。
+
 ## 正式发布
 
 Windows 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正式发布流程)：更新版本号和 `CHANGELOG.md`，然后推送与 `meson.build` 匹配的 `v*` 标签。`build-windows.yml` 会自动构建并把 ZIP 上传到同一 GitHub Release。

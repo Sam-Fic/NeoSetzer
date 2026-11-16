@@ -842,7 +842,8 @@ class MainWindow(Adw.ApplicationWindow):
         # 保存并隐藏 headerbar
         self._show_fullscreen_headerbar(False)
         # 折叠 sidebar（如果开启）
-        self._sidebar_was_visible = (workspace.show_symbols or workspace.show_document_structure)
+        self._sidebar_was_visible = (workspace.show_symbols or workspace.show_document_structure
+                                     or workspace.show_ai_agent)
         if self._sidebar_was_visible:
             workspace.set_show_sidebar(False)
 

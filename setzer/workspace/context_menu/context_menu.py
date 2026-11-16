@@ -88,6 +88,13 @@ class ContextMenu(object):
                 return
         self.popover_more.view.rebuild_spell_section(None, 0, [])
 
+    def set_ai_context(self, has_selection):
+        '''Set the AI annotation context for the right-click menu.
+
+        document_controller 在弹出前按选区状态调用；无选区时清空 section。
+        '''
+        self.popover_more.view.rebuild_ai_section(has_selection)
+
     def _build_zoom_widget(self):
         '''右键 popover 自己的 zoom 控件行。与 ContextMenuView._build_zoom_widget
         结构一致（label + 减/重置/增），但 reset 按钮引用存为 reset_zoom_button_pointer，
@@ -142,6 +149,7 @@ class ContextMenu(object):
                 self.popover_more.view.rebuild_latex_section(self.document)
         # 拼写建议是右键专属内容，同样不能泄漏进 F12 菜单。
         self.popover_more.view.rebuild_spell_section(None, 0, [])
+        self.popover_more.view.rebuild_ai_section(False)
 
     def on_popover_unmap(self, popover):
         '''Clear label context when popover closes.'''
@@ -151,6 +159,7 @@ class ContextMenu(object):
                 self.popover_more.view.rebuild_latex_section(self.document)
         # 关闭时清掉拼写建议，避免残留到下一次（可能换文档的）弹出。
         self.popover_more.view.rebuild_spell_section(None, 0, [])
+        self.popover_more.view.rebuild_ai_section(False)
 
     def popup_at_cursor(self, x, y):
         if self.document == None: return

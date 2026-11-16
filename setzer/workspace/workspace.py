@@ -40,6 +40,7 @@ import setzer.workspace.workspace_controller as workspace_controller
 import setzer.workspace.preview_panel.preview_panel as preview_panel
 import setzer.workspace.help_panel.help_panel as help_panel
 import setzer.workspace.pdf_preview_window.pdf_preview_window as pdf_preview_window
+import setzer.workspace.agent_terminal_window.agent_terminal_window as agent_terminal_window
 import setzer.workspace.welcome_screen.welcome_screen as welcome_screen
 import setzer.workspace.headerbar.headerbar as headerbar
 import setzer.workspace.sidebar.sidebar as sidebar
@@ -92,11 +93,12 @@ class Workspace(Observable):
         self.show_help = self.settings.get_value('window_state', 'show_help')
         self.show_symbols = self.settings.get_value('window_state', 'show_symbols')
         self.show_document_structure = self.settings.get_value('window_state', 'show_document_structure')
+        self.show_ai_agent = self.settings.get_value('window_state', 'show_ai_agent')
 
         # 记忆上次侧栏面板（隐藏后再次显示时恢复）。与 show_*/show_document_structure
         # 解耦：后者在隐藏时被清成 False（仅用于驱动可见性），本属性持久化"上次选了哪个"。
         self.sidebar_page = self.settings.get_value('window_state', 'sidebar_page')
-        if self.sidebar_page not in ('symbols', 'document_structure'):
+        if self.sidebar_page not in ('symbols', 'document_structure', 'ai_agent'):
             # 值损坏 / 来自更早版本时的兜底，与 settings 默认保持一致。
             self.sidebar_page = 'document_structure'
 
@@ -110,6 +112,13 @@ class Workspace(Observable):
         self.preview_popped_out = False
         self.pdf_preview_window = None
         self._loading_count = 0
+
+        # Agent 终端弹出独立窗口状态（同 preview 弹出模式，不跨会话持久化）。
+        # 会话/发送器懒创建：VTE 不可用或用户从未用过 AI 功能时零开销。
+        self.agent_terminal_popped_out = False
+        self.agent_terminal_window = None
+        self._agent_session = None
+        self._annotation_sender = None
 
         # Actions 必须在 Workspace 构造期就建立：DialogLocator.init_dialogs()
         # 在 activate() 中早于 init_workspace_controller() 调用，而命令面板等
@@ -790,6 +799,7 @@ class Workspace(Observable):
             if window_state:
                 self.show_symbols = window_state.get('show_symbols', self.show_symbols)
                 self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
+                self.show_ai_agent = window_state.get('show_ai_agent', self.show_ai_agent)
                 self.show_preview = window_state.get('show_preview', self.show_preview)
                 self.show_help = window_state.get('show_help', self.show_help)
                 self.show_build_log = window_state.get('show_build_log', self.show_build_log)
@@ -1069,6 +1079,7 @@ class Workspace(Observable):
         data['window_state'] = {
             'show_symbols': self.show_symbols,
             'show_document_structure': self.show_document_structure,
+            'show_ai_agent': self.show_ai_agent,
             'show_preview': self.show_preview,
             'show_help': self.show_help,
             'show_build_log': self.show_build_log,
@@ -1321,6 +1332,63 @@ class Workspace(Observable):
 
         self.add_change_code('preview_pop_state_changed', False)
 
+    # ---- Agent 会话 / 批注发送（懒创建，避免循环导入）----
+
+    def get_agent_session(self):
+        '''单 workspace 共享的 Agent 会话（批注 / build_log AI fix 共用）。'''
+        if self._agent_session is None:
+            from setzer.ai_fix.agent_session import AgentSession
+            self._agent_session = AgentSession(self)
+        return self._agent_session
+
+    def get_annotation_sender(self):
+        '''统一发送控制器：保存 → 信任门 → VTE/外部终端路由。'''
+        if self._annotation_sender is None:
+            from setzer.ai_fix.annotation_sender import AnnotationSender
+            self._annotation_sender = AnnotationSender(self)
+        return self._annotation_sender
+
+    def shutdown_agent_session(self):
+        '''应用退出时结束 Agent 子进程（未创建过则零开销）。'''
+        if self._agent_session is not None:
+            self._agent_session.shutdown()
+
+    def pop_out_agent_terminal(self):
+        '''把 AI 页终端区（工具栏 + 卡片）整体弹出为独立窗口。
+
+        仿 pop_out_preview 的整体 reparent：VTE 与 PTY 随 widget 搬移，
+        会话不中断。不改 show_ai_agent（侧栏 AI 页保留批注列表）。
+        '''
+        if self.agent_terminal_popped_out:
+            if self.agent_terminal_window is not None:
+                self.agent_terminal_window.present()
+            return
+        ai_page = getattr(self.sidebar, 'ai_page', None)
+        if ai_page is None:
+            return
+        if self.agent_terminal_window is None:
+            self.agent_terminal_window = agent_terminal_window.AgentTerminalWindow(self)
+        panel = ai_page.terminal_view
+        ai_page.view.paned.set_end_child(None)
+        self.agent_terminal_window.set_panel(panel)
+        panel.set_popped_out(True)
+        self.agent_terminal_popped_out = True
+        self.agent_terminal_window.present()
+
+    def pop_in_agent_terminal(self, end_session=False):
+        '''收回终端区到 AI 页。end_session=True（关窗 X）时同时杀会话。'''
+        if self.agent_terminal_popped_out and self.agent_terminal_window is not None:
+            ai_page = getattr(self.sidebar, 'ai_page', None)
+            self.agent_terminal_window.take_panel()
+            if ai_page is not None:
+                ai_page.view.paned.set_end_child(ai_page.terminal_view)
+                ai_page.terminal_view.set_popped_out(False)
+            # 隐藏而非销毁：保留几何状态便于下次弹出。
+            self.agent_terminal_window.set_visible(False)
+            self.agent_terminal_popped_out = False
+        if end_session:
+            self.get_agent_session().end_session()
+
     def set_show_preview_or_help(self, show_preview, show_help):
         if show_preview != self.show_preview or show_help != self.show_help:
             self.show_preview = show_preview
@@ -1333,9 +1401,17 @@ class Workspace(Observable):
         self.add_change_code('set_show_preview_or_help')
 
     def set_show_symbols_or_document_structure(self, show_symbols, show_document_structure):
-        if show_symbols != self.show_symbols or show_document_structure != self.show_document_structure:
+        # AI 页激活时 (False, False) 也要能收起侧栏；切回结构/符号页时
+        # 需清掉 show_ai_agent（三页互斥），故变化判断纳入第三布尔。
+        ai_cleared = self.show_ai_agent and (show_symbols or show_document_structure)
+        if (show_symbols != self.show_symbols
+                or show_document_structure != self.show_document_structure
+                or ai_cleared):
             self.show_symbols = show_symbols
             self.show_document_structure = show_document_structure
+            if ai_cleared:
+                self.show_ai_agent = False
+                self.settings.set_value('window_state', 'show_ai_agent', False)
             # 同步"上次选中面板"，供隐藏后恢复
             if show_symbols:
                 self.set_sidebar_page('symbols')
@@ -1345,9 +1421,36 @@ class Workspace(Observable):
             self.settings.set_value('window_state', 'show_document_structure', show_document_structure)
             self.add_change_code('set_show_symbols_or_document_structure')
 
+    def set_show_ai_agent(self, show):
+        '''激活/取消侧栏 AI 页（与结构/符号页互斥，复用同一 change code）。'''
+        if show == self.show_ai_agent:
+            if show:
+                # 已激活时再次调用（如发送时确保可见）：幂等通知，保证切页+展开。
+                self.add_change_code('set_show_symbols_or_document_structure')
+            return
+        self.show_ai_agent = show
+        self.settings.set_value('window_state', 'show_ai_agent', show)
+        if show:
+            if self.show_symbols or self.show_document_structure:
+                self.show_symbols = False
+                self.show_document_structure = False
+                self.settings.set_value('window_state', 'show_symbols', False)
+                self.settings.set_value('window_state', 'show_document_structure', False)
+            self.set_sidebar_page('ai_agent')
+        self.add_change_code('set_show_symbols_or_document_structure')
+
+    def activate_sidebar_page(self, page):
+        '''侧栏面板切换器被点击：把对应页的可见性布尔拨到位。'''
+        if page == 'ai_agent':
+            self.set_show_ai_agent(True)
+        elif page == 'symbols':
+            self.set_show_symbols_or_document_structure(True, False)
+        elif page == 'document_structure':
+            self.set_show_symbols_or_document_structure(False, True)
+
     def set_sidebar_page(self, page):
         '''记忆侧栏当前选中的面板，隐藏后再次显示时恢复。'''
-        if page not in ('symbols', 'document_structure'):
+        if page not in ('symbols', 'document_structure', 'ai_agent'):
             return
         if page != self.sidebar_page:
             self.sidebar_page = page
@@ -1355,16 +1458,22 @@ class Workspace(Observable):
 
     def set_show_sidebar(self, show):
         if not show:
+            if self.show_ai_agent:
+                self.set_show_ai_agent(False)
             self.set_show_symbols_or_document_structure(False, False)
         else:
-            if not self.show_symbols and not self.show_document_structure:
+            if not self.show_symbols and not self.show_document_structure and not self.show_ai_agent:
                 # 之前未选中任何面板（隐藏过）：恢复上次记忆的面板。
-                # 用显式白名单而非 else 兜底：sidebar_page 已被上面校验为两个
-                # 合法值之一，这样将来新增第三个面板时不会静默落到某一页。
+                # 用显式白名单而非 else 兜底：sidebar_page 已被上面校验为合法
+                # 值之一，这样将来新增面板时不会静默落到某一页。
                 if self.sidebar_page == 'symbols':
                     self.set_show_symbols_or_document_structure(True, False)
+                elif self.sidebar_page == 'ai_agent':
+                    self.set_show_ai_agent(True)
                 else:
                     self.set_show_symbols_or_document_structure(False, True)
+            elif self.show_ai_agent:
+                self.set_show_ai_agent(True)
             else:
                 self.set_show_symbols_or_document_structure(self.show_symbols, self.show_document_structure)
 

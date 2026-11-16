@@ -378,7 +378,25 @@ class HeaderBar(object):
             self._toast(_('No agent tool configured. Add one in Preferences → General → AI Settings.'))
             return
 
-        # 4. 裸启动：终端 + executable（无参数，进入交互 TUI）
+        # 4. VTE 可用且内嵌终端开启：切到侧栏 AI 页并复用/启动共享会话
+        #    （与批注 / build_log AI fix 同一会话，避免多开）。
+        from setzer.ai_fix import agent_session as agent_session_module
+        if (agent_session_module.VTE_AVAILABLE
+                and settings.get_value('preferences', 'ai_fix_embedded_terminal')):
+            agent_session_module._ = _
+            self.workspace.set_show_ai_agent(True)
+            session = self.workspace.get_agent_session()
+            success, msg = session.ensure_started(cwd)
+            if success:
+                window = getattr(self.workspace, 'agent_terminal_window', None)
+                if window is not None and window.get_visible():
+                    window.present()
+                if msg is None:
+                    msg = _('Agent session ready in the sidebar')
+            self._toast(msg)
+            return
+
+        # 5. 回退：外部终端裸启动（终端 + executable，无参数，进入交互 TUI）
         terminal_cmd = settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed_bare(tool_config, cwd, terminal_cmd=terminal_cmd)
         self._toast(msg)

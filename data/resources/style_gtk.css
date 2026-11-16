@@ -256,6 +256,15 @@ textview gutter {
     margin-top: 6px;
 }
 
+/* Agent 终端卡片（侧栏 AI 页 / 独立窗口）：与 .editor-card / .preview-card
+   同规范 —— 8px 圆角 + 6px 边距 + 卡片背景色。圆角裁剪由容器
+   set_overflow(Gtk.Overflow.HIDDEN) 完成（GTK4 CSS 无 overflow，preview_panel 先例）。 */
+.agent-terminal-card {
+    margin: 0 6px 6px 6px;
+    border-radius: 8px;
+    background: @card_bg_color;
+}
+
 .preview-card {
     margin: 0 6px 6px 6px;
     border-radius: 8px;

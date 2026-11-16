@@ -91,6 +91,9 @@ class ContextMenuView(Gtk.PopoverMenu):
         # 注入建议/忽略/加词典项，置于菜单最顶部（与主流编辑器一致）。
         # 空section不渲染任何内容（无分隔线），不影响 F12 菜单常态外观。
         self.spell_section = Gio.Menu()
+        # AI 批注 section：有选区时由 rebuild_ai_section() 注入「添加批注 /
+        # 直发选区」两项；无选区时为空（不渲染）。与 spell 同样不能泄漏进 F12。
+        self.ai_section = Gio.Menu()
         # 暴露 model 引用供共享：编辑器右键菜单（workspace ContextMenu.popover_pointer）
         # 用同一份 Gio.Menu model，使两者样式与内容完全一致（LaTeX section 重建对两者同效）。
         self.model = self._build_model()
@@ -101,7 +104,8 @@ class ContextMenuView(Gtk.PopoverMenu):
     def _build_model(self):
         model = Gio.Menu()
 
-        # 拼写建议在最顶部（默认空）。
+        # 拼写建议在最顶部（默认空），AI 批注紧随其后（默认空）。
+        model.prepend_section(None, self.ai_section)
         model.prepend_section(None, self.spell_section)
 
         section_edit = Gio.Menu()
@@ -218,6 +222,20 @@ class ContextMenuView(Gtk.PopoverMenu):
         item_add.set_action_and_target_value(
             'win.spell-add', GLib.Variant('s', word))
         self.spell_section.append_item(item_add)
+
+    def rebuild_ai_section(self, has_selection):
+        '''Populate (or clear) the AI annotation section.
+
+        有选区时显示两项：添加批注（落模型，稍后批量发）与直发选区
+        （不落批注，立即发送）。快捷键可配置，不在此硬编码 accel。
+        '''
+        self.ai_section.remove_all()
+        if not has_selection:
+            return
+        self.ai_section.append_item(
+            _action_item(_('Add AI Annotation…'), 'win.ai-add-annotation'))
+        self.ai_section.append_item(
+            _action_item(_('Send Selection to Agent'), 'win.ai-send-selection'))
 
     def rebuild_latex_section(self, document, label=None):
         r'''Populate (or clear) the LaTeX/BibTeX section for the active document.

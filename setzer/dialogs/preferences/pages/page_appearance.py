@@ -149,6 +149,11 @@ class PageGeneral(object):
         self.view.option_enabled.connect('notify::active', self.on_ai_enabled_toggled)
         self.on_ai_enabled_toggled(self.view.option_enabled, None)
 
+        self.view.option_embedded_terminal.set_active(
+            self.settings.get_value('preferences', 'ai_fix_embedded_terminal'))
+        self.view.option_embedded_terminal.connect(
+            'notify::active', self.on_switch_toggled, 'ai_fix_embedded_terminal')
+
         self.view.option_tool.connect('notify::selected', self.on_tool_selected)
         self._rebuild_tool_combo()
 
@@ -517,6 +522,7 @@ class PageGeneral(object):
         enabled = switch.get_active()
         # 启用关闭时所有子项置灰
         for w in (self.view.option_tool, self.view.option_terminal_cmd,
+                  self.view.option_embedded_terminal,
                   self.view.group_tools, self.view.group_add, self.view.group_trusted):
             w.set_sensitive(enabled)
 
@@ -591,10 +597,15 @@ class PageGeneral(object):
         if response_id == 'reset':
             defaults = self.settings.defaults['preferences']
             for key in ('ai_fix_enabled', 'ai_fix_active_tool',
-                        'ai_fix_terminal_cmd', 'ai_fix_trusted_dirs', 'ai_fix_tools'):
+                        'ai_fix_terminal_cmd', 'ai_fix_trusted_dirs', 'ai_fix_tools',
+                        'ai_fix_embedded_terminal'):
                 self.settings.set_value('preferences', key, defaults[key])
+            # 预制提示词用深拷贝，避免与 defaults 共享 dict。
+            from setzer.ai_fix.presets import default_annotation_presets
+            self.settings.set_value('preferences', 'ai_annotation_presets', default_annotation_presets())
             self.settings.pickle()
             self.view.option_enabled.set_active(defaults['ai_fix_enabled'])
+            self.view.option_embedded_terminal.set_active(defaults['ai_fix_embedded_terminal'])
             self.view.option_terminal_cmd.set_text(defaults['ai_fix_terminal_cmd'] or '')
             self._rebuild_tool_combo()
             self._rebuild_tools_list()
@@ -735,6 +746,17 @@ class PageGeneralView(Adw.PreferencesPage):
         self.option_enabled.set_title(_('Enable AI agent'))
         self.option_enabled.set_subtitle(_('Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar'))
         group_ai_main.add(self.option_enabled)
+
+        self.option_embedded_terminal = Adw.SwitchRow()
+        self.option_embedded_terminal.set_title(_('Embed agent terminal in the sidebar'))
+        from setzer.ai_fix.agent_session import VTE_AVAILABLE
+        if VTE_AVAILABLE:
+            self.option_embedded_terminal.set_subtitle(
+                _('Run the agent in the AI Agent sidebar page and keep one session across sends'))
+        else:
+            self.option_embedded_terminal.set_subtitle(
+                _('Embedded terminal (VTE) is not available on this system; an external terminal is used instead'))
+        group_ai_main.add(self.option_embedded_terminal)
 
         self.option_tool = Adw.ComboRow()
         self.option_tool.set_title(_('Active agent tool'))

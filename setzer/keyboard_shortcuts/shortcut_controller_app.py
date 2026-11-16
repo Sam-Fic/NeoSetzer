@@ -104,6 +104,9 @@ class ShortcutControllerApp(ShortcutController):
         self._register_configurable('restore_session', shortcuts.get('restore_session', '<Control><Shift>j'), lambda: self.main_window.activate_action('restore-session'))
         # 固定/取消固定当前文档标签页（与标签条右键菜单共用 win.pin-tab）。
         self._register_configurable('pin_tab', shortcuts.get('pin_tab', '<Control><Alt>p'), self.actions.pin_tab)
+        # AI 批注：添加批注 / 直发选区（与右键菜单共用 win.ai-* 动作）。
+        self._register_configurable('ai_add_annotation', shortcuts.get('ai_add_annotation', '<Control><Alt>a'), self.actions.ai_add_annotation)
+        self._register_configurable('ai_send_selection', shortcuts.get('ai_send_selection', '<Control><Alt>Return'), self.actions.ai_send_selection)
 
     def _register_configurable(self, action_name, trigger_string, callback):
         '''Register a user-configurable shortcut and track it by action_name

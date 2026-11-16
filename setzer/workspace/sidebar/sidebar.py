@@ -18,6 +18,7 @@
 
 import setzer.workspace.sidebar.document_structure_page.document_structure_page as document_structure_page
 import setzer.workspace.sidebar.symbols_page.symbols_page as symbols_page
+import setzer.workspace.sidebar.ai_page.ai_page as ai_page
 import setzer.workspace.sidebar.document_structure_page.data_provider as data_provider
 import setzer.workspace.sidebar.document_structure_page.files as files_section
 import setzer.workspace.sidebar.document_structure_page.structure as structure_section
@@ -38,16 +39,20 @@ class Sidebar(object):
 
         self.create_document_structure_page()
         self.create_symbols_page()
+        self.create_ai_page()
 
         self.view.add_named(self.document_structure_page, 'document_structure')
         self.view.add_named(self.symbols_page.view, 'symbols')
+        self.view.add_named(self.ai_page.view, 'ai_agent')
 
-        # 两页工具栏各有一个面板切换器（图标档 + 当前档高亮），登记到 view
+        # 各页工具栏各有一个面板切换器（图标档 + 当前档高亮），登记到 view
         # 由它统一同步；点击后把选中面板写回 workspace（供隐藏侧栏后恢复）。
         self.view.register_switch_group('document_structure', self.document_structure_page.switch_group)
         self.view.register_switch_group('symbols', self.symbols_page.view.switch_group)
+        self.view.register_switch_group('ai_agent', self.ai_page.view.switch_group)
         for group in (self.document_structure_page.switch_group,
-                      self.symbols_page.view.switch_group):
+                      self.symbols_page.view.switch_group,
+                      self.ai_page.view.switch_group):
             group.connect('notify::active', self.on_panel_switch_changed)
 
         # 一次性连接：原先这三行写在 on_switch_button_clicked() 里，每次点击都会
@@ -66,8 +71,9 @@ class Sidebar(object):
         if name is None:
             return
         self.view.set_visible_child_name(name)
-        # 同步当前面板到 workspace，使隐藏侧栏后能恢复上一次所处的面板
-        self.workspace.set_sidebar_page(name)
+        # 同步当前面板到 workspace（拨动对应页的可见性布尔 + 记忆面板，
+        # 使隐藏侧栏后能恢复上一次所处的面板）。
+        self.workspace.activate_sidebar_page(name)
         self.view.stack.queue_draw()
 
     def on_visible_child_changed(self, stack, pspec):
@@ -107,5 +113,8 @@ class Sidebar(object):
 
     def create_symbols_page(self):
         self.symbols_page = symbols_page.SymbolsPage(self.workspace)
+
+    def create_ai_page(self):
+        self.ai_page = ai_page.AiPage(self.workspace)
 
 

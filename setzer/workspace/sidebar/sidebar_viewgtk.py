@@ -24,7 +24,7 @@ from gi.repository import Gtk, Adw
 from setzer.helpers import animation_prefs
 
 
-# 侧栏两页的互斥切换档位：(面板名, 图标, 无障碍名/提示)。
+# 侧栏各页的互斥切换档位：(面板名, 图标, 无障碍名/提示)。
 # 面板名同时用作 Gtk.Stack 的子页名与 ToggleGroup 的档位名。
 #
 # 提示文字经 _(label) 运行时查表翻译：msgid 与「偏好设置 → 快捷键」页里的
@@ -33,6 +33,7 @@ from setzer.helpers import animation_prefs
 PANEL_SWITCH_OPTIONS = (
     ('document_structure', 'view-list-symbolic', 'Document Structure'),
     ('symbols', 'emoji-symbols-symbolic', 'Symbols'),
+    ('ai_agent', 'ai-slop-symbolic', 'AI Agent'),
 )
 
 

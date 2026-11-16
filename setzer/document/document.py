@@ -38,6 +38,7 @@ import setzer.document.parser.parser_bibtex as parser_bibtex
 import setzer.document.parser.parser_dummy as parser_dummy
 import setzer.document.code_folding.code_folding as code_folding
 import setzer.document.bookmarks.bookmarks as bookmarks
+import setzer.document.ai_annotations.ai_annotations as ai_annotations
 import setzer.document.multicursor.multicursor as multicursor
 import setzer.document.bracket_completion.bracket_completion as bracket_completion
 import setzer.document.update_matching_blocks.update_matching_blocks as update_matching_blocks
@@ -130,6 +131,9 @@ class Document(Observable):
         # 在 add_document 中同步调用）。
         self.code_folding = code_folding.CodeFolding(self)
         self.bookmarks = bookmarks.Bookmarks(self)
+        # AI 批注（选区锚定 + 高亮）：与 bookmarks 同样直连 source_buffer
+        # 信号，需随文档 shutdown 断开。仅内存态，不参与会话恢复。
+        self.ai_annotations = ai_annotations.AiAnnotations(self)
         self.build_diagnostics = build_diagnostics.BuildDiagnostics(self)
         # 片段预览（仅 LaTeX）：共用的编译引擎（临时目录 + 缓存 + 编译编排）
         # 先建，公式 hover 与 TikZ 侧栏两个前端注入其中。不构造 UI（弹窗与
@@ -327,6 +331,14 @@ class Document(Observable):
         if bookmarks is not None:
             try:
                 bookmarks.shutdown()
+            except Exception:
+                pass
+
+        # ai_annotations 同样连接了 source_buffer 的 delete-range 信号。
+        annotations = getattr(self, 'ai_annotations', None)
+        if annotations is not None:
+            try:
+                annotations.shutdown()
             except Exception:
                 pass
 

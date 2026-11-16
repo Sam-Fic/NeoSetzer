@@ -685,6 +685,9 @@ class DocumentController(object):
                 if spell is not None else None
             workspace.context_menu.set_spell_context(spell_word)
             workspace.context_menu.set_label_context(label)
+            # AI 批注项仅在有选区时显示。
+            has_selection = bool(self.document.source_buffer.get_selection_bounds())
+            workspace.context_menu.set_ai_context(has_selection)
             workspace.context_menu.popup_at_cursor(x, y)
         controller.reset()
 

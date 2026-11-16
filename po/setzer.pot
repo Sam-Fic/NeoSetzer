@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: setzer\n"
-"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-16 21:45+0800\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-17 01:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -233,11 +233,113 @@ msgid ""
 "Settings."
 msgstr ""
 
-#: setzer/ai_fix/agent_runner.py:442
+#: setzer/ai_fix/agent_runner.py:442 setzer/ai_fix/agent_session.py:127
 #, python-brace-format
 msgid ""
 "{tool} is not available on this system. Check the executable name in "
 "Preferences → General → AI Settings."
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:121 setzer/ai_fix/agent_session.py:264
+msgid "Embedded terminal is not available on this system."
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:124 setzer/ai_fix/annotation_sender.py:183
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:441
+#: setzer/workspace/headerbar/headerbar.py:378
+msgid ""
+"No agent tool configured. Add one in Preferences → General → AI Settings."
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:131 setzer/ai_fix/annotation_sender.py:130
+#: setzer/ai_fix/annotation_sender.py:137
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:430
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:502
+#: setzer/workspace/headerbar/headerbar.py:365
+#: setzer/workspace/sidebar/ai_page/ai_page.py:292
+msgid "Please save the document first"
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:157
+msgid "Failed to launch agent: {}"
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:259
+msgid "Nothing to send"
+msgstr ""
+
+#: setzer/ai_fix/agent_session.py:277
+#, python-brace-format
+msgid "Sent to {tool} (copied to clipboard as fallback)."
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:61
+msgid "Copy last prompt"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:66
+msgid "New session (in the active document’s directory)"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:71
+#: setzer/ai_fix/agent_terminal_viewgtk.py:125
+msgid "Open in a separate window"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:89
+msgid "Embedded terminal unavailable"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:91
+msgid ""
+"VTE is not available on this system. Sending will open the agent in an "
+"external terminal instead; the prompt is also copied to the clipboard."
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:108
+msgid "Session active"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:110
+msgid "Starting…"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:112
+msgid "Session ended — next send starts a new one"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:114
+msgid "No active session"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:122
+msgid "Dock back into the sidebar"
+msgstr ""
+
+#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:86
+msgid "No annotations to send"
+msgstr ""
+
+#: setzer/ai_fix/annotation_sender.py:93
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:425
+#: setzer/workspace/headerbar/headerbar.py:361
+msgid "No active document"
+msgstr ""
+
+#: setzer/ai_fix/annotation_sender.py:99
+#: setzer/workspace/actions/actions.py:1272
+msgid "Select some text first"
+msgstr ""
+
+#: setzer/ai_fix/annotation_sender.py:124
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:419
+#: setzer/workspace/headerbar/headerbar.py:355
+msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
+msgstr ""
+
+#: setzer/ai_fix/annotation_sender.py:172
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:490
+msgid "Added to trusted directories"
 msgstr ""
 
 #: setzer/ai_fix/preview_dialog.py:75
@@ -270,16 +372,16 @@ msgstr ""
 #: setzer/dialogs/go_to_line/go_to_line.py:41
 #: setzer/dialogs/go_to_page/go_to_page.py:42
 #: setzer/dialogs/interpreter_missing/interpreter_missing.py:60
-#: setzer/dialogs/preferences/pages/page_appearance.py:187
-#: setzer/dialogs/preferences/pages/page_appearance.py:325
-#: setzer/dialogs/preferences/pages/page_appearance.py:351
-#: setzer/dialogs/preferences/pages/page_appearance.py:582
-#: setzer/dialogs/preferences/pages/page_appearance.py:865
+#: setzer/dialogs/preferences/pages/page_appearance.py:192
+#: setzer/dialogs/preferences/pages/page_appearance.py:330
+#: setzer/dialogs/preferences/pages/page_appearance.py:356
+#: setzer/dialogs/preferences/pages/page_appearance.py:588
+#: setzer/dialogs/preferences/pages/page_appearance.py:887
 #: setzer/dialogs/preferences/pages/page_build_system.py:176
 #: setzer/dialogs/preferences/pages/page_build_system.py:445
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:326
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:431
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:575
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:330
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:435
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:579
 #: setzer/dialogs/preferences/pages/page_snippets.py:73
 #: setzer/dialogs/preferences/pages/page_snippets.py:231
 #: setzer/dialogs/project_build_configuration_viewgtk.py:158
@@ -288,7 +390,7 @@ msgstr ""
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:657
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:454
+#: setzer/workspace/actions/actions.py:459
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -358,7 +460,7 @@ msgstr ""
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:393
-#: setzer/dialogs/preferences/pages/page_appearance.py:868
+#: setzer/dialogs/preferences/pages/page_appearance.py:890
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:112
 #: setzer/dialogs/preferences/pages/page_snippets.py:233
 #: setzer/dialogs/project_build_configuration_viewgtk.py:161
@@ -446,7 +548,7 @@ msgstr ""
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:331
 #: setzer/dialogs/preferences/pages/page_editor.py:887
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:142
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:108
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:112
 msgid "Undo"
 msgstr ""
 
@@ -467,13 +569,13 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:93
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:143
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:109
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:113
 msgid "Redo"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:94
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:139
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:113
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:117
 msgid "Cut"
 msgstr ""
 
@@ -481,14 +583,14 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:140
 #: setzer/document/preview/context_menu/context_menu.py:116
 #: setzer/document/preview/context_menu/context_menu.py:129
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:114
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:118
 #: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
 msgid "Copy"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:96
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:141
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:115
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:119
 msgid "Paste"
 msgstr ""
 
@@ -498,7 +600,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:98
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:144
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:120
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:124
 msgid "Select All"
 msgstr ""
 
@@ -539,7 +641,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:105
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:147
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:126
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:130
 msgid "Duplicate Line"
 msgstr ""
 
@@ -550,18 +652,18 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:107
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:148
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:127
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:131
 msgid "Move Line Up"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:108
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:149
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:128
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:132
 msgid "Move Line Down"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:109
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:129
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:133
 msgid "Indent"
 msgstr ""
 
@@ -571,7 +673,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:111
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:145
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:241
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:259
 msgid "Toggle Comment"
 msgstr ""
 
@@ -650,7 +752,7 @@ msgid "Insert Matrix"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:125
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:137
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:141
 msgid "Fold All"
 msgstr ""
 
@@ -661,7 +763,7 @@ msgid "View"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:126
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:138
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:142
 msgid "Unfold All"
 msgstr ""
 
@@ -690,7 +792,7 @@ msgstr ""
 #: setzer/command_palette/catalog.py:134
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:473
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:333
-#: setzer/dialogs/preferences/pages/page_appearance.py:667
+#: setzer/dialogs/preferences/pages/page_appearance.py:678
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:135
 msgid "Preview"
 msgstr ""
@@ -731,8 +833,8 @@ msgid "Document Properties"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:137
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:637
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:641
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:645
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:130
 msgid "Keyboard Shortcuts"
 msgstr ""
@@ -1132,7 +1234,7 @@ msgid "No keys selected yet."
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:487
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:646
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:650
 msgid "Actions"
 msgstr ""
 
@@ -1191,7 +1293,7 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_snippets.py:74
 #: setzer/dialogs/project_build_configuration_viewgtk.py:184
 #: setzer/dialogs/project_build_configuration_viewgtk.py:315
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:116
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:120
 #: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete"
 msgstr ""
@@ -1256,17 +1358,17 @@ msgid "BibTeX Files"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1198
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:290
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:308
 msgid "Protect Upper-Case"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1204
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:293
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:311
 msgid "Unicode → LaTeX"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1210
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:296
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:314
 msgid "LaTeX → Unicode"
 msgstr ""
 
@@ -1427,6 +1529,7 @@ msgstr ""
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:164
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
+#: setzer/workspace/sidebar/ai_page/ai_page.py:284
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
 msgid "Copied to clipboard"
 msgstr ""
@@ -1509,32 +1612,6 @@ msgstr ""
 
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:403
 msgid "No visible log items to send"
-msgstr ""
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:419
-#: setzer/workspace/headerbar/headerbar.py:355
-msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
-msgstr ""
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:425
-#: setzer/workspace/headerbar/headerbar.py:361
-msgid "No active document"
-msgstr ""
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:430
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:502
-#: setzer/workspace/headerbar/headerbar.py:365
-msgid "Please save the document first"
-msgstr ""
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:441
-#: setzer/workspace/headerbar/headerbar.py:378
-msgid ""
-"No agent tool configured. Add one in Preferences → General → AI Settings."
-msgstr ""
-
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:490
-msgid "Added to trusted directories"
 msgstr ""
 
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:40
@@ -2369,7 +2446,7 @@ msgstr ""
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:220
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:350
-#: setzer/dialogs/preferences/pages/page_appearance.py:639
+#: setzer/dialogs/preferences/pages/page_appearance.py:650
 #: setzer/dialogs/preferences/pages/page_editor.py:1054
 msgid "Language"
 msgstr ""
@@ -3853,12 +3930,12 @@ msgid "Show open documents"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:195
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:197
 msgid "Switch to the next open document"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:49
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:188
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:190
 msgid "Save the current document"
 msgstr ""
 
@@ -3871,12 +3948,12 @@ msgid "Close the current document"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:52
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:245
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:247
 msgid "Close all open documents"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:53
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:246
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:248
 msgid "Restore a previously saved session"
 msgstr ""
 
@@ -3885,7 +3962,7 @@ msgid "Reopen the last closed document"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:57
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:248
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:250
 msgid "Pin or unpin the active document tab"
 msgstr ""
 
@@ -3901,7 +3978,7 @@ msgid "Save and build .pdf-file from document"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:208
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:210
 msgid "Build PDF without saving"
 msgstr ""
 
@@ -3914,12 +3991,12 @@ msgid "Windows and Panels"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:67
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:243
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:245
 msgid "Open the preferences dialog"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:72
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:244
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:246
 msgid "Show the about dialog"
 msgstr ""
 
@@ -3932,12 +4009,12 @@ msgid "Toggle fullscreen"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:75
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:205
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:207
 msgid "Toggle document structure panel"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:78
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:206
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:208
 msgid "Toggle symbols panel"
 msgstr ""
 
@@ -3946,7 +4023,7 @@ msgid "Toggle build log"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:80
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:211
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:213
 msgid "Toggle preview panel"
 msgstr ""
 
@@ -3959,7 +4036,7 @@ msgid "Show global menu"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:214
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:216
 msgid "Show context menu"
 msgstr ""
 
@@ -3982,8 +4059,8 @@ msgid "Find the previous match"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:161
-#: setzer/workspace/context_menu/context_menu.py:102
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:165
+#: setzer/workspace/context_menu/context_menu.py:109
 msgid "Zoom"
 msgstr ""
 
@@ -4035,7 +4112,7 @@ msgid "Selection"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:118
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:220
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:222
 msgid "Select all text"
 msgstr ""
 
@@ -4146,7 +4223,7 @@ msgid "Fraction"
 msgstr ""
 
 #: setzer/dialogs/open_document/open_document.py:39
-#: setzer/dialogs/preferences/pages/page_appearance.py:657
+#: setzer/dialogs/preferences/pages/page_appearance.py:668
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
 #: setzer/document/preview/preview_controller.py:658
 msgid "Open"
@@ -4213,359 +4290,374 @@ msgstr ""
 msgid "Added {count} suggested package(s)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:185
+#: setzer/dialogs/preferences/pages/page_appearance.py:190
 msgid "Restart Required"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:186
+#: setzer/dialogs/preferences/pages/page_appearance.py:191
 msgid "The new language will take effect after the application is restarted."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:188
+#: setzer/dialogs/preferences/pages/page_appearance.py:193
 msgid "Restart"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:247
-#: setzer/dialogs/preferences/pages/page_appearance.py:800
+#: setzer/dialogs/preferences/pages/page_appearance.py:252
+#: setzer/dialogs/preferences/pages/page_appearance.py:822
 msgid "Export Settings"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:273
+#: setzer/dialogs/preferences/pages/page_appearance.py:278
 msgid "Could not export settings: {}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:275
+#: setzer/dialogs/preferences/pages/page_appearance.py:280
 msgid "Settings exported."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:279
-#: setzer/dialogs/preferences/pages/page_appearance.py:809
+#: setzer/dialogs/preferences/pages/page_appearance.py:284
+#: setzer/dialogs/preferences/pages/page_appearance.py:831
 msgid "Import Settings"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:298
+#: setzer/dialogs/preferences/pages/page_appearance.py:303
 msgid "Could not read settings file: {}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:301
+#: setzer/dialogs/preferences/pages/page_appearance.py:306
 msgid "Invalid settings file."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:318
+#: setzer/dialogs/preferences/pages/page_appearance.py:323
 msgid "Settings imported. Reopen Preferences to see all changes."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:322
+#: setzer/dialogs/preferences/pages/page_appearance.py:327
 msgid "Reset all preferences?"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:323
+#: setzer/dialogs/preferences/pages/page_appearance.py:328
 msgid ""
 "This resets all preferences to their default values. Keyboard shortcuts and "
 "window layout are kept."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:326
-#: setzer/dialogs/preferences/pages/page_appearance.py:352
-#: setzer/dialogs/preferences/pages/page_appearance.py:583
-#: setzer/dialogs/preferences/pages/page_appearance.py:820
+#: setzer/dialogs/preferences/pages/page_appearance.py:331
+#: setzer/dialogs/preferences/pages/page_appearance.py:357
+#: setzer/dialogs/preferences/pages/page_appearance.py:589
+#: setzer/dialogs/preferences/pages/page_appearance.py:842
 #: setzer/dialogs/preferences/pages/page_build_system.py:177
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:432
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:436
 msgid "Reset"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:336
+#: setzer/dialogs/preferences/pages/page_appearance.py:341
 msgid "Preferences reset. Reopen Preferences to see all changes."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:349
-#: setzer/dialogs/preferences/pages/page_appearance.py:579
+#: setzer/dialogs/preferences/pages/page_appearance.py:354
+#: setzer/dialogs/preferences/pages/page_appearance.py:585
 #: setzer/dialogs/preferences/pages/page_build_system.py:174
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:429
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:433
 msgid "Reset to Defaults?"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:350
+#: setzer/dialogs/preferences/pages/page_appearance.py:355
 msgid "All appearance settings will be restored to their default values."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:458
+#: setzer/dialogs/preferences/pages/page_appearance.py:463
 msgid "(active)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:462
+#: setzer/dialogs/preferences/pages/page_appearance.py:467
 msgid "built-in"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:464
+#: setzer/dialogs/preferences/pages/page_appearance.py:469
 msgid "custom"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:467
+#: setzer/dialogs/preferences/pages/page_appearance.py:472
 msgid "installed"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:474
 msgid "not installed"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:478
+#: setzer/dialogs/preferences/pages/page_appearance.py:483
 msgid "Remove this custom tool"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:496
+#: setzer/dialogs/preferences/pages/page_appearance.py:501
 msgid "No trusted directories yet"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:497
+#: setzer/dialogs/preferences/pages/page_appearance.py:502
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:510
+#: setzer/dialogs/preferences/pages/page_appearance.py:515
 msgid "Remove from trusted list"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:580
+#: setzer/dialogs/preferences/pages/page_appearance.py:586
 msgid ""
 "All AI agent settings will be restored to their default values. Custom tools "
 "and trusted directories will be removed."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:608
+#: setzer/dialogs/preferences/pages/page_appearance.py:619
 msgid "General"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:614
+#: setzer/dialogs/preferences/pages/page_appearance.py:625
 msgid "Theme"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:618
+#: setzer/dialogs/preferences/pages/page_appearance.py:629
 msgid "Color Scheme"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:627
+#: setzer/dialogs/preferences/pages/page_appearance.py:638
 msgid "Animations"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:631
+#: setzer/dialogs/preferences/pages/page_appearance.py:642
 msgid "Reduce animations"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:633
+#: setzer/dialogs/preferences/pages/page_appearance.py:644
 msgid ""
 "Turn off sidebar sliding, fading and list scrolling animations. Window "
 "opening and closing animations are not affected."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:643
+#: setzer/dialogs/preferences/pages/page_appearance.py:654
 msgid "Interface Language"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:644
+#: setzer/dialogs/preferences/pages/page_appearance.py:655
 msgid "Changes take effect after the application is restarted."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:653
+#: setzer/dialogs/preferences/pages/page_appearance.py:664
 msgid "On Startup"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:658
+#: setzer/dialogs/preferences/pages/page_appearance.py:669
 msgid ""
 "Whether to restore the previous session or start with an empty workspace."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:678
+#: setzer/dialogs/preferences/pages/page_appearance.py:689
 msgid "Preview Sidebar Width"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:679
+#: setzer/dialogs/preferences/pages/page_appearance.py:690
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:687
+#: setzer/dialogs/preferences/pages/page_appearance.py:698
 msgid "Match PDF colors to theme"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:689
+#: setzer/dialogs/preferences/pages/page_appearance.py:700
 msgid "Recolor the PDF preview to match the light/dark theme."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:693
+#: setzer/dialogs/preferences/pages/page_appearance.py:704
 msgid "Default Zoom"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:695
+#: setzer/dialogs/preferences/pages/page_appearance.py:706
 msgid "Initial zoom mode for the PDF preview."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:697
+#: setzer/dialogs/preferences/pages/page_appearance.py:708
 msgid ""
 "Default zoom mode for the PDF preview. Fit Width fills the preview width; "
 "Fit Text Width fits the text column; Fit Height fills the preview height; "
 "Manual starts at 100%."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:701
+#: setzer/dialogs/preferences/pages/page_appearance.py:712
 msgid "Fit Width"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:702
+#: setzer/dialogs/preferences/pages/page_appearance.py:713
 msgid "Fit Text Width"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:703
+#: setzer/dialogs/preferences/pages/page_appearance.py:714
 msgid "Fit Height"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:704
+#: setzer/dialogs/preferences/pages/page_appearance.py:715
 msgid "Manual (100%)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:711
+#: setzer/dialogs/preferences/pages/page_appearance.py:722
 msgid "Sidebar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:733
 msgid "Sidebar Width"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:723
+#: setzer/dialogs/preferences/pages/page_appearance.py:734
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:731
+#: setzer/dialogs/preferences/pages/page_appearance.py:742
 msgid "AI Settings"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:735
+#: setzer/dialogs/preferences/pages/page_appearance.py:746
 msgid "Enable AI agent"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:736
+#: setzer/dialogs/preferences/pages/page_appearance.py:747
 msgid ""
 "Enables AI Fix in the Build Log dialog and the agent terminal button in the "
 "header bar"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:740
+#: setzer/dialogs/preferences/pages/page_appearance.py:751
+msgid "Embed agent terminal in the sidebar"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:755
+msgid ""
+"Run the agent in the AI Agent sidebar page and keep one session across sends"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:758
+msgid ""
+"Embedded terminal (VTE) is not available on this system; an external "
+"terminal is used instead"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:762
 msgid "Active agent tool"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:741
+#: setzer/dialogs/preferences/pages/page_appearance.py:763
 msgid "Which CLI to invoke for AI features"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:745
+#: setzer/dialogs/preferences/pages/page_appearance.py:767
 msgid "Terminal command (optional)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:747
+#: setzer/dialogs/preferences/pages/page_appearance.py:769
 msgid ""
 "Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). Under "
 "Flatpak, flatpak-spawn --host is added automatically."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:752
+#: setzer/dialogs/preferences/pages/page_appearance.py:774
 msgid "Agent tools"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:753
+#: setzer/dialogs/preferences/pages/page_appearance.py:775
 msgid ""
 "Built-in presets cannot be removed. Add a custom tool to integrate other "
 "Agent CLIs."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:759
+#: setzer/dialogs/preferences/pages/page_appearance.py:781
 msgid "+ Add custom tool"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:764
+#: setzer/dialogs/preferences/pages/page_appearance.py:786
 msgid "Trusted directories"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:765
+#: setzer/dialogs/preferences/pages/page_appearance.py:787
 msgid ""
 "Directories where the preview dialog is skipped. Click delete to revoke "
 "trust for a project."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:773
-#: setzer/dialogs/preferences/pages/page_appearance.py:831
+#: setzer/dialogs/preferences/pages/page_appearance.py:795
+#: setzer/dialogs/preferences/pages/page_appearance.py:853
 #: setzer/dialogs/preferences/pages/page_build_system.py:741
 #: setzer/dialogs/preferences/pages/page_editor.py:1340
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:668
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:672
 msgid "Reset to Defaults"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:780
+#: setzer/dialogs/preferences/pages/page_appearance.py:802
 msgid "First-Run Tutorial"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:784
+#: setzer/dialogs/preferences/pages/page_appearance.py:806
 msgid "Show the tutorial again"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:785
+#: setzer/dialogs/preferences/pages/page_appearance.py:807
 msgid "Open the welcome tips dialog."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:786
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Show"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:794
+#: setzer/dialogs/preferences/pages/page_appearance.py:816
 msgid "Backup and Restore"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:795
+#: setzer/dialogs/preferences/pages/page_appearance.py:817
 msgid ""
 "Export your preferences and keyboard shortcuts to a file, or import them on "
 "another machine."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:801
+#: setzer/dialogs/preferences/pages/page_appearance.py:823
 msgid "Save your preferences and keyboard shortcuts to a file."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:802
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:652
+#: setzer/dialogs/preferences/pages/page_appearance.py:824
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:656
 msgid "Export"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:810
+#: setzer/dialogs/preferences/pages/page_appearance.py:832
 msgid "Load preferences and keyboard shortcuts from a file."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:811
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:660
+#: setzer/dialogs/preferences/pages/page_appearance.py:833
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:664
 msgid "Import"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:818
+#: setzer/dialogs/preferences/pages/page_appearance.py:840
 msgid "Reset all preferences"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:819
+#: setzer/dialogs/preferences/pages/page_appearance.py:841
 msgid "Restore all preference values to their defaults."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:847
+#: setzer/dialogs/preferences/pages/page_appearance.py:869
 msgid "Add custom tool"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:877
+#: setzer/dialogs/preferences/pages/page_appearance.py:899
 msgid "Tool name (unique)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:881
+#: setzer/dialogs/preferences/pages/page_appearance.py:903
 msgid "Executable (e.g. aider)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:885
+#: setzer/dialogs/preferences/pages/page_appearance.py:907
 msgid "Headed command template"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:887
+#: setzer/dialogs/preferences/pages/page_appearance.py:909
 #, python-brace-format
 msgid ""
 "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. "
@@ -5699,7 +5791,7 @@ msgid "Help"
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:129
-#: setzer/workspace/sidebar/sidebar.py:90
+#: setzer/workspace/sidebar/sidebar.py:96
 msgid "Document Structure"
 msgstr ""
 
@@ -5790,288 +5882,305 @@ msgstr ""
 msgid "Clear Multi-Cursor"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:186
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:180
+msgid "Add AI Annotation"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:181
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:238
+msgid "Send Selection to Agent"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:188
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Create a new LaTeX document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:187
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:189
 msgid "Open an existing document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:189
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:191
 msgid "Save the active document with a new filename"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:190
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:192
 msgid "Print the active document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:191
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:193
 msgid "Close the active document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:192
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:194
 msgid "Quit the application"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:193
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:195
 msgid "Show keyboard shortcuts dialog"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:194
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:196
 msgid "Show list of open documents"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:196
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:198
 msgid "Show document chooser popover"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:197
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:199
 msgid "Zoom in the whole application"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:198
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:200
 msgid "Zoom out the whole application"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:199
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:201
 msgid "Reset the application zoom to 100%"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:200
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:202
 msgid "Find text in document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:201
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:203
 msgid "Find and replace text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:202
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:204
 msgid "Find next match"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:203
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:205
 msgid "Find previous match"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:204
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:206
 msgid "Toggle help panel"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:207
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:209
 msgid "Save and build PDF"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:209
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:211
 msgid "Sync PDF position to editor"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:210
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:212
 msgid "Toggle build log panel"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:212
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:214
 msgid "Search and run application commands"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:213
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:215
 msgid "Show hamburger menu"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:215
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:217
 msgid "Cut selected text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:216
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:218
 msgid "Copy selected text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:217
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:219
 msgid "Paste from clipboard"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:218
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:220
 msgid "Undo last action"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:219
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:221
 msgid "Redo last action"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:221
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:223
 msgid "Comment/uncomment lines"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:222
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:224
 msgid "Delete the current line"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:223
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:225
 msgid "Duplicate the current line"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:224
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:226
 msgid "Move the current line up"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:225
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:227
 msgid "Move the current line down"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:226
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:228
 msgid "Insert new line"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:227
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:229
 msgid "Insert bold text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:228
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:230
 msgid "Insert italic text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:229
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:231
 msgid "Insert underlined text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:230
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:232
 msgid "Insert typewriter text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:231
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:233
 msgid "Insert emphasized text"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:232
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:234
 msgid "Insert quotation marks"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:233
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:235
 msgid "Insert list item"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:234
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:236
 msgid "Insert environment"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:235
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:237
 msgid "Insert inline math"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:236
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:238
 msgid "Insert display math"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:237
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:239
 msgid "Insert equation"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:238
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:240
 msgid "Insert subscript"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:239
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:241
 msgid "Insert superscript"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:240
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:242
 msgid "Insert fraction"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:241
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:243
 msgid "Insert \\left"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:242
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:244
 msgid "Insert \\right"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:247
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:249
 msgid "Reopen the most recently closed document"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:249
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:251
 msgid "Select the next occurrence of the selected text or word (multi-cursor)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:250
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:252
 msgid "Select all occurrences of the selected text or word (multi-cursor)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:251
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:253
 msgid "Add a cursor on the line above (multi-cursor)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:252
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:254
 msgid "Add a cursor on the line below (multi-cursor)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:253
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:255
 msgid "Clear all additional cursors (multi-cursor)"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:262
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:256
+msgid "Annotate the selected text for the AI agent"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:257
+msgid "Send the selected text to the AI agent immediately"
+msgstr ""
+
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:266
 msgid "Not set"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:272
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:276
 msgid "Press shortcut..."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:276
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:280
 msgid "Press desired key combination, or Escape to cancel"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:323
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:327
 msgid "Shortcut Already in Use"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:324
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:328
 #, python-brace-format
 msgid ""
 "This shortcut is currently assigned to \"{other}\". Reassigning it will "
 "remove the shortcut from that action."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:327
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:331
 msgid "Reassign"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:430
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:434
 msgid "All keyboard shortcuts will be restored to their default values."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:450
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:454
 msgid "Import Keyboard Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:453
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:594
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:457
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:598
 msgid "JSON files"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:501
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:505
 #, python-brace-format
 msgid "Failed to import shortcuts: {error}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:556
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:560
 #, python-brace-format
 msgid "Imported {n} shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:558
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:562
 #, python-brace-format
 msgid "skipped {m} unknown actions"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:560
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:564
 #, python-brace-format
 msgid "skipped {m} invalid shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:568
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:572
 #, python-brace-format
 msgid ""
 "The imported file conflicts with existing or other imported shortcuts ({n} "
@@ -6079,45 +6188,45 @@ msgid ""
 "imported action and clear it from the other action(s)."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:573
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:577
 msgid "Shortcut Conflicts in Import"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:576
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:580
 msgid "Import and Resolve"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:591
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:595
 msgid "Export Keyboard Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:613
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:617
 #, python-brace-format
 msgid "Exported {n} shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:615
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:619
 #, python-brace-format
 msgid "Failed to export shortcuts: {error}"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:642
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:646
 msgid "Click a shortcut button to change it. Press Escape to cancel."
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:650
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:654
 msgid "Export Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:651
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:655
 msgid "Save keyboard shortcuts to a JSON file"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:658
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:662
 msgid "Import Shortcuts"
 msgstr ""
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:659
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:663
 msgid "Load keyboard shortcuts from a JSON file"
 msgstr ""
 
@@ -6461,6 +6570,23 @@ msgstr ""
 msgid "Clear All"
 msgstr ""
 
+#: setzer/document/ai_annotations/annotation_popover.py:45
+msgid "AI Annotation"
+msgstr ""
+
+#: setzer/document/ai_annotations/annotation_popover.py:63
+msgid "Preset instruction"
+msgstr ""
+
+#: setzer/document/ai_annotations/annotation_popover.py:66
+msgid "Save Annotation"
+msgstr ""
+
+#: setzer/document/ai_annotations/annotation_popover.py:77
+#: setzer/workspace/sidebar/ai_page/ai_page.py:266
+msgid "Custom (no preset)"
+msgstr ""
+
 #: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:347
 msgid "Label database unavailable (parse error)"
 msgstr ""
@@ -6686,7 +6812,7 @@ msgstr ""
 msgid "No PDF available for forward sync. Build the document first."
 msgstr ""
 
-#: setzer/document/document.py:799
+#: setzer/document/document.py:811
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr ""
@@ -7060,71 +7186,75 @@ msgid "from preferences"
 msgstr ""
 
 #: setzer/keyboard_shortcuts/shortcut_tooltips.py:68
-#: setzer/popovers/helpers/gio_menu_builder.py:145
+#: setzer/popovers/helpers/gio_menu_builder.py:140
 msgid "Ctrl"
 msgstr ""
 
 #: setzer/keyboard_shortcuts/shortcut_tooltips.py:68
-#: setzer/popovers/helpers/gio_menu_builder.py:147
+#: setzer/popovers/helpers/gio_menu_builder.py:142
 msgid "Shift"
 msgstr ""
 
 #: setzer/keyboard_shortcuts/shortcut_tooltips.py:68
-#: setzer/popovers/helpers/gio_menu_builder.py:149
+#: setzer/popovers/helpers/gio_menu_builder.py:144
 msgid "Alt"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:130
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:134
 msgid "Unindent"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:211
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:215
 #, python-brace-format
 msgid "Ignore “{word}”"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:217
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:221
 #, python-brace-format
 msgid "Add “{word}” to Dictionary"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:248
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
+msgid "Add AI Annotation…"
+msgstr ""
+
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:266
 msgid "Jump to Definition"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:250
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:268
 msgid "Copy \\ref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:252
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:270
 msgid "Copy \\pageref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:254
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:272
 msgid "Copy \\autoref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:256
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:274
 msgid "Find All References"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:264
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:282
 msgid "Wrap in Command"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:271
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:289
 msgid "Wrap in Environment"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:278
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:296
 msgid "Insert Template"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:282
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:300
 msgid "Show in Preview"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:299
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:317
 msgid "Transform Selection"
 msgstr ""
 
@@ -7811,25 +7941,34 @@ msgstr ""
 msgid "Choose File"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:444
+#: setzer/workspace/actions/actions.py:449
 msgid "No .tex files were found in your Templates folder."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:451
-#: setzer/workspace/actions/actions.py:481
+#: setzer/workspace/actions/actions.py:456
+#: setzer/workspace/actions/actions.py:486
 msgid "Create document from template"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:452
+#: setzer/workspace/actions/actions.py:457
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:455
+#: setzer/workspace/actions/actions.py:460
 msgid "Choose location"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:502
+#: setzer/workspace/actions/actions.py:507
 msgid "The selected destination is not a local file."
+msgstr ""
+
+#: setzer/workspace/actions/actions.py:1300
+msgid "Annotation added"
+msgstr ""
+
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
+msgid "Agent Terminal"
 msgstr ""
 
 #: setzer/workspace/auto_build/auto_build.py:151
@@ -7844,6 +7983,10 @@ msgstr ""
 
 #: setzer/workspace/auto_build/auto_build.py:206
 msgid "Auto-build skipped — the document was busy building."
+msgstr ""
+
+#: setzer/workspace/headerbar/headerbar.py:395
+msgid "Agent session ready in the sidebar"
 msgstr ""
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:44
@@ -8004,6 +8147,61 @@ msgstr ""
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:472
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:474
 msgid "Objects"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:48
+msgid "AI Agent"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:160
+#, python-brace-format
+msgid "lines {range}"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:168
+msgid "Jump to source"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:169
+msgid "Edit annotation"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:170
+msgid "Send this annotation"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:171
+msgid "Delete annotation"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:286
+msgid "Nothing sent yet"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:295
+msgid "Started a new agent session"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:47
+msgid "Preset used when sending a selection directly"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:50
+msgid "Send All"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:52
+msgid "Send all annotations to the agent"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:85
+msgid "No Annotations"
+msgstr ""
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+msgid ""
+"Select text in the editor and use the right-click menu or shortcut to add an "
+"AI annotation."
 msgstr ""
 
 #: setzer/workspace/sidebar/document_stats/document_stats.py:469
@@ -8334,23 +8532,23 @@ msgstr ""
 msgid "Commit selected changes and push to the remote"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:87
+#: setzer/workspace/sidebar/sidebar.py:93
 msgid "Files"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:93
+#: setzer/workspace/sidebar/sidebar.py:99
 msgid "Labels"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:96
+#: setzer/workspace/sidebar/sidebar.py:102
 msgid "To-Dos"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:102
+#: setzer/workspace/sidebar/sidebar.py:108
 msgid "Git"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:106
+#: setzer/workspace/sidebar/sidebar.py:112
 msgid "Document Stats"
 msgstr ""
 
@@ -8506,29 +8704,29 @@ msgstr ""
 msgid "Recently closed"
 msgstr ""
 
-#: setzer/workspace/workspace.py:194
+#: setzer/workspace/workspace.py:203
 #, python-brace-format
 msgid "{name} is already open"
 msgstr ""
 
-#: setzer/workspace/workspace.py:212
+#: setzer/workspace/workspace.py:221
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:803
+#: setzer/workspace/workspace.py:813
 #, python-brace-format
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:819
+#: setzer/workspace/workspace.py:829
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:1035
+#: setzer/workspace/workspace.py:1045
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr ""

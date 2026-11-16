@@ -12,6 +12,12 @@ NeoSetzer 的 Debian x64 安装包由 GitHub Actions 在 **Ubuntu 24.04** 上构
 
 当前包依赖 WebKitGTK 6，因此目标系统应提供 `gir1.2-webkit-6.0`；Ubuntu 24.04+ 和 Debian 13+ 是经过工作流验证的目标环境。
 
+## AI 内嵌终端依赖（VTE）
+
+侧栏内嵌 Agent 终端依赖 `Vte-3.91` typelib（GTK4 绑定；注意 `Vte-2.91` 是 GTK3 绑定，与本应用的 GTK4 不兼容），已作为 **Recommends**（`gir1.2-vte-3.91`）写入工作流 `control` 元数据。它是可选依赖：缺失时应用正常启动，AI 发送自动回退到外部终端 + 剪贴板，不阻塞主流程。
+
+若后续引入 Flatpak 打包：需核实 `org.gnome.Platform` 运行时是否携带 `Vte-3.91` typelib（GNOME 运行时通常包含）；缺失时在 manifest 中追加 `vte` 模块（gtk4 分支）。当前仓库尚无 Flatpak manifest。
+
 ## 正式发布
 
 发布流程（版本号、CHANGELOG、tag、GitHub Release）见 [docs/RELEASE.md](../RELEASE.md)。推送 `v*` 标签后，Debian、Windows 与 macOS 工作流会并行构建，并把各自制品附加到同一 GitHub Release。不要手动创建仅包含 `.deb` 的 Release；这样会导致跨平台资产和标签源码不一致。
@@ -48,5 +54,6 @@ dpkg-deb -c "setzer_<version>_amd64.deb"
 |---|---|
 | `msgfmt` 不存在 | 安装 `gettext`。 |
 | 运行期缺少 GTK、Adwaita 或 WebKit typelib | 使用工作流 `control` 中的依赖清单，或在目标系统安装对应发行版软件包。 |
+| AI 发送打开的是外部终端而非侧栏内嵌终端 | 目标系统缺少 `gir1.2-vte-3.91`（Recommends 可被跳过安装）。安装该包后重启应用即可。 |
 | 安装后行为像旧版本 | 清理目标机中的旧 `__pycache__`；正式包不携带 Python 字节码。 |
 | 发布文件未进入 Release | 先确认标签版本和 `meson.build` 一致，再查看对应 Actions 运行。 |

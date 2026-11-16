@@ -96,7 +96,8 @@ class Settings(Observable):
         self.defaults['window_state']['is_maximized'] = False
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
-        # 侧栏当前选中的面板（symbols / document_structure），隐藏后再次显示时恢复，
+        self.defaults['window_state']['show_ai_agent'] = False
+        # 侧栏当前选中的面板（symbols / document_structure / ai_agent），隐藏后再次显示时恢复，
         # 避免每次都回退到固定面板。与 show_symbols/show_document_structure 解耦：
         # 后者在隐藏时被清成 False 用于驱动可见性，本键专门记忆"上次选了哪个面板"。
         # 首次启动（尚无本键）默认 Document Structure：它按当前文档给出 Files /
@@ -342,6 +343,11 @@ class Settings(Observable):
         # setzer/ai_fix/presets.py。default_tools() 返回深拷贝避免污染常量。
         from setzer.ai_fix.presets import default_tools
         self.defaults['preferences']['ai_fix_tools'] = default_tools()
+        # 内嵌 Agent 终端（侧栏 AI 页，VTE）：关闭或 VTE 缺失时回退外部终端。
+        self.defaults['preferences']['ai_fix_embedded_terminal'] = True
+        # 选区批注的预制提示词（内置 4 个 + 用户可扩）：popover 与 AI 页下拉共用。
+        from setzer.ai_fix.presets import default_annotation_presets
+        self.defaults['preferences']['ai_annotation_presets'] = default_annotation_presets()
         # 「忽略此类 warning」：存放被用户右键忽略的 warning/badbox 类型 key
         #（跨构建稳定，与具体行号/文件名无关）。见
         # setzer/dialogs/build_log/build_log_dialog_presenter.classify_warning_type。
@@ -465,6 +471,10 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['add_cursor_above'] = '<Control><Shift>Up'
         self.defaults['keyboard_shortcuts']['add_cursor_below'] = '<Control><Shift>Down'
         self.defaults['keyboard_shortcuts']['clear_multi_cursor'] = 'Escape'
+        # AI 批注：Ctrl+Alt+A 添加批注、Ctrl+Alt+Return 直发选区。两个组合在
+        # 现有默认快捷键中均空闲（Ctrl+Alt+P 已被 pin_tab 占用，风格一致）。
+        self.defaults['keyboard_shortcuts']['ai_add_annotation'] = '<Control><Alt>a'
+        self.defaults['keyboard_shortcuts']['ai_send_selection'] = '<Control><Alt>Return'
 
     def _migrate_conflicting_shortcut_defaults(self):
         '''把已持久化配置中仍等于"旧冲突默认值"的快捷键迁到新默认值。

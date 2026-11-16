@@ -506,8 +506,26 @@ class BuildLogDialogController(object):
             return
 
         # agent_runner 的本地化钩子已在 _initiate_ai_fix 设置（发送必经该入口）。
+        # VTE 可用且内嵌终端开启：经共享 AgentSession 注入（与批注同一会话，
+        # 避免多开）；否则维持外部终端路径。
+        from setzer.ai_fix import agent_session as agent_session_module
+        settings = self.build_log.settings
+        if (agent_session_module.VTE_AVAILABLE
+                and settings.get_value('preferences', 'ai_fix_embedded_terminal')):
+            agent_session_module._ = _
+            workspace = self.build_log.workspace
+            session = workspace.get_agent_session()
+            success, msg = session.send(prompt, cwd)
+            if success:
+                workspace.set_show_ai_agent(True)
+                window = getattr(workspace, 'agent_terminal_window', None)
+                if window is not None and window.get_visible():
+                    window.present()
+            self._toast(msg)
+            return
+
         filename = document.get_filename()
-        terminal_cmd = self.build_log.settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
+        terminal_cmd = settings.get_value('preferences', 'ai_fix_terminal_cmd') or None
         success, msg = agent_runner.run_headed(
             tool_config, prompt, cwd, filename, terminal_cmd=terminal_cmd)
         self._toast(msg)
