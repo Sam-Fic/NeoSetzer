@@ -38,7 +38,7 @@ sys.path.insert(0, REPO)
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gdk
 
 from setzer.ai_fix import pdf_annotation_mapper
 
@@ -292,6 +292,94 @@ class ViewSettleTest(unittest.TestCase):
             self.fake._ai_annotate_when_view_settled(target)
         self.fake.ai_add_annotation.assert_called_once()
         self.assertEqual(self.idle_calls, [])
+
+
+class ScrollArrivalTest(unittest.TestCase):
+    '''回归：滚动值假稳定（scroll_to_mark 尚未生效）不得提前弹窗。
+
+    新激活文档的滚动被 GTK 推迟到布局后，此前滚动值恒为旧值；
+    必须等选区末尾真正落入可见区（滚动完成）才弹 popover。
+    '''
+
+    def setUp(self):
+        self.buffer = Gtk.TextBuffer()
+        self.buffer.set_text('\n'.join('line%d' % i for i in range(40)), -1)
+        # 选中 line10（offset 60..66）：模拟跳转目标在视口下方。
+        self.buffer.select_range(self.buffer.get_iter_at_offset(60),
+                                 self.buffer.get_iter_at_offset(66))
+        self.source_view = mock.Mock()
+        self.source_view.get_allocated_height.return_value = 500
+        self.adjustment = mock.Mock()
+        self.adjustment.get_value.return_value = 0.0
+        self.target = SimpleNamespace(
+            source_buffer=self.buffer,
+            view=SimpleNamespace(
+                source_view=self.source_view,
+                scrolled_window=mock.Mock(
+                    get_vadjustment=mock.Mock(return_value=self.adjustment))))
+        self.fake = SimpleNamespace(ai_add_annotation=mock.Mock())
+        self.fake._ai_annotate_when_view_settled = _SETTLE.__get__(self.fake)
+        self.idle_calls = []
+
+    def _patch_idle(self):
+        def capture(fn, *args, **kwargs):
+            self.idle_calls.append((fn, args, kwargs))
+            return len(self.idle_calls)
+        return mock.patch('gi.repository.GLib.idle_add', side_effect=capture)
+
+    def _set_visible(self, y, height=500):
+        rect = Gdk.Rectangle()
+        rect.y, rect.height = y, height
+        self.source_view.get_visible_rect.return_value = rect
+
+    def _set_end_loc(self, y, height=20):
+        rect = Gdk.Rectangle()
+        rect.y, rect.height = y, height
+        self.source_view.get_iter_location.return_value = rect
+
+    def test_stable_value_but_target_not_in_view_defers(self):
+        # 滚动值连续不变但选区末尾仍在视口下方（滚动尚未开始）：
+        # 不得误判稳定；滚入可见区后次帧才弹。
+        self._set_visible(0)
+        self._set_end_loc(600)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target)
+            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+        self.fake.ai_add_annotation.assert_not_called()
+        self.assertEqual(len(self.idle_calls), 2)
+        # 滚动完成：选区末尾入可见区，值仍稳定 → 弹出。
+        self._set_visible(120)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target, attempt=2)
+        self.fake.ai_add_annotation.assert_called_once()
+
+    def test_never_in_view_pops_at_deadline(self):
+        self._set_visible(0)
+        self._set_end_loc(5000)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target, deadline=0.0)
+        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.idle_calls, [])
+
+    def test_clamped_at_document_top_accepted_with_tolerance(self):
+        # 文档首部 GTK 夹紧无法居中：选区末尾在可见区顶上方一行高
+        # 容差内仍视为到位。
+        self._set_visible(0)
+        self._set_end_loc(-15)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target)
+            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+        self.fake.ai_add_annotation.assert_called_once()
+
+    def test_no_selection_skips_arrival_gate(self):
+        self.buffer.select_range(self.buffer.get_iter_at_offset(0),
+                                 self.buffer.get_iter_at_offset(0))
+        self._set_visible(0)
+        self._set_end_loc(5000)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target)
+            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+        self.fake.ai_add_annotation.assert_called_once()
 
 
 if __name__ == '__main__':

@@ -1384,18 +1384,21 @@ class Actions(object):
         pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
 
     def _ai_annotate_when_view_settled(self, target, attempt=0, deadline=None):
-        '''等目标视图滚动/布局稳定后再走源码侧 ai_add_annotation。
+        '''等跳转滚动真正完成后再走源码侧 ai_add_annotation。
 
         PDF 映射跳转刚 select_range + scroll_cursor_to_center：新激活/新开
-        文档的视图可能尚未完成尺寸分配，滚动调整也可能在后续帧被再夹紧。
-        此时弹 popover 的 buffer→widget 锚点换算会错位。用低优先级 idle
-        （排在 GTK 布局/绘制之后）轮询：视图已有有效分配且垂直滚动值连续
-        两帧不变才弹出；超过 1 秒兜底直接弹，避免视图异常时永不弹出。
+        文档的 scroll_to_mark 会被 GTK 推迟到布局完成才生效，此前滚动值
+        恒为旧值——仅查「滚动值两帧不变」会把「滚动尚未开始」误判为
+        稳定，popover 先弹、滚动后跳，锚点错位。故除视图已分配、滚动值
+        连续两帧不变外，还要求选区末尾已落入可见区（buffer 坐标比较，
+        容差一行高：文档首尾 GTK 夹紧无法居中时仍视为到位）。用低优先级
+        idle（排在 GTK 布局/绘制之后）轮询；超过 2 秒兜底直接弹，避免
+        视图异常时永不弹出。
         '''
         import time
         now = time.monotonic()
         if deadline is None:
-            deadline = now + 1.0
+            deadline = now + 2.0
         view = getattr(target, 'view', None)
         source_view = getattr(view, 'source_view', None)
         scrolled = getattr(view, 'scrolled_window', None)
@@ -1409,8 +1412,22 @@ class Actions(object):
         has_monitor = source_view is not None and adjustment is not None
         settled = (not has_monitor
                    or (allocated and value == prev))
+        # 滚动到位门槛：选区末尾必须已在可见区内（防「滚动尚未开始」
+        # 的假稳定）。无 buffer/视图 API 的桩文档跳过该检查。
+        buffer = getattr(target, 'source_buffer', None)
+        if (settled and has_monitor and buffer is not None
+                and hasattr(source_view, 'get_visible_rect')):
+            bounds = buffer.get_selection_bounds()
+            if bounds:
+                visible = source_view.get_visible_rect()
+                loc = source_view.get_iter_location(bounds[1])
+                tol = max(loc.height, 1)
+                in_view = (visible.y - tol <= loc.y + loc.height
+                           <= visible.y + visible.height + tol)
+                if visible.height > 0 and not in_view:
+                    settled = False
         self._ai_scroll_settle_value = value
-        if settled or now >= deadline or attempt >= 60:
+        if settled or now >= deadline or attempt >= 120:
             self._ai_scroll_settle_value = None
             self.ai_add_annotation()
             return False
