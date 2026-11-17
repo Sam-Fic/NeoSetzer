@@ -7,7 +7,7 @@
 # - 通过 PYTHONPATH=meson.source_root() 让 `import setzer.helpers.*` 可解析。
 #
 # 开发期跑测试：
-#   PYTHONPATH=/home/sam/Desktop/Setzer python -m unittest discover -s tests/python -v
+#   PYTHONPATH=/path/to/NeoSetzer python -m unittest discover -s tests/python -v
 # 或通过 meson：
 #   meson test -C builddir
 #   meson test -C builddir test_persistence
