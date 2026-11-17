@@ -168,7 +168,7 @@ class GitSectionView(Gtk.Box):
 
     def _build_init_box(self):
         self.init_status = self._make_status_page(
-            'folder-symbolic',
+            'xsi-git-symbolic',
             _('Not a Git Repository'),
             _('Track changes and history for this folder with Git.'))
         self.button_init = Gtk.Button(label=_('Initialize Repository'))
