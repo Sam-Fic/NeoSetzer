@@ -317,8 +317,10 @@ class Actions(object):
         enable_save = document_active and (document.source_buffer.get_modified() or document.get_filename() == None)
         has_selection = document_active and document.source_buffer.get_has_selection()
         if self.workspace.root_document != None: sync_document = self.workspace.root_document
-        else: sync_document = document
-        can_sync = sync_document != None and sync_document.is_latex_document() and sync_document.build_system.can_sync
+        else: sync_document = self.workspace.get_preview_target_document()
+        # 目标可能是未挂工具链的轻量文档（会话恢复后从未激活）。
+        sync_build_system = getattr(sync_document, 'build_system', None) if sync_document is not None else None
+        can_sync = sync_build_system != None and sync_build_system.can_sync
         can_build = (self.workspace.get_root_or_active_latex_document() != None)
         can_reset_zoom = UIZoomManager.is_zoomed()
         can_zoom_in = UIZoomManager.can_zoom_in()
@@ -336,8 +338,9 @@ class Actions(object):
         self.actions['save'].set_enabled(enable_save)
         self.actions['save-as'].set_enabled(document_active)
         # Export PDF As…：仅当已 build 出 PDF（preview.pdf_filename 已就绪）时启用。
-        pdf_document = self.workspace.get_root_or_active_latex_document()
-        has_pdf = pdf_document is not None and pdf_document.preview.pdf_filename is not None
+        pdf_document = self.workspace.get_preview_target_document()
+        pdf_document_preview = getattr(pdf_document, 'preview', None) if pdf_document is not None else None
+        has_pdf = pdf_document_preview is not None and pdf_document_preview.pdf_filename is not None
         self.actions['print'].set_enabled(has_pdf)
         self.actions['export-pdf-as'].set_enabled(has_pdf)
         self.actions['save-all'].set_enabled(len(self.workspace.get_unsaved_documents()) > 0)
@@ -580,12 +583,14 @@ class Actions(object):
         active_document = self.workspace.get_active_document()
         if active_document == None: return
 
-        if self.workspace.root_document != None: sync_document = self.workspace.root_document
-        else: sync_document = active_document
-        if not sync_document.is_latex_document(): return
-        if not sync_document.build_system.can_sync: return
+        # 同步目标跟随预览目标：多子文件工程里 synctex/PDF 挂在 magic root
+        # 上，子文件自身 can_sync=False，取活跃文档会静默失败。
+        sync_document = self.workspace.get_preview_target_document()
+        if sync_document is None: return
+        sync_build_system = getattr(sync_document, 'build_system', None)
+        if sync_build_system is None or not sync_build_system.can_sync: return
 
-        sync_document.build_system.forward_sync(active_document)
+        sync_build_system.forward_sync(active_document)
 
     def show_build_log(self, action=None, parameter=''):
         self.workspace.set_show_build_log(True)
@@ -616,8 +621,9 @@ class Actions(object):
         if self.workspace.get_active_document() == None: return
 
         # 导出的是 build 产物（root 文档的 PDF），而非当前活动文档本体。
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is None or document.preview.pdf_filename is None:
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is None or doc_preview.pdf_filename is None:
             return
 
         DialogLocator.get_dialog('export_pdf').run(document)
@@ -1289,10 +1295,10 @@ class Actions(object):
         self._present_annotation_popover(document, start_offset, end_offset, on_save)
 
     def _present_annotation_popover(self, document, start_offset, end_offset, on_save):
-        '''批注 popover 共用锚定逻辑：选区末尾 buffer 坐标 → widget 坐标。
+        '''批注 popover 锚定逻辑：选区末尾 buffer 坐标 → widget 坐标。
 
-        源码右键与 PDF 反向映射入口共用；on_save(comment, preset) 由调用方
-        提供（落模型方式不同：选区 vs 映射区间+focus）。
+        源码右键/快捷键与 PDF 反向映射入口（后者先同步选中源码再走
+        ai_add_annotation）共用；on_save(comment, preset) 由调用方提供。
         '''
         if self._ai_annotation_popover is None:
             from setzer.document.ai_annotations.annotation_popover import AnnotationPopover
@@ -1319,7 +1325,8 @@ class Actions(object):
         popover.present_for(source_view, rect, on_save_cb=on_save)
 
     def ai_annotate_pdf(self, action=None, parameter=None):
-        '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → popover → 落模型。'''
+        '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → 同步选中源码
+        区间 → 完全复用源码侧 ai_add_annotation 入口。'''
         self._ai_from_pdf(send=False)
 
     def ai_send_pdf(self, action=None, parameter=None):
@@ -1358,17 +1365,16 @@ class Actions(object):
                     _('Could not map the PDF selection to source. Build the document first.'))
                 return
             end.forward_to_line_end()
-            start_offset, end_offset = start.get_offset(), end.get_offset()
-            focus = {'text': mapping.get('focus_text', ''),
-                     'kind': mapping.get('focus_kind', 'pdf-text')}
-
-            def on_save(comment, preset):
-                model = getattr(target, 'ai_annotations', None)
-                if model is not None and model.add_from_range(
-                        start_offset, end_offset, comment, preset, focus=focus) is not None:
-                    self._show_file_template_toast(_('Annotation added'))
-
-            self._present_annotation_popover(target, start_offset, end_offset, on_save)
+            # 等价于源码侧操作：先把映射区间同步选中到源码（include 子文件
+            # 已由 _document_for_mapping 打开并激活），滚动到选区末尾（popover
+            # 锚点）保证可见，然后完全走源码侧已有的 ai_add_annotation：
+            # popover 锚定、选区捕获、落模型（add_from_selection）全部复用，
+            # 不再为 PDF 单独维护一套弹窗/落模型路径。
+            if self.workspace.get_active_document() is not target:
+                self.workspace.set_active_document(target)
+            buffer.select_range(start, end)
+            target.scroll_cursor_to_center()
+            self.ai_add_annotation()
 
         pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
 
@@ -1638,11 +1644,12 @@ class Actions(object):
     def preview_set_zoom_level(self, action=None, parameter=None):
         if parameter is None: return
         level = parameter.unpack()
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is not None:
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is not None:
             # popover 选具体百分比是手动缩放，脱离任何 fit 模式。
-            document.preview.zoom_manager.zoom_mode = 'manual'
-            document.preview.zoom_manager.set_zoom_level_auto_offset(level)
+            doc_preview.zoom_manager.zoom_mode = 'manual'
+            doc_preview.zoom_manager.set_zoom_level_auto_offset(level)
             # 同步 state，使菜单里对应级别前自动显示对钩。
             if action is not None:
                 action.set_state(parameter)
@@ -1650,9 +1657,10 @@ class Actions(object):
     def preview_set_fit_mode(self, action=None, parameter=None):
         if parameter is None: return
         mode = parameter.unpack()
-        document = self.workspace.get_root_or_active_latex_document()
-        if document is None: return
-        zoom_manager = document.preview.zoom_manager
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is None: return
+        zoom_manager = doc_preview.zoom_manager
         # 仅切换缩放模式；state 由 presenter 的 _sync_zoom_action_state 依据
         # zoom_manager.zoom_mode 统一同步，保证与数值缩放的 state 互斥。
         if mode == 'width':
@@ -1678,11 +1686,11 @@ class Actions(object):
             presenter.toggle_mode()
 
     def _get_preview(self):
-        '''Return the active document's preview, or None.'''
-        document = self.workspace.get_root_or_active_latex_document()
+        '''Return the preview target document's preview, or None.'''
+        document = self.workspace.get_preview_target_document()
         if document is None:
             return None
-        return document.preview
+        return getattr(document, 'preview', None)
 
     def preview_rotate_cw(self, action=None, parameter=None):
         preview = self._get_preview()

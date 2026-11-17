@@ -459,7 +459,7 @@ class WorkspacePresenter(object):
     def update_preview_help_visibility(self, animate=True, suppress_unbuilt=True):
         show_preview = self.workspace.show_preview
         show_help = self.workspace.show_help
-        target_doc = self.workspace.get_root_or_active_latex_document()
+        target_doc = self.workspace.get_preview_target_document()
         if self.workspace.is_preview_popped_out():
             # 预览已 detach 到独立窗口：侧栏只显示帮助（无 status page、无 switch button）。
             # show_preview 不再算展开理由——预览在独立窗口，侧栏仅保留 help。

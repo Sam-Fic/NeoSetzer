@@ -54,10 +54,11 @@ class PreviewPanelController(object):
         self.view.presenter.zoom_out()
 
     def on_external_viewer_button_clicked(self, button):
-        document = self.workspace.get_root_or_active_latex_document()
-        if document != None:
-            pdf_filename = document.preview.pdf_filename
-            if document.preview.poppler_document != None and pdf_filename != None:
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is not None:
+            pdf_filename = doc_preview.pdf_filename
+            if doc_preview.poppler_document != None and pdf_filename != None:
                 if os.path.isfile(pdf_filename):
                     Gio.AppInfo.launch_default_for_uri(GLib.filename_to_uri(pdf_filename))
 

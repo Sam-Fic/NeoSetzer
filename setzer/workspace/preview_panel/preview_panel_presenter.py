@@ -139,14 +139,15 @@ class PreviewPanelPresenter(object):
     def _preview_target(self):
         '''当前模式该展示的文档。
 
-        PDF 模式取 root-or-active：整篇论文的产物挂在 root 上。片段模式
+        PDF 模式取预览目标（显式 root / magic root / 活跃文档）：整篇论文
+        的产物挂在 root 上，跳转子文件后仍展示 root 的 PDF。片段模式
         取「正在编辑的文件」——图在章节文件里，跟着 root 会让用户在图里
         打字却看不到反应（root 打开时 get_root_or_active 恒返回 root）。'''
         if self.mode == 'snippet':
             document = self.workspace.get_active_latex_document()
             if document is not None:
                 return document
-        return self.workspace.get_root_or_active_latex_document()
+        return self.workspace.get_preview_target_document()
 
     def set_preview_document(self):
         # 切文档 / 切模式都要先停止对旧目标的片段跟踪：只有被展示的文档
@@ -282,18 +283,20 @@ class PreviewPanelPresenter(object):
             if not self.view.snippet_view.zoom_in():
                 self._show_zoom_toast('in')
             return
-        document = self.workspace.get_root_or_active_latex_document()
-        if document != None:
-            document.preview.zoom_manager.zoom_in()
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is not None:
+            doc_preview.zoom_manager.zoom_in()
 
     def zoom_out(self):
         if self.mode == 'snippet':
             if not self.view.snippet_view.zoom_out():
                 self._show_zoom_toast('out')
             return
-        document = self.workspace.get_root_or_active_latex_document()
-        if document != None:
-            document.preview.zoom_manager.zoom_out()
+        document = self.workspace.get_preview_target_document()
+        doc_preview = getattr(document, 'preview', None) if document is not None else None
+        if doc_preview is not None:
+            doc_preview.zoom_manager.zoom_out()
 
     def on_pdf_changed(self, preview):
         self.update_label()

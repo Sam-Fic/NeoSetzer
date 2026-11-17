@@ -134,12 +134,13 @@ class PdfPreviewWindow(Adw.Window):
         对于 fit_to_text_width 模式，会在 update_dynamic_zoom_levels 后
         强制重新应用一次，确保水平居中正确。'''
         self._zoom_update_timeout_id = None
-        doc = self.workspace.get_root_or_active_latex_document()
-        if doc is None or not hasattr(doc.preview, 'zoom_manager'):
+        doc = self.workspace.get_preview_target_document()
+        doc_preview = getattr(doc, 'preview', None) if doc is not None else None
+        if doc_preview is None or not hasattr(doc_preview, 'zoom_manager'):
             return False
 
-        view = doc.preview.view
-        zoom_manager = doc.preview.zoom_manager
+        view = doc_preview.view
+        zoom_manager = doc_preview.zoom_manager
         
         # 检查 allocated width 是否有效
         if view.get_allocated_width() < 300:
@@ -214,10 +215,11 @@ class PdfPreviewWindow(Adw.Window):
         return True
 
     def _connect_active_preview(self):
-        '''连接当前 root_or_active 文档 preview 的 sync 信号，并更新标题。'''
-        doc = self.workspace.get_root_or_active_latex_document()
-        if doc is not None:
-            self._preview = doc.preview
+        '''连接当前预览目标文档 preview 的 sync 信号，并更新标题。'''
+        doc = self.workspace.get_preview_target_document()
+        doc_preview = getattr(doc, 'preview', None) if doc is not None else None
+        if doc_preview is not None:
+            self._preview = doc_preview
             self._preview.connect('synctex_forward', self._on_synctex_forward)
             self._preview.connect('synctex_backward', self._on_synctex_backward)
             self._update_title(doc)

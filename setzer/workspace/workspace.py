@@ -25,7 +25,11 @@ import time
 import uuid
 
 from setzer.document.document import Document
-from setzer.document.magic_comments import parse_magic_comments, resolve_root_filename
+from setzer.document.magic_comments import (
+    MAX_MAGIC_COMMENT_LINES,
+    parse_magic_comments,
+    resolve_root_filename,
+)
 from setzer.project.build_configuration import ProjectBuildConfiguration
 import setzer.document.build_system.build_system as build_system
 import setzer.document.build_widget.build_widget as build_widget
@@ -1176,6 +1180,47 @@ class Workspace(Observable):
             return self.active_document
         return None
 
+    def get_preview_target_document(self):
+        '''预览该展示的文档：无副作用地解析 magic root / 项目配置 root。
+
+        多子文件工程里 PDF 产物挂在 root 上：SyncTeX 跳转子文件后活跃文档
+        变成子文件（无 PDF），若预览目标仍取 get_root_or_active 会回到子文件
+        → 未编译抑制规则收起预览侧栏。这里额外解析 % !TEX root / build.json
+        的 root，但**只认已打开的文档**，绝不像构建路径那样自动开文件
+        （预览查询在文档切换等 UI 路径上被调，开文件是意外副作用）。
+        root 未打开时退回活跃文档（构建后 root 会被打开，届时自然切换）。
+        '''
+        document = self.get_root_or_active_latex_document()
+        if document is None or self.root_document is not None:
+            return document
+        root_filename = self._resolve_preview_root_filename(self.active_document)
+        if root_filename:
+            for candidate in self.open_latex_documents:
+                if candidate.get_filename() == root_filename:
+                    return candidate
+        return document
+
+    def _resolve_preview_root_filename(self, document):
+        '''解析预览 root 文件名（带缓存）。update_actions 在滚动/选区变化
+        时高频调 get_preview_target_document，磁盘 discover + 文本解析不能
+        每次都跑：magic comment 只认前 50 行，用（文件名, 头部文本）做
+        缓存键——滚动/光标移动零开销，编辑头部或切文档时自然失效。
+        键用文件名而非文档对象，避免缓存持有已关闭文档的引用。'''
+        buffer = document.source_buffer
+        end_line = min(MAX_MAGIC_COMMENT_LINES, buffer.get_line_count())
+        head = buffer.get_text(buffer.get_start_iter(),
+                               buffer.get_iter_at_line(end_line)[1], True)
+        key = (document.get_filename(), head)
+        cached = getattr(self, '_preview_root_cache', None)
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        root_filename = self._get_project_root_filename(document)
+        if root_filename is None:
+            magic = parse_magic_comments(head)
+            root_filename = resolve_root_filename(document.get_filename(), magic.root)
+        self._preview_root_cache = (key, root_filename)
+        return root_filename
+
     def _get_project_root_filename(self, document):
         if document is None or document.get_filename() is None:
             return None
@@ -1224,19 +1269,24 @@ class Workspace(Observable):
         return self._open_build_root_if_needed(root_filename, active_document)
 
     def update_preview_visibility(self, document):
+        # 渲染器激活跟随预览目标（可能是 magic root 而非本次传入的文档）：
+        # 跳转子文件时传入的是子文件，目标 root 的渲染器也要保持激活，
+        # 否则 PDF 停在旧帧。
+        target = self.get_preview_target_document()
         if document != None and document.is_latex_document():
             # preview 可能尚未挂接（会话恢复的非活跃文档），无渲染器则无
             # 激活/停用可言，直接跳过——挂接时 _attach_latex_toolchain 会
             # 再调一次本方法补齐状态。
             doc_preview = getattr(document, 'preview', None)
-            if doc_preview is None:
-                return
-            if document == self.root_document:
-                doc_preview.page_renderer.activate()
-            elif document == self.active_document and self.root_document == None:
-                doc_preview.page_renderer.activate()
-            else:
-                doc_preview.page_renderer.deactivate()
+            if doc_preview is not None:
+                if document == target:
+                    doc_preview.page_renderer.activate()
+                else:
+                    doc_preview.page_renderer.deactivate()
+        if target is not None and target is not document:
+            target_preview = getattr(target, 'preview', None)
+            if target_preview is not None:
+                target_preview.page_renderer.activate()
 
     def is_preview_popped_out(self):
         return self.preview_popped_out
