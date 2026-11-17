@@ -119,8 +119,12 @@ class AiAnnotations(Observable):
 
     # ---- 增删改 ----
 
-    def add_from_selection(self, comment='', preset=None):
-        '''把当前选区登记为批注并高亮。无选区返回 None。'''
+    def add_from_selection(self, comment='', preset=None, focus=None):
+        '''把当前选区登记为批注并高亮。无选区返回 None。
+
+        focus: 可选 {'text', 'kind'}——PDF 派生批注单独强调用户实际选中
+        部分（整行/整块范围仅作上下文）。
+        '''
         bounds = self.source_buffer.get_selection_bounds()
         if not bounds:
             return None
@@ -137,11 +141,20 @@ class AiAnnotations(Observable):
             'comment': comment,
             'preset': preset,
             'snippet': snippet,
+            'focus': focus,
         }
         self._next_id += 1
         self._annotations.append(annotation)
         self.add_change_code('annotations_changed')
         return annotation
+
+    def add_from_range(self, start_offset, end_offset, comment='', preset=None, focus=None):
+        '''把指定 offset 区间登记为批注（PDF 反向映射入口：先 select_range
+        再复用 add_from_selection 的 marks/高亮主体）。'''
+        start = self.source_buffer.get_iter_at_offset(start_offset)
+        end = self.source_buffer.get_iter_at_offset(end_offset)
+        self.source_buffer.select_range(start, end)
+        return self.add_from_selection(comment, preset, focus=focus)
 
     def remove(self, annotation_id):
         annotation = self.get_by_id(annotation_id)

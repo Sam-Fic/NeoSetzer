@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 03:11+0800\n"
+"POT-Creation-Date: 2026-11-17 03:54+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/setzer/application/pt_BR/>\n"
@@ -497,40 +497,40 @@ msgstr "Iniciou {} no terminal."
 msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
 msgstr "{tool} não tem um executável configurado. Configure um em Preferências → Geral → Configurações de IA."
 
-#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:133
+#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:134
 #, python-brace-format
 msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
 msgstr "{tool} não está disponível neste sistema. Verifique o nome do executável em Preferências → Geral → Configurações de IA."
 
-#: setzer/ai_fix/agent_session.py:126 setzer/ai_fix/agent_session.py:274
+#: setzer/ai_fix/agent_session.py:127 setzer/ai_fix/agent_session.py:289
 msgid "Embedded terminal is not available on this system."
 msgstr "O terminal embutido não está disponível neste sistema."
 
-#: setzer/ai_fix/agent_session.py:129 setzer/ai_fix/annotation_sender.py:220
+#: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:257
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:441
 #: setzer/workspace/headerbar/headerbar.py:378
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "Nenhuma ferramenta de agente configurada. Adicione uma em Preferências → Geral → Configurações de IA."
 
-#: setzer/ai_fix/agent_session.py:137 setzer/ai_fix/annotation_sender.py:125
-#: setzer/ai_fix/annotation_sender.py:165
-#: setzer/ai_fix/annotation_sender.py:174
+#: setzer/ai_fix/agent_session.py:138 setzer/ai_fix/annotation_sender.py:160
+#: setzer/ai_fix/annotation_sender.py:202
+#: setzer/ai_fix/annotation_sender.py:211
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
 #: setzer/workspace/headerbar/headerbar.py:365
-#: setzer/workspace/sidebar/ai_page/ai_page.py:321
+#: setzer/workspace/sidebar/ai_page/ai_page.py:323
 msgid "Please save the document first"
 msgstr "Por favor, salve o documento primeiro"
 
-#: setzer/ai_fix/agent_session.py:165
+#: setzer/ai_fix/agent_session.py:174
 msgid "Failed to launch agent: {}"
 msgstr "Falha ao iniciar o agente: {}"
 
-#: setzer/ai_fix/agent_session.py:270
+#: setzer/ai_fix/agent_session.py:285
 msgid "Nothing to send"
 msgstr "Nada para enviar"
 
-#: setzer/ai_fix/agent_session.py:287
+#: setzer/ai_fix/agent_session.py:302
 #, python-brace-format
 msgid "Sent to {tool} (copied to clipboard as fallback)."
 msgstr "Enviado para {tool} (copiado para a área de transferência como reserva)."
@@ -582,35 +582,37 @@ msgid "Dock back into the sidebar"
 msgstr "Retornar à barra lateral"
 
 #: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78
-#: setzer/ai_fix/annotation_sender.py:120
+#: setzer/ai_fix/annotation_sender.py:132
+#: setzer/ai_fix/annotation_sender.py:155
 msgid "No annotations to send"
 msgstr "Nenhuma anotação para enviar"
 
-#: setzer/ai_fix/annotation_sender.py:85
+#: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:425
 #: setzer/workspace/headerbar/headerbar.py:361
 msgid "No active document"
 msgstr "Nenhum documento ativo"
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1272
+#: setzer/workspace/actions/actions.py:1276
+#: setzer/workspace/actions/actions.py:1336
 msgid "Select some text first"
 msgstr "Selecione algum texto primeiro"
 
-#: setzer/ai_fix/annotation_sender.py:136
+#: setzer/ai_fix/annotation_sender.py:171
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:164
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
 msgid "Copied to clipboard"
 msgstr "Copiado para a área de transferência"
 
-#: setzer/ai_fix/annotation_sender.py:159
+#: setzer/ai_fix/annotation_sender.py:196
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:419
 #: setzer/workspace/headerbar/headerbar.py:355
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "O agente de IA está desativado. Ative-o em Preferências → Geral → Configurações de IA."
 
-#: setzer/ai_fix/annotation_sender.py:209
+#: setzer/ai_fix/annotation_sender.py:246
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:490
 msgid "Added to trusted directories"
 msgstr "Adicionado aos diretórios confiáveis"
@@ -661,9 +663,9 @@ msgstr "Enviar para o agente de IA"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
 #: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:657
+#: setzer/document/preview/preview_controller.py:665
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:459
+#: setzer/workspace/actions/actions.py:463
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -756,7 +758,7 @@ msgstr "Exportar pacote do projeto"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/document/preview/preview_presenter.py:585
+#: setzer/document/preview/preview_presenter.py:607
 msgid "Print"
 msgstr "Imprimir"
 
@@ -1062,7 +1064,7 @@ msgid "Preview"
 msgstr "Pré-visualização"
 
 #: setzer/command_palette/catalog.py:130
-#: setzer/document/preview/context_menu/context_menu.py:136
+#: setzer/document/preview/context_menu/context_menu.py:143
 msgid "Search in PDF"
 msgstr "Pesquisar no PDF"
 
@@ -2823,7 +2825,7 @@ msgid "Ready to create"
 msgstr "Pronto para criar"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:349
-#: setzer/document/preview/preview_presenter.py:654
+#: setzer/document/preview/preview_presenter.py:676
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
 msgid "Document"
@@ -4397,7 +4399,7 @@ msgstr "Fração"
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
-#: setzer/document/preview/preview_controller.py:658
+#: setzer/document/preview/preview_controller.py:666
 msgid "Open"
 msgstr "Abrir"
 
@@ -5915,6 +5917,7 @@ msgid "Add AI Annotation"
 msgstr "Adicionar anotação de IA"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
+#: setzer/document/preview/context_menu/context_menu.py:138
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:238
 msgid "Send Selection to Agent"
 msgstr ""
@@ -6598,8 +6601,8 @@ msgid "Save Annotation"
 msgstr "Salvar anotação"
 
 #: setzer/document/ai_annotations/annotation_popover.py:77
-#: setzer/workspace/sidebar/ai_page/ai_page.py:277
-#: setzer/workspace/sidebar/ai_page/ai_page.py:307
+#: setzer/workspace/sidebar/ai_page/ai_page.py:279
+#: setzer/workspace/sidebar/ai_page/ai_page.py:309
 msgid "Custom (no preset)"
 msgstr "Personalizado (sem predefinição)"
 
@@ -6759,7 +6762,7 @@ msgstr "O caminho BibTeX selecionado não é um arquivo regular"
 msgid "The bibliography changed outside Setzer"
 msgstr "A bibliografia foi alterada fora do Setzer"
 
-#: setzer/document/build_system/build_system.py:498
+#: setzer/document/build_system/build_system.py:479
 msgid "Previous build cancelled"
 msgstr "Compilação anterior cancelada"
 
@@ -6852,40 +6855,45 @@ msgid "Save Image As…"
 msgstr "Salvar imagem como…"
 
 #: setzer/document/preview/context_menu/context_menu.py:137
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
+msgid "Add AI Annotation…"
+msgstr "Adicionar anotação de IA…"
+
+#: setzer/document/preview/context_menu/context_menu.py:144
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:96
 msgid "Print…"
 msgstr "Imprimir…"
 
-#: setzer/document/preview/context_menu/context_menu.py:142
+#: setzer/document/preview/context_menu/context_menu.py:149
 msgid "Rotate Clockwise"
 msgstr "Girar no sentido horário"
 
-#: setzer/document/preview/context_menu/context_menu.py:143
+#: setzer/document/preview/context_menu/context_menu.py:150
 msgid "Rotate Counterclockwise"
 msgstr "Girar no sentido anti-horário"
 
-#: setzer/document/preview/context_menu/context_menu.py:144
+#: setzer/document/preview/context_menu/context_menu.py:151
 msgid "Invert Colors"
 msgstr "Inverter cores"
 
-#: setzer/document/preview/context_menu/context_menu.py:149
+#: setzer/document/preview/context_menu/context_menu.py:156
 msgid "Show Source"
 msgstr "Mostrar Código-fonte"
 
-#: setzer/document/preview/context_menu/context_menu.py:233
+#: setzer/document/preview/context_menu/context_menu.py:240
 msgid "Find in PDF…"
 msgstr "Pesquisar no PDF…"
 
-#: setzer/document/preview/context_menu/context_menu.py:238
+#: setzer/document/preview/context_menu/context_menu.py:245
 msgid "Previous Match"
 msgstr "Ocorrência anterior"
 
-#: setzer/document/preview/context_menu/context_menu.py:242
+#: setzer/document/preview/context_menu/context_menu.py:249
 msgid "Next Match"
 msgstr "Ocorrência seguinte"
 
 #: setzer/document/preview/preview_controller.py:375
-#: setzer/document/preview/preview_controller.py:595
+#: setzer/document/preview/preview_controller.py:603
 msgid "Hold Ctrl and click to open this link"
 msgstr "Segure Ctrl e clique para abrir este link"
 
@@ -6893,19 +6901,19 @@ msgstr "Segure Ctrl e clique para abrir este link"
 msgid "Go to page "
 msgstr "Ir para a página "
 
-#: setzer/document/preview/preview_controller.py:638
+#: setzer/document/preview/preview_controller.py:646
 msgid "Could not open link"
 msgstr "Não foi possível abrir o link"
 
-#: setzer/document/preview/preview_controller.py:647
+#: setzer/document/preview/preview_controller.py:655
 msgid "Link blocked: this link type is unsafe"
 msgstr "Link bloqueado: este tipo de link não é seguro"
 
-#: setzer/document/preview/preview_controller.py:655
+#: setzer/document/preview/preview_controller.py:663
 msgid "Open local file from this PDF?"
 msgstr "Abrir o arquivo local deste PDF?"
 
-#: setzer/document/preview/preview_controller.py:656
+#: setzer/document/preview/preview_controller.py:664
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6916,19 +6924,19 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:539
+#: setzer/document/preview/preview_presenter.py:561
 msgid "Save Image As"
 msgstr "Salvar imagem como"
 
-#: setzer/document/preview/preview_presenter.py:644
+#: setzer/document/preview/preview_presenter.py:666
 msgid "No printer available"
 msgstr "Nenhuma impressora disponível"
 
-#: setzer/document/preview/preview_presenter.py:649
+#: setzer/document/preview/preview_presenter.py:671
 msgid "Could not prepare print data"
 msgstr "Não foi possível preparar os dados de impressão"
 
-#: setzer/document/preview/preview_presenter.py:663
+#: setzer/document/preview/preview_presenter.py:685
 msgid "Printing failed"
 msgstr "Falha na impressão"
 
@@ -7230,10 +7238,6 @@ msgstr "Ignorar “{word}”"
 #, python-brace-format
 msgid "Add “{word}” to Dictionary"
 msgstr "Adicionar “{word}” ao dicionário"
-
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
-msgid "Add AI Annotation…"
-msgstr "Adicionar anotação de IA…"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:266
 msgid "Jump to Definition"
@@ -7942,30 +7946,37 @@ msgstr "Nada a ser commitado: nenhum arquivo foi selecionado."
 msgid "Choose File"
 msgstr "Escolher Arquivo"
 
-#: setzer/workspace/actions/actions.py:449
+#: setzer/workspace/actions/actions.py:453
 msgid "No .tex files were found in your Templates folder."
 msgstr "Nenhum arquivo .tex foi encontrado na sua pasta Modelos."
 
-#: setzer/workspace/actions/actions.py:456
-#: setzer/workspace/actions/actions.py:486
+#: setzer/workspace/actions/actions.py:460
+#: setzer/workspace/actions/actions.py:490
 msgid "Create document from template"
 msgstr "Criar documento a partir de modelo"
 
-#: setzer/workspace/actions/actions.py:457
+#: setzer/workspace/actions/actions.py:461
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "Escolha um modelo LaTeX e depois onde criar sua nova cópia."
 
-#: setzer/workspace/actions/actions.py:460
+#: setzer/workspace/actions/actions.py:464
 msgid "Choose location"
 msgstr "Escolher local"
 
-#: setzer/workspace/actions/actions.py:507
+#: setzer/workspace/actions/actions.py:511
 msgid "The selected destination is not a local file."
 msgstr "O destino selecionado não é um arquivo local."
 
-#: setzer/workspace/actions/actions.py:1306
+#: setzer/workspace/actions/actions.py:1287
+#: setzer/workspace/actions/actions.py:1369
 msgid "Annotation added"
 msgstr "Anotação adicionada"
+
+#: setzer/workspace/actions/actions.py:1343
+#: setzer/workspace/actions/actions.py:1348
+#: setzer/workspace/actions/actions.py:1358
+msgid "Could not map the PDF selection to source. Build the document first."
+msgstr "Não foi possível mapear a seleção do PDF para o código-fonte. Compile o documento primeiro."
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
@@ -8151,36 +8162,40 @@ msgstr "Objetos"
 msgid "AI Agent"
 msgstr "Agente de IA"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:160
+#: setzer/workspace/sidebar/ai_page/ai_page.py:141
+msgid "From a PDF selection"
+msgstr "De uma seleção do PDF"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:162
 #, python-brace-format
 msgid "lines {range}"
 msgstr "linhas {range}"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:168
+#: setzer/workspace/sidebar/ai_page/ai_page.py:170
 msgid "Jump to source"
 msgstr "Ir para o código-fonte"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:169
+#: setzer/workspace/sidebar/ai_page/ai_page.py:171
 msgid "Edit annotation"
 msgstr "Editar anotação"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:170
+#: setzer/workspace/sidebar/ai_page/ai_page.py:172
 msgid "Send this annotation"
 msgstr "Enviar esta anotação"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:171
+#: setzer/workspace/sidebar/ai_page/ai_page.py:173
 msgid "Copy prompt for this annotation"
 msgstr "Copiar o prompt desta anotação"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+#: setzer/workspace/sidebar/ai_page/ai_page.py:174
 msgid "Delete annotation"
 msgstr "Excluir anotação"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:315
+#: setzer/workspace/sidebar/ai_page/ai_page.py:317
 msgid "Session ended"
 msgstr "Sessão encerrada"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:324
+#: setzer/workspace/sidebar/ai_page/ai_page.py:326
 msgid "Started a new agent session"
 msgstr "Nova sessão de agente iniciada"
 
@@ -8684,22 +8699,22 @@ msgstr "Fechados recentemente"
 msgid "{name} is already open"
 msgstr "{name} já está aberto"
 
-#: setzer/workspace/workspace.py:221
+#: setzer/workspace/workspace.py:244
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr "Documento sem Título {number}"
 
-#: setzer/workspace/workspace.py:813
+#: setzer/workspace/workspace.py:836
 #, python-brace-format
 msgid "Session loaded, but no documents could be opened (files may have been moved or deleted): {name}"
 msgstr "Sessão carregada, mas nenhum documento pôde ser aberto (os arquivos podem ter sido movidos ou excluídos): {name}"
 
-#: setzer/workspace/workspace.py:829
+#: setzer/workspace/workspace.py:852
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr "Não foi possível abrir a sessão: {name}"
 
-#: setzer/workspace/workspace.py:1045
+#: setzer/workspace/workspace.py:1068
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr "Não foi possível salvar o estado da área de trabalho: {error}"

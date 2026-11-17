@@ -428,9 +428,17 @@ class PreviewController(object):
         if self._magnifier_active:
             self._end_magnifier()
         # 结束拖动选择：提取文本写入主选择，高亮保留在屏幕上（与 Evince
-        # 一致），Ctrl+C 可复制到剪贴板。
+        # 一致），Ctrl+C 可复制到剪贴板。无拖动的单击 → 块吸附。
         if self.preview.text_selection is not None:
-            self.preview.finish_text_selection()
+            anchor = self.preview.text_selection['anchor']
+            head = self.preview.text_selection['head']
+            dragged = (abs(head[0] - anchor[0]) >= 3
+                       or abs(head[1] - anchor[1]) >= 3)
+            if dragged:
+                self.preview.finish_text_selection()
+            else:
+                self.preview.clear_text_selection()
+                self.preview.snap_block_at(head[0], head[1])
             self.view.content.queue_draw()
 
     # ---- 放大镜 ----

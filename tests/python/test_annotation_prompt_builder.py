@@ -208,5 +208,42 @@ class PresetsTest(unittest.TestCase):
         self.assertNotEqual(ANNOTATION_PRESETS[0]['name'], 'mutated')
 
 
+class FocusTest(unittest.TestCase):
+    '''PDF 派生批注：整行/整块仅作上下文，单独强调用户实际选中部分。'''
+
+    def prompt_with_focus(self, focus_text, focus_kind):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['alpha beta gamma'])
+            a = ann(path, 1, 1, text='alpha beta gamma')
+            a['focus_text'] = focus_text
+            a['focus_kind'] = focus_kind
+            return apb.build_prompt_for_annotations([a], tmp)
+
+    def test_source_focus_rendered_after_verbatim(self):
+        prompt = self.prompt_with_focus('beta', 'source')
+        self.assertIn('The passage above is the full line/block, provided as '
+                      'context. The user specifically highlighted:', prompt)
+        self.assertIn('```latex\nbeta\n```', prompt)
+        self.assertNotIn('rendered PDF text', prompt)
+        # focus 块必须排在整行/整块 verbatim 块之后
+        self.assertLess(prompt.index('Annotated passage (verbatim):'),
+                        prompt.index('The user specifically highlighted:'))
+
+    def test_pdf_text_focus_notes_rendered_difference(self):
+        prompt = self.prompt_with_focus('β rendered', 'pdf-text')
+        self.assertIn('(rendered PDF text; may differ from the source)', prompt)
+        self.assertIn('```latex\nβ rendered\n```', prompt)
+
+    def test_no_focus_keeps_original_format(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['hello'])
+            prompt = apb.build_prompt_for_annotations([ann(path, 1, 1)], tmp)
+        self.assertNotIn('specifically highlighted', prompt)
+
+    def test_blank_focus_is_ignored(self):
+        prompt = self.prompt_with_focus('   ', 'source')
+        self.assertNotIn('specifically highlighted', prompt)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -442,30 +442,11 @@ class BuildSystem(Observable):
                 self.document_has_been_built = True
 
         elif result_blob['backward_sync'] != None:
-            # 反查（PDF 点击 -> 源文件）。refactor 移除了字符级偏移/词匹配
-            # 映射，这里保留行级定位作为最小可用版本。
-            target = result_blob['backward_sync']['filename']
-            current = self.document.get_filename()
-            # synctex 的 Input 带 `./` 段（`…/Example/./main.tex`），而文档注册
-            # 的是规整过的绝对路径，精确 == 永远不成立——表现就是"点了没反应"，
-            # 且界面上没有任何线索。is_root 那条分支走 open_document_by_filename，
-            # 其内部已 normpath，只有这里是裸比较。
-            same_file = (current is not None and target is not None
-                         and os.path.normpath(target) == os.path.normpath(current))
-            # root_is_set 只在显式指定了根文档时为 True；很多工程靠
-            # % !TEX root 魔术注释确定根文件，root_document 一直是空的。
-            # 旧逻辑在这种情况下只允许"目标就是当前文件"的反查，跳到
-            # chapters/*.tex 这类被 include 的文件一律无反应。
-            if same_file:
-                self.set_synctex_position(self.document, result_blob['backward_sync'])
-                self.document.scroll_cursor_to_center()
-            elif ((not self.document.root_is_set or self.document.is_root)
-                  and target is not None and os.path.isfile(target)):
-                workspace = ServiceLocator.get_workspace()
-                document = workspace.open_document_by_filename(target)
-                if document != None:
-                    self.set_synctex_position(document, result_blob['backward_sync'])
-                    document.scroll_cursor_to_center()
+            # 反查（PDF 点击 -> 源文件）。目标解析（同文件 / 打开 include
+            # 子文件）统一在 workspace.jump_to_synctex_position，与预览
+            # Ctrl+点击直查路径共用。
+            workspace = ServiceLocator.get_workspace()
+            workspace.jump_to_synctex_position(self.document, result_blob['backward_sync'])
 
         self.change_build_state('idle')
 
@@ -746,14 +727,20 @@ class BuildSystem(Observable):
         buffer = document.source_buffer
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False).split('\n')
 
-    def set_synctex_position(self, document, position):
-        line = position['line']
+    def correct_synctex_line(self, line, pdf_line_text, source_lines=None):
+        '''PhiTeX 行号不可靠时按 PDF 文本纠正（0-based 行号约定同
+        set_synctex_position）；其它引擎原样返回。供反查直查/映射复用。
+        source_lines 为主线程快照（后台线程调用时避免跨线程读 buffer）。'''
         if self._phitex_synctex_lines_unreliable():
-            repaired = repair_line(line, position.get('pdf_line_text'),
-                                   self._document_lines(document))
+            lines = source_lines if source_lines is not None else self._document_lines(self.document)
+            repaired = repair_line(line, pdf_line_text, lines)
             if repaired != line:
                 _sync_debug('phitex synctex 行号 %d 不可靠，按 PDF 文本纠正为 %d' % (line, repaired))
-                line = repaired
+                return repaired
+        return line
+
+    def set_synctex_position(self, document, position):
+        line = self.correct_synctex_line(position['line'], position.get('pdf_line_text'))
         position_found, start = document.source_buffer.get_iter_at_line(line)
         end = start.copy()
         if not start.ends_line():

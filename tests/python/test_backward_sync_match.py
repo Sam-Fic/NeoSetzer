@@ -52,20 +52,35 @@ class SameFileMatchTest(unittest.TestCase):
         self.assertFalse(self.compare(None, '/p/Ex/main.tex'))
 
     def test_branch_normalizes_instead_of_bare_equality(self):
-        '''源码层面钉住：不许退回裸 ==（回归时现象无迹可寻）。'''
-        _, source = backward_branch_source()
-        index = source.index("elif result_blob['backward_sync'] != None:")
-        block = source[index:index + 1600]
-        self.assertIn('os.path.normpath(target)', block)
-        self.assertIn('os.path.normpath(current)', block)
-        self.assertNotIn("['filename'] == self.document.get_filename()", block)
+        '''源码层面钉住：不许退回裸 ==（回归时现象无迹可寻）。
+        重构后 normpath 比较统一在 workspace.jump_to_synctex_position。'''
+        source = (ROOT / 'setzer/workspace/workspace.py').read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                  and n.name == 'jump_to_synctex_position')
+        dump = ast.dump(fn)
+        self.assertIn('normpath', dump)
+        # 裸 == 回归钉住：所有 == 比较都必须包在 normpath 调用里
+        # （is not None / != None 这类守卫比较不在此列）。
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Compare) and any(
+                    isinstance(op, ast.Eq) for op in node.ops):
+                self.assertTrue(all(isinstance(c, ast.Call) for c in
+                                    [node.left] + node.comparators))
+        _, bs_source = backward_branch_source()
+        index = bs_source.index("elif result_blob['backward_sync'] != None:")
+        block = bs_source[index:index + 800]
+        self.assertIn('jump_to_synctex_position', block)
 
     def test_is_root_branch_still_delegates_to_workspace(self):
         '''另一条分支靠 open_document_by_filename，其内部已 normpath。'''
-        _, source = backward_branch_source()
-        index = source.index("elif result_blob['backward_sync'] != None:")
-        block = source[index:index + 1600]
-        self.assertIn('open_document_by_filename', block)
+        source = (ROOT / 'setzer/workspace/workspace.py').read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                  and n.name == 'jump_to_synctex_position')
+        self.assertIn('open_document_by_filename', ast.dump(fn))
 
 
 class WorkspaceLookupTest(unittest.TestCase):
@@ -132,13 +147,17 @@ class PhitexLineRepairTest(unittest.TestCase):
                                      self.SOURCE_LINES), 99)
 
     def test_wiring_repairs_only_for_phitex(self):
-        '''纠正只对 phitex 的 synctex 生效，别改坏其它引擎的正确行号。'''
+        '''纠正只对 phitex 的 synctex 生效，别改坏其它引擎的正确行号。
+        重构后修复逻辑在 correct_synctex_line，set_synctex_position 调它。'''
         source = (ROOT / BUILD_SYSTEM).read_text(encoding='utf-8')
         tree = ast.parse(source)
         cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
         fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
-                  and n.name == 'set_synctex_position')
+                  and n.name == 'correct_synctex_line')
         self.assertIn('repair_line', ast.dump(fn))
+        setter = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                      and n.name == 'set_synctex_position')
+        self.assertIn('correct_synctex_line', ast.dump(setter))
         gate = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
                     and n.name == '_phitex_synctex_lines_unreliable')
         self.assertIn("'phitex'", ast.dump(gate))

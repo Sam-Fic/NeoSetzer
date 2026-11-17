@@ -213,6 +213,29 @@ class Workspace(Observable):
         if document != None:
             self.set_active_document(document)
 
+    def jump_to_synctex_position(self, document, position):
+        '''反查落点统一入口：同文件直接定位；被 include 的子文件打开后定位。
+
+        position 的 line 为 0-based（set_synctex_position 约定）。build_system
+        的 build-mode 反查与预览 Ctrl+点击直查共用本方法。
+        '''
+        target = position['filename']
+        current = document.get_filename()
+        # synctex 的 Input 带 `./` 段，必须 normpath 后比较。
+        same_file = (current is not None and target is not None
+                     and os.path.normpath(target) == os.path.normpath(current))
+        # root_is_set 只在显式指定根文档时为 True；% !TEX root 魔术注释工程
+        # 里 root_document 一直为空，不能据此拦掉子文件跳转。
+        if same_file:
+            document.build_system.set_synctex_position(document, position)
+            document.scroll_cursor_to_center()
+        elif ((not document.root_is_set or document.is_root)
+              and target is not None and os.path.isfile(target)):
+            target_document = self.open_document_by_filename(target)
+            if target_document != None:
+                target_document.build_system.set_synctex_position(target_document, position)
+                target_document.scroll_cursor_to_center()
+
     def add_document(self, document):
         if document in self.open_documents: return False
 

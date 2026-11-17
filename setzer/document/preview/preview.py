@@ -26,8 +26,10 @@ from gi.repository import Gdk
 
 import os.path
 import math
+import threading
 import unicodedata
 
+from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.helpers.synctex_line_repair import has_matchable_text, match_pdf_line
 
@@ -89,6 +91,13 @@ class Preview(Observable):
         # 拖动选择时每个 motion 事件都要精修高亮矩形，整页字形列表开销不小，
         # 以页为粒度缓存；load_pdf 换文档时整体清空。
         self._text_layout_cache = dict()
+
+        # ---- 块选择（无拖动单击吸附：整图 / 公式 / 浮动体整块）----
+        # block_selection: {'page', 'rect': (x1,y1,x2,y2) 未旋转 points
+        # top-down, 'kind': 'image'|'block'}；与 text_selection 互斥。
+        self.block_selection = None
+        self._block_cache = dict()
+        self._block_request_id = 0
 
         self.poppler_document = None
         # 内存 PDF 文档版本号：仅在成功加载新 Poppler 文档时递增。页面渲染
@@ -275,6 +284,7 @@ class Preview(Observable):
         self.text_selection = {'anchor': (doc_x, doc_y), 'head': (doc_x, doc_y)}
         self.text_selection_dragging = True
         self.text_selection_text = None
+        self.block_selection = None
         self._recompute_text_selection_regions()
 
     def update_text_selection(self, doc_x, doc_y):
@@ -304,15 +314,110 @@ class Preview(Observable):
         return text
 
     def clear_text_selection(self):
-        '''清除选择与高亮（Esc、新 PDF / 布局变化时调用）。'''
-        if self.text_selection is None and not self.text_selection_regions:
+        '''清除选择与高亮（Esc、新 PDF / 布局变化时调用）。块选择一并清。'''
+        if (self.text_selection is None and not self.text_selection_regions
+                and self.block_selection is None):
             return
         self.text_selection = None
         self.text_selection_dragging = False
         self.text_selection_regions = dict()
         self.text_selection_rects = dict()
         self.text_selection_text = None
+        self.block_selection = None
         self.view.drawing_area.queue_draw()
+
+    def clear_block_selection(self):
+        '''仅清块选择高亮。'''
+        if self.block_selection is None:
+            return
+        self.block_selection = None
+        self.view.drawing_area.queue_draw()
+
+    def page_point_from_doc_offsets(self, doc_x, doc_y):
+        '''画布坐标 → (page 0-based, x, y 未旋转 PDF points)；页隙/越界 None。'''
+        if self.layout is None or self.poppler_document is None:
+            return None
+        window_width = self.view.get_allocated_width()
+        data = self.layout.get_page_number_and_offsets_by_document_offsets(
+            doc_x, doc_y, window_width)
+        if data is None:
+            return None
+        page, x, y = data
+        if page < 0 or page >= self.poppler_document.get_n_pages():
+            return None
+        return page, x, y
+
+    @staticmethod
+    def _image_rect_at(poppler_page, x, y):
+        '''点击点命中的整图矩形（top-down points，headless 探针确认约定）。'''
+        try:
+            mappings = poppler_page.get_image_mapping()
+        except Exception:
+            return None
+        for mapping in mappings or []:
+            area = mapping.area
+            if area.x1 <= x <= area.x2 and area.y1 <= y <= area.y2:
+                return (area.x1, area.y1, area.x2, area.y2)
+        return None
+
+    def snap_block_at(self, doc_x, doc_y):
+        '''无拖动单击：块吸附。整图走 get_image_mapping（同步、内存）；
+        否则后台线程反查源码块 + 正向逐行并集矩形。均无命中不产生选择。'''
+        hit = self.page_point_from_doc_offsets(doc_x, doc_y)
+        if hit is None:
+            return
+        page, x, y = hit
+        poppler_page = self.poppler_document.get_page(page)
+        image_rect = self._image_rect_at(poppler_page, x, y)
+        if image_rect is not None:
+            self.block_selection = {'page': page, 'rect': image_rect, 'kind': 'image'}
+            self.view.drawing_area.queue_draw()
+            return
+        key = (self.pdf_version, page, round(x, 1), round(y, 1))
+        cached = self._block_cache.get(key)
+        if cached is not None:
+            self.block_selection = {'page': page, 'rect': cached, 'kind': 'block'}
+            self.view.drawing_area.queue_draw()
+            return
+        tex_filename = self.document.get_filename()
+        if tex_filename is None or self.pdf_filename is None:
+            return
+        buffer = self.document.source_buffer
+        active_lines = buffer.get_text(buffer.get_start_iter(),
+                                       buffer.get_end_iter(), True).splitlines(keepends=True)
+        self._block_request_id += 1
+        request_id = self._block_request_id
+        pdf_filename = self.pdf_filename
+        from setzer.ai_fix import pdf_annotation_mapper
+
+        def _run():
+            result = pdf_annotation_mapper.resolve_block(
+                self.document, pdf_filename, page, x, y, active_lines=active_lines)
+            GLib.idle_add(self._on_block_resolved, request_id, key, page, result)
+
+        threading.Thread(target=_run, daemon=True).start()
+
+    def _on_block_resolved(self, request_id, key, page, result):
+        if request_id != self._block_request_id:
+            return False
+        if result is None:
+            return False
+        self._block_cache[key] = result['rect']
+        self.block_selection = {'page': page, 'rect': result['rect'], 'kind': 'block'}
+        self.view.drawing_area.queue_draw()
+        return False
+
+    def get_selection_payload(self):
+        '''当前选择（块优先）的纯数据 payload，供 PDF→源码映射入口使用。'''
+        if self.block_selection is not None:
+            block = self.block_selection
+            x1, y1, x2, y2 = block['rect']
+            return {'kind': block['kind'], 'page': block['page'],
+                    'rect': block['rect'], 'center': ((x1 + x2) / 2, (y1 + y2) / 2)}
+        if self.text_selection is not None and self.text_selection_rects:
+            return {'kind': 'text', 'rects': dict(self.text_selection_rects),
+                    'text': self.text_selection_text or ''}
+        return None
 
     def _extract_selected_text(self):
         '''按页序拼接各页选中文本。poppler 的 get_selected_text 对换行
@@ -489,6 +594,8 @@ class Preview(Observable):
             self.pdf_version += 1
             # 字形框缓存绑定旧文档，必须一并清空。
             self._text_layout_cache = dict()
+            self._block_cache = dict()
+            self.block_selection = None
             self.page_sizes = []
             for i in range(self.poppler_document.get_n_pages()):
                 size = self.poppler_document.get_page(i).get_size()
@@ -1027,12 +1134,34 @@ class Preview(Observable):
         # to align the cursor to the precise character, not just the line.
         pdf_line_offset, pdf_line_text = self._get_pdf_line_offset(poppler_page, x, y)
 
-        _sync_debug('反查提交 page(1-based)=%s x=%.1f y=%.1f can_sync=%s' % (
-            page + 1, x, y, self.document.build_system.can_sync))
-        self.document.build_system.backward_sync(page + 1, x, y, word, context, pdf_line_offset, pdf_line_text)
-        # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到反向跳转的源码位置。
-        # 点击发生在独立窗口，抬起主窗口让源码跳转可见。
+        _sync_debug('反查提交 page(1-based)=%s x=%.1f y=%.1f（直查，不经过 build mode）' % (
+            page + 1, x, y))
+        # 直查路径：后台线程 synctex edit → idle 跳转。编译期间也可用、
+        # 无 build mode 往返（builder_backward_sync 旧路径闲置保留）。
+        from setzer.helpers import synctex_query
+        tex_filename = self.document.get_filename()
+        if tex_filename is None or self.pdf_filename is None:
+            return False
+        directory = synctex_query.synctex_directory_for_source(tex_filename, self.pdf_filename)
+        pdf_filename = self.pdf_filename
+        refinement = (word, context, pdf_line_offset, pdf_line_text)
+    
+        def _run():
+            position = synctex_query.query_source_position(
+                pdf_filename, page + 1, x, y, directory)
+            GLib.idle_add(self._deliver_backward_sync, position, refinement)
+    
+        threading.Thread(target=_run, daemon=True).start()
+    
+    def _deliver_backward_sync(self, position, refinement):
+        if position is not None:
+            (position['word'], position['context'],
+             position['pdf_line_offset'], position['pdf_line_text']) = refinement
+            position['line'] -= 1  # helper 1-based → set_synctex_position 0-based
+            ServiceLocator.get_workspace().jump_to_synctex_position(self.document, position)
+        # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到跳转落点。
         self.add_change_code('synctex_backward')
+        return False
 
     def _get_pdf_line_offset(self, poppler_page, click_x, click_y):
         '''Return (char_offset, line_text) for the character closest to

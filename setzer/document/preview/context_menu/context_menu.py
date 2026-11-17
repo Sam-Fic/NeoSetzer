@@ -131,6 +131,13 @@ class ContextMenu(Observable):
             page_section.append_item(_action_item(_('Save Image As…'), 'win.preview-save-image'))
         model.append_section(None, page_section)
 
+        # AI section：PDF 选区 → 反查源码整行/整块 → 批注/直发
+        # （与源码右键菜单同 label，复用已译字符串）。
+        ai_section = Gio.Menu()
+        ai_section.append_item(_action_item(_('Add AI Annotation…'), 'win.ai-annotate-pdf'))
+        ai_section.append_item(_action_item(_('Send Selection to Agent'), 'win.ai-send-pdf'))
+        model.append_section(None, ai_section)
+
         # Find & Print section.
         find_section = Gio.Menu()
         find_section.append_item(_action_item(_('Search in PDF'), 'win.preview-search-pdf'))

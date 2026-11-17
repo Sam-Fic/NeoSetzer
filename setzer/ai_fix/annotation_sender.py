@@ -109,6 +109,41 @@ class AnnotationSender(object):
         }]
         self._send_data(data, document)
 
+    def send_mapped(self, document, mapping, comment='', preset=None):
+        '''PDF 选区反查映射直发：整行/整块范围 + focus（不落批注模型）。
+
+        mapping: {'filename', 'start_line', 'end_line', 'focus_text',
+        'focus_kind'}（1-based）。document 须为映射目标文档（调用方已
+        打开/激活）。
+        '''
+        if document is None:
+            self._toast(_('No active document'))
+            return
+        if not self._check_enabled():
+            return
+        if not self._save_document(document):
+            return
+        if preset is None:
+            preset = self.default_preset
+        buffer = document.source_buffer
+        found_start, start = buffer.get_iter_at_line(mapping['start_line'] - 1)
+        found_end, end = buffer.get_iter_at_line(mapping['end_line'] - 1)
+        if not found_start or not found_end:
+            self._toast(_('No annotations to send'))
+            return
+        end.forward_to_line_end()
+        data = [{
+            'filename': mapping['filename'],
+            'start_line': mapping['start_line'],
+            'end_line': mapping['end_line'],
+            'text': buffer.get_text(start, end, False),
+            'comment': comment,
+            'preset': preset,
+            'focus_text': mapping.get('focus_text', ''),
+            'focus_kind': mapping.get('focus_kind', 'pdf-text'),
+        }]
+        self._send_data(data, document)
+
     def copy_prompt(self, entries):
         '''把批注对应的 prompt 复制到剪贴板（不发送、不保存文档、不移除批注）。'''
         data = []
@@ -152,6 +187,8 @@ class AnnotationSender(object):
             'text': model.get_text(annotation),
             'comment': annotation.get('comment', ''),
             'preset': annotation.get('preset'),
+            'focus_text': (annotation.get('focus') or {}).get('text', ''),
+            'focus_kind': (annotation.get('focus') or {}).get('kind', 'pdf-text'),
         }
 
     def _check_enabled(self):

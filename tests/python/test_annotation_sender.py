@@ -204,5 +204,140 @@ class SendAnnotationsPlumbingTest(unittest.TestCase):
         self.assertEqual([ann['id'] for _d, ann in sent_entries], ['ok'])
 
 
+class FakeIter:
+    def __init__(self, buffer, line):
+        self.buffer = buffer
+        self.line = line
+
+    def forward_to_line_end(self):
+        pass  # get_text 按整行拼接，无需偏移
+
+
+class FakeBuffer:
+    '''get_iter_at_line/get_text 的最小替身（行内容不带换行符）。'''
+
+    def __init__(self, lines):
+        self.lines = lines
+
+    def get_iter_at_line(self, line):
+        if 0 <= line < len(self.lines):
+            return True, FakeIter(self, line)
+        return False, None
+
+    def get_text(self, start, end, include_hidden):
+        return '\n'.join(self.lines[start.line:end.line + 1])
+
+
+class MappedDocument(FakeDocument):
+    def __init__(self, model, lines):
+        super().__init__(model)
+        self.source_buffer = FakeBuffer(lines)
+
+
+MAPPING = {'filename': '/tmp/doc.tex', 'start_line': 1, 'end_line': 2,
+           'focus_text': 'beta', 'focus_kind': 'source'}
+
+
+class SendMappedTest(unittest.TestCase):
+    '''PDF 选区映射直发：整行/整块 verbatim + focus 透传，不落批注模型。'''
+
+    def test_data_covers_whole_range_with_focus(self):
+        model = FakeModel([])
+        document = MappedDocument(model, ['alpha beta', 'second line', 'third'])
+        sender, _session = make_sender()
+        with mock.patch.object(sender, '_send_data') as send_data:
+            sender.send_mapped(document, MAPPING, comment='fix', preset='Explain')
+        send_data.assert_called_once()
+        data, doc = send_data.call_args[0]
+        self.assertEqual(len(send_data.call_args[0]), 2)  # 无 sent_entries
+        self.assertIs(doc, document)
+        self.assertEqual(data[0]['text'], 'alpha beta\nsecond line')
+        self.assertEqual(data[0]['start_line'], 1)
+        self.assertEqual(data[0]['end_line'], 2)
+        self.assertEqual(data[0]['focus_text'], 'beta')
+        self.assertEqual(data[0]['focus_kind'], 'source')
+        self.assertEqual(data[0]['comment'], 'fix')
+        self.assertEqual(data[0]['preset'], 'Explain')
+        self.assertEqual(document.saved, 1)
+        self.assertEqual(model.removed, [])
+
+    def test_preset_none_uses_default(self):
+        document = MappedDocument(FakeModel([]), ['alpha beta', 'second line'])
+        sender, _session = make_sender()
+        sender.default_preset = 'Explain'
+        with mock.patch.object(sender, '_send_data') as send_data:
+            sender.send_mapped(document, MAPPING)
+        self.assertEqual(send_data.call_args[0][0][0]['preset'], 'Explain')
+
+    def test_disabled_does_not_send(self):
+        document = MappedDocument(FakeModel([]), ['alpha beta'])
+        sender, _session = make_sender()
+        sender.settings.values['ai_fix_enabled'] = False
+        with mock.patch.object(sender, '_send_data') as send_data:
+            sender.send_mapped(document, MAPPING)
+        send_data.assert_not_called()
+        self.assertEqual(document.saved, 0)
+
+    def test_out_of_range_lines_do_not_send(self):
+        document = MappedDocument(FakeModel([]), ['alpha beta'])
+        sender, _session = make_sender()
+        mapping = dict(MAPPING, end_line=99)
+        with mock.patch.object(sender, '_send_data') as send_data:
+            sender.send_mapped(document, mapping)
+        send_data.assert_not_called()
+
+    def test_none_document_does_not_send(self):
+        sender, _session = make_sender()
+        with mock.patch.object(sender, '_send_data') as send_data:
+            sender.send_mapped(None, MAPPING)
+        send_data.assert_not_called()
+
+    def test_success_sends_without_model_removal(self):
+        '''直发不落模型：成功/失败都不存在批注移除。'''
+        model = FakeModel([])
+        document = MappedDocument(model, ['alpha beta', 'second line'])
+        sender, session = make_sender(embedded=True, send_success=True)
+        with mock.patch.object(sender_module.agent_session_module, 'VTE_AVAILABLE', True), \
+                mock.patch.object(sender, '_tool_config', return_value={'name': 'opencode'}), \
+                mock.patch.object(sender_module, 'resolve_interpreter', return_value='pdflatex'):
+            sender.send_mapped(document, MAPPING)
+        session.send.assert_called_once()
+        prompt = session.send.call_args[0][0]
+        self.assertIn('alpha beta\nsecond line', prompt)
+        self.assertIn('The user specifically highlighted:', prompt)
+        self.assertEqual(model.removed, [])
+
+    def test_failure_keeps_model_untouched(self):
+        model = FakeModel([])
+        document = MappedDocument(model, ['alpha beta', 'second line'])
+        sender, _session = make_sender(embedded=True, send_success=False)
+        with mock.patch.object(sender_module.agent_session_module, 'VTE_AVAILABLE', True), \
+                mock.patch.object(sender, '_tool_config', return_value={'name': 'opencode'}), \
+                mock.patch.object(sender_module, 'resolve_interpreter', return_value='pdflatex'):
+            sender.send_mapped(document, MAPPING)
+        self.assertEqual(model.removed, [])
+
+
+class AnnotationDataFocusTest(unittest.TestCase):
+
+    def test_focus_passed_through(self):
+        model = FakeModel([{'id': 'a'}])
+        document = FakeDocument(model)
+        sender, _session = make_sender()
+        annotation = {'id': 'a', 'comment': 'c', 'preset': None,
+                      'focus': {'text': 'E=mc^2', 'kind': 'source'}}
+        data = sender._annotation_data(document, annotation)
+        self.assertEqual(data['focus_text'], 'E=mc^2')
+        self.assertEqual(data['focus_kind'], 'source')
+
+    def test_missing_focus_defaults_empty_pdf_text(self):
+        model = FakeModel([{'id': 'a'}])
+        document = FakeDocument(model)
+        sender, _session = make_sender()
+        data = sender._annotation_data(document, {'id': 'a'})
+        self.assertEqual(data['focus_text'], '')
+        self.assertEqual(data['focus_kind'], 'pdf-text')
+
+
 if __name__ == '__main__':
     unittest.main()

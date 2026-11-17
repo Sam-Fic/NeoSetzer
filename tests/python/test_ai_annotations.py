@@ -98,6 +98,29 @@ class AiAnnotationsTest(unittest.TestCase):
         self.assertIsNone(self.model.add_from_selection('x'))
         self.assertEqual(self.model.get_all(), [])
 
+    def test_add_from_range_registers_without_prior_selection(self):
+        # PDF 反向映射入口：offset 区间 select_range 后复用选区登记主体。
+        self.buffer.place_cursor(self.buffer.get_start_iter())
+        annotation = self.model.add_from_range(
+            4, 13, 'fix', 'Explain', focus={'text': 'two', 'kind': 'source'})
+        self.assertIsNotNone(annotation)
+        self.assertEqual(self.model.get_line_range(annotation), (2, 3))
+        self.assertEqual(self.model.get_text(annotation), 'two\nthree')
+        self.assertEqual(annotation['comment'], 'fix')
+        self.assertEqual(annotation['preset'], 'Explain')
+        self.assertEqual(annotation['focus'], {'text': 'two', 'kind': 'source'})
+        self.assertTrue(self.events)
+
+    def test_add_from_range_focus_defaults_none(self):
+        annotation = self.model.add_from_range(0, 3)
+        self.assertEqual(self.model.get_text(annotation), 'one')
+        self.assertIsNone(annotation['focus'])
+
+    def test_add_from_selection_focus_defaults_none(self):
+        self.select(0, 0, 0, 3)
+        annotation = self.model.add_from_selection()
+        self.assertIsNone(annotation['focus'])
+
     def test_whole_line_selection_excludes_next_line(self):
         # 选中第 2 行整行（含换行符）：end 落在第 3 行行首，不应计入第 3 行
         self.select(1, 0, 2, 0)

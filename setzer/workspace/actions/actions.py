@@ -120,6 +120,8 @@ class Actions(object):
         # 选区（不落批注，经统一发送控制器进 Agent 会话）。快捷键路径同效。
         self.add_action('ai-add-annotation', self.ai_add_annotation)
         self.add_action('ai-send-selection', self.ai_send_selection)
+        self.add_action('ai-annotate-pdf', self.ai_annotate_pdf)
+        self.add_action('ai-send-pdf', self.ai_send_pdf)
         self._ai_annotation_popover = None
         self.add_action('forward-sync', self.forward_sync)
 
@@ -400,6 +402,8 @@ class Actions(object):
         self.actions['preview-save-image'].set_enabled(pdf_actions_enabled)
         self.actions['preview-open-link'].set_enabled(pdf_actions_enabled)
         self.actions['preview-copy-link'].set_enabled(pdf_actions_enabled)
+        self.actions['ai-annotate-pdf'].set_enabled(pdf_actions_enabled)
+        self.actions['ai-send-pdf'].set_enabled(pdf_actions_enabled)
         if preview is not None:
             self.actions['preview-recolor'].set_state(
                 GLib.Variant.new_boolean(preview.recolor_pdf))
@@ -1274,6 +1278,22 @@ class Actions(object):
         start, end = bounds
         start_offset, end_offset = start.get_offset(), end.get_offset()
 
+        def on_save(comment, preset):
+            buffer = document.source_buffer
+            buffer.select_range(buffer.get_iter_at_offset(start_offset),
+                                buffer.get_iter_at_offset(end_offset))
+            model = getattr(document, 'ai_annotations', None)
+            if model is not None and model.add_from_selection(comment, preset) is not None:
+                self._show_file_template_toast(_('Annotation added'))
+
+        self._present_annotation_popover(document, start_offset, end_offset, on_save)
+
+    def _present_annotation_popover(self, document, start_offset, end_offset, on_save):
+        '''批注 popover 共用锚定逻辑：选区末尾 buffer 坐标 → widget 坐标。
+
+        源码右键与 PDF 反向映射入口共用；on_save(comment, preset) 由调用方
+        提供（落模型方式不同：选区 vs 映射区间+focus）。
+        '''
         if self._ai_annotation_popover is None:
             from setzer.document.ai_annotations.annotation_popover import AnnotationPopover
             self._ai_annotation_popover = AnnotationPopover()
@@ -1281,10 +1301,10 @@ class Actions(object):
         presets = self.settings.get_value('preferences', 'ai_annotation_presets') or []
         popover.set_presets(presets)
 
-        # 锚定选区末尾：buffer 坐标 → source_view widget 坐标。
         # 新旧 PyGObject 命名差异：GTK4 原生 buffer_to_widget_coords，
         # 部分版本仍暴露 GTK3 风格 buffer_to_window_coords（仓库既有惯例）。
         source_view = document.view.source_view
+        end = document.source_buffer.get_iter_at_offset(end_offset)
         location = source_view.get_iter_location(end)
         if hasattr(source_view, 'buffer_to_widget_coords'):
             wx, wy = source_view.buffer_to_widget_coords(location.x, location.y + location.height)
@@ -1296,16 +1316,71 @@ class Actions(object):
         rect.y = wy
         rect.width = max(location.width, 1)
         rect.height = max(location.height, 1)
-
-        def on_save(comment, preset):
-            buffer = document.source_buffer
-            buffer.select_range(buffer.get_iter_at_offset(start_offset),
-                                buffer.get_iter_at_offset(end_offset))
-            model = getattr(document, 'ai_annotations', None)
-            if model is not None and model.add_from_selection(comment, preset) is not None:
-                self._show_file_template_toast(_('Annotation added'))
-
         popover.present_for(source_view, rect, on_save_cb=on_save)
+
+    def ai_annotate_pdf(self, action=None, parameter=None):
+        '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → popover → 落模型。'''
+        self._ai_from_pdf(send=False)
+
+    def ai_send_pdf(self, action=None, parameter=None):
+        '''预览右键「直发」：PDF 选区反查映射后经统一发送控制器发送。'''
+        self._ai_from_pdf(send=True)
+
+    def _ai_from_pdf(self, send):
+        preview = self._get_preview()
+        document = self.workspace.get_active_document()
+        if preview is None or document is None:
+            return
+        payload = preview.get_selection_payload()
+        if payload is None:
+            self._show_file_template_toast(_('Select some text first'))
+            return
+        from setzer.ai_fix import pdf_annotation_mapper
+
+        def on_done(mapping):
+            if mapping is None:
+                self._show_file_template_toast(
+                    _('Could not map the PDF selection to source. Build the document first.'))
+                return
+            target = self._document_for_mapping(document, mapping)
+            if target is None:
+                self._show_file_template_toast(
+                    _('Could not map the PDF selection to source. Build the document first.'))
+                return
+            if send:
+                self.workspace.get_annotation_sender().send_mapped(target, mapping)
+                return
+            buffer = target.source_buffer
+            found_start, start = buffer.get_iter_at_line(mapping['start_line'] - 1)
+            found_end, end = buffer.get_iter_at_line(mapping['end_line'] - 1)
+            if not found_start or not found_end:
+                self._show_file_template_toast(
+                    _('Could not map the PDF selection to source. Build the document first.'))
+                return
+            end.forward_to_line_end()
+            start_offset, end_offset = start.get_offset(), end.get_offset()
+            focus = {'text': mapping.get('focus_text', ''),
+                     'kind': mapping.get('focus_kind', 'pdf-text')}
+
+            def on_save(comment, preset):
+                model = getattr(target, 'ai_annotations', None)
+                if model is not None and model.add_from_range(
+                        start_offset, end_offset, comment, preset, focus=focus) is not None:
+                    self._show_file_template_toast(_('Annotation added'))
+
+            self._present_annotation_popover(target, start_offset, end_offset, on_save)
+
+        pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
+
+    def _document_for_mapping(self, document, mapping):
+        '''映射目标文件：同文件直接用；被 include 的子文件打开/激活。'''
+        filename = mapping.get('filename')
+        current = document.get_filename()
+        if filename and current and os.path.normpath(filename) == os.path.normpath(current):
+            return document
+        if filename and os.path.isfile(filename):
+            return self.workspace.open_document_by_filename(filename)
+        return None
 
     def ai_send_selection(self, action=None, parameter=None):
         '''右键/快捷键「直发选区」：不落批注，立即经统一发送控制器发送。'''

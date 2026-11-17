@@ -158,6 +158,14 @@ def build_prompt_for_annotations(annotations, cwd, interpreter='default', preset
             parts.append('Annotated passage (verbatim):')
             selection = (ann.get('text') or '').rstrip('\n')
             parts.append('```latex\n{}\n```'.format(selection))
+            focus_text = (ann.get('focus_text') or '').strip()
+            if focus_text:
+                # PDF 派生批注：整行/整块仅作上下文，单独强调用户实际选中部分。
+                parts.append('The passage above is the full line/block, provided as '
+                             'context. The user specifically highlighted:')
+                if ann.get('focus_kind') == 'pdf-text':
+                    parts.append('(rendered PDF text; may differ from the source)')
+                parts.append('```latex\n{}\n```'.format(focus_text))
             parts.append('')
 
         # 上下文：小文件全贴，大文件合并区间摘录

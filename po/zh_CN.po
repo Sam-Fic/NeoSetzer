@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 03:11+0800\n"
+"POT-Creation-Date: 2026-11-17 03:54+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -497,40 +497,40 @@ msgstr "已在终端中启动 {}。"
 msgid "{tool} has no executable configured. Set one in Preferences → General → AI Settings."
 msgstr "{tool} 尚未配置可执行文件。请在首选项 → 常规 → AI 设置中设置。"
 
-#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:133
+#: setzer/ai_fix/agent_runner.py:444 setzer/ai_fix/agent_session.py:134
 #, python-brace-format
 msgid "{tool} is not available on this system. Check the executable name in Preferences → General → AI Settings."
 msgstr "{tool} 在此系统上不可用。请在首选项 → 常规 → AI 设置中检查可执行文件名。"
 
-#: setzer/ai_fix/agent_session.py:126 setzer/ai_fix/agent_session.py:274
+#: setzer/ai_fix/agent_session.py:127 setzer/ai_fix/agent_session.py:289
 msgid "Embedded terminal is not available on this system."
 msgstr "此系统不支持内嵌终端。"
 
-#: setzer/ai_fix/agent_session.py:129 setzer/ai_fix/annotation_sender.py:220
+#: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:257
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:441
 #: setzer/workspace/headerbar/headerbar.py:378
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "未配置 Agent 工具。请在首选项 → 常规 → AI 设置中添加。"
 
-#: setzer/ai_fix/agent_session.py:137 setzer/ai_fix/annotation_sender.py:125
-#: setzer/ai_fix/annotation_sender.py:165
-#: setzer/ai_fix/annotation_sender.py:174
+#: setzer/ai_fix/agent_session.py:138 setzer/ai_fix/annotation_sender.py:160
+#: setzer/ai_fix/annotation_sender.py:202
+#: setzer/ai_fix/annotation_sender.py:211
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
 #: setzer/workspace/headerbar/headerbar.py:365
-#: setzer/workspace/sidebar/ai_page/ai_page.py:321
+#: setzer/workspace/sidebar/ai_page/ai_page.py:323
 msgid "Please save the document first"
 msgstr "请先保存文档"
 
-#: setzer/ai_fix/agent_session.py:165
+#: setzer/ai_fix/agent_session.py:174
 msgid "Failed to launch agent: {}"
 msgstr "启动 Agent 失败：{}"
 
-#: setzer/ai_fix/agent_session.py:270
+#: setzer/ai_fix/agent_session.py:285
 msgid "Nothing to send"
 msgstr "没有可发送的内容"
 
-#: setzer/ai_fix/agent_session.py:287
+#: setzer/ai_fix/agent_session.py:302
 #, python-brace-format
 msgid "Sent to {tool} (copied to clipboard as fallback)."
 msgstr "已发送到 {tool}（同时复制到剪贴板兜底）。"
@@ -582,35 +582,37 @@ msgid "Dock back into the sidebar"
 msgstr "收回侧边栏"
 
 #: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78
-#: setzer/ai_fix/annotation_sender.py:120
+#: setzer/ai_fix/annotation_sender.py:132
+#: setzer/ai_fix/annotation_sender.py:155
 msgid "No annotations to send"
 msgstr "没有可发送的批注"
 
-#: setzer/ai_fix/annotation_sender.py:85
+#: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:425
 #: setzer/workspace/headerbar/headerbar.py:361
 msgid "No active document"
 msgstr "当前没有打开的文档"
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1272
+#: setzer/workspace/actions/actions.py:1276
+#: setzer/workspace/actions/actions.py:1336
 msgid "Select some text first"
 msgstr "请先选择文本"
 
-#: setzer/ai_fix/annotation_sender.py:136
+#: setzer/ai_fix/annotation_sender.py:171
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:164
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
 msgid "Copied to clipboard"
 msgstr "已复制到剪贴板"
 
-#: setzer/ai_fix/annotation_sender.py:159
+#: setzer/ai_fix/annotation_sender.py:196
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:419
 #: setzer/workspace/headerbar/headerbar.py:355
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "AI 代理已禁用。请在首选项 → 常规 → AI 设置中启用。"
 
-#: setzer/ai_fix/annotation_sender.py:209
+#: setzer/ai_fix/annotation_sender.py:246
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:490
 msgid "Added to trusted directories"
 msgstr "暂无受信任目录"
@@ -661,9 +663,9 @@ msgstr "发送给 AI 代理"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
 #: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:657
+#: setzer/document/preview/preview_controller.py:665
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:459
+#: setzer/workspace/actions/actions.py:463
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -756,7 +758,7 @@ msgstr "导出项目包"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/document/preview/preview_presenter.py:585
+#: setzer/document/preview/preview_presenter.py:607
 msgid "Print"
 msgstr "打印"
 
@@ -1062,7 +1064,7 @@ msgid "Preview"
 msgstr "预览"
 
 #: setzer/command_palette/catalog.py:130
-#: setzer/document/preview/context_menu/context_menu.py:136
+#: setzer/document/preview/context_menu/context_menu.py:143
 msgid "Search in PDF"
 msgstr "在线搜索"
 
@@ -2815,7 +2817,7 @@ msgid "Ready to create"
 msgstr "可以创建"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:349
-#: setzer/document/preview/preview_presenter.py:654
+#: setzer/document/preview/preview_presenter.py:676
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
 msgid "Document"
@@ -4389,7 +4391,7 @@ msgstr "分数"
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
-#: setzer/document/preview/preview_controller.py:658
+#: setzer/document/preview/preview_controller.py:666
 msgid "Open"
 msgstr "打开"
 
@@ -5905,6 +5907,7 @@ msgid "Add AI Annotation"
 msgstr "添加 AI 批注"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
+#: setzer/document/preview/context_menu/context_menu.py:138
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:238
 msgid "Send Selection to Agent"
 msgstr ""
@@ -6588,8 +6591,8 @@ msgid "Save Annotation"
 msgstr "保存批注"
 
 #: setzer/document/ai_annotations/annotation_popover.py:77
-#: setzer/workspace/sidebar/ai_page/ai_page.py:277
-#: setzer/workspace/sidebar/ai_page/ai_page.py:307
+#: setzer/workspace/sidebar/ai_page/ai_page.py:279
+#: setzer/workspace/sidebar/ai_page/ai_page.py:309
 msgid "Custom (no preset)"
 msgstr "自定义（无预制）"
 
@@ -6749,7 +6752,7 @@ msgstr "所选 BibTeX 路径不是常规文件"
 msgid "The bibliography changed outside Setzer"
 msgstr "参考文献库已在 Setzer 外部被更改"
 
-#: setzer/document/build_system/build_system.py:498
+#: setzer/document/build_system/build_system.py:479
 msgid "Previous build cancelled"
 msgstr "上一次构建已取消"
 
@@ -6842,40 +6845,45 @@ msgid "Save Image As…"
 msgstr "另存为…"
 
 #: setzer/document/preview/context_menu/context_menu.py:137
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
+msgid "Add AI Annotation…"
+msgstr "添加 AI 批注…"
+
+#: setzer/document/preview/context_menu/context_menu.py:144
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:96
 msgid "Print…"
 msgstr "打印…"
 
-#: setzer/document/preview/context_menu/context_menu.py:142
+#: setzer/document/preview/context_menu/context_menu.py:149
 msgid "Rotate Clockwise"
 msgstr "顺时针旋转"
 
-#: setzer/document/preview/context_menu/context_menu.py:143
+#: setzer/document/preview/context_menu/context_menu.py:150
 msgid "Rotate Counterclockwise"
 msgstr "逆时针旋转"
 
-#: setzer/document/preview/context_menu/context_menu.py:144
+#: setzer/document/preview/context_menu/context_menu.py:151
 msgid "Invert Colors"
 msgstr "用户界面颜色"
 
-#: setzer/document/preview/context_menu/context_menu.py:149
+#: setzer/document/preview/context_menu/context_menu.py:156
 msgid "Show Source"
 msgstr "显示来源"
 
-#: setzer/document/preview/context_menu/context_menu.py:233
+#: setzer/document/preview/context_menu/context_menu.py:240
 msgid "Find in PDF…"
 msgstr "查找"
 
-#: setzer/document/preview/context_menu/context_menu.py:238
+#: setzer/document/preview/context_menu/context_menu.py:245
 msgid "Previous Match"
 msgstr "查找上一个匹配"
 
-#: setzer/document/preview/context_menu/context_menu.py:242
+#: setzer/document/preview/context_menu/context_menu.py:249
 msgid "Next Match"
 msgstr "查找下一个匹配"
 
 #: setzer/document/preview/preview_controller.py:375
-#: setzer/document/preview/preview_controller.py:595
+#: setzer/document/preview/preview_controller.py:603
 msgid "Hold Ctrl and click to open this link"
 msgstr "按住 Ctrl 并点击以打开此链接"
 
@@ -6883,19 +6891,19 @@ msgstr "按住 Ctrl 并点击以打开此链接"
 msgid "Go to page "
 msgstr "跳转至页 "
 
-#: setzer/document/preview/preview_controller.py:638
+#: setzer/document/preview/preview_controller.py:646
 msgid "Could not open link"
 msgstr "无法打开链接"
 
-#: setzer/document/preview/preview_controller.py:647
+#: setzer/document/preview/preview_controller.py:655
 msgid "Link blocked: this link type is unsafe"
 msgstr "链接已阻止：此链接类型不安全"
 
-#: setzer/document/preview/preview_controller.py:655
+#: setzer/document/preview/preview_controller.py:663
 msgid "Open local file from this PDF?"
 msgstr "从此 PDF 打开本地文件？"
 
-#: setzer/document/preview/preview_controller.py:656
+#: setzer/document/preview/preview_controller.py:664
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6906,19 +6914,19 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:539
+#: setzer/document/preview/preview_presenter.py:561
 msgid "Save Image As"
 msgstr "另存为"
 
-#: setzer/document/preview/preview_presenter.py:644
+#: setzer/document/preview/preview_presenter.py:666
 msgid "No printer available"
 msgstr "没有可用的打印机"
 
-#: setzer/document/preview/preview_presenter.py:649
+#: setzer/document/preview/preview_presenter.py:671
 msgid "Could not prepare print data"
 msgstr "无法准备打印数据"
 
-#: setzer/document/preview/preview_presenter.py:663
+#: setzer/document/preview/preview_presenter.py:685
 msgid "Printing failed"
 msgstr "打印失败"
 
@@ -7220,10 +7228,6 @@ msgstr "忽略“{word}”"
 #, python-brace-format
 msgid "Add “{word}” to Dictionary"
 msgstr "将“{word}”添加到词典"
-
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
-msgid "Add AI Annotation…"
-msgstr "添加 AI 批注…"
 
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:266
 msgid "Jump to Definition"
@@ -7932,30 +7936,37 @@ msgstr "没有可提交的内容：未选择任何文件。"
 msgid "Choose File"
 msgstr "选择文件"
 
-#: setzer/workspace/actions/actions.py:449
+#: setzer/workspace/actions/actions.py:453
 msgid "No .tex files were found in your Templates folder."
 msgstr "在“模板”文件夹中未找到 .tex 文件。"
 
-#: setzer/workspace/actions/actions.py:456
-#: setzer/workspace/actions/actions.py:486
+#: setzer/workspace/actions/actions.py:460
+#: setzer/workspace/actions/actions.py:490
 msgid "Create document from template"
 msgstr "从模板创建文档"
 
-#: setzer/workspace/actions/actions.py:457
+#: setzer/workspace/actions/actions.py:461
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "请选择一个 LaTeX 模板，然后选择新副本的创建位置。"
 
-#: setzer/workspace/actions/actions.py:460
+#: setzer/workspace/actions/actions.py:464
 msgid "Choose location"
 msgstr "选择位置"
 
-#: setzer/workspace/actions/actions.py:507
+#: setzer/workspace/actions/actions.py:511
 msgid "The selected destination is not a local file."
 msgstr "所选目标不是本地文件。"
 
-#: setzer/workspace/actions/actions.py:1306
+#: setzer/workspace/actions/actions.py:1287
+#: setzer/workspace/actions/actions.py:1369
 msgid "Annotation added"
 msgstr "批注已添加"
+
+#: setzer/workspace/actions/actions.py:1343
+#: setzer/workspace/actions/actions.py:1348
+#: setzer/workspace/actions/actions.py:1358
+msgid "Could not map the PDF selection to source. Build the document first."
+msgstr "无法将 PDF 选区映射到源码。请先构建文档。"
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
@@ -8141,36 +8152,40 @@ msgstr "对象"
 msgid "AI Agent"
 msgstr "AI Agent"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:160
+#: setzer/workspace/sidebar/ai_page/ai_page.py:141
+msgid "From a PDF selection"
+msgstr "来自 PDF 选区"
+
+#: setzer/workspace/sidebar/ai_page/ai_page.py:162
 #, python-brace-format
 msgid "lines {range}"
 msgstr "第 {range} 行"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:168
+#: setzer/workspace/sidebar/ai_page/ai_page.py:170
 msgid "Jump to source"
 msgstr "跳转到源码"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:169
+#: setzer/workspace/sidebar/ai_page/ai_page.py:171
 msgid "Edit annotation"
 msgstr "编辑批注"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:170
+#: setzer/workspace/sidebar/ai_page/ai_page.py:172
 msgid "Send this annotation"
 msgstr "发送此批注"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:171
+#: setzer/workspace/sidebar/ai_page/ai_page.py:173
 msgid "Copy prompt for this annotation"
 msgstr "复制此批注的 prompt"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+#: setzer/workspace/sidebar/ai_page/ai_page.py:174
 msgid "Delete annotation"
 msgstr "删除批注"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:315
+#: setzer/workspace/sidebar/ai_page/ai_page.py:317
 msgid "Session ended"
 msgstr "会话已结束"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:324
+#: setzer/workspace/sidebar/ai_page/ai_page.py:326
 msgid "Started a new agent session"
 msgstr "已开启新的 Agent 会话"
 
@@ -8674,22 +8689,22 @@ msgstr "最近关闭"
 msgid "{name} is already open"
 msgstr "{name} 已经打开"
 
-#: setzer/workspace/workspace.py:221
+#: setzer/workspace/workspace.py:244
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr "未命名文档 {number}"
 
-#: setzer/workspace/workspace.py:813
+#: setzer/workspace/workspace.py:836
 #, python-brace-format
 msgid "Session loaded, but no documents could be opened (files may have been moved or deleted): {name}"
 msgstr "会话已加载，但无法打开任何文档（文件可能已被移动或删除）：{name}"
 
-#: setzer/workspace/workspace.py:829
+#: setzer/workspace/workspace.py:852
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr "无法打开会话：{name}"
 
-#: setzer/workspace/workspace.py:1045
+#: setzer/workspace/workspace.py:1068
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr "无法保存工作区状态：{error}"

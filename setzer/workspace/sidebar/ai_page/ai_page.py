@@ -137,6 +137,8 @@ class AiPage(object):
         row.document = document
         row.annotation_id = annotation['id']
         row.set_activatable(False)
+        if annotation.get('focus'):
+            row.set_tooltip_text(_('From a PDF selection'))
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         box.set_margin_top(8)

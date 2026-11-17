@@ -290,6 +290,7 @@ class PreviewPresenter(object):
         synctex_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.visible_synctex_rectangles else None
         # 文字选择高亮与 synctex 同用 accent 色（无选择时不取色，保持零开销）。
         selection_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.text_selection_regions else None
+        block_color = ColorManager.get_ui_color('highlight_tag_preview') if self.preview.block_selection else None
 
         self.draw_background(ctx, drawing_area, canvas_bg_color)
 
@@ -350,11 +351,13 @@ class PreviewPresenter(object):
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
                 self.draw_text_selection_rectangles(ctx, page_number, selection_color)
+                self.draw_block_selection(ctx, page_number, block_color)
                 ctx.restore()
             else:
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
                 self.draw_text_selection_rectangles(ctx, page_number, selection_color)
+                self.draw_block_selection(ctx, page_number, block_color)
 
             # per-page advance：每页实际高 + gap（而非统一 page_step）。
             ctx.transform(cairo.Matrix(1, 0, 0, 1, 0, page_heights[page_number] + page_gap))
@@ -480,6 +483,25 @@ class PreviewPresenter(object):
             ctx.rectangle(x1 * scale, y1 * scale,
                           (x2 - x1) * scale, (y2 - y1) * scale)
         ctx.fill()
+
+    def draw_block_selection(self, ctx, page_number, block_color):
+        '''块选择高亮：同 accent 填充 + 1px 描边区分于文字选择。
+
+        rect 为未旋转 top-down points，与 draw_text_selection_rectangles
+        同一 transform 内调用，乘 scale_factor 即可。'''
+        if block_color is None:
+            return
+        selection = self.preview.block_selection
+        if selection is None or selection['page'] != page_number:
+            return
+        x1, y1, x2, y2 = selection['rect']
+        scale = self.preview.layout.scale_factor
+        ctx.rectangle(x1 * scale, y1 * scale, (x2 - x1) * scale, (y2 - y1) * scale)
+        ctx.set_source_rgba(block_color.red, block_color.green, block_color.blue, 0.25)
+        ctx.fill_preserve()
+        ctx.set_source_rgba(block_color.red, block_color.green, block_color.blue, 0.8)
+        ctx.set_line_width(1.0)
+        ctx.stroke()
 
     def ease(self, factor): return (factor - 1)**3 + 1
 
