@@ -21,6 +21,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers.text_input_card import create_text_input_card
 from setzer.dialogs.insert_table.table_generator import (
     ALIGNMENTS,
     CellMerge,
@@ -295,19 +296,9 @@ class InsertTableView(DialogView):
         self.preview.set_cursor_visible(False)
         self.preview.set_monospace(True)
         self.preview.set_wrap_mode(Gtk.WrapMode.NONE)
-        self.preview.set_top_margin(8)
-        self.preview.set_bottom_margin(8)
-        self.preview.set_left_margin(8)
-        self.preview.set_right_margin(8)
-        preview_scrolled = Gtk.ScrolledWindow()
-        preview_scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        preview_scrolled.set_hexpand(True)
-        preview_scrolled.set_min_content_height(160)
-        preview_scrolled.set_max_content_height(260)
-        preview_scrolled.set_child(self.preview)
-        preview_scrolled.add_css_class('preview-card')
-        preview_scrolled.set_overflow(Gtk.Overflow.HIDDEN)
-        preview_group.add(preview_scrolled)
+        preview_group.add(create_text_input_card(
+            self.preview, min_height=160, max_height=260, hexpand=True,
+            text_margin=8, hscroll=True))
         content.append(preview_group)
 
         self.reset()

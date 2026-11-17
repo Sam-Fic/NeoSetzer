@@ -23,6 +23,7 @@ from gi.repository import Gtk
 from gi.repository import Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.helpers.text_input_card import create_text_input_card
 from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
 import setzer.widgets.async_svg.async_svg as async_svg
@@ -235,21 +236,12 @@ class DocumentClassPageView(PageView):
         self.document_template_preview.set_cursor_visible(False)
         self.document_template_preview.set_monospace(True)
         self.document_template_preview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        self.document_template_preview.set_top_margin(8)
-        self.document_template_preview.set_bottom_margin(8)
-        self.document_template_preview.set_left_margin(8)
-        self.document_template_preview.set_right_margin(8)
         self.document_template_preview.add_css_class('view')
-        preview_scroller = Gtk.ScrolledWindow()
-        preview_scroller.set_hexpand(True)
+        preview_scroller = create_text_input_card(
+            self.document_template_preview, min_height=110, max_height=220,
+            hexpand=True, text_margin=8)
         preview_scroller.set_margin_top(6)
         preview_scroller.set_margin_bottom(6)
-        preview_scroller.set_min_content_height(110)
-        preview_scroller.set_max_content_height(220)
-        preview_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        preview_scroller.add_css_class('preview-card')
-        preview_scroller.set_overflow(Gtk.Overflow.HIDDEN)
-        preview_scroller.set_child(self.document_template_preview)
         self.group_document_templates.add(preview_scroller)
         self.delete_document_template_button = Gtk.Button.new_with_mnemonic(
             _('Delete selected document template'))

@@ -10,6 +10,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gtk
 
+from setzer.helpers.text_input_card import create_text_input_card
 from setzer.project.search_replace import ProjectSearchReplace
 
 
@@ -67,10 +68,8 @@ class ProjectSearchReplaceDialog:
         preview.set_cursor_visible(False)
         preview.set_monospace(True)
         preview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_vexpand(True)
-        scrolled.set_child(preview)
-        content.append(scrolled)
+        content.append(create_text_input_card(
+            preview, hexpand=True, vexpand=True, text_margin=12))
 
         buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         buttons.set_halign(Gtk.Align.END)

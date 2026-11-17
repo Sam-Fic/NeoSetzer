@@ -29,9 +29,10 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk
+from gi.repository import Gtk, Adw
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers.text_input_card import create_text_input_card
 
 
 class PreviewDialogView(DialogView):
@@ -78,29 +79,15 @@ class PreviewDialogView(DialogView):
         self.hint_label.add_css_class('dim-label')
         content_box.append(self.hint_label)
 
-        # prompt 编辑区（可滚动，monospace）
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_hexpand(True)
-        scrolled.set_vexpand(True)
-        scrolled.set_min_content_height(280)
-        # 关键：裁剪 overshoot/undershoot 提示条到圆角矩形内，
-        # 避免滚动后上下浅灰条溢出外框。
-        scrolled.set_overflow(Gtk.Overflow.HIDDEN)
-        scrolled.add_css_class('ai-fix-scrolled')
-
+        # prompt 编辑区（可滚动，monospace）：统一圆角文本输入卡片外观
         self.prompt_buffer = Gtk.TextBuffer()
         self.prompt_view = Gtk.TextView(buffer=self.prompt_buffer)
         self.prompt_view.set_monospace(True)
         self.prompt_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        # 让文字与 TextView 边框保持更大的间距,使文本输入区"内缩"到外框里
-        self.prompt_view.set_left_margin(16)
-        self.prompt_view.set_right_margin(16)
-        self.prompt_view.set_top_margin(16)
-        self.prompt_view.set_bottom_margin(16)
-        # 用 CSS 给 prompt 区加可见的灰色圆角矩形外框与背景
-        self.prompt_view.add_css_class('ai-fix-prompt-view')
-        scrolled.set_child(self.prompt_view)
-        content_box.append(scrolled)
+        self.prompt_scrolled = create_text_input_card(
+            self.prompt_view, min_height=280, hexpand=True, vexpand=True,
+            text_margin=16)
+        content_box.append(self.prompt_scrolled)
 
         # 「此项目不再提示」开关：Adw.SwitchRow（外包 Adw.PreferencesGroup
         # 形成 boxed list，裸 SwitchRow 在列表外会渲染成无边框浮动行）。
@@ -114,44 +101,6 @@ class PreviewDialogView(DialogView):
         content_box.append(dont_ask_group)
 
         self.topbox.append(content_box)
-
-        # 加载 CSS：让 prompt TextView 有合适内边距
-        self._load_css()
-
-    def _load_css(self):
-        '''加载本弹窗专用的 CSS（prompt 区外框与内边距等）。
-
-        GTK4 应用级 CSS provider 范式：每个 provider 仅追加一次，重复 add_provider
-        会被 GTK 检测 idempotent（相同 provider+priority 不重复添加）。
-        '''
-        provider = Gtk.CssProvider()
-        css = '''
-        textview.ai-fix-prompt-view {
-            background-color: @card_bg_color;
-            border: 1px solid @borders;
-            border-radius: 8px;
-        }
-        textview.ai-fix-prompt-view text {
-            padding: 12px;
-        }
-        /* hide overshoot/undershoot indicators entirely: they paint on the
-           ScrolledWindow edge and are NOT clipped by widget overflow, so they
-           would bleed past the rounded frame. The rounded card already signals
-           a scrollable area. */
-        scrolledwindow.ai-fix-scrolled overshoot,
-        scrolledwindow.ai-fix-scrolled undershoot {
-            background-image: none;
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        '''
-        provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
-        )
 
     def set_header(self, title, subtitle):
         '''更新 HeaderBar 标题与副标题。

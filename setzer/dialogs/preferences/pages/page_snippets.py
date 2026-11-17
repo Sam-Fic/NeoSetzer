@@ -16,6 +16,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers.text_input_card import create_text_input_card
 from setzer.snippets.user_snippets import UserSnippet, UserSnippetStore, SnippetStoreError
 
 
@@ -201,16 +202,9 @@ class SnippetEditorDialog(Adw.Dialog):
         body_view = Gtk.TextView(buffer=self.body_buffer)
         body_view.set_monospace(True)
         body_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        body_view.set_top_margin(8)
-        body_view.set_bottom_margin(8)
-        body_view.set_left_margin(10)
-        body_view.set_right_margin(10)
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled.set_vexpand(True)
-        scrolled.set_min_content_height(160)
-        scrolled.set_child(body_view)
-        content.append(scrolled)
+        content.append(create_text_input_card(
+            body_view, min_height=160, hexpand=True, vexpand=True,
+            text_margin=10))
 
         hint = Gtk.Label(label=_('Use • to place the cursor after inserting the snippet.'))
         hint.set_halign(Gtk.Align.START)

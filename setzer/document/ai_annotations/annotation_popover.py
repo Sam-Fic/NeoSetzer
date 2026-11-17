@@ -26,6 +26,8 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 
+from setzer.helpers.text_input_card import create_text_input_card
+
 
 class AnnotationPopover(Gtk.Popover):
 
@@ -51,13 +53,9 @@ class AnnotationPopover(Gtk.Popover):
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.text_view.set_accepts_tab(False)
         self.text_view.set_size_request(-1, 80)
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled.set_min_content_height(80)
-        scrolled.set_max_content_height(160)
-        scrolled.set_child(self.text_view)
-        scrolled.add_css_class('card')
-        box.append(scrolled)
+        # 与「发送到 AI Agent」弹窗的 prompt 区同款圆角输入卡片
+        box.append(create_text_input_card(
+            self.text_view, min_height=80, max_height=160))
 
         self.preset_dropdown = Gtk.DropDown()
         self.preset_dropdown.set_tooltip_text(_('Preset instruction'))

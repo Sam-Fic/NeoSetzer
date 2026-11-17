@@ -29,6 +29,7 @@ from gi.repository import Adw, Gdk, Gio, Gtk
 
 from setzer.app.latex_db import LaTeXDB
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers.text_input_card import create_text_input_card
 from setzer.document.bibtex.entry_store import (
     BibTeXEntry,
     BibTeXEntryError,
@@ -248,17 +249,8 @@ class BibliographyManagerDialog(DialogView):
         self.details_view.set_cursor_visible(False)
         self.details_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.details_view.set_monospace(True)
-        self.details_view.set_top_margin(8)
-        self.details_view.set_bottom_margin(8)
-        self.details_view.set_left_margin(8)
-        self.details_view.set_right_margin(8)
-        details_scroller = Gtk.ScrolledWindow()
-        details_scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        details_scroller.set_vexpand(True)
-        details_scroller.set_child(self.details_view)
-        details_scroller.add_css_class('preview-card')
-        details_scroller.set_overflow(Gtk.Overflow.HIDDEN)
-        self.details_box.append(details_scroller)
+        self.details_box.append(create_text_input_card(
+            self.details_view, hexpand=True, vexpand=True, text_margin=12))
 
         actions = Gtk.Box(spacing=8)
         actions.set_halign(Gtk.Align.END)
@@ -366,10 +358,8 @@ class BibliographyManagerDialog(DialogView):
         self.extra_fields = Gtk.TextView()
         self.extra_fields.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.extra_fields.set_monospace(True)
-        extra_scroller = Gtk.ScrolledWindow()
-        extra_scroller.set_min_content_height(110)
-        extra_scroller.set_child(self.extra_fields)
-        extra_column.append(extra_scroller)
+        extra_column.append(create_text_input_card(
+            self.extra_fields, min_height=110, hexpand=True, text_margin=12))
         extra_row.set_child(extra_column)
         group.add(extra_row)
         self._attach_field_popover(self.extra_fields)

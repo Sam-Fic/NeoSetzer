@@ -24,6 +24,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gio, GLib, Gtk, Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.helpers.text_input_card import create_text_input_card
 
 
 class LetterSettingsPage(Page):
@@ -209,20 +210,13 @@ class LetterSettingsPageView(PageView):
         row = Adw.ActionRow()
         row.set_title(title)
         row.set_subtitle(tooltip)
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled.set_min_content_width(240)
-        scrolled.set_min_content_height(76)
-        scrolled.set_vexpand(True)
         buffer = Gtk.TextBuffer()
         text_view = Gtk.TextView(buffer=buffer)
         text_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        text_view.set_top_margin(6)
-        text_view.set_bottom_margin(6)
-        text_view.set_left_margin(8)
-        text_view.set_right_margin(8)
         text_view.set_tooltip_text(tooltip)
-        scrolled.set_child(text_view)
+        scrolled = create_text_input_card(
+            text_view, min_width=240, min_height=76, vexpand=True,
+            text_margin=8)
         row.add_suffix(scrolled)
         return row, buffer
 
