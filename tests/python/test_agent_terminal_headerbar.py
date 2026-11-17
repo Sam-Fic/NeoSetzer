@@ -21,7 +21,9 @@
 agent 名 / 会话状态写进 Adw.WindowTitle（标题 / 副标题），三个快捷按钮
 reparent 到标题栏右侧；收回侧栏后工具栏复原且按钮顺序不变。
 
-无显示环境（Gtk.init 失败）时整体跳过。
+无显示环境时整体跳过。注意 GTK ≥4.14 起 Gtk.init() 无显示也能成功，
+但此时实例化 Python 定义的 widget 子类会在 GTK 内部段错误，所以守卫
+必须查 Gdk.Display.get_default() 是否真的拿到显示。
 '''
 
 import builtins
@@ -37,12 +39,12 @@ builtins._ = lambda s: s
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, GLib, GObject, Gtk
+from gi.repository import Adw, Gdk, GLib, GObject, Gtk
 
 gtk_ready = False
 try:
     Gtk.init()
-    gtk_ready = True
+    gtk_ready = Gdk.Display.get_default() is not None
 except Exception:
     gtk_ready = False
 

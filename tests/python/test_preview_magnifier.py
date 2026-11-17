@@ -300,8 +300,16 @@ class MagnifierWidgetDrawTest(unittest.TestCase):
     def setUpClass(cls):
         import gi
         gi.require_version('Gtk', '4.0')
-        from gi.repository import Gtk
-        Gtk.init()
+        from gi.repository import Gdk, Gtk
+        try:
+            Gtk.init()
+        except Exception:
+            raise unittest.SkipTest('GTK display not available')
+        # GTK ≥4.14 起 Gtk.init() 无显示也能成功，但实例化 Python 定义的
+        # widget 子类会在 GTK 内部段错误（CI headless 实测），所以只有
+        # 真的拿到显示才跑绘制用例；纯逻辑用例不受影响。
+        if Gdk.Display.get_default() is None:
+            raise unittest.SkipTest('GTK display not available')
 
     def _draw_once(self, magnifier, with_surface):
         if with_surface:
