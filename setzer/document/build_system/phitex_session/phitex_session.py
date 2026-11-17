@@ -242,6 +242,23 @@ class PhitexSession:
             return None
         return payload.get('problems')
 
+    def alive(self):
+        '''watch 进程是否还活着。
+
+        用 `session status` 的退出码判定：0（构建正常）与 1（文档有错）都表示
+        watch 在跑，3 才是 "no phitex watch with pid ... runs"。实测 phitex
+        1.0.2 的 status 沿用 wait 的引擎语义，**不是**只在无错时才返回 0——
+        按 `== 0` 判定会把"文档正报错"的 watch 误判成死的，于是每次报错都白
+        重启一次全量构建。
+
+        重建 session 之前先问它，能区分"watch 死了"与"wait 只是没等到"——
+        后者重启会白丢增量图（下一轮变全量重编）。
+        '''
+        if self.pid is None:
+            return False
+        returncode, _ = self._call(self._session_args('status', '--json'))
+        return returncode in (0, 1)
+
     def stop(self):
         if self.pid is None:
             return
@@ -286,6 +303,27 @@ class PhitexSession:
 # badbox（与 latex_log_parser 的输出一致，构建日志按同一列渲染），reference/
 # font/other 这类非致命项归 warning。
 _BADBOX_KINDS = frozenset(('overfull', 'underfull'))
+
+
+def build_succeeded(status):
+    '''`session status --json` 是否表示这次构建没有错误。
+
+    实测 phitex 1.0.2 的 status 同时带 `errors`（整数）与 `ok`（布尔），
+    文档有错时 `errors: 2, ok: false`，正常时 `ok: true`。返回值是三态：
+    True / False 之外还有 None（结构不认识，例如 "no phitex watch with pid"
+    那种错误 JSON）——调用方据此不要冒充成功，也不要假装失败。
+    '''
+    if not isinstance(status, dict):
+        return None
+    if 'error' in status:
+        return False
+    errors = status.get('errors')
+    if isinstance(errors, int) and not isinstance(errors, bool):
+        return errors == 0
+    ok = status.get('ok')
+    if isinstance(ok, bool):
+        return ok
+    return None
 
 
 def to_log_messages(problems, project_root, main_tex_filename):

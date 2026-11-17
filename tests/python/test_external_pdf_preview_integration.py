@@ -5,6 +5,7 @@ import ast
 import os
 import tempfile
 import unittest
+from types import SimpleNamespace
 
 from setzer.document.preview.external_pdf_monitor import (
     ExternalPdfChangeTracker,
@@ -70,6 +71,8 @@ def _load_preview_methods():
         '_stop_external_pdf_monitor',
         '_on_external_pdf_file_changed',
         '_on_external_pdf_debounced',
+        '_pdf_is_owned_by_live_build',
+        '_absorb_own_build_pdf_event',
         'on_build_state_change',
         'reload_external_pdf',
     }
@@ -173,6 +176,65 @@ class ExternalPdfPreviewIntegrationTest(unittest.TestCase):
             self.preview.load_pdf = lambda external_reload=False: calls.append(external_reload) or True
             self.assertFalse(self.preview.reload_external_pdf())
             self.assertEqual(calls, [])
+
+    def _live_build_preview(self):
+        '''让 Preview 认为本文档在用 PhiTeX 常驻 session（PDF 由自家构建重写）。'''
+        self.preview.document = SimpleNamespace(
+            build_system=SimpleNamespace(is_phitex_live_build=lambda: True))
+        return self.preview
+
+    def test_live_build_pdf_writes_are_not_reported_as_external(self):
+        '''PhiTeX 常驻 session 是这份 PDF 的唯一写者：自家写盘不算外部更改。'''
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, 'document.pdf')
+            self._write_pdf(target, b'%PDF-1.7 first')
+            self.preview._external_pdf_tracker = ExternalPdfChangeTracker(target)
+            self.preview._external_pdf_tracker.accept_current_file()
+            self._write_pdf(target, b'%PDF-1.7 rebuilt by the live session')
+
+            preview = self._live_build_preview()
+            preview._on_external_pdf_file_changed(None, _File(target), None, object())
+
+            # 不排 debounce，也不发布 CHANGED。
+            self.assertIsNone(preview._external_pdf_debounce_id)
+            self.assertEqual(_FakeGLib.callbacks, {})
+            self.assertEqual(preview._external_pdf_state, ExternalPdfState.CURRENT)
+            self.assertEqual(self.notifications, [])
+            # 已接受签名被追平：退出 live 后不会拿旧签名比出假横幅。
+            self.assertEqual(preview._external_pdf_tracker.inspect_disk_change(),
+                             ExternalPdfState.CURRENT)
+
+    def test_pending_debounce_does_not_fire_after_live_build_starts(self):
+        '''debounce 是 400ms 前挂上的，期间可能刚好切进 live 模式。'''
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, 'document.pdf')
+            self._write_pdf(target, b'%PDF-1.7 first')
+            self.preview._external_pdf_tracker = ExternalPdfChangeTracker(target)
+            self.preview._external_pdf_tracker.accept_current_file()
+            self._write_pdf(target, b'%PDF-1.7 changed')
+
+            self.preview._on_external_pdf_file_changed(None, _File(target), None, object())
+            _delay, callback = _FakeGLib.callbacks[self.preview._external_pdf_debounce_id]
+            self._live_build_preview()
+            self.assertFalse(callback())
+            self.assertEqual(self.preview._external_pdf_state, ExternalPdfState.CURRENT)
+            self.assertEqual(self.notifications, [])
+
+    def test_other_engines_keep_the_external_change_banner(self):
+        '''只有 live 模式才吸收自家写盘；普通引擎的真实外部改动照旧提示。'''
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, 'document.pdf')
+            self._write_pdf(target, b'%PDF-1.7 first')
+            self.preview._external_pdf_tracker = ExternalPdfChangeTracker(target)
+            self.preview._external_pdf_tracker.accept_current_file()
+            self._write_pdf(target, b'%PDF-1.7 changed by another program')
+            self.preview.document = SimpleNamespace(
+                build_system=SimpleNamespace(is_phitex_live_build=lambda: False))
+
+            self.preview._on_external_pdf_file_changed(None, _File(target), None, object())
+            _delay, callback = _FakeGLib.callbacks[self.preview._external_pdf_debounce_id]
+            self.assertFalse(callback())
+            self.assertEqual(self.preview._external_pdf_state, ExternalPdfState.CHANGED)
 
     def test_build_state_transitions_restore_monitor_response(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -124,6 +124,8 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         # PhiTeX 走常驻 watch：增量图在进程内存里，每轮构建只做 wait + 取产物。
         # session 起不来（没装 phitex、权限、超时）时静默退回一次性
         # `phitex build`——它同样产出正确 PDF，只是每次冷启动、慢一个量级。
+        # 注意能走到下面这行的只有"引擎不可用"：文档有错（wait 退出码 1）会在
+        # run_via_phitex_session 里当正常结果返回，不会拆掉 session。
         if latex_interpreter == 'phitex':
             if self._live_build_enabled():
                 if self.run_via_phitex_session(query, output_directory, enable_synctex):
@@ -233,6 +235,11 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
         返回 True 表示本次结果已写好；False 表示拿不到 session，调用方退回
         一次性 `phitex build`。
+
+        分寸在于「文档报错」与「引擎不可用」必须分开：wait 的 0 与 1 都表示
+        构建已完成（1 只是文档有错——PhiTeX 的日常状态，用户敲了半个
+        `\textbf{` 就是这样），只有 2/3 才是 PhiTeX 自己没跑起来。前者按正常
+        结果走完、绝不拆 session；后者才重启一次，仍不行才让调用方回退冷启动。
         '''
         session = self.phitex_session
         candidate = phitex_session.PhitexSession(
@@ -250,10 +257,33 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
 
         waited, status = session.build()
         if not waited:
-            return False
+            session = self._revive_phitex_session(
+                query, output_directory, enable_synctex, session)
+            if session is None:
+                return False
+            waited, status = session.build()
+            if not waited:
+                return False
+
         problems = session.problems()
         if problems is None:
-            return False
+            # `session problems` 拿不到时用同一次构建的 status 兜底：status 里
+            # 本来就带 problems 与 errors（实测 phitex 1.0.2）。这里绝不能
+            # return False——调用方会据此停掉 session、退回一次性冷启动，而
+            # 报错后的下一键又要全量重编，实时预览就此断档，正是要修的症状。
+            if not isinstance(status, dict):
+                status = session.status()
+            if isinstance(status, dict):
+                problems = status.get('problems')
+            if problems is None:
+                if phitex_session.build_succeeded(status) is True:
+                    problems = []
+                else:
+                    # 连错误数都读不到时按失败处理：宁可让预览停在上一版，
+                    # 也不要把一份可能残缺的 PDF 当成本次成功的结果。
+                    problems = [{'kind': 'error', 'severity': 'error',
+                                 'message': 'PhiTeX reported a failed build '
+                                            'without a problem list.'}]
 
         root = status.get('root') if isinstance(status, dict) else None
         query.log_messages = phitex_session.to_log_messages(
@@ -298,6 +328,27 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
                                   'error': None,
                                   'error_arg': None}
         return True
+
+    def _revive_phitex_session(self, query, output_directory, enable_synctex,
+                               session):
+        '''wait 失败（退出码 2/3）后尽力救回常驻 watch，返回可用的 session 或 None。
+
+        先分辨它是不是真的死了：`session status` 返回 0/1 说明 watch 活着，
+        wait 只是没等到（超时）——此时重启等于白丢整张增量图，交给调用方在
+        同一个 session 上再等一次即可。真死了才重建：重建要走一次全量，但
+        至少保住了"之后每键都是增量"的节奏；直接回退一次性 `phitex build`
+        会让每一键都冷启动，那才是用户感知到的"报错后变慢/停摆"。
+        '''
+        if session.alive():
+            return session
+        self.stop_phitex_session()
+        candidate = phitex_session.PhitexSession(
+            query.tex_filename, output_directory, enable_synctex,
+            query.build_data['additional_arguments'])
+        if not candidate.start():
+            return None
+        self.phitex_session = candidate
+        return candidate
 
     def stop_phitex_session(self):
         '''结束本文档的常驻 watch（文档关闭、换引擎时调用）。'''

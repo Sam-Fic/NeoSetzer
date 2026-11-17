@@ -36,6 +36,8 @@ class AutoBuild(object):
         not lost. '''
 
     RETRY_INTERVAL_MS = 1000
+    # 忙重试上限：对传统引擎是"放弃"的门槛；PhiTeX live 下只作为退避的分界
+    # （超过之后拉长到 RETRY_INTERVAL_MS 继续排队，永不丢弃），见 on_timer。
     MAX_RETRIES = 10
     # 传统引擎的延迟下限：一次构建动辄一两秒，间隔再短只会让构建排队堆积。
     MIN_DELAY_MS = 500
@@ -192,16 +194,30 @@ class AutoBuild(object):
         if target == None:
             return False
 
+        # 先排掉"僵尸构建态"：build_state 说正在构建、却没有任何 active_query
+        # 拥有这次构建，说明 worker 早就没了。不先收回 idle，下面就会把它当
+        # "文档忙"而推迟，PhiTeX 下表现为报错后实时编译彻底停摆。
+        recover = getattr(target.build_system, 'recover_if_stalled', None)
+        if recover is not None:
+            recover()
+
         # if a build is currently running, retry shortly so the latest
         # edits get built once it finishes instead of being dropped.
         if target.build_system.get_build_state() in ('building_in_progress', 'building_to_stop'):
+            phitex_live = bool(target.build_system.is_phitex_live_build())
             count = self._retry_counts.get(document, 0) + 1
             # 首次因文档占用而排队时给出一次性提示，让用户知道编辑不会被丢弃
             # （见项 3：并发构建重试需有 UI 反馈，而非静默重试）。count==1 只在
             # 每个"忙"片段开头出现，所以每次占用至多一条 toast。
-            if count == 1:
+            # PhiTeX live 下不发这条：自动构建被强制打开、每 150ms 一轮，
+            # 用户没有"要不要排队"的选择，提示只是在打字时闪一条噪音。
+            if count == 1 and not phitex_live:
                 self._show_toast(_('Auto-build deferred — a build is already in progress.'), timeout=2)
-            if count > self.MAX_RETRIES:
+            # 只有传统引擎才允许"放弃"：一次构建一两秒，排到第 11 次说明
+            # 用户其实已经停手，丢弃这次编辑没有观感损失。PhiTeX 的语义相反
+            # ——它就是要不停实时编译，被丢弃的那次正是用户刚敲下的字，所以
+            # 下面绝不清空重试计数、绝不弹 "skipped"。
+            if not phitex_live and count > self.MAX_RETRIES:
                 self._retry_counts.pop(document, None)
                 self._show_toast(_('Auto-build skipped — the document was busy building.'), timeout=3)
                 return False
@@ -209,10 +225,14 @@ class AutoBuild(object):
             # 重试间隔跟着构建节奏走：1s 是为"一次构建一两秒"设计的，PhiTeX
             # 增量只要 ~90ms，撞车基本只发生在冷启动那一次；拿 1s 去等一次
             # 90ms 的腾空，等于把预览白白拖慢一个数量级。取 300ms（约 2 倍
-            # 节奏），10 次仍覆盖 ~3s，够一次冷启动。
-            retry_ms = (self.PHITEX_RETRY_INTERVAL_MS
-                        if target.build_system.is_phitex_live_build()
-                        else self.RETRY_INTERVAL_MS)
+            # 节奏），10 次仍覆盖 ~3s，够一次冷启动。PhiTeX 下超过这个范围
+            # （例如一次全量重编）就退避到 1s 继续排队，而不是放弃。
+            if phitex_live:
+                retry_ms = (self.PHITEX_RETRY_INTERVAL_MS
+                            if count <= self.MAX_RETRIES
+                            else self.RETRY_INTERVAL_MS)
+            else:
+                retry_ms = self.RETRY_INTERVAL_MS
             self.schedule_build(document, retry_ms)
             return False
 

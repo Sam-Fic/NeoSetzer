@@ -18,8 +18,9 @@
 
 from gi.repository import GLib, Adw
 
+import sys
 import threading
-import time, re, difflib, unicodedata, os, shlex
+import time, re, difflib, unicodedata, os, shlex, traceback
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
@@ -224,6 +225,39 @@ class BuildSystem(Observable):
     def get_build_state(self):
         return self.build_state
 
+    def recover_if_stalled(self):
+        '''僵尸构建态自愈：返回 True 表示刚把一个卡死的"构建中"收回 idle。
+
+        判据用不变式而不是超时猜测：build_state 声称正在构建，但
+        active_query 为 None——没有任何 query 拥有这次构建，说明 worker
+        已经消失却没走到 _on_query_done（结果解析抛异常、builder 未捕获
+        异常、进程被杀的极端时序）。此时若不收回，AutoBuild 的每一轮都会
+        撞进 busy 分支：PhiTeX 下 3 秒后丢弃这次编译并 toast，之后每轮
+        重复，表现为"报错后实时编译停摆，只能手动 F5"。
+
+        只看 building_in_progress：building_to_stop 是用户手动中止的过渡态，
+        由 _on_query_done 在 worker 真正退出时负责收尾（现在它一定会被调度），
+        在这里抢着改成 idle 会让新构建跑进旧 worker 还没退出的窗口里。
+
+        只读属性判定，O(1)。调用方（auto_build.on_timer / add_query）都在
+        主线程，`active_query` 的读写也只在主线程，没有重入窗口。
+        '''
+        if self.build_state != 'building_in_progress':
+            return False
+        if self.active_query is not None:
+            return False
+        # 手动中止后 builder 的子进程可能还在终止途中：留给 stop_running 收尾，
+        # 此时抢状态会让新构建与旧进程并发写同一批中间文件。
+        for builder in self.builders.values():
+            if getattr(builder, 'process', None) is not None:
+                return False
+        print('Setzer: build state was building_in_progress with no active '
+              'query ({}); resetting to idle.'.format(
+                  getattr(self.document, 'filename', None)), file=sys.stderr)
+        self.show_build_state('')
+        self.change_build_state('idle')
+        return True
+
     def show_build_state(self, message):
         self.add_change_code('build_state', message)
 
@@ -370,12 +404,65 @@ class BuildSystem(Observable):
         interpreter = query.build_data.get('latex_interpreter')
         if interpreter:
             self.last_build_interpreter = interpreter
-        if forward_sync_result != None or backward_sync_result != None or build_result != None:
-            self.parse_result({'build': build_result, 'forward_sync': forward_sync_result, 'backward_sync': backward_sync_result})
-        self.active_query = None
+        has_result = (forward_sync_result != None or backward_sync_result != None
+                      or build_result != None)
+        try:
+            if has_result:
+                self.parse_result({'build': build_result, 'forward_sync': forward_sync_result, 'backward_sync': backward_sync_result})
+        finally:
+            self.active_query = None
+            # 没有任何结果的构建（worker 抛异常、builder 提前退出）以前会让
+            # 状态永远停在 building_in_progress：active_query 已清空，却没人
+            # 再把它收回 idle，之后每一轮自动编译都被判成"文档正忙"。
+            # PhiTeX 每 150ms 一轮，这个僵尸态等于实时预览停摆到手动 F5。
+            if not has_result and self.build_state == 'building_in_progress':
+                print('Setzer: build finished without any result ({}); '
+                      'resetting build state to idle.'.format(
+                          getattr(self.document, 'filename', None)),
+                      file=sys.stderr)
+                self.show_build_state('')
+                self.change_build_state('idle')
         return False   # 一次性 idle，不重复
 
+    def _show_build_error_dialog(self, dialog_name, error_arg):
+        '''构建失败对话框（引擎缺失 / 引擎不可用）的唯一起点。
+
+        PhiTeX 常驻模式的自动构建不弹：这条路径只可能出现在"引擎根本跑不
+        起来"（进程起不来、日志缺失、输出目录不可写），而该模式下自动构建
+        被强制打开、每 150ms 一轮——弹一个模态框等于把键盘焦点从编辑器拽走，
+        用户正在敲的那半个命令就断在那里，正是"报错打断实时编译"的观感。
+        改为只留状态栏/按钮态与 stderr 诊断；手动构建（F5）照旧弹框。
+        '''
+        if self.is_auto_build and self.is_phitex_live_build():
+            print('Setzer: build error %r (%r) not shown as a dialog: '
+                  'PhiTeX live auto build.' % (dialog_name, error_arg),
+                  file=sys.stderr)
+            return
+        DialogLocator.get_dialog(dialog_name).run(error_arg)
+
     def parse_result(self, result_blob):
+        '''消费一次构建结果的唯一入口：无论内部哪一步抛异常，构建状态都必须
+        回到 idle。
+
+        PhiTeX 常驻模式下自动编译每 150ms 一轮，一次构建报错只是用户输入的
+        中间态。若结果解析（或它同步触发的 UI 渲染）抛异常而跳过了末尾的
+        idle 收尾，build_state 会永久停在 building_in_progress，之后每一轮
+        自动编译都被判成"文档正忙"——表现就是"报错后再也不自动编译，只能
+        手动 F5"。故用 try/except/finally 兜住：异常只记录，状态照旧收尾。
+        '''
+        try:
+            self._consume_build_result(result_blob)
+        except Exception:
+            print('Setzer: failed to consume build result ({}):'.format(
+                getattr(self.document, 'filename', None)), file=sys.stderr)
+            traceback.print_exc()
+        finally:
+            # 早退分支（interpreter_missing / interpreter_not_working）已经置过
+            # idle，这里判一次，避免同一轮构建发两条 build_state_change。
+            if self.build_state != 'idle':
+                self.change_build_state('idle')
+
+    def _consume_build_result(self, result_blob):
         # 消费一次构建（含 forward/backward sync）的结果：填充构建日志、
         # 切换预览 PDF、置 document_has_been_built=True 并保存文档状态，
         # 使日志在文档切换与会话间持久化。refactor 中该方法被误删，
@@ -419,13 +506,13 @@ class BuildSystem(Observable):
                 if build_blob['error'] == 'interpreter_missing':
                     self.show_build_state('')
                     self.change_build_state('idle')
-                    DialogLocator.get_dialog('interpreter_missing').run(build_blob['error_arg'])
+                    self._show_build_error_dialog('interpreter_missing', build_blob['error_arg'])
                     return
 
                 if build_blob['error'] == 'interpreter_not_working':
                     self.show_build_state('')
                     self.change_build_state('idle')
-                    DialogLocator.get_dialog('building_failed').run(build_blob['error_arg'])
+                    self._show_build_error_dialog('building_failed', build_blob['error_arg'])
                     return
 
                 build_blob['log_messages']['BibTeX'] = build_blob['bibtex_log_messages']
@@ -493,29 +580,40 @@ class BuildSystem(Observable):
 
     def execute_query(self, query):
         stage_index = 0
-        while len(query.jobs) > 0:
-            # 每次 pop 前校验自己仍是当前活动构建：stop_building /
-            # add_query（旧构建被新构建取代）/ shutdown 都只清空 jobs 并
-            # 换掉 active_query，但旧 worker 可能正卡在某个 job 的 run() 里；
-            # 它返回时 parse_build_log 会往本 query.jobs 插入 additional_jobs
-            #（bibtex 等），若不校验，旧线程会继续执行这些任务，与新构建
-            # 并发读写同一批中间文件（.aux/.bbl），且共享 builder 实例的
-            # self.process。active_query 已指向别处或 None → 立即退出。
-            if query is not self.active_query:
-                break
-            if not query.force_building_to_stop:
-                job = query.jobs.pop(0)
-                stage_index += 1
-                # 开始执行 job 前把阶段事件派发回主线程。job 名与序号作为参数
-                # 绑定在 idle_add 调用时（非闭包延迟取值），避免循环变量被后续
-                # 迭代覆盖。默认 use_latexmk 关闭下，job 队列是真实的多遍串行
-                # 构建（LaTeX / BibTeX / Biber ...），阶段信息对用户有意义。
-                GLib.idle_add(self._emit_build_stage, job, stage_index)
-                self.builders[job].run(query)
-        # worker 线程结束：把结果处理调度到主线程，替代原「设 done 标志 +
-        # 主线程 50ms 轮询 is_done()」的 poll-for-completion 模式。
-        # GLib.idle_add 线程安全，回调在主线程执行（代码库已有 10+ 处同范式）。
-        GLib.idle_add(self._on_query_done, query)
+        try:
+            while len(query.jobs) > 0:
+                # 每次 pop 前校验自己仍是当前活动构建：stop_building /
+                # add_query（旧构建被新构建取代）/ shutdown 都只清空 jobs 并
+                # 换掉 active_query，但旧 worker 可能正卡在某个 job 的 run() 里；
+                # 它返回时 parse_build_log 会往本 query.jobs 插入 additional_jobs
+                #（bibtex 等），若不校验，旧线程会继续执行这些任务，与新构建
+                # 并发读写同一批中间文件（.aux/.bbl），且共享 builder 实例的
+                # self.process。active_query 已指向别处或 None → 立即退出。
+                if query is not self.active_query:
+                    break
+                if not query.force_building_to_stop:
+                    job = query.jobs.pop(0)
+                    stage_index += 1
+                    # 开始执行 job 前把阶段事件派发回主线程。job 名与序号作为参数
+                    # 绑定在 idle_add 调用时（非闭包延迟取值），避免循环变量被后续
+                    # 迭代覆盖。默认 use_latexmk 关闭下，job 队列是真实的多遍串行
+                    # 构建（LaTeX / BibTeX / Biber ...），阶段信息对用户有意义。
+                    GLib.idle_add(self._emit_build_stage, job, stage_index)
+                    self.builders[job].run(query)
+        except Exception:
+            # builder 抛出的未捕获异常以前会让这个线程直接死掉，而下面那行
+            # 调度永远执行不到：主线程收不到 _on_query_done，build_state 就
+            # 永久停在 building_in_progress。PhiTeX 每 150ms 一轮自动编译，
+            # 一次报错就可能走进这里，症状是"实时编译停摆到手动 F5"。异常
+            # 只记录，调度照旧——由 _on_query_done 的"无结果"分支收回 idle。
+            print('Setzer: build worker raised ({}):'.format(
+                getattr(query, 'tex_filename', None)), file=sys.stderr)
+            traceback.print_exc()
+        finally:
+            # worker 线程结束：把结果处理调度到主线程，替代原「设 done 标志 +
+            # 主线程 50ms 轮询 is_done()」的 poll-for-completion 模式。
+            # GLib.idle_add 线程安全，回调在主线程执行（代码库已有 10+ 处同范式）。
+            GLib.idle_add(self._on_query_done, query)
 
     def get_configured_interpreter(self, project_data=None):
         '''不含 `% !TEX program` 的引擎选择链：每文档覆盖 > 项目 > 全局。

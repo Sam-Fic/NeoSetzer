@@ -110,6 +110,7 @@ foreach t : [
   ['test_dialog_toast_host', 'test_dialog_toast_host.py'],
   ['test_interpreter_restore', 'test_interpreter_restore.py'],
   ['test_frequent_build_ui_feedback', 'test_frequent_build_ui_feedback.py'],
+  ['test_phitex_error_resilience', 'test_phitex_error_resilience.py'],
   ['test_preview_no_flash_on_rebuild', 'test_preview_no_flash_on_rebuild.py'],
   ['test_tikz_region_finder', 'test_tikz_region_finder.py'],
   ['test_root_context', 'test_root_context.py'],

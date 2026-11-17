@@ -255,11 +255,12 @@ class BuildWidget(Observable):
             # 从报错恢复到成功时还是说一声：用户关心的恰是"我改对了"。
             announced, self._last_toasted_error_count = self._last_toasted_error_count, 0
             return announced in (None, 0)
-        error_count = build_system.get_error_count()
-        if error_count == self._last_toasted_error_count:
-            return True
-        self._last_toasted_error_count = error_count
-        return False
+        # 失败一律静默（不再按错误数去重后放行）：输入中间态下错误数会在
+        # 0/1/2 之间来回跳，"数字变了"根本区分不出"用户修好了"和"又敲错了"，
+        # 只会在打字时连发。按钮区常驻的 "Failed (N errors)!" 已经是这种模式
+        # 下唯一的数字反馈，行内波浪线与预览高亮负责指位置。
+        self._last_toasted_error_count = build_system.get_error_count()
+        return True
 
     def _show_toast(self, text):
         main_window = ServiceLocator.get_main_window()

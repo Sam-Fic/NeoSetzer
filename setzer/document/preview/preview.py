@@ -229,11 +229,46 @@ class Preview(Observable):
             self._external_pdf_monitor = None
             self._external_pdf_monitor_directory = None
 
+    def _pdf_is_owned_by_live_build(self):
+        '''本文档的 PDF 是否由 PhiTeX 常驻 session 持续重写。
+
+        常驻 watch 每轮增量构建都会经 --exact 把整份 PDF 重新落盘，会话自己
+        也还有补齐性的写盘。也就是说在这份文件上，唯一的写者就是我们的构建
+        链——目录监控看到的每一次变化都是自己的产物，报成"外部更改"是假警报，
+        而点 Reload 只是与正在跑的 watch 抢同一份文件。
+
+        实测触发方式：抑制窗口只覆盖 building_in_progress → idle 这一段，而
+        监控的 400ms 去抖是异步的，两者之间只要有一条缝（或文档因会话恢复与
+        命令行各开了一次、存在第二个 Preview 在跟同一路径），横幅就会在打字
+        过程中反复弹合——正是"PhiTeX 频繁编译把自家写盘误判成外部更改"。
+        '''
+        document = getattr(self, 'document', None)
+        build_system = getattr(document, 'build_system', None)
+        if build_system is None:
+            return False
+        try:
+            return bool(build_system.is_phitex_live_build())
+        except Exception:
+            return False
+
+    def _absorb_own_build_pdf_event(self):
+        '''把一次"自家构建产物"的监控事件吃掉，并把已接受签名追平。
+
+        追平这一步不能省：live 期间我们不接受磁盘上的新版本（预览只在自己的
+        构建结果里加载），若签名一直停在旧值，等用户换引擎/关掉会话之后，第
+        一条监控事件就会拿这个很旧的签名去比，立刻弹一次假横幅。
+        '''
+        self._external_pdf_tracker.accept_current_file()
+        self._set_external_pdf_state(ExternalPdfState.CURRENT)
+
     def _on_external_pdf_file_changed(self, monitor, file, other_file, event_type):
         if not self._external_pdf_tracker.matches_event_files(file, other_file):
             return
         # 构建进行中：事件来自编译器自身的写入，忽略，保持显示旧 PDF。
         if self._suppress_monitor_for_build:
+            return
+        if self._pdf_is_owned_by_live_build():
+            self._absorb_own_build_pdf_event()
             return
         self._clear_external_pdf_debounce()
         self._external_pdf_debounce_id = GLib.timeout_add(
@@ -244,6 +279,11 @@ class Preview(Observable):
         # 构建开始瞬间仍可能挂着未触发的 debounce（build_state_change 已清除，
         # 此处是兜底），同样丢弃。
         if self._suppress_monitor_for_build:
+            return False
+        # live 模式下同理：debounce 是 400ms 前挂上的，期间可能已经从"非 live"
+        # 切了过来，或者那时抑制还没生效。
+        if self._pdf_is_owned_by_live_build():
+            self._absorb_own_build_pdf_event()
             return False
         state = self._external_pdf_tracker.inspect_disk_change()
         self._set_external_pdf_state(state)

@@ -426,7 +426,7 @@ class PreviewPanelPresenter(object):
                 self.view.paging_of_label.set_visible(False)
                 self.view.stale_label.set_text('')
                 return
-            if preview.pdf_is_stale:
+            if preview.pdf_is_stale and not self._hide_stale_banner(self.document):
                 self.view.stale_label.set_text(_('Build failed — showing the previous PDF'))
             else:
                 self.view.stale_label.set_text('')
@@ -444,6 +444,24 @@ class PreviewPanelPresenter(object):
                 self.view.paging_of_label.set_text(_('of ') + str(total))
             else:
                 self.view.paging_of_label.set_text(_('No preview'))
+
+    @staticmethod
+    def _hide_stale_banner(document):
+        '''PhiTeX 常驻自动构建下不显示"构建失败，显示的是上一版 PDF"横幅。
+
+        这种模式里自动编译被强制打开、每 150ms 一轮，用户敲到半个命令就是
+        一次失败：横幅会在"失败/恢复"之间每秒闪合好几次，正好挡在页码区。
+        错误本身已有行内波浪线、gutter 色条与按钮区失败计数三处表达，这条
+        横幅在这种节奏下只剩噪音。手动构建（F5）与其它引擎照旧显示。
+        '''
+        build_system = getattr(document, 'build_system', None)
+        if build_system is None:
+            return False
+        try:
+            return (bool(getattr(build_system, 'is_auto_build', False))
+                    and bool(build_system.is_phitex_live_build()))
+        except Exception:
+            return False
 
     def _sync_target_document(self):
         '''目标文档变了就走 set_preview_document 的完整重接线路径。

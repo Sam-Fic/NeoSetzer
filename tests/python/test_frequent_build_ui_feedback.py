@@ -70,18 +70,22 @@ class ToastSuppressionTest(unittest.TestCase):
             widget, self.build_system(), 'success'))
         self.assertEqual(widget._last_toasted_error_count, 0)
 
-    def test_same_error_count_toasts_once(self):
+    def test_errors_are_always_silent(self):
+        '''输入中间态下错误数会在 0/1/2 之间来回跳，按数字去重仍会连发。'''
         widget = self.widget(last=None)
         bs = self.build_system(error_count=2)
-        self.assertFalse(self.fns._suppress_result_toast(widget, bs, 'error'))
+        self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
         self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
         self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
 
-    def test_changing_error_count_announces_again(self):
+    def test_changing_error_count_stays_silent_but_is_remembered(self):
+        '''记住错误数是给"恢复成功"用的：那一句仍要说。'''
         widget = self.widget(last=1)
-        self.assertFalse(self.fns._suppress_result_toast(
+        self.assertTrue(self.fns._suppress_result_toast(
             widget, self.build_system(error_count=4), 'error'))
         self.assertEqual(widget._last_toasted_error_count, 4)
+        self.assertFalse(self.fns._suppress_result_toast(
+            widget, self.build_system(error_count=0), 'success'))
 
     def test_unrelated_messages_not_affected(self):
         self.assertFalse(self.fns._suppress_result_toast(
@@ -182,11 +186,14 @@ class DelayAndRetryTest(unittest.TestCase):
         source = (ROOT / 'setzer/workspace/auto_build/auto_build.py').read_text(encoding='utf-8')
         self.assertIn('PHITEX_RETRY_INTERVAL_MS = 300', source)
         # 不能无条件用 1000ms 那个常数，否则 PhiTeX 下的撞车仍要等一秒。
-        self.assertIn('if target.build_system.is_phitex_live_build()', source)
+        self.assertIn('if phitex_live:', source)
+        # "放弃"必须只属于传统引擎：PhiTeX 报错是输入中间态，不能被丢弃。
+        self.assertIn('if not phitex_live and count > self.MAX_RETRIES:', source)
 
     def test_deferred_toast_fires_once_per_busy_episode(self):
         source = (ROOT / 'setzer/workspace/auto_build/auto_build.py').read_text(encoding='utf-8')
-        self.assertIn('if count == 1:', source)
+        # count==1 只在每个"忙"片段开头成立；PhiTeX 下这条提示整个不发。
+        self.assertIn('if count == 1 and not phitex_live:', source)
 
 
 if __name__ == '__main__':
