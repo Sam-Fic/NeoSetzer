@@ -61,7 +61,9 @@ class AgentTerminalView(Gtk.Box):
         self.close_session_button.set_tooltip_text(_('End session and stop the agent'))
         self.toolbar.append(self.close_session_button)
 
-        self.new_session_button = Gtk.Button(icon_name='view-refresh-symbolic')
+        # 图标用 chat-message-new-symbolic（气泡+加号）：view-refresh 是"刷新"
+        # 语义，容易被误读成重载当前会话；本按钮实际是开一个全新的 agent 会话。
+        self.new_session_button = Gtk.Button(icon_name='chat-message-new-symbolic')
         self.new_session_button.add_css_class('flat')
         self.new_session_button.set_tooltip_text(_('New session (in the active document’s directory)'))
         self.toolbar.append(self.new_session_button)

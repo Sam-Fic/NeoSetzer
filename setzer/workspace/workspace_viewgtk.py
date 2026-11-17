@@ -114,6 +114,11 @@ class MainWindow(Adw.ApplicationWindow):
         # @view_bg_color）。.inline 移除默认 headerbar 背景，让 tabbar
         # 与 shortcutsbar 同色，组成一条连续的工具带。这是 libadwaita
         # 文档对"非 headerbar 上下文"的明确建议。
+        # 垂直对齐：标签条顶部不设 margin，顶边由 document_stack_wrapper 的
+        # margin_top（= 浮动标题栏高度）决定；libadwaita 默认的
+        # `tabbar tabbox { padding-top: 6px }` 已在 style_gtk.css 里对
+        # `.inline` 清零，使标签顶边与右侧预览卡片（.preview-card，顶边 =
+        # 侧栏工具栏下沿）齐平。别在 Python 侧再加 padding/margin 破坏该对齐。
         # shortcuts 设为 ALL（去掉 Ctrl+Tab/Ctrl+Shift+Tab，保留其余）。
         self.document_tabs = Adw.TabBar()
         self.document_tabs.add_css_class('inline')
@@ -228,13 +233,15 @@ class MainWindow(Adw.ApplicationWindow):
 
         # 浮层 headerbar 会覆盖下方内容区顶部，给内容区整体留出 headerbar
         # 高度的上边距，避免编辑器内容被标题栏遮住。
-        # 初始使用 46px 作为兜底，随后由 do_size_allocate 根据 headerbar
-        # 实际分配高度动态调整，避免写死高度。welcome_screen 同样留上边距，
+        # 初始使用 47px 作为兜底（= Adw.HeaderBar 的 min-height），随后由
+        # do_size_allocate 根据 headerbar 实际分配高度动态调整，避免写死高度。
+        # 兜底值取 47 而非 46：首帧 headerbar 尚未分配时若用 46，编辑器卡片/
+        # 标签条会比侧栏卡片低/高 1px 闪一下。welcome_screen 同样留上边距，
         # 否则欢迎页顶部的图标/标题会被浮层 headerbar 遮住。
         # Pass-12: preview_panel / help_panel 不再设 margin_top——它们不再
         # 被标题栏覆盖（侧栏有自己的 .sidebar-toolbar 工具栏）。
-        self.document_stack_wrapper.set_margin_top(46)
-        self.welcome_screen.set_margin_top(46)
+        self.document_stack_wrapper.set_margin_top(47)
+        self.welcome_screen.set_margin_top(47)
 
         # Pass-12: headerbar 作为 document_stack_overlay 的 overlay（只覆盖编辑器列）。
         # 不再放在 preview_paned_overlay 上——那样会连预览/帮助侧栏一起覆盖，

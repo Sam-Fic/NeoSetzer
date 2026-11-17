@@ -21,6 +21,9 @@
 Adw.PreferencesPage → PreferencesGroup(.sidebar-section-group) →
 ListBox(.boxed-list)。列表不设 vexpand，只占内容自然高度，空白处
 露出页面背景；到侧栏两边的间距由 Adw 样式表提供，与结构页一致。
+唯一例外：PreferencesPage 默认的 24px 上外边距在 style_gtk.css 里对
+`.ai-page` 清零，让首条批注顶边与工具栏下沿（= 右侧标签条 / 预览卡片顶边）
+齐平——本页分组没有标题，不需要那点呼吸空间。
 下半部终端区由 AgentTerminalView 提供（迷你工具栏在卡片外、圆角卡片仅 VTE）。
 两半用垂直 Gtk.Paned 分隔，用户可拖动调整占比。
 """
@@ -38,6 +41,9 @@ class AiPageView(Gtk.Box):
     def __init__(self, terminal_view):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
+        # 供 style_gtk.css 精确作用到本页（去掉批注列表默认的 24px 上外边距，
+        # 让首条批注顶边与工具栏下沿 / 标签条顶边对齐）。
+        self.add_css_class('ai-page')
 
         # ---- 顶部工具栏（与其他侧栏页同款 .sidebar-toolbar）----
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
