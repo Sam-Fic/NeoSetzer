@@ -1310,11 +1310,22 @@ class Actions(object):
         presets = self.settings.get_value('preferences', 'ai_annotation_presets') or []
         popover.set_presets(presets)
 
-        # 新旧 PyGObject 命名差异：GTK4 原生 buffer_to_widget_coords，
-        # 部分版本仍暴露 GTK3 风格 buffer_to_window_coords（仓库既有惯例）。
+        rect = self._annotation_anchor_rect(document, end_offset)
+        if rect is None:
+            return
+        popover.present_for(document.view.source_view, rect, on_save_cb=on_save)
+        # 跨文件跳转刚切换标签页：弹出后仍可能有残余布局位移（视图
+        # 最终分配、异步高亮改变行高后再夹紧），pointing 矩形固定在
+        # widget 坐标不会跟随。随后几帧逐帧重算锚点修正弹窗位置。
+        self._ai_reanchor_annotation_popover(document, popover, end_offset)
+
+    def _annotation_anchor_rect(self, document, end_offset):
+        '''选区末尾 buffer 坐标 → widget 坐标的 popover 锚定矩形。'''
         source_view = document.view.source_view
         end = document.source_buffer.get_iter_at_offset(end_offset)
         location = source_view.get_iter_location(end)
+        # 新旧 PyGObject 命名差异：GTK4 原生 buffer_to_widget_coords，
+        # 部分版本仍暴露 GTK3 风格 buffer_to_window_coords（仓库既有惯例）。
         if hasattr(source_view, 'buffer_to_widget_coords'):
             wx, wy = source_view.buffer_to_widget_coords(location.x, location.y + location.height)
         else:
@@ -1325,7 +1336,33 @@ class Actions(object):
         rect.y = wy
         rect.width = max(location.width, 1)
         rect.height = max(location.height, 1)
-        popover.present_for(source_view, rect, on_save_cb=on_save)
+        return rect
+
+    def _ai_reanchor_annotation_popover(self, document, popover, end_offset,
+                                        ticks=0):
+        '''弹出后逐帧重算锚点（frame clock after-paint，布局/绘制完成后）。
+
+        修正跨文件跳转后残余布局位移导致的弹窗位置错乱；popover 已
+        关闭/活动文档已切换/达帧数上限即停。首帧不查 visible：popup()
+        的 map 是异步的，立即查会误停。'''
+        if ticks >= 4 or (ticks > 0 and not popover.get_visible()):
+            return
+        if self.workspace.get_active_document() is not document:
+            return
+        rect = self._annotation_anchor_rect(document, end_offset)
+        if rect is not None:
+            popover.set_pointing_to(rect)
+        source_view = document.view.source_view
+        frame_clock = source_view.get_frame_clock()
+        if frame_clock is None:
+            return
+
+        def on_tick(clock, data):
+            self._ai_reanchor_annotation_popover(document, popover,
+                                                 end_offset, ticks + 1)
+            return False
+
+        frame_clock.connect('after-paint', on_tick)
 
     def ai_annotate_pdf(self, action=None, parameter=None):
         '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → 同步选中源码
@@ -1391,7 +1428,9 @@ class Actions(object):
         恒为旧值——仅查「滚动值两帧不变」会把「滚动尚未开始」误判为
         稳定，popover 先弹、滚动后跳，锚点错位。故除视图已分配、滚动值
         连续两帧不变外，还要求选区末尾已落入可见区（buffer 坐标比较，
-        容差一行高：文档首尾 GTK 夹紧无法居中时仍视为到位）。用低优先级
+        容差一行高：文档首尾 GTK 夹紧无法居中时仍视为到位）且视图分配
+        尺寸连续两帧不变（新激活视图先拿到小分配再长到最终尺寸，期间
+        滚动会被再夹紧）。用低优先级
         idle（排在 GTK 布局/绘制之后）轮询；超过 2 秒兜底直接弹，避免
         视图异常时永不弹出。
         '''
@@ -1407,11 +1446,14 @@ class Actions(object):
         adjustment = scrolled.get_vadjustment() if scrolled is not None else None
         value = adjustment.get_value() if adjustment is not None else None
         prev = getattr(self, '_ai_scroll_settle_value', None)
+        prev_alloc = getattr(self, '_ai_scroll_settle_alloc', None)
+        alloc = ((source_view.get_allocated_width(), source_view.get_allocated_height())
+                 if source_view is not None else None)
         # 无视图/滚动信息可监测时视为稳定，不阻塞弹窗；有信息时要求
-        # 视图已分配且滚动值连续两帧不变。
+        # 视图已分配、滚动值与分配尺寸均连续两帧不变。
         has_monitor = source_view is not None and adjustment is not None
         settled = (not has_monitor
-                   or (allocated and value == prev))
+                   or (allocated and value == prev and alloc == prev_alloc))
         # 滚动到位门槛：选区末尾必须已在可见区内（防「滚动尚未开始」
         # 的假稳定）。无 buffer/视图 API 的桩文档跳过该检查。
         buffer = getattr(target, 'source_buffer', None)
@@ -1427,8 +1469,10 @@ class Actions(object):
                 if visible.height > 0 and not in_view:
                     settled = False
         self._ai_scroll_settle_value = value
+        self._ai_scroll_settle_alloc = alloc
         if settled or now >= deadline or attempt >= 120:
             self._ai_scroll_settle_value = None
+            self._ai_scroll_settle_alloc = None
             self.ai_add_annotation()
             return False
         GLib.idle_add(self._ai_annotate_when_view_settled, target,

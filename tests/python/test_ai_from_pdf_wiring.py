@@ -51,7 +51,7 @@ def _load_method(name):
                if isinstance(n, ast.ClassDef) and n.name == 'Actions')
     fn = next(n for n in cls.body
               if isinstance(n, ast.FunctionDef) and n.name == name)
-    ns = {'_': lambda s: s, 'GLib': GLib, 'os': os}
+    ns = {'_': lambda s: s, 'GLib': GLib, 'os': os, 'Gtk': Gtk, 'Gdk': Gdk}
     exec(compile(ast.Module(body=[fn], type_ignores=[]), SRC, 'exec'), ns)
     return ns[name]
 
@@ -59,6 +59,8 @@ def _load_method(name):
 _AI_FROM_PDF = _load_method('_ai_from_pdf')
 _SETTLE = _load_method('_ai_annotate_when_view_settled')
 _DOC_FOR_MAPPING = _load_method('_document_for_mapping')
+_ANCHOR_RECT = _load_method('_annotation_anchor_rect')
+_REANCHOR = _load_method('_ai_reanchor_annotation_popover')
 
 
 def _mapping(start=2, end=3):
@@ -285,6 +287,22 @@ class ViewSettleTest(unittest.TestCase):
         self.fake.ai_add_annotation.assert_called_once()
         self.assertEqual(self.idle_calls, [])
 
+    def test_growing_allocation_defers_until_stable(self):
+        # 新激活视图先拿小分配再长到最终尺寸：分配尺寸变化期间
+        # 滚动会被再夹紧，不得提前弹。
+        # 每帧调两次（allocated 判定 + alloc 记录）：100→500→500。
+        self.target.view.source_view.get_allocated_height.side_effect = [
+            100, 100, 500, 500, 500, 500]
+        self.adjustment.get_value.return_value = 100.0
+        with self._patch_idle():
+            self._settle()          # 记录基准
+            self._settle(attempt=1)  # 分配 100→500 变化 → 推迟
+        self.fake.ai_add_annotation.assert_not_called()
+        self.assertEqual(len(self.idle_calls), 2)
+        with self._patch_idle():
+            self._settle(attempt=2)  # 分配稳定 → 弹出
+        self.fake.ai_add_annotation.assert_called_once()
+
     def test_missing_view_pops_immediately(self):
         # 无 view 信息（桩文档）：value=None 视为稳定，不阻塞弹窗。
         target = SimpleNamespace()
@@ -380,6 +398,81 @@ class ScrollArrivalTest(unittest.TestCase):
             self.fake._ai_annotate_when_view_settled(self.target)
             self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
         self.fake.ai_add_annotation.assert_called_once()
+
+
+class ReanchorTest(unittest.TestCase):
+    '''弹出后逐帧重锚：修正跨文件跳转残余布局位移导致的弹窗错位。'''
+
+    def setUp(self):
+        self.buffer = Gtk.TextBuffer()
+        self.buffer.set_text('line1\nline2\n', -1)
+        self.source_view = mock.Mock()
+        loc = Gdk.Rectangle()
+        loc.x, loc.y, loc.width, loc.height = 10, 40, 60, 20
+        self.source_view.get_iter_location.return_value = loc
+        self.source_view.buffer_to_widget_coords.return_value = (10, 60)
+        self.frame_clock = mock.Mock()
+        self.source_view.get_frame_clock.return_value = self.frame_clock
+        self.document = SimpleNamespace(
+            source_buffer=self.buffer,
+            view=SimpleNamespace(source_view=self.source_view))
+        self.popover = mock.Mock()
+        self.popover.get_visible.return_value = True
+        self.workspace = mock.Mock()
+        self.workspace.get_active_document.return_value = self.document
+        self.fake = SimpleNamespace(workspace=self.workspace)
+        self.fake._annotation_anchor_rect = _ANCHOR_RECT.__get__(self.fake)
+        self.fake._ai_reanchor_annotation_popover = _REANCHOR.__get__(self.fake)
+
+    def _reanchor(self, ticks=0):
+        self.fake._ai_reanchor_annotation_popover(self.document, self.popover,
+                                                  5, ticks)
+
+    def _tick_handlers(self):
+        return [c.args[1] for c in self.frame_clock.connect.call_args_list
+                if c.args[0] == 'after-paint']
+
+    def test_first_call_reanchors_and_schedules_next_frame(self):
+        # 首帧不查 visible（popup 的 map 异步）；重算锚点并挂下一帧。
+        self._reanchor()
+        self.popover.set_pointing_to.assert_called_once()
+        rect = self.popover.set_pointing_to.call_args.args[0]
+        self.assertEqual((rect.x, rect.y), (10, 60))
+        self.assertEqual(len(self._tick_handlers()), 1)
+
+    def test_tick_recomputes_shifted_anchor(self):
+        self._reanchor()
+        # 残余位移：坐标换算变化 → 下一帧 pointing 跟随修正。
+        self.source_view.buffer_to_widget_coords.return_value = (10, 200)
+        self.assertEqual(self._tick_handlers()[0](self.frame_clock, None), False)
+        rect = self.popover.set_pointing_to.call_args.args[0]
+        self.assertEqual((rect.x, rect.y), (10, 200))
+        self.assertEqual(len(self._tick_handlers()), 2)
+
+    def test_closed_popover_stops(self):
+        self.popover.get_visible.return_value = False
+        self._reanchor(ticks=1)
+        self.popover.set_pointing_to.assert_not_called()
+        self.frame_clock.connect.assert_not_called()
+
+    def test_switched_document_stops(self):
+        self.workspace.get_active_document.return_value = SimpleNamespace()
+        self._reanchor(ticks=1)
+        self.popover.set_pointing_to.assert_not_called()
+
+    def test_tick_cap_stops(self):
+        self._reanchor(ticks=4)
+        self.popover.set_pointing_to.assert_not_called()
+        self.frame_clock.connect.assert_not_called()
+
+    def test_anchor_rect_fallback_api(self):
+        # 旧 PyGObject 命名：buffer_to_window_coords 兜底。
+        del self.source_view.buffer_to_widget_coords
+        self.source_view.buffer_to_window_coords.return_value = (10, 60)
+        rect = self.fake._annotation_anchor_rect(self.document, 5)
+        self.assertEqual((rect.x, rect.y, rect.width, rect.height), (10, 60, 60, 20))
+        self.source_view.buffer_to_window_coords.assert_called_once_with(
+            Gtk.TextWindowType.WIDGET, 10, 60)
 
 
 if __name__ == '__main__':
