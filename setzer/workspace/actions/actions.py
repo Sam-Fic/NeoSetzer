@@ -1351,7 +1351,7 @@ class Actions(object):
 
     def _ai_reanchor_annotation_popover(self, document, popover, end_offset,
                                         ticks=0, seq=0):
-        '''弹出后逐帧重算锚点（frame clock after-paint，布局/绘制完成后）。
+        '''弹出后逐帧重算锚点（frame clock tick 回调，布局稳定后）。
 
         修正跨文件跳转后残余布局位移导致的弹窗位置错乱；popover 已
         关闭/活动文档已切换/已被新一次弹出取代/达帧数上限即停。首帧
@@ -1370,12 +1370,19 @@ class Actions(object):
         if frame_clock is None:
             return
 
-        def on_tick(clock, data):
+        # 用 widget 的 add_tick_callback 而非 frame_clock.connect(
+        # 'after-paint')：① after-paint 的处理器签名只有 clock
+        # （Gdk.FrameClock 信号不传 user data），多一个 data 形参会抛
+        # TypeError；② 信号处理器返回 False 只表示「未处理」，不会被
+        # 断开，每帧都会重入且永久泄漏。tick 回调返回 False 即自动
+        # 注销，正好是一次性链式重排所需的语义。回调签名固定为
+        # (widget, frame_clock)，见 scrolling_widget._decel_tick。
+        def on_tick(widget, frame_clock):
             self._ai_reanchor_annotation_popover(document, popover,
                                                  end_offset, ticks + 1, seq)
             return False
 
-        frame_clock.connect('after-paint', on_tick)
+        source_view.add_tick_callback(on_tick)
 
     def ai_annotate_pdf(self, action=None, parameter=None):
         '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → 同步选中源码

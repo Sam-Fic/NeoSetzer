@@ -27,6 +27,7 @@ map_selection 补丁为同步回调，buffer 用真实 Gtk.TextBuffer。
 '''
 
 import ast
+import inspect
 import os
 import sys
 import unittest
@@ -51,7 +52,10 @@ def _load_method(name):
                if isinstance(n, ast.ClassDef) and n.name == 'Actions')
     fn = next(n for n in cls.body
               if isinstance(n, ast.FunctionDef) and n.name == name)
-    ns = {'_': lambda s: s, 'GLib': GLib, 'os': os, 'Gtk': Gtk, 'Gdk': Gdk}
+    # is_ai_agent_enabled 是 actions.py 的模块级 import，AST 提取方法体时
+    # 不会带过来：这里按「AI agent 已启用」喂桩，专注测映射/选区接线。
+    ns = {'_': lambda s: s, 'GLib': GLib, 'os': os, 'Gtk': Gtk, 'Gdk': Gdk,
+          'is_ai_agent_enabled': lambda settings: True}
     exec(compile(ast.Module(body=[fn], type_ignores=[]), SRC, 'exec'), ns)
     return ns[name]
 
@@ -96,6 +100,7 @@ class AiFromPdfTest(unittest.TestCase):
 
         self.fake = SimpleNamespace(
             workspace=self.workspace,
+            settings=SimpleNamespace(),
             _get_preview=mock.Mock(return_value=self.preview),
             _document_for_mapping=mock.Mock(return_value=self.target),
             _show_file_template_toast=mock.Mock(),
@@ -480,8 +485,8 @@ class ReanchorTest(unittest.TestCase):
                                                   5, ticks)
 
     def _tick_handlers(self):
-        return [c.args[1] for c in self.frame_clock.connect.call_args_list
-                if c.args[0] == 'after-paint']
+        return [c.args[0] for c in
+                self.source_view.add_tick_callback.call_args_list]
 
     def test_first_call_reanchors_and_schedules_next_frame(self):
         # 首帧不查 visible（popup 的 map 异步）；重算锚点并挂下一帧。
@@ -495,16 +500,28 @@ class ReanchorTest(unittest.TestCase):
         self._reanchor()
         # 残余位移：坐标换算变化 → 下一帧 pointing 跟随修正。
         self.source_view.buffer_to_widget_coords.return_value = (10, 200)
-        self.assertEqual(self._tick_handlers()[0](self.frame_clock, None), False)
+        # tick 回调签名 (widget, frame_clock)，返回 False 即自动注销 ——
+        # 曾误用 frame_clock.connect('after-paint') 并多带一个 data
+        # 形参，运行期抛 TypeError 弹「unexpected error」对话框。
+        self.assertEqual(self._tick_handlers()[0](self.source_view,
+                                                 self.frame_clock), False)
         rect = self.popover.set_pointing_to.call_args.args[0]
         self.assertEqual((rect.x, rect.y), (10, 200))
         self.assertEqual(len(self._tick_handlers()), 2)
+
+    def test_tick_callback_matches_gtk_tick_signature(self):
+        # Gtk.Widget.add_tick_callback 的回调固定收 (widget, frame_clock)：
+        # 参数个数不符会在主循环里抛 TypeError 而不是在这里。
+        self._reanchor()
+        handler = self._tick_handlers()[0]
+        params = list(inspect.signature(handler).parameters.values())
+        self.assertEqual([p.name for p in params], ['widget', 'frame_clock'])
 
     def test_closed_popover_stops(self):
         self.popover.get_visible.return_value = False
         self._reanchor(ticks=1)
         self.popover.set_pointing_to.assert_not_called()
-        self.frame_clock.connect.assert_not_called()
+        self.source_view.add_tick_callback.assert_not_called()
 
     def test_switched_document_stops(self):
         self.workspace.get_active_document.return_value = SimpleNamespace()
@@ -514,7 +531,7 @@ class ReanchorTest(unittest.TestCase):
     def test_tick_cap_stops(self):
         self._reanchor(ticks=4)
         self.popover.set_pointing_to.assert_not_called()
-        self.frame_clock.connect.assert_not_called()
+        self.source_view.add_tick_callback.assert_not_called()
 
     def test_superseded_by_new_popup_stops(self):
         # 连续批注重用同一 popover：旧重锚链（seq 落后）不得用旧
@@ -522,7 +539,7 @@ class ReanchorTest(unittest.TestCase):
         self.fake._ai_popover_seq = 2
         self._reanchor(ticks=1)   # seq 默认 0 ≠ 2
         self.popover.set_pointing_to.assert_not_called()
-        self.frame_clock.connect.assert_not_called()
+        self.source_view.add_tick_callback.assert_not_called()
 
     def test_anchor_rect_fallback_api(self):
         # 旧 PyGObject 命名：buffer_to_window_coords 兜底。
