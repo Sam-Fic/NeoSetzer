@@ -99,6 +99,11 @@ _FALLBACK_LINE_WINDOW = 120
 _GLYPH_ROW_GAP = 10.0
 _VISUAL_PAD = 2.0
 
+# 正文段落吸附：逐字形行 edit 反查归属源码段的垂直搜索窗口与行数上限
+# （防超长段落卡线程）。
+_PARAGRAPH_ROW_WINDOW = 250.0
+_PARAGRAPH_MAX_ROWS = 60
+
 
 def _rect_contains(rect, x, y, tol=_CLICK_TOL):
     x1, y1, x2, y2 = rect
@@ -277,6 +282,12 @@ def _row_anchor_line(row, lines, page, block_tex, pdf_filename, directory):
     ln = pos['line']
     if source_blocks.expand_to_block(lines, ln)[2] != 'line':
         return None
+    # 锚必须是段落文本行：\label 等无输出行的 view 记录是周围内容盒
+    # （实测含邻块公式盒），几何校验会误认锚导致步进对应脱轨。
+    st = lines[ln - 1].strip() if ln <= len(lines) else ''
+    if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
+            or source_blocks.is_no_output_line(st)):
+        return None
     for r in synctex_query.query_rectangles(block_tex, pdf_filename, ln, directory):
         if r['page'] != page + 1:
             continue
@@ -343,6 +354,89 @@ def _visual_block_source(band, glyph_rects, lines, page, block_tex,
     return None
 
 
+def _paragraph_range(lines, line):
+    '''包含 line 的源码段落区间（极大连续非空/非注释/非纯边界/非无输出行）。
+
+    无输出行（\label 等）必须排除：edit 失真恰常落到这类行，若计入
+    段落会把反查失真的公式/标题行误并入段落矩形。
+    返回 (start, end) 1-based 闭区间；line 本身不是段落文本行返回 None。'''
+    def is_para(ln):
+        if ln < 1 or ln > len(lines):
+            return False
+        st = lines[ln - 1].strip()
+        return (bool(st) and not st.startswith('%')
+                and not _BOUNDARY_LINE_RE.match(st)
+                and not source_blocks.is_no_output_line(st))
+    if not is_para(line):
+        return None
+    start = line
+    while is_para(start - 1):
+        start -= 1
+    end = line
+    while is_para(end + 1):
+        end += 1
+    return (start, end)
+
+
+def _row_source_by_geometry(row, lines, pos_line, page, block_tex,
+                            pdf_filename, directory):
+    '''字形行 → 源码行（扫描附近行的 view 记录找几何吻合盒）。
+
+    edit 反查失真且该行自身盒不在自己记录里时的兜底：盒总会在某个
+    邻近行的记录里（synctex view 返回相邻内容盒集合）。只认块外文本行。'''
+    for ln in range(max(1, pos_line - 60), min(len(lines), pos_line + 60) + 1):
+        if source_blocks.expand_to_block(lines, ln)[2] != 'line':
+            continue
+        st = lines[ln - 1].strip()
+        if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
+                or source_blocks.is_no_output_line(st)):
+            continue
+        for r in synctex_query.query_rectangles(block_tex, pdf_filename, ln, directory):
+            if r['page'] != page + 1:
+                continue
+            if (abs(r['h'] - row[0]) <= 2.0 and abs(r['v'] - r['height'] - row[1]) <= 2.0
+                    and abs(r['h'] + r['width'] - row[2]) <= 2.0
+                    and abs(r['v'] - row[3]) <= 2.0):
+                return ln
+    return None
+
+
+def _paragraph_pdf_rect(glyph_rects, x, y, para, page, block_tex,
+                        pdf_filename, directory):
+    '''段落视觉矩形：点击种子行附近逐字形行 edit 反查，取归属源码段
+    的行；反查失真的行（自身盒缺失落邻块）留洞，用匹配行的垂直跨度
+    夹逼补洞（段落行垂直连续）。无种子/无匹配行返回 None。'''
+    rows = _glyph_rows(glyph_rects)
+    seed = None
+    for r in rows:
+        if r[1] - 2 <= y <= r[3] + 2 and r[0] - 2 <= x <= r[2] + 2:
+            seed = r
+            break
+    if seed is None:
+        return None
+    lo, hi = para
+    matched = []
+    for r in rows:
+        if (r[3] < seed[1] - _PARAGRAPH_ROW_WINDOW
+                or r[1] > seed[3] + _PARAGRAPH_ROW_WINDOW):
+            continue
+        cx, cy = (r[0] + r[2]) / 2, (r[1] + r[3]) / 2
+        pos = synctex_query.query_source_position(pdf_filename, page + 1, cx, cy,
+                                                  directory)
+        if pos is not None and lo <= pos['line'] <= hi:
+            matched.append(r)
+            if len(matched) >= _PARAGRAPH_MAX_ROWS:
+                break
+    if not matched:
+        return None
+    y1 = min(r[1] for r in matched)
+    y2 = max(r[3] for r in matched)
+    span = [r for r in rows if r[1] >= y1 - 0.5 and r[3] <= y2 + 0.5]
+    x1 = min(r[0] for r in span)
+    x2 = max(r[2] for r in span)
+    return (x1 - _VISUAL_PAD, y1 - _VISUAL_PAD, x2 + _VISUAL_PAD, y2 + _VISUAL_PAD)
+
+
 def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
                        directory, image_rects, glyph_rects=()):
     '''空间降级：反查行不在块内（或块矩形不含点击点）时，在附近源码块中
@@ -371,13 +465,12 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
     best = None
     for _dist, start, end, kind, env in candidates[:_FALLBACK_MAX_BLOCKS]:
         if band is not None and _is_visual_env(env):
-            # 视觉环境矩形即 band（归属已由上方步进对应优先判定；
-            # 走到这里说明步进失配，按源码距离猜最近块）。
-            rect = band
-        else:
-            rect = block_pdf_rect(block_tex, pdf_filename, block_tex,
-                                  page, start, end, lines, directory,
-                                  env=env, image_rects=image_rects)
+            # 视觉块归属只认步进对应（上方已优先判定）；失配时不猜
+            # （实测文本行 band 会被猜成邻块，框与源码全错）。
+            continue
+        rect = block_pdf_rect(block_tex, pdf_filename, block_tex,
+                              page, start, end, lines, directory,
+                              env=env, image_rects=image_rects)
         if rect is None or not _block_accepts(rect, x, y, env):
             continue
         area = (rect[2] - rect[0]) * (rect[3] - rect[1])
@@ -400,7 +493,8 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
     image_rects 为主线程预提取的本页 poppler image mapping 矩形列表
     （线程里不读 poppler）；glyph_rects 同为本页字形盒列表（表格/
     显示数学视觉矩形用）。反查行不在块内或块矩形不含点击点时，
-    走空间降级搜索（图片内部等 synctex 无记录区域的典型情形）。
+    先试正文段落吸附（kind='paragraph'），再走空间降级搜索（图片
+    内部等 synctex 无记录区域的典型情形）。
     '''
     tex_filename = document.get_filename()
     if not tex_filename or not pdf_filename:
@@ -415,10 +509,11 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
     start, end, kind, env = source_blocks.expand_to_block(lines, pos['line'])
     rect = None
     band = _glyph_band(glyph_rects, x, y) if glyph_rects else None
+    src = (_visual_block_source(band, glyph_rects, lines, page,
+                                pos['filename'], pdf_filename, directory)
+           if band is not None else None)
     if kind != 'line':
         if band is not None and _is_visual_env(env):
-            src = _visual_block_source(band, glyph_rects, lines, page,
-                                       pos['filename'], pdf_filename, directory)
             if src is not None:
                 start, end, kind, env = src
             rect = band
@@ -432,6 +527,30 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
         if rect is not None and _block_accepts(rect, x, y, env):
             return {'filename': pos['filename'], 'start_line': start, 'end_line': end,
                     'kind': kind, 'env': env, 'rect': rect}
+    if src is None and glyph_rects and band is not None:
+        # band 不归属任何视觉块 → 普通正文点击：吸附到源码段落（连续
+        # 非空行），高亮该段在 PDF 上的字形行并集；点击不在段落矩形内
+        # （图片/公式间隙）不吸附。反查落块内但块矩形不含点击点时
+        # （实测文本行 edit 落定理 label），用点击行几何扫描找回真实
+        # 源码文本行再试。
+        if kind == 'line':
+            para_line = pos['line']
+        else:
+            rows = _glyph_rows(glyph_rects)
+            seed = next((r for r in rows if r[3] > band[1] and r[1] < band[3]), None)
+            para_line = (_row_source_by_geometry(seed, lines, pos['line'], page,
+                                                 pos['filename'], pdf_filename,
+                                                 directory)
+                         if seed is not None else None)
+        if para_line is not None:
+            para = _paragraph_range(lines, para_line)
+            if para is not None:
+                rect = _paragraph_pdf_rect(glyph_rects, x, y, para, page,
+                                           pos['filename'], pdf_filename, directory)
+                if rect is not None and _rect_contains(rect, x, y):
+                    return {'filename': pos['filename'], 'start_line': para[0],
+                            'end_line': para[1], 'kind': 'paragraph', 'env': None,
+                            'rect': rect}
     fallback = _fallback_block_at(lines, pos['line'], page, x, y,
                                   pos['filename'], pdf_filename,
                                   directory, image_rects, glyph_rects=glyph_rects)

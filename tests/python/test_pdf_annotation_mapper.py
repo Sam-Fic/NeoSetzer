@@ -698,6 +698,19 @@ class RowAnchorLineTest(unittest.TestCase):
     def test_query_failure_rejected(self):
         self.assertIsNone(self.run_anchor(None, []))
 
+    def test_no_output_line_rejected_even_if_geometry_matches(self):
+        # 回归：\label 行的 view 记录是周围内容盒集合（实测全页 mega
+        # 盒含邻块公式盒），几何校验会误认锚导致步进对应脱轨。
+        lines = ['intro\n', '\\label{eq:x}\n', 'outro\n']
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=pos(line=2)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[vbox(10, 10, 100, 20)]):
+            result = mapper._row_anchor_line(self.ROW, lines, 0,
+                                             '/p/main.tex', '/p/main.pdf',
+                                             '/cache')
+        self.assertIsNone(result)
+
 
 class VisualBlockSourceTest(unittest.TestCase):
     '''页面：intro 行 / equation 两行 band / mid 行 / align 行 band。'''
@@ -784,8 +797,9 @@ class ResolveBlockVisualTest(unittest.TestCase):
         self.assertEqual(result['rect'], self.EQ_BAND)
 
     def test_pos_line_fallback_uses_order(self):
-        # 反查落块外文本行：降级搜索优先用步进对应的块。
-        result = self.resolve([pos(line=1), pos(line=1)])
+        # 反查落块外文本行：降级搜索优先用步进对应的块（第三次
+        # 反查是降级路径里锚行校验）。
+        result = self.resolve([pos(line=1), pos(line=1), pos(line=1)])
         self.assertIsNotNone(result)
         self.assertEqual((result['start_line'], result['end_line']), (2, 4))
         self.assertEqual(result['rect'], self.EQ_BAND)
@@ -803,6 +817,166 @@ class ResolveBlockVisualTest(unittest.TestCase):
                                           140, 95, active_lines=self.LINES)
         self.assertIsNotNone(result)
         self.assertEqual(result['rect'], (100, 90, 180, 100))
+
+
+class ParagraphRangeTest(unittest.TestCase):
+
+    LINES = ['para one\n', 'para two\n', '\n', '% comment\n', 'other\n',
+             '\\label{eq:x}\n', 'after\n', '\\begin{equation}\n', 'x=1\n',
+             '\\end{equation}\n']
+
+    def test_consecutive_text_lines(self):
+        self.assertEqual(mapper._paragraph_range(self.LINES, 2), (1, 2))
+
+    def test_blank_comment_and_label_break_paragraph(self):
+        # 空行/注释/\label（无输出行）都断开段落：label 若计入会把
+        # edit 失真落它的公式/标题行误并入段落矩形。
+        self.assertEqual(mapper._paragraph_range(self.LINES, 5), (5, 5))
+        self.assertEqual(mapper._paragraph_range(self.LINES, 7), (7, 7))
+
+    def test_non_paragraph_line_returns_none(self):
+        for ln in (3, 4, 6, 8, 10):
+            self.assertIsNone(mapper._paragraph_range(self.LINES, ln))
+
+
+class RowSourceByGeometryTest(unittest.TestCase):
+    '''edit 失真且自身盒缺失时：扫描附近行 view 记录找几何吻合盒。'''
+
+    LINES = ['text one\n', '\\label{eq:x}\n', 'text two\n',
+             '\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
+    ROW = (10, 10, 100, 20)
+
+    def run_scan(self, pos_line, view, lines=None):
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=view):
+            return mapper._row_source_by_geometry(
+                self.ROW, lines or self.LINES, pos_line, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache')
+
+    def test_finds_line_whose_view_record_matches(self):
+        # edit 失真落 label 行（2）：行盒在邻近文本行 3 的记录里。
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 10, 100, 20)] if ln == 3 else []
+        self.assertEqual(self.run_scan(2, view), 3)
+
+    def test_no_output_and_block_lines_skipped(self):
+        # label 行（2）与公式内容行（5）即使盒吻合也不认。
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 10, 100, 20)] if ln in (2, 5) else []
+        self.assertIsNone(self.run_scan(2, view))
+
+    def test_no_match_returns_none(self):
+        self.assertIsNone(self.run_scan(2, lambda *a: []))
+
+    def test_outside_window_not_scanned(self):
+        lines = ['t%d\n' % i for i in range(200)]
+
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 10, 100, 20)] if ln == 150 else []
+        self.assertIsNone(self.run_scan(10, view, lines=lines))
+
+
+class ParagraphPdfRectTest(unittest.TestCase):
+
+    RECTS = [(10, 10, 100, 20), (10, 24, 120, 34), (10, 38, 90, 48),
+             (50, 80, 150, 90)]   # 末行为段外公式行
+
+    def edit(self, pdf, page, x, y, directory):
+        if y < 22:
+            return pos(line=1)
+        if y < 36:
+            return pos(line=99)   # 中间行反查失真（落邻块）
+        if y < 60:
+            return pos(line=3)
+        return pos(line=6)
+
+    def run_rect(self, x=50, y=15, para=(1, 3)):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit):
+            return mapper._paragraph_pdf_rect(self.RECTS, x, y, para, 0,
+                                              '/p/main.tex', '/p/main.pdf',
+                                              '/cache')
+
+    def test_hole_filled_by_matched_span(self):
+        # 中间行反查失真留洞：匹配行垂直跨度夹逼补洞，x 取跨度内行并集。
+        self.assertEqual(self.run_rect(), (8, 8, 122, 50))
+
+    def test_no_seed_returns_none(self):
+        self.assertIsNone(self.run_rect(x=500, y=500))
+
+    def test_no_matched_rows_returns_none(self):
+        self.assertIsNone(self.run_rect(para=(20, 30)))
+
+
+class ResolveParagraphTest(unittest.TestCase):
+    '''普通正文点击：band 不归属视觉块 → 吸附源码段落而非邻块。'''
+
+    LINES = ['intro one\n', 'intro two\n', '\\begin{equation}\n', 'x=1\n',
+             '\\end{equation}\n', 'tail\n']
+    RECTS = [(10, 10, 100, 20), (10, 24, 120, 34),
+             (50, 60, 150, 70), (60, 74, 140, 84), (10, 120, 100, 130)]
+
+    def edit(self, pdf, page, x, y, directory):
+        if y < 22:
+            return pos(line=1)
+        if y < 40:
+            return pos(line=2)
+        if y < 100:
+            return pos(line=4)
+        return pos(line=6)
+
+    def resolve(self, x, y):
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[]):
+            return mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0, x, y,
+                                        active_lines=self.LINES,
+                                        glyph_rects=self.RECTS)
+
+    def test_body_click_selects_paragraph(self):
+        result = self.resolve(50, 29)
+        self.assertIsNotNone(result)
+        self.assertEqual(result['kind'], 'paragraph')
+        self.assertEqual((result['start_line'], result['end_line']), (1, 2))
+        self.assertEqual(result['rect'], (8, 8, 122, 36))
+
+    def test_block_click_still_wins_over_paragraph(self):
+        # 块归属优先：公式 band 点击不得被段落路径抢占。
+        result = self.resolve(100, 65)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (3, 5))
+        self.assertNotEqual(result['kind'], 'paragraph')
+
+
+class FallbackNoGuessTest(unittest.TestCase):
+    '''band 不归属视觉块时不空间猜邻块（实测文本行 band 会被猜错）。'''
+
+    LINES = ['text\n', '\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
+    RECTS = [(10, 10, 100, 20), (50, 34, 150, 44), (60, 48, 140, 58)]
+
+    def test_text_band_not_guessed_to_visual_block(self):
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=[]), \
+                mock.patch.object(mapper, 'block_pdf_rect',
+                                  return_value=(8, 8, 102, 22)) as rect_fn:
+            result = mapper._fallback_block_at(self.LINES, 1, 0, 50, 15,
+                                               '/p/main.tex', '/p/main.pdf',
+                                               '/cache', (),
+                                               glyph_rects=self.RECTS)
+        self.assertIsNone(result)
+        rect_fn.assert_not_called()
+
+    def test_without_band_spatial_search_still_works(self):
+        # 无字形预提取（band=None）：空间降级搜索保持原行为。
+        with mock.patch.object(mapper, 'block_pdf_rect',
+                               return_value=(8, 8, 102, 22)):
+            result = mapper._fallback_block_at(self.LINES, 1, 0, 50, 15,
+                                               '/p/main.tex', '/p/main.pdf',
+                                               '/cache', ())
+        self.assertEqual(result[:4], (2, 4, 'environment', 'equation'))
 
 
 class MapSelectionEntryTest(unittest.TestCase):
