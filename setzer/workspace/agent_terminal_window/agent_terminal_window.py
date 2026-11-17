@@ -26,6 +26,10 @@ widget 搬移不中断会话。
   （多数 WM 下 transient 窗口保持在父窗口之上），不是系统级置顶。
 - 关窗（X）= 结束会话（kill 子进程）+ 收回隐藏；下次发送自动开新会话。
 - 工具栏「收回侧栏」按钮 = reparent 回 AI 页且不杀会话。
+
+标题栏只有一层：内容区里的迷你工具栏被并进 HeaderBar —— agent 名与
+会话状态填进 Adw.WindowTitle（标题 / 副标题），三个快捷按钮
+（结束会话 / 新会话 / 收回侧栏）pack_end 到标题栏右侧。
 '''
 
 import gi
@@ -66,10 +70,17 @@ class AgentTerminalWindow(Adw.Window):
     def set_panel(self, panel):
         self._panel = panel
         self.content_box.append(panel)
+        # 终端视图把状态/按钮交给标题栏，避免标题栏 + 迷你工具栏两层。
+        attach = getattr(panel, 'attach_headerbar', None)
+        if attach is not None:
+            attach(self.headerbar, self.window_title)
 
     def take_panel(self):
         if self._panel is not None:
             try:
+                detach = getattr(self._panel, 'detach_headerbar', None)
+                if detach is not None:
+                    detach()
                 self.content_box.remove(self._panel)
             except Exception:
                 pass

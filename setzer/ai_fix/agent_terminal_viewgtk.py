@@ -23,6 +23,10 @@ set_overflow(HIDDEN) 把 VTE 内容裁剪进圆角。
 
 整体（工具栏 + 卡片）是一个 Gtk.Box，弹出独立窗口时整体 reparent
 （VTE 与 PTY 随 widget 搬移不中断，pdf_preview_window 先例）。
+
+弹出时迷你工具栏不跟着露出来：`attach_headerbar` 把 agent 名/会话状态
+写进窗口标题栏的 Adw.WindowTitle，三个快捷按钮 reparent 进标题栏右侧，
+于是独立窗口只有一层标题（收回时 `detach_headerbar` 原样复原）。
 """
 
 import gi
@@ -40,6 +44,9 @@ class AgentTerminalView(Gtk.Box):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.session = session
         self._popped_out = False
+        # 独立窗口的标题栏接管状态（attach_headerbar / detach_headerbar）。
+        self._headerbar = None
+        self._header_title = None
 
         # ---- 迷你工具栏（卡片外上方，同 preview 工具栏布局）----
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -155,6 +162,55 @@ class AgentTerminalView(Gtk.Box):
             self.card_stack.set_visible_child_name('terminal')
         else:
             self.card_stack.set_visible_child_name('idle')
+        self._sync_header_title()
+
+    # ---- 独立窗口：单层标题栏集成 ----
+
+    # 搬进标题栏的快捷按钮，顺序 = 侧栏工具栏里的显示顺序。
+    _HEADER_BUTTONS = ('close_session_button', 'new_session_button', 'pop_button')
+
+    def attach_headerbar(self, headerbar, title_widget):
+        '''把迷你工具栏并进独立窗口的标题栏（窗口只剩一层标题）。
+
+        - 工具栏隐藏（不再占一行）；
+        - agent 名 / 会话状态写进 title_widget（Adw.WindowTitle 的
+          标题与副标题），随 state_changed 更新；
+        - 三个快捷按钮 reparent 到标题栏右侧（pack_end 要求无父，
+          故先 unparent）。
+        '''
+        self._headerbar = headerbar
+        self._header_title = title_widget
+        self.toolbar.set_visible(False)
+        # pack_end 是栈式插入（后 pack 的排在更左），反向遍历才能让标题栏
+        # 里的左右顺序与侧栏工具栏一致：结束会话 / 新会话 / 收回侧栏。
+        for name in reversed(self._HEADER_BUTTONS):
+            button = getattr(self, name)
+            button.unparent()
+            headerbar.pack_end(button)
+        self._sync_header_title()
+
+    def detach_headerbar(self):
+        '''收回侧栏：按钮搬回迷你工具栏（顺序复原）并恢复工具栏显示。'''
+        headerbar = self._headerbar
+        self._headerbar = None
+        self._header_title = None
+        if headerbar is not None:
+            for name in self._HEADER_BUTTONS:
+                button = getattr(self, name)
+                if button.get_parent() is not None:
+                    button.unparent()
+                self.toolbar.append(button)
+        self.toolbar.set_visible(True)
+
+    def _sync_header_title(self):
+        '''标题栏文字 = agent 名 + 会话状态（未接管时零开销）。'''
+        title_widget = self._header_title
+        if title_widget is None:
+            return
+        status = self.status_label.get_text()
+        title_widget.set_title(self.tool_label.get_text() or _('Agent Terminal'))
+        title_widget.set_subtitle(status)
+        title_widget.set_tooltip_text(status or None)
 
     def set_popped_out(self, popped_out):
         '''弹出/收回时切换按钮图标与提示（收回不杀会话）。'''

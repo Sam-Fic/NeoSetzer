@@ -95,6 +95,7 @@ foreach t : [
   ['test_structure_numbering', 'test_structure_numbering.py'],
   ['test_agent_runner_bare', 'test_agent_runner_bare.py'],
   ['test_ai_agent_disabled_entries', 'test_ai_agent_disabled_entries.py'],
+  ['test_agent_terminal_headerbar', 'test_agent_terminal_headerbar.py'],
   ['test_ui_zoom', 'test_ui_zoom.py'],
   ['test_zoom_css', 'test_zoom_css.py'],
   ['test_decode_output', 'test_decode_output.py'],
