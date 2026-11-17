@@ -73,6 +73,11 @@ class PreviewPresenter(object):
         self._drawn_page_range = None
         self.view.content.connect('scrolling_offset_changed', self.on_scrolling_offset_change)
 
+        # 文字选择高亮的 device 空间叠层缓存：page → (surface, key)。
+        # 高亮与页面纹理同尺寸同映射（见 draw_text_selection_rectangles），
+        # 分数缩放下 GSK 对两者的像素对齐/过滤完全一致，消除高亮偏下。
+        self._selection_overlay_cache = dict()
+
         # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
         # view 的画布 overlay 里），点击 → 滚动到该页顶部。
         self.view.set_page_indicator_click_handler(self._on_page_indicator_clicked)
@@ -99,6 +104,7 @@ class PreviewPresenter(object):
         self.preview.scroll_to_position(content.scrolling_offset_x, page_top)
 
     def on_pdf_changed(self, preview):
+        self._selection_overlay_cache = dict()
         if self.preview.poppler_document != None:
             # 成功加载新 PDF 时清除上次的构建失败提示。
             self.view.hide_pdf_load_failed()
@@ -147,6 +153,7 @@ class PreviewPresenter(object):
             self._last_build_result = message
 
     def on_layout_changed(self, preview):
+        self._selection_overlay_cache = dict()
         if self.preview.layout != None:
             # Size the canvas-sized drawing area to the full PDF canvas; the
             # Gtk.ScrolledWindow derives its adjustment uppers from this and
@@ -433,8 +440,12 @@ class PreviewPresenter(object):
         surface_w = surface.get_width()
         surface_h = surface.get_height()
         matrix = ctx.get_matrix()
-        ctx.scale(layout.page_width_original / surface_w,
-                  layout.page_height_original / surface_h)
+        # 精确映射：surface 尺寸 = int(css) × hidpi / divisor，内容密度 =
+        # scale × hidpi / divisor，故 css/device = int(css)/surface（= divisor/hidpi）。
+        # 用 int(css) 而非浮点 page_*_original 可消除 int 截断带来的拉伸 δ
+        # （否则内容被放大 (1+δ)，页底偏 ~1px，分数缩放下更明显）。
+        ctx.scale(int(layout.page_width_original) / surface_w,
+                  int(layout.page_height_original) / surface_h)
         ctx.set_source_surface(surface, 0, 0)
         ctx.rectangle(0, 0, surface_w, surface_h)
         ctx.fill()
@@ -467,22 +478,68 @@ class PreviewPresenter(object):
         '''绘制当前文字选择的每页高亮区域。
 
         区域由 preview._refine_selection_region 精修：未旋转页面 points
-        空间的浮点字形框（top-down），与 page.render 的文本引擎同源，
-        乘 scale_factor 后与渲染出的文字像素级对齐。本方法由 draw 在
-        与 draw_rendered_page 相同的 transform 内调用（rotation != 0 时
-        已处于旋转 transform 中），坐标系与页面纹理一致，直接画即可。'''
+        空间的浮点字形框（top-down）。为消除分数缩放下高亮与文字的错位，
+        高亮不直接画矢量矩形，而是栅格化进一个与页面纹理**同尺寸**的
+        device surface，再用与 draw_rendered_page **逐字相同**的 scale 绘制：
+        两者经历完全相同的 GSK 像素对齐/过滤，任何缩放（含分数）下都严格
+        对齐。纹理未就绪时回退矢量矩形（仅短暂占位期）。'''
         if selection_color is None:
             return
         rectangles = self.preview.text_selection_regions.get(page_number)
         if not rectangles:
             return
-        scale = self.preview.layout.scale_factor
+        layout = self.preview.layout
+        scale = layout.scale_factor
+        rendered = self.page_renderer.rendered_pages.get(page_number)
+        surface = rendered[0] if rendered is not None else None
+        if isinstance(surface, cairo.ImageSurface):
+            overlay = self._get_selection_overlay(page_number, rectangles, layout,
+                                                  surface.get_width(), surface.get_height())
+            if overlay is not None:
+                matrix = ctx.get_matrix()
+                ctx.scale(int(layout.page_width_original) / surface.get_width(),
+                          int(layout.page_height_original) / surface.get_height())
+                ctx.set_source_surface(overlay, 0, 0)
+                ctx.rectangle(0, 0, surface.get_width(), surface.get_height())
+                ctx.fill()
+                ctx.set_matrix(matrix)
+                return
+        # 回退：纹理未就绪时的矢量矩形。
         ctx.set_source_rgba(selection_color.red, selection_color.green,
                             selection_color.blue, 0.30)
         for x1, y1, x2, y2 in rectangles:
             ctx.rectangle(x1 * scale, y1 * scale,
                           (x2 - x1) * scale, (y2 - y1) * scale)
         ctx.fill()
+
+    def _get_selection_overlay(self, page, rectangles, layout, sw, sh):
+        '''把高亮矩形栅格化进与纹理同尺寸 (sw, sh) 的 device surface。
+
+        内容密度与纹理一致：scale × sw / int(css_w)（= scale×hidpi/divisor），
+        使后续用 int(css)/sw 的 scale 绘制时净映射 = points×scale，与纹理
+        文字逐像素同坐标。缓存按 (rectangles, sw, sh, scale) 键控；尺寸不变
+        时复用同一 surface 仅重绘，避免拖动中反复分配。'''
+        key = (tuple(rectangles), sw, sh, layout.scale_factor)
+        entry = self._selection_overlay_cache.get(page)
+        if entry is not None and entry[1] == key:
+            return entry[0]
+        if entry is not None and entry[0].get_width() == sw and entry[0].get_height() == sh:
+            overlay = entry[0]
+        else:
+            overlay = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+        ctx = cairo.Context(overlay)
+        ctx.set_operator(cairo.Operator.CLEAR)
+        ctx.paint()
+        ctx.set_operator(cairo.Operator.OVER)
+        color = ColorManager.get_ui_color('highlight_tag_preview')
+        ctx.set_source_rgba(color.red, color.green, color.blue, 0.30)
+        dx = layout.scale_factor * sw / int(layout.page_width_original)
+        dy = layout.scale_factor * sh / int(layout.page_height_original)
+        for x1, y1, x2, y2 in rectangles:
+            ctx.rectangle(x1 * dx, y1 * dy, (x2 - x1) * dx, (y2 - y1) * dy)
+        ctx.fill()
+        self._selection_overlay_cache[page] = (overlay, key)
+        return overlay
 
     def draw_block_selection(self, ctx, page_number, block_color):
         '''块选择高亮：同 accent 填充 + 1px 描边区分于文字选择。
