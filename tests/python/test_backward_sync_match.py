@@ -374,5 +374,94 @@ class BackwardBoundaryRedirectTest(unittest.TestCase):
         fake._map_pdf_offset_to_source.assert_called_once()
 
 
+def _jump_to_synctex_position(existing=()):
+    '''取 workspace.jump_to_synctex_position 的真实方法体（不 import GTK 栈）。'''
+    source = (ROOT / 'setzer/workspace/workspace.py').read_text(encoding='utf-8')
+    tree = ast.parse(source)
+    cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+    fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+              and n.name == 'jump_to_synctex_position')
+    fake_os = SimpleNamespace(path=SimpleNamespace(
+        normpath=os.path.normpath, isfile=lambda path: path in existing))
+    namespace = {'os': fake_os}
+    exec(compile(ast.Module(body=[fn], type_ignores=[]),
+                 '<workspace>', 'exec'), namespace)
+    return namespace['jump_to_synctex_position']
+
+
+def _fake_document(filename):
+    events = []
+    document = SimpleNamespace(filename=filename, events=events,
+                               get_filename=lambda: filename)
+    document.build_system = SimpleNamespace(
+        set_synctex_position=lambda target, position: events.append(
+            ('position', position['line'])))
+    document.scroll_cursor_to_center = lambda: events.append(('scroll',))
+    return document
+
+
+def _fake_workspace(documents):
+    events = []
+    by_name = {document.filename: document for document in documents}
+
+    def open_document_by_filename(filename):
+        events.append(('open', filename))
+        return by_name.get(filename)
+
+    return SimpleNamespace(
+        events=events,
+        set_active_document=lambda document: events.append(
+            ('activate', document.filename)),
+        open_document_by_filename=open_document_by_filename)
+
+
+class JumpToSynctexPositionTest(unittest.TestCase):
+    '''Ctrl+点击 PDF 的反查落点。
+
+    两个实测过的坑：
+    - 同文件：document 是**预览所属**文档（多文件工程里是 root），用户
+      可能正停在子文件标签页。只挪光标不切标签页 = 「点了没反应」。
+    - 跨文件：显式设了 root 的工程里，子文件 root_is_set=True / is_root=False，
+      旧逻辑据此整条丢弃跳转 —— 「在子文件里点击属于 main 的正文」跳不过去。
+    '''
+
+    def test_same_file_activates_tab_before_positioning(self):
+        main = _fake_document('/p/main.tex')
+        workspace = _fake_workspace([main])
+        _jump_to_synctex_position()(workspace, main,
+                                    {'filename': '/p/main.tex', 'line': 42})
+        self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
+        self.assertEqual(main.events, [('position', 42), ('scroll',)])
+
+    def test_child_document_jumps_into_root_source(self):
+        child = _fake_document('/p/chapter.tex')
+        main = _fake_document('/p/main.tex')
+        child.root_is_set = True
+        child.is_root = False
+        workspace = _fake_workspace([child, main])
+        _jump_to_synctex_position({'/p/main.tex'})(
+            workspace, child, {'filename': '/p/main.tex', 'line': 7})
+        self.assertEqual(workspace.events, [('open', '/p/main.tex')])
+        self.assertEqual(main.events, [('position', 7), ('scroll',)])
+        self.assertEqual(child.events, [])
+
+    def test_missing_target_file_is_ignored(self):
+        child = _fake_document('/p/chapter.tex')
+        workspace = _fake_workspace([child])
+        _jump_to_synctex_position()(workspace, child,
+                                    {'filename': '/p/gone.tex', 'line': 3})
+        self.assertEqual(workspace.events, [])
+        self.assertEqual(child.events, [])
+
+    def test_target_without_toolchain_does_not_crash(self):
+        child = _fake_document('/p/chapter.tex')
+        bare = SimpleNamespace(filename='/p/other.tex',
+                               get_filename=lambda: '/p/other.tex')
+        workspace = _fake_workspace([child, bare])
+        _jump_to_synctex_position({'/p/other.tex'})(
+            workspace, child, {'filename': '/p/other.tex', 'line': 1})
+        self.assertEqual(workspace.events, [('open', '/p/other.tex')])
+
+
 if __name__ == '__main__':
     unittest.main()

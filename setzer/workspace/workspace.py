@@ -241,22 +241,29 @@ class Workspace(Observable):
 
         position 的 line 为 0-based（set_synctex_position 约定）。build_system
         的 build-mode 反查与预览 Ctrl+点击直查共用本方法。
+
+        两条分支都必须让目标文档成为活动文档：
+        - 跨文件：open_document_by_filename 内部已 set_active_document。
+        - 同文件：document 是**预览所属**文档（多文件工程里是 root），用户
+          可能正停在子文件的标签页；只挪光标不切标签页，就是「点了没反应」。
         '''
         target = position['filename']
         current = document.get_filename()
         # synctex 的 Input 带 `./` 段，必须 normpath 后比较。
         same_file = (current is not None and target is not None
                      and os.path.normpath(target) == os.path.normpath(current))
-        # root_is_set 只在显式指定根文档时为 True；% !TEX root 魔术注释工程
-        # 里 root_document 一直为空，不能据此拦掉子文件跳转。
         if same_file:
+            self.set_active_document(document)
             document.build_system.set_synctex_position(document, position)
             document.scroll_cursor_to_center()
-        elif ((not document.root_is_set or document.is_root)
-              and target is not None and os.path.isfile(target)):
+        elif target is not None and os.path.isfile(target):
+            # synctex 指哪打哪：显式 root / magic root / 无 root 一视同仁。
+            # 曾经用 (not root_is_set or is_root) 拦一道，结果「在子文件里
+            # 点击属于 main 的正文」时整条跳转被静默丢弃。
             target_document = self.open_document_by_filename(target)
-            if target_document != None:
-                target_document.build_system.set_synctex_position(target_document, position)
+            build_system = getattr(target_document, 'build_system', None)
+            if build_system is not None:
+                build_system.set_synctex_position(target_document, position)
                 target_document.scroll_cursor_to_center()
 
     def add_document(self, document):

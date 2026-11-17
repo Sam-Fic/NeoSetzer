@@ -307,8 +307,16 @@ class DocumentController(object):
                     # 绕过 action enablement 直接调用。这里复用相同的可同步
                     # 判定:不可同步时(PDF 未生成 / 非 LaTeX)弹 toast 提示,
                     # 避免无声失败让用户困惑「为什么没反应」。
-                    sync_document = workspace.root_document or active_document
-                    if sync_document.is_latex_document() and sync_document.build_system.can_sync:
+                    # 判定目标必须和 actions.forward_sync 一致（预览目标：
+                    # 显式 root 或 magic/项目配置解析出的 root）——取
+                    # root_document or active_document 时，magic root 工程里
+                    # 子文件 can_sync 恒为 False，Ctrl+点击会误报「没有 PDF」。
+                    sync_document = workspace.get_preview_target_document()
+                    sync_build_system = getattr(sync_document, 'build_system', None)
+                    if (sync_document is not None
+                            and sync_document.is_latex_document()
+                            and sync_build_system is not None
+                            and sync_build_system.can_sync):
                         GLib.idle_add(workspace.actions.forward_sync)
                     else:
                         self._show_sync_unavailable_toast()
