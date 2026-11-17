@@ -391,15 +391,18 @@ class Actions(object):
         self.actions['zoom-out'].set_enabled(can_zoom_out)
 
         # Preview context menu: sync recolor state and enable/disable.
-        preview = getattr(document, 'preview', None) if document_active else None
-        has_pdf = document_active and preview is not None and preview.pdf_filename is not None
+        # 敏感度跟「预览目标文档」（预览栏实际展示的 PDF）：跨文件跳转后
+        # 活跃文档是 include 子文件（无 PDF），预览栏仍展示 root 的 PDF，
+        # 取活跃文档会把右键菜单整片灰置。
+        preview = self._get_preview()
+        has_pdf = preview is not None and preview.pdf_filename is not None
         # 片段模式下预览栏展示的是 tikzpicture 贴图而非 PDF：PDF 专属动作一律
         # 禁用，命令面板里自然显示为不可用。
         pdf_actions_enabled = has_pdf and self._preview_shows_pdf()
         self.actions['preview-rotate-cw'].set_enabled(pdf_actions_enabled)
         self.actions['preview-rotate-ccw'].set_enabled(pdf_actions_enabled)
         self.actions['preview-search-pdf'].set_enabled(pdf_actions_enabled)
-        self.actions['preview-show-source'].set_enabled(document_active and self._preview_shows_pdf())
+        self.actions['preview-show-source'].set_enabled(pdf_actions_enabled)
         self.actions['preview-copy-text'].set_enabled(pdf_actions_enabled)
         self.actions['preview-copy-image'].set_enabled(pdf_actions_enabled)
         self.actions['preview-save-image'].set_enabled(pdf_actions_enabled)

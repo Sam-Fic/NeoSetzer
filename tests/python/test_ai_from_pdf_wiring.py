@@ -51,13 +51,14 @@ def _load_method(name):
                if isinstance(n, ast.ClassDef) and n.name == 'Actions')
     fn = next(n for n in cls.body
               if isinstance(n, ast.FunctionDef) and n.name == name)
-    ns = {'_': lambda s: s, 'GLib': GLib}
+    ns = {'_': lambda s: s, 'GLib': GLib, 'os': os}
     exec(compile(ast.Module(body=[fn], type_ignores=[]), SRC, 'exec'), ns)
     return ns[name]
 
 
 _AI_FROM_PDF = _load_method('_ai_from_pdf')
 _SETTLE = _load_method('_ai_annotate_when_view_settled')
+_DOC_FOR_MAPPING = _load_method('_document_for_mapping')
 
 
 def _mapping(start=2, end=3):
@@ -150,6 +151,78 @@ class AiFromPdfTest(unittest.TestCase):
             self.fake._ai_from_pdf(send=False)
         ms.assert_not_called()
         self.fake._show_file_template_toast.assert_called_once()
+
+    def _setup_cross_file(self):
+        # 多 TeX 文件：活动文档是 main.tex，映射落被 include 的子文件。
+        child_buffer = Gtk.TextBuffer()
+        child_buffer.set_text('c1\nc2\nc3\n', -1)
+        child = SimpleNamespace(source_buffer=child_buffer,
+                                scroll_cursor_to_center=mock.Mock(),
+                                get_filename=lambda: '/p/chapter.tex')
+        self.target.get_filename = lambda: '/p/main.tex'
+        self.workspace.open_document_by_filename.return_value = child
+        self.fake._document_for_mapping = _DOC_FOR_MAPPING.__get__(self.fake)
+        return child, child_buffer
+
+    def test_annotate_cross_file_selects_in_child_document(self):
+        child, child_buffer = self._setup_cross_file()
+        with mock.patch('os.path.isfile', return_value=True):
+            self._run(False, _mapping(2, 2))
+        self.workspace.open_document_by_filename.assert_called_once_with('/p/chapter.tex')
+        self.workspace.set_active_document.assert_called_once_with(child)
+        bounds = child_buffer.get_selection_bounds()
+        self.assertEqual(tuple(b.get_offset() for b in bounds), (3, 5))
+        # 主文件 buffer 不受影响；滚动在子文件视图上。
+        self.assertEqual(self.buffer.get_selection_bounds(), ())
+        child.scroll_cursor_to_center.assert_called_once()
+        self.fake.ai_add_annotation.assert_called_once()
+
+    def test_send_cross_file_uses_child_document(self):
+        child, _buffer = self._setup_cross_file()
+        mapping = _mapping(2, 3)
+        with mock.patch('os.path.isfile', return_value=True):
+            self._run(True, mapping)
+        self.sender.send_mapped.assert_called_once_with(child, mapping)
+        self.fake.ai_add_annotation.assert_not_called()
+
+
+class DocumentForMappingTest(unittest.TestCase):
+    '''多 TeX 文件：同文件直接用；include 子文件经 workspace 打开。'''
+
+    def setUp(self):
+        self.document = SimpleNamespace(get_filename=lambda: '/p/main.tex')
+        self.workspace = mock.Mock()
+        self.fake = SimpleNamespace(workspace=self.workspace)
+        self.fake._document_for_mapping = _DOC_FOR_MAPPING.__get__(self.fake)
+
+    def test_same_file_returns_document(self):
+        result = self.fake._document_for_mapping(
+            self.document, {'filename': '/p/main.tex'})
+        self.assertIs(result, self.document)
+        self.workspace.open_document_by_filename.assert_not_called()
+
+    def test_path_normalization_matches(self):
+        result = self.fake._document_for_mapping(
+            self.document, {'filename': '/p/./main.tex'})
+        self.assertIs(result, self.document)
+
+    def test_child_file_opened_via_workspace(self):
+        child = SimpleNamespace()
+        self.workspace.open_document_by_filename.return_value = child
+        with mock.patch('os.path.isfile', return_value=True):
+            result = self.fake._document_for_mapping(
+                self.document, {'filename': '/p/chapter.tex'})
+        self.assertIs(result, child)
+        self.workspace.open_document_by_filename.assert_called_once_with('/p/chapter.tex')
+
+    def test_missing_file_returns_none(self):
+        with mock.patch('os.path.isfile', return_value=False):
+            result = self.fake._document_for_mapping(
+                self.document, {'filename': '/p/gone.tex'})
+        self.assertIsNone(result)
+
+    def test_no_filename_returns_none(self):
+        self.assertIsNone(self.fake._document_for_mapping(self.document, {}))
 
 
 class ViewSettleTest(unittest.TestCase):
