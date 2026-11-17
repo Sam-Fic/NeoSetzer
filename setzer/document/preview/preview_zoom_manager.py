@@ -105,7 +105,10 @@ class PreviewZoomManager(Observable):
             self._in_update_dynamic_levels = False
 
     def update_fit_to_width(self):
-        self.zoom_level_fit_to_width = self.view.get_allocated_width() / (self.preview.page_width * self.preview.layout.hidpi_factor)
+        # 与绘制端同基准：页面 margin 用视口宽（content.width）计算，且
+        # ScrolledWindow 的 page_size 也是它。用 allocated_width（比视口
+        # 宽 .preview-card 左右各 6px margin）会让页面宽 12px、溢出视口。
+        self.zoom_level_fit_to_width = self.view.get_viewport_width() / (self.preview.page_width * self.preview.layout.hidpi_factor)
 
     def update_fit_to_text_width(self):
         self.zoom_level_fit_to_text_width = self.zoom_level_fit_to_width * (self.preview.page_width / (self.preview.page_width - 2 * self.preview.vertical_margin))

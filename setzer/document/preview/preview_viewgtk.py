@@ -23,6 +23,7 @@ from gi.repository import Gtk, GLib
 from gi.repository import Adw
 
 from setzer.helpers import animation_prefs
+from setzer.helpers import toast
 from setzer.widgets.scrolling_widget.scrolling_widget import ScrollingWidget
 from setzer.document.preview.preview_magnifier import PreviewMagnifier
 
@@ -255,9 +256,11 @@ class PreviewView(Gtk.Box):
 
     def show_pdf_load_failed(self):
         self.error_badge.set_visible(True)
-        toast = Adw.Toast.new(_('PDF build failed, showing previous version'))
-        toast.set_timeout(4)
-        self.toast_overlay.add_toast(toast)
+        # 自动构建下连着几次构建失败都会走到这里：错误徽章常驻，toast 只在
+        # 一段失败期内说一次（8s 窗口），别把打字打断成 toast 连发。
+        toast.show(_('PDF build failed, showing previous version'),
+                   timeout=4, throttle_ms=8000, key='pdf_build_failed',
+                   overlay=self.toast_overlay)
 
     def hide_pdf_load_failed(self):
         self.error_badge.set_visible(False)
@@ -327,7 +330,10 @@ class PreviewView(Gtk.Box):
         显隐用 set_reveal_child：True 触发 crossfade 淡入（200ms）,
         False 触发淡出。对当前不在 visible_pages 范围内的 revealer 也
         调 False（滚动时那些页滑出视口,自动淡出）。'''
-        window_width = self.get_allocated_width()
+        # 必须与绘制端同基准：layout.canvas_width / 页面 margin 都按视口宽
+        # （content.width）算出。用 allocated_width（比视口宽 12px 的
+        # .preview-card 盒宽）会让徽章相对页面右边缘偏左 6px。
+        window_width = self.get_viewport_width()
         h_margin = layout.get_horizontal_margin(window_width)
         right_edge = layout.canvas_width - (h_margin + 10)
         for i, (btn, revealer) in enumerate(zip(self._page_indicator_buttons, self._page_indicator_revealers)):

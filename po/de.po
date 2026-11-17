@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 16:46+0800\n"
+"POT-Creation-Date: 2026-11-18 02:25+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/setzer/application/de/>\n"
@@ -506,7 +506,7 @@ msgstr "Eingebettetes Terminal ist auf diesem System nicht verfügbar."
 
 #: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:257
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:441
-#: setzer/workspace/headerbar/headerbar.py:378
+#: setzer/workspace/headerbar/headerbar.py:376
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "Kein Agent-Werkzeug konfiguriert. Fügen Sie eines unter Einstellungen → Allgemein → KI-Einstellungen hinzu."
 
@@ -515,7 +515,7 @@ msgstr "Kein Agent-Werkzeug konfiguriert. Fügen Sie eines unter Einstellungen �
 #: setzer/ai_fix/annotation_sender.py:211
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:430
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:502
-#: setzer/workspace/headerbar/headerbar.py:365
+#: setzer/workspace/headerbar/headerbar.py:363
 #: setzer/workspace/sidebar/ai_page/ai_page.py:323
 msgid "Please save the document first"
 msgstr "Bitte speichern Sie zuerst das Dokument"
@@ -587,13 +587,13 @@ msgstr "Keine Anmerkungen zu senden"
 
 #: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:425
-#: setzer/workspace/headerbar/headerbar.py:361
+#: setzer/workspace/headerbar/headerbar.py:359
 msgid "No active document"
 msgstr "Kein aktives Dokument"
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1282
-#: setzer/workspace/actions/actions.py:1342
+#: setzer/workspace/actions/actions.py:1285
+#: setzer/workspace/actions/actions.py:1389
 msgid "Select some text first"
 msgstr "Bitte zuerst Text auswählen"
 
@@ -606,7 +606,7 @@ msgstr "In Zwischenablage kopiert"
 
 #: setzer/ai_fix/annotation_sender.py:196
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:419
-#: setzer/workspace/headerbar/headerbar.py:355
+#: setzer/workspace/headerbar/headerbar.py:353
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "Der KI-Agent ist deaktiviert. Aktivieren Sie ihn unter Einstellungen → Allgemein → KI-Einstellungen."
 
@@ -663,7 +663,7 @@ msgstr "An KI-Agenten senden"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:665
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:466
+#: setzer/workspace/actions/actions.py:469
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -709,13 +709,13 @@ msgid "File"
 msgstr "Datei"
 
 #: setzer/command_palette/catalog.py:74
-#: setzer/popovers/new_document/new_document_viewgtk.py:35
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:86
 #: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:99
 msgid "New LaTeX Document"
 msgstr "Neues LaTeX-Dokument"
 
 #: setzer/command_palette/catalog.py:75
-#: setzer/popovers/new_document/new_document_viewgtk.py:36
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:89
 msgid "New BibTeX Document"
 msgstr "Neues BibTeX-Dokument"
 
@@ -757,20 +757,20 @@ msgstr "Projekt-Paket exportieren"
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/document/preview/preview_presenter.py:607
+#: setzer/document/preview/preview_presenter.py:786
 msgid "Print"
 msgstr "Drucken"
 
 #: setzer/command_palette/catalog.py:83
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:115
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:143
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:155
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:196
 msgid "Close Document"
 msgstr "Schließen"
 
 #: setzer/command_palette/catalog.py:84
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:171
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:140
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:152
 msgid "Close All Documents"
 msgstr "Alle schließen"
 
@@ -984,7 +984,7 @@ msgstr "Pakete verwalten"
 #: setzer/command_palette/catalog.py:118
 #: setzer/dialogs/preamble_assistant.py:52
 #: setzer/dialogs/preamble_assistant.py:60
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:122
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:134
 msgid "Preamble Assistant"
 msgstr "Präambel-Assistent"
 
@@ -1092,20 +1092,20 @@ msgstr "Anwendung"
 #: setzer/command_palette/catalog.py:135
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:167
 #: setzer/dialogs/preferences/preferences_viewgtk.py:29
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:114
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:126
 msgid "Preferences"
 msgstr "Einstellungen"
 
 #: setzer/command_palette/catalog.py:136
 #: setzer/dialogs/document_properties/document_properties_viewgtk.py:45
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:117
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:129
 msgid "Document Properties"
 msgstr "Dokumenteigenschaften"
 
 #: setzer/command_palette/catalog.py:137
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:641
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:645
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:130
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:142
 msgid "Keyboard Shortcuts"
 msgstr "Tastenkürzel"
 
@@ -1115,7 +1115,7 @@ msgid "About NeoSetzer"
 msgstr "Über NeoSetzer"
 
 #: setzer/command_palette/catalog.py:139
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:127
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:139
 msgid "Toggle Fullscreen"
 msgstr "Vollbild umschalten"
 
@@ -1137,7 +1137,7 @@ msgstr "Im aktuellen Kontext nicht verfügbar"
 
 #: setzer/command_palette/dialog.py:68
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:136
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:120
 msgid "Command Palette"
 msgstr "Befehlspalette"
 
@@ -2826,7 +2826,7 @@ msgid "Ready to create"
 msgstr "Bereit zum Erstellen"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:349
-#: setzer/document/preview/preview_presenter.py:676
+#: setzer/document/preview/preview_presenter.py:855
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:402
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:404
 msgid "Document"
@@ -3199,7 +3199,7 @@ msgid "No PDF available to export."
 msgstr "Kein PDF zum Exportieren verfügbar."
 
 #: setzer/dialogs/export_pdf/export_pdf.py:42
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:95
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:107
 msgid "Export PDF As…"
 msgstr "PDF exportieren als …"
 
@@ -4100,7 +4100,7 @@ msgid "Show recent documents"
 msgstr "Zuletzt geöffnete Dokumente"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:153
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:131
 msgid "Show open documents"
 msgstr "Geöffnete Dokumente"
 
@@ -5797,7 +5797,7 @@ msgid "Typing, deleting and indenting apply to every cursor."
 msgstr "Tippen, Löschen und Einrücken gelten für jeden Cursor."
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:116
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:153
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:165
 msgid "Quit"
 msgstr "Beenden"
 
@@ -5885,7 +5885,7 @@ msgid "Display Math"
 msgstr "Math. Umgebung (display)"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:168
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:133
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:145
 msgid "About"
 msgstr "Info"
 
@@ -5924,7 +5924,6 @@ msgid "Send Selection to Agent"
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:188
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Create a new LaTeX document"
 msgstr "Neues LaTeX-Dokument erstellen"
 
@@ -6812,7 +6811,7 @@ msgid "Failed"
 msgstr "Fehlgeschlagen"
 
 #: setzer/document/build_widget/build_widget.py:245
-#: setzer/document/preview/preview_viewgtk.py:455
+#: setzer/document/preview/preview_viewgtk.py:458
 msgid "Build failed"
 msgstr "Erstellung fehlgeschlagen"
 
@@ -6861,7 +6860,7 @@ msgid "Add AI Annotation…"
 msgstr "AI-Anmerkung hinzufügen…"
 
 #: setzer/document/preview/context_menu/context_menu.py:144
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:96
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
 msgid "Print…"
 msgstr "Drucken …"
 
@@ -6925,19 +6924,19 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:561
+#: setzer/document/preview/preview_presenter.py:740
 msgid "Save Image As"
 msgstr "Bild speichern unter"
 
-#: setzer/document/preview/preview_presenter.py:666
+#: setzer/document/preview/preview_presenter.py:845
 msgid "No printer available"
 msgstr "Kein Drucker verfügbar"
 
-#: setzer/document/preview/preview_presenter.py:671
+#: setzer/document/preview/preview_presenter.py:850
 msgid "Could not prepare print data"
 msgstr "Druckdaten konnten nicht vorbereitet werden"
 
-#: setzer/document/preview/preview_presenter.py:685
+#: setzer/document/preview/preview_presenter.py:864
 msgid "Printing failed"
 msgstr "Drucken fehlgeschlagen"
 
@@ -6972,19 +6971,19 @@ msgstr "Die geänderte PDF ist noch nicht bereit; die vorherige Version wird ang
 msgid "Try Again"
 msgstr "Erneut versuchen"
 
-#: setzer/document/preview/preview_viewgtk.py:413
+#: setzer/document/preview/preview_viewgtk.py:416
 msgid "Building…"
 msgstr "Erstellen …"
 
-#: setzer/document/preview/preview_viewgtk.py:451
+#: setzer/document/preview/preview_viewgtk.py:454
 msgid "No preview available"
 msgstr "Keine Vorschau verfügbar"
 
-#: setzer/document/preview/preview_viewgtk.py:452
+#: setzer/document/preview/preview_viewgtk.py:455
 msgid "To show a .pdf preview of your document, click the build button in the headerbar."
 msgstr "Um eine .pdf-Vorschau Ihres Dokuments anzuzeigen, klicken Sie bitte den Erstellen-Button."
 
-#: setzer/document/preview/preview_viewgtk.py:456
+#: setzer/document/preview/preview_viewgtk.py:459
 msgid "Check the build log for errors."
 msgstr "Prüfen Sie das Erstellungsprotokoll auf Fehler."
 
@@ -7282,7 +7281,7 @@ msgstr "Auswahl umwandeln"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:41
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:161
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:102
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:114
 msgid "Recent Documents"
 msgstr "Zuletzt geöffnete Dokumente"
 
@@ -7369,46 +7368,46 @@ msgstr "Keine passenden Dokumente"
 msgid "Close document"
 msgstr "Schließen"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:87
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:90
+msgid "New Document from Template"
+msgstr "Neues Dokument aus Vorlage"
+
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:99
 msgid "Save Document"
 msgstr "Dokument speichern"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:90
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:102
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:181
 msgid "Save Document As…"
 msgstr "Speichern unter"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:93
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:105
 msgid "Save All Documents"
 msgstr "Alle speichern"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:105
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:117
 msgid "Session"
 msgstr "Sitzung"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:150
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:162
 msgid "Reopen Closed Document"
 msgstr "Geschlossenes Dokument erneut öffnen"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:160
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:172
 msgid "Restore Previous Session…"
 msgstr "Vorherige Sitzung wiederherstellen"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:163
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:175
 msgid "Save Current Session…"
 msgstr "Gegenwärtige Sitzung speichern"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:166
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:178
 msgid "Recent Sessions"
 msgstr "Zuletzt verwendete Sitzungen"
 
-#: setzer/popovers/hamburger_menu/hamburger_menu.py:217
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:229
 msgid "Main Menu"
 msgstr "Hauptmenü"
-
-#: setzer/popovers/new_document/new_document_viewgtk.py:37
-msgid "New Document from Template"
-msgstr "Neues Dokument aus Vorlage"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:118
@@ -7959,35 +7958,34 @@ msgstr "Nichts zu committen: keine Dateien ausgewählt."
 msgid "Choose File"
 msgstr "Datei wählen"
 
-#: setzer/workspace/actions/actions.py:456
+#: setzer/workspace/actions/actions.py:459
 msgid "No .tex files were found in your Templates folder."
 msgstr "Im Vorlagenordner wurden keine .tex-Dateien gefunden."
 
-#: setzer/workspace/actions/actions.py:463
-#: setzer/workspace/actions/actions.py:493
+#: setzer/workspace/actions/actions.py:466
+#: setzer/workspace/actions/actions.py:496
 msgid "Create document from template"
 msgstr "Dokument aus Vorlage erstellen"
 
-#: setzer/workspace/actions/actions.py:464
+#: setzer/workspace/actions/actions.py:467
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "Wählen Sie eine LaTeX-Vorlage und danach den Speicherort für die neue Kopie."
 
-#: setzer/workspace/actions/actions.py:467
+#: setzer/workspace/actions/actions.py:470
 msgid "Choose location"
 msgstr "Speicherort wählen"
 
-#: setzer/workspace/actions/actions.py:514
+#: setzer/workspace/actions/actions.py:517
 msgid "The selected destination is not a local file."
 msgstr "Das ausgewählte Ziel ist keine lokale Datei."
 
-#: setzer/workspace/actions/actions.py:1293
-#: setzer/workspace/actions/actions.py:1375
+#: setzer/workspace/actions/actions.py:1296
 msgid "Annotation added"
 msgstr "Anmerkung hinzugefügt"
 
-#: setzer/workspace/actions/actions.py:1349
-#: setzer/workspace/actions/actions.py:1354
-#: setzer/workspace/actions/actions.py:1364
+#: setzer/workspace/actions/actions.py:1396
+#: setzer/workspace/actions/actions.py:1401
+#: setzer/workspace/actions/actions.py:1411
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr "Die PDF-Auswahl konnte nicht dem Quelltext zugeordnet werden. Bitte das Dokument zuerst erstellen."
 
@@ -8008,11 +8006,11 @@ msgstr "Automatisches Erstellen zurückgestellt — eine Erstellung läuft berei
 msgid "Auto-build skipped — the document was busy building."
 msgstr "Automatisches Erstellen übersprungen — das Dokument wurde beim Erstellen beschäftigt."
 
-#: setzer/workspace/headerbar/headerbar.py:403
+#: setzer/workspace/headerbar/headerbar.py:401
 msgid "Agent session ready in the sidebar"
 msgstr "Agent-Sitzung in der Seitenleiste bereit"
 
-#: setzer/workspace/headerbar/headerbar.py:404
+#: setzer/workspace/headerbar/headerbar.py:402
 msgid "Agent session ready in a separate window"
 msgstr "Agent-Sitzung in eigenem Fenster bereit"
 
@@ -8020,20 +8018,20 @@ msgstr "Agent-Sitzung in eigenem Fenster bereit"
 msgid "Toggle sidebar (Document Structure / Symbols)"
 msgstr "Seitenleiste umschalten (Dokumentstruktur / Symbole)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:71
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Vorschaufenster umschalten (PDF-Vorschau / Hilfe)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:102
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:80
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:536
 msgid "Build log"
 msgstr "Erstellungsprotokoll"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:116
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:94
 msgid "Open AI agent in terminal"
 msgstr "KI-Agent im Terminal öffnen"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:161
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:139
 msgid "Welcome to Setzer"
 msgstr "Willkommen bei NeoSetzer"
 
@@ -8113,23 +8111,23 @@ msgstr "Hilfeseiten werden aus Sicherheitsgründen ohne JavaScript dargestellt. 
 msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
 msgstr "Die Darstellung von Hilfeseiten erfordert WebKit6. Die Suche ist weiterhin verfügbar — klicken Sie auf ein Ergebnis, um es in Ihrem Webbrowser zu öffnen."
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:390
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:428
 msgid "Maximum zoom level reached"
 msgstr "Maximale Zoomstufe erreicht"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:392
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:430
 msgid "Minimum zoom level reached"
 msgstr "Minimale Zoomstufe erreicht"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:433
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:471
 msgid "Build failed — showing the previous PDF"
 msgstr "Erstellung fehlgeschlagen — vorherige PDF wird angezeigt"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:447
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:485
 msgid "of "
 msgstr " von "
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:449
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:487
 msgid "No preview"
 msgstr "Keine Vorschau"
 
@@ -8513,9 +8511,7 @@ msgstr "Diesen Branch vom Remote aktualisieren (nur Fast-forward)"
 
 #: setzer/workspace/sidebar/git/git_section.py:221
 msgid "Push this branch once to set its upstream, then you can pull."
-msgstr ""
-"Übertrage diesen Branch einmal, um sein Upstream zu setzen; danach ist Pull "
-"möglich."
+msgstr "Übertrage diesen Branch einmal, um sein Upstream zu setzen; danach ist Pull möglich."
 
 #: setzer/workspace/sidebar/git/git_section.py:237
 msgid "Initialize Git Repository?"
@@ -8804,17 +8800,17 @@ msgstr "Sitzung konnte nicht geöffnet werden: {name}"
 msgid "Could not save workspace state: {error}"
 msgstr "Arbeitsbereichszustand konnte nicht gespeichert werden: {error}"
 
-#: setzer/workspace/workspace_viewgtk.py:338
-#: setzer/workspace/workspace_viewgtk.py:601
-#: setzer/workspace/workspace_viewgtk.py:608
+#: setzer/workspace/workspace_viewgtk.py:335
+#: setzer/workspace/workspace_viewgtk.py:598
+#: setzer/workspace/workspace_viewgtk.py:605
 msgid "Drop to open file"
 msgstr "Zum Öffnen der Datei ablegen"
 
-#: setzer/workspace/workspace_viewgtk.py:606
+#: setzer/workspace/workspace_viewgtk.py:603
 #, python-brace-format
 msgid "Will open {count} files"
 msgstr "{count} Dateien werden geöffnet"
 
-#: setzer/workspace/workspace_viewgtk.py:610
+#: setzer/workspace/workspace_viewgtk.py:607
 msgid "Cannot open this file type"
 msgstr "Dieser Dateityp kann nicht geöffnet werden"

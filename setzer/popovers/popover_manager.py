@@ -34,8 +34,7 @@ class PopoverManager():
     Popovers are now standard Gtk.Popover widgets attached to Gtk.MenuButtons.
     This class retains only:
       - init(): store main_window/workspace + pre-create the popovers used via
-        get_popover() by the headerbar (new_document / open_document /
-        document_switcher).
+        get_popover() by the headerbar (document_switcher).
       - create_popover(name): idempotent lazy factory for hamburger_menu /
         preview_zoom_level / context_menu. It also wires the popover's
         map/closed signals to the 'popup'/'popdown' change codes so that
@@ -55,10 +54,9 @@ class PopoverManager():
         PopoverManager.workspace = workspace
 
         # Pre-create the popovers referenced through get_popover() by the
-        # headerbar (open-doc / new-doc / document-switcher buttons).
-        from setzer.popovers.new_document.new_document import NewDocument
+        # headerbar (open-doc / document-switcher buttons). 新建文档的
+        # LaTeX / BibTeX / 模板入口已并入汉堡菜单，不再需要 new_document 气泡。
         from setzer.popovers.document_switcher.document_switcher import DocumentSwitcher
-        PopoverManager.popovers['new_document'] = NewDocument()
         PopoverManager.popovers['document_switcher'] = DocumentSwitcher(PopoverManager.workspace)
 
     def get_popover(name):

@@ -34,6 +34,7 @@ import cairo
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.helpers.synctex_line_repair import has_matchable_text, match_pdf_line
+from setzer.project.build_configuration import ProjectBuildConfiguration
 
 import setzer.document.preview.preview_viewgtk as preview_view
 import setzer.document.preview.preview_layouter as preview_layouter
@@ -152,6 +153,9 @@ class Preview(Observable):
         self._settings_callback = self.on_settings_changed
         self.document.settings.connect('settings_changed', self._settings_callback)
 
+        # 自举：Preview 可能是在文档已有文件名之后才构造的（见方法注释）。
+        self._initialize_pdf_from_filename()
+
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
 
@@ -166,13 +170,64 @@ class Preview(Observable):
 
     def on_filename_change(self, document, filename=None):
         if filename != None:
-            pdf_filename = os.path.splitext(filename)[0] + '.pdf'
-            if os.path.exists(pdf_filename):
+            pdf_filename = self._existing_pdf_for_source(filename)
+            if pdf_filename != None:
                 self.set_pdf_filename(pdf_filename)
         self.load_pdf()
 
+    @staticmethod
+    def _existing_pdf_for_source(filename):
+        '''源码对应的、磁盘上确实存在的构建产物路径；没有返回 None。
+
+        首选 `<tex 名字>.pdf` 旁边（默认输出位置）。项目在
+        `.neosetzer/build.json` 里配了自定义输出目录时，产物不在 .tex 旁边，
+        只在输出目录里（与构建端 BuilderBuild.get_output_filename 同一规则）
+        ——不查这一步，带输出目录的项目每次重新打开文档预览都是空白页，哪怕
+        上一轮编译的 PDF 还在。
+        '''
+        pdf_filename = os.path.splitext(filename)[0] + '.pdf'
+        if os.path.exists(pdf_filename):
+            return pdf_filename
+        try:
+            configuration = ProjectBuildConfiguration.discover(filename)
+            if configuration is None:
+                return None
+            output_directory = configuration.effective_path(
+                configuration.load().get('output_directory'))
+        except Exception:
+            # 配置损坏 / 不可读只是少了一个候选位置，不该影响预览。
+            return None
+        if not output_directory:
+            return None
+        candidate = os.path.join(
+            output_directory,
+            os.path.splitext(os.path.basename(filename))[0] + '.pdf')
+        return candidate if os.path.exists(candidate) else None
+
     def on_pdf_updated(self, document):
         self.load_pdf()
+
+    def _initialize_pdf_from_filename(self):
+        '''构造期按文档当前文件名自举一次 PDF 加载。
+
+        正常打开流程里 Preview 早于 set_filename 构造（Document() 之后才
+        set_filename），加载靠随后的 filename_change 信号；但以下路径反过来
+        ——文件名先就位、Preview 后补挂：
+
+        * 会话恢复的非活跃文档：create_document_from_filename 先 set_filename
+          且 attach_preview=False，等用户切到该标签页时才由
+          _attach_latex_toolchain 构造 Preview。那次 filename_change 早已
+          发过，没人再叫它读盘。
+        * 同理，apply_pending_latex_state 里 save_date 守卫命中（.tex 比
+          状态新）时整段预览状态恢复被跳过，路径更不会被填。
+
+        结果就是：PDF 明明躺在磁盘上（以前编译过），切到该标签页预览区却是
+        "No preview available"。这里等价地再走一次 on_filename_change，
+        有现成 PDF 就显示，没有才留空白页。
+        '''
+        filename = self.document.get_filename()
+        if filename is not None:
+            self.on_filename_change(self.document, filename)
 
     def set_pdf_filename(self, pdf_filename):
         if pdf_filename != self.pdf_filename:

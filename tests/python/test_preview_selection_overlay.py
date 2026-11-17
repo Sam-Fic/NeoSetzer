@@ -22,6 +22,11 @@
 再用与 draw_rendered_page 逐字相同的 int(css)/surface scale 绘制；
 draw_rendered_page 本身也改用 int(css) 精确映射消除 int 截断拉伸 δ。
 
+两条高亮路径同一机制，坐标空间不同：
+- 文字选择：points 空间，密度 scale×hidpi/divisor；
+- synctex 正向同步（源码 → PDF 跳转）：已含 scale_factor 的 css 空间，
+  密度 hidpi/divisor。
+
 方法体经 AST 提取 exec（与 test_preview_resize_drawing 同模式），
 注入 cairo 与 ColorManager 桩，不依赖 GTK 真实渲染。
 '''
@@ -39,7 +44,10 @@ import cairo
 
 SRC = os.path.join(REPO, 'setzer', 'document', 'preview', 'preview_presenter.py')
 _METHODS = ('draw_rendered_page', 'draw_text_selection_rectangles',
-            '_get_selection_overlay', 'on_layout_changed', 'on_pdf_changed')
+            'draw_synctex_rectangles', 'draw_block_selection',
+            '_paint_device_overlay', '_get_highlight_overlay',
+            '_get_selection_overlay', '_get_synctex_overlay', '_get_block_overlay',
+            'on_layout_changed', 'on_pdf_changed')
 
 
 class _Color:
@@ -57,6 +65,11 @@ def _load_methods():
     cls = next(n for n in tree.body
                if isinstance(n, ast.ClassDef) and n.name == 'PreviewPresenter')
     ns = {'cairo': cairo, 'ColorManager': _ColorManager}
+    # 模块级常量（淡出 alpha 上限）也要注入，否则 exec 后的方法体 NameError。
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                and getattr(node.targets[0], 'id', None) == '_SYNCTEX_HIGHLIGHT_MAX_ALPHA'):
+            ns['_SYNCTEX_HIGHLIGHT_MAX_ALPHA'] = ast.literal_eval(node.value)
     for name in _METHODS:
         fn = next(n for n in cls.body
                   if isinstance(n, ast.FunctionDef) and n.name == name)
@@ -72,11 +85,16 @@ SCALE = 2.0
 HIDPI = 2
 SW, SH = int(CSS_W) * HIDPI, int(CSS_H) * HIDPI  # 1224 × 1584，与真实渲染器一致
 RECT = (50.0, 350.0, 150.0, 356.0)  # points（页高≈396pt），页底附近（δ 误差最大处）
+# synctex 矩形同一区域，但坐标空间是已乘 scale_factor 的 canvas css。
+SYNCTEX_RECT = SimpleNamespace(x=RECT[0] * SCALE, y=RECT[1] * SCALE,
+                               width=(RECT[2] - RECT[0]) * SCALE,
+                               height=(RECT[3] - RECT[1]) * SCALE)
 
 
 def _layout():
     return SimpleNamespace(page_width_original=CSS_W, page_height_original=CSS_H,
-                           scale_factor=SCALE, hidpi_factor=HIDPI)
+                           scale_factor=SCALE, hidpi_factor=HIDPI,
+                           visible_synctex_rectangles={})
 
 
 def _texture_with_marker():
@@ -94,9 +112,13 @@ def _texture_with_marker():
 
 def _presenter(textures):
     pres = SimpleNamespace(preview=SimpleNamespace(layout=_layout(),
-                                                   text_selection_regions={0: [RECT]}),
+                                                   text_selection_regions={0: [RECT]},
+                                                   block_selection=None),
                            page_renderer=SimpleNamespace(rendered_pages=textures),
-                           _selection_overlay_cache={})
+                           _selection_overlay_cache={},
+                           _synctex_overlay_cache={},
+                           _block_overlay_cache={},
+                           _current_time_factor=1.0)
     for name in _METHODS:
         setattr(pres, name, _NS[name].__get__(pres))
     return pres
@@ -225,6 +247,8 @@ class SelectionOverlayCacheTest(unittest.TestCase):
     def test_layout_changed_clears_cache(self):
         pres = _presenter({})
         pres._get_selection_overlay(0, [RECT], pres.preview.layout, SW, SH)
+        pres._get_synctex_overlay(0, [SYNCTEX_RECT], pres.preview.layout, SW, SH)
+        pres._get_block_overlay(0, RECT, pres.preview.layout, SW, SH)
         pres.preview.layout = None
         pres.view = SimpleNamespace(
             drawing_area=SimpleNamespace(set_content_width=lambda v: None,
@@ -232,10 +256,14 @@ class SelectionOverlayCacheTest(unittest.TestCase):
             content=SimpleNamespace(queue_draw=lambda: None))
         pres.on_layout_changed(pres.preview)
         self.assertEqual(pres._selection_overlay_cache, {})
+        self.assertEqual(pres._synctex_overlay_cache, {})
+        self.assertEqual(pres._block_overlay_cache, {})
 
     def test_pdf_changed_clears_cache(self):
         pres = _presenter({})
         pres._get_selection_overlay(0, [RECT], pres.preview.layout, SW, SH)
+        pres._get_synctex_overlay(0, [SYNCTEX_RECT], pres.preview.layout, SW, SH)
+        pres._get_block_overlay(0, RECT, pres.preview.layout, SW, SH)
         pres.preview.poppler_document = None
         pres.show_blank_slate = lambda: None
         pres.view = SimpleNamespace(hide_pdf_load_failed=lambda: None,
@@ -243,6 +271,151 @@ class SelectionOverlayCacheTest(unittest.TestCase):
                                     is_page_indicator_visible=lambda: False)
         pres.on_pdf_changed(pres.preview)
         self.assertEqual(pres._selection_overlay_cache, {})
+        self.assertEqual(pres._synctex_overlay_cache, {})
+        self.assertEqual(pres._block_overlay_cache, {})
+
+
+class SynctexOverlayMappingTest(unittest.TestCase):
+    '''正向同步（源码 → PDF 跳转）高亮与文字纹理逐像素对齐。'''
+
+    def _pres(self):
+        tex = _texture_with_marker()
+        pres = _presenter({0: [tex, int(CSS_W), int(CSS_H), 1, None]})
+        pres.preview.layout.visible_synctex_rectangles = {0: [SYNCTEX_RECT]}
+        return pres
+
+    def test_synctex_highlight_aligns_with_texture_marker(self):
+        pres = self._pres()
+        y0 = int(SYNCTEX_RECT.y) - 6
+        y1 = int(SYNCTEX_RECT.y + SYNCTEX_RECT.height) + 6
+
+        surf, ctx = _target()
+        pres.draw_rendered_page(ctx, 0, pres.preview.layout)
+        ink_t, ink_b = _rows(surf, 'ink', y0, y1)
+
+        surf2, ctx2 = _target()
+        pres.draw_synctex_rectangles(ctx2, 0, _Color())
+        hl_t, hl_b = _rows(surf2, 'hl', y0, y1)
+
+        self.assertIsNotNone(ink_t)
+        self.assertEqual(ink_t, hl_t)
+        self.assertEqual(ink_b, hl_b)
+
+    def test_synctex_draw_restores_matrix_and_operator(self):
+        pres = self._pres()
+        surf, ctx = _target()
+        ctx.translate(17.5, 23.25)
+        before = tuple(ctx.get_matrix())
+        pres.draw_synctex_rectangles(ctx, 0, _Color())
+        self.assertEqual(tuple(ctx.get_matrix()), before)
+        self.assertEqual(ctx.get_operator(), cairo.Operator.OVER)
+
+    def test_synctex_no_draw_when_faded_out(self):
+        pres = self._pres()
+        pres._current_time_factor = 0.0
+        surf, ctx = _target()
+        pres.draw_synctex_rectangles(ctx, 0, _Color())
+        hl_t, _ = _rows(surf, 'hl', 0, surf.get_height())
+        self.assertIsNone(hl_t)
+        self.assertEqual(pres._synctex_overlay_cache, {})
+
+    def test_synctex_fallback_vector_when_texture_missing(self):
+        pres = _presenter({})
+        pres.preview.layout.visible_synctex_rectangles = {0: [SYNCTEX_RECT]}
+        surf, ctx = _target()
+        pres.draw_synctex_rectangles(ctx, 0, _Color())
+        hl_t, _ = _rows(surf, 'hl', int(SYNCTEX_RECT.y) - 6,
+                        int(SYNCTEX_RECT.y + SYNCTEX_RECT.height) + 6)
+        self.assertEqual(hl_t, int(SYNCTEX_RECT.y))
+        self.assertEqual(pres._synctex_overlay_cache, {})
+
+    def test_synctex_overlay_cache_ignores_time_factor(self):
+        pres = self._pres()
+        layout = pres.preview.layout
+        a = pres._get_synctex_overlay(0, [SYNCTEX_RECT], layout, SW, SH)
+        pres._current_time_factor = 0.4
+        b = pres._get_synctex_overlay(0, [SYNCTEX_RECT], layout, SW, SH)
+        self.assertIs(a, b)
+
+    def test_synctex_overlay_same_size_as_texture(self):
+        pres = self._pres()
+        overlay = pres._get_synctex_overlay(0, [SYNCTEX_RECT], pres.preview.layout, SW, SH)
+        self.assertEqual((overlay.get_width(), overlay.get_height()), (SW, SH))
+
+    def test_overlay_caches_are_independent(self):
+        '''同页文字选择与 synctex 高亮各用一份缓存，互不覆盖。'''
+        pres = _presenter({})
+        layout = pres.preview.layout
+        sel = pres._get_selection_overlay(0, [RECT], layout, SW, SH)
+        syn = pres._get_synctex_overlay(0, [SYNCTEX_RECT], layout, SW, SH)
+        self.assertIsNot(sel, syn)
+        self.assertIs(pres._get_selection_overlay(0, [RECT], layout, SW, SH), sel)
+        self.assertIs(pres._get_synctex_overlay(0, [SYNCTEX_RECT], layout, SW, SH), syn)
+
+
+class BlockOverlayMappingTest(unittest.TestCase):
+    '''块选择高亮（AI 批注块吸附）同样走 device 叠层，含 1px 描边。'''
+
+    def _pres(self, with_texture=True):
+        pres = _presenter({})
+        if with_texture:
+            tex = _texture_with_marker()
+            pres.page_renderer.rendered_pages = {0: [tex, int(CSS_W), int(CSS_H), 1, None]}
+        pres.preview.block_selection = {'page': 0, 'rect': RECT, 'kind': 'block'}
+        return pres
+
+    def test_block_highlight_aligns_with_texture_marker(self):
+        pres = self._pres()
+        y0 = int(RECT[1] * SCALE) - 6
+        y1 = int(RECT[3] * SCALE) + 6
+
+        surf, ctx = _target()
+        pres.draw_rendered_page(ctx, 0, pres.preview.layout)
+        ink_t, ink_b = _rows(surf, 'ink', y0, y1)
+
+        surf2, ctx2 = _target()
+        pres.draw_block_selection(ctx2, 0, _Color())
+        hl_t, hl_b = _rows(surf2, 'hl', y0, y1)
+
+        # 描边中线落在矩形边界上（1 css px = 4 device px），上下各溢 2px。
+        self.assertLessEqual(abs(hl_t - ink_t), 3)
+        self.assertLessEqual(abs(hl_b - ink_b), 3)
+        self.assertNotEqual(pres._block_overlay_cache, {})
+
+    def test_block_draw_restores_matrix_and_operator(self):
+        pres = self._pres()
+        surf, ctx = _target()
+        ctx.translate(11.25, 7.5)
+        before = tuple(ctx.get_matrix())
+        pres.draw_block_selection(ctx, 0, _Color())
+        self.assertEqual(tuple(ctx.get_matrix()), before)
+        self.assertEqual(ctx.get_operator(), cairo.Operator.OVER)
+
+    def test_block_fallback_vector_when_texture_missing(self):
+        pres = self._pres(with_texture=False)
+        surf, ctx = _target()
+        pres.draw_block_selection(ctx, 0, _Color())
+        hl_t, hl_b = _rows(surf, 'hl', int(RECT[1] * SCALE) - 6,
+                           int(RECT[3] * SCALE) + 6)
+        # 矢量描边以边界为中心，1px 线宽向上溢 ≤1px。
+        self.assertLessEqual(abs(hl_t - int(RECT[1] * SCALE)), 1)
+        self.assertEqual(pres._block_overlay_cache, {})
+
+    def test_block_overlay_same_size_as_texture_and_cached(self):
+        pres = self._pres()
+        layout = pres.preview.layout
+        a = pres._get_block_overlay(0, RECT, layout, SW, SH)
+        b = pres._get_block_overlay(0, RECT, layout, SW, SH)
+        self.assertEqual((a.get_width(), a.get_height()), (SW, SH))
+        self.assertIs(a, b)
+
+    def test_block_not_drawn_for_other_page(self):
+        pres = self._pres()
+        pres.preview.block_selection = {'page': 1, 'rect': RECT, 'kind': 'block'}
+        surf, ctx = _target()
+        pres.draw_block_selection(ctx, 0, _Color())
+        hl_t, _ = _rows(surf, 'hl', 0, surf.get_height())
+        self.assertIsNone(hl_t)
 
 
 if __name__ == '__main__':

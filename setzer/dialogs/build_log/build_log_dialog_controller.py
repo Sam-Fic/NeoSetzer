@@ -24,6 +24,7 @@ from setzer.dialogs.build_log.build_log_dialog_presenter import classify_warning
 # agent_runner 是纯 stdlib 模块，无 GTK 依赖，可安全模块级导入：
 # _initiate_ai_fix 与 _execute 都要用，函数局部导入互不可见。
 from setzer.ai_fix import agent_runner
+from setzer.ai_fix.availability import is_ai_agent_enabled
 
 
 class BuildLogDialogController(object):
@@ -85,6 +86,28 @@ class BuildLogDialogController(object):
 
         # group 折叠/展开切换回调：保存状态到 settings
         self.view.on_group_toggle_callback = self.on_group_toggle
+
+        # AI Agent 总开关：关闭时顶栏 Fix All 与行尾修复按钮都从弹窗里消失。
+        self.build_log.settings.connect('settings_changed', self.on_settings_changed)
+        self.update_ai_availability()
+
+    def on_settings_changed(self, settings, parameter):
+        section, item, value = parameter
+        if item == 'ai_fix_enabled':
+            self.update_ai_availability()
+
+    def update_ai_availability(self):
+        '''按 AI Agent 开关同步弹窗内 AI 入口。
+
+        开关变化后需要重建行：行尾按钮是 make_row 时决定的，仅切换标志
+        不会让已有行长/掉按钮。已打开时强制绕过 populate 的签名短路。'''
+        enabled = is_ai_agent_enabled(self.build_log.settings)
+        self.view.ai_fix_all_button.set_visible(enabled)
+        for lst in self.view.lists.values():
+            lst.ai_fix_enabled = enabled
+        if self.presenter is not None:
+            self.presenter._last_signature = None
+            self.presenter.populate()
 
     def on_selected_rows_changed(self, listbox):
         '''保证整个 Build Log 弹窗内只有一个高亮选中项。

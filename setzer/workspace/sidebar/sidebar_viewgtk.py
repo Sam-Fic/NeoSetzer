@@ -106,6 +106,37 @@ class Sidebar(Gtk.Box):
         finally:
             self._syncing_switch = False
 
+    def set_switch_option_visible(self, name, visible):
+        '''显示/隐藏各页工具栏切换器里的某个面板档位。
+
+        AI Agent 开关关闭时整个 AI 面板从界面上消失：档位本身不出现，
+        侧栏因此只剩 Document Structure / Symbols 两档（不会多出一个
+        点击后无内容的空档位）。
+
+        Adw.Toggle 不是 Widget，没有 set_visible（libadwaita 的档位是纯
+        GObject），所以「隐藏」只能是把它从 ToggleGroup 里 remove 掉；
+        重新启用时按 PANEL_SWITCH_OPTIONS 的顺序补回（AI 恰为最后一档，
+        直接 add 即原位）。'''
+        spec = next((opt for opt in PANEL_SWITCH_OPTIONS if opt[0] == name), None)
+        if spec is None:
+            return
+        self._syncing_switch = True
+        try:
+            for group in self.switch_groups.values():
+                toggle = group.get_toggle_by_name(name)
+                if visible:
+                    if toggle is None:
+                        _, icon_name, label = spec
+                        group.add(Adw.Toggle(name=name, icon_name=icon_name,
+                                             tooltip=_(label)))
+                elif toggle is not None:
+                    group.remove(toggle)
+        finally:
+            self._syncing_switch = False
+        # 增删档位可能让 ToggleGroup 丢掉「当前档」高亮（尤其是移除正在激活的
+        # 档位），按可见页重新对齐一次。
+        self._sync_switch_groups(self.stack.get_visible_child_name())
+
     def add_named(self, child, name):
         self.stack.add_named(child, name)
 

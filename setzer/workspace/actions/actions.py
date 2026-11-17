@@ -22,6 +22,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import GLib, Gio, Gtk, Gdk, Adw
 
+from setzer.ai_fix.availability import is_ai_agent_enabled
 from setzer.app.service_locator import ServiceLocator
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.ui_zoom import UIZoomManager
@@ -408,8 +409,10 @@ class Actions(object):
         self.actions['preview-save-image'].set_enabled(pdf_actions_enabled)
         self.actions['preview-open-link'].set_enabled(pdf_actions_enabled)
         self.actions['preview-copy-link'].set_enabled(pdf_actions_enabled)
-        self.actions['ai-annotate-pdf'].set_enabled(pdf_actions_enabled)
-        self.actions['ai-send-pdf'].set_enabled(pdf_actions_enabled)
+        # AI 入口随总开关一起失效：关闭时连命令面板里的对应动作也不可用。
+        ai_pdf_actions_enabled = pdf_actions_enabled and is_ai_agent_enabled(self.settings)
+        self.actions['ai-annotate-pdf'].set_enabled(ai_pdf_actions_enabled)
+        self.actions['ai-send-pdf'].set_enabled(ai_pdf_actions_enabled)
         if preview is not None:
             self.actions['preview-recolor'].set_state(
                 GLib.Variant.new_boolean(preview.recolor_pdf))
@@ -1276,7 +1279,11 @@ class Actions(object):
 
         选区在弹出时捕获（offset 对）：popover 抢焦点后用户可能改变选区，
         保存时先恢复原选区再登记，保证批注锚定的就是触发时的选区。
+
+        AI Agent 关闭时静默不动作：菜单项已隐藏，仅快捷键可能触发到此处。
         '''
+        if not is_ai_agent_enabled(self.settings):
+            return
         document = self.workspace.get_active_document()
         if document is None:
             return
@@ -1380,6 +1387,8 @@ class Actions(object):
         self._ai_from_pdf(send=True)
 
     def _ai_from_pdf(self, send):
+        if not is_ai_agent_enabled(self.settings):
+            return
         preview = self._get_preview()
         document = self.workspace.get_active_document()
         if preview is None or document is None:
@@ -1510,6 +1519,8 @@ class Actions(object):
 
     def ai_send_selection(self, action=None, parameter=None):
         '''右键/快捷键「直发选区」：不落批注，立即经统一发送控制器发送。'''
+        if not is_ai_agent_enabled(self.settings):
+            return
         document = self.workspace.get_active_document()
         if document is None:
             return

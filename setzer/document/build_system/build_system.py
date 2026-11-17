@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from gi.repository import GLib, Adw
+from gi.repository import GLib
 
 import sys
 import threading
@@ -37,6 +37,7 @@ import setzer.document.build_system.phitex_session.phitex_session as phitex_sess
 import setzer.document.build_system.query.query as query
 from setzer.document.change_highlight.change_highlight import ChangeHighlight
 from setzer.document.magic_comments import parse_magic_comments
+from setzer.helpers import toast
 from setzer.helpers.observable import Observable
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.helpers.synctex_line_repair import repair_line
@@ -572,13 +573,11 @@ class BuildSystem(Observable):
 
     def add_query(self, query):
         if self.active_query != None:
-            # 旧构建被中止：显示 toast 通知用户（手动 F5 触发新构建时可能
-            # 上一次构建仍在进行，旧构建被静默丢弃）。
-            main_window = ServiceLocator.get_main_window()
-            if hasattr(main_window, 'toast_overlay'):
-                toast = Adw.Toast.new(_('Previous build cancelled'))
-                toast.set_timeout(2)
-                main_window.toast_overlay.add_toast(toast)
+            # 旧构建被中止：传统引擎下一次构建一两秒，被新构建取代值得说一声；
+            # 但 PhiTeX 常驻 session 下实时构建每 150ms 一轮，反向同步播报、
+            # 手动 F5 撞上一次在途构建都是常态——此时提示只剩噪音。
+            if not self.is_phitex_live_build():
+                toast.show(_('Previous build cancelled'), timeout=2)
         self.stop_building(notify=False)
         self.active_query = query
         threading.Thread(target=self.execute_query, args=(query,), daemon=True).start()

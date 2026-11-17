@@ -20,6 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gdk, Gtk, Gio, GLib
 
+from setzer.ai_fix.availability import is_ai_agent_enabled
 from setzer.helpers.observable import Observable
 from setzer.app.service_locator import ServiceLocator
 
@@ -132,11 +133,14 @@ class ContextMenu(Observable):
         model.append_section(None, page_section)
 
         # AI section：PDF 选区 → 反查源码整行/整块 → 批注/直发
-        # （与源码右键菜单同 label，复用已译字符串）。
-        ai_section = Gio.Menu()
-        ai_section.append_item(_action_item(_('Add AI Annotation…'), 'win.ai-annotate-pdf'))
-        ai_section.append_item(_action_item(_('Send Selection to Agent'), 'win.ai-send-pdf'))
-        model.append_section(None, ai_section)
+        # （与源码右键菜单同 label，复用已译字符串）。AI Agent 总开关关闭时
+        # 整段不出现（空 section 不渲染）。
+        settings = getattr(getattr(self.preview, 'document', None), 'settings', None)
+        if is_ai_agent_enabled(settings):
+            ai_section = Gio.Menu()
+            ai_section.append_item(_action_item(_('Add AI Annotation…'), 'win.ai-annotate-pdf'))
+            ai_section.append_item(_action_item(_('Send Selection to Agent'), 'win.ai-send-pdf'))
+            model.append_section(None, ai_section)
 
         # Find & Print section.
         find_section = Gio.Menu()

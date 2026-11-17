@@ -210,8 +210,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         # welcome_overlay：把欢迎页包进 Gtk.Overlay，以便 headerbar 在欢迎页
         # 模式下作为浮层叠在欢迎页顶部（无文档时 mode_stack 显示 welcome_screen）。
-        # 注意：欢迎模式下 open/create 按钮已移到欢迎页正文（activate_welcome_screen_mode
-        # 会隐藏 headerbar 的 open/new/save 按钮），headerbar 仅保留居中标题与菜单按钮；
+        # 注意：欢迎模式下 open 按钮已移到欢迎页正文（activate_welcome_screen_mode
+        # 会隐藏 headerbar 的 open 按钮；新建文档入口本来就在汉堡菜单里，无需隐藏），
+        # headerbar 仅保留居中标题与菜单按钮；
         # 迁到 welcome_overlay 是为了让这个菜单/标题在欢迎页依然可见可用。headerbar 是
         # 单一控件，通过 reparent_headerbar() 在 welcome_overlay 与 document_stack_overlay
         # 之间迁移，详见该方法注释。
@@ -248,12 +249,12 @@ class MainWindow(Adw.ApplicationWindow):
         # 与左侧栏行为不一致。现在侧栏出现时 headerbar 随编辑器列被推开，
         # 侧栏关闭时 headerbar 回到右侧靠边位置，与 sidebar_split 一致。
         # 欢迎页模式下 headerbar 由 reparent_headerbar 迁移到 welcome_overlay，
-        # 保证无文档时 open/create 按钮依然可见。
+        # 保证无文档时汉堡菜单（含新建文档入口）依然可见可用。
         self.headerbar.widget.set_valign(Gtk.Align.START)
         self.document_stack_overlay.add_overlay(self.headerbar.widget)
 
         # 全屏模式下 headerbar 是浮层，默认隐藏；鼠标移到顶部边缘时弹出。
-        # 对有下拉气泡（popover）的按钮（open / new 箭头、汉堡菜单），点击后
+        # 对带下拉气泡（popover）的按钮（汉堡菜单），点击后
         # 气泡作为独立 surface 弹出，鼠标从主窗口移入气泡会触发主窗口的 leave；
         # 若此时直接隐藏顶栏，用户操作菜单时顶栏会闪退。处理要点：
         #   1. 监听每个 popover 的 map / closed，可靠维护 _popover_open；
@@ -265,15 +266,12 @@ class MainWindow(Adw.ApplicationWindow):
         #      即被置 True，延时回调会跳过隐藏。
         self.headerbar.sidebar_toggle.connect('clicked', self._on_headerbar_clicked)
         self.headerbar.open_document_button.connect('clicked', self._on_headerbar_clicked)
-        self.headerbar.new_document_button.connect('clicked', self._on_headerbar_clicked)
-        self.headerbar.new_document_button.connect('activate', self._on_split_button_activate)
         self.headerbar.center_button.connect('clicked', self._on_headerbar_clicked)
         self.headerbar.preview_help_toggle.connect('clicked', self._on_headerbar_clicked)
         # Gtk.MenuButton（汉堡菜单）没有 clicked 信号，用 activate 替代。
         self.headerbar.menu_button.connect('activate', self._on_menu_button_activate)
 
         # 预创建阶段 popover 已存在则直接连接；不存在则等首次激活时再连。
-        self._track_popover(self.headerbar.new_document_button.get_popover())
         self._track_popover(self.headerbar.menu_button.get_popover())
 
         # 记录 headerbar 当前所在 overlay，供 reparent_headerbar 判断迁移方向。
@@ -732,6 +730,8 @@ class MainWindow(Adw.ApplicationWindow):
         '''timeout 回调：spinner 渲染后批量打开拖放的文件。'''
         for path in paths:
             try:
+                # 批量拖放常包含已打开的文件：静默（notify_if_already_open
+                # 默认 False），否则会在 toast 队列里堆一串「is already open」。
                 workspace.open_document_by_filename(path)
             except Exception:
                 pass
@@ -1000,13 +1000,6 @@ class MainWindow(Adw.ApplicationWindow):
             self._loading_spinner.stop()
             self._content_stack.set_visible_child_name('content')
         return False
-
-    def _on_split_button_activate(self, button):
-        '''Adw.SplitButton 的下拉箭头只发 activate、不发 clicked；点击箭头
-        展开 popover。立即标记打开并补连 popover 的 map / closed 信号。'''
-        self._track_popover(button.get_popover())
-        self._popover_open = True
-        self._cancel_hide_headerbar()
 
     def _on_menu_button_activate(self, button):
         '''Gtk.MenuButton（汉堡菜单）没有 clicked 信号，用 activate。

@@ -78,6 +78,18 @@ class HamburgerMenu(object):
         section_theme.append_item(theme_item)
         self.menu_model.append_section(None, section_theme)
 
+        # 新建文档：原顶栏 Adw.SplitButton（左键新建 LaTeX + 箭头发散菜单）已移除，
+        # 三种入口（LaTeX / BibTeX / 模板）统一收进这里。欢迎页模式下顶栏会迁移到
+        # welcome_overlay 且不显示 open 按钮，而汉堡菜单始终可见，故新建入口在此
+        # 也不会丢失。win.new-latex-document 的默认快捷键为 Ctrl+N（可在偏好设置改）。
+        section_new = Gio.Menu()
+        new_latex = Gio.MenuItem.new(_('New LaTeX Document'), 'win.new-latex-document')
+        new_latex.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>n'))
+        section_new.append_item(new_latex)
+        section_new.append(_('New BibTeX Document'), 'win.new-bibtex-document')
+        section_new.append(_('New Document from Template'), 'win.new-from-file-template')
+        self.menu_model.append_section(None, section_new)
+
         # GMenu 的分隔线由 section 自动渲染：每个 append_section 之间出一条标准分隔线，
         # 不要用自定义 role=separator 的 MenuItem（会被 Gtk 渲染成空白行=空白项 bug）。
         section_save = Gio.Menu()

@@ -51,6 +51,7 @@ import setzer.workspace.sidebar.sidebar as sidebar
 import setzer.workspace.shortcutsbar.shortcutsbar as shortcutsbar
 import setzer.workspace.build_log.build_log as build_log
 import setzer.workspace.actions.actions as actions
+from setzer.ai_fix.availability import is_ai_agent_enabled
 import setzer.workspace.context_menu.context_menu as context_menu
 import setzer.workspace.tab_context_menu as tab_context_menu
 import setzer.workspace.auto_build.auto_build as auto_build
@@ -97,13 +98,20 @@ class Workspace(Observable):
         self.show_help = self.settings.get_value('window_state', 'show_help')
         self.show_symbols = self.settings.get_value('window_state', 'show_symbols')
         self.show_document_structure = self.settings.get_value('window_state', 'show_document_structure')
-        self.show_ai_agent = self.settings.get_value('window_state', 'show_ai_agent')
+        # AI Agent 总开关（Preferences → AI Settings）关闭时，入口在界面上
+        # 全部消失：这里把持久化的面板状态一并压平，避免会话恢复把侧栏
+        # 停在一个已不存在的面板上。
+        self.show_ai_agent = (self.settings.get_value('window_state', 'show_ai_agent')
+                              and is_ai_agent_enabled(self.settings))
 
         # 记忆上次侧栏面板（隐藏后再次显示时恢复）。与 show_*/show_document_structure
         # 解耦：后者在隐藏时被清成 False（仅用于驱动可见性），本属性持久化"上次选了哪个"。
         self.sidebar_page = self.settings.get_value('window_state', 'sidebar_page')
         if self.sidebar_page not in ('symbols', 'document_structure', 'ai_agent'):
             # 值损坏 / 来自更早版本时的兜底，与 settings 默认保持一致。
+            self.sidebar_page = 'document_structure'
+        elif self.sidebar_page == 'ai_agent' and not is_ai_agent_enabled(self.settings):
+            # AI Agent 关闭时该面板不存在，记忆值回落到结构页。
             self.sidebar_page = 'document_structure'
 
         # PDF 预览弹出独立窗口状态。不跨会话持久化（v1）：每次启动默认内嵌侧边栏，
@@ -179,7 +187,7 @@ class Workspace(Observable):
           （create_document_from_filename 会读盘 + 创建 GTK 组件，阻塞主线程）。
           16ms ≈ 60Hz 下一帧：spinner 能画出第一帧即可，不再固定多等 200ms。
         - fire-and-forget：不返回 document（用户交互场景无需同步拿返回值）。
-        供对话框、最近文档、拖放、欢迎页等用户入口调用。编程式打开
+        供对话框、最近文档、欢迎页等用户入口调用。编程式打开
         （sidebar include 跳转、build log 反向同步等）仍用同步的
         open_document_by_filename，因为它们需要立即拿到 document 引用。
         '''
@@ -188,23 +196,34 @@ class Workspace(Observable):
             main_window.show_loading_spinner()
             GLib.timeout_add(16, self._do_open_document_by_filename, filename)
         else:
-            self.open_document_by_filename(filename)
+            self.open_document_by_filename(filename, notify_if_already_open=True)
 
     def _do_open_document_by_filename(self, filename):
         '''timeout 回调：spinner 已渲染后执行实际的文档打开。'''
-        self.open_document_by_filename(filename)
+        # 本入口只服务用户显式打开的动作（最近文档/欢迎页/重开已关闭文档），
+        # 目标已在标签页里时提示「已打开」。
+        self.open_document_by_filename(filename, notify_if_already_open=True)
         return False
 
-    def open_document_by_filename(self, filename):
+    def open_document_by_filename(self, filename, notify_if_already_open=False):
+        '''打开（或切换激活）文档。
+
+        notify_if_already_open 只给用户显式发起的打开用（文件选择器、最近文档、
+        欢迎页、重新打开已关闭文档）：目标已在标签页中时弹 toast 说明。
+        编程式跳转（synctex 反向同步、侧栏 include、结构树、build log、
+        AI 批注映射）必须保持静默——切换标签页本身就是反馈，而双向跳转
+        每次都会命中已打开的文档，toast 会不停打断操作。
+        '''
         if filename == None: return None
 
         document_candidate = self.get_document_by_filename(filename)
         if document_candidate != None:
             self.set_active_document(document_candidate)
-            main_window = ServiceLocator.get_main_window()
-            if main_window and hasattr(main_window, 'toast_overlay'):
-                GLib.idle_add(self._do_show_toast, main_window,
-                    _('{name} is already open').format(name=os.path.basename(filename)))
+            if notify_if_already_open:
+                main_window = ServiceLocator.get_main_window()
+                if main_window and hasattr(main_window, 'toast_overlay'):
+                    GLib.idle_add(self._do_show_toast, main_window,
+                        _('{name} is already open').format(name=os.path.basename(filename)))
             return document_candidate
         else:
             document = self.create_document_from_filename(filename)
@@ -826,7 +845,8 @@ class Workspace(Observable):
             if window_state:
                 self.show_symbols = window_state.get('show_symbols', self.show_symbols)
                 self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
-                self.show_ai_agent = window_state.get('show_ai_agent', self.show_ai_agent)
+                self.show_ai_agent = (window_state.get('show_ai_agent', self.show_ai_agent)
+                                      and is_ai_agent_enabled(self.settings))
                 self.show_preview = window_state.get('show_preview', self.show_preview)
                 self.show_help = window_state.get('show_help', self.show_help)
                 self.show_build_log = window_state.get('show_build_log', self.show_build_log)
@@ -1495,7 +1515,13 @@ class Workspace(Observable):
             self.add_change_code('set_show_symbols_or_document_structure')
 
     def set_show_ai_agent(self, show):
-        '''激活/取消侧栏 AI 页（与结构/符号页互斥，复用同一 change code）。'''
+        '''激活/取消侧栏 AI 页（与结构/符号页互斥，复用同一 change code）。
+
+        AI Agent 总开关关闭时不激活：该面板的档位已从切换器上摘除，
+        任何程序化调用（会话恢复、批注发送等）都不应把侧栏切到这一页。
+        '''
+        if show and not is_ai_agent_enabled(self.settings):
+            return
         if show == self.show_ai_agent:
             if show:
                 # 已激活时再次调用（如发送时确保可见）：幂等通知，保证切页+展开。
@@ -1541,7 +1567,8 @@ class Workspace(Observable):
                 # 值之一，这样将来新增面板时不会静默落到某一页。
                 if self.sidebar_page == 'symbols':
                     self.set_show_symbols_or_document_structure(True, False)
-                elif self.sidebar_page == 'ai_agent':
+                elif (self.sidebar_page == 'ai_agent'
+                      and is_ai_agent_enabled(self.settings)):
                     self.set_show_ai_agent(True)
                 else:
                     self.set_show_symbols_or_document_structure(False, True)

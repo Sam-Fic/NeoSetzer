@@ -29,6 +29,7 @@ import sys
 import os
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers import toast
 from setzer.helpers.sync_debug import sync_debug
 from setzer.app.color_manager import ColorManager
 from setzer.dialogs.go_to_page.go_to_page import GoToPageDialog
@@ -597,12 +598,11 @@ class PreviewController(object):
             self._update_magnifier(force=True)
 
     def _show_ctrl_hint_toast(self):
-        '''普通点击 URI 链接时，提醒用户需按住 Ctrl 才打开。'''
-        main_window = ServiceLocator.get_main_window()
-        if main_window and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Hold Ctrl and click to open this link'))
-            toast.set_timeout(3)
-            main_window.toast_overlay.add_toast(toast)
+        '''普通点击 URI 链接时，提醒用户需按住 Ctrl 才打开。
+
+        读到提示之前用户往往已经连点了两三下，节流避免一句提示排队弹好几遍。
+        '''
+        toast.show(_('Hold Ctrl and click to open this link'), timeout=3)
         return False
 
     def open_link(self, link):
@@ -641,20 +641,12 @@ class PreviewController(object):
         webbrowser.open_new_tab 在后台线程中调用；失败时通过 GLib.idle_add
         切回主线程显示 toast（GTK 控件非线程安全，不能从后台线程操作）。
         '''
-        main_window = ServiceLocator.get_main_window()
-        if main_window and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Could not open link'))
-            toast.set_timeout(5)
-            main_window.toast_overlay.add_toast(toast)
+        toast.show(_('Could not open link'), timeout=5)
         return False
 
     def _show_blocked_link_toast(self):
         '''在主线程显示「链接被拦截」toast（危险 scheme）。'''
-        main_window = ServiceLocator.get_main_window()
-        if main_window and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Link blocked: this link type is unsafe'))
-            toast.set_timeout(5)
-            main_window.toast_overlay.add_toast(toast)
+        toast.show(_('Link blocked: this link type is unsafe'), timeout=5)
         return False
 
     def _confirm_open_file(self, uri):

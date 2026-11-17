@@ -22,6 +22,7 @@ from gi.repository import Adw
 
 import os.path
 
+from setzer.ai_fix.availability import is_ai_agent_enabled
 from setzer.app.service_locator import ServiceLocator
 
 
@@ -167,7 +168,6 @@ class HeaderBar(object):
         self.hide_sidebar_toggles()
         self.hide_preview_help_toggles()
         self.view.open_document_button.set_visible(False)
-        self.view.new_document_button.set_visible(False)
         self.view.center_button.set_sensitive(False)
         self.view.center_widget.set_visible_child_name('welcome')
         self.view.widget.add_css_class('welcome')
@@ -178,7 +178,6 @@ class HeaderBar(object):
         self.view.agent_terminal_button.set_visible(False)
 
     def activate_document_mode(self):
-        self.view.new_document_button.set_visible(True)
         self.on_update_recently_opened_documents(None, self.workspace.recently_opened_documents)
         self.view.center_button.set_sensitive(True)
         self.view.center_widget.set_visible_child_name('button')
@@ -272,11 +271,14 @@ class HeaderBar(object):
             self.view.build_log_toggle.set_active(show_build_log)
 
     def on_settings_changed(self, settings, parameter):
-        '''show_shortcuts_bar 偏好变化时，重新计算标题栏 build_log_toggle 显隐。
+        '''show_shortcuts_bar / ai_fix_enabled 变化时重算标题栏按钮显隐。
         其他偏好变化无需本 presenter 关心，忽略。'''
         section, item, value = parameter
         if item == 'show_shortcuts_bar':
             self.update_build_log_toggle_visibility()
+        if item == 'ai_fix_enabled':
+            # 关闭 AI Agent 时入口直接消失（不保留灰色/弹提示的按钮）。
+            self.update_agent_terminal_button_visibility()
 
     def on_build_state(self, build_system, message):
         '''active 文档的编译状态变化：error 时给 build_log_toggle 加红色样式，
@@ -330,13 +332,12 @@ class HeaderBar(object):
         self.view.build_log_toggle.set_visible((not show) and has_latex_doc)
 
     def update_agent_terminal_button_visibility(self):
-        '''收敛「在终端中打开 Agent」按钮的显隐：有 root/active latex 文档时显示，
-        否则隐藏。welcome 模式天然没 latex 文档，会走到 hide 分支；本方法
-        因此不需要额外的 welcome 兜底——update_toggles() 已经保证
-        "有 latex 文档 → 调用 show_*_toggles；否则 hide_*_toggles"。
-        '''
+        '''收敛「在终端中打开 Agent」按钮的显隐：AI Agent 启用且有
+        root/active latex 文档时才显示，否则隐藏（含 welcome 模式 / 非 latex
+        文档 / Preferences 里关闭了 Enable AI agent 的情况）。'''
         has_latex_doc = self.workspace.get_root_or_active_latex_document() is not None
-        self.view.agent_terminal_button.set_visible(has_latex_doc)
+        show = has_latex_doc and is_ai_agent_enabled(self.workspace.settings)
+        self.view.agent_terminal_button.set_visible(show)
 
     # ---- 快速打开 Agent 终端 ----
 

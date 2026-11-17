@@ -200,7 +200,18 @@ class DocumentSettings():
         # 横向居中（fit_to_text_width）因此可在重启后复现，且重编译/缩放窗口后
         # 也始终正确。
         if document.is_latex_document():
-            document.preview.set_pdf_filename(pdf_filename)
+            preview = document.preview
+            # 只填路径不读盘 = 预览区空白（"No preview available"），这正是
+            # 切到会话恢复的标签页时看到的现象。两种必须补读的情形：
+            # 1) 还没有内存文档（Preview 构造时旁边没有 <tex 主名>.pdf，见
+            #    Preview._initialize_pdf_from_filename）；
+            # 2) 已经自举/加载的是另一份产物（自定义输出目录时 PDF 不在
+            #    .tex 旁边，状态里记的才是构建产物路径）。
+            reload_pdf = (preview.poppler_document is None
+                          or preview.pdf_filename != pdf_filename)
+            preview.set_pdf_filename(pdf_filename)
+            if reload_pdf:
+                preview.load_pdf()
 
             manager = document.preview.zoom_manager
             zoom_mode = document_data.get('zoom_mode')

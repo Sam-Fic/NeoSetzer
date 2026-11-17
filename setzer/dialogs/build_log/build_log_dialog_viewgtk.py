@@ -355,6 +355,9 @@ class BuildLogList(Gtk.ListBox):
         # BuildLogList 不直接依赖 ai_fix 服务，仅把 row 转发给 controller，
         # 避免把 service 耦合进纯视图层（与 copy 按钮范式一致）。
         self.ai_fix_row_callback = None
+        # AI Agent 总开关（Preferences → AI Settings）关闭时不建行尾修复按钮。
+        # controller 在构造与设置变化时同步本标志并重建内容。
+        self.ai_fix_enabled = True
         # 右键上下文菜单「忽略此类 warning」的回调注入点（由 controller 设置）。
         self.ignore_row_callback = None
         # 当前搜索文本，供 make_row 对标题/副标题做命中加粗（空串即不高亮）。
@@ -431,13 +434,15 @@ class BuildLogList(Gtk.ListBox):
         # 复用与 copy 按钮一致的 flat/center 样式；点击通过
         # ai_fix_row_callback 转发给 controller（不直接依赖 service）。
         # icon 用 ai-slop-symbolic，与顶栏 Fix All 一致。
-        ai_fix_button = Gtk.Button(icon_name='ai-slop-symbolic')
-        ai_fix_button.set_tooltip_text(_('Fix this error with AI'))
-        ai_fix_button.add_css_class('flat')
-        ai_fix_button.set_valign(Gtk.Align.CENTER)
-        ai_fix_button.set_can_focus(False)
-        ai_fix_button.connect('clicked', self.on_ai_fix_row_clicked, row)
-        row.add_suffix(ai_fix_button)
+        # AI Agent 关闭时整颗按钮不出现（入口消失，不是置灰）。
+        if self.ai_fix_enabled:
+            ai_fix_button = Gtk.Button(icon_name='ai-slop-symbolic')
+            ai_fix_button.set_tooltip_text(_('Fix this error with AI'))
+            ai_fix_button.add_css_class('flat')
+            ai_fix_button.set_valign(Gtk.Align.CENTER)
+            ai_fix_button.set_can_focus(False)
+            ai_fix_button.connect('clicked', self.on_ai_fix_row_clicked, row)
+            row.add_suffix(ai_fix_button)
 
         # 右键 Copy 单行：GestureClick 监听 SECONDARY button。
         # pressed 回调直接 copy 单行文本，不弹 popover（少一步点击）。

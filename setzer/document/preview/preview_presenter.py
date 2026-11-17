@@ -73,10 +73,13 @@ class PreviewPresenter(object):
         self._drawn_page_range = None
         self.view.content.connect('scrolling_offset_changed', self.on_scrolling_offset_change)
 
-        # 文字选择高亮的 device 空间叠层缓存：page → (surface, key)。
-        # 高亮与页面纹理同尺寸同映射（见 draw_text_selection_rectangles），
-        # 分数缩放下 GSK 对两者的像素对齐/过滤完全一致，消除高亮偏下。
+        # 高亮的 device 空间叠层缓存：page → (surface, key)。
+        # 高亮与页面纹理同尺寸同映射（见 _get_highlight_overlay），分数缩放下
+        # GSK 对两者的像素对齐/过滤完全一致，消除高亮偏下。文字选择、
+        # synctex 正向同步（源码 → PDF 跳转）、块选择各用一份，互不覆盖。
         self._selection_overlay_cache = dict()
+        self._synctex_overlay_cache = dict()
+        self._block_overlay_cache = dict()
 
         # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
         # view 的画布 overlay 里），点击 → 滚动到该页顶部。
@@ -105,6 +108,8 @@ class PreviewPresenter(object):
 
     def on_pdf_changed(self, preview):
         self._selection_overlay_cache = dict()
+        self._synctex_overlay_cache = dict()
+        self._block_overlay_cache = dict()
         if self.preview.poppler_document != None:
             # 成功加载新 PDF 时清除上次的构建失败提示。
             self.view.hide_pdf_load_failed()
@@ -154,6 +159,8 @@ class PreviewPresenter(object):
 
     def on_layout_changed(self, preview):
         self._selection_overlay_cache = dict()
+        self._synctex_overlay_cache = dict()
+        self._block_overlay_cache = dict()
         if self.preview.layout != None:
             # Size the canvas-sized drawing area to the full PDF canvas; the
             # Gtk.ScrolledWindow derives its adjustment uppers from this and
@@ -452,27 +459,47 @@ class PreviewPresenter(object):
         ctx.set_matrix(matrix)
 
     def draw_synctex_rectangles(self, ctx, page_number, synctex_color):
+        '''绘制正向同步（编辑器 → PDF 跳转）的高亮矩形。
+
+        与文字选择同一修复思路：矩形不直接画矢量，而是栅格化进与页面
+        纹理**同尺寸**的 device surface，再用与 draw_rendered_page **逐字
+        相同**的 scale 绘制，分数缩放下与文字严格对齐。淡出 alpha 由绘制
+        端施加（MULTIPLY + paint_with_alpha），不进入缓存。纹理未就绪时
+        回退矢量矩形（仅短暂占位期）。'''
         if self._current_time_factor <= 0:
             return
         try:
             rectangles = self.preview.layout.visible_synctex_rectangles[page_number]
         except KeyError:
             return
-        if synctex_color is not None:
-            # 不原地修改 synctex_color.alpha：ColorManager 返回的对象可能被缓存，
-            # 原代码 color.alpha *= time_factor 会污染缓存，使后续取色（含本帧
-            # 其它页与后续帧）拿到不断衰减的 alpha，高亮颜色越来越淡甚至归零。
-            # 直接在 set_source_rgba 中计算乘积，零副作用。
-            #
-            # 降 alpha：accent 全不透明(1.0) + MULTIPLY 等于铺实色块，太浓重。
-            # 改为 _SYNCTEX_HIGHLIGHT_MAX_ALPHA 封顶，再乘 time_factor 做淡出。
-            ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue,
-                                _SYNCTEX_HIGHLIGHT_MAX_ALPHA * self._current_time_factor)
-            ctx.set_operator(cairo.Operator.MULTIPLY)
-            for rectangle in rectangles:
-                ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
-            ctx.fill()
-            ctx.set_operator(cairo.Operator.OVER)
+        if synctex_color is None:
+            return
+        layout = self.preview.layout
+        # 不原地修改 synctex_color.alpha：ColorManager 返回的对象可能被缓存，
+        # 原代码 color.alpha *= time_factor 会污染缓存，使后续取色（含本帧
+        # 其它页与后续帧）拿到不断衰减的 alpha，高亮颜色越来越淡甚至归零。
+        # 直接在绘制时算乘积，零副作用。
+        #
+        # 降 alpha：accent 全不透明(1.0) + MULTIPLY 等于铺实色块，太浓重。
+        # 改为 _SYNCTEX_HIGHLIGHT_MAX_ALPHA 封顶，再乘 time_factor 做淡出。
+        alpha = _SYNCTEX_HIGHLIGHT_MAX_ALPHA * self._current_time_factor
+        rendered = self.page_renderer.rendered_pages.get(page_number)
+        surface = rendered[0] if rendered is not None else None
+        if isinstance(surface, cairo.ImageSurface):
+            overlay = self._get_synctex_overlay(page_number, rectangles, layout,
+                                                surface.get_width(), surface.get_height())
+            if overlay is not None:
+                self._paint_device_overlay(ctx, overlay, layout,
+                                           surface.get_width(), surface.get_height(),
+                                           alpha, cairo.Operator.MULTIPLY)
+                return
+        # 回退：纹理未就绪时的矢量矩形。
+        ctx.set_source_rgba(synctex_color.red, synctex_color.green, synctex_color.blue, alpha)
+        ctx.set_operator(cairo.Operator.MULTIPLY)
+        for rectangle in rectangles:
+            ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
+        ctx.fill()
+        ctx.set_operator(cairo.Operator.OVER)
 
     def draw_text_selection_rectangles(self, ctx, page_number, selection_color):
         '''绘制当前文字选择的每页高亮区域。
@@ -496,13 +523,8 @@ class PreviewPresenter(object):
             overlay = self._get_selection_overlay(page_number, rectangles, layout,
                                                   surface.get_width(), surface.get_height())
             if overlay is not None:
-                matrix = ctx.get_matrix()
-                ctx.scale(int(layout.page_width_original) / surface.get_width(),
-                          int(layout.page_height_original) / surface.get_height())
-                ctx.set_source_surface(overlay, 0, 0)
-                ctx.rectangle(0, 0, surface.get_width(), surface.get_height())
-                ctx.fill()
-                ctx.set_matrix(matrix)
+                self._paint_device_overlay(ctx, overlay, layout,
+                                           surface.get_width(), surface.get_height())
                 return
         # 回退：纹理未就绪时的矢量矩形。
         ctx.set_source_rgba(selection_color.red, selection_color.green,
@@ -512,15 +534,41 @@ class PreviewPresenter(object):
                           (x2 - x1) * scale, (y2 - y1) * scale)
         ctx.fill()
 
-    def _get_selection_overlay(self, page, rectangles, layout, sw, sh):
-        '''把高亮矩形栅格化进与纹理同尺寸 (sw, sh) 的 device surface。
+    def _paint_device_overlay(self, ctx, overlay, layout, sw, sh, alpha=1.0,
+                              operator=cairo.Operator.OVER):
+        '''用与 draw_rendered_page 逐字相同的映射绘制 device 空间叠层。
 
-        内容密度与纹理一致：scale × sw / int(css_w)（= scale×hidpi/divisor），
-        使后续用 int(css)/sw 的 scale 绘制时净映射 = points×scale，与纹理
-        文字逐像素同坐标。缓存按 (rectangles, sw, sh, scale) 键控；尺寸不变
-        时复用同一 surface 仅重绘，避免拖动中反复分配。'''
-        key = (tuple(rectangles), sw, sh, layout.scale_factor)
-        entry = self._selection_overlay_cache.get(page)
+        scale = int(css)/surface，是 draw_rendered_page 的逆映射；叠层内容
+        与纹理同密度，因此两者经历完全相同的 GSK 像素对齐/过滤。'''
+        if sw <= 0 or sh <= 0:
+            return
+        matrix = ctx.get_matrix()
+        # clip 到页面设备矩形：paint 只在页内混合（等价旧 rectangle+fill 的
+        # 覆盖范围），透明源区不产生额外逐像素开销。
+        ctx.save()
+        ctx.scale(int(layout.page_width_original) / sw,
+                  int(layout.page_height_original) / sh)
+        ctx.rectangle(0, 0, sw, sh)
+        ctx.clip()
+        ctx.set_operator(operator)
+        ctx.set_source_surface(overlay, 0, 0)
+        if alpha < 1.0:
+            ctx.paint_with_alpha(alpha)
+        else:
+            ctx.paint()
+        ctx.restore()
+        ctx.set_matrix(matrix)
+
+    def _get_highlight_overlay(self, cache, page, device_rectangles, sw, sh, alpha):
+        '''把 device 空间矩形栅格化进 (sw, sh) surface 并缓存。
+
+        矩形已是 device 坐标（调用方用与纹理一致的密度换算），这里只负责
+        栅格化。缓存按 (rects, size, alpha) 键控；尺寸不变时复用同一
+        surface 仅重绘，避免拖动中反复分配。'''
+        if sw <= 0 or sh <= 0:
+            return None
+        key = (tuple(device_rectangles), sw, sh, alpha)
+        entry = cache.get(page)
         if entry is not None and entry[1] == key:
             return entry[0]
         if entry is not None and entry[0].get_width() == sw and entry[0].get_height() == sh:
@@ -532,27 +580,101 @@ class PreviewPresenter(object):
         ctx.paint()
         ctx.set_operator(cairo.Operator.OVER)
         color = ColorManager.get_ui_color('highlight_tag_preview')
-        ctx.set_source_rgba(color.red, color.green, color.blue, 0.30)
+        ctx.set_source_rgba(color.red, color.green, color.blue, alpha)
+        for x1, y1, x2, y2 in device_rectangles:
+            ctx.rectangle(x1, y1, x2 - x1, y2 - y1)
+        ctx.fill()
+        cache[page] = (overlay, key)
+        return overlay
+
+    def _get_selection_overlay(self, page, rectangles, layout, sw, sh):
+        '''文字选择高亮（points 空间）→ 与纹理同尺寸的 device surface。
+
+        内容密度与纹理一致：scale × sw / int(css_w)（= scale×hidpi/divisor），
+        使后续用 int(css)/sw 的 scale 绘制时净映射 = points×scale，与纹理
+        文字逐像素同坐标。'''
         dx = layout.scale_factor * sw / int(layout.page_width_original)
         dy = layout.scale_factor * sh / int(layout.page_height_original)
-        for x1, y1, x2, y2 in rectangles:
-            ctx.rectangle(x1 * dx, y1 * dy, (x2 - x1) * dx, (y2 - y1) * dy)
-        ctx.fill()
-        self._selection_overlay_cache[page] = (overlay, key)
+        device_rectangles = [(x1 * dx, y1 * dy, x2 * dx, y2 * dy)
+                             for x1, y1, x2, y2 in rectangles]
+        return self._get_highlight_overlay(self._selection_overlay_cache, page,
+                                           device_rectangles, sw, sh, 0.30)
+
+    def _get_synctex_overlay(self, page, rectangles, layout, sw, sh):
+        '''synctex 正向同步高亮（已乘 scale_factor 的 canvas css）→ device。
+
+        与文字选择的唯一差别是坐标空间：visible_synctex_rectangles 已含
+        scale_factor，故 css→device 系数为 sw / int(css_w)（= hidpi/divisor），
+        不再是 scale×sw/int(css_w)。绘制时同一 int(css)/sw 的 scale 使净
+        映射 = css，与纹理文字逐像素同坐标。alpha 固定 1.0，淡出由绘制端
+        的 paint_with_alpha 施加，缓存不受 time_factor 影响。'''
+        dx = sw / int(layout.page_width_original)
+        dy = sh / int(layout.page_height_original)
+        device_rectangles = [(r.x * dx, r.y * dy,
+                              (r.x + r.width) * dx, (r.y + r.height) * dy)
+                             for r in rectangles]
+        return self._get_highlight_overlay(self._synctex_overlay_cache, page,
+                                           device_rectangles, sw, sh, 1.0)
+
+    def _get_block_overlay(self, page, rect, layout, sw, sh):
+        '''块选择高亮（points 空间）→ device surface（填充 + 1px 描边）。
+
+        密度换算同文字选择（rect 也是 points 空间）：device = points ×
+        scale × sw / int(css_w)。描边线宽取同一密度，视觉上仍是 1 css px。
+        缓存按 (rect, size) 键控。'''
+        if sw <= 0 or sh <= 0:
+            return None
+        dx = layout.scale_factor * sw / int(layout.page_width_original)
+        dy = layout.scale_factor * sh / int(layout.page_height_original)
+        x1, y1, x2, y2 = rect
+        device_rect = (x1 * dx, y1 * dy, x2 * dx, y2 * dy)
+        key = (device_rect, sw, sh)
+        entry = self._block_overlay_cache.get(page)
+        if entry is not None and entry[1] == key:
+            return entry[0]
+        if entry is not None and entry[0].get_width() == sw and entry[0].get_height() == sh:
+            overlay = entry[0]
+        else:
+            overlay = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+        ctx = cairo.Context(overlay)
+        ctx.set_operator(cairo.Operator.CLEAR)
+        ctx.paint()
+        ctx.set_operator(cairo.Operator.OVER)
+        color = ColorManager.get_ui_color('highlight_tag_preview')
+        bx1, by1, bx2, by2 = device_rect
+        ctx.rectangle(bx1, by1, bx2 - bx1, by2 - by1)
+        ctx.set_source_rgba(color.red, color.green, color.blue, 0.25)
+        ctx.fill_preserve()
+        ctx.set_source_rgba(color.red, color.green, color.blue, 0.8)
+        ctx.set_line_width(max(dx, 1.0))
+        ctx.stroke()
+        self._block_overlay_cache[page] = (overlay, key)
         return overlay
 
     def draw_block_selection(self, ctx, page_number, block_color):
         '''块选择高亮：同 accent 填充 + 1px 描边区分于文字选择。
 
-        rect 为未旋转 top-down points，与 draw_text_selection_rectangles
-        同一 transform 内调用，乘 scale_factor 即可。'''
+        rect 为未旋转 top-down points。与文字选择 / synctex 同一 device
+        叠层机制（分数缩放下与纹理文字严格对齐），描边线宽按 css→device
+        密度换算，保证视觉上仍是 1 css px。纹理未就绪时回退矢量矩形。'''
         if block_color is None:
             return
         selection = self.preview.block_selection
         if selection is None or selection['page'] != page_number:
             return
+        layout = self.preview.layout
+        rendered = self.page_renderer.rendered_pages.get(page_number)
+        surface = rendered[0] if rendered is not None else None
+        if isinstance(surface, cairo.ImageSurface):
+            overlay = self._get_block_overlay(page_number, selection['rect'], layout,
+                                              surface.get_width(), surface.get_height())
+            if overlay is not None:
+                self._paint_device_overlay(ctx, overlay, layout,
+                                           surface.get_width(), surface.get_height())
+                return
+        # 回退：纹理未就绪时的矢量矩形。
         x1, y1, x2, y2 = selection['rect']
-        scale = self.preview.layout.scale_factor
+        scale = layout.scale_factor
         ctx.rectangle(x1 * scale, y1 * scale, (x2 - x1) * scale, (y2 - y1) * scale)
         ctx.set_source_rgba(block_color.red, block_color.green, block_color.blue, 0.25)
         ctx.fill_preserve()

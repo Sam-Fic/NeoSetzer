@@ -284,9 +284,6 @@
 ./setzer/popovers/helpers/gio_menu_builder.py
 ./setzer/popovers/helpers/__init__.py
 ./setzer/popovers/__init__.py
-./setzer/popovers/new_document/__init__.py
-./setzer/popovers/new_document/new_document.py
-./setzer/popovers/new_document/new_document_viewgtk.py
 ./setzer/popovers/popover_manager.py
 ./setzer/popovers/preview_zoom_level/__init__.py
 ./setzer/popovers/preview_zoom_level/preview_zoom_level.py

@@ -95,7 +95,9 @@ class OpenDocumentDialog(object):
         failed_files = []
         for path in paths:
             try:
-                self.workspace.open_document_by_filename(path)
+                # 用户显式选择文件：命中的已打开文档应提示，避免「点了没反应」。
+                self.workspace.open_document_by_filename(
+                    path, notify_if_already_open=True)
             except Exception:
                 failed_files.append(path)
 

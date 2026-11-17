@@ -20,10 +20,11 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gdk, GLib, Gtk, GObject, Pango, Adw
+from gi.repository import Gdk, GLib, Gtk, GObject, Pango
 
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers import toast
 from setzer.app.font_manager import FontManager
 from setzer.document.snippet_preview import math_preview
 from setzer.document.snippet_preview.math_preview_popover import MathPreviewPopover
@@ -383,11 +384,8 @@ class DocumentController(object):
 
     def _show_sync_unavailable_toast(self):
         '''Ctrl+Click 前向同步不可用时提示用户。常见原因：PDF 尚未构建。'''
-        main_window = ServiceLocator.get_main_window()
-        if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('No PDF available for forward sync. Build the document first.'))
-            toast.set_timeout(3)
-            main_window.toast_overlay.add_toast(toast)
+        toast.show(_('No PDF available for forward sync. Build the document first.'),
+                   timeout=3)
 
     def _on_motion_enter(self, controller, x, y):
         self._update_ctrl_cursor(controller)

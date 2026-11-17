@@ -17,7 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from setzer.app.service_locator import ServiceLocator
-from gi.repository import GLib, Adw
+from setzer.helpers import toast
+from gi.repository import GLib
 
 
 class PreviewPanelPresenter(object):
@@ -164,14 +165,15 @@ class PreviewPanelPresenter(object):
             self._connected_preview.zoom_manager.disconnect('zoom_mode_changed', self.on_zoom_mode_changed)
             self._connected_preview = None
 
-        self.document = self._preview_target()
+        document = self._preview_target()
+        self._ensure_preview_toolchain(document)
+        self.document = document
 
         if self.mode == 'snippet':
             self._show_snippet_document()
             return
 
-        # 工具链未挂接的文档视同无预览（正常流程不会发生：激活/根文档都会
-        # 先挂工具链，这里仅防御）。
+        # 工具链仍未挂接（非 LaTeX 文档 / 已 shutdown）：无预览可展示。
         doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
         if self.document == None or doc_preview is None:
             self.stack.set_visible_child(self.view.empty_placeholder)
@@ -179,20 +181,57 @@ class PreviewPanelPresenter(object):
             self.update_buttons()
             self._detach_target_bar()
         else:
-            self.stack.set_visible_child(self.document.preview.view)
+            view = self.document.preview.view
+            # 必须确保 view 已在 stack 里：set_visible_child 对非子控件只发
+            # GTK 警告、不切换可见页，面板会停在别的文档的 PDF 或全空。
+            if view.get_parent() is None:
+                self.stack.add_child(view)
+            self.stack.set_visible_child(view)
             self.update_label()
             self.update_buttons()
             self.update_zoom_level()
             self._sync_zoom_action_state()
-            doc_preview.connect('pdf_changed', self.on_pdf_changed)
-            doc_preview.connect('position_changed', self.on_position_changed)
-            doc_preview.connect('layout_changed', self.on_layout_changed)
-            doc_preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
-            doc_preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
-            doc_preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
-            doc_preview.zoom_manager.connect('zoom_mode_changed', self.on_zoom_mode_changed)
-            self._connected_preview = doc_preview
-            self._attach_target_bar(self.document.preview.view)
+            # 拦截重入造成的一次双连：目标文档恰是上一个目标时，
+            # _ensure_preview_toolchain 里的 latex_toolchain_ready 会同步再走
+            # 一遍本方法并完成连接，回到这里就没必要再连一次（否则每个信号
+            # 都会被处理两遍）。
+            if self._connected_preview is not doc_preview:
+                doc_preview.connect('pdf_changed', self.on_pdf_changed)
+                doc_preview.connect('position_changed', self.on_position_changed)
+                doc_preview.connect('layout_changed', self.on_layout_changed)
+                doc_preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
+                doc_preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
+                doc_preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
+                doc_preview.zoom_manager.connect('zoom_mode_changed', self.on_zoom_mode_changed)
+                self._connected_preview = doc_preview
+                self._attach_target_bar(view)
+
+    def _ensure_preview_toolchain(self, document):
+        '''预览目标没有工具链（也就没有 PreviewView）时补挂一次。
+
+        会话恢复的非活跃文档是轻量的（attach_preview=False），工具链要等它
+        被激活才建。而预览目标未必是活跃文档：多文件工程里 root 才是目标，
+        用户只点开了某个章节文件 —— 此时目标文档没有 PreviewView，stack 只能
+        显示空白占位，哪怕 root 的 PDF 早就在磁盘上。切到该章节即补挂。
+
+        `_attach_latex_toolchain` 经 latex_toolchain_ready 把 view 加进 stack
+        （见 on_latex_toolchain_ready）。通常在切换路径上 self.document 还是旧
+        值，那里的「目标即本文档就重走一遍」分支不会触发；但若目标没变（仅因
+        root_state_change 重跑），会同步重入一次 set_preview_document，那条
+        路径的连接由 `_connected_preview` 身份判定去重。'''
+        if document is None or not document.is_latex_document():
+            return
+        if getattr(document, 'preview', None) is not None:
+            return
+        self.workspace._attach_latex_toolchain(document)
+        # 「从未编译过的文档自动收起预览栏」的判据在挂接前一律为真（没有
+        # build_system / preview）。若这次显隐评估排在本方法之前（root_state_change
+        # 路径是同步的），侧栏已经被收起，而工具链就绪信号只补连 build_state、
+        # 不动侧栏，就会一直收着。idle 延迟到当前信号链结束再重估，避免在
+        # 布局分配期间操作 OverlaySplitView。
+        workspace_presenter = getattr(self.workspace, 'presenter', None)
+        if workspace_presenter is not None:
+            GLib.idle_add(workspace_presenter.update_preview_help_visibility, False)
 
     # ---------- 模式（整篇 PDF / TikZ 片段图） ----------
 
@@ -390,11 +429,8 @@ class PreviewPanelPresenter(object):
             message = _('Maximum zoom level reached')
         else:
             message = _('Minimum zoom level reached')
-        main_window = ServiceLocator.get_main_window()
-        if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(message)
-            toast.set_timeout(2)
-            main_window.toast_overlay.add_toast(toast)
+        # 滚轮/捏合到顶后继续操作会一直命中同一句：节流，别每帧弹一次。
+        toast.show(message, timeout=2)
 
     def update_label_debounced(self):
         '''滚动时 position_changed 高频触发（每帧）。页码标签只需秒级精度，

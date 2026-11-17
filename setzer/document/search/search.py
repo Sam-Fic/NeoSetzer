@@ -21,9 +21,9 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 from gi.repository import GLib
 from gi.repository import GtkSource
-from gi.repository import Adw
 
 import setzer.document.search.search_viewgtk as search_view
+from setzer.helpers import toast
 from setzer.helpers.observable import Observable
 from setzer.dialogs.dialog_locator import DialogLocator
 from setzer.app.service_locator import ServiceLocator
@@ -440,11 +440,8 @@ class Search(Observable):
 
     def _show_wrap_around_toast(self, direction):
         message = _('已到文档末尾，从头继续') if direction == 'next' else _('已到文档开头，从末尾继续')
-        main_window = ServiceLocator.get_main_window()
-        if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(message)
-            toast.set_timeout(2)
-            main_window.toast_overlay.add_toast(toast)
+        # 停在最后一条匹配上连按 Enter 会反复绕回：同一句提示只弹一次。
+        toast.show(message, timeout=2)
 
     def _is_in_selection(self, start_iter, end_iter):
         start_offset = start_iter.get_offset()

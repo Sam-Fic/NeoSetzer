@@ -53,32 +53,10 @@ class HeaderBar(object):
         shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
         self.open_document_button.set_action_name('win.open-document-dialog')
 
-        # new document: Adw.SplitButton — 左半部分默认新建 LaTeX 文档，
-        # 右侧箭头展开气泡选择文档类型（LaTeX / BibTeX）。
-        self.new_document_button = Adw.SplitButton()
-        self.new_document_button.set_child(Gtk.Image(icon_name='document-new-symbolic'))
-        self.new_document_button.set_can_focus(False)
-        self.new_document_button.set_tooltip_text(_('Create a new LaTeX document'))
-        self.new_document_button.set_action_name('win.new-latex-document')
-
-        # PopoverManager 在 create_widgets() 前已 init，此处直接绑定 menu_model。
-        # 原 setup_popovers() 方法从未被调用，导致箭头点不动——这是 bug 根因。
-        # 若 popover 为 None（初始化顺序错误），打印警告而非静默失败——
-        # 静默失败时箭头点不动且无任何错误提示，开发时难以定位。
-        popover = PopoverManager.get_popover('new_document')
-        if popover is None:
-            print('Setzer warning: PopoverManager.get_popover("new_document") '
-                  'returned None; new_document button menu unavailable. '
-                  'Ensure PopoverManager.init() is called before HeaderBar creation.',
-                  flush=True)
-        else:
-            self.new_document_button.set_menu_model(popover.view.model)
-            menu_popover = self.new_document_button.get_popover()
-            if menu_popover is not None:
-                menu_popover.add_css_class('menu')
-
+        # 新建文档不再占用顶栏：LaTeX / BibTeX / 模板三种入口统一收进
+        # 汉堡菜单（见 HamburgerMenu.build_static_items 的 New Document 段）。
+        # 顶栏只保留 open 按钮，减少按钮数量、避免窄窗溢出。
         self.widget.pack_start(self.open_document_button)
-        self.widget.pack_start(self.new_document_button)
 
         # workspace menu (standard Libadwaita main menu via Gio.Menu)
         self.hamburger = PopoverManager.create_popover('hamburger_menu')

@@ -20,6 +20,7 @@ from gi.repository import Gio, GLib, Gtk, Gdk
 
 import weakref
 
+from setzer.ai_fix.availability import is_ai_agent_enabled
 from setzer.app.service_locator import ServiceLocator
 from setzer.app.font_manager import FontManager
 from setzer.helpers import animation_prefs
@@ -136,6 +137,13 @@ class WorkspacePresenter(object):
 
         if item == 'show_tab_bar':
             self.update_tab_bar_visibility()
+
+        if item == 'ai_fix_enabled' and not is_ai_agent_enabled(self.settings):
+            # 关闭 AI Agent：已弹出的独立 Agent 终端窗口一并收回，
+            # 否则入口从界面消失后仍留着一个可交互的 AI 窗口。
+            window = getattr(self.workspace, 'agent_terminal_window', None)
+            if window is not None and window.get_visible():
+                window.close()
 
     def on_new_document(self, workspace, document):
         # 把文档视图挂到 Adw.TabView（替换原 Gtk.Stack）：

@@ -20,6 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, GLib
 
+from setzer.ai_fix.availability import is_ai_agent_enabled
 from setzer.app.ui_zoom import UIZoomManager
 from setzer.app.latex_templates import WRAP_COMMANDS, WRAP_ENVIRONMENTS, INSERT_TEMPLATES
 
@@ -226,11 +227,12 @@ class ContextMenuView(Gtk.PopoverMenu):
     def rebuild_ai_section(self, has_selection):
         '''Populate (or clear) the AI annotation section.
 
-        有选区时显示两项：添加批注（落模型，稍后批量发）与直发选区
-        （不落批注，立即发送）。快捷键可配置，不在此硬编码 accel。
+        有选区且 AI Agent 启用时显示两项：添加批注（落模型，稍后批量发）
+        与直发选区（不落批注，立即发送）。快捷键可配置，不在此硬编码 accel。
+        总开关关闭时 section 保持为空——右键菜单里不出现 AI 入口。
         '''
         self.ai_section.remove_all()
-        if not has_selection:
+        if not has_selection or not is_ai_agent_enabled():
             return
         self.ai_section.append_item(
             _action_item(_('Add AI Annotation…'), 'win.ai-add-annotation'))

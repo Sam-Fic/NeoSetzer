@@ -63,6 +63,26 @@ class Sidebar(object):
         # 1s/2s 定时器（stat + texcount spawn），回到 Structure 页时恢复。
         self.view.stack.connect('notify::visible-child', self.on_visible_child_changed)
 
+        # AI Agent 总开关：关闭时把 AI 面板档位从切换器上摘掉。
+        self.workspace.settings.connect('settings_changed', self.on_settings_changed)
+        self.update_ai_panel_availability()
+
+    def on_settings_changed(self, settings, parameter):
+        section, item, value = parameter
+        if item == 'ai_fix_enabled':
+            self.update_ai_panel_availability()
+
+    def update_ai_panel_availability(self):
+        '''按 AI Agent 开关同步侧栏 AI 面板的可见性。
+
+        关闭时档位直接消失；若此刻正停在该页，落回 Document Structure，
+        避免侧栏停在一个已不存在的面板上。'''
+        from setzer.ai_fix.availability import is_ai_agent_enabled
+        enabled = is_ai_agent_enabled(self.workspace.settings)
+        self.view.set_switch_option_visible('ai_agent', enabled)
+        if not enabled and self.workspace.show_ai_agent:
+            self.workspace.set_show_symbols_or_document_structure(False, True)
+
     def on_panel_switch_changed(self, group, pspec=None):
         '''某页工具栏上的切换器被点击：切到对应面板。'''
         if self.view._syncing_switch:
