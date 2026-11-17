@@ -27,6 +27,9 @@
     只取本页矩形并集，跳过空行/注释行/纯边界行；浮动体并入相邻整图。
   - resolve_block：块矩形须覆盖点击点，否则空间降级搜索附近块
     （图片内部等 synctex 无记录区域反查会落在块外行）。
+  - 表格/显示数学视觉矩形：字形聚行 + 点击种子连通扩展出 band；
+    源块归属用可靠锚行（edit 反查 + view 盒几何校验）往下源码/页面
+    顺序步进对应，防 edit 反查落邻块（实测 cases 反查到 matrix）。
 '''
 
 import os
@@ -611,6 +614,195 @@ class ResolveBlockTest(unittest.TestCase):
 
     def test_query_failure_returns_none(self):
         self.assertIsNone(self.resolve([None], []))
+
+
+class GlyphRowsTest(unittest.TestCase):
+
+    def test_merge_overlapping_rows(self):
+        rects = [(10, 10, 20, 20), (15, 12, 30, 22), (40, 30, 50, 40)]
+        self.assertEqual(mapper._glyph_rows(rects),
+                         [(10, 10, 30, 22), (40, 30, 50, 40)])
+
+    def test_zero_height_and_inverted_boxes_skipped(self):
+        # 倒置盒跳过；零高标点盒保留为独立行（聚行时靠 0.5 容差并入）。
+        rects = [(5, 30, 8, 30), (0, 5, 1, 4), (10, 10, 20, 20)]
+        self.assertEqual(mapper._glyph_rows(rects),
+                         [(10, 10, 20, 20), (5, 30, 8, 30)])
+
+    def test_unsorted_input_sorted_by_y(self):
+        rects = [(40, 30, 50, 40), (10, 10, 20, 20)]
+        self.assertEqual(mapper._glyph_rows(rects),
+                         [(10, 10, 20, 20), (40, 30, 50, 40)])
+
+
+class GlyphBandTest(unittest.TestCase):
+
+    RECTS = [(10, 10, 100, 20),          # 上文文本行
+             (50, 32, 150, 42), (60, 46, 140, 56),   # 公式两行（隙 4）
+             (200, 58, 260, 68),         # 垂直隙 2 但水平不重叠的旁行
+             (50, 80, 150, 90)]          # 隙 24 的下一块
+
+    def test_seed_expands_connected_rows_only(self):
+        band = mapper._glyph_band(self.RECTS, 100, 37)
+        self.assertEqual(band, (48, 30, 152, 58))
+
+    def test_large_gap_stops_expansion(self):
+        band = mapper._glyph_band(self.RECTS, 100, 85)
+        self.assertEqual(band, (48, 78, 152, 92))
+
+    def test_nearest_seed_within_small_gap(self):
+        # 公式行隙点击（dy=4）吸到最近行。
+        band = mapper._glyph_band(self.RECTS, 100, 60)
+        self.assertEqual(band, (48, 30, 152, 58))
+
+    def test_far_click_returns_none(self):
+        self.assertIsNone(mapper._glyph_band(self.RECTS, 100, 62))
+        self.assertIsNone(mapper._glyph_band(self.RECTS, 500, 500))
+        self.assertIsNone(mapper._glyph_band([], 10, 10))
+
+    def test_single_row_terminates(self):
+        # 回归：种子行每轮都满足合并条件，不比较 band 变化会死循环。
+        band = mapper._glyph_band([(10, 10, 20, 20)], 15, 15)
+        self.assertEqual(band, (8, 8, 22, 22))
+
+
+def vbox(x1, y1, x2, y2, page=1):
+    '''top-down 矩形 → synctex view 记录（v 为 y-up 底边）。'''
+    return {'page': page, 'h': x1, 'v': y2, 'width': x2 - x1, 'height': y2 - y1}
+
+
+class RowAnchorLineTest(unittest.TestCase):
+
+    LINES = ['intro\n', '\\begin{equation}\n', 'x=1\n',
+             '\\end{equation}\n', 'outro\n']
+    ROW = (10, 10, 100, 20)
+
+    def run_anchor(self, position, rects):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=position), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=rects):
+            return mapper._row_anchor_line(self.ROW, self.LINES, 0,
+                                           '/p/main.tex', '/p/main.pdf', '/cache')
+
+    def test_geometry_verified_anchor(self):
+        self.assertEqual(self.run_anchor(pos(line=1), [vbox(10, 10, 100, 20)]), 1)
+
+    def test_geometry_mismatch_rejected(self):
+        # edit 落到邻块：view 盒与字形行不吻合 → 不认锚。
+        self.assertIsNone(self.run_anchor(pos(line=1), [vbox(10, 60, 100, 70)]))
+
+    def test_block_line_rejected(self):
+        self.assertIsNone(self.run_anchor(pos(line=2), [vbox(10, 10, 100, 20)]))
+
+    def test_query_failure_rejected(self):
+        self.assertIsNone(self.run_anchor(None, []))
+
+
+class VisualBlockSourceTest(unittest.TestCase):
+    '''页面：intro 行 / equation 两行 band / mid 行 / align 行 band。'''
+
+    LINES = ['intro\n', '\\begin{equation}\n', 'x=1\n', '\\end{equation}\n',
+             'mid\n', '\\begin{align}\n', 'y=2\n', '\\end{align}\n', 'outro\n']
+    RECTS = [(10, 10, 100, 20), (50, 32, 150, 42), (60, 46, 140, 56),
+             (10, 70, 60, 80), (50, 92, 150, 102), (10, 120, 100, 130)]
+    EQ_BAND = (48, 30, 152, 58)
+    ALIGN_BAND = (48, 90, 152, 104)
+
+    def edit(self, pdf, page, x, y, directory):
+        return pos(line=1 if y < 25 else (5 if y < 85 else 3))
+
+    def view(self, tex, pdf, ln, directory):
+        if ln == 1:
+            return [vbox(10, 10, 100, 20)]
+        if ln == 5:
+            return [vbox(10, 70, 60, 80)]
+        return []
+
+    def run_source(self, band, view=None):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view or self.view):
+            return mapper._visual_block_source(band, self.RECTS, self.LINES, 0,
+                                               '/p/main.tex', '/p/main.pdf',
+                                               '/cache')
+
+    def test_band_maps_to_own_block(self):
+        self.assertEqual(self.run_source(self.EQ_BAND),
+                         (2, 4, 'environment', 'equation'))
+        self.assertEqual(self.run_source(self.ALIGN_BAND),
+                         (6, 8, 'environment', 'align'))
+
+    def test_walk_skips_intermediate_band(self):
+        # mid 行锚不可靠（view 无自身盒）：从 intro 锚步进，跳过
+        # equation band 与 mid 行后对应到 align band。
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 10, 100, 20)] if ln == 1 else []
+        self.assertEqual(self.run_source(self.ALIGN_BAND, view=view),
+                         (6, 8, 'environment', 'align'))
+
+    def test_source_page_mismatch_returns_none(self):
+        # 源码多出一行文本（页面换行等失配）→ 交回反查行兜底。
+        lines = self.LINES[:1] + ['extra\n'] + self.LINES[1:]
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=self.view):
+            result = mapper._visual_block_source(self.EQ_BAND, self.RECTS,
+                                                 lines, 0, '/p/main.tex',
+                                                 '/p/main.pdf', '/cache')
+        self.assertIsNone(result)
+
+    def test_no_verified_anchor_returns_none(self):
+        self.assertIsNone(self.run_source(self.EQ_BAND, view=lambda *a: []))
+
+
+class ResolveBlockVisualTest(unittest.TestCase):
+
+    LINES = VisualBlockSourceTest.LINES
+    RECTS = VisualBlockSourceTest.RECTS
+    EQ_BAND = VisualBlockSourceTest.EQ_BAND
+
+    def resolve(self, positions, x=100, y=37):
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  side_effect=positions), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=VisualBlockSourceTest().view):
+            return mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0, x, y,
+                                        active_lines=self.LINES,
+                                        glyph_rects=self.RECTS)
+
+    def test_wrong_pos_block_corrected_by_order(self):
+        # 实测：公式内容 edit 反查落邻块（align 行）；顺序步进对应
+        # 纠正为点击 band 真正所属的 equation 块。
+        result = self.resolve([pos(line=7), pos(line=1)])
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (2, 4))
+        self.assertEqual(result['rect'], self.EQ_BAND)
+
+    def test_pos_line_fallback_uses_order(self):
+        # 反查落块外文本行：降级搜索优先用步进对应的块。
+        result = self.resolve([pos(line=1), pos(line=1)])
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (2, 4))
+        self.assertEqual(result['rect'], self.EQ_BAND)
+
+    def test_without_glyphs_keeps_synctex_path(self):
+        # 无字形预提取（旧调用方）：仍走 synctex 并集路径。
+        content = vbox(100, 90, 180, 100)
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=3)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[content]):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          140, 95, active_lines=self.LINES)
+        self.assertIsNotNone(result)
+        self.assertEqual(result['rect'], (100, 90, 180, 100))
 
 
 class MapSelectionEntryTest(unittest.TestCase):
