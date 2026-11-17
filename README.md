@@ -8,17 +8,16 @@
 
 ---
 
-Simple yet full-featured LaTeX editor for Linux, Windows, and macOS, written in Python with GTK.
+Simple yet full-featured LaTeX editor for Linux, Windows, and macOS, adhering to the GNOME HIG.
 
 > This is a fork of [Setzer](https://github.com/cvfosammmm/Setzer) by cvfosammmm.
 > The original project site is <https://www.cvfosammmm.org/setzer/>, licensed under GPL-3.0-or-later.
-> This fork is maintained at <https://github.com/Sam-Fic/NeoSetzer>.
 
 ![Screenshot](data/screenshot.png)
 
-NeoSetzer is a LaTeX editor written in Python with GTK. Feedback on design, code architecture, bugs, and feature requests is welcome through this repository's issue tracker.
+Feedback on design, code architecture, bugs, and feature requests is welcome through this repository's issue tracker.
 
-Based on the original project, a large number of components have been migrated to Libadwaita, which is modern and beautiful.
+The application has been redesigned based on the original project to comply with the GNOME HIG—offering a modern and visually polished interface.
 
 The UI/UX design has been thoroughly optimized; I hope you’ll appreciate the meticulous details I’ve crafted :)
 
@@ -32,8 +31,6 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 | Windows 10/11 (x86_64) | Supported via MSYS2 | Portable MSYS2 UCRT64 GTK4 stack |
 | macOS Apple Silicon (ARM64) | Supported | Self-contained `.app` release package |
 | WSL (Windows Subsystem for Linux) | Supported as Linux app | Linux distribution inside WSL |
-
-> **WebKitGTK note:** The optional help-panel browser (WebKitGTK 6.0) is **not included in the Windows portable package**, so it is unavailable on Windows. NeoSetzer detects this at runtime (`HAS_WEBKIT`) and automatically falls back — search still works, only in-app HTML rendering is disabled. This is by design and does not affect LaTeX editing or PDF preview.
 
 ## Installation
 
@@ -140,6 +137,8 @@ To build your documents from within the app you have to install a LaTeX interpre
 
 To specify a build command open the "Preferences" dialog and choose the command you want to use under "LaTeX Interpreter".
 
+It is recommended to use the new fast compiler [PhiTeX](https://phitex.org/)—this application has been adapted for it.
+
 ## Packaging
 
 ### Debian/Ubuntu (`.deb`)
@@ -157,10 +156,12 @@ For the original upstream project, see [https://github.com/cvfosammmm/setzer](ht
 
 ## Acknowledgements
 
-NeoSetzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, though I continue to change / reorganize them. The autocomplete suggestions are mostly the same as in Texmaker. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
+NeoSetzer draws some inspiration from other LaTeX editors. For example the symbols in the sidebar are mostly the same as in LaTeXila, the autocomplete suggestions are mostly the same as in Texmaker. Syntax highlighting schemes are based on the Tango scheme in GtkSourceView and the Gnome Builder Scheme.
 
-Icons: [Icon Library](https://gitlab.gnome.org/World/design/icon-library)  
+Icons: [Icon Library](https://gitlab.gnome.org/World/design/icon-library)
 UI Design Reference: [GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)
+Reference Project for AI Annotations Feature: [Papilot](https://papilot.ai/)
+Fast LaTeX Compiler: [PhiTeX](https://phitex.org/)
 
 ## License
 

@@ -8,17 +8,16 @@
 
 ---
 
-一款简单但功能完整的 LaTeX 编辑器，支持 Linux、Windows 和 macOS，基于 Python 和 GTK 编写。
+一款简单但功能完整的 LaTeX 编辑器，支持 Linux、Windows 和 macOS，遵循 GNOME HIG。
 
 > 这是 [Setzer](https://github.com/cvfosammmm/Setzer) 的一个 fork，原作者为 cvfosammmm。
 > 原项目官网 <https://www.cvfosammmm.org/setzer/>，基于 GPL-3.0-or-later 许可证。
-> 本 fork 维护于 <https://github.com/Sam-Fic/NeoSetzer>。
 
 ![截图](data/screenshot.png)
 
-NeoSetzer 是用 Python 和 GTK 编写的 LaTeX 编辑器。欢迎通过本仓库的 GitHub Issue 提供关于设计、代码架构、错误报告和功能请求的反馈。
+欢迎通过本仓库的 GitHub Issue 提供关于设计、代码架构、错误报告和功能请求的反馈。
 
-在原项目的基础上，迁移大量组件至 Libadwaita，现代且美观。
+在原项目的基础上遵循 GNOME HIG 重新设计，现代且美观。
 
 全面优化的 UI/UX 设计，希望你能感受到我打磨的各处细节: )
 
@@ -32,8 +31,6 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 | Windows 10/11（x86_64） | 通过 MSYS2 支持 | 便携式 MSYS2 UCRT64 GTK4 栈 |
 | macOS Apple Silicon（ARM64） | 已支持 | 自包含 `.app` 发布包 |
 | WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
-
-> **关于 WebKitGTK：** 帮助面板内置浏览器（WebKitGTK 6.0）未包含在 Windows 便携包中，因此在 Windows 上不可用。当其不可用时 NeoSetzer 在运行时会自动探测（`HAS_WEBKIT`）并降级——搜索功能仍可用，仅应用内 HTML 渲染不可用。这是设计行为，不影响 LaTeX 编辑和 PDF 预览。
 
 ## 安装
 
@@ -140,6 +137,8 @@ NeoSetzer 原生支持 Windows。GTK4 运行时栈由 **MSYS2** 提供（这是 
 
 要指定构建命令，请打开"偏好设置"对话框，在"LaTeX 解释器"下选择你想要的命令。
 
+推荐使用一款新的快速编译器 [PhiTeX](https://phitex.org/)，本应用为其做了适配。
+
 ## 打包
 
 ### Debian/Ubuntu（`.deb`）
@@ -157,10 +156,12 @@ Windows 便携包流程见 [docs/packaging/windows.md](docs/packaging/windows.md
 
 ## 致谢
 
-NeoSetzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同，尽管我仍在不断更改/整理它们。自动补全建议大多与 Texmaker 相同。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
+NeoSetzer 从其他 LaTeX 编辑器中汲取了一些灵感。例如，侧边栏中的符号大多与 LaTeXila 中的相同、自动补全建议大多与 Texmaker 相同。语法高亮方案基于 GtkSourceView 中的 Tango 方案和 Gnome Builder 方案。
 
 图标：[Icon Library](https://gitlab.gnome.org/World/design/icon-library)
 用户界面部分设计参考：[GNOME Text Editor](https://gitlab.gnome.org/GNOME/gnome-text-editor)
+AI 批注功能的参考项目：[Papilot](https://papilot.ai/)
+快速的 LaTeX 编译器：[PhiTeX](https://phitex.org/)
 
 ## 许可证
 
