@@ -188,7 +188,9 @@ class TestPreviewPageSizes(unittest.TestCase):
         self.assertEqual(self.document.get_page.call_count, len(self.sizes))
         self.assertEqual(self.preview.page_sizes, self.sizes)
         self.document.get_page.side_effect = AssertionError('layout reread Poppler page')
-        view = SimpleNamespace(get_allocated_width=lambda: 800, get_scale_factor=lambda: 2)
+        view = SimpleNamespace(get_allocated_width=lambda: 800,
+                               get_viewport_width=lambda: 800,
+                               get_scale_factor=lambda: 2)
         self.preview.visible_synctex_rectangles = []
         for rotation in (0, 90, 180, 270):
             for zoom in (0.5, 1.0, 2.0):

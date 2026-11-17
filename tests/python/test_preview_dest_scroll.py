@@ -80,6 +80,9 @@ class _View:
     def get_allocated_width(self):
         return 800
 
+    def get_viewport_width(self):
+        return 800
+
     def get_scale_factor(self):
         return 1
 

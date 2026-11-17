@@ -38,7 +38,7 @@ class PreviewLayouter(Observable):
 
     def create_layout(self):
         if self.preview.zoom_manager.get_zoom_level() != None and self.preview.poppler_document != None:
-            window_width = self.view.get_allocated_width()
+            window_width = self.view.get_viewport_width()
 
             layout = PreviewLayout(self.view.get_scale_factor())
             layout.scale_factor = self.preview.zoom_manager.get_zoom_level() * layout.hidpi_factor

@@ -216,6 +216,16 @@ class PreviewView(Gtk.Box):
         self._link_target_at_top = False
         self.set_link_target_string('')
 
+    def get_viewport_width(self):
+        '''滚动视口实际宽度（css px）。预览卡片 .preview-card 有左右
+        各 6px margin，PreviewView 自身的 allocated_width 比视口宽 12px；
+        页面水平 margin 的绘制端用视口宽（adjustment page_size），点击→
+        页面坐标的反算必须用同一基准，否则命中点水平偏移 6px。'''
+        width = self.content.width
+        if width and width > 0:
+            return width
+        return self.get_allocated_width()
+
     def set_external_pdf_reload_handler(self, callback):
         '''Register the persistent Banner action owned by PreviewPresenter.'''
 
