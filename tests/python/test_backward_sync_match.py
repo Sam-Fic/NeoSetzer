@@ -11,6 +11,8 @@ import ast
 import os
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 from setzer.helpers.synctex_line_repair import (
     match_pdf_line,
@@ -162,6 +164,18 @@ class PhitexLineRepairTest(unittest.TestCase):
                     and n.name == '_phitex_synctex_lines_unreliable')
         self.assertIn("'phitex'", ast.dump(gate))
 
+    def test_wiring_redirects_boundary_lines_both_directions(self):
+        '''公式内点击 synctex 常返回 \\end{equation}、光标停在 \\begin{align}
+        上正向查询拿到周围段落盒：两个方向的入口都要经 nearest_content_line
+        把边界行重定向到块内内容行。'''
+        source = (ROOT / BUILD_SYSTEM).read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        for name in ('set_synctex_position', 'set_forward_sync_arguments'):
+            fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                      and n.name == name)
+            self.assertIn('nearest_content_line', ast.dump(fn), name)
+
 
 class ForwardSyncMatchTest(unittest.TestCase):
     '''正向同步：源码行 → 页面上的 PDF 文本行。
@@ -220,7 +234,8 @@ class ForwardSyncMatchTest(unittest.TestCase):
         self.assertEqual(normalize(strip_latex('% 注释')), '')
 
     def test_forward_wiring_uses_text_matching(self):
-        '''正向同步的纠正接在预览层，且只由 build_system 在 phitex 下触发。'''
+        '''正向同步的纠正接在预览层：phitex 单盒纠正 + 多盒筛选（align 等
+        多行环境 synctex 返回多行的盒），phitex 标志由 build_system 传入。'''
         preview_source = (ROOT / 'setzer/document/preview/preview.py').read_text(
             encoding='utf-8')
         preview_tree = ast.parse(preview_source)
@@ -235,6 +250,128 @@ class ForwardSyncMatchTest(unittest.TestCase):
         block = source[index:index + 600]
         self.assertIn('_phitex_synctex_lines_unreliable', block)
         self.assertIn("get('text')", block)
+
+
+class ForwardRectangleGatingTest(unittest.TestCase):
+    '''set_synctex_rectangles 的文本筛选门控：多盒必筛（align 两行盒污染），
+    单盒仅 phitex 筛（其它引擎 synctex 通常是对的，不动）。'''
+
+    @staticmethod
+    def _method():
+        source = (ROOT / 'setzer/document/preview/preview.py').read_text(
+            encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                  and n.name == 'set_synctex_rectangles')
+        namespace = {'_sync_debug': lambda *a: None}
+        exec(compile(ast.Module(body=[fn], type_ignores=[]),
+                     '<preview>', 'exec'), namespace)
+        return namespace['set_synctex_rectangles']
+
+    def _fake_preview(self, matched):
+        shown = []
+        fake = SimpleNamespace(
+            layout=object(),
+            show_synctex_rectangles=lambda rects: shown.append(rects),
+            _scroll_to_rectangle=lambda rect: True,
+            add_change_code=lambda code: None,
+            _find_rectangle_for_source_text=Mock(return_value=matched))
+        return fake, shown
+
+    def test_multi_box_filtered_by_source_text(self):
+        # align 两行：synctex 返回两行的盒，用光标行文字筛出正确行。
+        matched = {'page': 1, 'h': 290, 'v': 243, 'width': 36, 'height': 8}
+        fake, shown = self._fake_preview(matched)
+        rects = [{'page': 1, 'h': 133, 'v': 230, 'width': 344, 'height': 12},
+                 {'page': 1, 'h': 133, 'v': 245, 'width': 344, 'height': 12}]
+        self._method()(fake, rects, 'y &= 3 + 4')
+        fake._find_rectangle_for_source_text.assert_called_once()
+        self.assertEqual(shown, [[matched]])
+
+    def test_single_box_non_phitex_left_alone(self):
+        fake, shown = self._fake_preview(None)
+        rects = [{'page': 1, 'h': 133, 'v': 230, 'width': 344, 'height': 12}]
+        self._method()(fake, rects, 'some source line')
+        fake._find_rectangle_for_source_text.assert_not_called()
+        self.assertEqual(shown, [rects])
+
+    def test_single_box_phitex_still_corrected(self):
+        matched = {'page': 2, 'h': 10, 'v': 100, 'width': 40, 'height': 10}
+        fake, shown = self._fake_preview(matched)
+        rects = [{'page': 1, 'h': 133, 'v': 230, 'width': 344, 'height': 12}]
+        self._method()(fake, rects, 'some source line', phitex=True)
+        fake._find_rectangle_for_source_text.assert_called_once()
+        self.assertEqual(shown, [[matched]])
+
+    def test_multi_box_without_source_text_left_alone(self):
+        fake, shown = self._fake_preview(None)
+        rects = [{'page': 1, 'h': 133, 'v': 230, 'width': 344, 'height': 12},
+                 {'page': 1, 'h': 133, 'v': 245, 'width': 344, 'height': 12}]
+        self._method()(fake, rects)
+        fake._find_rectangle_for_source_text.assert_not_called()
+        self.assertEqual(shown, [rects])
+
+    def test_multi_box_no_match_keeps_synctex(self):
+        fake, shown = self._fake_preview(None)
+        rects = [{'page': 1, 'h': 133, 'v': 230, 'width': 344, 'height': 12},
+                 {'page': 1, 'h': 133, 'v': 245, 'width': 344, 'height': 12}]
+        self._method()(fake, rects, 'y &= 3 + 4')
+        self.assertEqual(shown, [rects])
+
+
+class BackwardBoundaryRedirectTest(unittest.TestCase):
+    '''反向跳转落点：公式内点击 synctex 返回 \\end{equation}（0-based 2），
+    应重定向到内容行；换行后字符级 offset 精修不再适用，须丢弃。'''
+
+    LINES = '\\begin{equation}\nE = mc^2\n\\end{equation}'
+
+    def _run(self, position):
+        import gi
+        gi.require_version('Gtk', '4.0')
+        from gi.repository import Gtk
+        from setzer.ai_fix import source_blocks
+
+        source = (ROOT / BUILD_SYSTEM).read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+        fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                  and n.name == 'set_synctex_position')
+        namespace = {'source_blocks': source_blocks}
+        exec(compile(ast.Module(body=[fn], type_ignores=[]),
+                     '<build_system>', 'exec'), namespace)
+
+        buffer = Gtk.TextBuffer()
+        buffer.set_text(self.LINES, -1)
+        highlighted = []
+        document = SimpleNamespace(
+            source_buffer=buffer,
+            highlight_section=lambda a, b: highlighted.append((a, b)))
+        fake = SimpleNamespace(
+            correct_synctex_line=lambda line, txt: line,
+            get_synctex_word_bounds=lambda text, word, context: None,
+            _map_pdf_offset_to_source=Mock(return_value=2))
+        namespace['set_synctex_position'](fake, document, position)
+        # 必须在 buffer 存活时读光标：PyGObject 的 TextIter 不持有 buffer
+        # 引用，函数返回后 buffer 被 GC，带出去的迭代器会悬空读成 0。
+        cursor = buffer.get_iter_at_mark(buffer.get_insert())
+        return cursor.get_line(), cursor.get_line_offset(), fake
+
+    def test_boundary_line_redirects_to_content(self):
+        line, _offset, fake = self._run(
+            {'line': 2, 'word': 'mc', 'context': 'E = mc2',
+             'pdf_line_offset': 3, 'pdf_line_text': 'E = mc2'})
+        self.assertEqual(line, 1)
+        # 换行后点击处 PDF 行文本不再适用，offset 精修不得参与。
+        fake._map_pdf_offset_to_source.assert_not_called()
+
+    def test_content_line_keeps_offset_refinement(self):
+        line, offset, fake = self._run(
+            {'line': 1, 'word': 'mc', 'context': 'E = mc2',
+             'pdf_line_offset': 3, 'pdf_line_text': 'E = mc2'})
+        self.assertEqual(line, 1)
+        self.assertEqual(offset, 2)
+        fake._map_pdf_offset_to_source.assert_called_once()
 
 
 if __name__ == '__main__':

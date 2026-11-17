@@ -165,5 +165,126 @@ class ComputeRangesTest(unittest.TestCase):
         self.assertIn((1, 4, 'environment', 'figure'), ranges)
 
 
+class NearestContentLineTest(unittest.TestCase):
+    '''双向跳转落点重定向：块边界行 → 块内最近内容行。'''
+
+    def test_end_equation_redirects_to_content(self):
+        # 公式内点击 synctex 常返回 \end{equation}，应落到内容行。
+        src = lines('\\begin{equation}', 'E = mc^2', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 3), 2)
+
+    def test_begin_align_redirects_to_first_content(self):
+        src = lines('\\begin{align}', 'x &= 1 \\\\', 'y &= 2', '\\end{align}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 2)
+        self.assertEqual(source_blocks.nearest_content_line(src, 4), 3)
+
+    def test_tabular_boundary_skips_hline(self):
+        # \hline 无 synctex 记录，重定向过去跳转依旧落空。
+        src = lines('\\begin{tabular}{|c|c|}', '\\hline', 'alpha & beta \\\\',
+                    '\\hline', '\\end{tabular}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 5), 3)
+
+    def test_figure_boundary_skips_centering(self):
+        src = lines('\\begin{figure}[h]', '\\centering',
+                    '\\includegraphics{a}', '\\caption{cap}', '\\end{figure}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 5), 4)
+
+    def test_skips_blank_and_comment_lines(self):
+        src = lines('\\begin{equation}', '', '% note', 'x=1', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 4)
+
+    def test_content_line_unchanged(self):
+        src = lines('\\begin{equation}', 'x=1', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 2)
+
+    def test_line_outside_block_unchanged(self):
+        src = lines('text', '\\begin{equation}', 'x=1', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 1)
+
+    def test_inline_boundary_content_unchanged(self):
+        # 行内混有正文内容不算纯边界行。
+        src = lines('\\begin{equation} x=1 \\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 1)
+
+    def test_empty_block_unchanged(self):
+        src = lines('\\begin{equation}', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 1)
+
+    def test_out_of_range_unchanged(self):
+        src = lines('\\begin{equation}', 'x=1', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 99), 99)
+        self.assertEqual(source_blocks.nearest_content_line([], 1), 1)
+
+    def test_displaymath_delimiter_redirects(self):
+        src = lines('\\[', 'x=1', '\\]')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 2)
+        self.assertEqual(source_blocks.nearest_content_line(src, 3), 2)
+
+    def test_label_line_skipped_as_redirect_target(self):
+        # \label 行 strip 后剩 label key，但无可见输出、synctex 记录是
+        # 周围段落盒：嵌套公式（equation+label+cases）重定向必须跳过它。
+        src = lines('\\begin{equation}', '\\label{eq:x}', '|x| =',
+                    '\\begin{cases}', 'x, & x \\ge 0', '\\end{cases}',
+                    '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 7), 5)
+
+    def test_cursor_on_label_line_redirects(self):
+        # 光标停在 \label 行上正向同步：同样重定向到内容行。
+        src = lines('\\begin{equation}', '\\label{eq:x}', 'x=1',
+                    '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 3)
+
+    def test_nonumber_and_notag_skipped(self):
+        src = lines('\\begin{align}', '\\nonumber', 'x=1', '\\notag',
+                    '\\end{align}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 1), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 5), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 3)
+
+    def test_multiple_no_output_commands_on_one_line(self):
+        src = lines('\\begin{equation}', '\\label{eq:x} \\nonumber',
+                    'x=1', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 3)
+
+    def test_symbol_command_line_is_content(self):
+        # \vdots/\cdots 等符号命令 strip 后为空，但有可见输出与自己的
+        # synctex 记录（实测点阵行盒）：可作重定向目标，自身不重定向。
+        src = lines('\\begin{align}', 'a_{11} & a_{12}', '\\vdots & \\vdots',
+                    '\\end{align}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 4), 3)
+        self.assertEqual(source_blocks.nearest_content_line(src, 3), 3)
+
+    def test_mixed_content_and_label_unchanged(self):
+        src = lines('\\begin{equation}', 'x = 1 \\label{eq:x}',
+                    '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 2)
+
+    def test_label_outside_block_unchanged(self):
+        src = lines('text', '\\label{sec:x}', 'more text')
+        self.assertEqual(source_blocks.nearest_content_line(src, 2), 2)
+
+    def test_tag_line_is_content(self):
+        # \tag 产生可见的自定义编号，不是无输出行。
+        src = lines('\\begin{equation}', 'x=1 \\tag{3}', '\\end{equation}')
+        self.assertEqual(source_blocks.nearest_content_line(src, 3), 2)
+
+
+class IsNoOutputLineTest(unittest.TestCase):
+
+    def test_no_output_commands(self):
+        for s in ('\\label{eq:x}', '\\nonumber', '\\notag',
+                  '\\label{a} \\nonumber', '\\index{term}',
+                  '\\vspace{1em}', '\\hspace*{2cm}', '\\phantom{x}'):
+            self.assertTrue(source_blocks.is_no_output_line(s), s)
+
+    def test_lines_with_visible_output(self):
+        for s in ('x \\label{eq:x}', '\\vdots', '\\alpha', '\\tag{3}',
+                  'x=1', '\\text{if}', ''):
+            self.assertFalse(source_blocks.is_no_output_line(s), s)
+
+
 if __name__ == '__main__':
     unittest.main()

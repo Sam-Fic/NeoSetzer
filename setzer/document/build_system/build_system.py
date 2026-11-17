@@ -40,6 +40,7 @@ from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers.observable import Observable
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.helpers.synctex_line_repair import repair_line
+from setzer.ai_fix import source_blocks
 from setzer.project.build_configuration import ProjectBuildConfiguration
 
 
@@ -311,10 +312,21 @@ class BuildSystem(Observable):
         insert = sb.get_iter_at_mark(sb.get_insert())
         self.forward_sync_arguments = dict()
         self.forward_sync_arguments['filename'] = active_document.get_filename()
-        self.forward_sync_arguments['line'] = insert.get_line() + 1
-        self.forward_sync_arguments['line_offset'] = insert.get_line_offset() + 1
+        line = insert.get_line() + 1
+        line_offset = insert.get_line_offset() + 1
+        # 光标停在块边界行（\begin{equation} 等）上时，synctex 记录常是
+        # 周围段落盒，正向跳转落在错误位置：重定向到块内最近内容行。
+        lines = sb.get_text(sb.get_start_iter(), sb.get_end_iter(), False).split('\n')
+        redirected = source_blocks.nearest_content_line(lines, line)
+        if redirected != line:
+            line = redirected
+            line_offset = 1
+            insert = sb.get_iter_at_line(line - 1)[1]
+        self.forward_sync_arguments['line'] = line
+        self.forward_sync_arguments['line_offset'] = line_offset
         # phitex 的 synctex 行号不可靠（见 synctex_line_repair），预览层要用
-        # 光标所在行的文字反查 PDF 行。这里先抓下来，构建结束后 source_buffer
+        # 光标所在行的文字反查 PDF 行；align 等多行环境 synctex 会返回多行
+        # 的盒，也靠它筛出光标所在行。这里先抓下来，构建结束后 source_buffer
         # 可能已经变了。
         start = insert.copy()
         start.set_line_offset(0)
@@ -490,14 +502,15 @@ class BuildSystem(Observable):
                         self.document.preview.set_pdf_is_stale(True)
 
             if result_blob['forward_sync'] != None:
-                # 仅 phitex 需要按源码行文字纠正：它的 synctex 行号会把大段
-                # 内容归到后面的章节命令上，矩形框因此落在错误位置。
+                # 源码行文字两个用途：phitex 的 synctex 行号会把大段内容归到
+                # 后面的章节命令上，靠它反查纠正；align 等多行环境 synctex
+                # 返回多行的盒，靠它筛出光标所在行（见 set_synctex_rectangles）。
                 source_text = None
-                if (self._phitex_synctex_lines_unreliable()
-                        and self.forward_sync_arguments):
+                if self.forward_sync_arguments:
                     source_text = self.forward_sync_arguments.get('text')
                 self.document.preview.set_synctex_rectangles(
-                    result_blob['forward_sync'], source_text)
+                    result_blob['forward_sync'], source_text,
+                    phitex=self._phitex_synctex_lines_unreliable())
                 self.show_build_state('')
 
             if result_blob['build'] != None:
@@ -839,6 +852,17 @@ class BuildSystem(Observable):
 
     def set_synctex_position(self, document, position):
         line = self.correct_synctex_line(position['line'], position.get('pdf_line_text'))
+        # 公式/表格内点击 synctex 常返回块边界行（\end{equation} 等）：
+        # 重定向到块内最近内容行。字符级精修依赖点击处 PDF 行文本，
+        # 换行后不再适用，丢弃 offset 精修字段退化为词匹配/行首。
+        sb = document.source_buffer
+        lines = sb.get_text(sb.get_start_iter(), sb.get_end_iter(), False).split('\n')
+        redirected = source_blocks.nearest_content_line(lines, line + 1)
+        if redirected != line + 1:
+            line = redirected - 1
+            position = dict(position)
+            position.pop('pdf_line_offset', None)
+            position.pop('pdf_line_text', None)
         position_found, start = document.source_buffer.get_iter_at_line(line)
         end = start.copy()
         if not start.ends_line():

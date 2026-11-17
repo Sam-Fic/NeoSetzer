@@ -45,6 +45,68 @@ from setzer.ai_fix.prompt_builder import _read_file_lines
 # 块内正向查询行数上限（跳过空行/注释行后计数），防极端长块卡线程。
 _MAX_BLOCK_LINES = 60
 
+# 纯边界行正则与块扩展共用 source_blocks 的定义（双向跳转落点重定向也用它）。
+_BOUNDARY_LINE_RE = source_blocks.BOUNDARY_LINE_RE
+
+# 浮动体环境：块矩形需并入 synctex 不记录的整图（\includegraphics 行无
+# synctex 记录，图片区域只能从 poppler image mapping 拿）。
+_FLOAT_ENVS = {'figure', 'figure*', 'table', 'table*'}
+
+# 图片并入块矩形的垂直间隙容差（points，约一行高）：caption 与图片之间
+# 的 \abovecaptionskip 等 glue 实测 ~9pt；取 12pt 覆盖常见排版。
+_IMAGE_MERGE_GAP = 12.0
+
+# 点击点命中块矩形的容差（points）：synctex 盒与字形框有少量出入。
+_CLICK_TOL = 3.0
+
+# 块吸附接受容差（points）：synctex 盒常比视觉块小（分数上下缘、
+# 表格单元格间隙、行距 glue 都不在盒内，实测公式字形 y 166.9..189.3
+# 而盒仅 169.5..187.3）。水平放宽到 12；垂直只放 4：块间空隙实测
+# ~10pt，垂直容差太大会把间隙里的点击误吸到邻块。
+_BLOCK_ACCEPT_PAD_X = 12.0
+_BLOCK_ACCEPT_PAD_Y = 4.0
+
+# 表格类环境：synctex 常只记录部分列（实测两列 tabular 只有左列有
+# 记录，右列点击反查到块外行），块矩形因此只盖左列。这类环境只要
+# 点击点垂直在块内就接受，水平不限（表格通常居中，两侧是页边空白）。
+_TABULAR_ENVS = {'tabular', 'tabular*', 'array'}
+
+# 显示数学环境：同表格一样居中排版、两侧是页边空白，且 synctex 盒
+# 常比视觉块窄（大括号/编号不在内容行盒内），水平放宽到整行。
+_DISPLAY_MATH_ENVS = {
+    'equation', 'equation*', 'align', 'align*', 'alignat', 'alignat*',
+    'gather', 'gather*', 'multline', 'multline*', 'eqnarray', 'eqnarray*',
+    'flalign', 'flalign*', 'displaymath',
+}
+
+# 带编号的显示数学环境：编号 (1)/(2) 排在右缘页边处，不在内容行
+# synctex 盒内（实测内容盒 x2=372 而编号 x~460-477），但 \end{行} 的
+# 记录里有含编号的全宽盒——块矩形需并入它，否则点击编号无法吸附。
+_NUMBERED_MATH_ENVS = {
+    'equation', 'align', 'alignat', 'gather', 'multline', 'eqnarray', 'flalign',
+}
+
+# 空间降级搜索：反查行附近最多考虑的块数与源码行距上限。窗口要足够
+# 大：公式间隙点击 synctex 可能返回很远的行（实测返回 \end{document}）。
+_FALLBACK_MAX_BLOCKS = 6
+_FALLBACK_LINE_WINDOW = 120
+
+
+def _rect_contains(rect, x, y, tol=_CLICK_TOL):
+    x1, y1, x2, y2 = rect
+    return x1 - tol <= x <= x2 + tol and y1 - tol <= y <= y2 + tol
+
+
+def _block_accepts(rect, x, y, env):
+    r'''块吸附接受判定：水平 12pt / 垂直 4pt 容差；表格与显示数学环境
+    垂直在块内即接受（synctex 盒盖不全整个视觉块，两侧是页边空白）。
+    env=None 来自 displaymath 候选（\[...\]/$$...$$，无环境名）。'''
+    x1, y1, x2, y2 = rect
+    if env in _TABULAR_ENVS or env in _DISPLAY_MATH_ENVS or env is None:
+        return y1 - _BLOCK_ACCEPT_PAD_Y <= y <= y2 + _BLOCK_ACCEPT_PAD_Y
+    return (x1 - _BLOCK_ACCEPT_PAD_X <= x <= x2 + _BLOCK_ACCEPT_PAD_X
+            and y1 - _BLOCK_ACCEPT_PAD_Y <= y <= y2 + _BLOCK_ACCEPT_PAD_Y)
+
 
 def _lines_for(document, filename, active_lines):
     '''活动文档用主线程快照；其它文件磁盘读（线程安全）。'''
@@ -66,11 +128,19 @@ def _corrected_line(document, line1, pdf_line_text, lines):
 
 
 def block_pdf_rect(root_tex, pdf_filename, block_tex, page, start, end,
-                   lines, directory):
-    '''块内逐行 synctex view，取 page（0-based）上矩形并集 bbox。
+                   lines, directory, env=None, image_rects=()):
+    r'''块内逐行 synctex view，取 page（0-based）上矩形并集 bbox。
 
     返回未旋转 top-down points (x1, y1, x2, y2)；无命中返回 None。
     synctex view 的 v 为 y-up 底边：top-down y1 = v - height。
+
+    纯边界行（\begin/\end/显示数学定界符独占一行）与无可见输出行
+    （\label{...} 等）跳过：它们的 synctex 记录常是周围段落盒（实测
+    \label 行返回公式上方正文行的整段宽盒），混入并集会让框偏离
+    实际内容。带编号数学环境（env ∈ _NUMBERED_MATH_ENVS）额外并入
+    \end{行} 记录中与内容区垂直重叠的全宽盒（含右缘公式编号）。
+    浮动体（env ∈ _FLOAT_ENVS）额外并入与内容区垂直相邻的整图矩形
+    （image_rects 为主线程预提取的 poppler image mapping，top-down points）。
     '''
     x1 = y1 = x2 = y2 = None
     used = 0
@@ -79,6 +149,9 @@ def block_pdf_rect(root_tex, pdf_filename, block_tex, page, start, end,
             break
         stripped = lines[ln - 1].strip()
         if not stripped or stripped.startswith('%'):
+            continue
+        if (_BOUNDARY_LINE_RE.match(stripped)
+                or source_blocks.is_no_output_line(stripped)):
             continue
         used += 1
         if used > _MAX_BLOCK_LINES:
@@ -95,15 +168,74 @@ def block_pdf_rect(root_tex, pdf_filename, block_tex, page, start, end,
                 x2, y2 = max(x2, rx2), max(y2, ry2)
     if x1 is None:
         return None
+    if env in _NUMBERED_MATH_ENVS and end <= len(lines):
+        # 公式编号在右缘页边处，内容行盒盖不到；\end{行} 的全宽盒
+        # 与公式同高，并入后块矩形覆盖编号区。只取与内容区垂直重叠
+        # 的盒，防止 end 行记录混入的上下段落盒污染块矩形。
+        for r in synctex_query.query_rectangles(block_tex, pdf_filename, end, directory):
+            if r['page'] != page + 1:
+                continue
+            rx1, ry1 = r['h'], r['v'] - r['height']
+            rx2, ry2 = r['h'] + r['width'], r['v']
+            if ry2 < y1 - 2.0 or ry1 > y2 + 2.0:
+                continue
+            x1, y1 = min(x1, rx1), min(y1, ry1)
+            x2, y2 = max(x2, rx2), max(y2, ry2)
+    if env in _FLOAT_ENVS:
+        for ix1, iy1, ix2, iy2 in image_rects:
+            # 垂直相邻（含重叠）且水平有交集的整图并入块矩形。
+            if iy2 < y1 - _IMAGE_MERGE_GAP or iy1 > y2 + _IMAGE_MERGE_GAP:
+                continue
+            if ix2 < x1 or ix1 > x2:
+                continue
+            x1, y1 = min(x1, ix1), min(y1, iy1)
+            x2, y2 = max(x2, ix2), max(y2, iy2)
     return (x1, y1, x2, y2)
 
 
-def resolve_block(document, pdf_filename, page, x, y, active_lines=None):
+def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
+                       directory, image_rects):
+    '''空间降级：反查行不在块内（或块矩形不含点击点）时，在附近源码块中
+    找 PDF 矩形真正覆盖点击点的最小块。synctex 对无记录区域（图片内部、
+    公式间隙）会返回最近的**块外**行，仅靠 expand_to_block 会静默失败。
+
+    block_tex 为反查命中的文件（块所在文件，可能是 include 子文件）。
+    返回 (start, end, kind, env, rect) 或 None。后台线程调用。
+    '''
+    ranges = source_blocks.compute_block_ranges(lines)
+    candidates = []
+    for start, end, kind, env in ranges:
+        dist = min(abs(start - pos_line), abs(end - pos_line))
+        if dist <= _FALLBACK_LINE_WINDOW:
+            candidates.append((dist, start, end, kind, env))
+    candidates.sort(key=lambda c: (c[0], c[2] - c[1]))
+    best = None
+    for _dist, start, end, kind, env in candidates[:_FALLBACK_MAX_BLOCKS]:
+        rect = block_pdf_rect(block_tex, pdf_filename, block_tex,
+                              page, start, end, lines, directory,
+                              env=env, image_rects=image_rects)
+        if rect is None or not _block_accepts(rect, x, y, env):
+            continue
+        area = (rect[2] - rect[0]) * (rect[3] - rect[1])
+        if best is None or area < best[0]:
+            best = (area, start, end, kind, env, rect)
+    if best is None:
+        return None
+    _area, start, end, kind, env, rect = best
+    return (start, end, kind, env, rect)
+
+
+def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
+                  image_rects=()):
     '''单击块吸附：反查点击点 → 源码块 → 正向并集矩形（本页）。
 
     page 0-based，x/y 未旋转 PDF points。返回
     {'filename', 'start_line', 'end_line', 'kind', 'env', 'rect'}；
     点击不在块内（kind='line'）或查不到返回 None。后台线程调用。
+
+    image_rects 为主线程预提取的本页 poppler image mapping 矩形列表
+    （线程里不读 poppler）。反查行不在块内或块矩形不含点击点时，
+    走空间降级搜索（图片内部等 synctex 无记录区域的典型情形）。
     '''
     tex_filename = document.get_filename()
     if not tex_filename or not pdf_filename:
@@ -116,12 +248,23 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None):
     if not lines:
         return None
     start, end, kind, env = source_blocks.expand_to_block(lines, pos['line'])
-    if kind == 'line':
+    rect = None
+    if kind != 'line':
+        rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
+                              page, start, end, lines, directory,
+                              env=env, image_rects=image_rects)
+        # 反查行已在块内：synctex 盒比视觉块小是常态，盒外沿宽容差内
+        # 直接接受（源块映射是对的，高亮盒尽力而为）；只有点击点远离
+        # 块矩形时才怀疑反查失真，走空间降级。
+        if rect is not None and _block_accepts(rect, x, y, env):
+            return {'filename': pos['filename'], 'start_line': start, 'end_line': end,
+                    'kind': kind, 'env': env, 'rect': rect}
+    fallback = _fallback_block_at(lines, pos['line'], page, x, y,
+                                  pos['filename'], pdf_filename,
+                                  directory, image_rects)
+    if fallback is None:
         return None
-    rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
-                          page, start, end, lines, directory)
-    if rect is None:
-        return None
+    start, end, kind, env, rect = fallback
     return {'filename': pos['filename'], 'start_line': start, 'end_line': end,
             'kind': kind, 'env': env, 'rect': rect}
 
@@ -167,6 +310,13 @@ def map_selection(preview, document, payload, on_done):
             text = '(image block)'
         extra['focus_text'] = text
         extra['pdf_line_text'] = poppler_page.get_selected_text(Poppler.SelectionStyle.LINE, rect) or ''
+        # 主线程预提取本页整图矩形，供后台线程的空间降级搜索用。
+        try:
+            extra['image_rects'] = [
+                (m.area.x1, m.area.y1, m.area.x2, m.area.y2)
+                for m in (poppler_page.get_image_mapping() or [])]
+        except Exception:
+            extra['image_rects'] = []
     else:
         rects = payload['rects']
         first, last = min(rects), max(rects)
@@ -189,6 +339,15 @@ def _map_sync(document, payload, extra, pdf_filename, tex_filename, active_lines
                  if tex_filename else synctex_query.synctex_directory_for(pdf_filename))
 
     if payload['kind'] in ('block', 'image'):
+        # 块吸附已解析出源码块时直接复用（避免二次反查，且与高亮框
+        # 对应的块严格一致）；整图同步命中路径无源码信息，走反查。
+        if (payload.get('filename') and payload.get('start_line')
+                and payload.get('end_line')):
+            return {'filename': payload['filename'],
+                    'start_line': payload['start_line'],
+                    'end_line': payload['end_line'],
+                    'focus_text': extra.get('focus_text') or '',
+                    'focus_kind': 'block'}
         cx, cy = payload['center']
         pos = synctex_query.query_source_position(
             pdf_filename, payload['page'] + 1, cx, cy, directory)
@@ -197,7 +356,16 @@ def _map_sync(document, payload, extra, pdf_filename, tex_filename, active_lines
         lines = _lines_for(document, pos['filename'], active_lines)
         if not lines:
             return None
-        start, end, _kind, _env = source_blocks.expand_to_block(lines, pos['line'])
+        start, end, kind, _env = source_blocks.expand_to_block(lines, pos['line'])
+        if kind == 'line':
+            # 反查落在块外行（图片内部等无 synctex 记录区域）：空间降级。
+            fallback = _fallback_block_at(
+                lines, pos['line'], payload['page'], cx, cy,
+                pos['filename'], pdf_filename, directory,
+                extra.get('image_rects', ()))
+            if fallback is None:
+                return None
+            start, end, kind, _env, _rect = fallback
         return {'filename': pos['filename'], 'start_line': start, 'end_line': end,
                 'focus_text': extra.get('focus_text') or '', 'focus_kind': 'block'}
 

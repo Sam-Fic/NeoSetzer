@@ -24,7 +24,9 @@
   - 块/图片 → center 反查 → 整块；focus 为块内渲染文本。
   - 跨文件（被 include 的子文件）磁盘读；反查全失败 → None。
   - block_pdf_rect：synctex view 的 v 为 y-up 底边 → top-down y1=v-height；
-    只取本页矩形并集，跳过空行/注释行。
+    只取本页矩形并集，跳过空行/注释行/纯边界行；浮动体并入相邻整图。
+  - resolve_block：块矩形须覆盖点击点，否则空间降级搜索附近块
+    （图片内部等 synctex 无记录区域反查会落在块外行）。
 '''
 
 import os
@@ -194,6 +196,45 @@ class BlockSelectionTest(unittest.TestCase):
         self.assertIsNone(run_map(FakeDocument(), payload, {}, [None],
                                   lines=self.LINES))
 
+    def test_payload_with_source_block_reused_without_query(self):
+        # 块吸附已解析出源码块 → 直接复用，不再二次反查（与高亮框
+        # 对应的块严格一致）。
+        payload = {'kind': 'block', 'page': 0, 'rect': (10, 20, 100, 80),
+                   'center': (55, 50), 'filename': '/p/chapter.tex',
+                   'start_line': 4, 'end_line': 9}
+        extra = {'focus_text': 'block text'}
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position') as query:
+            result = mapper._map_sync(FakeDocument(), payload, extra,
+                                      '/p/main.pdf', '/p/main.tex', None)
+        query.assert_not_called()
+        self.assertEqual(result['filename'], '/p/chapter.tex')
+        self.assertEqual((result['start_line'], result['end_line']), (4, 9))
+        self.assertEqual(result['focus_kind'], 'block')
+
+    def test_line_hit_falls_back_spatially(self):
+        # 整图同步命中路径（payload 无源码信息）：反查落在块外行 →
+        # 空间降级搜索覆盖点击点的附近块。
+        lines = ['text\n', '\\begin{figure}\n', '\\includegraphics{a}\n',
+                 '\\caption{cap}\n', '\\end{figure}\n', 'more\n']
+        payload = {'kind': 'image', 'page': 0, 'rect': (90, 30, 190, 100),
+                   'center': (140, 60)}
+        extra = {'focus_text': '(image block)',
+                 'image_rects': [(90, 30, 190, 88)]}
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=6)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[caption]):
+            result = mapper._map_sync(FakeDocument(), payload, extra,
+                                      '/p/main.pdf', '/p/main.tex', lines)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (2, 5))
+        self.assertEqual(result['focus_kind'], 'block')
+
 
 class BlockPdfRectTest(unittest.TestCase):
 
@@ -228,12 +269,155 @@ class BlockPdfRectTest(unittest.TestCase):
                 '/p/main.tex', '/p/main.pdf', '/p/main.tex', 0, 1, 1,
                 ['x\n'], '/cache'))
 
+    def test_skips_pure_boundary_lines(self):
+        # 纯边界行的 synctex 记录常是周围段落盒，不得混入并集。
+        lines = ['\\begin{figure}[h]\n', '\\centering\n',
+                 '\\caption{cap}\n', '\\end{figure}\n']
+        paragraph = {'page': 1, 'h': 0, 'v': 500, 'width': 340, 'height': 20}
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+
+        def fake_query(tex, pdf, ln, directory):
+            return [paragraph] if ln in (1, 4) else [caption]
+
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=fake_query) as query:
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 4, lines,
+                                         '/cache', env='figure')
+        self.assertEqual(rect, (100, 90, 180, 100))
+        queried = [c[0][2] for c in query.call_args_list]
+        self.assertNotIn(1, queried)
+        self.assertNotIn(4, queried)
+
+    def test_inline_boundary_content_not_skipped(self):
+        # 行内混有正文内容（单行 tabular）不属纯边界行，照常查询。
+        lines = ['\\begin{tabular}{ll} a & b \\end{tabular}\n']
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=rects) as query:
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 1, lines,
+                                         '/cache', env='tabular')
+        self.assertEqual(rect, (10, 90, 50, 100))
+        self.assertEqual(query.call_count, 1)
+
+    def test_float_env_merges_adjacent_image(self):
+        lines = ['\\begin{figure}\n', '\\includegraphics{a}\n',
+                 '\\caption{cap}\n', '\\end{figure}\n']
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        image = (90, 30, 190, 88)  # caption 上方 2pt，水平有交集
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=[caption]):
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 4, lines,
+                                         '/cache', env='figure',
+                                         image_rects=[image])
+        self.assertEqual(rect, (90, 30, 190, 100))
+
+    def test_float_env_ignores_distant_image(self):
+        lines = ['\\begin{figure}\n', '\\caption{cap}\n', '\\end{figure}\n']
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        far_image = (90, 300, 190, 380)  # 垂直相距远超容差
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=[caption]):
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 3, lines,
+                                         '/cache', env='figure',
+                                         image_rects=[far_image])
+        self.assertEqual(rect, (100, 90, 180, 100))
+
+    def test_non_float_env_does_not_merge_image(self):
+        lines = ['\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
+        box = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=[box]):
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 3, lines,
+                                         '/cache', env='equation',
+                                         image_rects=[(90, 30, 190, 88)])
+        self.assertEqual(rect, (100, 90, 180, 100))
+
+    def test_skips_label_lines(self):
+        # \label 行的 synctex 记录是公式上方正文行的整段宽盒（实测），
+        # 混入并集会把块矩形拉到上方正文行，导致正文点击误吸到公式。
+        lines = ['\\begin{equation}\n', '\\label{eq:x}\n', 'x=1\n',
+                 '\\end{equation}\n']
+        paragraph = {'page': 1, 'h': 0, 'v': 500, 'width': 340, 'height': 20}
+        content = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+
+        def fake_query(tex, pdf, ln, directory):
+            return [paragraph] if ln == 2 else [content]
+
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=fake_query) as query:
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 4, lines,
+                                         '/cache', env='equation')
+        self.assertEqual(rect, (100, 90, 180, 100))
+        queried = [c[0][2] for c in query.call_args_list]
+        self.assertNotIn(2, queried)
+
+    def test_numbered_math_merges_end_line_number_box(self):
+        # 公式编号在右缘页边处，内容行盒盖不到；\end{行} 的全宽盒
+        # （含编号）与内容区同高，并入后块矩形覆盖编号区。
+        lines = ['\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
+        content = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        full_width = {'page': 1, 'h': 50, 'v': 100, 'width': 290, 'height': 10}
+        paragraph = {'page': 1, 'h': 0, 'v': 500, 'width': 340, 'height': 20}
+
+        def fake_query(tex, pdf, ln, directory):
+            if ln == 3:
+                return [full_width, paragraph]
+            return [content]
+
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=fake_query):
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 3, lines,
+                                         '/cache', env='equation')
+        # 全宽盒并入（x 扩到 50..340）；远处段落盒不垂直重叠，排除。
+        self.assertEqual(rect, (50, 90, 340, 100))
+
+    def test_numbered_math_ignores_non_overlapping_end_boxes(self):
+        lines = ['\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
+        content = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        above = {'page': 1, 'h': 0, 'v': 500, 'width': 340, 'height': 20}
+
+        def fake_query(tex, pdf, ln, directory):
+            return [above] if ln == 3 else [content]
+
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=fake_query):
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 3, lines,
+                                         '/cache', env='equation')
+        self.assertEqual(rect, (100, 90, 180, 100))
+
+    def test_starred_math_does_not_merge_number_box(self):
+        # equation* 无编号：不查 end 行全宽盒，避免无谓放宽块矩形。
+        lines = ['\\begin{equation*}\n', 'x=1\n', '\\end{equation*}\n']
+        content = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        full_width = {'page': 1, 'h': 50, 'v': 100, 'width': 290, 'height': 10}
+
+        def fake_query(tex, pdf, ln, directory):
+            return [full_width] if ln == 3 else [content]
+
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               side_effect=fake_query) as query:
+            rect = mapper.block_pdf_rect('/p/main.tex', '/p/main.pdf',
+                                         '/p/main.tex', 0, 1, 3, lines,
+                                         '/cache', env='equation*')
+        self.assertEqual(rect, (100, 90, 180, 100))
+        queried = [c[0][2] for c in query.call_args_list]
+        self.assertNotIn(3, queried)
+
 
 class ResolveBlockTest(unittest.TestCase):
 
     LINES = ['\\begin{equation}\n', 'x=1\n', '\\end{equation}\n']
 
-    def resolve(self, positions, rects, document=None):
+    def resolve(self, positions, rects, document=None, x=30, y=95,
+                image_rects=()):
         document = document or FakeDocument()
         with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
                                return_value='/cache'), \
@@ -241,8 +425,9 @@ class ResolveBlockTest(unittest.TestCase):
                                   side_effect=positions), \
                 mock.patch.object(mapper.synctex_query, 'query_rectangles',
                                   return_value=rects):
-            return mapper.resolve_block(document, '/p/main.pdf', 0, 50, 50,
-                                        active_lines=self.LINES)
+            return mapper.resolve_block(document, '/p/main.pdf', 0, x, y,
+                                        active_lines=self.LINES,
+                                        image_rects=image_rects)
 
     def test_resolves_block_with_union_rect(self):
         rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
@@ -252,6 +437,166 @@ class ResolveBlockTest(unittest.TestCase):
         self.assertEqual(result['kind'], 'environment')
         self.assertEqual(result['env'], 'equation')
         self.assertEqual(result['rect'], (10, 90, 50, 100))
+
+    def test_click_below_box_within_vertical_pad_accepted(self):
+        # synctex 盒比视觉块小（分数下缘/glue 不在盒内）：盒下沿 4pt 内接受。
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=30, y=103)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (1, 3))
+
+    def test_click_in_gap_between_blocks_not_snapped(self):
+        # 块间空隙实测 ~10pt：垂直容差只放 4pt，间隙点击不误吸邻块。
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=30, y=108)
+        self.assertIsNone(result)
+
+    def test_click_horizontally_outside_within_pad_accepted(self):
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=60, y=95)
+        self.assertIsNotNone(result)
+
+    def test_tabular_right_column_click_accepted(self):
+        # synctex 只记录部分列（实测两列 tabular 只有左列有记录）：
+        # 右列点击反查到块外行，降级搜索的块矩形只盖左列，
+        # 表格类环境垂直在块内即接受。
+        lines = ['\\begin{tabular}{|c|c|}\n', '\\hline\n',
+                 'alpha & beta \\\\\n', '\\hline\n', '\\end{tabular}\n']
+        left_col = {'page': 1, 'h': 236, 'v': 281, 'width': 78, 'height': 24}
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=6)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[left_col]):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          400, 270, active_lines=lines)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (1, 5))
+        self.assertEqual(result['env'], 'tabular')
+
+    def test_tabular_click_below_block_not_accepted(self):
+        # 表格特例只放宽水平：垂直远离块仍不吸附。
+        lines = ['\\begin{tabular}{|c|c|}\n', 'alpha & beta \\\\\n',
+                 '\\end{tabular}\n']
+        left_col = {'page': 1, 'h': 236, 'v': 281, 'width': 78, 'height': 24}
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=4)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[left_col]):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          400, 320, active_lines=lines)
+        self.assertIsNone(result)
+
+    def test_equation_number_region_click_accepted(self):
+        # 点击右缘公式编号：反查返回 \end{equation}（块内），但内容行
+        # 盒盖不到编号区；end 行全宽盒并入后接受。
+        content = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        full_width = {'page': 1, 'h': 50, 'v': 100, 'width': 290, 'height': 10}
+
+        def fake_query(tex, pdf, ln, directory):
+            return [full_width] if ln == 3 else [content]
+
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=3)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=fake_query):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          300, 95, active_lines=self.LINES)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (1, 3))
+        self.assertEqual(result['rect'], (50, 90, 340, 100))
+
+    def test_math_env_left_margin_click_accepted(self):
+        # 显示数学居中排版、两侧是页边空白：水平放宽，左边距点击
+        # （反查命中块内行）也吸附。
+        rects = [{'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=20, y=95)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (1, 3))
+
+    def test_math_env_vertical_outside_not_accepted(self):
+        # 水平放宽不改变垂直判定：远离块的点击不吸附。
+        rects = [{'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=20, y=108)
+        self.assertIsNone(result)
+
+    def test_displaymath_env_none_horizontally_relaxed(self):
+        # displaymath（\[...\]/$$...$$）无环境名，env=None 同样放宽。
+        self.assertTrue(mapper._block_accepts((10, 90, 50, 100), 300, 95, None))
+        self.assertFalse(mapper._block_accepts((10, 90, 50, 100), 300, 108, None))
+
+    def test_fallback_window_covers_distant_return_line(self):
+        # 公式间隙点击 synctex 可能返回很远的行（实测 \end{document}）：
+        # 降级窗口要能盖到近百行外的块。
+        lines = self.LINES + ['text\n'] * 110
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                               return_value=rects):
+            fallback = mapper._fallback_block_at(
+                lines, 100, 0, 30, 95, '/p/main.tex', '/p/main.pdf',
+                '/cache', ())
+        self.assertIsNotNone(fallback)
+        self.assertEqual((fallback[0], fallback[1]), (1, 3))
+
+    def test_click_outside_block_rect_falls_back_spatially(self):
+        # 反查命中块 A 但 A 的 synctex 盒不含点击点（实测：公式间隙
+        # 反查到的行，其盒是别处段落）：降级搜索真正覆盖点击点的块 B。
+        lines = ['\\begin{equation}\n', 'x=1\n', '\\end{equation}\n',
+                 'text\n', '\\begin{figure}\n', '\\caption{cap}\n',
+                 '\\end{figure}\n']
+        equation = {'page': 1, 'h': 10, 'v': 410, 'width': 40, 'height': 10}
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+
+        def fake_query(tex, pdf, ln, directory):
+            if ln == 2:
+                return [equation]
+            if ln == 6:
+                return [caption]
+            return []
+
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=2)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=fake_query):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          140, 95, active_lines=lines)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (5, 7))
+        self.assertEqual(result['env'], 'figure')
+        self.assertEqual(result['rect'], (100, 90, 180, 100))
+
+    def test_click_on_line_outside_block_falls_back_to_nearby_block(self):
+        # 图片内部点击：synctex 返回块外行（expand 得 'line'），降级
+        # 搜索附近块；figure 块矩形并入整图后覆盖点击点。
+        lines = ['text\n', '\\begin{figure}\n', '\\includegraphics{a}\n',
+                 '\\caption{cap}\n', '\\end{figure}\n', 'more\n']
+        caption = {'page': 1, 'h': 100, 'v': 100, 'width': 80, 'height': 10}
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  return_value=pos(line=6)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[caption]):
+            result = mapper.resolve_block(
+                FakeDocument(), '/p/main.pdf', 0, 140, 60,
+                active_lines=lines, image_rects=[(90, 30, 190, 88)])
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (2, 5))
+        self.assertEqual(result['env'], 'figure')
+        self.assertEqual(result['rect'], (90, 30, 190, 100))
+
+    def test_fallback_no_covering_block_returns_none(self):
+        # 降级候选块矩形都不含点击点 → 不吸附（纯文本点击）。
+        rects = [{'page': 1, 'h': 10, 'v': 100, 'width': 40, 'height': 10}]
+        result = self.resolve([pos(line=2)], rects, x=500, y=500)
+        self.assertIsNone(result)
 
     def test_plain_line_click_returns_none(self):
         with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',

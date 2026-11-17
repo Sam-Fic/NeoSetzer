@@ -29,6 +29,8 @@ import math
 import threading
 import unicodedata
 
+import cairo
+
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
 from setzer.helpers.synctex_line_repair import has_matchable_text, match_pdf_line
@@ -46,6 +48,14 @@ from setzer.document.preview.external_pdf_monitor import (
     ExternalPdfChangeTracker,
     ExternalPdfState,
 )
+
+# 选区高亮墨迹测量的栅格分辨率（points → 像素）：2x 足以分辨降部
+# 字母的 ~2pt descent 空间；每页只渲染一次，缓存复用。
+_TEXT_INK_SCALE = 2.0
+# 墨迹判定阈值：任一通道低于此值即算墨迹（覆盖彩色文本）。
+_TEXT_INK_THRESHOLD = 200
+# 栅格缓存页数上限（A4@2x 约 8MB/页，只保留最近选中的几页）。
+_TEXT_INK_RASTER_MAX_PAGES = 4
 
 
 class Preview(Observable):
@@ -91,6 +101,12 @@ class Preview(Observable):
         # 拖动选择时每个 motion 事件都要精修高亮矩形，整页字形列表开销不小，
         # 以页为粒度缓存；load_pdf 换文档时整体清空。
         self._text_layout_cache = dict()
+        # 高亮墨迹精修缓存：字形框是行高盒（ascent+descent），无降部字母
+        # 时底边比实际墨迹低 ~2pt，高亮条看起来偏下。用低分辨率栅格的
+        # 逐列墨迹轮廓把选中字形框收缩到实际墨迹范围。raster 每页一次，
+        # profile 每字形行一次；load_pdf 换文档时整体清空。
+        self._text_ink_raster_cache = dict()
+        self._text_ink_profile_cache = dict()
 
         # ---- 块选择（无拖动单击吸附：整图 / 公式 / 浮动体整块）----
         # block_selection: {'page', 'rect': (x1,y1,x2,y2) 未旋转 points
@@ -377,7 +393,7 @@ class Preview(Observable):
         '''画布坐标 → (page 0-based, x, y 未旋转 PDF points)；页隙/越界 None。'''
         if self.layout is None or self.poppler_document is None:
             return None
-        window_width = self.view.get_allocated_width()
+        window_width = self.view.get_viewport_width()
         data = self.layout.get_page_number_and_offsets_by_document_offsets(
             doc_x, doc_y, window_width)
         if data is None:
@@ -416,7 +432,7 @@ class Preview(Observable):
         key = (self.pdf_version, page, round(x, 1), round(y, 1))
         cached = self._block_cache.get(key)
         if cached is not None:
-            self.block_selection = {'page': page, 'rect': cached, 'kind': 'block'}
+            self.block_selection = dict(cached, page=page)
             self.view.drawing_area.queue_draw()
             return
         tex_filename = self.document.get_filename()
@@ -425,6 +441,13 @@ class Preview(Observable):
         buffer = self.document.source_buffer
         active_lines = buffer.get_text(buffer.get_start_iter(),
                                        buffer.get_end_iter(), True).splitlines(keepends=True)
+        # 主线程预提取本页整图矩形（线程里不读 poppler），供块矩形
+        # 并入整图与空间降级搜索用。
+        try:
+            image_rects = [(m.area.x1, m.area.y1, m.area.x2, m.area.y2)
+                           for m in (poppler_page.get_image_mapping() or [])]
+        except Exception:
+            image_rects = []
         self._block_request_id += 1
         request_id = self._block_request_id
         pdf_filename = self.pdf_filename
@@ -432,7 +455,8 @@ class Preview(Observable):
 
         def _run():
             result = pdf_annotation_mapper.resolve_block(
-                self.document, pdf_filename, page, x, y, active_lines=active_lines)
+                self.document, pdf_filename, page, x, y, active_lines=active_lines,
+                image_rects=image_rects)
             GLib.idle_add(self._on_block_resolved, request_id, key, page, result)
 
         threading.Thread(target=_run, daemon=True).start()
@@ -442,8 +466,13 @@ class Preview(Observable):
             return False
         if result is None:
             return False
-        self._block_cache[key] = result['rect']
-        self.block_selection = {'page': page, 'rect': result['rect'], 'kind': 'block'}
+        # 缓存完整解析结果（含源码块信息）：重复点击免反查，且批注
+        # 映射直接复用与高亮框严格一致的块。kind 归一为 'block'
+        # （resolve_block 返回的 'environment'/'displaymath' 是源码分类，
+        # payload 契约只认 'block'/'image'/'text'）。
+        result = dict(result, kind='block')
+        self._block_cache[key] = result
+        self.block_selection = dict(result, page=page)
         self.view.drawing_area.queue_draw()
         return False
 
@@ -452,8 +481,13 @@ class Preview(Observable):
         if self.block_selection is not None:
             block = self.block_selection
             x1, y1, x2, y2 = block['rect']
-            return {'kind': block['kind'], 'page': block['page'],
-                    'rect': block['rect'], 'center': ((x1 + x2) / 2, (y1 + y2) / 2)}
+            payload = {'kind': block['kind'], 'page': block['page'],
+                       'rect': block['rect'], 'center': ((x1 + x2) / 2, (y1 + y2) / 2)}
+            # 块吸附已解析出源码块时随 payload 携带，映射端免二次反查。
+            for field in ('filename', 'start_line', 'end_line'):
+                if block.get(field) is not None:
+                    payload[field] = block[field]
+            return payload
         if self.text_selection is not None and self.text_selection_rects:
             return {'kind': 'text', 'rects': dict(self.text_selection_rects),
                     'text': self.text_selection_text or ''}
@@ -570,7 +604,133 @@ class Preview(Observable):
                 cy = (g.y1 + g.y2) / 2.0
                 if x1 <= cx <= x2 and y1 <= cy <= y2:
                     refined.append((g.x1, g.y1, g.x2, g.y2))
-        return refined
+        return self._tighten_selection_boxes(page, glyphs, refined)
+
+    def _tighten_selection_boxes(self, page, glyphs, boxes):
+        '''把选中字形框按行收缩到实际渲染墨迹的垂直范围（只缩不扩）。
+
+        get_text_layout 的字形框是行高盒（ascent+descent，整行同高）：
+        选中内容无降部字母（p/g/j/y/q 等）时底边比墨迹低 ~2pt，高亮条
+        看起来偏下；含降部时又对齐——这就是「偶尔对不齐」的来源。
+        这里用页面栅格的逐列墨迹轮廓求选中区域的真实墨迹上下缘，
+        同一字形行（y 范围相同）统一收缩，空格与字母保持同高。
+
+        只缩不扩：墨迹超出字形框的情形（大括号/上标）维持原框，
+        避免把相邻行的墨迹误并入；扫描严格限在字形行 y 范围内，
+        行间隙很小（实测 ~1pt）也不会越界。无墨迹（空格）或测量
+        失败时保留原框。'''
+        if not boxes:
+            return boxes
+        groups = dict()
+        for b in boxes:
+            key = (round(b[1], 1), round(b[3], 1))
+            groups.setdefault(key, []).append(b)
+        result = []
+        for group in groups.values():
+            y1 = min(b[1] for b in group)
+            y2 = max(b[3] for b in group)
+            profiles = self._get_line_ink_profiles(page, glyphs, y1, y2)
+            if profiles is None:
+                result.extend(group)
+                continue
+            px1, tops, bottoms = profiles
+            s = _TEXT_INK_SCALE
+            ink_top = ink_bot = None
+            for b in group:
+                c1 = max(0, int(math.floor(b[0] * s)) - px1)
+                c2 = min(len(tops), int(math.ceil(b[2] * s)) - px1)
+                for i in range(c1, c2):
+                    t = tops[i]
+                    if t is not None:
+                        ink_top = t if ink_top is None else min(ink_top, t)
+                        bt = bottoms[i]
+                        ink_bot = bt if ink_bot is None else max(ink_bot, bt)
+            if ink_top is None:
+                result.extend(group)
+                continue
+            ny1 = max(y1, ink_top)
+            ny2 = min(y2, ink_bot)
+            if ny2 - ny1 < 0.5:
+                # 收缩后过矮（测量异常）：保留原框。
+                result.extend(group)
+                continue
+            result.extend((b[0], ny1, b[2], ny2) for b in group)
+        return result
+
+    def _get_line_ink_profiles(self, page, glyphs, y1, y2):
+        '''字形行 (y1, y2) 的逐列墨迹轮廓（points，top-down）。
+
+        返回 (px1, tops, bottoms)：tops[i]/bottoms[i] 为第 px1+i 像素列
+        在行 y 范围内最上/最下墨迹像素的上/下缘（points），无墨迹为
+        None。x 跨度取整页同 y 范围字形的并集（拖动中稳定，缓存友好）。
+        测量失败返回 None。'''
+        key = (page, round(y1, 1), round(y2, 1))
+        if key in self._text_ink_profile_cache:
+            return self._text_ink_profile_cache[key]
+        profiles = None
+        raster = self._get_selection_raster(page)
+        if raster is not None:
+            data, stride, width, height = raster
+            s = _TEXT_INK_SCALE
+            gx1 = gx2 = None
+            ky1, ky2 = key[1], key[2]
+            for g in glyphs:
+                if round(g.y1, 1) == ky1 and round(g.y2, 1) == ky2:
+                    gx1 = g.x1 if gx1 is None else min(gx1, g.x1)
+                    gx2 = g.x2 if gx2 is None else max(gx2, g.x2)
+            if gx1 is not None:
+                px1 = max(0, int(math.floor(gx1 * s)))
+                px2 = min(width, int(math.ceil(gx2 * s)))
+                py1 = max(0, int(math.floor(y1 * s)))
+                py2 = min(height, int(math.ceil(y2 * s)))
+                if px2 > px1 and py2 > py1:
+                    n = px2 - px1
+                    tops = [None] * n
+                    bottoms = [None] * n
+                    threshold = _TEXT_INK_THRESHOLD
+                    for py in range(py1, py2):
+                        row = data[py * stride: py * stride + width * 4]
+                        for px in range(px1, px2):
+                            b, g, r, a = row[px * 4: px * 4 + 4]
+                            if r < threshold or g < threshold or b < threshold:
+                                i = px - px1
+                                if tops[i] is None:
+                                    tops[i] = py / s
+                                bottoms[i] = (py + 1) / s
+                    profiles = (px1, tops, bottoms)
+        self._text_ink_profile_cache[key] = profiles
+        return profiles
+
+    def _get_selection_raster(self, page):
+        '''白底未旋转页面栅格（_TEXT_INK_SCALE 倍），供墨迹测量。
+
+        返回 (data, stride, width, height)；渲染失败返回 None。只缓存
+        最近 _TEXT_INK_RASTER_MAX_PAGES 页（每页约 8MB），超出时淘汰
+        最早的一页；profile 缓存不受影响（已建好的轮廓无需栅格）。'''
+        if page in self._text_ink_raster_cache:
+            return self._text_ink_raster_cache[page]
+        raster = None
+        try:
+            poppler_page = self.poppler_document.get_page(page)
+            pw, ph = poppler_page.get_size()
+            s = _TEXT_INK_SCALE
+            surface = cairo.ImageSurface(cairo.Format.ARGB32,
+                                         max(1, int(pw * s)), max(1, int(ph * s)))
+            ctx = cairo.Context(surface)
+            ctx.scale(s, s)
+            ctx.set_source_rgb(1, 1, 1)
+            ctx.paint()
+            poppler_page.render(ctx)
+            surface.flush()
+            raster = (surface.get_data(), surface.get_stride(),
+                      surface.get_width(), surface.get_height())
+        except Exception:
+            raster = None
+        self._text_ink_raster_cache[page] = raster
+        while len(self._text_ink_raster_cache) > _TEXT_INK_RASTER_MAX_PAGES:
+            oldest = next(iter(self._text_ink_raster_cache))
+            del self._text_ink_raster_cache[oldest]
+        return raster
 
     def _get_text_layout_glyphs(self, page):
         '''取（带缓存的）整页字形浮点矩形列表，失败返回 None。
@@ -634,6 +794,8 @@ class Preview(Observable):
             self.pdf_version += 1
             # 字形框缓存绑定旧文档，必须一并清空。
             self._text_layout_cache = dict()
+            self._text_ink_raster_cache = dict()
+            self._text_ink_profile_cache = dict()
             self._block_cache = dict()
             self.block_selection = None
             self.page_sizes = []
@@ -836,7 +998,7 @@ class Preview(Observable):
             dy = oy - ocy
             bx = cx + dx * cos_t - dy * sin_t
             by = cy + dx * sin_t + dy * cos_t
-        margin = layout.get_horizontal_margin(self.view.get_allocated_width())
+        margin = layout.get_horizontal_margin(self.view.get_viewport_width())
         x_canvas = margin + bx
         # per-page 几何：用 get_page_top 取代 "(page_height + gap) * page"。
         page_top = layout.get_page_top(page_number)
@@ -874,7 +1036,7 @@ class Preview(Observable):
     def get_context_at(self, x_offset, y_offset):
         if self.layout is None or self.poppler_document is None:
             return (None, None)
-        window_width = self.view.get_allocated_width()
+        window_width = self.view.get_viewport_width()
         layout = self.layout
         n_pages = self.poppler_document.get_n_pages()
         # per-page 几何：用 layout.get_page_by_offset 转 1-based，转回 0-based。
@@ -977,13 +1139,16 @@ class Preview(Observable):
         if len(rectangles) > 0:
             self.presenter.start_fade_loop()
 
-    def set_synctex_rectangles(self, rectangles, source_text=None):
+    def set_synctex_rectangles(self, rectangles, source_text=None, phitex=False):
         if self.layout == None: return
 
-        # phitex 的 synctex 行号不可靠（见 synctex_line_repair）：矩形可能落在
-        # 页面上完全不相干的位置。页面上的文字是对的，用源码行文字反查 PDF
-        # 文本行来定位；匹配不到就保持 synctex 的结果。
-        if source_text:
+        # 源码行文字反查 PDF 行两个用途：phitex 的 synctex 行号不可靠（见
+        # synctex_line_repair），矩形可能落在完全不相干的位置；align 等多行
+        # 环境 synctex 会返回多行的盒（实测两行 align 返回 24 个矩形混杂
+        # 两行），高亮/滚动落在第一行而非光标行。页面上的文字是对的，
+        # 用源码行文字筛出正确行；单盒且非 phitex 时不动（synctex 通常是对的），
+        # 匹配不到就保持 synctex 的结果。
+        if source_text and (len(rectangles) > 1 or phitex):
             matched = self._find_rectangle_for_source_text(source_text, rectangles)
             if matched is not None:
                 _sync_debug('正向同步按源码行文本纠正矩形: page %s' % matched['page'])
@@ -1130,7 +1295,7 @@ class Preview(Observable):
             _sync_debug('init_backward_sync: layout is None，不反查')
             return False
 
-        window_width = self.view.get_allocated_width()
+        window_width = self.view.get_viewport_width()
         data = self.layout.get_page_number_and_offsets_by_document_offsets(x_offset, y_offset, window_width)
         if data is None:
             # Click in the gap between pages or outside the page margin: clamp to
