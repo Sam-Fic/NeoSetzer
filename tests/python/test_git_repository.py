@@ -24,7 +24,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from setzer.vcs.git_repository import (
     parse_status_porcelain,
+    parse_log_history,
     parse_num_diff,
+    classify_git_error,
     DIFF_CHANGED_LIMIT,
 )
 
@@ -68,6 +70,30 @@ class TestParseStatusPorcelain:
         assert branch is None
         assert upstream is None
         assert files == []
+
+
+class TestParseLogHistory:
+    def test_multiple_commits_in_log_order(self):
+        output = ('abc1234\x1fAdd git panel\x1fAlice\x1f1700000000\n'
+                  'def5678\x1fFix typo\x1fBob\x1f1690000000\n')
+        commits = parse_log_history(output)
+        assert [c['hash'] for c in commits] == ['abc1234', 'def5678']
+        assert commits[0]['subject'] == 'Add git panel'
+        assert commits[0]['author'] == 'Alice'
+        assert commits[0]['timestamp'] == 1700000000
+
+    def test_empty_output(self):
+        assert parse_log_history('') == []
+
+    def test_malformed_lines_are_skipped(self):
+        # 字段数不足的行与空行直接跳过；非数字时间戳降级为 0。
+        output = ('abc1234\x1fOnly three fields\x1fAlice\n'
+                  '\n'
+                  'def5678\x1fok\x1fBob\x1fnot-a-number\n')
+        commits = parse_log_history(output)
+        assert len(commits) == 1
+        assert commits[0]['hash'] == 'def5678'
+        assert commits[0]['timestamp'] == 0
 
 
 class TestParseNumDiff:
@@ -120,3 +146,22 @@ class TestParseNumDiff:
         assert marks['modified'] == set()
         assert marks['deleted_after'] == set()
         assert marks['changed_count'] == 0
+
+
+class TestClassifyGitError:
+    def test_missing_remote_wins_over_credentials(self):
+        # 没有远程时 git 同时报 "does not appear to be a git repository" 和
+        # "Could not read from remote repository"，应提示配置远程而非凭据。
+        output = ("fatal: 'origin' does not appear to be a git repository\n"
+                  'fatal: Could not read from remote repository.\n')
+        message = classify_git_error(output, 'push')
+        assert 'remote add origin' in message
+
+    def test_credentials_error(self):
+        output = 'fatal: could not read Username for \'https://example.com\': '
+        output += 'terminal prompts disabled\n'
+        assert 'credential helper' in classify_git_error(output, 'push')
+
+    def test_unknown_output_returns_none(self):
+        assert classify_git_error('something unexpected', 'push') is None
+        assert classify_git_error('', 'commit') is None

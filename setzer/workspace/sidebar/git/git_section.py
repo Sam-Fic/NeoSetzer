@@ -30,20 +30,25 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw
 
-import time
+import os
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.vcs.git_repository import GitRepository, git_available
-from setzer.workspace.sidebar.git.git_section_viewgtk import GitSectionView
+from setzer.workspace.sidebar.git.git_section_viewgtk import (
+    GitSectionView, format_commit_date,
+)
 from setzer.workspace.sidebar.git.commit_dialog import CommitDialog
 
 
 class GitSection(object):
     '''Git 侧栏面板控制器（#443）。显示当前活动文档所属仓库的
-    分支/ahead-behind/最近提交/改动数，提供 Pull 与 Commit & Push。
+    分支/ahead-behind/最近提交/改动数/线性历史，提供 Pull、Commit、Push。
 
-    显示条件：git 可用 + 文档在 repo 内 + 偏好开启，否则整个 section 隐藏
-    （与 DocumentStats 的 hide_view/set_group 模式一致）。
+    提交与推送是两个独立动作：纯本地仓库（或没配远程的项目）只需要提交。
+
+    显示条件：git 可用 + 文档已保存 + 偏好开启；文档所在目录还不是仓库时
+    显示「初始化仓库」入口（快捷初始化），所以面板不再因为「不在 repo 内」
+    整体消失（与 DocumentStats 的 hide_view/set_group 模式一致）。
 
     刷新时机（事件驱动，无轮询）：活动文档切换、文档保存、仓库状态信号
     （.git/index、.git/HEAD 的 Gio.FileMonitor 覆盖终端里的 commit/pull）。
@@ -59,6 +64,8 @@ class GitSection(object):
         self.view = GitSectionView()
         self.view.button_pull.connect('clicked', self.on_pull_clicked)
         self.view.button_commit.connect('clicked', self.on_commit_clicked)
+        self.view.button_push.connect('clicked', self.on_push_clicked)
+        self.view.button_init.connect('clicked', self.on_init_clicked)
 
         self._saved_document = None
 
@@ -121,13 +128,43 @@ class GitSection(object):
                 and self.settings.get_value('preferences', 'git_sidebar_panel')
                 and git_available())
 
+    def _init_directory(self):
+        '''返回可用于快捷初始化的目录；没有可初始化的目录时返回 None。
+
+        只在文档已保存（有绝对路径）时提供：未命名文档没有所属目录，
+        git init 出来的仓库也无处安放。'''
+        if self.document is None:
+            return None
+        filename = self.document.get_filename()
+        if filename is None:
+            return None
+        directory = os.path.dirname(os.path.realpath(filename))
+        if not directory or not os.path.isdir(directory):
+            return None
+        return directory
+
     def update_view(self):
-        state = self.repo.state if self.repo is not None else None
-        visible = self._panel_enabled() and state is not None
+        enabled = self._panel_enabled()
+        has_repo = self.repo is not None
+        state = self.repo.state if has_repo else None
+        # 仓库不存在但有可初始化的目录 → 显示快捷初始化入口。
+        init_directory = None
+        if enabled and not has_repo:
+            init_directory = self._init_directory()
+        visible = enabled and (has_repo or init_directory is not None)
         if self.group is not None:
             self.group.set_visible(visible)
         if not visible:
             return
+
+        if not has_repo:
+            self.view.show_init()
+            return
+        # 刚连上仓库时状态还在后台线程里跑：留白等 state_changed，别把
+        # 「尚未取到状态」误当成「没有仓库」而闪回初始化页。
+        if state is None:
+            return
+        self.view.show_repository()
 
         # 分支 + ahead/behind
         self.view.label_branch.set_text(state['branch'] or _('(no commits yet)'))
@@ -149,11 +186,8 @@ class GitSection(object):
         if state['commit_subject']:
             self.view.label_commit.set_text(state['commit_subject'])
             self.view.label_commit.set_visible(True)
-            if state['commit_timestamp']:
-                date_str = time.strftime('%Y-%m-%d %H:%M', time.localtime(state['commit_timestamp']))
-            else:
-                date_str = ''
-            self.view.label_commit_date.set_text(date_str)
+            self.view.label_commit_date.set_text(
+                format_commit_date(state['commit_timestamp']))
             self.view.label_commit_date.set_visible(True)
         else:
             self.view.label_commit.set_visible(False)
@@ -166,7 +200,81 @@ class GitSection(object):
         else:
             self.view.label_changed.set_text(_('Changed files') + ': %d' % count)
 
-    # —— 写操作（pull / commit & push），按仓库显式信任 ——————————
+        # 推送只在「配了远程 + 有东西可推」时可用：本地领先远程，或还没建立
+        # upstream（首次推送会自动 --set-upstream）。纯本地项目或已有 upstream
+        # 且不领先 → 灰掉并说明原因，避免点了只得到 "Everything up-to-date"。
+        has_remote = bool(state['remotes'])
+        has_upstream = state['upstream'] is not None
+        self.view.button_push.set_sensitive(
+            has_remote and bool(state['branch'])
+            and (bool(state['ahead']) or not has_upstream))
+        self.view.button_push.set_tooltip_text(
+            _('Push commits to the remote') if has_remote
+            else _('No remote repository is set up for this project.'))
+
+        # 拉取需要 upstream：没有它 git pull 只会吐 "no tracking information"。
+        # 先把按钮灰掉，并指向「先推送一次」这条唯一出路。
+        self.view.button_pull.set_sensitive(has_upstream)
+        self.view.button_pull.set_tooltip_text(
+            _('Update this branch from the remote (fast-forward only)')
+            if has_upstream
+            else _('Push this branch once to set its upstream, then you can pull.'))
+
+        # 线性历史
+        self.view.populate_history(state['history'])
+
+    # —— 快捷初始化（文档所在目录还不是仓库）————————————————
+
+    def on_init_clicked(self, button):
+        if not self._panel_enabled() or self.repo is not None:
+            return
+        directory = self._init_directory()
+        if directory is None:
+            return
+        # 首次写操作前的显式确认：git init 会在该目录写下 .git，选错目录
+        # （比如家目录）代价很高，所以把完整路径摆出来让用户看一眼。
+        dialog = Adw.AlertDialog()
+        dialog.set_heading(_('Initialize Git Repository?'))
+        dialog.set_body(_('A new repository will be created in:\n\n%s') % directory)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('init', _('Initialize'))
+        dialog.set_response_appearance('init', Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect('response', self.on_init_confirmed, directory)
+        dialog.present(ServiceLocator.get_main_window())
+
+    def on_init_confirmed(self, dialog, response, directory):
+        if response != 'init':
+            return
+        self.view.button_init.set_sensitive(False)
+        GitRepository.init_repository(directory, self.on_init_done)
+
+    def on_init_done(self, error, repo):
+        self.view.button_init.set_sensitive(True)
+        if error:
+            self._toast(error)
+            return
+        self._toast(_('Git repository initialized.'))
+        if repo is not None:
+            # 刚建好的仓库由本应用创建，不可能有预置 hooks，直接记为已信任，
+            # 免得紧接着的第一次提交又弹一次信任确认。
+            self._trust_repository(repo.root)
+            # 结构变化（从「无仓库」到「有仓库」）：重走 set_document 完成
+            # 信号连接与视图刷新，避免在这里重复实现一遍绑定逻辑。
+            self.repo = None
+            self.set_document()
+
+    def _toast(self, message):
+        '''非模态结果反馈统一走主窗口 toast（ui-guidelines）。'''
+        if not message:
+            return
+        try:
+            main_window = ServiceLocator.get_main_window()
+            if main_window is not None and hasattr(main_window, 'toast_overlay'):
+                main_window.toast_overlay.add_toast(Adw.Toast.new(message))
+        except Exception:
+            pass  # toast 失败不影响主流程
+
+    # —— 写操作（pull / commit / push），按仓库显式信任 ——————————
 
     def _is_trusted(self):
         return self.repo.root in self.settings.get_value('preferences', 'git_trusted_repos')
@@ -187,11 +295,17 @@ class GitSection(object):
     def on_trust_response(self, dialog, response, callback):
         if response != 'trust':
             return
-        trusted = list(self.settings.get_value('preferences', 'git_trusted_repos'))
-        if self.repo.root not in trusted:
-            trusted.append(self.repo.root)
-            self.settings.set_value('preferences', 'git_trusted_repos', trusted)
+        self._trust_repository(self.repo.root)
         callback()
+
+    def _trust_repository(self, root):
+        '''把仓库根路径写入信任列表（幂等）。'''
+        if root is None:
+            return
+        trusted = list(self.settings.get_value('preferences', 'git_trusted_repos'))
+        if root not in trusted:
+            trusted.append(root)
+            self.settings.set_value('preferences', 'git_trusted_repos', trusted)
 
     def on_pull_clicked(self, button):
         if not self._panel_enabled() or self.repo is None or self.repo.state is None:
@@ -216,6 +330,32 @@ class GitSection(object):
         self.view.button_pull.set_sensitive(True)
         if error:
             self.view.show_error(error)
+        else:
+            self.view.show_error(None)
+            self.repo.refresh()
+
+    def on_push_clicked(self, button):
+        if not self._panel_enabled() or self.repo is None or self.repo.state is None:
+            return
+        if not self._is_trusted():
+            self._request_trust(self.do_push)
+            return
+        self.do_push()
+
+    def do_push(self):
+        state = self.repo.state
+        if state['branch'] is None:
+            self.view.show_error(_('Nothing to push: this branch has no commits yet.'))
+            return
+        self.view.show_error(None)
+        self.view.button_push.set_sensitive(False)
+        self.repo.push(self.on_push_done)
+
+    def on_push_done(self, error):
+        if error:
+            # 失败时 update_view 里重算的敏感度可能仍为 True，这里只需先恢复。
+            self.view.show_error(error)
+            self.view.button_push.set_sensitive(True)
         else:
             self.view.show_error(None)
             self.repo.refresh()

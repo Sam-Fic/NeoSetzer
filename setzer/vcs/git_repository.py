@@ -15,6 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import builtins
+
+
+def _(s):
+    '''翻译函数。运行时委托 builtins._（由 setzer.in 注入 trans.gettext），
+    未注入时回退到原字符串——便于开发/测试（本模块有纯解析函数单测）。'''
+    fn = getattr(builtins, '_', None)
+    return s if fn is None else fn(s)
+
+
 import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import GLib, Gio
@@ -30,6 +40,8 @@ from setzer.helpers.observable import Observable
 DIFF_LINE_LIMIT = 5000
 # diff 变更行数超过该值时同样降级（超大 rename/重排场景）。
 DIFF_CHANGED_LIMIT = 2000
+# 侧栏线性历史列表显示的提交条数上限（一次 `git log -n` 取回，避免分页）。
+HISTORY_LIMIT = 12
 
 
 def git_available():
@@ -106,6 +118,32 @@ def parse_status_porcelain(output):
             files.append({'status': status, 'path': path, 'untracked': status == '??'})
 
     return branch, upstream, ahead, behind, files
+
+
+def parse_log_history(output):
+    '''解析 `git log --pretty=format:%h%x1f%s%x1f%an%x1f%ct` 输出。
+
+    返回 [{'hash': 短哈希, 'subject': 标题, 'author': 作者,
+    'timestamp': int}, ...]，顺序与 git log 一致（新 → 旧）。
+    字段数不符（作者名里混入分隔符、空行等）的条目直接跳过。
+    '''
+    commits = list()
+    for line in output.splitlines():
+        parts = line.split('\x1f')
+        if len(parts) != 4:
+            continue
+        short_hash, subject, author, stamp = parts
+        try:
+            timestamp = int(stamp)
+        except ValueError:
+            timestamp = 0
+        commits.append({
+            'hash': short_hash,
+            'subject': subject,
+            'author': author,
+            'timestamp': timestamp,
+        })
+    return commits
 
 
 def parse_num_diff(output):
@@ -220,6 +258,30 @@ class GitRepository(Observable):
             cls._cache[root] = repo
         return repo
 
+    @classmethod
+    def init_repository(cls, directory, callback):
+        '''在 directory 下执行 `git init`，完成后在主线程回调
+        callback(error_message 或 None, repo 或 None)。
+
+        不需要仓库信任确认：此刻仓库还不存在，不可能有预置的 hooks。'''
+        threading.Thread(target=cls._init_thread, args=(directory, callback), daemon=True).start()
+
+    @classmethod
+    def _init_thread(cls, directory, callback):
+        code, out = run_git(['init'], directory, timeout=60)
+        if code != 0:
+            error = out.strip() or _('Could not initialize the git repository.')
+            GLib.idle_add(callback, error, None)
+            return False
+        # 探测时记下的「不在仓库内」负缓存会挡住刚建好的仓库，必须清掉
+        # （realpath 与原始路径都清，避免调用方传入符号链接路径）。
+        cls._negative_cache.discard(directory)
+        cls._negative_cache.discard(os.path.realpath(directory))
+        repo = cls.get_for_path(directory)
+        error = None if repo is not None else _('Repository created but could not be opened.')
+        GLib.idle_add(callback, error, repo)
+        return False
+
     def _setup_monitors(self):
         git_dir = os.path.join(self.root, '.git')
         for name in ('index', 'HEAD'):
@@ -255,29 +317,31 @@ class GitRepository(Observable):
         branch = upstream = None
         ahead = behind = 0
         files = []
-        commit_hash = subject = None
-        timestamp = 0
+        history = []
+        remotes = []
 
         if code == 0:
             branch, upstream, ahead, behind, files = parse_status_porcelain(out)
+            # 一次取回历史，最新一条同时充当「最近提交」摘要（原来单独跑 log -1）。
             _, log_out = run_git(
-                ['log', '-1', '--pretty=format:%h%x1f%s%x1f%ct'], self.root)
-            parts = log_out.strip().split('\x1f')
-            if len(parts) == 3:
-                commit_hash, subject = parts[0], parts[1]
-                try:
-                    timestamp = int(parts[2])
-                except ValueError:
-                    timestamp = 0
+                ['log', '-n', str(HISTORY_LIMIT),
+                 '--pretty=format:%h%x1f%s%x1f%an%x1f%ct'], self.root)
+            history = parse_log_history(log_out)
+            # 没有远程仓库的项目（纯本地版本管理）同样要能用：push 需据此禁用。
+            _, remote_out = run_git(['remote'], self.root)
+            remotes = [line.strip() for line in remote_out.splitlines() if line.strip()]
 
+        latest = history[0] if history else None
         state = {
             'branch': branch,
             'upstream': upstream,
             'ahead': ahead,
             'behind': behind,
-            'commit_hash': commit_hash,
-            'commit_subject': subject,
-            'commit_timestamp': timestamp,
+            'commit_hash': latest['hash'] if latest else None,
+            'commit_subject': latest['subject'] if latest else None,
+            'commit_timestamp': latest['timestamp'] if latest else 0,
+            'history': history,
+            'remotes': remotes,
             'changed_files': files,
             'dirty': bool(files),
         }
@@ -343,8 +407,8 @@ class GitRepository(Observable):
         GLib.idle_add(callback, error)
         return False
 
-    def commit_and_push(self, files, message, callback):
-        '''add 指定文件 → commit → push（无 upstream 时自动 --set-upstream）。
+    def commit(self, files, message, callback):
+        '''add 指定文件 → commit。不推送：很多项目纯本地历史，推送是单独动作。
 
         files 为 porcelain 输出的仓库相对路径。callback(error_message 或 None)
         在主线程回调。'''
@@ -352,9 +416,6 @@ class GitRepository(Observable):
 
     def commit_thread(self, files, message, callback):
         error = None
-        state = self.state
-        branch = state['branch'] if state else None
-
         if files:
             code, out = run_git(['add', '--'] + list(files), self.root)
             if code != 0:
@@ -365,14 +426,27 @@ class GitRepository(Observable):
             if code != 0:
                 error = (classify_git_error(out, 'commit') or out.strip()
                          or _('Commit failed.'))
-        if error is None:
-            args = ['push']
-            if state is not None and state['upstream'] is None and branch:
-                args = ['push', '--set-upstream', 'origin', branch]
-            code, out = run_git(args, self.root, timeout=120)
-            if code != 0:
-                error = (classify_git_error(out, 'push') or out.strip()
-                         or _('Push failed.'))
+        GLib.idle_add(callback, error)
+        return False
+
+    def push(self, callback):
+        '''git push（无 upstream 时自动 --set-upstream origin <branch>）。'''
+        threading.Thread(target=self.push_thread, args=(callback,), daemon=True).start()
+
+    def push_thread(self, callback):
+        error = None
+        state = self.state
+        branch = state['branch'] if state else None
+        remotes = state['remotes'] if state else []
+        args = ['push']
+        if state is not None and state['upstream'] is None and branch and remotes:
+            # 首次推送建立 upstream。远程不一定叫 origin，优先用它、否则取第一个。
+            remote = 'origin' if 'origin' in remotes else remotes[0]
+            args = ['push', '--set-upstream', remote, branch]
+        code, out = run_git(args, self.root, timeout=120)
+        if code != 0:
+            error = (classify_git_error(out, 'push') or out.strip()
+                     or _('Push failed.'))
         GLib.idle_add(callback, error)
         return False
 
@@ -397,6 +471,13 @@ def classify_git_error(output, operation):
             return _('Could not reach the remote repository. Check your '
                      'network connection.')
     if operation == 'push':
+        # 先判「没有远程」：缺远程时 git 也会报 "Could not read from remote
+        # repository"，若先判凭据会把用户引向错误的排查方向。
+        if ('no configured push destination' in lowered
+                or 'does not appear to be a git repository' in lowered
+                or 'no such remote' in lowered):
+            return _('No remote repository is set up for this project. Add one '
+                     'in a terminal: git remote add origin <url>')
         if 'authentication' in lowered or 'could not read from remote' in lowered or 'terminal prompts disabled' in lowered:
             return _('Push failed: no stored credentials for this remote. '
                      'Please configure a credential helper in a terminal '

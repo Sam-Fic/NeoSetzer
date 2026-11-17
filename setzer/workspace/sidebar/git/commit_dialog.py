@@ -46,8 +46,8 @@ STATUS_LABELS = {
 
 
 class CommitDialog(Adw.Dialog):
-    '''Commit & Push 对话框（#443）：输入 commit message + 勾选改动文件，
-    然后由 GitRepository 执行 add → commit → push。
+    '''Commit 对话框（#443）：输入 commit message + 勾选改动文件，
+    然后由 GitRepository 执行 add → commit。推送由侧栏的 Push 单独完成。
 
     刻意不做的事：diff 预览、branch 切换、精细 staging——需要者用终端。'''
 
@@ -58,7 +58,7 @@ class CommitDialog(Adw.Dialog):
         self.on_finished = on_finished
         self.file_rows = []  # [(check_button, entry dict), ...]
 
-        self.set_title(_('Commit && Push'))
+        self.set_title(_('Commit'))
         self.set_content_width(440)
         self.set_content_height(520)
 
@@ -185,7 +185,7 @@ class CommitDialog(Adw.Dialog):
         # 先保存仓库内所有有未保存修改的文档，保证提交内容与编辑器一致。
         self.save_open_documents()
         self.commit_button.set_sensitive(False)
-        self.repo.commit_and_push(files, message, self.on_commit_done)
+        self.repo.commit(files, message, self.on_commit_done)
 
     def save_open_documents(self):
         root_prefix = self.repo.root + os.sep

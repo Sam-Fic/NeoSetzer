@@ -1182,7 +1182,7 @@ class PageEditorView(Adw.PreferencesPage):
         # Adw 行组件的 subtitle 走 Pango markup 渲染，源串需用 &amp; 实体
         # （与 insert_image_viewgtk 的 "Caption &amp; Label" 同一约定），
         # 裸 & 会触发 "Entity did not end with a semicolon" Gtk 警告。
-        self.option_git_sidebar_panel.set_subtitle(_('Branch status with pull and commit &amp; push actions'))
+        self.option_git_sidebar_panel.set_subtitle(_('Branch status, recent commits, and pull / commit / push actions'))
         group_git.add(self.option_git_sidebar_panel)
 
         # 新建文档默认设置：编码与行尾格式

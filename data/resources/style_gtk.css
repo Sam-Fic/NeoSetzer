@@ -42,11 +42,22 @@ window {
  * Pass-12: 预览/帮助侧栏也采用此工具栏样式，与左侧栏外观一致。
  * - 水平内边距让导航按钮不贴边；
  * - min-height 使各侧栏工具栏等高，切换时无跳动；
+ * - 总高严格等于标题栏（47px），见下方 padding / min-height 注释；
  * - 底部一条极淡分隔线，把固定工具栏与下方滚动内容区分开。
  *   用 currentColor 的 alpha，自动跟随明暗主题。
  */
 .sidebar-toolbar {
-    padding: var(--setzer-spacing-sm) 10px;
+    /* 上下不对称的 6px / 7px：复刻 Adw.HeaderBar 内部 box 的
+       `headerbar > windowhandle > box { padding: 6px 7px 7px 7px }`。
+       Adw.HeaderBar 的 min-height 是 47px，而编辑器列的内容区顶边由
+       workspace_viewgtk.do_size_allocate 按标题栏实测高度让出，于是
+       「标题栏 = 47px」也是编辑器卡片顶边、标签条顶边的基准线。
+       工具栏若用对称的 6px（=46px），下方卡片顶边就比这条基准线低 1px，
+       四列（AI 列表 / 编辑器卡片 / 标签 / 预览卡片）顶边对不齐。 */
+    padding: var(--setzer-spacing-sm) 10px 7px;
+    /* 内容至少 34px（与 entry / button / tabbox 的 min-height 一致），
+       6 + 34 + 7 = 47px，任何子控件组合都不会把工具栏压得比标题栏矮。 */
+    min-height: 34px;
 }
 
 /*
@@ -185,6 +196,18 @@ textview gutter {
 }
 
 /*
+ * AI 页批注列表：去掉 Adw.PreferencesPage 默认的 24px 上外边距。
+ * libadwaita 给 `preferencespage > scrolledwindow > viewport > clamp > box`
+ * 设了 margin: 24px 12px —— 12px 水平留白要保留，但 24px 顶部留白会让第一条
+ * 批注与工具栏之间空出一大截，顶边比预览卡片 / 标签条低。这里只清掉上边距，
+ * 使首条批注紧贴工具栏下沿，与右侧标签条顶边、预览卡片顶边落在同一水平线。
+ * 只作用于 .ai-page：符号页 / 结构页的分组带标题，需要那点呼吸空间。
+ */
+.ai-page preferencespage > scrolledwindow > viewport > clamp > box {
+    margin-top: 0;
+}
+
+/*
  * 空状态占位：现代、低调，避免空分区显得空洞。
  */
 .sidebar-empty-state {
@@ -205,6 +228,19 @@ textview gutter {
 }
 .sidebar-empty-state .description {
     font-size: 0.85em;
+}
+
+/*
+ * Git 面板的历史空状态（仓库还没有提交）：它嵌在分支信息与操作按钮下面，
+ * 沿用 .sidebar-empty-state 的 220px 最小高度会把整个分区撑得过空。
+ * 这里退成小号占位：32px 图标、不设最小高度。
+ */
+.sidebar-empty-state.git-history-empty {
+    min-height: 0;
+    padding: 8px 8px 4px;
+}
+.sidebar-empty-state.git-history-empty image {
+    -gtk-icon-size: 32px;
 }
 
 /*
@@ -229,6 +265,23 @@ textview gutter {
     box-shadow: none;
     background: transparent;
     background-image: none;
+}
+
+/*
+ * 标签条垂直对齐：让标签顶边与右侧 PDF 预览卡片（.preview-card）顶边齐平。
+ *
+ * libadwaita（1.9 默认样式表）给 `tabbar tabbox` 同时设了
+ * padding-top: 6px / padding-bottom: 6px（min-height: 34px）。标签条的顶边
+ * 由 document_stack_wrapper 的 margin-top（= 浮动标题栏高度 47px）决定，
+ * 而预览卡片顶边 = 侧栏工具栏（.sidebar-toolbar，padding 6px）下沿 ≈ 46px，
+ * 于是那 6px 上内边距会让标签比卡片低一截，看起来像标签上方凭空多了一条空白。
+ *
+ * 只清掉上内边距，下内边距保留，维持标签与下方快捷键栏之间原有的 6px 间距。
+ * 选择器限定 .inline（非 headerbar 上下文的 TabBar），不影响未来任何
+ * 放进标题栏的标签条。
+ */
+tabbar.inline tabbox {
+    padding-top: 0;
 }
 
 /*
@@ -545,11 +598,10 @@ toolbarview > * > * > * {
 }
 
 /*
- * 插入表格对话框 LaTeX 预览卡片：圆角 + 内边距。
- * 覆盖上方 .preview scrolledwindow 的清描边规则，单独赋予圆角与背景，
- * 让只读预览呈现卡片外观（GTK4 无 CSS overflow，由代码 set_overflow(HIDDEN) 裁剪）。
+ * 对话框内的多行文本区（LaTeX 预览、BibTeX 详情等）已统一走
+ * setzer/helpers/text_input_card.py 的圆角输入卡片样式（.setzer-text-input），
+ * 不再复用 .preview-card —— 那个类现在只服务 PDF / 帮助页等真正的「预览卡片」。
  */
-/* 插入表格对话框 LaTeX 预览卡片样式复用 .preview-card，与 Insert Matrix 一致。 */
 
 /*
  * 文档内搜索栏（Gtk.SearchBar）：GTK 会自行为 searchbar 包裹
