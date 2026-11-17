@@ -25,12 +25,18 @@
 meson setup --wipe builddir --prefix=/tmp/usr
 ninja -C builddir setzer-pot
 xgettext data/resources/latexdb/*/*.xml \
-  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
+  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its \
+  --package-name=NeoSetzer \
+  --package-version="$(sed -n "s/^  version: '\(.*\)',/\1/p" meson.build | head -1)" \
+  --msgid-bugs-address=https://github.com/Sam-Fic/NeoSetzer/issues
+# xgettext --join-existing 会在头部写入无效的 Plural-Forms 占位符，删除该行
+# （否则 msgfmt --check 对 pot 报 fatal：invalid nplurals value）
+sed -i '/^"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;/d' po/setzer.pot
 
 # 2. 同步全部 po 文件（清理 obsolete、零 fuzzy、稳定排序）
 ./po/sync-po.sh
 
-# 3. 在 .po 文件中补译新增的未译条目
+# 3. 在 .po 文件中补译新增的未译条目（--check 现在会对未翻译条目报错）
 
 # 4. 提交前校验
 ./po/sync-po.sh --check
@@ -61,7 +67,11 @@ xgettext data/resources/latexdb/*/*.xml \
 meson setup --wipe builddir --prefix=/tmp/usr
 ninja -C builddir setzer-pot
 xgettext data/resources/latexdb/*/*.xml \
-  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its
+  -o po/setzer.pot --from-code=UTF-8 --join-existing --its=po/setzer.its \
+  --package-name=NeoSetzer \
+  --package-version="$(sed -n "s/^  version: '\(.*\)',/\1/p" meson.build | head -1)" \
+  --msgid-bugs-address=https://github.com/Sam-Fic/NeoSetzer/issues
+sed -i '/^"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;/d' po/setzer.pot
 cp po/setzer.pot po/lang.po
 ```
 

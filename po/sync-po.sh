@@ -48,14 +48,20 @@ check_po() {
     local lang="$1" po="$2"
     local errors=0
 
-    # 1. 翻译完整性
+    # 1. 翻译完整性（含复数条目 msgstr[0] 为空的情况；头部条目不算）
+    #    注意：不能用 awk 行级状态机——"msgstr \"\"" 行会先被清零再判断，恒为 0
     local fuzzy untrans obsolete
     fuzzy=$(grep -c '^#,.*fuzzy' "$po" 2>/dev/null || true)
-    untrans=$(awk '/^msgstr ""$/{found=0} /^msgid /{found=1} found && /^msgstr ""$/{c++} END{print c+0}' "$po")
+    untrans=$(msgattrib --untranslated --no-obsolete --no-wrap "$po" 2>/dev/null \
+        | grep '^msgid ' | sed 1d | grep -c '^msgid ' || true)
     obsolete=$(awk '/^#~/{c++} END{print c+0}' "$po")
 
     if [ "$fuzzy" -gt 0 ]; then
         echo "  ✗ $lang: $fuzzy 条 fuzzy 标记"
+        errors=$((errors + 1))
+    fi
+    if [ "$untrans" -gt 0 ]; then
+        echo "  ✗ $lang: $untrans 条未翻译"
         errors=$((errors + 1))
     fi
     if [ "$obsolete" -gt 0 ]; then

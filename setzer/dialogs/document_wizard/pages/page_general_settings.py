@@ -205,7 +205,7 @@ class GeneralSettingsPageView(PageView):
         self.date_entry = Adw.EntryRow()
         self.date_entry.set_title(_('Date'))
         self.date_entry.set_tooltip_text(_('The document date, used in the \\date{} command. '
-                                            'Use \\\\today for the current date.'))
+                                            'Use \\today for the current date.'))
         self.group_document_properties.add(self.title_entry)
         self.group_document_properties.add(self.author_entry)
         self.group_document_properties.add(self.date_entry)

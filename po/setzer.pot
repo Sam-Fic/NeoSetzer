@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the NeoSetzer package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 02:25+0800\n"
+"Project-Id-Version: NeoSetzer 89\n"
+"Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
+"POT-Creation-Date: 2026-11-18 04:33+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: data/org.cvfosammmm.Setzer.metainfo.xml.in:8
 msgid "Simple yet full-featured LaTeX editor (fork of Setzer)"
@@ -245,8 +244,8 @@ msgid "Embedded terminal is not available on this system."
 msgstr ""
 
 #: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:257
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:441
-#: setzer/workspace/headerbar/headerbar.py:376
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:464
+#: setzer/workspace/headerbar/headerbar.py:379
 msgid ""
 "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr ""
@@ -254,9 +253,9 @@ msgstr ""
 #: setzer/ai_fix/agent_session.py:138 setzer/ai_fix/annotation_sender.py:160
 #: setzer/ai_fix/annotation_sender.py:202
 #: setzer/ai_fix/annotation_sender.py:211
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:430
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:502
-#: setzer/workspace/headerbar/headerbar.py:363
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:453
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:525
+#: setzer/workspace/headerbar/headerbar.py:366
 #: setzer/workspace/sidebar/ai_page/ai_page.py:323
 msgid "Please save the document first"
 msgstr ""
@@ -274,51 +273,57 @@ msgstr ""
 msgid "Sent to {tool} (copied to clipboard as fallback)."
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:61
+#: setzer/ai_fix/agent_terminal_viewgtk.py:68
 msgid "End session and stop the agent"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:68
+#: setzer/ai_fix/agent_terminal_viewgtk.py:75
 msgid "New session (in the active document’s directory)"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:73
-#: setzer/ai_fix/agent_terminal_viewgtk.py:167
+#: setzer/ai_fix/agent_terminal_viewgtk.py:80
+#: setzer/ai_fix/agent_terminal_viewgtk.py:223
 msgid "Open in a separate window"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:97
-#: setzer/ai_fix/agent_terminal_viewgtk.py:147
+#: setzer/ai_fix/agent_terminal_viewgtk.py:104
+#: setzer/ai_fix/agent_terminal_viewgtk.py:154
 msgid "No active session"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:98
+#: setzer/ai_fix/agent_terminal_viewgtk.py:105
 msgid "Send an annotation or a selection to start the agent in this terminal."
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:103
+#: setzer/ai_fix/agent_terminal_viewgtk.py:110
 msgid "Embedded terminal unavailable"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:104
+#: setzer/ai_fix/agent_terminal_viewgtk.py:111
 msgid ""
 "VTE is not available on this system. Sending will open the agent in an "
 "external terminal instead; the prompt is also copied to the clipboard."
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:141
+#: setzer/ai_fix/agent_terminal_viewgtk.py:148
 msgid "Session active"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:143
+#: setzer/ai_fix/agent_terminal_viewgtk.py:150
 msgid "Starting…"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:145
+#: setzer/ai_fix/agent_terminal_viewgtk.py:152
 msgid "Session ended — next send starts a new one"
 msgstr ""
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:164
+#: setzer/ai_fix/agent_terminal_viewgtk.py:211
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:53
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:58
+msgid "Agent Terminal"
+msgstr ""
+
+#: setzer/ai_fix/agent_terminal_viewgtk.py:220
 msgid "Dock back into the sidebar"
 msgstr ""
 
@@ -329,32 +334,32 @@ msgid "No annotations to send"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:425
-#: setzer/workspace/headerbar/headerbar.py:359
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:448
+#: setzer/workspace/headerbar/headerbar.py:362
 msgid "No active document"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1285
-#: setzer/workspace/actions/actions.py:1389
+#: setzer/workspace/actions/actions.py:1292
+#: setzer/workspace/actions/actions.py:1405
 msgid "Select some text first"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:171
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:164
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:454
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:187
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:459
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
 msgid "Copied to clipboard"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:196
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:419
-#: setzer/workspace/headerbar/headerbar.py:353
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:442
+#: setzer/workspace/headerbar/headerbar.py:356
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:246
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:490
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:513
 msgid "Added to trusted directories"
 msgstr ""
 
@@ -404,9 +409,9 @@ msgstr ""
 #: setzer/dialogs/project_build_configuration_viewgtk.py:294
 #: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:665
+#: setzer/document/preview/preview_controller.py:657
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:469
+#: setzer/workspace/actions/actions.py:472
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -562,10 +567,10 @@ msgid "Forward Sync"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:92
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:331
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:354
 #: setzer/dialogs/preferences/pages/page_editor.py:887
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:142
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:112
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:113
 msgid "Undo"
 msgstr ""
 
@@ -586,28 +591,28 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:93
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:143
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:113
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:114
 msgid "Redo"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:94
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:139
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:117
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:118
 msgid "Cut"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:95
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:140
-#: setzer/document/preview/context_menu/context_menu.py:116
-#: setzer/document/preview/context_menu/context_menu.py:129
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:118
+#: setzer/document/preview/context_menu/context_menu.py:117
+#: setzer/document/preview/context_menu/context_menu.py:130
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:119
 #: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
 msgid "Copy"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:96
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:141
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:119
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:120
 msgid "Paste"
 msgstr ""
 
@@ -617,7 +622,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:98
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:144
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:124
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:125
 msgid "Select All"
 msgstr ""
 
@@ -658,7 +663,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:105
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:147
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:130
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:131
 msgid "Duplicate Line"
 msgstr ""
 
@@ -669,18 +674,18 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:107
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:148
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:131
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:132
 msgid "Move Line Up"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:108
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:149
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:132
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:133
 msgid "Move Line Down"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:109
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:133
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:134
 msgid "Indent"
 msgstr ""
 
@@ -690,7 +695,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:111
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:145
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:259
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:261
 msgid "Toggle Comment"
 msgstr ""
 
@@ -769,7 +774,7 @@ msgid "Insert Matrix"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:125
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:141
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:142
 msgid "Fold All"
 msgstr ""
 
@@ -780,7 +785,7 @@ msgid "View"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:126
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:142
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:143
 msgid "Unfold All"
 msgstr ""
 
@@ -800,7 +805,7 @@ msgid "Reset Zoom"
 msgstr ""
 
 #: setzer/command_palette/catalog.py:130
-#: setzer/document/preview/context_menu/context_menu.py:143
+#: setzer/document/preview/context_menu/context_menu.py:147
 msgid "Search in PDF"
 msgstr ""
 
@@ -1310,7 +1315,7 @@ msgstr ""
 #: setzer/dialogs/preferences/pages/page_snippets.py:75
 #: setzer/dialogs/project_build_configuration_viewgtk.py:184
 #: setzer/dialogs/project_build_configuration_viewgtk.py:315
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:120
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:121
 #: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete"
 msgstr ""
@@ -1375,17 +1380,17 @@ msgid "BibTeX Files"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1188
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:308
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:310
 msgid "Protect Upper-Case"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1194
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:311
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:313
 msgid "Unicode → LaTeX"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1200
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:314
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:316
 msgid "LaTeX → Unicode"
 msgstr ""
 
@@ -1536,40 +1541,40 @@ msgstr ""
 msgid "Error message copied to clipboard"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:130
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:153
 msgid "Could not open file"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:160
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:183
 msgid "The log is empty, nothing to copy"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:169
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:192
 msgid "The log is empty, nothing to save"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:172
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:195
 msgid "Save Build Log As"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:177
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:200
 msgid "Text files"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:181
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:204
 msgid "All files"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:205
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:228
 msgid "Build log saved"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:207
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:230
 msgid "Failed to save build log"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:245
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:249
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:268
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:272
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:173
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:177
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:316
@@ -1588,39 +1593,39 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:261
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:284
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:61
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:390
 msgid "Undefined reference"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:263
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:286
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:392
 msgid "Missing package"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:265
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:288
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
 #: setzer/dialogs/build_log/build_log_dialog_presenter.py:394
 msgid "Syntax error"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:267
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:290
 msgid "All types"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:329
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:352
 #, python-brace-format
 msgid "Ignored “{label}” warnings"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:355
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:378
 msgid "Restored all ignored warnings"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:403
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:426
 msgid "No visible log items to send"
 msgstr ""
 
@@ -1745,16 +1750,16 @@ msgstr ""
 msgid "Restore {count} ignored warning type(s)"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:423
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:474
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:426
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:479
 msgid "Copy to clipboard"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:435
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:440
 msgid "Fix this error with AI"
 msgstr ""
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:478
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:483
 #, python-brace-format
 msgid "Ignore “{label}” warnings"
 msgstr ""
@@ -2449,8 +2454,8 @@ msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:207
 msgid ""
-"The document date, used in the \\date{} command. Use \\\\today for the "
-"current date."
+"The document date, used in the \\date{} command. Use \\today for the current "
+"date."
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
@@ -2895,7 +2900,10 @@ msgid "Bottom"
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page.py:159
-msgid "Set the "
+#, python-brace-format
+msgid ""
+"Set the {title} margin in centimeters. LaTeX default is approximately 2.54 "
+"cm (1 inch)."
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:137
@@ -4069,7 +4077,7 @@ msgid "Find the previous match"
 msgstr ""
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:165
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:166
 #: setzer/workspace/context_menu/context_menu.py:109
 msgid "Zoom"
 msgstr ""
@@ -4235,7 +4243,7 @@ msgstr ""
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1068
-#: setzer/document/preview/preview_controller.py:666
+#: setzer/document/preview/preview_controller.py:658
 msgid "Open"
 msgstr ""
 
@@ -4247,12 +4255,12 @@ msgstr ""
 msgid "All Files"
 msgstr ""
 
-#: setzer/dialogs/open_document/open_document.py:111
+#: setzer/dialogs/open_document/open_document.py:113
 #, python-brace-format
 msgid "Could not open: {filename}"
 msgstr ""
 
-#: setzer/dialogs/open_document/open_document.py:114
+#: setzer/dialogs/open_document/open_document.py:116
 #, python-brace-format
 msgid "Could not open {count} files"
 msgstr ""
@@ -5801,7 +5809,7 @@ msgid "Help"
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:129
-#: setzer/workspace/sidebar/sidebar.py:96
+#: setzer/workspace/sidebar/sidebar.py:116
 msgid "Document Structure"
 msgstr ""
 
@@ -5897,8 +5905,8 @@ msgid "Add AI Annotation"
 msgstr ""
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
-#: setzer/document/preview/context_menu/context_menu.py:138
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:238
+#: setzer/document/preview/context_menu/context_menu.py:142
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:240
 msgid "Send Selection to Agent"
 msgstr ""
 
@@ -6486,7 +6494,7 @@ msgstr ""
 
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:50
 #, python-brace-format
-msgid "Replacing {amount} occurence of \"{original}\" with \"{replacement}\"."
+msgid "Replacing {amount} occurrence of \"{original}\" with \"{replacement}\"."
 msgid_plural ""
 "Replacing {amount} occurrences of \"{original}\" with \"{replacement}\"."
 msgstr[0] ""
@@ -6754,7 +6762,7 @@ msgstr ""
 msgid "The bibliography changed outside Setzer"
 msgstr ""
 
-#: setzer/document/build_system/build_system.py:579
+#: setzer/document/build_system/build_system.py:580
 msgid "Previous build cancelled"
 msgstr ""
 
@@ -6803,7 +6811,7 @@ msgid "Failed"
 msgstr ""
 
 #: setzer/document/build_widget/build_widget.py:245
-#: setzer/document/preview/preview_viewgtk.py:458
+#: setzer/document/preview/preview_viewgtk.py:461
 msgid "Build failed"
 msgstr ""
 
@@ -6819,7 +6827,7 @@ msgstr ""
 msgid "Pass {}"
 msgstr ""
 
-#: setzer/document/document_controller.py:388
+#: setzer/document/document_controller.py:395
 msgid "No PDF available for forward sync. Build the document first."
 msgstr ""
 
@@ -6828,84 +6836,84 @@ msgstr ""
 msgid "Could not save document: {error}"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:106
+#: setzer/document/preview/context_menu/context_menu.py:107
 msgid "Open Link"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:109
+#: setzer/document/preview/context_menu/context_menu.py:110
 msgid "Copy Link Location"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:120
-#: setzer/document/preview/context_menu/context_menu.py:130
+#: setzer/document/preview/context_menu/context_menu.py:121
+#: setzer/document/preview/context_menu/context_menu.py:131
 msgid "Copy Image"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:124
-#: setzer/document/preview/context_menu/context_menu.py:131
+#: setzer/document/preview/context_menu/context_menu.py:125
+#: setzer/document/preview/context_menu/context_menu.py:132
 msgid "Save Image As…"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:137
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:236
+#: setzer/document/preview/context_menu/context_menu.py:141
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:238
 msgid "Add AI Annotation…"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:144
+#: setzer/document/preview/context_menu/context_menu.py:148
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:108
 msgid "Print…"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:149
+#: setzer/document/preview/context_menu/context_menu.py:153
 msgid "Rotate Clockwise"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:150
+#: setzer/document/preview/context_menu/context_menu.py:154
 msgid "Rotate Counterclockwise"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:151
+#: setzer/document/preview/context_menu/context_menu.py:155
 msgid "Invert Colors"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:156
+#: setzer/document/preview/context_menu/context_menu.py:160
 msgid "Show Source"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:240
+#: setzer/document/preview/context_menu/context_menu.py:244
 msgid "Find in PDF…"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:245
+#: setzer/document/preview/context_menu/context_menu.py:249
 msgid "Previous Match"
 msgstr ""
 
-#: setzer/document/preview/context_menu/context_menu.py:249
+#: setzer/document/preview/context_menu/context_menu.py:253
 msgid "Next Match"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:375
-#: setzer/document/preview/preview_controller.py:603
+#: setzer/document/preview/preview_controller.py:376
+#: setzer/document/preview/preview_controller.py:605
 msgid "Hold Ctrl and click to open this link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:377
+#: setzer/document/preview/preview_controller.py:378
 msgid "Go to page "
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:646
+#: setzer/document/preview/preview_controller.py:644
 msgid "Could not open link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:655
+#: setzer/document/preview/preview_controller.py:649
 msgid "Link blocked: this link type is unsafe"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:663
+#: setzer/document/preview/preview_controller.py:655
 msgid "Open local file from this PDF?"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:664
+#: setzer/document/preview/preview_controller.py:656
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6929,52 +6937,52 @@ msgstr ""
 msgid "Printing failed"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:53
+#: setzer/document/preview/preview_viewgtk.py:54
 msgid "Scroll this page to the top"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:108
-#: setzer/document/preview/preview_viewgtk.py:258
+#: setzer/document/preview/preview_viewgtk.py:109
+#: setzer/document/preview/preview_viewgtk.py:261
 msgid "PDF build failed, showing previous version"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:188
-#: setzer/document/preview/preview_viewgtk.py:239
+#: setzer/document/preview/preview_viewgtk.py:189
 #: setzer/document/preview/preview_viewgtk.py:240
+#: setzer/document/preview/preview_viewgtk.py:241
 msgid "Reload Preview"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:239
+#: setzer/document/preview/preview_viewgtk.py:240
 msgid "PDF changed on disk"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:240
+#: setzer/document/preview/preview_viewgtk.py:241
 msgid "PDF is no longer available on disk; showing the previous version"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:241
+#: setzer/document/preview/preview_viewgtk.py:242
 msgid "The changed PDF is not ready yet; showing the previous version"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:241
+#: setzer/document/preview/preview_viewgtk.py:242
 msgid "Try Again"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:416
+#: setzer/document/preview/preview_viewgtk.py:419
 msgid "Building…"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:454
+#: setzer/document/preview/preview_viewgtk.py:457
 msgid "No preview available"
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:455
+#: setzer/document/preview/preview_viewgtk.py:458
 msgid ""
 "To show a .pdf preview of your document, click the build button in the "
 "headerbar."
 msgstr ""
 
-#: setzer/document/preview/preview_viewgtk.py:459
+#: setzer/document/preview/preview_viewgtk.py:462
 msgid "Check the build log for errors."
 msgstr ""
 
@@ -6991,36 +6999,36 @@ msgid "Remove from history"
 msgstr ""
 
 #: setzer/document/search/search.py:442
-msgid "已到文档末尾，从头继续"
+msgid "Reached the end of the document, continuing from the beginning"
 msgstr ""
 
-#: setzer/document/search/search.py:442
-msgid "已到文档开头，从末尾继续"
+#: setzer/document/search/search.py:443
+msgid "Reached the beginning of the document, continuing from the end"
 msgstr ""
 
-#: setzer/document/search/search.py:703 setzer/document/search/search.py:708
-#: setzer/document/search/search.py:718 setzer/document/search/search.py:736
-#: setzer/document/search/search.py:748
+#: setzer/document/search/search.py:701 setzer/document/search/search.py:706
+#: setzer/document/search/search.py:716 setzer/document/search/search.py:734
+#: setzer/document/search/search.py:746
 #: setzer/document/search/search_viewgtk.py:208
 msgid "Replace all results"
 msgstr ""
 
-#: setzer/document/search/search.py:705
+#: setzer/document/search/search.py:703
 msgid "No matches"
 msgstr ""
 
-#: setzer/document/search/search.py:714
+#: setzer/document/search/search.py:712
 msgid "Searching…"
 msgstr ""
 
-#: setzer/document/search/search.py:725
+#: setzer/document/search/search.py:723
 #, python-brace-format
 msgid "{total} match"
 msgid_plural "{total} matches"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/search/search.py:733
+#: setzer/document/search/search.py:731
 #, python-brace-format
 msgid "Replace all {amount} match"
 msgid_plural "Replace all {amount} matches"
@@ -7216,57 +7224,57 @@ msgstr ""
 msgid "Alt"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:134
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:135
 msgid "Unindent"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:215
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:216
 #, python-brace-format
 msgid "Ignore “{word}”"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:221
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:222
 #, python-brace-format
 msgid "Add “{word}” to Dictionary"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:266
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:268
 msgid "Jump to Definition"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:268
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:270
 msgid "Copy \\ref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:270
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:272
 msgid "Copy \\pageref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:272
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:274
 msgid "Copy \\autoref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:274
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:276
 msgid "Find All References"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:282
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:284
 msgid "Wrap in Command"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:289
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:291
 msgid "Wrap in Environment"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:296
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:298
 msgid "Insert Template"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:300
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:302
 msgid "Show in Preview"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:317
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:319
 msgid "Transform Selection"
 msgstr ""
 
@@ -7967,40 +7975,35 @@ msgstr ""
 msgid "Choose File"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:459
+#: setzer/workspace/actions/actions.py:462
 msgid "No .tex files were found in your Templates folder."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:466
-#: setzer/workspace/actions/actions.py:496
+#: setzer/workspace/actions/actions.py:469
+#: setzer/workspace/actions/actions.py:499
 msgid "Create document from template"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:467
+#: setzer/workspace/actions/actions.py:470
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:470
+#: setzer/workspace/actions/actions.py:473
 msgid "Choose location"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:517
+#: setzer/workspace/actions/actions.py:520
 msgid "The selected destination is not a local file."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:1296
+#: setzer/workspace/actions/actions.py:1303
 msgid "Annotation added"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:1396
-#: setzer/workspace/actions/actions.py:1401
-#: setzer/workspace/actions/actions.py:1411
+#: setzer/workspace/actions/actions.py:1412
+#: setzer/workspace/actions/actions.py:1417
+#: setzer/workspace/actions/actions.py:1427
 msgid "Could not map the PDF selection to source. Build the document first."
-msgstr ""
-
-#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:49
-#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:54
-msgid "Agent Terminal"
 msgstr ""
 
 #: setzer/workspace/auto_build/auto_build.py:153
@@ -8017,11 +8020,11 @@ msgstr ""
 msgid "Auto-build skipped — the document was busy building."
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar.py:401
+#: setzer/workspace/headerbar/headerbar.py:404
 msgid "Agent session ready in the sidebar"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar.py:402
+#: setzer/workspace/headerbar/headerbar.py:405
 msgid "Agent session ready in a separate window"
 msgstr ""
 
@@ -8127,23 +8130,23 @@ msgid ""
 "result to open it in your web browser."
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:428
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:429
 msgid "Maximum zoom level reached"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:430
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:431
 msgid "Minimum zoom level reached"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:471
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:469
 msgid "Build failed — showing the previous PDF"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:485
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:483
 msgid "of "
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:487
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:485
 msgid "No preview"
 msgstr ""
 
@@ -8643,23 +8646,23 @@ msgstr ""
 msgid "(no commit message)"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:93
+#: setzer/workspace/sidebar/sidebar.py:113
 msgid "Files"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:99
+#: setzer/workspace/sidebar/sidebar.py:119
 msgid "Labels"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:102
+#: setzer/workspace/sidebar/sidebar.py:122
 msgid "To-Dos"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:108
+#: setzer/workspace/sidebar/sidebar.py:128
 msgid "Git"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:112
+#: setzer/workspace/sidebar/sidebar.py:132
 msgid "Document Stats"
 msgstr ""
 
@@ -8815,45 +8818,45 @@ msgstr ""
 msgid "Recently closed"
 msgstr ""
 
-#: setzer/workspace/workspace.py:207
+#: setzer/workspace/workspace.py:226
 #, python-brace-format
 msgid "{name} is already open"
 msgstr ""
 
-#: setzer/workspace/workspace.py:248
+#: setzer/workspace/workspace.py:274
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:840
+#: setzer/workspace/workspace.py:867
 #, python-brace-format
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:856
+#: setzer/workspace/workspace.py:883
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:1072
+#: setzer/workspace/workspace.py:1099
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr ""
 
-#: setzer/workspace/workspace_viewgtk.py:335
-#: setzer/workspace/workspace_viewgtk.py:598
-#: setzer/workspace/workspace_viewgtk.py:605
+#: setzer/workspace/workspace_viewgtk.py:336
+#: setzer/workspace/workspace_viewgtk.py:599
+#: setzer/workspace/workspace_viewgtk.py:606
 msgid "Drop to open file"
 msgstr ""
 
-#: setzer/workspace/workspace_viewgtk.py:603
+#: setzer/workspace/workspace_viewgtk.py:604
 #, python-brace-format
 msgid "Will open {count} files"
 msgstr ""
 
-#: setzer/workspace/workspace_viewgtk.py:607
+#: setzer/workspace/workspace_viewgtk.py:608
 msgid "Cannot open this file type"
 msgstr ""
 

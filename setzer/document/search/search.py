@@ -439,7 +439,8 @@ class Search(Observable):
                 self._show_wrap_around_toast('prev')
 
     def _show_wrap_around_toast(self, direction):
-        message = _('已到文档末尾，从头继续') if direction == 'next' else _('已到文档开头，从末尾继续')
+        message = _('Reached the end of the document, continuing from the beginning') \
+            if direction == 'next' else _('Reached the beginning of the document, continuing from the end')
         # 停在最后一条匹配上连按 Enter 会反复绕回：同一句提示只弹一次。
         toast.show(message, timeout=2)
 

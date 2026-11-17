@@ -1,4 +1,4 @@
-# generated on Mon Nov 16 05:48:14 PM UTC 2026
+# generated on Tue Nov 17 08:33:11 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -7,11 +7,14 @@
 ./setzer/ai_fix/agent_terminal_viewgtk.py
 ./setzer/ai_fix/annotation_prompt_builder.py
 ./setzer/ai_fix/annotation_sender.py
+./setzer/ai_fix/availability.py
 ./setzer/ai_fix/__init__.py
+./setzer/ai_fix/pdf_annotation_mapper.py
 ./setzer/ai_fix/presets.py
 ./setzer/ai_fix/preview_dialog.py
 ./setzer/ai_fix/preview_dialog_viewgtk.py
 ./setzer/ai_fix/prompt_builder.py
+./setzer/ai_fix/source_blocks.py
 ./setzer/app/color_manager.py
 ./setzer/app/exception_handler.py
 ./setzer/app/font_manager.py
@@ -259,7 +262,9 @@
 ./setzer/helpers/synctex_folder.py
 ./setzer/helpers/synctex_line_repair.py
 ./setzer/helpers/synctex_query.py
+./setzer/helpers/text_input_card.py
 ./setzer/helpers/timer.py
+./setzer/helpers/toast.py
 ./setzer/helpers/zoom_css.py
 ./setzer/helpers/zoom_math.py
 ./setzer/keyboard_shortcuts/__init__.py

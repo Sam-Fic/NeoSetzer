@@ -156,6 +156,6 @@ class PageView(Gtk.Box):
         row.set_title(title)
         row.set_adjustment(Gtk.Adjustment(value=3.5, lower=0.0, upper=5.0, step_increment=0.1))
         row.set_digits(1)
-        row.set_tooltip_text(_('Set the ' + title.lower() + ' margin in centimeters. '
-                                'LaTeX default is approximately 2.54 cm (1 inch).'))
+        row.set_tooltip_text(_('Set the {title} margin in centimeters. '
+                               'LaTeX default is approximately 2.54 cm (1 inch).').format(title=title.lower()))
         return row

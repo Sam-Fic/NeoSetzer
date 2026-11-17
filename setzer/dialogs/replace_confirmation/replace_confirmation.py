@@ -47,7 +47,7 @@ class ReplaceConfirmationDialog(object):
             heading = _('Replace all matches of "{original}" with "{replacement}"?').format(original=original, replacement=replacement)
             body = _('Counting matches… The number of occurrences is still being calculated.')
         else:
-            str_occurrences = ngettext('Replacing {amount} occurence of "{original}" with "{replacement}".', 'Replacing {amount} occurrences of "{original}" with "{replacement}".', number_of_occurrences)
+            str_occurrences = ngettext('Replacing {amount} occurrence of "{original}" with "{replacement}".', 'Replacing {amount} occurrences of "{original}" with "{replacement}".', number_of_occurrences)
             heading = str_occurrences.format(amount=str(number_of_occurrences), original=original, replacement=replacement)
             body = _('Do you really want to do this?')
         self.view = Adw.AlertDialog(
