@@ -79,6 +79,10 @@ class AiFromPdfTest(unittest.TestCase):
         self.sender = mock.Mock()
         self.workspace = mock.Mock()
         self.workspace.get_active_document.return_value = self.target
+        # set_active_document 同步反映到 get_active_document（settle 的
+        # 活动文档守卫依赖一致状态）。
+        self.workspace.set_active_document.side_effect = (
+            lambda d: setattr(self.workspace.get_active_document, 'return_value', d))
         self.workspace.get_annotation_sender.return_value = self.sender
         self.preview = SimpleNamespace(
             get_selection_payload=mock.Mock(return_value={'kind': 'text'}))
@@ -248,8 +252,10 @@ class ViewSettleTest(unittest.TestCase):
         return mock.patch('gi.repository.GLib.idle_add', side_effect=capture)
 
     def _settle(self, attempt=0, deadline=None):
+        # 基准值随链传参：续帧从上一次 idle 排程里取 _state。
+        state = self.idle_calls[-1][1][3] if self.idle_calls else None
         return self.fake._ai_annotate_when_view_settled(
-            self.target, attempt, deadline)
+            self.target, attempt, deadline, state)
 
     def test_unallocated_view_defers_popup(self):
         self.target.view.source_view.get_allocated_height.return_value = 0
@@ -311,6 +317,35 @@ class ViewSettleTest(unittest.TestCase):
         self.fake.ai_add_annotation.assert_called_once()
         self.assertEqual(self.idle_calls, [])
 
+    def test_switched_active_document_aborts(self):
+        # 等待期间用户切换/关闭了目标文档：静默放弃，不得把批注
+        # 落到别的文档的选区上。
+        self.fake.workspace = mock.Mock()
+        self.fake.workspace.get_active_document.return_value = SimpleNamespace()
+        with self._patch_idle():
+            self._settle()
+        self.fake.ai_add_annotation.assert_not_called()
+        self.assertEqual(self.idle_calls, [])
+
+    def test_parallel_chains_do_not_share_baseline(self):
+        # 连续两次批注的等待链并行：基准值随链传参，不互相污染。
+        def mk_target(value):
+            adj = mock.Mock()
+            adj.get_value.return_value = value
+            sv = mock.Mock()
+            sv.get_allocated_height.return_value = 500
+            return SimpleNamespace(view=SimpleNamespace(
+                source_view=sv,
+                scrolled_window=mock.Mock(
+                    get_vadjustment=mock.Mock(return_value=adj))))
+        t1, t2 = mk_target(100.0), mk_target(200.0)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(t1)             # A 首帧
+            state_a = self.idle_calls[-1][1][3]
+            self.fake._ai_annotate_when_view_settled(t2)             # B 首帧
+            self.fake._ai_annotate_when_view_settled(t1, 1, None, state_a)  # A 次帧→弹
+        self.fake.ai_add_annotation.assert_called_once()
+
 
 class ScrollArrivalTest(unittest.TestCase):
     '''回归：滚动值假稳定（scroll_to_mark 尚未生效）不得提前弹窗。
@@ -355,20 +390,26 @@ class ScrollArrivalTest(unittest.TestCase):
         rect.y, rect.height = y, height
         self.source_view.get_iter_location.return_value = rect
 
+    def _frame(self, attempt=0):
+        # 基准值随链传参：续帧从上一次 idle 排程里取 _state。
+        state = self.idle_calls[-1][1][3] if self.idle_calls else None
+        return self.fake._ai_annotate_when_view_settled(
+            self.target, attempt, None, state)
+
     def test_stable_value_but_target_not_in_view_defers(self):
         # 滚动值连续不变但选区末尾仍在视口下方（滚动尚未开始）：
         # 不得误判稳定；滚入可见区后次帧才弹。
         self._set_visible(0)
         self._set_end_loc(600)
         with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target)
-            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+            self._frame()
+            self._frame(attempt=1)
         self.fake.ai_add_annotation.assert_not_called()
         self.assertEqual(len(self.idle_calls), 2)
         # 滚动完成：选区末尾入可见区，值仍稳定 → 弹出。
         self._set_visible(120)
         with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target, attempt=2)
+            self._frame(attempt=2)
         self.fake.ai_add_annotation.assert_called_once()
 
     def test_never_in_view_pops_at_deadline(self):
@@ -379,14 +420,24 @@ class ScrollArrivalTest(unittest.TestCase):
         self.fake.ai_add_annotation.assert_called_once()
         self.assertEqual(self.idle_calls, [])
 
+    def test_deadline_fallback_rescrolls_before_pop(self):
+        # 兜底弹出前补一次居中滚动（尽力到位，重锚再修正残余）。
+        self.target.scroll_cursor_to_center = mock.Mock()
+        self._set_visible(0)
+        self._set_end_loc(5000)
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(self.target, deadline=0.0)
+        self.target.scroll_cursor_to_center.assert_called_once()
+        self.fake.ai_add_annotation.assert_called_once()
+
     def test_clamped_at_document_top_accepted_with_tolerance(self):
         # 文档首部 GTK 夹紧无法居中：选区末尾在可见区顶上方一行高
         # 容差内仍视为到位。
         self._set_visible(0)
         self._set_end_loc(-15)
         with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target)
-            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+            self._frame()
+            self._frame(attempt=1)
         self.fake.ai_add_annotation.assert_called_once()
 
     def test_no_selection_skips_arrival_gate(self):
@@ -395,8 +446,8 @@ class ScrollArrivalTest(unittest.TestCase):
         self._set_visible(0)
         self._set_end_loc(5000)
         with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target)
-            self.fake._ai_annotate_when_view_settled(self.target, attempt=1)
+            self._frame()
+            self._frame(attempt=1)
         self.fake.ai_add_annotation.assert_called_once()
 
 
@@ -462,6 +513,14 @@ class ReanchorTest(unittest.TestCase):
 
     def test_tick_cap_stops(self):
         self._reanchor(ticks=4)
+        self.popover.set_pointing_to.assert_not_called()
+        self.frame_clock.connect.assert_not_called()
+
+    def test_superseded_by_new_popup_stops(self):
+        # 连续批注重用同一 popover：旧重锚链（seq 落后）不得用旧
+        # end_offset 覆盖新弹窗的 pointing。
+        self.fake._ai_popover_seq = 2
+        self._reanchor(ticks=1)   # seq 默认 0 ≠ 2
         self.popover.set_pointing_to.assert_not_called()
         self.frame_clock.connect.assert_not_called()
 

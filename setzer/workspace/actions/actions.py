@@ -1317,7 +1317,11 @@ class Actions(object):
         # 跨文件跳转刚切换标签页：弹出后仍可能有残余布局位移（视图
         # 最终分配、异步高亮改变行高后再夹紧），pointing 矩形固定在
         # widget 坐标不会跟随。随后几帧逐帧重算锚点修正弹窗位置。
-        self._ai_reanchor_annotation_popover(document, popover, end_offset)
+        # 代际序号：连续批注重用同一 popover，旧重锚链不得用旧
+        # end_offset 覆盖新弹窗的 pointing。
+        self._ai_popover_seq = getattr(self, '_ai_popover_seq', 0) + 1
+        self._ai_reanchor_annotation_popover(document, popover, end_offset,
+                                             seq=self._ai_popover_seq)
 
     def _annotation_anchor_rect(self, document, end_offset):
         '''选区末尾 buffer 坐标 → widget 坐标的 popover 锚定矩形。'''
@@ -1339,13 +1343,15 @@ class Actions(object):
         return rect
 
     def _ai_reanchor_annotation_popover(self, document, popover, end_offset,
-                                        ticks=0):
+                                        ticks=0, seq=0):
         '''弹出后逐帧重算锚点（frame clock after-paint，布局/绘制完成后）。
 
         修正跨文件跳转后残余布局位移导致的弹窗位置错乱；popover 已
-        关闭/活动文档已切换/达帧数上限即停。首帧不查 visible：popup()
-        的 map 是异步的，立即查会误停。'''
+        关闭/活动文档已切换/已被新一次弹出取代/达帧数上限即停。首帧
+        不查 visible：popup() 的 map 是异步的，立即查会误停。'''
         if ticks >= 4 or (ticks > 0 and not popover.get_visible()):
+            return
+        if getattr(self, '_ai_popover_seq', 0) != seq:
             return
         if self.workspace.get_active_document() is not document:
             return
@@ -1359,7 +1365,7 @@ class Actions(object):
 
         def on_tick(clock, data):
             self._ai_reanchor_annotation_popover(document, popover,
-                                                 end_offset, ticks + 1)
+                                                 end_offset, ticks + 1, seq)
             return False
 
         frame_clock.connect('after-paint', on_tick)
@@ -1420,7 +1426,8 @@ class Actions(object):
 
         pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
 
-    def _ai_annotate_when_view_settled(self, target, attempt=0, deadline=None):
+    def _ai_annotate_when_view_settled(self, target, attempt=0, deadline=None,
+                                       _state=None):
         '''等跳转滚动真正完成后再走源码侧 ai_add_annotation。
 
         PDF 映射跳转刚 select_range + scroll_cursor_to_center：新激活/新开
@@ -1430,14 +1437,22 @@ class Actions(object):
         连续两帧不变外，还要求选区末尾已落入可见区（buffer 坐标比较，
         容差一行高：文档首尾 GTK 夹紧无法居中时仍视为到位）且视图分配
         尺寸连续两帧不变（新激活视图先拿到小分配再长到最终尺寸，期间
-        滚动会被再夹紧）。用低优先级
-        idle（排在 GTK 布局/绘制之后）轮询；超过 2 秒兜底直接弹，避免
-        视图异常时永不弹出。
-        '''
+        滚动会被再夹紧）。用低优先级 idle（排在 GTK 布局/绘制之后）
+        轮询；超过 2 秒兜底先补一次居中滚动再弹，避免视图异常时永不
+        弹出。基准值随链传参（_state）：连续两次批注的等待链并行时
+        不互相污染。'''
         import time
         now = time.monotonic()
         if deadline is None:
             deadline = now + 2.0
+        if _state is None:
+            _state = {}
+        # 等待期间用户切换/关闭了目标文档：映射请求已过期，静默放弃。
+        # ai_add_annotation 取的是活动文档，不拦会把批注落到别的文档；
+        # 提前到读视图之前，目标已关闭时不再触碰其视图控件。
+        workspace = getattr(self, 'workspace', None)
+        if workspace is not None and workspace.get_active_document() is not target:
+            return False
         view = getattr(target, 'view', None)
         source_view = getattr(view, 'source_view', None)
         scrolled = getattr(view, 'scrolled_window', None)
@@ -1445,8 +1460,8 @@ class Actions(object):
                      and source_view.get_allocated_height() > 0)
         adjustment = scrolled.get_vadjustment() if scrolled is not None else None
         value = adjustment.get_value() if adjustment is not None else None
-        prev = getattr(self, '_ai_scroll_settle_value', None)
-        prev_alloc = getattr(self, '_ai_scroll_settle_alloc', None)
+        prev = _state.get('value')
+        prev_alloc = _state.get('alloc')
         alloc = ((source_view.get_allocated_width(), source_view.get_allocated_height())
                  if source_view is not None else None)
         # 无视图/滚动信息可监测时视为稳定，不阻塞弹窗；有信息时要求
@@ -1468,15 +1483,19 @@ class Actions(object):
                            <= visible.y + visible.height + tol)
                 if visible.height > 0 and not in_view:
                     settled = False
-        self._ai_scroll_settle_value = value
-        self._ai_scroll_settle_alloc = alloc
+        _state['value'] = value
+        _state['alloc'] = alloc
         if settled or now >= deadline or attempt >= 120:
-            self._ai_scroll_settle_value = None
-            self._ai_scroll_settle_alloc = None
+            if not settled:
+                # 兜底弹出前补一次居中滚动（视图异常/超时时尽力到位，
+                # 弹出后的逐帧重锚会再修正残余位移）。
+                scroll = getattr(target, 'scroll_cursor_to_center', None)
+                if scroll is not None:
+                    scroll()
             self.ai_add_annotation()
             return False
         GLib.idle_add(self._ai_annotate_when_view_settled, target,
-                      attempt + 1, deadline, priority=GLib.PRIORITY_LOW)
+                      attempt + 1, deadline, _state, priority=GLib.PRIORITY_LOW)
         return False
 
     def _document_for_mapping(self, document, mapping):
