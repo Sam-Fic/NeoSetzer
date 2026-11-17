@@ -91,6 +91,14 @@ _NUMBERED_MATH_ENVS = {
 _FALLBACK_MAX_BLOCKS = 6
 _FALLBACK_LINE_WINDOW = 120
 
+# 表格/显示数学视觉矩形：这两类环境的 synctex 正向盒不可靠（实测
+# tabular 行盒整体错位、末行记录混入后续段落/标题盒；数学内容无记录，
+# 逐行反回前面段落盒）。改用页面字形盒聚行后从点击行按「垂直间隙≤
+# 阈值且水平重叠」连通扩展出视觉块；源块归属用「可靠锚行往下源码/
+# 页面顺序步进对应」（_visual_block_source）校验，防 edit 反查落邻块。
+_GLYPH_ROW_GAP = 10.0
+_VISUAL_PAD = 2.0
+
 
 def _rect_contains(rect, x, y, tol=_CLICK_TOL):
     x1, y1, x2, y2 = rect
@@ -193,8 +201,150 @@ def block_pdf_rect(root_tex, pdf_filename, block_tex, page, start, end,
     return (x1, y1, x2, y2)
 
 
+def _glyph_rows(glyph_rects):
+    '''字形盒聚行：垂直重叠（含 0.5pt 容差，吸收零高标点盒）合并为
+    行簇 (x1, y1, x2, y2)。返回按 y 排序、垂直不相交的行列表。'''
+    rows = []
+    for x1, y1, x2, y2 in sorted(glyph_rects, key=lambda r: (r[1], r[0])):
+        if x2 <= x1 or y2 < y1:
+            continue
+        if rows and y1 <= rows[-1][3] + 0.5:
+            r = rows[-1]
+            rows[-1] = (min(r[0], x1), min(r[1], y1),
+                        max(r[2], x2), max(r[3], y2))
+        else:
+            rows.append((x1, y1, x2, y2))
+    return rows
+
+
+def _glyph_band(glyph_rects, x, y):
+    '''点击点种子行 + 连通扩展的视觉块 bbox（含 _VISUAL_PAD 外沿）。
+
+    种子：包含点击点的行（2pt 容差）；否则垂直≤4pt 且水平≤12pt 的
+    最近行（公式间隙/居中块两侧小空白）。扩展：垂直间隙≤
+    _GLYPH_ROW_GAP 且水平重叠的行并入，直到稳定。块间空隙实测≥10.3pt，
+    块内行隙≤9.3pt，阈值 10 分隔两者。无字形/无种子返回 None。'''
+    rows = _glyph_rows(glyph_rects)
+    seed = None
+    for r in rows:
+        if r[1] - 2 <= y <= r[3] + 2 and r[0] - 2 <= x <= r[2] + 2:
+            seed = r
+            break
+    if seed is None:
+        best = None
+        for r in rows:
+            dy = max(r[1] - y, y - r[3], 0.0)
+            dx = max(r[0] - x, x - r[2], 0.0)
+            if dy <= 4 and dx <= 12 and (best is None or dy < best[0]):
+                best = (dy, r)
+        if best is None:
+            return None
+        seed = best[1]
+    band = list(seed)
+    changed = True
+    while changed:
+        changed = False
+        for r in rows:
+            gap = max(band[1] - r[3], r[1] - band[3])
+            if gap <= _GLYPH_ROW_GAP and r[0] < band[2] and r[2] > band[0]:
+                nb = [min(band[0], r[0]), min(band[1], r[1]),
+                      max(band[2], r[2]), max(band[3], r[3])]
+                # 仅当 band 实际扩大才继续迭代（种子行每轮都满足
+                # 合并条件，不比较会死循环）。
+                if nb != band:
+                    band = nb
+                    changed = True
+    return (band[0] - _VISUAL_PAD, band[1] - _VISUAL_PAD,
+            band[2] + _VISUAL_PAD, band[3] + _VISUAL_PAD)
+
+
+def _is_visual_env(env):
+    '''表格/显示数学环境：synctex 盒不可靠，走字形视觉矩形。'''
+    return env in _TABULAR_ENVS or env in _DISPLAY_MATH_ENVS or env is None
+
+
+def _row_anchor_line(row, lines, page, block_tex, pdf_filename, directory):
+    '''字形行 → 源码行（edit 反查 + view 盒几何校验）。
+
+    synctex edit 对「自身盒不在自己 view 记录里」的行会落到邻块
+    （实测 "A matrix:" 行反查到定理 label 行），故反查后要求该行
+    view 记录里有与字形行几何吻合的盒才认锚。不吻合返回 None。'''
+    cx, cy = (row[0] + row[2]) / 2, (row[1] + row[3]) / 2
+    pos = synctex_query.query_source_position(pdf_filename, page + 1, cx, cy,
+                                              directory)
+    if pos is None:
+        return None
+    ln = pos['line']
+    if source_blocks.expand_to_block(lines, ln)[2] != 'line':
+        return None
+    for r in synctex_query.query_rectangles(block_tex, pdf_filename, ln, directory):
+        if r['page'] != page + 1:
+            continue
+        if (abs(r['h'] - row[0]) <= 2.0 and abs(r['v'] - r['height'] - row[1]) <= 2.0
+                and abs(r['h'] + r['width'] - row[2]) <= 2.0
+                and abs(r['v'] - row[3]) <= 2.0):
+            return ln
+    return None
+
+
+def _visual_block_source(band, glyph_rects, lines, page, block_tex,
+                         pdf_filename, directory):
+    '''band 的源码块归属：从 band 上方最近可靠锚行顺序步进对应。
+
+    synctex edit 对数学内容常返回邻块（实测 cases 公式反查到 matrix
+    块、align 首行反查到上一个 equation），仅靠反查行会拿错源块。
+    源码与页面同序：从锚行（_row_anchor_line 校验过）往下，源码文本
+    行↔页面字形行、源码视觉块↔页面 band 逐一对应消费；遇到 band 即
+    返回当前源块。对应失配（段落换行等）返回 None 交回反查行兜底。'''
+    rows = _glyph_rows(glyph_rects)
+    first = None
+    for i, r in enumerate(rows):
+        if r[3] > band[1] and r[1] < band[3]:
+            first = i
+            break
+    if first is None or first == 0:
+        return None
+    anchor = None
+    pi = first
+    for i in range(first - 1, max(-1, first - 11), -1):
+        ln = _row_anchor_line(rows[i], lines, page, block_tex,
+                              pdf_filename, directory)
+        if ln is not None:
+            anchor = ln
+            pi = i + 1
+            break
+    if anchor is None:
+        return None
+    ln = anchor + 1
+    while ln <= len(lines) and ln <= anchor + 80 and pi < len(rows):
+        st = lines[ln - 1].strip()
+        if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
+                or source_blocks.is_no_output_line(st)):
+            ln += 1
+            continue
+        start, end, kind, env = source_blocks.expand_to_block(lines, ln)
+        if kind != 'line':
+            if not _is_visual_env(env) or pi > first:
+                return None
+            r = rows[pi]
+            other = _glyph_band(glyph_rects, (r[0] + r[2]) / 2, (r[1] + r[3]) / 2)
+            if other is None:
+                return None
+            if other == band:
+                return (start, end, kind, env)
+            while pi < len(rows) and rows[pi][3] > other[1] and rows[pi][1] < other[3]:
+                pi += 1
+            ln = end + 1
+            continue
+        if pi >= first:
+            return None
+        pi += 1
+        ln += 1
+    return None
+
+
 def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
-                       directory, image_rects):
+                       directory, image_rects, glyph_rects=()):
     '''空间降级：反查行不在块内（或块矩形不含点击点）时，在附近源码块中
     找 PDF 矩形真正覆盖点击点的最小块。synctex 对无记录区域（图片内部、
     公式间隙）会返回最近的**块外**行，仅靠 expand_to_block 会静默失败。
@@ -203,6 +353,15 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
     返回 (start, end, kind, env, rect) 或 None。后台线程调用。
     '''
     ranges = source_blocks.compute_block_ranges(lines)
+    band = _glyph_band(glyph_rects, x, y) if glyph_rects else None
+    if band is not None:
+        src = _visual_block_source(band, glyph_rects, lines, page,
+                                   block_tex, pdf_filename, directory)
+        if src is not None:
+            start, end, kind, env = src
+            rect = band
+            if rect is not None and _block_accepts(rect, x, y, env):
+                return (start, end, kind, env, rect)
     candidates = []
     for start, end, kind, env in ranges:
         dist = min(abs(start - pos_line), abs(end - pos_line))
@@ -211,9 +370,14 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
     candidates.sort(key=lambda c: (c[0], c[2] - c[1]))
     best = None
     for _dist, start, end, kind, env in candidates[:_FALLBACK_MAX_BLOCKS]:
-        rect = block_pdf_rect(block_tex, pdf_filename, block_tex,
-                              page, start, end, lines, directory,
-                              env=env, image_rects=image_rects)
+        if band is not None and _is_visual_env(env):
+            # 视觉环境矩形即 band（归属已由上方步进对应优先判定；
+            # 走到这里说明步进失配，按源码距离猜最近块）。
+            rect = band
+        else:
+            rect = block_pdf_rect(block_tex, pdf_filename, block_tex,
+                                  page, start, end, lines, directory,
+                                  env=env, image_rects=image_rects)
         if rect is None or not _block_accepts(rect, x, y, env):
             continue
         area = (rect[2] - rect[0]) * (rect[3] - rect[1])
@@ -226,7 +390,7 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
 
 
 def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
-                  image_rects=()):
+                  image_rects=(), glyph_rects=()):
     '''单击块吸附：反查点击点 → 源码块 → 正向并集矩形（本页）。
 
     page 0-based，x/y 未旋转 PDF points。返回
@@ -234,7 +398,8 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
     点击不在块内（kind='line'）或查不到返回 None。后台线程调用。
 
     image_rects 为主线程预提取的本页 poppler image mapping 矩形列表
-    （线程里不读 poppler）。反查行不在块内或块矩形不含点击点时，
+    （线程里不读 poppler）；glyph_rects 同为本页字形盒列表（表格/
+    显示数学视觉矩形用）。反查行不在块内或块矩形不含点击点时，
     走空间降级搜索（图片内部等 synctex 无记录区域的典型情形）。
     '''
     tex_filename = document.get_filename()
@@ -249,10 +414,18 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
         return None
     start, end, kind, env = source_blocks.expand_to_block(lines, pos['line'])
     rect = None
+    band = _glyph_band(glyph_rects, x, y) if glyph_rects else None
     if kind != 'line':
-        rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
-                              page, start, end, lines, directory,
-                              env=env, image_rects=image_rects)
+        if band is not None and _is_visual_env(env):
+            src = _visual_block_source(band, glyph_rects, lines, page,
+                                       pos['filename'], pdf_filename, directory)
+            if src is not None:
+                start, end, kind, env = src
+            rect = band
+        else:
+            rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
+                                  page, start, end, lines, directory,
+                                  env=env, image_rects=image_rects)
         # 反查行已在块内：synctex 盒比视觉块小是常态，盒外沿宽容差内
         # 直接接受（源块映射是对的，高亮盒尽力而为）；只有点击点远离
         # 块矩形时才怀疑反查失真，走空间降级。
@@ -261,7 +434,7 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
                     'kind': kind, 'env': env, 'rect': rect}
     fallback = _fallback_block_at(lines, pos['line'], page, x, y,
                                   pos['filename'], pdf_filename,
-                                  directory, image_rects)
+                                  directory, image_rects, glyph_rects=glyph_rects)
     if fallback is None:
         return None
     start, end, kind, env, rect = fallback
@@ -317,6 +490,11 @@ def map_selection(preview, document, payload, on_done):
                 for m in (poppler_page.get_image_mapping() or [])]
         except Exception:
             extra['image_rects'] = []
+        try:
+            ok, glyphs = poppler_page.get_text_layout()
+            extra['glyph_rects'] = [(g.x1, g.y1, g.x2, g.y2) for g in glyphs] if ok else []
+        except Exception:
+            extra['glyph_rects'] = []
     else:
         rects = payload['rects']
         first, last = min(rects), max(rects)
@@ -362,7 +540,8 @@ def _map_sync(document, payload, extra, pdf_filename, tex_filename, active_lines
             fallback = _fallback_block_at(
                 lines, pos['line'], payload['page'], cx, cy,
                 pos['filename'], pdf_filename, directory,
-                extra.get('image_rects', ()))
+                extra.get('image_rects', ()),
+                glyph_rects=extra.get('glyph_rects', ()))
             if fallback is None:
                 return None
             start, end, kind, _env, _rect = fallback

@@ -448,6 +448,13 @@ class Preview(Observable):
                            for m in (poppler_page.get_image_mapping() or [])]
         except Exception:
             image_rects = []
+        # 字形盒主线程预提取：表格/显示数学的 synctex 盒不可靠，
+        # 块吸附视觉矩形用字形聚行连通扩展（见 pdf_annotation_mapper）。
+        try:
+            ok, glyphs = poppler_page.get_text_layout()
+            glyph_rects = [(g.x1, g.y1, g.x2, g.y2) for g in glyphs] if ok else []
+        except Exception:
+            glyph_rects = []
         self._block_request_id += 1
         request_id = self._block_request_id
         pdf_filename = self.pdf_filename
@@ -456,7 +463,7 @@ class Preview(Observable):
         def _run():
             result = pdf_annotation_mapper.resolve_block(
                 self.document, pdf_filename, page, x, y, active_lines=active_lines,
-                image_rects=image_rects)
+                image_rects=image_rects, glyph_rects=glyph_rects)
             GLib.idle_add(self._on_block_resolved, request_id, key, page, result)
 
         threading.Thread(target=_run, daemon=True).start()
