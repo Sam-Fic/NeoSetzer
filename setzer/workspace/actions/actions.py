@@ -1374,9 +1374,46 @@ class Actions(object):
                 self.workspace.set_active_document(target)
             buffer.select_range(start, end)
             target.scroll_cursor_to_center()
-            self.ai_add_annotation()
+            # 等滚动/布局稳定再弹 popover：立即弹出时 buffer→widget 坐标
+            # 换算可能基于未完成的视图分配或随后被滚动改变，锚点错位。
+            self._ai_annotate_when_view_settled(target)
 
         pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
+
+    def _ai_annotate_when_view_settled(self, target, attempt=0, deadline=None):
+        '''等目标视图滚动/布局稳定后再走源码侧 ai_add_annotation。
+
+        PDF 映射跳转刚 select_range + scroll_cursor_to_center：新激活/新开
+        文档的视图可能尚未完成尺寸分配，滚动调整也可能在后续帧被再夹紧。
+        此时弹 popover 的 buffer→widget 锚点换算会错位。用低优先级 idle
+        （排在 GTK 布局/绘制之后）轮询：视图已有有效分配且垂直滚动值连续
+        两帧不变才弹出；超过 1 秒兜底直接弹，避免视图异常时永不弹出。
+        '''
+        import time
+        now = time.monotonic()
+        if deadline is None:
+            deadline = now + 1.0
+        view = getattr(target, 'view', None)
+        source_view = getattr(view, 'source_view', None)
+        scrolled = getattr(view, 'scrolled_window', None)
+        allocated = (source_view is not None
+                     and source_view.get_allocated_height() > 0)
+        adjustment = scrolled.get_vadjustment() if scrolled is not None else None
+        value = adjustment.get_value() if adjustment is not None else None
+        prev = getattr(self, '_ai_scroll_settle_value', None)
+        # 无视图/滚动信息可监测时视为稳定，不阻塞弹窗；有信息时要求
+        # 视图已分配且滚动值连续两帧不变。
+        has_monitor = source_view is not None and adjustment is not None
+        settled = (not has_monitor
+                   or (allocated and value == prev))
+        self._ai_scroll_settle_value = value
+        if settled or now >= deadline or attempt >= 60:
+            self._ai_scroll_settle_value = None
+            self.ai_add_annotation()
+            return False
+        GLib.idle_add(self._ai_annotate_when_view_settled, target,
+                      attempt + 1, deadline, priority=GLib.PRIORITY_LOW)
+        return False
 
     def _document_for_mapping(self, document, mapping):
         '''映射目标文件：同文件直接用；被 include 的子文件打开/激活。'''

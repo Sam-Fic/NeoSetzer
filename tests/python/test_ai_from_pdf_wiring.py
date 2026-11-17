@@ -18,9 +18,9 @@
 '''PDF「添加 AI 批注」统一走源码侧入口的 wiring 测试。
 
 契约：PDF 选区反查映射后，先把映射区间同步选中到源码（滚动到选区
-末尾保证 popover 锚点可见），然后调用源码侧已有的 ai_add_annotation
-（popover 锚定/选区捕获/落模型全部复用），不再维护 PDF 专用弹窗路径。
-直发分支（send=True）仍走统一发送控制器 send_mapped。
+末尾保证 popover 锚点可见），等视图滚动/布局稳定后调用源码侧已有的
+ai_add_annotation（popover 锚定/选区捕获/落模型全部复用），不再维护
+PDF 专用弹窗路径。直发分支（send=True）仍走统一发送控制器 send_mapped。
 
 方法体经 AST 提取 exec（与 test_file_template_actions 同模式），
 map_selection 补丁为同步回调，buffer 用真实 Gtk.TextBuffer。
@@ -38,7 +38,7 @@ sys.path.insert(0, REPO)
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 
 from setzer.ai_fix import pdf_annotation_mapper
 
@@ -51,12 +51,13 @@ def _load_method(name):
                if isinstance(n, ast.ClassDef) and n.name == 'Actions')
     fn = next(n for n in cls.body
               if isinstance(n, ast.FunctionDef) and n.name == name)
-    ns = {'_': lambda s: s}
+    ns = {'_': lambda s: s, 'GLib': GLib}
     exec(compile(ast.Module(body=[fn], type_ignores=[]), SRC, 'exec'), ns)
     return ns[name]
 
 
 _AI_FROM_PDF = _load_method('_ai_from_pdf')
+_SETTLE = _load_method('_ai_annotate_when_view_settled')
 
 
 def _mapping(start=2, end=3):
@@ -93,6 +94,7 @@ class AiFromPdfTest(unittest.TestCase):
             _show_file_template_toast=mock.Mock(),
             ai_add_annotation=mock.Mock(side_effect=record_annotation))
         self.fake._ai_from_pdf = _AI_FROM_PDF.__get__(self.fake)
+        self.fake._ai_annotate_when_view_settled = _SETTLE.__get__(self.fake)
 
     def _run(self, send, mapping):
         with mock.patch.object(pdf_annotation_mapper, 'map_selection',
@@ -148,6 +150,75 @@ class AiFromPdfTest(unittest.TestCase):
             self.fake._ai_from_pdf(send=False)
         ms.assert_not_called()
         self.fake._show_file_template_toast.assert_called_once()
+
+
+class ViewSettleTest(unittest.TestCase):
+    '''_ai_annotate_when_view_settled：视图未分配/滚动未稳定时推迟弹窗。'''
+
+    def setUp(self):
+        self.target = SimpleNamespace(
+            view=SimpleNamespace(
+                source_view=mock.Mock(),
+                scrolled_window=mock.Mock()))
+        self.adjustment = self.target.view.scrolled_window.get_vadjustment.return_value
+        self.fake = SimpleNamespace(ai_add_annotation=mock.Mock())
+        self.fake._ai_annotate_when_view_settled = _SETTLE.__get__(self.fake)
+        self.idle_calls = []
+
+    def _patch_idle(self):
+        # 捕获低优先级 idle 排程（不真正进主循环），返回补丁器。
+        def capture(fn, *args, **kwargs):
+            self.idle_calls.append((fn, args, kwargs))
+            return len(self.idle_calls)
+        return mock.patch('gi.repository.GLib.idle_add', side_effect=capture)
+
+    def _settle(self, attempt=0, deadline=None):
+        return self.fake._ai_annotate_when_view_settled(
+            self.target, attempt, deadline)
+
+    def test_unallocated_view_defers_popup(self):
+        self.target.view.source_view.get_allocated_height.return_value = 0
+        self.adjustment.get_value.return_value = 100.0
+        with self._patch_idle():
+            self._settle()
+        self.fake.ai_add_annotation.assert_not_called()
+        self.assertEqual(len(self.idle_calls), 1)
+        self.assertEqual(self.idle_calls[0][2].get('priority'),
+                         GLib.PRIORITY_LOW)
+
+    def test_moving_scroll_defers_popup(self):
+        self.target.view.source_view.get_allocated_height.return_value = 500
+        self.adjustment.get_value.side_effect = [100.0, 200.0]
+        with self._patch_idle():
+            self._settle()          # 首帧：记录基准，无 prev 必推迟
+            self._settle(attempt=1)  # 次帧：值变化 → 继续等
+        self.fake.ai_add_annotation.assert_not_called()
+        self.assertEqual(len(self.idle_calls), 2)
+
+    def test_stable_view_pops_after_two_frames(self):
+        self.target.view.source_view.get_allocated_height.return_value = 500
+        self.adjustment.get_value.return_value = 100.0
+        with self._patch_idle():
+            self._settle()          # 首帧记录基准
+            self._settle(attempt=1)  # 次帧值不变 → 弹出
+        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(len(self.idle_calls), 1)
+
+    def test_deadline_fallback_pops(self):
+        self.target.view.source_view.get_allocated_height.return_value = 0
+        self.adjustment.get_value.return_value = 100.0
+        with self._patch_idle():
+            self._settle(deadline=0.0)  # monotonic() >= 0 恒真 → 兜底弹出
+        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.idle_calls, [])
+
+    def test_missing_view_pops_immediately(self):
+        # 无 view 信息（桩文档）：value=None 视为稳定，不阻塞弹窗。
+        target = SimpleNamespace()
+        with self._patch_idle():
+            self.fake._ai_annotate_when_view_settled(target)
+        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.idle_calls, [])
 
 
 if __name__ == '__main__':
