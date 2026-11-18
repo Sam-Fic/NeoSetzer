@@ -239,6 +239,9 @@ class GitSection(object):
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('init', _('Initialize'))
         dialog.set_response_appearance('init', Adw.ResponseAppearance.SUGGESTED)
+        # Enter/Esc 默认走 Cancel：git init 是有后果的写操作，默认响应须安全侧。
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
         dialog.connect('response', self.on_init_confirmed, directory)
         dialog.present(ServiceLocator.get_main_window())
 
@@ -253,7 +256,7 @@ class GitSection(object):
         if error:
             self._toast(error)
             return
-        self._toast(_('Git repository initialized.'))
+        # 初始化成功不弹 toast：面板随即切到仓库视图，状态变化本身即确认。
         if repo is not None:
             # 刚建好的仓库由本应用创建，不可能有预置 hooks，直接记为已信任，
             # 免得紧接着的第一次提交又弹一次信任确认。
@@ -289,6 +292,9 @@ class GitSection(object):
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('trust', _('Trust and Continue'))
         dialog.set_response_appearance('trust', Adw.ResponseAppearance.SUGGESTED)
+        # Enter/Esc 默认走 Cancel：信任仓库会放行 hooks 执行，默认须安全侧。
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
         dialog.connect('response', self.on_trust_response, callback)
         dialog.present(ServiceLocator.get_main_window())
 

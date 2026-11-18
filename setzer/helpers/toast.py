@@ -7,8 +7,9 @@ toast 的统一出口：同一句话在短时间内只弹一次。
 操作每一帧/每一次都触发同一句文案，逐次弹 toast 就从「反馈」变成了打扰。
 
 这里按 key（默认取消息文本）记住上次显示时间，节流窗口内的重复请求直接
-丢弃。真正的用户操作结果（复制、导出、会话结束等）各不相同，不需要经过
-本模块。
+丢弃。真正的用户操作结果（复制到剪贴板等不可见操作）各不相同，不需要
+经过本模块；例行成功（导出完成、保存完成等界面已可见的结果）按
+docs/ui-guidelines.md「非必要不打扰」根本不该发 toast。
 
 import 本模块不碰 gi：GTK 依赖放在 `show` 内部，纯逻辑的 `should_show`
 可以在无显示环境里直接测。
@@ -46,10 +47,14 @@ def reset():
 
 
 def show(message, timeout=3, throttle_ms=DEFAULT_THROTTLE_MS, key=None,
-         overlay=None):
+         overlay=None, button_label=None, on_button_clicked=None):
     '''在 overlay（默认主窗口）上弹一条 toast，按消息文本节流。
 
     throttle_ms=None 表示不去重。返回是否真的弹了。
+
+    button_label / on_button_clicked：给 toast 挂一个动作按钮（Adw.Toast
+    原生支持，点击后 toast 自动消失再走回调）。用于「结果已出，点一下去看」
+    这类顺带入口——别拿它替代**持久**的操作入口：toast 几秒后就没了。
     '''
     if not message:
         return False
@@ -67,6 +72,13 @@ def show(message, timeout=3, throttle_ms=DEFAULT_THROTTLE_MS, key=None,
             overlay = main_window.toast_overlay
         toast = Adw.Toast.new(message)
         toast.set_timeout(timeout)
+        if button_label:
+            toast.set_button_label(button_label)
+            if on_button_clicked is not None:
+                def _on_button_clicked(clicked_toast):
+                    clicked_toast.dismiss()
+                    on_button_clicked()
+                toast.connect('button-clicked', _on_button_clicked)
         overlay.add_toast(toast)
         return True
     except Exception:

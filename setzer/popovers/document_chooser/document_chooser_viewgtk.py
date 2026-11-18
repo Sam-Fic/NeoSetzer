@@ -48,7 +48,6 @@ class DocumentChooserView(object):
         self.no_results_status = Adw.StatusPage()
         self.no_results_status.set_icon_name('edit-find-symbolic')
         self.no_results_status.set_title(_('No Results'))
-        self.no_results_status.set_description(_('No documents match your search'))
         self.no_results_group.add(self.no_results_status)
         self.no_results_group.set_visible(False)
         self.page.add(self.no_results_group)

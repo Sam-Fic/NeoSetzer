@@ -137,7 +137,6 @@ class GitSectionView(Gtk.Box):
 
         self.button_push = Gtk.Button(label=_('Push'))
         self.button_push.set_hexpand(True)
-        self.button_push.set_tooltip_text(_('Push commits to the remote'))
         self.button_box.append(self.button_push)
 
         # 线性历史（`git log` 顺序，新 → 旧）。

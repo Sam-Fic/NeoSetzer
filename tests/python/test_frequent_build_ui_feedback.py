@@ -29,7 +29,13 @@ def load_method(relative_path, class_name, method_names, namespace):
 
 
 class ToastSuppressionTest(unittest.TestCase):
-    '''F1：结果 toast 只在值得说的时候说。'''
+    '''F1：结果 toast 只在值得说的时候说。
+
+    「非必要不打扰」（docs/ui-guidelines.md）：按钮区常驻的 Success!/Failed(N)!
+    已是每轮构建的完整反馈。成功仅在「从已播报过的失败恢复」时补一条；
+    自动构建（任何引擎）的失败是输入中间态，一律静默；只有手动构建的
+    失败是用户主动等待的结果，保留 toast。
+    '''
 
     def setUp(self):
         self.fns = load_method(
@@ -46,22 +52,18 @@ class ToastSuppressionTest(unittest.TestCase):
     def widget(self, last=None):
         return SimpleNamespace(_last_toasted_error_count=last)
 
-    def test_other_engines_always_toast(self):
+    def test_success_is_silent_without_prior_announced_errors(self):
         widget = self.widget()
-        self.assertFalse(self.fns._suppress_result_toast(
-            widget, self.build_system(live=False), 'success'))
-        self.assertFalse(self.fns._suppress_result_toast(
-            widget, self.build_system(live=False), 'error'))
-
-    def test_manual_builds_always_toast(self):
-        widget = self.widget()
-        self.assertFalse(self.fns._suppress_result_toast(
-            widget, self.build_system(auto=False), 'success'))
-
-    def test_repeated_success_is_silent(self):
+        self.assertTrue(self.fns._suppress_result_toast(
+            widget, self.build_system(), 'success'))
         widget = self.widget(last=0)
         self.assertTrue(self.fns._suppress_result_toast(
             widget, self.build_system(), 'success'))
+
+    def test_success_is_silent_even_for_manual_builds(self):
+        widget = self.widget()
+        self.assertTrue(self.fns._suppress_result_toast(
+            widget, self.build_system(auto=False), 'success'))
 
     def test_recovery_from_errors_still_announces_success(self):
         '''用户最关心的恰是"我改对了"，这一条不能哑。'''
@@ -70,22 +72,39 @@ class ToastSuppressionTest(unittest.TestCase):
             widget, self.build_system(), 'success'))
         self.assertEqual(widget._last_toasted_error_count, 0)
 
-    def test_errors_are_always_silent(self):
-        '''输入中间态下错误数会在 0/1/2 之间来回跳，按数字去重仍会连发。'''
+    def test_auto_build_errors_are_silent_on_any_engine(self):
+        '''自动构建报错是打字中间态：PhiTeX live 与传统引擎同样静默。'''
         widget = self.widget(last=None)
-        bs = self.build_system(error_count=2)
-        self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
-        self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
-        self.assertTrue(self.fns._suppress_result_toast(widget, bs, 'error'))
-
-    def test_changing_error_count_stays_silent_but_is_remembered(self):
-        '''记住错误数是给"恢复成功"用的：那一句仍要说。'''
-        widget = self.widget(last=1)
         self.assertTrue(self.fns._suppress_result_toast(
-            widget, self.build_system(error_count=4), 'error'))
+            widget, self.build_system(live=True, auto=True, error_count=2), 'error'))
+        self.assertTrue(self.fns._suppress_result_toast(
+            widget, self.build_system(live=False, auto=True, error_count=2), 'error'))
+
+    def test_manual_build_errors_still_toast(self):
+        widget = self.widget(last=None)
+        self.assertFalse(self.fns._suppress_result_toast(
+            widget, self.build_system(live=False, auto=False, error_count=2), 'error'))
+
+    def test_announced_failures_drive_recovery(self):
+        '''手动失败播报并记住错误数；其后的成功才算"恢复"，要播报。'''
+        widget = self.widget(last=None)
+        self.assertFalse(self.fns._suppress_result_toast(
+            widget, self.build_system(auto=False, error_count=4), 'error'))
         self.assertEqual(widget._last_toasted_error_count, 4)
         self.assertFalse(self.fns._suppress_result_toast(
-            widget, self.build_system(error_count=0), 'success'))
+            widget, self.build_system(auto=False, error_count=0), 'success'))
+        self.assertEqual(widget._last_toasted_error_count, 0)
+
+    def test_auto_failures_are_remembered_and_recovery_announces(self):
+        '''自动失败虽静默，但按钮区 Failed(N)! 已把失败状态播报给用户
+        （v90 设计意图，见 test_phitex_error_resilience）：错误数照常记账，
+        其后的成功触发"我改对了"恢复 toast。'''
+        widget = self.widget()
+        self.assertTrue(self.fns._suppress_result_toast(
+            widget, self.build_system(auto=True, error_count=4), 'error'))
+        self.assertEqual(widget._last_toasted_error_count, 4)
+        self.assertFalse(self.fns._suppress_result_toast(
+            widget, self.build_system(auto=True, error_count=0), 'success'))
 
     def test_unrelated_messages_not_affected(self):
         self.assertFalse(self.fns._suppress_result_toast(

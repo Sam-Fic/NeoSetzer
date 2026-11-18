@@ -314,7 +314,7 @@ class AiPage(object):
     def on_close_session_clicked(self, button):
         '''关闭会话：杀子进程 + 清屏，恢复未打开状态（节省资源）。'''
         self.session.end_session()
-        self._toast(_('Session ended'))
+        # 清屏后 StatusPage 切到「No active session」，状态变化可见，无需 toast
 
     def on_new_session_clicked(self, button):
         document = self.workspace.get_active_document()

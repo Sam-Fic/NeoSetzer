@@ -216,10 +216,11 @@ class BuildWidget(Observable):
         return self._stage_labels.get(job_name, job_name)
 
     def on_build_state(self, build_system, message):
-        # PhiTeX 常驻 session 下自动构建每 150ms 就能完成一次，而每条 toast 挂
-        # 3 秒——照原样发就是打字时 toast 叠成墙，挡住视线也挡住交互。成功不再
-        # 发（按钮区本来就有常驻的 Success!/Failed 文字承担这个职责），失败按
-        # 错误数去重：同一个没修好的错只报一次，数字变了才再报。
+        # 「非必要不打扰」：按钮区常驻的 Success!/Failed(N)! 文字已是每轮
+        # 构建的完整反馈（自动构建下最快 150ms 一轮，toast 会叠成墙），行内
+        # 波浪线与预览高亮负责指位置。toast 只承担按钮表达不了的部分：
+        # 成功仅在「从已播报过的失败中恢复」时说一声；失败仅手动构建时报
+        # （自动构建的报错是输入中间态，不是需要处置的事件）。
         suppress_toast = self._suppress_result_toast(build_system, message)
         if message == '':
             self.show_message('')
@@ -245,22 +246,22 @@ class BuildWidget(Observable):
                 self._show_toast(_('Build failed') + ' (' + errors_text + ')')
 
     def _suppress_result_toast(self, build_system, message):
-        '''本次构建结果要不要发 toast。'''
+        '''本次构建结果要不要发 toast（docs/ui-guidelines.md「非必要不打扰」）。'''
         if message not in ('success', 'error'):
             return False
-        if not (getattr(build_system, 'is_auto_build', False)
-                and build_system.is_phitex_live_build()):
-            return False
         if message == 'success':
-            # 从报错恢复到成功时还是说一声：用户关心的恰是"我改对了"。
+            # 仅在「从已播报过的失败恢复」时还是说一声：用户关心的恰是"我改对了"。
             announced, self._last_toasted_error_count = self._last_toasted_error_count, 0
             return announced in (None, 0)
-        # 失败一律静默（不再按错误数去重后放行）：输入中间态下错误数会在
-        # 0/1/2 之间来回跳，"数字变了"根本区分不出"用户修好了"和"又敲错了"，
-        # 只会在打字时连发。按钮区常驻的 "Failed (N errors)!" 已经是这种模式
-        # 下唯一的数字反馈，行内波浪线与预览高亮负责指位置。
+        # 失败：自动构建（任何引擎，含 PhiTeX live）一律静默——输入中间态下
+        # 错误数在 0/1/2 来回跳，连发只会打断打字；按钮区 Failed(N)! 与行内
+        # 标记承担反馈。手动构建的失败是用户主动等待的结果，保留 toast。
+        # 失败状态经按钮区常驻的 Failed(N)! 播报（无论 toast 是否静默），
+        # 因此所有失败都记账：其后的成功构成"从失败恢复"，要说一声——
+        # 正是 PhiTeX 打字流里用户最需要的"我改对了"时刻（v90 设计意图，
+        # 见 test_phitex_error_resilience）。
         self._last_toasted_error_count = build_system.get_error_count()
-        return True
+        return bool(getattr(build_system, 'is_auto_build', False))
 
     def _show_toast(self, text):
         main_window = ServiceLocator.get_main_window()

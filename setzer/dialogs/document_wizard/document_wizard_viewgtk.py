@@ -51,9 +51,12 @@ class DocumentWizardView(DialogView):
         self.title_widget = Adw.WindowTitle(title=_('Create a template document'))
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_tooltip_text(_('Close the dialog without creating a document'))
 
-        self.back_button = Gtk.Button.new_with_mnemonic(_('_Back'))
+        # Back 降级为 flat 图标按钮（docs/ui-guidelines.md 规则#2：中间页
+        # 文字按钮最多 Cancel + 主确认 2 个，次要操作用图标 + tooltip）。
+        self.back_button = Gtk.Button()
+        self.back_button.set_icon_name('go-previous-symbolic')
+        self.back_button.add_css_class('flat')
         self.back_button.set_tooltip_text(_('Go to the previous wizard page'))
 
         # 使用 Gio.Menu + Gtk.PopoverMenu，与汉堡菜单使用同样的组件。
@@ -71,11 +74,9 @@ class DocumentWizardView(DialogView):
         self.template_actions_button.set_menu_model(template_menu_model)
 
         self.next_button = Gtk.Button.new_with_mnemonic(_('_Next'))
-        self.next_button.set_tooltip_text(_('Go to the next wizard page'))
         self.next_button.add_css_class('suggested-action')
 
         self.create_button = Gtk.Button.new_with_mnemonic(_('_Create'))
-        self.create_button.set_tooltip_text(_('Create the document with the selected options'))
         self.create_button.add_css_class('suggested-action')
 
         self.headerbar.set_title_widget(self.title_widget)

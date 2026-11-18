@@ -3,8 +3,6 @@
 
 '''User-facing safe export of a LaTeX project's source package.'''
 
-import os
-
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -54,15 +52,15 @@ class ExportProjectPackageDialog:
         if destination is None:
             return
         try:
-            exported = self.exporter.export(destination.get_path(), self.plan)
+            self.exporter.export(destination.get_path(), self.plan)
         except FileExistsError:
             self._show_toast(_('A file with that name already exists; choose a new name.'))
         except Exception as error:
             self._show_toast(_('Could not export project package: {error}').format(
                 error=str(error)))
         else:
-            self._show_toast(_('Project package exported to: {filename}').format(
-                filename=os.path.basename(exported)))
+            # 导出成功不弹 toast：选择器关闭即完成确认（「非必要不打扰」）。
+            pass
 
     def _show_toast(self, message):
         toast = Adw.Toast.new(message)

@@ -88,7 +88,6 @@ class InsertTableView(DialogView):
         self.headerbar.set_show_end_title_buttons(False)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
         self.copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
@@ -97,7 +96,6 @@ class InsertTableView(DialogView):
         self.headerbar.pack_start(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
-        self.insert_button.set_tooltip_text(_('Generate the LaTeX code and insert it at the cursor'))
         self.headerbar.pack_end(self.insert_button)
 
         scrolled = Gtk.ScrolledWindow()
@@ -204,7 +202,6 @@ class InsertTableView(DialogView):
         self.cancel_merge_edit_button = Gtk.Button.new_with_mnemonic(_('_Cancel Merge Edit'))
         self.cancel_merge_edit_button.set_halign(Gtk.Align.START)
         self.cancel_merge_edit_button.set_margin_top(6)
-        self.cancel_merge_edit_button.set_tooltip_text(_('Stop editing the selected merged range'))
         self.merges_group.add(self.cancel_merge_edit_button)
         self.merge_status = Gtk.Label()
         self.merge_status.set_halign(Gtk.Align.START)

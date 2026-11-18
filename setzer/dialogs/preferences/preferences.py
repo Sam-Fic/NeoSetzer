@@ -78,20 +78,6 @@ class PreferencesDialog(object):
         self.page_appearance.view.theme_combo.connect(
             'notify::selected', self.page_editor.queue_scheme_grid_rebuild)
 
-    def on_check_button_toggle(self, button, preference_name):
-        self.settings.set_value('preferences', preference_name, button.get_active())
-        
-    def on_radio_button_toggle(self, button, preference_name, value):
-        self.settings.set_value('preferences', preference_name, value)
-
     def spin_button_changed(self, button, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, int(button.get_property('value')))
 
-    def text_deleted(self, buffer, position, n_chars, preference_name):
-        self.settings.set_value('preferences', preference_name, buffer.get_text())
-
-    def text_inserted(self, buffer, position, chars, n_chars, preference_name):
-        self.settings.set_value('preferences', preference_name, buffer.get_text())
-
-    def on_interpreter_changed(self, button, preference_name, value):
-        self.settings.set_value('preferences', preference_name, value)

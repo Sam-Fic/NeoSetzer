@@ -62,7 +62,6 @@ class InsertMatrixView(DialogView):
         self.headerbar.set_show_end_title_buttons(False)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_tooltip_text(_('Close the dialog without inserting anything'))
         self.headerbar.pack_start(self.cancel_button)
         self.copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
@@ -71,7 +70,6 @@ class InsertMatrixView(DialogView):
         self.headerbar.pack_start(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
-        self.insert_button.set_tooltip_text(_('Generate the LaTeX code and insert it at the cursor'))
         self.headerbar.pack_end(self.insert_button)
 
         scrolled = Gtk.ScrolledWindow()

@@ -67,7 +67,7 @@ class ExampleProjectOpener:
             return
 
         self.workspace.open_document_by_filename_with_spinner(main_document)
-        self._show_toast(_('Example project created'), 3)
+        # 创建成功不弹 toast：文档随即打开，新标签页本身即确认（「非必要不打扰」）。
         if self._on_opened is not None:
             self._on_opened()
 

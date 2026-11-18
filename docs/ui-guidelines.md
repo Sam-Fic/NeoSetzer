@@ -16,10 +16,14 @@
 - 恒有一档激活。`get_active()` 是 guint 索引，未选中时返回 `G_MAXUINT` 而非负数，兜底判断必须写 `active >= group.get_n_toggles()`，不要写 `active < 0`（永不成立）。
 - 程序化 `set_active` 触发的回调，用 `_syncing_*` 标志位压掉，防止同步循环。
 
-## 轻反馈与打断
+## 轻反馈与打断（非必要不打扰）
 
 - 非模态的结果反馈（复制成功、已加入信任目录等）统一用 Adw.Toast，不弹对话框。
 - 需要用户做出决定的场景才用 Adw.AlertDialog，并遵守上方弹窗组件规则。
+- **打扰阶梯**（从轻到重）：状态栏/行内标记 > Adw.Banner > Adw.Toast > Adw.AlertDialog > 模态弹窗。反馈默认落在能表达清楚的最轻一档。
+- **例行成功不提示**：界面本身已可见的结果不再另发 toast——保存后标题/标签已变化、导出完成即文件选择器关闭、面板切换本身可见、构建结果有按钮区常驻的 Success!/Failed(N)! 文字。
+- **重复事件必须收敛**：同一原因反复触发的提示走 `setzer/helpers/toast.py` 的 key 节流（先例：预览失败 8s、换行环绕提示）；自动构建循环内的成功/失败结果一律静默（输入中间态不是事件），只有用户主动构建的失败才发 toast；一次性告警用 one-shot 标志位（先例：`auto_build._untitled_warned`、`workspace._persistence_warning_shown`）。
+- **打断的边界**：只有不可逆/有后果的操作确认、需要用户做选择、需要立即处置的错误才允许模态打断；被动结果（打印失败、保存失败等）走 toast，异常弹窗须节流防连环堆叠（先例：`exception_handler` 30s 窗口）。
 
 ## 偏好项行组件
 

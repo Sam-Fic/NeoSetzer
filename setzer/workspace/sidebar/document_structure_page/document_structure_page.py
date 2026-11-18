@@ -60,7 +60,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.no_results_status = Adw.StatusPage()
         self.no_results_status.set_icon_name('action-unavailable-symbolic')
         self.no_results_status.set_title(_('No Results'))
-        self.no_results_status.set_description(_('No sections match your search'))
         self.no_results_status.set_vexpand(True)
         self.no_results_status.set_valign(Gtk.Align.CENTER)
 

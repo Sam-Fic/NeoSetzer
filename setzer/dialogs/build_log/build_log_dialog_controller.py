@@ -225,7 +225,7 @@ class BuildLogDialogController(object):
         try:
             with open(file.get_path(), 'w', encoding='utf-8') as f:
                 f.write('\n'.join(lines) + '\n')
-            self.view.toast_overlay.add_toast(Adw.Toast.new(_('Build log saved')))
+            # 保存成功不弹 toast：文件选择器关闭即完成确认（「非必要不打扰」）。
         except Exception:
             self.view.toast_overlay.add_toast(Adw.Toast.new(_('Failed to save build log')))
 
@@ -375,7 +375,7 @@ class BuildLogDialogController(object):
             settings.pickle()
             if self.presenter is not None:
                 self.presenter.refresh()
-            self._toast(_('Restored all ignored warnings'))
+            # 恢复后列表即时重灌、按钮随之隐藏，状态变化可见，无需 toast
         self._update_restore_button()
 
     def _update_restore_button(self):
@@ -527,6 +527,8 @@ class BuildLogDialogController(object):
         if not document.save_to_disk():
             # 保存失败，中止 AI fix（toast 已由 save_to_disk 弹出）
             return
+        # AI diff 基线：发送前快照正文（与批注入口同一 helper，静默不武装）。
+        self.build_log.workspace.snapshot_ai_baseline(document)
 
         # agent_runner 的本地化钩子已在 _initiate_ai_fix 设置（发送必经该入口）。
         # VTE 可用且内嵌终端开启：经共享 AgentSession 注入（与批注同一会话，

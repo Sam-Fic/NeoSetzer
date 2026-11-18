@@ -55,7 +55,6 @@ class BuildLogDialogView(DialogView):
 
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
-        self.set_title(_('Build Log'))
         self.set_content_width(640)
         self.set_content_height(480)
 
@@ -230,8 +229,8 @@ class BuildLogDialogView(DialogView):
         # 空状态占位：全部 group 都为空时显示。
         self.empty_state = Adw.StatusPage()
         self.empty_state.set_icon_name('object-select-symbolic')
-        self.empty_state.set_title(_('Build Log'))
-        self.empty_state.set_description(_('No build log items to show.'))
+        # 标题不再重复 headerbar 的「Build Log」：空状态直接说结论
+        self.empty_state.set_title(_('No build log items to show.'))
         self.empty_state.set_vexpand(True)
         self.empty_state.set_visible(False)
         self.content_box.append(self.empty_state)

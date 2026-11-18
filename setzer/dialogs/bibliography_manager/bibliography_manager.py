@@ -126,13 +126,11 @@ class BibliographyManagerDialog(DialogView):
 
         self.open_button = Gtk.Button(label=_('Open BibTeX File…'))
         self.open_button.set_icon_name('document-open-symbolic')
-        self.open_button.set_tooltip_text(_('Open an existing BibTeX file'))
         self.open_button.connect('clicked', self._on_open_file)
         header.append(self.open_button)
 
         self.add_button = Gtk.Button(label=_('Add Entry'))
         self.add_button.set_icon_name('list-add-symbolic')
-        self.add_button.set_tooltip_text(_('Create a new bibliography entry'))
         self.add_button.add_css_class('suggested-action')
         self.add_button.connect('clicked', self._on_add_entry)
         header.append(self.add_button)
@@ -261,12 +259,10 @@ class BibliographyManagerDialog(DialogView):
         actions.append(self.insert_button)
         self.edit_button = Gtk.Button(label=_('Edit Entry'))
         self.edit_button.set_icon_name('document-edit-symbolic')
-        self.edit_button.set_tooltip_text(_('Edit the selected bibliography entry'))
         self.edit_button.connect('clicked', self._on_edit_entry)
         actions.append(self.edit_button)
         self.delete_button = Gtk.Button(label=_('Delete Entry'))
         self.delete_button.set_icon_name('user-trash-symbolic')
-        self.delete_button.set_tooltip_text(_('Remove the selected bibliography entry'))
         self.delete_button.add_css_class('destructive-action')
         self.delete_button.connect('clicked', self._on_delete_entry)
         actions.append(self.delete_button)
@@ -477,7 +473,6 @@ class BibliographyManagerDialog(DialogView):
         actions_row.set_title(_('Actions'))
         self.insert_clear_button = Gtk.Button(label=_('Clear Selection'))
         self.insert_clear_button.set_valign(Gtk.Align.CENTER)
-        self.insert_clear_button.set_tooltip_text(_('Deselect all citation keys'))
         self.insert_clear_button.connect('clicked', self._on_insert_clear)
         actions_row.add_suffix(self.insert_clear_button)
         self.insert_button_multi = Gtk.Button(label=_('Insert Citations'))
@@ -1352,8 +1347,6 @@ class _StringsDialog(DialogView):
         self.save_button.set_can_focus(False)
         self.save_button.add_css_class('suggested-action')
         self.save_button.set_sensitive(False)
-        self.save_button.set_tooltip_text(
-            _('Apply all changes to the bibliography file'))
         self.save_button.connect('clicked', self._on_save)
         self.headerbar.pack_end(self.save_button)
 
@@ -1370,6 +1363,14 @@ class _StringsDialog(DialogView):
         content.set_margin_end(6)
         content.set_vexpand(True)
         self.topbox.append(content)
+
+        # Toast 承载非模态反馈（_show_local_error/_info），ToastOverlay 包在
+        # ToolbarView 外，提示落在弹窗自身而非主窗口。
+        self.toast_overlay = Adw.ToastOverlay()
+        # 同 project_build_configuration_viewgtk：先解除基类挂载再包裹。
+        self.set_child(None)
+        self.toast_overlay.set_child(self.toolbar_view)
+        self.set_child(self.toast_overlay)
 
         self.search_entry = Gtk.SearchEntry()
         self.search_entry.set_placeholder_text(_('Search string name or value'))
@@ -1634,17 +1635,13 @@ class _StringsDialog(DialogView):
         return ' '.join(parts)
 
     def _show_local_error(self, message):
-        dialog = Adw.AlertDialog(
-            heading=_('Cannot update @string macros'),
-            body=message)
-        dialog.add_response('ok', _('OK'))
-        dialog.set_default_response('ok')
-        dialog.present(self)
+        # 非模态反馈按规范走 toast，不弹 AlertDialog 打断。
+        self._show_local_toast(message)
 
     def _show_local_info(self, message):
-        dialog = Adw.AlertDialog(
-            heading=_('@string import complete'),
-            body=message)
-        dialog.add_response('ok', _('OK'))
-        dialog.set_default_response('ok')
-        dialog.present(self)
+        self._show_local_toast(message)
+
+    def _show_local_toast(self, message):
+        toast = Adw.Toast.new(message)
+        toast.set_timeout(5)
+        self.toast_overlay.add_toast(toast)

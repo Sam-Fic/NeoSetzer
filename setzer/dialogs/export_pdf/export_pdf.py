@@ -76,8 +76,8 @@ class ExportPdfDialog(object):
                 error=str(e)))
             return
 
-        self._show_toast(_('PDF exported to: {filename}').format(
-            filename=os.path.basename(dest)))
+        # 导出成功不弹 toast：文件选择器关闭本身就是完成的确认，
+        # 目标路径是用户刚亲手选的（「非必要不打扰」）。
 
     def _show_toast(self, message):
         toast = Adw.Toast.new(message)

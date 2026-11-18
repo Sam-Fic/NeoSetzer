@@ -78,7 +78,6 @@ class AiPageView(Gtk.Box):
 
         self.send_all_button = Gtk.Button(label=_('Send All'))
         self.send_all_button.add_css_class('suggested-action')
-        self.send_all_button.set_tooltip_text(_('Send all annotations to the agent'))
         self.toolbar.append(self.send_all_button)
 
         # 与其他页互为镜像的面板切换器（sidebar_viewgtk 统一同步）。

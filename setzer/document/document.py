@@ -806,11 +806,12 @@ class Document(Observable):
         return True
 
     def _show_save_error_toast(self, error_msg):
-        main_window = ServiceLocator.get_main_window()
-        if main_window is not None and hasattr(main_window, 'toast_overlay'):
-            toast = Adw.Toast.new(_('Could not save document: {error}').format(error=error_msg))
-            toast.set_timeout(5)
-            main_window.toast_overlay.add_toast(toast)
+        # 「非必要不打扰」：磁盘满/权限问题会随自动保存与自动构建反复触发，
+        # 走 helpers.toast 按 key 节流，窗口期内只提示一次（stderr/日志不受影响）。
+        from setzer.helpers import toast as toast_helpers
+        toast_helpers.show(
+            _('Could not save document: {error}').format(error=error_msg),
+            timeout=5, throttle_ms=8000, key='save_error')
 
     def update_save_date(self):
         self.save_date = os.path.getmtime(self.filename)

@@ -174,7 +174,7 @@ class GeneralSettingsPageView(PageView):
     def __init__(self):
         PageView.__init__(self)
 
-        self.headerbar_subtitle = _('Step') + ' 3: ' + _('General document settings')
+        self.headerbar_subtitle = _('Step 3: General document settings')
 
         # Package descriptions (instance-level so gettext _() is resolved at
         # runtime, after gettext.install has run).
@@ -198,13 +198,13 @@ class GeneralSettingsPageView(PageView):
 
         self.title_entry = Adw.EntryRow()
         self.title_entry.set_title(_('Title'))
-        self.title_entry.set_tooltip_text(_('The document title, used in the \\title{} command.'))
+        self.title_entry.set_tooltip_text(_('Used in the \\title{} command.'))
         self.author_entry = Adw.EntryRow()
         self.author_entry.set_title(_('Author'))
-        self.author_entry.set_tooltip_text(_('The document author, used in the \\author{} command.'))
+        self.author_entry.set_tooltip_text(_('Used in the \\author{} command.'))
         self.date_entry = Adw.EntryRow()
         self.date_entry.set_title(_('Date'))
-        self.date_entry.set_tooltip_text(_('The document date, used in the \\date{} command. '
+        self.date_entry.set_tooltip_text(_('Used in the \\date{} command. '
                                             'Use \\today for the current date.'))
         self.group_document_properties.add(self.title_entry)
         self.group_document_properties.add(self.author_entry)
@@ -213,7 +213,6 @@ class GeneralSettingsPageView(PageView):
         # Language -----------------------------------------------------------
         self.group_language = Adw.PreferencesGroup()
         self.group_language.set_title(_('Language'))
-        self.group_language.set_description(_('The main language for this document. This is used to apply rules for hyphenation and other purposes.'))
         # 使用原生 Adw.ComboRow，与 Font package 保持一致；babel 语言列表较
         # 长，在支持的 libadwaita 版本上启用弹窗内搜索。
         self.language_combo = Adw.ComboRow()
@@ -239,9 +238,7 @@ class GeneralSettingsPageView(PageView):
         self.group_font.set_description(_('Select the font package to include in the preamble. lmodern is recommended for pdfLaTeX, fontspec for XeLaTeX/LuaLaTeX.'))
         self.font_package_combo = Adw.ComboRow()
         self.font_package_combo.set_title(_('Font package'))
-        self.font_package_combo.set_tooltip_text(_(
-            'Choose the font package. lmodern (Latin Modern) is recommended for pdfLaTeX. '
-            'fontspec enables system fonts with XeLaTeX/LuaLaTeX.'))
+
         font_package_model = Gtk.StringList()
         self.font_package_codes = ['lmodern', 'fontspec', 'none']
         font_package_labels = {

@@ -80,14 +80,12 @@ class DocumentPropertiesView(DialogView):
         # Override build options row
         override_row = Adw.SwitchRow()
         override_row.set_title(_('Override build options'))
-        override_row.set_subtitle(_('Use document-specific settings instead of global defaults'))
         self.switch_override_build = override_row
         build_group.add(override_row)
 
         # Auto build row
         auto_build_row = Adw.SwitchRow()
         auto_build_row.set_title(_('Auto Build'))
-        auto_build_row.set_subtitle(_('Automatically build when the document changes'))
         self.switch_auto_build = auto_build_row
         build_group.add(auto_build_row)
 
@@ -128,7 +126,6 @@ class DocumentPropertiesView(DialogView):
         # Indent mode row
         indent_row = Adw.ComboRow()
         indent_row.set_title(_('Indent Mode'))
-        indent_row.set_subtitle(_('Use spaces or tabs for indentation'))
         indent_model = Gtk.StringList.new(indent_labels)
         indent_row.set_model(indent_model)
         self.combo_indent_mode = indent_row

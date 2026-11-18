@@ -17,6 +17,7 @@
 
 import sys
 import threading
+import time
 import traceback
 import gi
 gi.require_version('Gtk', '4.0')
@@ -33,6 +34,12 @@ except NameError:
 
 _excepthook_set = False
 
+# 「非必要不打扰」：未处理异常（尤其后台线程）常在同一时间窗内连环抛出，
+# 逐条弹模态框就是异常风暴。stderr 始终有完整记录；窗口期内只弹第一条，
+# 其余仅落 stderr。
+_ERROR_DIALOG_THROTTLE_S = 30.0
+_last_error_dialog_time = 0.0
+
 
 def _format_exception(exc_type, exc_value, exc_tb):
     """Format exception traceback into a string."""
@@ -41,7 +48,11 @@ def _format_exception(exc_type, exc_value, exc_tb):
 
 
 def _show_error_dialog(title, message):
-    """Show a simple error dialog. Safe to call before full app init."""
+    """Show a simple error dialog, throttled. Safe to call before full app init."""
+    global _last_error_dialog_time
+    now = time.monotonic()
+    if now - _last_error_dialog_time < _ERROR_DIALOG_THROTTLE_S:
+        return
     try:
         dialog = Adw.AlertDialog(
             heading=title,
@@ -51,8 +62,10 @@ def _show_error_dialog(title, message):
         dialog.set_default_response('close')
         dialog.set_close_response('close')
         dialog.present(Gtk.Application.get_default().get_active_window())
+        _last_error_dialog_time = now
     except Exception:
         # If even the dialog fails, at least print to stderr.
+        _last_error_dialog_time = now
         sys.__stderr__.write(
             f'\n{title}\n{message}\n'
         )

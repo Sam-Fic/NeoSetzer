@@ -133,7 +133,6 @@ def WelcomeScreenView():
     recent_clear_button = Gtk.Button(label=_('Clear All'))
     recent_clear_button.set_valign(Gtk.Align.CENTER)
     recent_clear_button.add_css_class('destructive-action')
-    recent_clear_button.set_tooltip_text(_('Remove all documents from the recent list'))
     recent_header.append(recent_clear_button)
 
     content.append(recent_header)

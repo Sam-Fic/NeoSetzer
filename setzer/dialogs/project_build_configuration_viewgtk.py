@@ -20,7 +20,7 @@ code unchanged while rendering native Adwaita UI.
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gtk, GObject
+from gi.repository import Adw, Gio, Gtk, GObject
 
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
 
@@ -142,7 +142,6 @@ class ProjectBuildConfigurationView(DialogView):
 
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
-        self.set_title(_('Project Build Configuration'))
         self.set_content_width(680)
         self.set_content_height(560)
 
@@ -161,6 +160,16 @@ class ProjectBuildConfigurationView(DialogView):
         self.save_button = Gtk.Button(label=_('Save'))
         self.save_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.save_button)
+
+        # Toast 承载非模态反馈（如「同名 profile 已存在」），替代原先的
+        # AlertDialog；ToastOverlay 包在 ToolbarView 外，提示落在弹窗自身。
+        self.toast_overlay = Adw.ToastOverlay()
+        # DialogView 基类已把 toolbar_view 挂为本弹窗 child；直接塞进 overlay
+        # 会触发 "gtk_widget_get_parent (child) == NULL" 断言、包裹静默失败
+        # （内容区变空白）。先解除挂载再包。
+        self.set_child(None)
+        self.toast_overlay.set_child(self.toolbar_view)
+        self.set_child(self.toast_overlay)
 
         # ---- 内容：单一 PreferencesPage（自带滚动与限宽） ----
         prefs = Adw.PreferencesPage()
@@ -267,11 +276,22 @@ class ProjectBuildConfigurationView(DialogView):
 
     def run_file_chooser(self, callback, title, select_folder):
         dialog = Gtk.FileDialog(title=title)
+        # parent 形参须为 Gtk.Window：self 是 Adw.Dialog，运行期会抛
+        # "Expected Gtk.Window, but got ..."（见 DialogView 基类注释）。
+        if not select_folder:
+            # 根文档选择限定 .tex，与其他文件选择入口一致。
+            tex_filter = Gtk.FileFilter()
+            tex_filter.add_pattern('*.tex')
+            tex_filter.set_name(_('LaTeX Files'))
+            filters = Gio.ListStore.new(Gtk.FileFilter)
+            filters.append(tex_filter)
+            dialog.set_filters(filters)
+            dialog.set_default_filter(tex_filter)
         if select_folder:
-            dialog.select_folder(self, None,
+            dialog.select_folder(self.main_window, None,
                 lambda d, res: self._on_chooser_done(d, res, callback, True))
         else:
-            dialog.open(self, None,
+            dialog.open(self.main_window, None,
                 lambda d, res: self._on_chooser_done(d, res, callback, False))
 
     def _on_chooser_done(self, dialog, result, callback, is_folder):
@@ -327,6 +347,7 @@ class ProjectBuildConfigurationView(DialogView):
             callback()
 
     def show_message(self, text):
-        dialog = Adw.AlertDialog(heading=_('Notice'), body=text)
-        dialog.add_response('ok', _('OK'))
-        dialog.present(self)
+        # 非模态反馈按规范走 toast（不弹 AlertDialog 打断）。
+        toast = Adw.Toast.new(text)
+        toast.set_timeout(5)
+        self.toast_overlay.add_toast(toast)

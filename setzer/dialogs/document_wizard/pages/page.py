@@ -98,7 +98,7 @@ class PageView(Gtk.Box):
         '''Create the shared document-settings rows (page format, options,
         font size, margins) as libadwaita rows. Subclasses arrange them into
         PreferencesGroup sections and connect signals via their presenter.'''
-        self.headerbar_subtitle = _('Step') + ' 2'
+        self.headerbar_subtitle = _('Step 2')
 
         # Page format -------------------------------------------------------
         self.page_format_combo = Adw.ComboRow()
@@ -117,15 +117,13 @@ class PageView(Gtk.Box):
         # Options -----------------------------------------------------------
         self.option_landscape = Adw.SwitchRow()
         self.option_landscape.set_title(_('Landscape format'))
-        self.option_landscape.set_tooltip_text(_(
-            'Switch to landscape orientation (wider than tall). '
-            'Useful for wide tables or figures.'))
+        self.option_landscape.set_tooltip_text(
+            _('Useful for wide tables or figures.'))
 
         self.option_twocolumn = Adw.SwitchRow()
         self.option_twocolumn.set_title(_('Two-column layout'))
-        self.option_twocolumn.set_tooltip_text(_(
-            'Arrange text in two columns per page. '
-            'Common for scientific articles and magazines.'))
+        self.option_twocolumn.set_tooltip_text(
+            _('Common for scientific articles and magazines.'))
 
         # Font size ---------------------------------------------------------
         # A standard Adw.SpinRow, consistent with the margin rows below.
@@ -141,10 +139,9 @@ class PageView(Gtk.Box):
         # Page margins ------------------------------------------------------
         self.option_default_margins = Adw.SwitchRow()
         self.option_default_margins.set_title(_('Use default margins'))
-        self.option_default_margins.set_subtitle(_('On: use LaTeX default margins. Off: set custom margins below.'))
-        self.option_default_margins.set_tooltip_text(_(
-            'When enabled, LaTeX\'s default margins (about 1 inch / 2.54 cm) are used. '
-            'Disable to set custom values for each side.'))
+        self.option_default_margins.set_subtitle(_(
+            'On: use LaTeX default margins (about 1 inch / 2.54 cm). '
+            'Off: set custom margins below.'))
 
         self.margins_button_left = self._create_margin_row(_('Left'))
         self.margins_button_right = self._create_margin_row(_('Right'))
@@ -156,6 +153,7 @@ class PageView(Gtk.Box):
         row.set_title(title)
         row.set_adjustment(Gtk.Adjustment(value=3.5, lower=0.0, upper=5.0, step_increment=0.1))
         row.set_digits(1)
-        row.set_tooltip_text(_('Set the {title} margin in centimeters. '
-                               'LaTeX default is approximately 2.54 cm (1 inch).').format(title=title.lower()))
+        # 标题已说明是哪条边距、单位在 SpinRow 里可见；tooltip 只补默认值。
+        row.set_tooltip_text(
+            _('LaTeX default is approximately 2.54 cm (1 inch).'))
         return row

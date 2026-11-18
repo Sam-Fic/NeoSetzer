@@ -49,7 +49,6 @@ class PreambleAssistantDialog(DialogView):
         self.document = None
         self.suggestions = ()
 
-        self.set_title(_('Preamble Assistant'))
         # 高度恒定：不随建议条数跳动；宽度让 400px 列表居中留白。
         # 卡片本身不膨胀（见下方 ScrolledWindow 注释），多余空间是弹窗背景。
         self.set_content_width(620)
@@ -180,11 +179,6 @@ class PreambleAssistantDialog(DialogView):
             return
         self.document.add_packages([suggestion.package
                                     for suggestion in self.suggestions])
-        self._show_toast(_('Added {count} suggested package(s).').format(
-            count=len(self.suggestions)))
+        # 添加成功不弹 toast：导言区内容变化本身即确认（「非必要不打扰」）。
         self.close()
 
-    def _show_toast(self, message):
-        toast = Adw.Toast.new(message)
-        toast.set_timeout(5)
-        self.main_window.toast_overlay.add_toast(toast)
