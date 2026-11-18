@@ -41,10 +41,11 @@ class SearchHistoryPopup(Gtk.Popover):
         self.set_size_request(400, -1)
         self.set_can_focus(True)
 
-        # 外围留白由 popover 自带 contents padding 提供（原实现即如此，
-        # 无需再加 margin）；spacing=12 对应 --setzer-spacing-md。
+        # 外围留白由 popover 自带 contents padding 提供（libadwaita 默认
+        # padding: 8px）；spacing 与之取齐（8），使「标题栏↔列表」间距等于
+        # 「标题栏↔弹窗顶部」留白。
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.set_spacing(12)
+        content.set_spacing(8)
 
         # --- header: title + clear ---
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -146,6 +147,10 @@ class SearchHistoryPopup(Gtk.Popover):
         delete_btn.add_css_class('flat')
         delete_btn.set_can_focus(False)
         delete_btn.set_tooltip_text(_('Remove from history'))
+        # suffix 盒子默认纵向 fill，会把按钮拉伸到整行高，悬停背景变成
+        # 高条；valign=CENTER + 正方形 size_request 让悬停区域是方块。
+        delete_btn.set_valign(Gtk.Align.CENTER)
+        delete_btn.set_size_request(34, 34)
         delete_btn.connect('clicked', self._on_delete_clicked, row)
         row.add_suffix(delete_btn)
 
