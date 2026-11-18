@@ -28,27 +28,42 @@ class FilesSection(object):
     def __init__(self, data_provider):
         self.data_provider = data_provider
         self.data_provider.connect('data_updated', self.update_items)
+        # 活跃文档切换时 accent 行要跟着挪（与 Document Structure 的
+        # 光标跟随语义一致）。数据重建由 data_updated 负责，这里只挪高亮。
+        data_provider.workspace.connect('new_active_document', self.on_new_active_document)
 
         self.view = files_section_view.FilesSectionView(self)
 
         self.includes = list()
+
+    def on_new_active_document(self, workspace, document=None):
+        if not self.view.is_visible():
+            return
+        self.view.sync_accent_to_active_document()
+        self.view._sync_selection_to_accent_row()
 
     def on_row_activated(self, row):
         item_data = row.item_data
         if item_data is None:
             return
 
-        kind, include = item_data
+        kind, entry = item_data
+        workspace = self.data_provider.workspace
         if kind == 'main':
-            document = self.data_provider.document
-            self.data_provider.workspace.set_active_document(document)
+            # 主文档行可能尚未打开（处于子文件时列表来自 magic root 主文档）：
+            # 先按路径打开，失败（文件不存在）则不动。
+            document = entry['document']
+            if document is None and entry['filename'] is not None:
+                document = workspace.open_document_by_filename(entry['filename'])
+            if document is None:
+                return
+            workspace.set_active_document(document)
         else:
-            filename = include['filename']
             # open_document_by_filename 内部已调用 set_active_document，
             # 此处不再重复调用——重复调用会再次触发 new_inactive_document /
             # new_active_document 信号，导致 headerbar/shortcutsbar 等做
             # 无谓的重复刷新。
-            document = self.data_provider.workspace.open_document_by_filename(filename)
+            document = workspace.open_document_by_filename(entry['filename'])
         # document 可能为 None（文件不存在/无法打开），此时不继续操作。
         if document is None:
             return

@@ -252,6 +252,16 @@ textview gutter {
 }
 
 /*
+ * Files 列表"已在标签页打开"的后缀圆点：accent 色小圆点，与副标题同样
+ * subtle，不抢行标题的视觉重心。
+ */
+.sidebar-open-dot {
+    font-size: 0.6em;
+    color: var(--accent-color);
+    margin-right: 4px;
+}
+
+/*
  * 预览区去描边：GTK/Libadwaita 的 Gtk.ScrolledWindow / Gtk.Viewport 默认
  * 会给可滚动内容区绘制一圈边缘描边（border / box-shadow），在明暗主题下
  * 表现为 PDF 预览外侧"一圈框"。这里统一去除预览区各级容器的边框与阴影，

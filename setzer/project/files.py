@@ -17,6 +17,60 @@ _COMMAND_RE = re.compile(
     r'(?:\[[^\]]*\])?\{(?P<value>[^{}]+)\}')
 
 
+def scan_document_dependencies(filename):
+    '''离线扫描单个 .tex 文件的 include / 项目依赖 / bib 引用，带 offset。
+
+    与 ParserLaTeX.parse_symbols 用同一套模块级正则（惰性导入，避免把
+    parser_latex 的 gi 依赖拉进本模块导入图），保证未打开文件与增量解析
+    提取到的符号行为一致。供 DataProvider 在主文档未打开时构建 Files 列表。
+
+    返回 (latex_includes, project_files, bibliographies)：
+    前两者为 [(带扩展名文件名, offset)]，bibliographies 为 set。
+    '''
+    from setzer.document.parser import parser_latex as _parser
+
+    try:
+        if os.path.getsize(filename) > MAX_SOURCE_BYTES:
+            return (), (), frozenset()
+        with open(filename, 'r', encoding='utf-8', errors='replace') as file:
+            source = file.read()
+    except OSError:
+        return (), (), frozenset()
+
+    latex_includes = []
+    project_files = []
+    bibliographies = set()
+    for match in re.compile(_parser._OTHER_SYMBOLS_REGEX_PATTERN).finditer(source):
+        offset = match.start()
+        group1 = match.group(1)
+        if group1 in ('include', 'input', 'subfile', 'subimport'):
+            value = match.group(2).strip()
+            if not value:
+                continue
+            if not value.endswith('.tex'):
+                value += '.tex'
+            latex_includes.append((value, offset))
+        elif group1 == 'bibliography':
+            for entry in match.group(2).split(','):
+                entry = entry.strip()
+                if entry:
+                    bibliographies.add(entry + '.bib')
+        elif group1 == 'addbibresource':
+            for entry in match.group(2).split(','):
+                entry = entry.strip()
+                if entry:
+                    bibliographies.add(entry)
+    for match in re.compile(_parser._PROJECT_DEPENDENCIES_REGEX_PATTERN).finditer(source):
+        command = match.group(1)
+        value = match.group(2).strip()
+        if command == 'LoadLetterOption' and not value.endswith(('.lco', '.loc')):
+            value += '.lco'
+        elif command == 'documentclass' and not value.endswith('.cls'):
+            value += '.cls'
+        project_files.append((value, match.start()))
+    return latex_includes, project_files, frozenset(bibliographies)
+
+
 @dataclass(frozen=True)
 class ProjectFiles:
     root_filename: str

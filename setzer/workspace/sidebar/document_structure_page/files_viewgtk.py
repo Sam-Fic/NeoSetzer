@@ -39,47 +39,99 @@ class FilesSectionView(structure_widget.StructureWidget):
         self._register_context_actions()
 
     def populate(self):
-        # 签名 = id(document) + 主文件名 + 各 include 文件名元组。
-        # 按键不动 \input/\include 时签名命中，跳过重建。
+        # 签名 = 主文档文件名与打开状态 + 各 include/bib 文件名与打开状态。
+        # 按键不动 \input/\include 或开闭标签页时签名命中，跳过重建。
         doc = self.model.data_provider.document
+        main_entry = self.model.data_provider.get_files_main()
+        includes = self.model.data_provider.get_files_includes()
+        bibliographies = self.model.data_provider.get_bibliographies()
         signature = (
-            id(doc),
-            doc.get_displayname(),
-            tuple(include['filename'] for include in self.model.includes),
+            main_entry['filename'],
+            main_entry['document'] is not None,
+            tuple((include['filename'], include['document'] is not None)
+                  for include in includes),
+            tuple((bib['filename'], bib['document'] is not None)
+                  for bib in bibliographies),
         )
         if not self.populate_if_changed(signature):
             return
         self.clear_rows()
 
-        doc_dir = doc.get_dirname() or ''
+        # 副标题一律相对主文档目录（处于子文件时主文档仍是列表的根）。
+        main_filename = main_entry['filename']
+        doc_dir = os.path.dirname(main_filename) if main_filename else ''
 
         row = self.make_file_row(
-            doc.get_displayname(),
+            os.path.basename(main_filename) if main_filename else doc.get_displayname(),
             doc_dir,
             'document-open-symbolic',
-            0
+            0,
+            is_open=main_entry['document'] is not None,
         )
-        row.item_data = ('main', None)
+        row.item_data = ('main', main_entry)
+        if main_filename is not None:
+            # make_file_row 的 tooltip 只能拿到行标题（basename），主行补全路径。
+            row.set_tooltip_text(main_filename)
         self.append_row(row)
 
-        for include in self.model.includes:
+        for include in includes:
             row = self.make_file_row(
                 include['filename'],
                 doc_dir,
                 'text-x-generic-symbolic',
-                18
+                18,
+                is_open=include['document'] is not None,
             )
             row.item_data = ('include', include)
             self.append_row(row)
 
+        for bib in bibliographies:
+            row = self.make_file_row(
+                bib['filename'],
+                doc_dir,
+                'document-bibtex-symbolic',
+                18,
+                is_open=bib['document'] is not None,
+            )
+            row.item_data = ('include', bib)
+            self.append_row(row)
+
         self.set_empty_state_visible(False)
+        self.sync_accent_to_active_document()
         self._sync_selection_to_accent_row()
 
-    def make_file_row(self, filename, doc_dir, icon_name, indent):
+    def sync_accent_to_active_document(self):
+        '''accent 类跟随当前活跃文档所在行，与 Document Structure 的
+        光标跟随语义一致（structure.py 给光标所在行加 accent）。'''
+        workspace = self.model.data_provider.workspace
+        active_document = workspace.get_active_document()
+        active_filename = active_document.get_filename() if active_document is not None else None
+
+        row = self.list_box.get_first_child()
+        while row is not None:
+            item_data = getattr(row, 'item_data', None)
+            row_filename = None
+            if item_data is not None:
+                kind, entry = item_data
+                # main 与 include 的条目都带 filename（未命名主文档为 None）。
+                row_filename = entry['filename']
+            if active_filename is not None and row_filename is not None \
+                    and os.path.abspath(row_filename) == os.path.abspath(active_filename):
+                row.add_css_class('accent')
+            else:
+                row.remove_css_class('accent')
+            row = row.get_next_sibling()
+
+    def make_file_row(self, filename, doc_dir, icon_name, indent, is_open=False):
         basename = os.path.basename(filename)
         row = self.make_row(icon_name, basename, indent)
         row.add_css_class('sidebar-file-row')
         row.set_tooltip_text(filename)
+        if is_open:
+            # 已在标签页打开的文件加圆点后缀，区分"项目里有"与"正开着"。
+            dot = Gtk.Label(label='●')
+            dot.add_css_class('sidebar-open-dot')
+            row.add_suffix(dot)
 
         dirname = os.path.dirname(filename)
         if dirname and dirname != doc_dir:
@@ -109,16 +161,12 @@ class FilesSectionView(structure_widget.StructureWidget):
         if item_data is None:
             return
 
-        kind, include = item_data
+        kind, entry = item_data
         workspace = self.model.data_provider.workspace
-        if kind == 'main':
-            document = self.model.data_provider.document
-            filename = document.get_filename()
-        else:
-            filename = include['filename']
-            # include 缓存中的 document 可能过期（期间被打开/关闭），
-            # 弹菜单时按 filename 重新解析。
-            document = workspace.get_document_by_filename(filename)
+        filename = entry['filename']
+        # entry['document'] 只在构建缓存那一刻正确（期间可能被打开/关闭），
+        # 弹菜单时按 filename 重新解析。
+        document = workspace.get_document_by_filename(filename) if filename is not None else None
         self._show_context_menu(row, kind, document, filename, x, y)
 
     def _register_context_actions(self):

@@ -136,6 +136,10 @@ class FakeWorkspace(Observable):
         return next((doc for doc in self.open_documents
                      if doc.get_filename() == filename), None)
 
+    def resolve_project_root_filename(self, document):
+        # Files 列表的 magic root 解析（无副作用）；结构刷新测试不涉及。
+        return None
+
     def add(self, document):
         self.open_documents.append(document)
         self.add_change_code('new_document', document)

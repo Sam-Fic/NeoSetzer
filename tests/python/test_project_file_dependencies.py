@@ -34,6 +34,8 @@ from setzer.document.parser.structure_numbering import (
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+from setzer.project.files import scan_document_dependencies
+
 
 class _Observable:
 
@@ -122,6 +124,7 @@ def _load_data_provider_class():
         'GLib': types.SimpleNamespace(idle_add=lambda *args: 1),
         'os': os,
         'path_helpers': path_helpers,
+        'scan_document_dependencies': scan_document_dependencies,
     })
 
 
@@ -143,8 +146,9 @@ class _ParserDocument:
 
 class _RootDocument:
 
-    def __init__(self, dirname, symbols):
+    def __init__(self, dirname, symbols, filename=None):
         self._dirname = dirname
+        self._filename = filename
         self.parser = types.SimpleNamespace(symbols=symbols)
 
     def get_is_root(self):
@@ -153,12 +157,34 @@ class _RootDocument:
     def get_dirname(self):
         return self._dirname
 
+    def get_filename(self):
+        return self._filename
+
 
 class _Workspace:
 
     @staticmethod
     def get_document_by_filename(path):
         return None
+
+    @staticmethod
+    def resolve_project_root_filename(document):
+        return None
+
+
+class _RootResolvingWorkspace(_Workspace):
+    '''模拟 magic root / build.json root 解析：root_filename 可指向已打开
+    （documents 提供）或未打开（读盘离线扫描）的主文档。'''
+
+    def __init__(self, root_filename, documents=None):
+        self.root_filename = root_filename
+        self.documents = documents or {}
+
+    def resolve_project_root_filename(self, document):
+        return self.root_filename
+
+    def get_document_by_filename(self, path):
+        return self.documents.get(path)
 
 
 class TestProjectFileDependencyParsing(unittest.TestCase):
@@ -358,6 +384,149 @@ class TestProjectFileSidebarFiltering(unittest.TestCase):
                 included_names,
                 ['chapter.tex', 'company-letterhead.lco', 'custom-letter.cls'],
             )
+
+
+class _NonRootDocument(_RootDocument):
+
+    def get_is_root(self):
+        return False
+
+
+class TestFilesSectionWithoutRoot(unittest.TestCase):
+    '''Files 列表不再要求显式设 root；处于子文件时列表应来自 magic root
+    主文档（已打开用其增量 parser，未打开读盘离线扫描），而非子文件自身。'''
+
+    def _make_provider(self, document, workspace):
+        provider = DataProvider.__new__(DataProvider)
+        provider.document = document
+        provider.workspace = workspace
+        provider.integrated_includes = {}
+        provider._includes_cache = []
+        provider._files_cache = {'main': None, 'includes': [], 'bibliographies': []}
+        provider._offline_files_cache = None
+        return provider
+
+    def test_includes_are_built_without_explicit_root(self):
+        provider = self._make_provider(
+            _NonRootDocument(
+                '/tmp/irrelevant', {'included_latex_files': [('chapter.tex', 10)]},
+                filename='/tmp/irrelevant/main.tex'),
+            _Workspace())
+
+        provider.update_integrated_includes()
+
+        # 常规 include 文件保留占位（不要求磁盘存在），与设 root 时一致。
+        self.assertEqual(
+            [os.path.basename(item['filename']) for item in provider.get_includes()],
+            ['chapter.tex'],
+        )
+
+    def test_files_cache_without_root_falls_back_to_active_document(self):
+        document = _NonRootDocument(
+            '/tmp/irrelevant', {'included_latex_files': [], 'bibliographies': set()},
+            filename='/tmp/irrelevant/main.tex')
+        provider = self._make_provider(document, _Workspace())
+
+        provider.update_files_cache()
+
+        # 无 magic root：主文档 = 活跃文档自身。
+        self.assertEqual(provider.get_files_main(), {'filename': '/tmp/irrelevant/main.tex', 'document': document})
+        self.assertEqual(provider.get_files_includes(), [])
+
+    def test_only_existing_bibliographies_are_added_sorted(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            for name in ('refs-b.bib', 'refs-a.bib'):
+                open(os.path.join(project_dir, name), 'w', encoding='utf-8').close()
+            document = _NonRootDocument(
+                project_dir,
+                {'included_latex_files': [], 'bibliographies': {'refs-b.bib', 'refs-a.bib', 'missing.bib'}},
+                filename=os.path.join(project_dir, 'main.tex'))
+            provider = self._make_provider(document, _Workspace())
+
+            provider.update_files_cache()
+
+            # set 无序且缺失文件不收录：按文件名排序保证展示稳定。
+            self.assertEqual(
+                [item['filename'] for item in provider.get_bibliographies()],
+                [
+                    os.path.join(project_dir, 'refs-a.bib'),
+                    os.path.join(project_dir, 'refs-b.bib'),
+                ],
+            )
+            self.assertTrue(
+                all(item['document'] is None and item['offset'] is None
+                    for item in provider.get_bibliographies()),
+            )
+
+    def test_child_file_with_open_main_shows_main_list(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            chapters_dir = os.path.join(project_dir, 'chapters')
+            os.makedirs(chapters_dir)
+            open(os.path.join(chapters_dir, '01.tex'), 'w', encoding='utf-8').close()
+            open(os.path.join(project_dir, 'refs.bib'), 'w', encoding='utf-8').close()
+            main_filename = os.path.join(project_dir, 'main.tex')
+            main_document = _RootDocument(
+                project_dir,
+                {'included_latex_files': [('chapters/01.tex', 30)], 'bibliographies': {'refs.bib'}},
+                filename=main_filename)
+            child = _NonRootDocument(
+                chapters_dir, {'included_latex_files': []},
+                filename=os.path.join(chapters_dir, '01.tex'))
+            provider = self._make_provider(
+                child, _RootResolvingWorkspace(main_filename, documents={main_filename: main_document}))
+
+            provider.update_files_cache()
+
+            # 处于子文件时：主文档行 = magic root 主文档（已打开），列表来自主文档符号。
+            self.assertEqual(provider.get_files_main(), {'filename': main_filename, 'document': main_document})
+            self.assertEqual(
+                [os.path.basename(item['filename']) for item in provider.get_files_includes()],
+                ['01.tex'],
+            )
+            self.assertEqual(
+                [os.path.basename(item['filename']) for item in provider.get_bibliographies()],
+                ['refs.bib'],
+            )
+
+    def test_child_file_with_closed_main_uses_offline_scan(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            chapters_dir = os.path.join(project_dir, 'chapters')
+            os.makedirs(chapters_dir)
+            open(os.path.join(chapters_dir, '01.tex'), 'w', encoding='utf-8').close()
+            open(os.path.join(project_dir, 'refs.bib'), 'w', encoding='utf-8').close()
+            main_filename = os.path.join(project_dir, 'main.tex')
+            with open(main_filename, 'w', encoding='utf-8') as file:
+                file.write('\\documentclass{article}\n\\input{chapters/01.tex}\n\\bibliography{refs}\n')
+            child = _NonRootDocument(
+                chapters_dir, {'included_latex_files': []},
+                filename=os.path.join(chapters_dir, '01.tex'))
+            provider = self._make_provider(child, _RootResolvingWorkspace(main_filename))
+
+            provider.update_files_cache()
+
+            # 主文档未打开：读盘离线扫描。系统 documentclass（article.cls）不在
+            # 本地，按 must-be-local 语义被过滤。
+            self.assertIsNone(provider.get_files_main()['document'])
+            self.assertEqual(provider.get_files_main()['filename'], main_filename)
+            self.assertEqual(
+                [os.path.basename(item['filename']) for item in provider.get_files_includes()],
+                ['01.tex'],
+            )
+            self.assertEqual(
+                [os.path.basename(item['filename']) for item in provider.get_bibliographies()],
+                ['refs.bib'],
+            )
+
+    def test_magic_root_pointing_to_active_document_itself_falls_back(self):
+        document = _NonRootDocument(
+            '/tmp/irrelevant', {'included_latex_files': []},
+            filename='/tmp/irrelevant/main.tex')
+        provider = self._make_provider(document, _RootResolvingWorkspace('/tmp/irrelevant/main.tex'))
+
+        provider.update_files_cache()
+
+        # magic root 指向自身：主文档 = 活跃文档，不产生自引用条目。
+        self.assertEqual(provider.get_files_main()['document'], document)
 
 
 if __name__ == '__main__':

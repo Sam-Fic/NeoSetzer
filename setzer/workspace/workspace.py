@@ -1256,6 +1256,17 @@ class Workspace(Observable):
                     return candidate
         return document
 
+    def resolve_project_root_filename(self, document):
+        '''只读解析 document 的项目根文件名（% !TEX root magic comment /
+        build.json root），带缓存、无副作用（绝不自动打开文件）。
+
+        供侧栏 Files 在活跃文档是子文件时定位主文档；未打开文件也返回，
+        由调用方决定按路径读盘。无可解析 root 时返回 None。
+        '''
+        if document is None or document.get_filename() is None:
+            return None
+        return self._resolve_preview_root_filename(document)
+
     def _resolve_preview_root_filename(self, document):
         '''解析预览 root 文件名（带缓存）。update_actions 在滚动/选区变化
         时高频调 get_preview_target_document，磁盘 discover + 文本解析不能
