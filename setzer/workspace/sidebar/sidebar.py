@@ -25,8 +25,10 @@ import setzer.workspace.sidebar.document_structure_page.structure as structure_s
 import setzer.workspace.sidebar.document_structure_page.labels as labels_section
 import setzer.workspace.sidebar.document_structure_page.todos as todos_section
 import setzer.workspace.sidebar.git.git_section as git_section
+import setzer.workspace.sidebar.git.git_page_viewgtk as git_page_viewgtk
 import setzer.workspace.sidebar.document_stats.document_stats as document_stats_section
 from setzer.app.service_locator import ServiceLocator
+from setzer.vcs.git_repository import git_available
 
 
 class Sidebar(object):
@@ -40,18 +42,22 @@ class Sidebar(object):
         self.create_document_structure_page()
         self.create_symbols_page()
         self.create_ai_page()
+        self.create_git_page()
 
         self.view.add_named(self.document_structure_page, 'document_structure')
         self.view.add_named(self.symbols_page.view, 'symbols')
+        self.view.add_named(self.git_page, 'git')
         self.view.add_named(self.ai_page.view, 'ai_agent')
 
         # 各页工具栏各有一个面板切换器（图标档 + 当前档高亮），登记到 view
         # 由它统一同步；点击后把选中面板写回 workspace（供隐藏侧栏后恢复）。
         self.view.register_switch_group('document_structure', self.document_structure_page.switch_group)
         self.view.register_switch_group('symbols', self.symbols_page.view.switch_group)
+        self.view.register_switch_group('git', self.git_page.switch_group)
         self.view.register_switch_group('ai_agent', self.ai_page.view.switch_group)
         for group in (self.document_structure_page.switch_group,
                       self.symbols_page.view.switch_group,
+                      self.git_page.switch_group,
                       self.ai_page.view.switch_group):
             group.connect('notify::active', self.on_panel_switch_changed)
 
@@ -66,11 +72,14 @@ class Sidebar(object):
         # AI Agent 总开关：关闭时把 AI 面板档位从切换器上摘掉。
         self.workspace.settings.connect('settings_changed', self.on_settings_changed)
         self.update_ai_panel_availability()
+        self.update_git_panel_availability()
 
     def on_settings_changed(self, settings, parameter):
         section, item, value = parameter
         if item == 'ai_fix_enabled':
             self.update_ai_panel_availability()
+        elif item in ('git_integration', 'git_sidebar_panel'):
+            self.update_git_panel_availability()
 
     def update_ai_panel_availability(self):
         '''按 AI Agent 开关同步侧栏 AI 面板的可见性。
@@ -81,6 +90,19 @@ class Sidebar(object):
         enabled = is_ai_agent_enabled(self.workspace.settings)
         self.view.set_switch_option_visible('ai_agent', enabled)
         if not enabled and self.workspace.show_ai_agent:
+            self.workspace.set_show_symbols_or_document_structure(False, True)
+
+    def update_git_panel_availability(self):
+        '''按 Git 偏好同步侧栏 Git 面板档位的可见性。
+
+        档位判据只有「Show the Git sidebar panel」+ git 可执行两项：
+        git_integration 关闭 / 无文档 / 不在仓库内由页内空状态表达（档位
+        常驻，点击过去能看到原因）。关闭时若正停在 git 页，落回
+        Document Structure，避免侧栏停在一个已不存在的面板上。'''
+        enabled = (self.workspace.settings.get_value('preferences', 'git_sidebar_panel')
+                   and git_available())
+        self.view.set_switch_option_visible('git', enabled)
+        if not enabled and self.workspace.show_git:
             self.workspace.set_show_symbols_or_document_structure(False, True)
 
     def on_panel_switch_changed(self, group, pspec=None):
@@ -121,12 +143,8 @@ class Sidebar(object):
         self.todos_section = todos_section.TodosSection(self.data_provider)
         self.document_structure_page.add_section('todos', _('To-Dos'), self.todos_section.view)
 
-        # Git 面板（#443）：位于 To-Dos 与 Document Stats 之间；文档不在
-        # repo 内 / git 不可用 / 偏好关闭时整个 section 自动隐藏。
-        self.git_section = git_section.GitSection(self.workspace)
-        self.git_section.set_group(
-            self.document_structure_page.add_section('git', _('Git'), self.git_section.view))
-
+        # Git 面板（#443）：原为 To-Dos 与 Document Stats 之间的分区，现已
+        # 升级为独立面板页（create_git_page），此处只保留 Document Stats。
         self.document_stats_section = document_stats_section.DocumentStats(self.workspace)
         self.document_stats_section.set_group(
             self.document_structure_page.add_section('stats', _('Document Stats'), self.document_stats_section.view))
@@ -136,5 +154,14 @@ class Sidebar(object):
 
     def create_ai_page(self):
         self.ai_page = ai_page.AiPage(self.workspace)
+
+    def create_git_page(self):
+        '''Git 独立面板页：视图（工具栏 + 卡片）与控制器在此组装。
+
+        控制器仍叫 git_section（历史命名）；其 view 是纯内容组件，
+        GitPageView 本身即页面 widget（工具栏 + 卡片容器），与
+        document_structure_page 同样直接作为 stack 子页。'''
+        self.git_section = git_section.GitSection(self.workspace)
+        self.git_page = git_page_viewgtk.GitPageView(self.git_section.view)
 
 

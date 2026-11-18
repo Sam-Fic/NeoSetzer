@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 90\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 02:02+0800\n"
+"POT-Creation-Date: 2026-11-19 02:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -455,7 +455,7 @@ msgstr ""
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:368
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:815
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:839
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1515
 #: setzer/dialogs/building_failed/building_failed.py:56
 #: setzer/dialogs/build_save/build_save.py:38
 #: setzer/dialogs/close_confirmation/close_confirmation.py:58
@@ -487,9 +487,9 @@ msgstr ""
 #: setzer/workspace/actions/actions.py:480
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/commit_dialog.py:70
-#: setzer/workspace/sidebar/git/git_section.py:239
-#: setzer/workspace/sidebar/git/git_section.py:292
+#: setzer/workspace/sidebar/git/git_section.py:364
+#: setzer/workspace/sidebar/git/git_section.py:422
+#: setzer/workspace/sidebar/git/git_section.py:475
 #: setzer/workspace/welcome_screen/welcome_screen.py:298
 msgid "Cancel"
 msgstr ""
@@ -590,7 +590,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:83
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:164
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:196
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:244
 msgid "Close Document"
 msgstr ""
 
@@ -1342,7 +1342,7 @@ msgid ""
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:816
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1463
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1462
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:82
 #: setzer/dialogs/preferences/pages/page_snippets.py:75
 #: setzer/dialogs/project_build_configuration_viewgtk.py:193
@@ -1406,7 +1406,7 @@ msgid "Open BibTeX File"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1123
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1579
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1578
 #: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:106
 msgid "BibTeX Files"
 msgstr ""
@@ -1471,55 +1471,56 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1474
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1473
 msgid "(untitled)"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1475
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1474
 msgid "No value"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1514
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1513
 msgid "Discard unsaved changes?"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1515
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1514
 msgid "Changes to @string macros have not been saved yet."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1517
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
+#: setzer/workspace/sidebar/git/git_section.py:365
 msgid "Discard"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1535
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1534
 msgid "Enter a macro name first."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1539
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1538
 #, python-brace-format
 msgid "Enter a value for the macro “{name}”."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1574
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1573
 msgid "Save or discard your changes before importing."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1577
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1576
 msgid "Choose a BibTeX File to Import"
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1628
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1627
 #, python-brace-format
 msgid "Imported {count} new @string macros."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1631
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1630
 #, python-brace-format
 msgid "Skipped {count} duplicate names: {names}."
 msgstr ""
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1636
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1635
 #, python-brace-format
 msgid "Errors: {messages}"
 msgstr ""
@@ -3738,7 +3739,7 @@ msgid "Identifier used with \\ref to cross-reference this table"
 msgstr ""
 
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:354
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:465
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:469
 #, python-brace-format
 msgid "Row {row}, column {column}"
 msgstr ""
@@ -3762,15 +3763,15 @@ msgstr ""
 msgid "{rows} rows × {columns} columns"
 msgstr ""
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:419
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:421
 msgid "Edit this merged range"
 msgstr ""
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:424
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:428
 msgid "Remove this merged range"
 msgstr ""
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:463
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:467
 msgid "Covered by a merged cell"
 msgstr ""
 
@@ -6718,7 +6719,7 @@ msgstr ""
 msgid "No PDF available for forward sync. Build the document first."
 msgstr ""
 
-#: setzer/document/document.py:813
+#: setzer/document/document.py:821
 #, python-brace-format
 msgid "Could not save document: {error}"
 msgstr ""
@@ -7232,7 +7233,7 @@ msgid "Copy Relative Path"
 msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher.py:154
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:173
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:221
 msgid "Open Containing Folder"
 msgstr ""
 
@@ -7263,7 +7264,7 @@ msgid "Designate a document as the build root"
 msgstr ""
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:72
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:185
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
 msgid "Unset Root Document"
 msgstr ""
 
@@ -7855,46 +7856,54 @@ msgstr ""
 msgid "Push failed."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:464
+#: setzer/vcs/git_repository.py:476 setzer/vcs/git_repository.py:481
+msgid "git diff failed."
+msgstr ""
+
+#: setzer/vcs/git_repository.py:515
+msgid "Discard failed."
+msgstr ""
+
+#: setzer/vcs/git_repository.py:532
 msgid ""
 "Local and remote histories diverged. NeoSetzer only supports fast-forward "
 "pulls — please resolve this in a terminal (git pull / rebase)."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:468
+#: setzer/vcs/git_repository.py:536
 msgid ""
 "Working tree has uncommitted changes. Commit them first or use a terminal to "
 "stash."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:471
+#: setzer/vcs/git_repository.py:539
 msgid "Could not reach the remote repository. Check your network connection."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:479
+#: setzer/vcs/git_repository.py:547
 msgid ""
 "No remote repository is set up for this project. Add one in a terminal: git "
 "remote add origin <url>"
 msgstr ""
 
-#: setzer/vcs/git_repository.py:482
+#: setzer/vcs/git_repository.py:550
 msgid ""
 "Push failed: no stored credentials for this remote. Please configure a "
 "credential helper in a terminal (git config credential.helper). NeoSetzer "
 "never stores tokens or passwords."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:487
+#: setzer/vcs/git_repository.py:555
 msgid "Push rejected: the remote has new commits. Pull first."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:490
+#: setzer/vcs/git_repository.py:558
 msgid ""
 "Git user name and email are not configured. Set them with: git config --"
 "global user.name / user.email"
 msgstr ""
 
-#: setzer/vcs/git_repository.py:493
+#: setzer/vcs/git_repository.py:561
 msgid "Nothing to commit: no files were selected."
 msgstr ""
 
@@ -7947,11 +7956,11 @@ msgstr ""
 msgid "Auto-build skipped — the document was busy building."
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar.py:415
+#: setzer/workspace/headerbar/headerbar.py:416
 msgid "Agent session ready in the sidebar"
 msgstr ""
 
-#: setzer/workspace/headerbar/headerbar.py:416
+#: setzer/workspace/headerbar/headerbar.py:417
 msgid "Agent session ready in a separate window"
 msgstr ""
 
@@ -8229,6 +8238,7 @@ msgid ""
 msgstr ""
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:95
 msgid "No Document"
 msgstr ""
 
@@ -8254,11 +8264,11 @@ msgid ""
 "include other files."
 msgstr ""
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:181
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:229
 msgid "Save Document As…"
 msgstr ""
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:188
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:236
 msgid "Set as Root"
 msgstr ""
 
@@ -8376,94 +8386,74 @@ msgstr ""
 msgid "Mark as Done"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:37
-msgid "Untracked"
+#: setzer/workspace/sidebar/git/diff_dialog.py:86
+msgid "(no diff)"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:38
-msgid "Added"
+#: setzer/workspace/sidebar/git/git_section.py:159
+msgid "The git executable was not found in PATH."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:39
-msgid "Staged changes"
+#: setzer/workspace/sidebar/git/git_section.py:162
+msgid "Git integration is disabled in Preferences."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/commit_dialog.py:40
-msgid "Modified"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:41
-msgid "Added + modified"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:42
-msgid "Deleted (staged)"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:43
-msgid "Deleted"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:44
-msgid "Modified (staged + unstaged)"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:61
-#: setzer/workspace/sidebar/git/commit_dialog.py:72
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:132
-msgid "Commit"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:93
-msgid "Commit message"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:98
-msgid "Changes to include:"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/commit_dialog.py:106
-msgid "No changes in this repository."
-msgstr ""
-
-#: setzer/workspace/sidebar/git/git_section.py:170
+#: setzer/workspace/sidebar/git/git_section.py:178
 msgid "(no commits yet)"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:180
+#: setzer/workspace/sidebar/git/git_section.py:188
 msgid "synced"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:199
-msgid "Working tree clean"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/git_section.py:201
-msgid "Changed files"
-msgstr ""
-
-#: setzer/workspace/sidebar/git/git_section.py:212
+#: setzer/workspace/sidebar/git/git_section.py:202
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:159
 msgid "Push commits to the remote"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:213
+#: setzer/workspace/sidebar/git/git_section.py:203
 msgid "No remote repository is set up for this project."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:219
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:129
+#: setzer/workspace/sidebar/git/git_section.py:209
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:153
 msgid "Update this branch from the remote (fast-forward only)"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:221
+#: setzer/workspace/sidebar/git/git_section.py:211
 msgid "Push this branch once to set its upstream, then you can pull."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:237
+#: setzer/workspace/sidebar/git/git_section.py:357
+#, python-format
+msgid "Discard changes in %s?"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:359
+#, python-format
+msgid ""
+"%s\n"
+"\n"
+"This untracked file will be deleted permanently."
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:362
+#, python-format
+msgid ""
+"%s\n"
+"\n"
+"All uncommitted changes in this file will be lost."
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:393
+msgid "Changes discarded"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:420
 msgid "Initialize Git Repository?"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:238
+#: setzer/workspace/sidebar/git/git_section.py:421
 #, python-format
 msgid ""
 "A new repository will be created in:\n"
@@ -8471,15 +8461,15 @@ msgid ""
 "%s"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:240
+#: setzer/workspace/sidebar/git/git_section.py:423
 msgid "Initialize"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:289
+#: setzer/workspace/sidebar/git/git_section.py:472
 msgid "Trust This Repository?"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:290
+#: setzer/workspace/sidebar/git/git_section.py:473
 #, python-format
 msgid ""
 "Pull, commit and push run git commands in this repository, which may execute "
@@ -8488,85 +8478,121 @@ msgid ""
 "%s"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:293
+#: setzer/workspace/sidebar/git/git_section.py:476
 msgid "Trust and Continue"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:328
+#: setzer/workspace/sidebar/git/git_section.py:511
 msgid ""
 "Working tree has uncommitted changes. Commit them first, or use a terminal "
 "to stash."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:354
+#: setzer/workspace/sidebar/git/git_section.py:537
 msgid "Nothing to push: this branch has no commits yet."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:379
-msgid "No changes to commit."
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:47
+msgid "Untracked"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:127
-msgid "Pull"
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:48
+msgid "Added"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:135
-msgid "Commit selected changes"
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:49
+msgid "Staged changes"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:138
-msgid "Push"
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:50
+msgid "Modified"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:143
-msgid "Recent commits"
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:51
+msgid "Added + modified"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:162
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:52
+msgid "Deleted (staged)"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:53
+msgid "Deleted"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:54
+msgid "Modified (staged + unstaged)"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:96
+msgid "Open a saved document to see its Git status."
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:102
+msgid "Git Unavailable"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:176
+msgid "Commit message"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:186
+msgid "Commit"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:188
+msgid "Commit the checked files (Ctrl+Enter)"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:208
+msgid "Working tree clean"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:227
 msgid "No commits yet"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:163
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:228
 msgid "Commit your changes to start building history."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:171
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:235
 msgid "Not a Git Repository"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:172
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:236
 msgid "Track changes and history for this folder with Git."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:173
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:237
 msgid "Initialize Repository"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:229
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:345
+msgid "Discard changes in this file"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:364
 msgid "(no commit message)"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:113
+#: setzer/workspace/sidebar/sidebar.py:135
 msgid "Files"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:116
+#: setzer/workspace/sidebar/sidebar.py:138
 msgid "Document Structure"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:119
+#: setzer/workspace/sidebar/sidebar.py:141
 msgid "Labels"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:122
+#: setzer/workspace/sidebar/sidebar.py:144
 msgid "To-Dos"
 msgstr ""
 
-#: setzer/workspace/sidebar/sidebar.py:128
-msgid "Git"
-msgstr ""
-
-#: setzer/workspace/sidebar/sidebar.py:132
+#: setzer/workspace/sidebar/sidebar.py:150
 msgid "Document Stats"
 msgstr ""
 
@@ -8712,29 +8738,29 @@ msgstr ""
 msgid "Recently closed"
 msgstr ""
 
-#: setzer/workspace/workspace.py:226
+#: setzer/workspace/workspace.py:236
 #, python-brace-format
 msgid "{name} is already open"
 msgstr ""
 
-#: setzer/workspace/workspace.py:303
+#: setzer/workspace/workspace.py:313
 #, python-brace-format
 msgid "Untitled Document {number}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:896
+#: setzer/workspace/workspace.py:909
 #, python-brace-format
 msgid ""
 "Session loaded, but no documents could be opened (files may have been moved "
 "or deleted): {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:912
+#: setzer/workspace/workspace.py:925
 #, python-brace-format
 msgid "Could not open session: {name}"
 msgstr ""
 
-#: setzer/workspace/workspace.py:1128
+#: setzer/workspace/workspace.py:1141
 #, python-brace-format
 msgid "Could not save workspace state: {error}"
 msgstr ""

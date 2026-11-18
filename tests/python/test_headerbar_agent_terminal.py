@@ -58,6 +58,9 @@ def make_headerbar(sidebar_open):
     workspace.show_symbols = False
     workspace.show_document_structure = sidebar_open
     workspace.show_ai_agent = False
+    # 第 4 个侧栏页布尔：不显式置 False 的话，MagicMock 会自动生成一个
+    # 恒真的 Mock 属性，让 headerbar 的 sidebar_open 判断恒为 True。
+    workspace.show_git = False
     workspace.get_active_document.return_value = FakeDocument()
     workspace.agent_terminal_window = None
     session = mock.Mock()

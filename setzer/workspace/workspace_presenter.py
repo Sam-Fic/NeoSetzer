@@ -362,6 +362,8 @@ class WorkspacePresenter(object):
             self.main_window.sidebar.set_visible_child_name('document_structure')
         elif self.workspace.show_ai_agent:
             self.main_window.sidebar.set_visible_child_name('ai_agent')
+        elif self.workspace.show_git:
+            self.main_window.sidebar.set_visible_child_name('git')
         self.focus_active_document()
 
         # 同步 headerbar 侧栏开关高亮（程序化路径如发送批注时展开 AI 页）。
@@ -369,7 +371,7 @@ class WorkspacePresenter(object):
         # no-op，不会递归。
         toggle = self.main_window.headerbar.sidebar_toggle
         active = bool(self.workspace.show_symbols or self.workspace.show_document_structure
-                      or self.workspace.show_ai_agent)
+                      or self.workspace.show_ai_agent or self.workspace.show_git)
         if toggle.get_active() != active:
             toggle.set_active(active)
 
@@ -410,7 +412,7 @@ class WorkspacePresenter(object):
 
     def update_sidebar_visibility(self, animate=True):
         sidebar_visible_for_latex_docs = (self.workspace.show_symbols or self.workspace.show_document_structure
-                                          or self.workspace.show_ai_agent)
+                                          or self.workspace.show_ai_agent or self.workspace.show_git)
         show_sidebar = self.workspace.get_active_latex_document() and sidebar_visible_for_latex_docs
         # Adw.OverlaySplitView 没有 transition-duration 属性，「减弱动画」只能
         # 在这次同步调用期间临时关掉 gtk-enable-animations（见 animation_prefs）。
@@ -578,7 +580,7 @@ class WorkspacePresenter(object):
 
     def setup_paneds(self):
         sidebar_visible_for_latex_docs = (self.workspace.show_symbols or self.workspace.show_document_structure
-                                          or self.workspace.show_ai_agent)
+                                          or self.workspace.show_ai_agent or self.workspace.show_git)
         show_sidebar = self.workspace.get_active_latex_document() and sidebar_visible_for_latex_docs
         preview_help_visible_for_latex_docs = self.workspace.show_preview or self.workspace.show_help
         show_preview_help = self.workspace.get_root_or_active_latex_document() and preview_help_visible_for_latex_docs
@@ -610,6 +612,7 @@ class WorkspacePresenter(object):
         if self.workspace.show_symbols: self.main_window.sidebar.set_visible_child_name('symbols')
         elif self.workspace.show_document_structure: self.main_window.sidebar.set_visible_child_name('document_structure')
         elif self.workspace.show_ai_agent: self.main_window.sidebar.set_visible_child_name('ai_agent')
+        elif self.workspace.show_git: self.main_window.sidebar.set_visible_child_name('git')
 
         if self.workspace.show_preview: self.main_window.preview_help_stack.set_visible_child_name('preview')
         elif self.workspace.show_help: self.main_window.preview_help_stack.set_visible_child_name('help')
@@ -626,7 +629,8 @@ class WorkspacePresenter(object):
         self.main_window.preview_split.connect('notify::sidebar-width-fraction', self.on_preview_width_changed)
 
         self.main_window.headerbar.sidebar_toggle.set_active(
-            self.workspace.show_symbols or self.workspace.show_document_structure or self.workspace.show_ai_agent)
+            self.workspace.show_symbols or self.workspace.show_document_structure
+            or self.workspace.show_ai_agent or self.workspace.show_git)
         self._sync_preview_toggle(self.workspace.show_preview or self.workspace.show_help)
 
     def on_sidebar_width_changed(self, split, pspec):

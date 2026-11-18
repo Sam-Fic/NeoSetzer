@@ -403,7 +403,8 @@ class HeaderBar(object):
                 # 独立窗口，不强行展开侧栏。
                 sidebar_open = (self.workspace.show_symbols
                                 or self.workspace.show_document_structure
-                                or self.workspace.show_ai_agent)
+                                or self.workspace.show_ai_agent
+                                or self.workspace.show_git)
                 if sidebar_open:
                     self.workspace.set_show_ai_agent(True)
                 else:

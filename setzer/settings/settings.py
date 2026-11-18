@@ -98,7 +98,8 @@ class Settings(Observable):
         self.defaults['window_state']['show_symbols'] = False
         self.defaults['window_state']['show_document_structure'] = False
         self.defaults['window_state']['show_ai_agent'] = False
-        # 侧栏当前选中的面板（symbols / document_structure / ai_agent），隐藏后再次显示时恢复，
+        self.defaults['window_state']['show_git'] = False
+        # 侧栏当前选中的面板（symbols / document_structure / ai_agent / git），隐藏后再次显示时恢复，
         # 避免每次都回退到固定面板。与 show_symbols/show_document_structure 解耦：
         # 后者在隐藏时被清成 False 用于驱动可见性，本键专门记忆"上次选了哪个面板"。
         # 首次启动（尚无本键）默认 Document Structure：它按当前文档给出 Files /

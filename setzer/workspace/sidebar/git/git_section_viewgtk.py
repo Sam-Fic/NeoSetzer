@@ -25,6 +25,7 @@ def _(s):
     return s if fn is None else fn(s)
 
 
+import os
 import time
 
 import gi
@@ -40,24 +41,37 @@ def format_commit_date(timestamp):
     return time.strftime('%Y-%m-%d %H:%M', time.localtime(timestamp))
 
 
+# 文件状态 XY → 展示文案（原 commit_dialog 弹窗移入；弹窗废弃后由文件行
+# subtitle 使用）。
+STATUS_LABELS = {
+    '??': _('Untracked'),
+    'A ': _('Added'),
+    'M ': _('Staged changes'),
+    ' M': _('Modified'),
+    'AM': _('Added + modified'),
+    'D ': _('Deleted (staged)'),
+    ' D': _('Deleted'),
+    'MM': _('Modified (staged + unstaged)'),
+}
+
+
 class GitSectionView(Gtk.Box):
-    '''Git 侧栏面板视图（#443）。仿 document_stats：纯标签 + 按钮行
-    + 线性历史列表，紧凑、无嵌套滚动。
+    '''Git 侧栏面板视图（#443）。VSCode Source Control 式排版：
+    Changes / Commits 两档内容（档位切换在 GitPageView 工具栏，驱动
+    repo_view_stack），Changes 档 = 分支行 + 面板内提交区 + 改动文件列表，
+    Commits 档 = 线性历史。untracked / init 等整页状态见 content_stack。
 
-    两种模式共用一层 Gtk.Stack（无过渡动画）：
-    - 'repository'：分支/ahead-behind、最近提交、改动数、Pull/Commit/Push、历史；
-    - 'init'：文档所在目录还不是仓库时，用 Adw.StatusPage 给出「初始化仓库」入口。
-
-    历史列表与侧栏其它分区（Files / Structure / To-Dos）同款组件：
-    Gtk.ListBox(boxed-list + compact-rows) 里装 Adw.ActionRow；仓库还没有提交时
-    同样换成 Adw.StatusPage 空状态（与 StructureWidget 的 empty_state 一致）。'''
+    状态字母徽标着色规则（.git-status-badge，style_gtk.css）：M/D 红、A/U 绿。'''
 
     def __init__(self):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
-        self.set_spacing(6)
+        # 吃掉父容器分给的页内剩余高度，空状态才能垂直居中（见 vexpand 链路
+        # 注释与 git_page_viewgtk 的模块 docstring）。内容子页仍从顶部排。
+        self.set_vexpand(True)
 
         self.content_stack = Gtk.Stack()
+        self.content_stack.set_vexpand(True)
         self.append(self.content_stack)
 
         self.repo_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -67,15 +81,52 @@ class GitSectionView(Gtk.Box):
         self.init_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.content_stack.add_named(self.init_box, 'init')
         self._build_init_box()
+        # 同 no_document_status：先撑满（vexpand）再居中（valign）。
+        self.init_status.set_vexpand(True)
+        self.init_status.set_valign(Gtk.Align.CENTER)
+
+        # 整页状态：无已保存文档 / Git 整体不可用（独立面板页后不再靠
+        # 隐藏分区表达「不适用」，改为页内空状态说明原因）。
+        # vexpand + valign CENTER：GtkBox 只把额外空间分给 expand 的子控件
+        # （非 expand 的子控件只占自然高度、贴在顶部），所以两个都要设——
+        # 撑满后靠 valign 在剩余空间里居中。
+        self.no_document_status = self._make_status_page(
+            'document-open-symbolic',
+            _('No Document'),
+            _('Open a saved document to see its Git status.'))
+        self.no_document_status.set_vexpand(True)
+        self.no_document_status.set_valign(Gtk.Align.CENTER)
+        self.content_stack.add_named(self.no_document_status, 'no-document')
+
+        self.unavailable_status = self._make_status_page(
+            'action-unavailable-symbolic', _('Git Unavailable'))
+        self.unavailable_status.set_vexpand(True)
+        self.unavailable_status.set_valign(Gtk.Align.CENTER)
+        self.content_stack.add_named(self.unavailable_status, 'unavailable')
 
         self.show_repository()
 
     # —— 构造 ——————————————————————————————————————————————
 
     def _build_repo_box(self):
-        # 分支行：分支名 + ahead/behind（↑N ↓M）
+        # Changes / Commits 两档内容（档位切换由 GitPageView 工具栏驱动）。
+        self.repo_view_stack = Gtk.Stack()
+        self.repo_view_stack.set_vexpand(True)
+        self.repo_view_stack.set_interpolate_size(False)
+        self.repo_box.append(self.repo_view_stack)
+
+        self._build_changes_view()
+        self._build_commits_view()
+        self.repo_view_stack.add_named(self.changes_box, 'changes')
+        self.repo_view_stack.add_named(self.commits_box, 'commits')
+
+    def _build_changes_view(self):
+        self.changes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
+        # 分支行：分支名 + ahead/behind 徽标 + Pull/Push 图标按钮。
+        # Pull/Push 是低频动作，降为 .flat 图标按钮，不与 Commit 争视觉权重。
         self.branch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.repo_box.append(self.branch_box)
+        self.changes_box.append(self.branch_box)
 
         self.label_branch = Gtk.Label()
         self.label_branch.set_xalign(0)
@@ -83,32 +134,61 @@ class GitSectionView(Gtk.Box):
         self.branch_box.append(self.label_branch)
 
         self.label_ahead_behind = Gtk.Label()
-        self.label_ahead_behind.set_xalign(1)
-        self.label_ahead_behind.set_hexpand(True)
+        self.label_ahead_behind.set_xalign(0)
+        self.label_ahead_behind.set_margin_start(2)
         self.label_ahead_behind.add_css_class('dim-label')
         self.label_ahead_behind.add_css_class('caption')
         self.branch_box.append(self.label_ahead_behind)
 
-        # 最近一次提交：subject + 日期
-        self.label_commit = Gtk.Label()
-        self.label_commit.set_wrap(True)
-        self.label_commit.set_xalign(0)
-        self.repo_box.append(self.label_commit)
+        # 中间弹性空隙把两个图标按钮推到行尾。
+        self.branch_spacer = Gtk.Box()
+        self.branch_spacer.set_hexpand(True)
+        self.branch_box.append(self.branch_spacer)
 
-        self.label_commit_date = Gtk.Label()
-        self.label_commit_date.set_xalign(0)
-        self.label_commit_date.add_css_class('dim-label')
-        self.label_commit_date.add_css_class('caption')
-        self.repo_box.append(self.label_commit_date)
+        self.button_pull = Gtk.Button()
+        self.button_pull.add_css_class('flat')
+        # 图标：应用自带 base-down/up-arrow-symbolic（用户提供），构建时随
+        # gresource 打包；文件尚未入库时按钮显示空白图标，不报错。
+        self.button_pull.set_icon_name('base-down-arrow-symbolic')
+        self.button_pull.set_tooltip_text(_('Update this branch from the remote (fast-forward only)'))
+        self.branch_box.append(self.button_pull)
 
-        # 工作区改动概要
-        self.label_changed = Gtk.Label()
-        self.label_changed.set_wrap(True)
-        self.label_changed.set_xalign(0)
-        self.label_changed.set_margin_top(4)
-        self.repo_box.append(self.label_changed)
+        self.button_push = Gtk.Button()
+        self.button_push.add_css_class('flat')
+        self.button_push.set_icon_name('base-up-arrow-symbolic')
+        self.button_push.set_tooltip_text(_('Push commits to the remote'))
+        self.branch_box.append(self.button_push)
 
-        # 错误/结果提示（pull 失败、push 无凭据等），默认隐藏
+        # Commit message 输入区。TextView（VSCode 式多行），placeholder 用
+        # overlay 内的 dim Label（TextView 无 placeholder 属性）。
+        self.message_overlay = Gtk.Overlay()
+        self.message_text = Gtk.TextView()
+        self.message_text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.message_text.set_size_request(-1, 72)
+        self.message_text.set_left_margin(8)
+        self.message_text.set_right_margin(8)
+        self.message_text.set_top_margin(6)
+        self.message_text.set_bottom_margin(6)
+        self.message_text.set_accepts_tab(False)
+        self.message_text.add_css_class('git-commit-message')
+        self.message_overlay.set_child(self.message_text)
+
+        self.message_placeholder = Gtk.Label(label=_('Commit message'))
+        self.message_placeholder.set_xalign(0)
+        self.message_placeholder.set_valign(Gtk.Align.START)
+        self.message_placeholder.set_margin_top(6)
+        self.message_placeholder.set_margin_start(9)
+        self.message_placeholder.add_css_class('dim-label')
+        self.message_overlay.add_overlay(self.message_placeholder)
+        self.changes_box.append(self.message_overlay)
+
+        # Commit 主按钮：占满整行，suggested-action。
+        self.button_commit = Gtk.Button(label=_('Commit'))
+        self.button_commit.add_css_class('suggested-action')
+        self.button_commit.set_tooltip_text(_('Commit the checked files (Ctrl+Enter)'))
+        self.changes_box.append(self.button_commit)
+
+        # 错误/结果提示（pull 失败、push 无凭据等），默认隐藏。
         self.label_error = Gtk.Label()
         self.label_error.set_wrap(True)
         self.label_error.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
@@ -116,54 +196,38 @@ class GitSectionView(Gtk.Box):
         self.label_error.add_css_class('dim-label')
         self.label_error.add_css_class('caption')
         self.label_error.set_visible(False)
-        self.repo_box.append(self.label_error)
+        self.changes_box.append(self.label_error)
 
-        # 操作按钮行：三个按钮等宽（hexpand），提交为主操作带 suggested-action。
-        # 提交与推送刻意分开：纯本地项目（或没配远程）只需要提交。
-        self.button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        self.button_box.set_margin_top(4)
-        self.repo_box.append(self.button_box)
+        # 改动文件列表：行 = 勾选框 + 状态字母徽标 + 文件名/目录 + Discard。
+        self.files_list = Gtk.ListBox()
+        self.files_list.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.files_list.add_css_class('boxed-list')
+        self.files_list.set_visible(False)
+        self.changes_box.append(self.files_list)
 
-        self.button_pull = Gtk.Button(label=_('Pull'))
-        self.button_pull.set_hexpand(True)
-        self.button_pull.set_tooltip_text(_('Update this branch from the remote (fast-forward only)'))
-        self.button_box.append(self.button_pull)
+        self.label_clean = Gtk.Label(label=_('Working tree clean'))
+        self.label_clean.set_xalign(0)
+        self.label_clean.add_css_class('dim-label')
+        self.label_clean.set_visible(False)
+        self.changes_box.append(self.label_clean)
 
-        self.button_commit = Gtk.Button(label=_('Commit'))
-        self.button_commit.set_hexpand(True)
-        self.button_commit.add_css_class('suggested-action')
-        self.button_commit.set_tooltip_text(_('Commit selected changes'))
-        self.button_box.append(self.button_commit)
-
-        self.button_push = Gtk.Button(label=_('Push'))
-        self.button_push.set_hexpand(True)
-        self.button_box.append(self.button_push)
-
-        # 线性历史（`git log` 顺序，新 → 旧）。
-        self.label_history = Gtk.Label(label=_('Recent commits'))
-        self.label_history.set_xalign(0)
-        self.label_history.add_css_class('dim-label')
-        self.label_history.add_css_class('caption')
-        self.label_history.set_margin_top(6)
-        self.label_history.set_visible(False)
-        self.repo_box.append(self.label_history)
+    def _build_commits_view(self):
+        # 线性历史（`git log` 顺序，新 → 旧）。组件沿用原布局。
+        self.commits_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
         self.history_list = Gtk.ListBox()
         self.history_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.history_list.add_css_class('boxed-list')
         self.history_list.add_css_class('compact-rows')
-        self.history_list.set_visible(False)
-        self.repo_box.append(self.history_list)
+        self.commits_box.append(self.history_list)
 
-        # 仓库还没有任何提交：用空状态占位（与其它侧栏分区的空状态同款，
-        # 但更矮，避免 220px 的最小高度盖过上面的分支信息）。
+        # 仓库还没有任何提交：空状态占位（与其它侧栏分区的空状态同款）。
         self.history_empty = self._make_status_page(
             'document-open-recent-symbolic',
             _('No commits yet'),
             _('Commit your changes to start building history.'))
         self.history_empty.add_css_class('git-history-empty')
-        self.history_empty.set_visible(False)
-        self.repo_box.append(self.history_empty)
+        self.commits_box.append(self.history_empty)
 
     def _build_init_box(self):
         self.init_status = self._make_status_page(
@@ -205,7 +269,23 @@ class GitSectionView(Gtk.Box):
     def show_init(self):
         self.content_stack.set_visible_child_name('init')
 
-    # —— 填充 ——————————————————————————————————————————————
+    def show_no_document(self):
+        self.content_stack.set_visible_child_name('no-document')
+
+    def show_unavailable(self, description):
+        '''Git 整体不可用（偏好关 / git 未安装）：显示原因说明。'''
+        self.unavailable_status.set_description(description)
+        self.content_stack.set_visible_child_name('unavailable')
+
+    def set_repo_view(self, name):
+        '''Changes / Commits 档位切换（GitPageView 工具栏驱动）。'''
+        if name in ('changes', 'commits'):
+            self.repo_view_stack.set_visible_child_name(name)
+
+    # —— Changes 档填充 ——————————————————————————————
+
+    def set_message_placeholder_visible(self, visible):
+        self.message_placeholder.set_visible(visible)
 
     def show_error(self, text):
         if text:
@@ -214,12 +294,75 @@ class GitSectionView(Gtk.Box):
         else:
             self.label_error.set_visible(False)
 
+    def clear_file_rows(self):
+        self.files_list.remove_all()
+        self.files_list.set_visible(False)
+        self.label_clean.set_visible(False)
+
+    def append_file_row(self, row):
+        self.files_list.append(row)
+        self.files_list.set_visible(True)
+        self.label_clean.set_visible(False)
+
+    def set_clean(self):
+        self.files_list.set_visible(False)
+        self.label_clean.set_visible(True)
+
+    def build_file_row(self, entry):
+        '''构造一个改动文件行：prefix 勾选框 + 状态字母徽标，
+        title=文件名、subtitle=相对目录 + 状态文案，suffix「查看文件」+「Discard」
+        按钮（diff 为行本体点击，无需按钮）。信号由控制器接（勾选 → 提交范围；
+        activate → diff；open → 编辑器打开；discard → 确认流程）。
+        返回 (row, check_button, open_button, discard_button)。'''
+        status = entry['status']
+        status_label = STATUS_LABELS.get(status, status)
+        dirname = os.path.dirname(entry['path'])
+
+        row = Adw.ActionRow()
+        row.set_title(os.path.basename(entry['path']))
+        subtitle = ' · '.join(part for part in (dirname, status_label) if part)
+        row.set_subtitle(subtitle or status_label)
+
+        check = Gtk.CheckButton()
+        check.set_valign(Gtk.Align.CENTER)
+        row.add_prefix(check)
+
+        badge = Gtk.Label(label=status.strip() or '?')
+        badge.set_valign(Gtk.Align.CENTER)
+        badge.add_css_class('git-status-badge')
+        # 着色：新增/未跟踪绿，删除红，改动橙红。首字母判定足够（MM 等组合
+        # 以未暂存侧为准）。
+        if status.strip().startswith(('A', 'U', '?')):
+            badge.add_css_class('success')
+        elif status.strip().startswith('D'):
+            badge.add_css_class('error')
+        else:
+            badge.add_css_class('warning')
+        row.add_prefix(badge)
+
+        open_button = Gtk.Button()
+        open_button.add_css_class('flat')
+        open_button.set_icon_name('file-code-symbolic')
+        open_button.set_tooltip_text(_('View file'))
+        open_button.set_valign(Gtk.Align.CENTER)
+        row.add_suffix(open_button)
+
+        discard = Gtk.Button()
+        discard.add_css_class('flat')
+        discard.set_icon_name('edit-delete-symbolic')
+        discard.set_tooltip_text(_('Discard changes in this file'))
+        discard.set_valign(Gtk.Align.CENTER)
+        row.add_suffix(discard)
+
+        return row, check, open_button, discard
+
+    # —— Commits 档填充 ——————————————————————————————
+
     def populate_history(self, commits):
         '''按仓库历史重建列表行。commits 为空（新仓库）时换成空状态占位。'''
         commits = commits or []
         self.history_list.remove_all()
         has_commits = len(commits) > 0
-        self.label_history.set_visible(has_commits)
         self.history_list.set_visible(has_commits)
         self.history_empty.set_visible(not has_commits)
         if not has_commits:

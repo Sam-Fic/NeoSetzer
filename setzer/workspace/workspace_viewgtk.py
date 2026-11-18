@@ -850,7 +850,7 @@ class MainWindow(Adw.ApplicationWindow):
         self._show_fullscreen_headerbar(False)
         # 折叠 sidebar（如果开启）
         self._sidebar_was_visible = (workspace.show_symbols or workspace.show_document_structure
-                                     or workspace.show_ai_agent)
+                                     or workspace.show_ai_agent or workspace.show_git)
         if self._sidebar_was_visible:
             workspace.set_show_sidebar(False)
 

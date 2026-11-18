@@ -1,4 +1,4 @@
-# generated on Tue Nov 17 10:25:31 PM UTC 2026
+# generated on Wed Nov 18 06:58:54 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 ./data/org.cvfosammmm.Setzer.desktop
@@ -172,6 +172,8 @@
 ./setzer/document/build_system/phitex_session/phitex_session.py
 ./setzer/document/build_system/query/__init__.py
 ./setzer/document/build_system/query/query.py
+./setzer/document/build_system/shadow_synctex/__init__.py
+./setzer/document/build_system/shadow_synctex/shadow_synctex.py
 ./setzer/document/build_widget/build_widget.py
 ./setzer/document/build_widget/build_widget_viewgtk.py
 ./setzer/document/build_widget/__init__.py
@@ -382,7 +384,8 @@
 ./setzer/workspace/sidebar/document_structure_page/structure_widget.py
 ./setzer/workspace/sidebar/document_structure_page/todos.py
 ./setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py
-./setzer/workspace/sidebar/git/commit_dialog.py
+./setzer/workspace/sidebar/git/diff_dialog.py
+./setzer/workspace/sidebar/git/git_page_viewgtk.py
 ./setzer/workspace/sidebar/git/git_section.py
 ./setzer/workspace/sidebar/git/git_section_viewgtk.py
 ./setzer/workspace/sidebar/git/__init__.py

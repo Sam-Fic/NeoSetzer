@@ -28,30 +28,30 @@ def _(s):
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw
+from gi.repository import Adw, Gdk, Gtk
 
 import os
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.vcs.git_repository import GitRepository, git_available
-from setzer.workspace.sidebar.git.git_section_viewgtk import (
-    GitSectionView, format_commit_date,
-)
-from setzer.workspace.sidebar.git.commit_dialog import CommitDialog
+from setzer.workspace.sidebar.git.git_section_viewgtk import GitSectionView
+from setzer.workspace.sidebar.git.diff_dialog import DiffDialog
 
 
 class GitSection(object):
-    '''Git 侧栏面板控制器（#443）。显示当前活动文档所属仓库的
-    分支/ahead-behind/最近提交/改动数/线性历史，提供 Pull、Commit、Push。
+    '''Git 侧栏面板控制器（#443）。VSCode Source Control 式交互：
+    Changes 档内直接提交（message 输入 + 文件勾选，无需弹窗），文件行支持
+    勾选纳入提交 / 点击看 diff / 行内 Discard；Commits 档展示线性历史。
 
-    提交与推送是两个独立动作：纯本地仓库（或没配远程的项目）只需要提交。
-
-    显示条件：git 可用 + 文档已保存 + 偏好开启；文档所在目录还不是仓库时
-    显示「初始化仓库」入口（快捷初始化），所以面板不再因为「不在 repo 内」
-    整体消失（与 DocumentStats 的 hide_view/set_group 模式一致）。
+    升级为独立面板页后，「不适用」不再隐藏整个分区，而是页内空状态：
+    无已保存文档 → No Document；git 集成偏好关 / git 未安装 → Unavailable；
+    文档已保存但不在 repo 内 → 「初始化仓库」入口（快捷初始化）。
 
     刷新时机（事件驱动，无轮询）：活动文档切换、文档保存、仓库状态信号
     （.git/index、.git/HEAD 的 Gio.FileMonitor 覆盖终端里的 commit/pull）。
+
+    会话内记忆（不持久化）：commit message 按仓库根记忆（_messages），
+    文件勾选状态按仓库根记忆（_checked），切换仓库/文档后恢复。
     '''
 
     def __init__(self, workspace):
@@ -59,22 +59,26 @@ class GitSection(object):
         self.settings = ServiceLocator.get_settings()
         self.document = None
         self.repo = None
-        self.group = None
 
         self.view = GitSectionView()
         self.view.button_pull.connect('clicked', self.on_pull_clicked)
-        self.view.button_commit.connect('clicked', self.on_commit_clicked)
         self.view.button_push.connect('clicked', self.on_push_clicked)
+        self.view.button_commit.connect('clicked', self.on_commit_clicked)
         self.view.button_init.connect('clicked', self.on_init_clicked)
+        self.view.message_text.get_buffer().connect('changed', self.on_message_changed)
 
+        # Ctrl+Enter 在输入框内直接提交（VSCode 习惯键位）。
+        key_controller = Gtk.EventControllerKey()
+        self.view.message_text.add_controller(key_controller)
+        key_controller.connect('key-pressed', self.on_message_key_pressed)
+
+        self._messages = dict()   # repo root → 未提交的 commit message
+        self._checked = dict()    # repo root → {path: 是否纳入提交}
         self._saved_document = None
 
         workspace.connect('new_active_document', self.on_new_active_document)
         self.settings.connect('settings_changed', self.on_settings_changed)
         self.set_document()
-
-    def set_group(self, group):
-        self.group = group
 
     def on_new_active_document(self, workspace, document):
         self.set_document()
@@ -112,6 +116,8 @@ class GitSection(object):
             self.repo = repo
             if self.repo is not None:
                 self.repo.connect('state_changed', self.on_repo_state_changed)
+                # 换仓库：恢复该仓库未提交的 message（会话内记忆）。
+                self._load_message()
 
         self.update_view()
 
@@ -144,22 +150,24 @@ class GitSection(object):
         return directory
 
     def update_view(self):
-        enabled = self._panel_enabled()
-        has_repo = self.repo is not None
-        state = self.repo.state if has_repo else None
-        # 仓库不存在但有可初始化的目录 → 显示快捷初始化入口。
-        init_directory = None
-        if enabled and not has_repo:
-            init_directory = self._init_directory()
-        visible = enabled and (has_repo or init_directory is not None)
-        if self.group is not None:
-            self.group.set_visible(visible)
-        if not visible:
-            return
+        '''按当前条件把页面切到对应状态。
 
-        if not has_repo:
+        判据顺序即状态优先级：git 可执行 → 集成偏好开 → 有已保存文档 →
+        有仓库；前三层不满足时分别给 Unavailable / No Document / Init
+        空状态，而不是留白。'''
+        if not git_available():
+            self.view.show_unavailable(_('The git executable was not found in PATH.'))
+            return
+        if not self.settings.get_value('preferences', 'git_integration'):
+            self.view.show_unavailable(_('Git integration is disabled in Preferences.'))
+            return
+        if self.document is None or self.document.get_filename() is None:
+            self.view.show_no_document()
+            return
+        if self.repo is None:
             self.view.show_init()
             return
+        state = self.repo.state
         # 刚连上仓库时状态还在后台线程里跑：留白等 state_changed，别把
         # 「尚未取到状态」误当成「没有仓库」而闪回初始化页。
         if state is None:
@@ -182,24 +190,6 @@ class GitSection(object):
         else:
             self.view.label_ahead_behind.set_visible(False)
 
-        # 最近提交
-        if state['commit_subject']:
-            self.view.label_commit.set_text(state['commit_subject'])
-            self.view.label_commit.set_visible(True)
-            self.view.label_commit_date.set_text(
-                format_commit_date(state['commit_timestamp']))
-            self.view.label_commit_date.set_visible(True)
-        else:
-            self.view.label_commit.set_visible(False)
-            self.view.label_commit_date.set_visible(False)
-
-        # 改动概要
-        count = len(state['changed_files'])
-        if count == 0:
-            self.view.label_changed.set_text(_('Working tree clean'))
-        else:
-            self.view.label_changed.set_text(_('Changed files') + ': %d' % count)
-
         # 推送只在「配了远程 + 有东西可推」时可用：本地领先远程，或还没建立
         # upstream（首次推送会自动 --set-upstream）。纯本地项目或已有 upstream
         # 且不领先 → 灰掉并说明原因，避免点了只得到 "Everything up-to-date"。
@@ -220,8 +210,226 @@ class GitSection(object):
             if has_upstream
             else _('Push this branch once to set its upstream, then you can pull.'))
 
-        # 线性历史
+        # 改动文件行（勾选状态跨刷新保留，新文件按 untracked 默认值）。
+        self._populate_changes(state['changed_files'])
+        self._update_commit_sensitivity()
+
+        # 线性历史（Commits 档，切换档位时内容已就绪）。
         self.view.populate_history(state['history'])
+
+    # —— Changes 档：文件行与提交 ————————————————————————
+
+    def _populate_changes(self, changed_files):
+        self.view.clear_file_rows()
+        checked_map = self._checked.setdefault(self.repo.root, dict())
+        for entry in changed_files:
+            path = entry['path']
+            default = not entry['untracked']
+            row, check, open_button, discard = self.view.build_file_row(entry)
+            check.set_active(checked_map.get(path, default))
+            check.connect('toggled', self.on_file_check_toggled, entry)
+            open_button.connect('clicked', self.on_open_file_clicked, entry)
+            # 已删除（D）的文件磁盘上不存在：查看文件按钮灰掉。
+            open_button.set_sensitive(
+                os.path.exists(os.path.join(self.repo.root, path)))
+            discard.connect('clicked', self.on_discard_clicked, entry)
+            row.connect('activated', self.on_file_row_activated, entry)
+            self.view.append_file_row(row)
+        if not changed_files:
+            self.view.set_clean()
+
+    def on_file_check_toggled(self, check, entry):
+        checked_map = self._checked.setdefault(self.repo.root, dict())
+        checked_map[entry['path']] = check.get_active()
+        self._update_commit_sensitivity()
+
+    def _checked_paths(self):
+        checked_map = self._checked.get(self.repo.root, dict())
+        state = self.repo.state
+        if state is None:
+            return []
+        result = []
+        for entry in state['changed_files']:
+            default = not entry['untracked']
+            if checked_map.get(entry['path'], default):
+                result.append(entry['path'])
+        return result
+
+    def _current_message(self):
+        start = self.view.message_text.get_buffer().get_start_iter()
+        end = self.view.message_text.get_buffer().get_end_iter()
+        return self.view.message_text.get_buffer().get_text(start, end, False).strip()
+
+    def _update_commit_sensitivity(self):
+        self.view.button_commit.set_sensitive(
+            bool(self._current_message()) and bool(self._checked_paths()))
+
+    def on_message_changed(self, buffer):
+        start = buffer.get_start_iter()
+        end = buffer.get_end_iter()
+        text = buffer.get_text(start, end, False)
+        self.view.set_message_placeholder_visible(not text)
+        if self.repo is not None:
+            self._messages[self.repo.root] = text
+        self._update_commit_sensitivity()
+
+    def _load_message(self):
+        '''换仓库后恢复该仓库未提交的 message（无记忆则清空）。'''
+        text = self._messages.get(self.repo.root, '') if self.repo is not None else ''
+        buffer = self.view.message_text.get_buffer()
+        buffer.set_text(text or '')
+        self.view.set_message_placeholder_visible(not text)
+
+    def on_message_key_pressed(self, controller, keyval, keycode, state):
+        # Ctrl+Return / Ctrl+KP_Enter 提交；其余键交给输入框（Enter 换行，
+        # 与 VSCode 的多行 message 输入一致）。
+        if (keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter)
+                and state & Gdk.ModifierType.CONTROL_MASK):
+            self.on_commit_clicked(None)
+            return True
+        return False
+
+    def on_commit_clicked(self, button):
+        if not self._panel_enabled() or self.repo is None or self.repo.state is None:
+            return
+        message = self._current_message()
+        files = self._checked_paths()
+        if not message or not files:
+            return
+        if not self._is_trusted():
+            self._request_trust(self.do_commit)
+            return
+        self.do_commit()
+
+    def do_commit(self):
+        message = self._current_message()
+        files = self._checked_paths()
+        if not message or not files:
+            return
+        self.show_error(None)
+        # 先保存仓库内所有有未保存修改的文档，保证提交内容与编辑器一致。
+        self._save_open_documents()
+        self.view.button_commit.set_sensitive(False)
+        self.repo.commit(files, message, self.on_commit_done)
+
+    def on_commit_done(self, error):
+        if error:
+            self.show_error(error)
+            self._update_commit_sensitivity()
+            return
+        # 成功：清空 message（含记忆）并刷新；Changes 清空、历史更新即确认。
+        self._messages[self.repo.root] = ''
+        self.view.message_text.get_buffer().set_text('')
+        self.repo.refresh()
+
+    def _save_open_documents(self):
+        root_prefix = self.repo.root + os.sep
+        for document in self.workspace.get_all_documents():
+            filename = document.get_filename()
+            if filename is None:
+                continue
+            if not filename.startswith(root_prefix):
+                continue
+            if document.source_buffer.get_modified():
+                document.save_to_disk(show_toast=False)
+
+    # —— 文件行：diff / 查看文件 / Discard ——————————————————
+
+    def on_file_row_activated(self, row, entry):
+        '''点击文件行：只读查看该文件 diff，不需信任门。路径绑定进回调，
+        弹窗标题/副标题用它。'''
+        if self.repo is None:
+            return
+        self.repo.diff(entry['path'],
+                       lambda error, text, path=entry['path']:
+                       self.on_diff_done(error, text, path))
+
+    def on_diff_done(self, error, text, path):
+        if error:
+            self.show_error(error)
+            return
+        dialog = DiffDialog(path, text)
+        dialog.present(ServiceLocator.get_main_window())
+
+    def on_open_file_clicked(self, button, entry):
+        '''行内「查看文件」：优先在编辑器打开（已打开则激活），非 LaTeX
+        文件交给系统默认应用。已删除文件按钮为灰（populate 时按存在性设置）。'''
+        if self.repo is None:
+            return
+        absolute = os.path.join(self.repo.root, entry['path'])
+        if not os.path.exists(absolute):
+            return
+        document = self.workspace.get_document_by_filename(absolute)
+        if document is not None:
+            self.workspace.set_active_document(document)
+            return
+        if absolute.endswith(('.tex', '.cls', '.sty', '.lco', '.loc', '.bib')):
+            document = self.workspace.create_document_from_filename(absolute)
+            if document is not None:
+                self.workspace.set_active_document(document)
+                return
+        # 非 LaTeX/BibTeX（如 .log、.pdf）：交给系统默认应用。
+        Gtk.show_uri(ServiceLocator.get_main_window(),
+                     'file://' + absolute, Gdk.CURRENT_TIME)
+
+    def on_discard_clicked(self, button, entry):
+        '''行内 Discard：先确认（写操作 + 对 untracked 是直接删文件），
+        再过信任门（hooks 风险），最后执行并同步打开中的文档缓冲区。'''
+        if not self._panel_enabled() or self.repo is None or self.repo.state is None:
+            return
+        full_path = os.path.join(self.repo.root, entry['path'])
+        dialog = Adw.AlertDialog()
+        dialog.set_heading(_('Discard changes in %s?') % entry['path'])
+        if entry['untracked']:
+            dialog.set_body(_('%s\n\nThis untracked file will be deleted permanently.')
+                            % full_path)
+        else:
+            dialog.set_body(_('%s\n\nAll uncommitted changes in this file will be lost.')
+                            % full_path)
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('discard', _('Discard'))
+        dialog.set_response_appearance('discard', Adw.ResponseAppearance.DESTRUCTIVE)
+        # Enter/Esc 默认走 Cancel：丢弃不可撤销，默认响应须安全侧。
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.connect('response', self.on_discard_confirmed, entry['path'])
+        dialog.present(ServiceLocator.get_main_window())
+
+    def on_discard_confirmed(self, dialog, response, path):
+        if response != 'discard':
+            return
+        if not self._is_trusted():
+            self._request_trust(self.do_discard, path)
+            return
+        self.do_discard(path)
+
+    def do_discard(self, path):
+        self.show_error(None)
+        self.repo.discard(path,
+                          lambda error, p=path: self.on_discard_done(error, p))
+
+    def on_discard_done(self, error, path):
+        if error:
+            self.show_error(error)
+            return
+        self.repo.refresh()
+        # 磁盘已被 git 还原：打开中的文档缓冲区同步重读。
+        self._reload_document_for_path(path)
+        self._toast(_('Changes discarded'))
+
+    def _reload_document_for_path(self, path):
+        '''discard 后同步打开中的文档：磁盘已被 git 还原，编辑器缓冲区必须
+        跟着重读，否则显示的是已丢弃的内容且不标记修改，保存即复活。'''
+        root_prefix = self.repo.root + os.sep
+        target = os.path.realpath(os.path.join(self.repo.root, path))
+        for document in self.workspace.get_all_documents():
+            filename = document.get_filename()
+            if filename is None:
+                continue
+            if not filename.startswith(root_prefix):
+                continue
+            if os.path.realpath(filename) == target:
+                document.reload_from_disk()
 
     # —— 快捷初始化（文档所在目录还不是仓库）————————————————
 
@@ -277,12 +485,12 @@ class GitSection(object):
         except Exception:
             pass  # toast 失败不影响主流程
 
-    # —— 写操作（pull / commit / push），按仓库显式信任 ——————————
+    # —— 写操作（pull / push），按仓库显式信任 ———————————————
 
     def _is_trusted(self):
         return self.repo.root in self.settings.get_value('preferences', 'git_trusted_repos')
 
-    def _request_trust(self, callback):
+    def _request_trust(self, callback, *args):
         '''首次写操作前的仓库信任确认。git hooks 可执行任意命令，
         打开外来项目时这是真实风险，必须显式确认一次。'''
         dialog = Adw.AlertDialog()
@@ -295,14 +503,14 @@ class GitSection(object):
         # Enter/Esc 默认走 Cancel：信任仓库会放行 hooks 执行，默认须安全侧。
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
-        dialog.connect('response', self.on_trust_response, callback)
+        dialog.connect('response', self.on_trust_response, callback, args)
         dialog.present(ServiceLocator.get_main_window())
 
-    def on_trust_response(self, dialog, response, callback):
+    def on_trust_response(self, dialog, response, callback, args):
         if response != 'trust':
             return
         self._trust_repository(self.repo.root)
-        callback()
+        callback(*args)
 
     def _trust_repository(self, root):
         '''把仓库根路径写入信任列表（幂等）。'''
@@ -325,19 +533,19 @@ class GitSection(object):
         state = self.repo.state
         # 脏工作区保护：--ff-only 会失败，先给出明确提示，不留困惑状态。
         if state['dirty']:
-            self.view.show_error(_('Working tree has uncommitted changes. Commit them '
-                                   'first, or use a terminal to stash.'))
+            self.show_error(_('Working tree has uncommitted changes. Commit them '
+                              'first, or use a terminal to stash.'))
             return
-        self.view.show_error(None)
+        self.show_error(None)
         self.view.button_pull.set_sensitive(False)
         self.repo.pull(self.on_pull_done)
 
     def on_pull_done(self, error):
         self.view.button_pull.set_sensitive(True)
         if error:
-            self.view.show_error(error)
+            self.show_error(error)
         else:
-            self.view.show_error(None)
+            self.show_error(None)
             self.repo.refresh()
 
     def on_push_clicked(self, button):
@@ -351,40 +559,20 @@ class GitSection(object):
     def do_push(self):
         state = self.repo.state
         if state['branch'] is None:
-            self.view.show_error(_('Nothing to push: this branch has no commits yet.'))
+            self.show_error(_('Nothing to push: this branch has no commits yet.'))
             return
-        self.view.show_error(None)
+        self.show_error(None)
         self.view.button_push.set_sensitive(False)
         self.repo.push(self.on_push_done)
 
     def on_push_done(self, error):
         if error:
             # 失败时 update_view 里重算的敏感度可能仍为 True，这里只需先恢复。
-            self.view.show_error(error)
+            self.show_error(error)
             self.view.button_push.set_sensitive(True)
         else:
-            self.view.show_error(None)
+            self.show_error(None)
             self.repo.refresh()
 
-    def on_commit_clicked(self, button):
-        if not self._panel_enabled() or self.repo is None or self.repo.state is None:
-            return
-        if not self._is_trusted():
-            self._request_trust(self.open_commit_dialog)
-            return
-        self.open_commit_dialog()
-
-    def open_commit_dialog(self):
-        if not self.repo.state['changed_files']:
-            self.view.show_error(_('No changes to commit.'))
-            return
-        self.view.show_error(None)
-        dialog = CommitDialog(self.workspace, self.repo, self.on_commit_finished)
-        dialog.present(ServiceLocator.get_main_window())
-
-    def on_commit_finished(self, error):
-        if error:
-            self.view.show_error(error)
-        else:
-            self.view.show_error(None)
-            self.repo.refresh()
+    def show_error(self, text):
+        self.view.show_error(text)

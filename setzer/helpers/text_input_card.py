@@ -18,9 +18,12 @@
 """圆角文本输入卡片：多行文本输入框的统一外观。
 
 AI 批注 popover 与「发送到 AI Agent」弹窗的 prompt 编辑区共用同一套
-「灰底 + 1px 边框 + 8px 圆角 + 内缩文字」的输入框外观，避免各处各写
+「灰底 + 1px 边框 + 9px 圆角 + 内缩文字」的输入框外观，避免各处各写
 一份 CSS 导致观感漂移（旧 popover 直接给 ScrolledWindow 挂 .card，
-TextView 自身背景是直角方块，会盖住圆角）。
+TextView 自身背景是直角方块，会盖住圆角）。9px 对齐 libadwaita 默认
+按钮/输入框圆角——这些卡片周边的控件（对话框按钮等）都是这个值。
+Git 页 commit message 输入框除外：它的邻居是 boxed-list 卡片（12px），
+见 style_gtk.css 的 .git-commit-message。
 
 用法::
 
@@ -42,7 +45,7 @@ _CSS = '''
 textview.setzer-text-input {
     background-color: @card_bg_color;
     border: 1px solid @borders;
-    border-radius: 8px;
+    border-radius: 9px;
 }
 /* overshoot/undershoot 提示条画在 ScrolledWindow 边缘、不受子件 overflow
    裁剪，滚动时会溢出圆角外框，因此整体关掉——圆角卡片本身已足够提示

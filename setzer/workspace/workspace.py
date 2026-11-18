@@ -52,6 +52,7 @@ import setzer.workspace.shortcutsbar.shortcutsbar as shortcutsbar
 import setzer.workspace.build_log.build_log as build_log
 import setzer.workspace.actions.actions as actions
 from setzer.ai_fix.availability import is_ai_agent_enabled
+from setzer.vcs.git_repository import git_available
 import setzer.workspace.context_menu.context_menu as context_menu
 import setzer.workspace.tab_context_menu as tab_context_menu
 import setzer.workspace.auto_build.auto_build as auto_build
@@ -103,15 +104,24 @@ class Workspace(Observable):
         # 停在一个已不存在的面板上。
         self.show_ai_agent = (self.settings.get_value('window_state', 'show_ai_agent')
                               and is_ai_agent_enabled(self.settings))
+        # Git 页同理：档位判据不满足（面板偏好关 / git 未安装）时压平，
+        # 避免会话恢复把侧栏停在一个已不存在的面板上。git_integration 偏好
+        # 不影响档位存在，只改变页内状态，不参与这里。
+        self.show_git = (self.settings.get_value('window_state', 'show_git')
+                         and self.settings.get_value('preferences', 'git_sidebar_panel')
+                         and git_available())
 
         # 记忆上次侧栏面板（隐藏后再次显示时恢复）。与 show_*/show_document_structure
         # 解耦：后者在隐藏时被清成 False（仅用于驱动可见性），本属性持久化"上次选了哪个"。
         self.sidebar_page = self.settings.get_value('window_state', 'sidebar_page')
-        if self.sidebar_page not in ('symbols', 'document_structure', 'ai_agent'):
+        if self.sidebar_page not in ('symbols', 'document_structure', 'ai_agent', 'git'):
             # 值损坏 / 来自更早版本时的兜底，与 settings 默认保持一致。
             self.sidebar_page = 'document_structure'
-        elif self.sidebar_page == 'ai_agent' and not is_ai_agent_enabled(self.settings):
-            # AI Agent 关闭时该面板不存在，记忆值回落到结构页。
+        elif ((self.sidebar_page == 'ai_agent' and not is_ai_agent_enabled(self.settings))
+              or (self.sidebar_page == 'git'
+                  and not (self.settings.get_value('preferences', 'git_sidebar_panel')
+                           and git_available()))):
+            # AI Agent / Git 面板不存在时，记忆值回落到结构页。
             self.sidebar_page = 'document_structure'
 
         # PDF 预览弹出独立窗口状态。不跨会话持久化（v1）：每次启动默认内嵌侧边栏，
@@ -883,6 +893,9 @@ class Workspace(Observable):
                 self.show_document_structure = window_state.get('show_document_structure', self.show_document_structure)
                 self.show_ai_agent = (window_state.get('show_ai_agent', self.show_ai_agent)
                                       and is_ai_agent_enabled(self.settings))
+                self.show_git = (window_state.get('show_git', self.show_git)
+                                 and self.settings.get_value('preferences', 'git_sidebar_panel')
+                                 and git_available())
                 self.show_preview = window_state.get('show_preview', self.show_preview)
                 self.show_help = window_state.get('show_help', self.show_help)
                 self.show_build_log = window_state.get('show_build_log', self.show_build_log)
@@ -1163,6 +1176,7 @@ class Workspace(Observable):
             'show_symbols': self.show_symbols,
             'show_document_structure': self.show_document_structure,
             'show_ai_agent': self.show_ai_agent,
+            'show_git': self.show_git,
             'show_preview': self.show_preview,
             'show_help': self.show_help,
             'show_build_log': self.show_build_log,
@@ -1573,17 +1587,21 @@ class Workspace(Observable):
         self.add_change_code('set_show_preview_or_help')
 
     def set_show_symbols_or_document_structure(self, show_symbols, show_document_structure):
-        # AI 页激活时 (False, False) 也要能收起侧栏；切回结构/符号页时
-        # 需清掉 show_ai_agent（三页互斥），故变化判断纳入第三布尔。
+        # AI 页 / Git 页激活时 (False, False) 也要能收起侧栏；切回结构/符号页时
+        # 需清掉 show_ai_agent 与 show_git（四页互斥），故变化判断纳入这两个布尔。
         ai_cleared = self.show_ai_agent and (show_symbols or show_document_structure)
+        git_cleared = self.show_git and (show_symbols or show_document_structure)
         if (show_symbols != self.show_symbols
                 or show_document_structure != self.show_document_structure
-                or ai_cleared):
+                or ai_cleared or git_cleared):
             self.show_symbols = show_symbols
             self.show_document_structure = show_document_structure
             if ai_cleared:
                 self.show_ai_agent = False
                 self.settings.set_value('window_state', 'show_ai_agent', False)
+            if git_cleared:
+                self.show_git = False
+                self.settings.set_value('window_state', 'show_git', False)
             # 同步"上次选中面板"，供隐藏后恢复
             if show_symbols:
                 self.set_sidebar_page('symbols')
@@ -1594,7 +1612,7 @@ class Workspace(Observable):
             self.add_change_code('set_show_symbols_or_document_structure')
 
     def set_show_ai_agent(self, show):
-        '''激活/取消侧栏 AI 页（与结构/符号页互斥，复用同一 change code）。
+        '''激活/取消侧栏 AI 页（与结构/符号/Git 页互斥，复用同一 change code）。
 
         AI Agent 总开关关闭时不激活：该面板的档位已从切换器上摘除，
         任何程序化调用（会话恢复、批注发送等）都不应把侧栏切到这一页。
@@ -1614,13 +1632,46 @@ class Workspace(Observable):
                 self.show_document_structure = False
                 self.settings.set_value('window_state', 'show_symbols', False)
                 self.settings.set_value('window_state', 'show_document_structure', False)
+            if self.show_git:
+                self.show_git = False
+                self.settings.set_value('window_state', 'show_git', False)
             self.set_sidebar_page('ai_agent')
+        self.add_change_code('set_show_symbols_or_document_structure')
+
+    def set_show_git(self, show):
+        '''激活/取消侧栏 Git 页（与结构/符号/AI 页互斥，复用同一 change code）。
+
+        档位判据不满足（面板偏好关 / git 未安装）时不激活：该面板的档位已
+        从切换器上摘除，任何程序化调用（会话恢复等）都不应把侧栏切到这一页。
+        '''
+        if show and not (self.settings.get_value('preferences', 'git_sidebar_panel')
+                         and git_available()):
+            return
+        if show == self.show_git:
+            if show:
+                # 已激活时再次调用：幂等通知，保证切页+展开。
+                self.add_change_code('set_show_symbols_or_document_structure')
+            return
+        self.show_git = show
+        self.settings.set_value('window_state', 'show_git', show)
+        if show:
+            if self.show_symbols or self.show_document_structure:
+                self.show_symbols = False
+                self.show_document_structure = False
+                self.settings.set_value('window_state', 'show_symbols', False)
+                self.settings.set_value('window_state', 'show_document_structure', False)
+            if self.show_ai_agent:
+                self.show_ai_agent = False
+                self.settings.set_value('window_state', 'show_ai_agent', False)
+            self.set_sidebar_page('git')
         self.add_change_code('set_show_symbols_or_document_structure')
 
     def activate_sidebar_page(self, page):
         '''侧栏面板切换器被点击：把对应页的可见性布尔拨到位。'''
         if page == 'ai_agent':
             self.set_show_ai_agent(True)
+        elif page == 'git':
+            self.set_show_git(True)
         elif page == 'symbols':
             self.set_show_symbols_or_document_structure(True, False)
         elif page == 'document_structure':
@@ -1628,7 +1679,7 @@ class Workspace(Observable):
 
     def set_sidebar_page(self, page):
         '''记忆侧栏当前选中的面板，隐藏后再次显示时恢复。'''
-        if page not in ('symbols', 'document_structure', 'ai_agent'):
+        if page not in ('symbols', 'document_structure', 'ai_agent', 'git'):
             return
         if page != self.sidebar_page:
             self.sidebar_page = page
@@ -1638,9 +1689,12 @@ class Workspace(Observable):
         if not show:
             if self.show_ai_agent:
                 self.set_show_ai_agent(False)
+            if self.show_git:
+                self.set_show_git(False)
             self.set_show_symbols_or_document_structure(False, False)
         else:
-            if not self.show_symbols and not self.show_document_structure and not self.show_ai_agent:
+            if not (self.show_symbols or self.show_document_structure
+                    or self.show_ai_agent or self.show_git):
                 # 之前未选中任何面板（隐藏过）：恢复上次记忆的面板。
                 # 用显式白名单而非 else 兜底：sidebar_page 已被上面校验为合法
                 # 值之一，这样将来新增面板时不会静默落到某一页。
@@ -1649,10 +1703,16 @@ class Workspace(Observable):
                 elif (self.sidebar_page == 'ai_agent'
                       and is_ai_agent_enabled(self.settings)):
                     self.set_show_ai_agent(True)
+                elif (self.sidebar_page == 'git'
+                      and self.settings.get_value('preferences', 'git_sidebar_panel')
+                      and git_available()):
+                    self.set_show_git(True)
                 else:
                     self.set_show_symbols_or_document_structure(False, True)
             elif self.show_ai_agent:
                 self.set_show_ai_agent(True)
+            elif self.show_git:
+                self.set_show_git(True)
             else:
                 self.set_show_symbols_or_document_structure(self.show_symbols, self.show_document_structure)
 

@@ -712,6 +712,14 @@ class Document(Observable):
                 pass
             self._restore_scroll_offset = None
 
+    def reload_from_disk(self):
+        '''从磁盘重载缓冲区（git discard 后同步编辑器显示）。
+
+        复用 _load_file_content 的全部纪律（编码/BOM/换行检测、gutter 预置宽、
+        set_buffer_content 的撤销栈守卫、initial_parse）；_restore_cursor_offset
+        / _restore_scroll_offset 属性此时不存在，相关恢复自然跳过。'''
+        self._load_file_content()
+
     def _load_content_if_pending(self):
         '''懒加载入口：若文档内容尚未加载（_content_pending），同步加载。
 

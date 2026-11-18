@@ -453,7 +453,7 @@ toolbarview > * > * > * {
 /* 居中对齐由代码里 set_alignment(0.5) 实现（GTK CSS 不支持 text-align）。 */
 .preview-page-entry {
     background: rgba(128, 128, 128, 0.2);
-    border-radius: 8px;
+    border-radius: 9px;
     border: none;
 }
 .preview-page-entry:focus {
@@ -850,4 +850,25 @@ headerbar {
     -gtk-icon-source: -gtk-icontheme("object-select-symbolic");
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;
+}
+
+/*
+ * Git 页改动文件行的状态字母徽标（M/U/A/D）。颜色由 libadwaita 内建的
+ * .success / .error / .warning 文本着色 class 提供（build_file_row 里追加），
+ * 这里只管形状：等宽加粗小字，与其余 caption 徽标一致。
+ */
+.git-status-badge {
+    font-family: monospace;
+    font-weight: 700;
+    min-width: 16px;
+}
+
+/*
+ * Git 页 commit message 输入框：TextView 无内建边框，手绘一圈描边，让输入区
+ * 和下方按钮形成一体感。圆角对齐 libadwaita boxed-list 的卡片圆角 12px
+ * （下方 Changes 文件列表即此值），与同屏组件保持一致。
+ */
+.git-commit-message {
+    border: 1px solid alpha(currentColor, 0.15);
+    border-radius: 12px;
 }

@@ -450,6 +450,74 @@ class GitRepository(Observable):
         GLib.idle_add(callback, error)
         return False
 
+    def diff(self, path, callback):
+        '''单个文件的统一 diff 文本（--no-color），供侧栏 DiffDialog 展示。
+        callback(error_message 或 None, diff_text) 在主线程回调。
+
+        untracked 文件不在 `git diff` 输出里，走 --no-index 与 /dev/null 比较
+        （整个文件显示为新增）；--no-index 有差异时 exit 1，这是正常结果，
+        不当错误。'''
+        threading.Thread(target=self.diff_unified_thread, args=(path, callback),
+                         daemon=True).start()
+
+    def diff_unified_thread(self, path, callback):
+        entry_untracked = None
+        state = self.state
+        if state is not None:
+            for entry in state['changed_files']:
+                if entry['path'] == path:
+                    entry_untracked = entry['untracked']
+                    break
+
+        if entry_untracked:
+            code, out = run_git(['diff', '--no-color', '--no-index', '--',
+                                 '/dev/null', path], self.root, timeout=60)
+            # --no-index 有差异时 exit 1：是预期结果。
+            error = None if code in (0, 1) else (out.strip() or _('git diff failed.'))
+            text = out
+        else:
+            code, out = run_git(['diff', '--no-color', '--', path], self.root, timeout=60)
+            if code != 0:
+                error = out.strip() or _('git diff failed.')
+                text = ''
+            else:
+                error = None
+                text = out
+        GLib.idle_add(callback, error, text)
+        return False
+
+    def discard(self, path, callback):
+        '''丢弃单个文件的工作区改动。callback(error_message 或 None) 主线程回调。
+
+        tracked 文件 → `git checkout -- <path>`（恢复到 index/HEAD 版本）；
+        untracked 文件 → `git clean -f -- <path>`（直接删除，.aux/.log 等生成物
+        是主要场景）。调用方必须先弹确认框并过信任门。'''
+        threading.Thread(target=self.discard_thread, args=(path, callback),
+                         daemon=True).start()
+
+    def discard_thread(self, path, callback):
+        untracked = False
+        state = self.state
+        if state is not None:
+            for entry in state['changed_files']:
+                if entry['path'] == path:
+                    untracked = entry['untracked']
+                    break
+
+        if untracked:
+            args = ['clean', '-f', '--', path]
+            operation = 'discard-untracked'
+        else:
+            args = ['checkout', '--', path]
+            operation = 'discard'
+        code, out = run_git(args, self.root, timeout=60)
+        if code != 0:
+            error = classify_git_error(out, operation) or out.strip() or _('Discard failed.')
+        else:
+            error = None
+        GLib.idle_add(callback, error)
+        return False
+
 
 def classify_git_error(output, operation):
     '''把常见 git 失败翻译成用户可操作的提示；无法识别返回 None（调用方

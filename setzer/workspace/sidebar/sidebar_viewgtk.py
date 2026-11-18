@@ -33,6 +33,7 @@ from setzer.helpers import animation_prefs
 PANEL_SWITCH_OPTIONS = (
     ('document_structure', 'view-list-symbolic', 'Document Structure'),
     ('symbols', 'emoji-symbols-symbolic', 'Symbols'),
+    ('git', 'xsi-git-symbolic', 'Git'),
     ('ai_agent', 'ai-slop-symbolic', 'AI Agent'),
 )
 
@@ -109,32 +110,54 @@ class Sidebar(Gtk.Box):
     def set_switch_option_visible(self, name, visible):
         '''显示/隐藏各页工具栏切换器里的某个面板档位。
 
-        AI Agent 开关关闭时整个 AI 面板从界面上消失：档位本身不出现，
-        侧栏因此只剩 Document Structure / Symbols 两档（不会多出一个
-        点击后无内容的空档位）。
-
         Adw.Toggle 不是 Widget，没有 set_visible（libadwaita 的档位是纯
-        GObject），所以「隐藏」只能是把它从 ToggleGroup 里 remove 掉；
-        重新启用时按 PANEL_SWITCH_OPTIONS 的顺序补回（AI 恰为最后一档，
-        直接 add 即原位）。'''
-        spec = next((opt for opt in PANEL_SWITCH_OPTIONS if opt[0] == name), None)
-        if spec is None:
+        GObject），所以「隐藏」只能是把它从 ToggleGroup 里 remove 掉。
+        ToggleGroup 也没有 insert：add 只会追加到末尾，而档位顺序必须与
+        PANEL_SWITCH_OPTIONS 一致（AI 固定在最右），因此重新补档不能像
+        早期「AI 恰为最后一档」时那样直接 add，而是整组重建——记下当前
+        激活档位，remove 全部，再按 spec 顺序 re-add 可见档位，最后由
+        _sync_switch_groups 按可见页对齐高亮。'''
+        if next((opt for opt in PANEL_SWITCH_OPTIONS if opt[0] == name), None) is None:
             return
         self._syncing_switch = True
         try:
             for group in self.switch_groups.values():
                 toggle = group.get_toggle_by_name(name)
-                if visible:
-                    if toggle is None:
-                        _, icon_name, label = spec
-                        group.add(Adw.Toggle(name=name, icon_name=icon_name,
-                                             tooltip=_(label)))
-                elif toggle is not None:
-                    group.remove(toggle)
+                if visible and toggle is not None:
+                    continue
+                if not visible and toggle is None:
+                    continue
+                # 目标档位集合：组里现有的档位，按 desired 状态增删目标档。
+                desired_names = [
+                    opt[0] for opt in PANEL_SWITCH_OPTIONS
+                    if (opt[0] == name and visible)
+                    or (opt[0] != name and group.get_toggle_by_name(opt[0]) is not None)
+                ]
+                # 重建前记下激活档位：移除正在激活的档位会让组失去高亮，
+                # 而重建后的 set_active_name 由循环外的 _sync_switch_groups 做。
+                active_name = group.get_active_name()
+                for opt in PANEL_SWITCH_OPTIONS:
+                    existing = group.get_toggle_by_name(opt[0])
+                    if existing is not None:
+                        group.remove(existing)
+                for toggle_name in desired_names:
+                    # 不用 `_, icon_name, label = ...`：解包会把 `_` 写成模块
+                    # 全局（str），遮蔽 builtins._ 翻译函数，下一行 _(label)
+                    # 就会变成调用 str。丢弃项须用具名变量接。
+                    spec_name, icon_name, label = next(
+                        opt for opt in PANEL_SWITCH_OPTIONS if opt[0] == toggle_name)
+                    group.add(Adw.Toggle(name=toggle_name, icon_name=icon_name,
+                                         tooltip=_(label)))
+                # 激活档位仍在组里（未被本次操作移除）时才恢复，否则留给
+                # _sync_switch_groups 按可见页对齐。
+                if (active_name is not None
+                        and active_name != name
+                        and group.get_toggle_by_name(active_name) is not None):
+                    group.set_active_name(active_name)
         finally:
             self._syncing_switch = False
-        # 增删档位可能让 ToggleGroup 丢掉「当前档」高亮（尤其是移除正在激活的
-        # 档位），按可见页重新对齐一次。
+        # 增删档位后按可见页重新对齐一次（目标档位被移除且原本激活时，
+        # 这里会把高亮拨回当前可见页）。
         self._sync_switch_groups(self.stack.get_visible_child_name())
 
     def add_named(self, child, name):
