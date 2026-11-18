@@ -2,10 +2,14 @@
 # Windows 无这些概念，跳过安装以避免 meson 报错或产生无用文件。
 if host_machine.system() != 'windows'
 
-  # .desktop file
-  desktop_file =files('org.cvfosammmm.Setzer.desktop')
-  install_data(
-    desktop_file,
+  # .desktop file（i18n.merge_file 走 msgfmt --desktop，把 po 里
+  # Name/GenericName/Comment/Keywords/Actions 的翻译合并进安装产物）
+  desktop_file = i18n.merge_file(
+    input:  files('org.cvfosammmm.Setzer.desktop'),
+    output: 'org.cvfosammmm.Setzer.desktop',
+    type: 'desktop',
+    po_dir: join_paths(meson.source_root(), 'po'),
+    install: true,
     install_dir: join_paths(datadir, 'applications'),
   )
 

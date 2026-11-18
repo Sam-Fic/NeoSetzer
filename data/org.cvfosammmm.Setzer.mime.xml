@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
-    <mime-type type="application/vdn.setzer.session.stzs">
+    <mime-type type="application/vnd.setzer.session.stzs">
         <comment>NeoSetzer Session</comment>
         <comment xml:lang="zh_CN">NeoSetzer 会话</comment>
         <glob pattern="*.stzs" weight="5"/>

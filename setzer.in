@@ -60,7 +60,7 @@ if bundle_resources:
         os.environ.setdefault('GSETTINGS_SCHEMA_DIR', schema_dir)
     _prepend_search_path('GI_TYPELIB_PATH', typelib_dir)
 
-import cairo
+import cairo  # noqa: F401 —— 见上方注释：pycairo 必须先于 import gi 加载
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -112,7 +112,6 @@ from setzer.helpers import animation_prefs
 from setzer.popovers.popover_manager import PopoverManager
 from setzer.app.latex_db import LaTeXDB
 from setzer.settings.document_settings import DocumentSettings
-from setzer.helpers.timer import timer
 
 # 尽早安装全局异常处理器，确保后续任何代码抛出的未捕获异常都不会静默崩溃。
 # 覆盖：主线程 (sys.excepthook)、非主线程 (threading.excepthook)、GLib 回调。
@@ -123,9 +122,34 @@ install_exception_handler()
 class MainApplicationController(Adw.Application):
 
     def __init__(self):
-        Adw.Application.__init__(self, application_id='org.cvfosammmm.Setzer', flags=Gio.ApplicationFlags.HANDLES_OPEN)
+        Adw.Application.__init__(self, application_id='org.cvfosammmm.Setzer',
+                                 flags=Gio.ApplicationFlags.HANDLES_OPEN)
 
         self.is_active = False
+        # 桌面 Action「New Document」：--new-document 在本地选项解析阶段捕获
+        # （未经 add_main_option 注册的选项会被 GApplication.run 以
+        # "Unknown option" 拒绝、整个启动失败）。主实例直接消费；远程实例
+        # 在 run() 返回后经 D-Bus ActivateAction 转交主实例（见文件末尾）。
+        self.local_new_document = False
+        self.add_main_option('new-document', 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE, '', '')
+        new_document_action = Gio.SimpleAction.new('new-document', None)
+        new_document_action.connect('activate', self.on_new_document_action)
+        # app 级 action：GApplication 会把它导出到总线（org.gtk.Actions），
+        # org.freedesktop.Application.ActivateAction 据此可达。
+        self.add_action(new_document_action)
+
+    def do_handle_local_options(self, options):
+        if options.contains('new-document'):
+            self.local_new_document = True
+        return -1  # 继续常规处理（其余文件参数仍走 do_open）
+
+    def on_new_document_action(self, action=None, parameter=None):
+        # 主实例上真正执行：新建一篇 LaTeX 文档。D-Bus 转交到达时 workspace
+        # 一定已就绪（主实例在运行）；activate() 路径上同理（见 activate 末尾）。
+        workspace = getattr(self, 'workspace', None)
+        if workspace is not None:
+            workspace.actions.actions['new-latex-document'].activate(None)
 
     def do_open(self, files, number_of_files, hint=""):
         if not self.is_active:
@@ -139,7 +163,6 @@ class MainApplicationController(Adw.Application):
             if file.get_path().endswith('.stzs'):
                 filename = file.get_path()
 
-                active_document = self.workspace.get_active_document()
                 documents = self.workspace.get_all_documents()
                 unsaved_documents = self.workspace.get_unsaved_documents()
                 dialog = DialogLocator.get_dialog('close_confirmation')
@@ -297,6 +320,11 @@ class MainApplicationController(Adw.Application):
         # “打开示例文档”时 workspace controller 尚未初始化。
         maybe_show_first_run_tutorial()
 
+        # 桌面 Action「New Document」：本次进程即是主实例（冷启动带
+        # --new-document）。远程实例的路径见文件末尾的 D-Bus 转交。
+        if self.local_new_document:
+            self.on_new_document_action()
+
         # ① 周期快照：每 30 秒保存工作区布局与每文档状态，避免崩溃/断电丢失布局。
         GLib.timeout_add_seconds(30, self.periodic_snapshot)
 
@@ -425,9 +453,28 @@ class MainApplicationController(Adw.Application):
 
 argparser = argparse.ArgumentParser(usage='%(prog)s [OPTION...] [FILE...]')
 argparser.add_argument('-V', '--version', action='version', version='@setzer_version@')
+# desktop Action「New Document」入口。选项经 add_main_option 注册进
+# GApplication（MainApplicationController.do_handle_local_options 捕获）；
+# 应用已在运行时 run() 走远程激活直接返回，由下方 D-Bus 调用转交主实例。
+argparser.add_argument('--new-document', action='store_true', help=argparse.SUPPRESS)
 argparser.add_argument('file', nargs='*', help=argparse.SUPPRESS)
 argparser.parse_args()
 
 main_controller = MainApplicationController()
 exit_status = main_controller.run(sys.argv)
+
+# --new-document 且本次进程是远程激活（主实例已在运行）：run() 返回 0 但
+# 主实例什么都没做——把 app 级 action 经 org.freedesktop.Application 转交。
+# GApplication 实现该接口并导出 app 级 action（org.gtk.Actions），主实例的
+# on_new_document_action 随即执行。主实例不在了（刚退出）则静默放弃。
+if main_controller.local_new_document:
+    try:
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        bus.call_sync('org.cvfosammmm.Setzer', '/org/cvfosammmm/Setzer',
+                      'org.freedesktop.Application', 'ActivateAction',
+                      GLib.Variant('(sava{sv})', ('new-document', [], {})),
+                      None, Gio.DBusCallFlags.NONE, 2000, None)
+    except GLib.Error:
+        pass
+
 sys.exit(exit_status)

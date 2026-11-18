@@ -1,8 +1,18 @@
 [Desktop Entry]
 Name=NeoSetzer
+GenericName=LaTeX Editor
+Comment=Edit LaTeX documents, build them and preview the PDF
 Exec=setzer %F
 Type=Application
 Icon=org.cvfosammmm.Setzer
 Categories=GNOME;GTK;Science;Office;
-Keywords=latex;bibtex;editor;
-MimeType=application/vdn.setzer.session.stzs;text/x-tex;text/x-bibtex;
+Keywords=latex;bibtex;tex;editor;pdf;documents;
+MimeType=application/vnd.setzer.session.stzs;text/x-tex;text/x-bibtex;
+Terminal=false
+StartupNotify=true
+SingleMainWindow=true
+Actions=new-document;
+
+[Desktop Action new-document]
+Name=New Document
+Exec=setzer --new-document
