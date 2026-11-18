@@ -246,25 +246,54 @@ class Workspace(Observable):
         - 跨文件：open_document_by_filename 内部已 set_active_document。
         - 同文件：document 是**预览所属**文档（多文件工程里是 root），用户
           可能正停在子文件的标签页；只挪光标不切标签页，就是「点了没反应」。
+
+        同文件分支要求 document 仍在 open_documents 里：反查在后台线程查
+        synctex（≤5s 超时）后经 idle 投递，期间预览所属文档可能已被关闭，
+        拿到的对象是僵尸——僵尸不走 set_active_document，落到按文件名
+        重开/激活的分支（文件还在就重开标签，没了就静默忽略）。
         '''
         target = position['filename']
         current = document.get_filename()
-        # synctex 的 Input 带 `./` 段，必须 normpath 后比较。
-        same_file = (current is not None and target is not None
-                     and os.path.normpath(target) == os.path.normpath(current))
-        if same_file:
+        # synctex 1.5 实测 Input 恒为绝对路径，但可能带 `./` 段，必须
+        # normpath 后比较；normcase 兜 Windows 大小写盘符；realpath 兜
+        # symlink 段（synctex 侧可能是 realpath 形式，裸 normpath 会误判
+        # 成两个文件，随后把已打开的文件再开一个标签页）。
+        same_file = False
+        if current is not None and target is not None:
+            same_file = (os.path.normcase(os.path.normpath(target))
+                         == os.path.normcase(os.path.normpath(current)))
+            if not same_file:
+                same_file = os.path.realpath(target) == os.path.realpath(current)
+        if same_file and document in self.open_documents:
             self.set_active_document(document)
-            document.build_system.set_synctex_position(document, position)
+            # set_active_document 会为会话恢复的轻量文档补挂工具链，故在
+            # 其后取 build_system；仍用 getattr 守卫，与跨文件分支对称。
+            build_system = getattr(document, 'build_system', None)
+            if build_system is not None:
+                build_system.set_synctex_position(document, position)
             document.scroll_cursor_to_center()
-        elif target is not None and os.path.isfile(target):
+            return
+        if target is not None and os.path.isfile(target):
             # synctex 指哪打哪：显式 root / magic root / 无 root 一视同仁。
             # 曾经用 (not root_is_set or is_root) 拦一道，结果「在子文件里
             # 点击属于 main 的正文」时整条跳转被静默丢弃。
-            target_document = self.open_document_by_filename(target)
-            build_system = getattr(target_document, 'build_system', None)
-            if build_system is not None:
-                build_system.set_synctex_position(target_document, position)
-                target_document.scroll_cursor_to_center()
+            # 先按 realpath 扫已打开文档：normpath 查重（get_document_by_filename）
+            # 会漏掉 symlink/大小写变体，直接 open 会开出重复标签页。
+            target_document = None
+            for candidate in self.open_documents:
+                candidate_filename = candidate.get_filename()
+                if candidate_filename is not None and os.path.realpath(
+                        candidate_filename) == os.path.realpath(target):
+                    target_document = candidate
+                    break
+            if target_document is None:
+                target_document = self.open_document_by_filename(target)
+            if target_document is not None:
+                self.set_active_document(target_document)
+                build_system = getattr(target_document, 'build_system', None)
+                if build_system is not None:
+                    build_system.set_synctex_position(target_document, position)
+                    target_document.scroll_cursor_to_center()
 
     def add_document(self, document):
         if document in self.open_documents: return False
@@ -1447,6 +1476,38 @@ class Workspace(Observable):
             from setzer.ai_fix.annotation_sender import AnnotationSender
             self._annotation_sender = AnnotationSender(self)
         return self._annotation_sender
+
+    def snapshot_ai_baseline(self, document):
+        '''AI 发送时刻快照正文，武装该文档的 AI diff 显示。
+
+        三个 AI 发送入口（批注 / build_log fix / headerbar 终端按钮）都调
+        这一个 helper——这是 diff 触发范围"仅 AI 编辑"的实现点：快照即武装，
+        之后 AiDiff 在构建成功后自行判断要不要 compare。
+
+        注意 headerbar 入口不落盘，所以快照取 buffer 的 get_all_text()，
+        不能绑在 save_to_disk 上。非 LaTeX 文档 / 未保存 / 开关关闭 → 静默
+        不武装（返回 False，调用方不需要处理）。
+        '''
+        if document is None or not document.is_latex_document():
+            return False
+        settings = ServiceLocator.get_settings()
+        if not settings.get_value('preferences', 'ai_diff_display'):
+            return False
+        filename = document.get_filename()
+        if filename is None:
+            return False
+        build_system = getattr(document, 'build_system', None)
+        ai_diff = getattr(build_system, 'ai_diff', None)
+        if ai_diff is None:
+            return False
+        from setzer.helpers import phitex_compare
+        text = document.get_all_text()
+        path = phitex_compare.write_baseline(
+            text, os.path.dirname(filename), os.path.basename(filename))
+        if path is None:
+            return False
+        ai_diff.arm_baseline(path)
+        return True
 
     def shutdown_agent_session(self):
         '''应用退出时结束 Agent 子进程（未创建过则零开销）。'''

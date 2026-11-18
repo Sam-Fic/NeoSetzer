@@ -28,6 +28,7 @@ import tempfile
 
 from setzer.app.color_manager import ColorManager
 from setzer.helpers import animation_prefs
+from setzer.helpers import toast as toast_helpers
 
 
 # synctex 正向同步高亮（编辑器 → PDF 预览）的最大 alpha。
@@ -38,6 +39,18 @@ from setzer.helpers import animation_prefs
 # 同一量级，符合「比行高亮浓厚一点点」的总体风格。若想再淡/再浓，
 # 改这个常量即可。
 _SYNCTEX_HIGHLIGHT_MAX_ALPHA = 0.30
+
+# AI diff 高亮的 per-kind 颜色（diff PDF 视图，compare 的 kind → RGBA）。
+# 配色沿用 papilot / latexdiff 印刷惯例：added 绿、deleted 红，中间态 change
+# 用琥珀——刻意不用蓝，蓝色在预览里与链接语义冲突。fill 给面积感、stroke
+# 勾精确边界；fill alpha 与 synctex 高亮（0.30）同量级，能透出底下文字。
+_DIFF_KIND_COLORS = {
+    'add': ((0.12, 0.55, 0.32), (0.12, 0.55, 0.32)),      # #1f8c52
+    'del': ((0.78, 0.16, 0.22), (0.78, 0.16, 0.22)),      # #c72938
+    'change': ((0.72, 0.47, 0.12), (0.72, 0.47, 0.12)),   # #b7791f
+}
+_DIFF_FILL_ALPHA = 0.20
+_DIFF_STROKE_ALPHA = 0.65
 
 
 class PreviewPresenter(object):
@@ -63,6 +76,7 @@ class PreviewPresenter(object):
         self.preview.connect('layout_changed', self.on_layout_changed)
         self.preview.connect('pdf_load_failed', self.on_pdf_load_failed)
         self.preview.connect('external_pdf_state_changed', self.on_external_pdf_state_changed)
+        self.preview.connect('diff_state_changed', self.on_diff_state_changed)
         self.view.set_external_pdf_reload_handler(self.on_external_pdf_reload_requested)
         self.page_renderer.connect('rendered_pages_changed', self.on_rendered_pages_changed)
 
@@ -80,6 +94,7 @@ class PreviewPresenter(object):
         self._selection_overlay_cache = dict()
         self._synctex_overlay_cache = dict()
         self._block_overlay_cache = dict()
+        self._diff_overlay_cache = dict()
 
         # 注册页码徽章按钮的点击回调。徽章现在是真正的 Gtk.Button（在
         # view 的画布 overlay 里），点击 → 滚动到该页顶部。
@@ -110,6 +125,7 @@ class PreviewPresenter(object):
         self._selection_overlay_cache = dict()
         self._synctex_overlay_cache = dict()
         self._block_overlay_cache = dict()
+        self._diff_overlay_cache = dict()
         if self.preview.poppler_document != None:
             # 成功加载新 PDF 时清除上次的构建失败提示。
             self.view.hide_pdf_load_failed()
@@ -131,6 +147,47 @@ class PreviewPresenter(object):
 
     def on_external_pdf_state_changed(self, preview, state):
         self.view.set_external_pdf_state(state)
+
+    def on_diff_state_changed(self, preview):
+        '''AI diff 结果变化 → toast 通知（瞬时反馈）。
+
+        刻意不用横幅：可重复查看的入口是工具栏分段控件的 diff 档，它跟着
+        结果同生同灭，横幅承担的就只剩"提醒一次"——而 agent 会多轮迭代，
+        横幅每轮把整块 PDF 往下推一次，是持续打扰。toast 带一个动作按钮，
+        保证"提醒一次"这条路上也有一步到位的入口（档位需要用户自己发现）。
+        '''
+        result = preview.diff_result
+        if result is None:
+            return
+        count = result.get('change_count') or 0
+        if count <= 0:
+            return
+        message = ngettext('AI edited this document: {} change',
+                           'AI edited this document: {} changes', count).format(count)
+        pages = result.get('pages')
+        if pages:
+            message = '{} · {}'.format(
+                message, ngettext('{} page', '{} pages', pages).format(pages))
+        # throttle：agent 连续几轮编辑会在几秒内连出结果，5s 窗口内只说一次。
+        toast_helpers.show(message, timeout=5, throttle_ms=5000, key='ai_diff_ready',
+                           overlay=self.view.toast_overlay,
+                           button_label=_('Show Diff'),
+                           on_button_clicked=self.show_diff_view)
+
+    def show_diff_view(self):
+        '''切到 diff 档（toast 动作按钮的落点）。
+
+        预览面板不在前台时先把它切回来——diff 档在预览工具栏里，侧栏停在
+        帮助面板的话点这个按钮看不到东西。'''
+        from setzer.app.service_locator import ServiceLocator
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
+            return
+        presenter = getattr(getattr(main_window, 'preview_panel', None), 'presenter', None)
+        if presenter is None:
+            return
+        main_window.workspace.set_show_preview_or_help(True, False)
+        presenter.set_mode('diff')
 
     def on_external_pdf_reload_requested(self):
         self.preview.reload_external_pdf()
@@ -161,6 +218,7 @@ class PreviewPresenter(object):
         self._selection_overlay_cache = dict()
         self._synctex_overlay_cache = dict()
         self._block_overlay_cache = dict()
+        self._diff_overlay_cache = dict()
         if self.preview.layout != None:
             # Size the canvas-sized drawing area to the full PDF canvas; the
             # Gtk.ScrolledWindow derives its adjustment uppers from this and
@@ -364,12 +422,14 @@ class PreviewPresenter(object):
                 ctx.translate(-layout.page_width_original / 2.0, -layout.page_height_original / 2.0)
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+                self.draw_diff_rectangles(ctx, page_number)
                 self.draw_text_selection_rectangles(ctx, page_number, selection_color)
                 self.draw_block_selection(ctx, page_number, block_color)
                 ctx.restore()
             else:
                 self.draw_rendered_page(ctx, page_number, layout)
                 self.draw_synctex_rectangles(ctx, page_number, synctex_color)
+                self.draw_diff_rectangles(ctx, page_number)
                 self.draw_text_selection_rectangles(ctx, page_number, selection_color)
                 self.draw_block_selection(ctx, page_number, block_color)
 
@@ -500,6 +560,79 @@ class PreviewPresenter(object):
             ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
         ctx.fill()
         ctx.set_operator(cairo.Operator.OVER)
+
+    def draw_diff_rectangles(self, ctx, page_number):
+        '''AI diff 高亮（仅 diff 视图）：按 kind 着色的持久矩形。
+
+        与 synctex/文字选择同一 device 叠层机制（分数缩放下与纹理文字严格
+        对齐），但有三点不同：固定 alpha 不淡出（这是审阅标注，不是一闪而过
+        的定位提示）；多色（kind → 绿/红/琥珀）；OVER 而非 MULTIPLY——
+        MULTIPLY 在彩色叠加多层时会越叠越黑，diff 高亮需要可预期的颜色。
+        正式 PDF 上恒不绘制：矩形坐标属于 diff PDF，页面对不上。
+        '''
+        preview = self.preview
+        if not preview.showing_diff_pdf or preview.diff_result is None:
+            return
+        try:
+            rectangles = preview.layout.diff_rectangles[page_number]
+        except (KeyError, AttributeError):
+            return
+        if not rectangles:
+            return
+        layout = preview.layout
+        rendered = self.page_renderer.rendered_pages.get(page_number)
+        surface = rendered[0] if rendered is not None else None
+        if isinstance(surface, cairo.ImageSurface):
+            overlay = self._get_diff_overlay(page_number, rectangles, layout,
+                                             surface.get_width(), surface.get_height())
+            if overlay is not None:
+                self._paint_device_overlay(ctx, overlay, layout,
+                                           surface.get_width(), surface.get_height())
+                return
+        # 回退：纹理未就绪时的矢量矩形（fill + stroke，同缓存路径的样式）。
+        # 线宽只能按 css 尺度估（无 surface 密度可换算）：短暂占位期可接受。
+        for rectangle in rectangles:
+            fill, stroke = _DIFF_KIND_COLORS.get(rectangle.kind, _DIFF_KIND_COLORS['change'])
+            ctx.rectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
+            ctx.set_source_rgba(fill[0], fill[1], fill[2], _DIFF_FILL_ALPHA)
+            ctx.fill_preserve()
+            ctx.set_source_rgba(stroke[0], stroke[1], stroke[2], _DIFF_STROKE_ALPHA)
+            ctx.set_line_width(max(layout.scale_factor, 1.0))
+            ctx.stroke()
+
+    def _get_diff_overlay(self, page, rectangles, layout, sw, sh):
+        '''AI diff 高亮 → 与纹理同尺寸的 device surface（多色 fill+stroke）。
+
+        密度换算同 _get_synctex_overlay（矩形已含 scale_factor）。缓存按
+        (矩形组, kind 组, 尺寸) 键控；不同 kind 各画各的颜色，一个 surface
+        承载整页所有 diff 矩形。'''
+        if sw <= 0 or sh <= 0:
+            return None
+        dx = sw / int(layout.page_width_original)
+        dy = sh / int(layout.page_height_original)
+        key = (tuple((r.x, r.y, r.width, r.height, r.kind) for r in rectangles), sw, sh)
+        entry = self._diff_overlay_cache.get(page)
+        if entry is not None and entry[1] == key:
+            return entry[0]
+        if entry is not None and entry[0].get_width() == sw and entry[0].get_height() == sh:
+            overlay = entry[0]
+        else:
+            overlay = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+        ctx = cairo.Context(overlay)
+        ctx.set_operator(cairo.Operator.CLEAR)
+        ctx.paint()
+        ctx.set_operator(cairo.Operator.OVER)
+        for rectangle in rectangles:
+            fill, stroke = _DIFF_KIND_COLORS.get(rectangle.kind, _DIFF_KIND_COLORS['change'])
+            ctx.rectangle(rectangle.x * dx, rectangle.y * dy,
+                          rectangle.width * dx, rectangle.height * dy)
+            ctx.set_source_rgba(fill[0], fill[1], fill[2], _DIFF_FILL_ALPHA)
+            ctx.fill_preserve()
+            ctx.set_source_rgba(stroke[0], stroke[1], stroke[2], _DIFF_STROKE_ALPHA)
+            ctx.set_line_width(max(dx, 1.0))
+            ctx.stroke()
+        self._diff_overlay_cache[page] = (overlay, key)
+        return overlay
 
     def draw_text_selection_rectangles(self, ctx, page_number, selection_color):
         '''绘制当前文字选择的每页高亮区域。
@@ -842,12 +975,12 @@ class PreviewPresenter(object):
         self._save_print_prefs(settings, page_setup)
 
         if printer is None:
-            self._show_print_error(self.view.get_root(), _('No printer available'))
+            self._show_print_error(_('No printer available'))
             return
 
         spool_path = self._write_print_spool(page_setup)
         if spool_path is None:
-            self._show_print_error(self.view.get_root(), _('Could not prepare print data'))
+            self._show_print_error(_('Could not prepare print data'))
             return
 
         job_name = self.preview.document.get_displayname()
@@ -858,14 +991,11 @@ class PreviewPresenter(object):
         self._print_job_spool_path = spool_path
         job.send(self._on_print_job_sent)
 
-    def _show_print_error(self, window, message):
-        try:
-            d = Gtk.AlertDialog()
-            d.set_message(_('Printing failed'))
-            d.set_detail(message)
-            d.show(window)
-        except Exception:
-            pass
+    def _show_print_error(self, message):
+        # 「非必要不打扰」：打印失败是无须选择的被动结果，走 toast 不弹模态。
+        toast_helpers.show(
+            _('Printing failed: {message}').format(message=message),
+            timeout=5, throttle_ms=8000, key='print_error')
 
     def _write_print_spool(self, page_setup):
         '''把当前 PDF 按目标纸张逐页重排进临时 PDF，作为提交给 CUPS 的打印数据。
@@ -923,6 +1053,6 @@ class PreviewPresenter(object):
             self._print_job_spool_path = None
         if error is not None:
             message = error.message if hasattr(error, 'message') else str(error)
-            self._show_print_error(self.view.get_root(), message)
+            self._show_print_error(message)
 
 

@@ -136,6 +136,21 @@ class Preview(Observable):
         self.visible_synctex_rectangles = list()
         self.visible_synctex_rectangles_time = None
 
+        # ---- AI 编辑 diff（PhiTeX session compare）----
+        # diff_result: 最近一次 compare 的结果 dict {'rectangles': [...],
+        # 'changes': [...], 'pdf': diff PDF 绝对路径, 'pages': N,
+        # 'change_count': N}。矩形坐标属于 diff PDF（latexdiff 标记文档），
+        # 只在 diff 视图里绘制——正式 PDF 的页面上没有对应物（插入会把后续
+        # 内容推移到别的页），这是画在 diff 视图而非正式 PDF 的根本原因。
+        self.diff_result = None
+        # True = 预览正以覆盖方式显示 diff PDF。不动 pdf_filename / 外部监控 /
+        # 构建状态：构建管道对"预览正在看什么"无感知，新构建结果到达即自动
+        # 回到正式 PDF。
+        self.showing_diff_pdf = False
+        # 当前生效的 diff 矩形（dict 列表，synctex 惯例 + kind）：仅 diff
+        # 视图非空。layouter 重建布局时按它重放。
+        self.diff_rectangles = list()
+
         self.view = preview_view.PreviewView()
         self.layouter = preview_layouter.PreviewLayouter(self, self.view)
         self.zoom_manager = preview_zoom_manager.PreviewZoomManager(self, self.view)
@@ -205,7 +220,17 @@ class Preview(Observable):
         return candidate if os.path.exists(candidate) else None
 
     def on_pdf_updated(self, document):
+        # 新构建产出 → diff 视图的整页内容已被替换，旧的 diff 结果不再对应
+        # 眼前的 PDF：先落回正式 PDF 再加载。若这次构建属于新一轮 AI 编辑，
+        # AiDiff 随后会送来新的 diff_result，横幅再亮起来。
+        was_showing_diff = self.showing_diff_pdf
+        self.showing_diff_pdf = False
+        self.diff_rectangles = list()
         self.load_pdf()
+        if was_showing_diff:
+            # 通知面板把档位从 diff 拨回 pdf：这次构建不一定带来新 diff
+            # （用户手动 F5 也会走这里），档位不能悬在"亮着但内容是正式 PDF"。
+            self.add_change_code('diff_state_changed')
 
     def _initialize_pdf_from_filename(self):
         '''构造期按文档当前文件名自举一次 PDF 加载。
@@ -839,13 +864,22 @@ class Preview(Observable):
         else:
             return None
 
-    def load_pdf(self, external_reload=False):
+    def load_pdf(self, external_reload=False, display_path=None):
+        '''加载 PDF 到预览。
+
+        display_path 非空时以"覆盖显示"加载该文件（diff PDF 视图）：替换
+        poppler_document 与页面几何，但**不碰** pdf_filename、外部 PDF 监控
+        和构建状态——构建管道对预览正在看什么保持无感知，监视器继续守着
+        正式 PDF 的路径。
+        '''
+        is_override = display_path is not None
+        display_target = display_path if display_path is not None else self.pdf_filename
         new_document = None
         # 重建前的页面几何，用于判断能否沿用现有 layout（见下方说明）。
         page_sizes_before = self.page_sizes
-        if self.pdf_filename != None:
+        if display_target is not None:
             try:
-                new_document = Poppler.Document.new_from_file(GLib.filename_to_uri(self.pdf_filename))
+                new_document = Poppler.Document.new_from_file(GLib.filename_to_uri(display_target))
             except Exception:
                 new_document = None
 
@@ -879,13 +913,22 @@ class Preview(Observable):
             # Only a successfully opened Poppler document is accepted as the
             # current disk version. This also suppresses monitor events caused
             # by NeoSetzer's own successful builds.
-            self._external_pdf_tracker.set_pdf_filename(self.pdf_filename)
-            self._external_pdf_tracker.accept_current_file()
-            self._ensure_external_pdf_monitor()
-            self._set_external_pdf_state(ExternalPdfState.CURRENT)
+            # 覆盖显示（diff PDF）不进这套 tracker/monitor 协调：监视器必须
+            # 继续守着正式 PDF 的路径，diff PDF 只是一张"借来展示"的页面。
+            if not is_override:
+                self._external_pdf_tracker.set_pdf_filename(self.pdf_filename)
+                self._external_pdf_tracker.accept_current_file()
+                self._ensure_external_pdf_monitor()
+                self._set_external_pdf_state(ExternalPdfState.CURRENT)
             self.add_change_code('pdf_changed')
             self.add_change_code('layout_changed')
             return True
+        elif is_override:
+            # diff PDF 打不开（被清理/损坏）：留在当前显示，只发状态码让
+            # 横幅端处理。绝不能走下面的 reset_pdf_data——那会把正式 PDF 的
+            # 状态整个清掉。
+            self.add_change_code('diff_view_load_failed')
+            return False
         elif self.poppler_document == None:
             # nothing new and nothing old to fall back on -- show the
             # blank slate.
@@ -917,8 +960,13 @@ class Preview(Observable):
         self.clear_text_selection()
         if self.pdf_is_stale:
             self.set_pdf_is_stale(False)
+        # PDF 没了，diff 结果与其视图一并作废。
+        self.diff_result = None
+        self.showing_diff_pdf = False
+        self.diff_rectangles = list()
         self.add_change_code('pdf_changed')
         self.add_change_code('layout_changed')
+        self.add_change_code('diff_state_changed')
 
     def get_page_height(self, page):
         '''第 page 页的 PDF（未旋转）高，0-based。无数据或越界返回 self.page_height
@@ -1352,6 +1400,58 @@ class Preview(Observable):
             self._scroll_to_rectangle(rectangles[0])
         return True
 
+    # ---- AI 编辑 diff（PhiTeX session compare）----
+
+    def set_diff_result(self, result):
+        '''AiDiff 交付 compare 结果（None = 清除，如 AI 没改或结果失效）。
+
+        只存状态 + 发 diff_state_changed：正式 PDF 上不画 diff 矩形（坐标
+        属于 diff PDF），横幅由 presenter 端按状态刷新。若用户正停留在
+        diff 视图而被清除（文档重置/结果失效），先落回正式 PDF。
+        '''
+        if result is None:
+            self.diff_result = None
+            self.diff_rectangles = list()
+            if self.showing_diff_pdf:
+                self.showing_diff_pdf = False
+                self.load_pdf()
+            self.add_change_code('diff_state_changed')
+            return
+        self.diff_result = result
+        self.add_change_code('diff_state_changed')
+
+    def show_diff_pdf(self):
+        '''以覆盖方式加载 diff PDF，并把 diff 矩形推给 layouter 绘制。
+
+        由预览面板的 diff 档驱动（见 PreviewPanelPresenter.set_mode）。'''
+        result = self.diff_result
+        pdf_path = (result or {}).get('pdf')
+        if not pdf_path or not os.path.isfile(pdf_path):
+            return
+        if not self.load_pdf(display_path=pdf_path):
+            return
+        self.showing_diff_pdf = True
+        self.diff_rectangles = result.get('rectangles') or list()
+        if self.layout is not None:
+            self.layouter.update_diff_rectangles(self.layout)
+        self.add_change_code('diff_state_changed')
+
+    def show_main_pdf(self):
+        '''从 diff 视图回到正式 PDF（重新从磁盘加载，清除 diff 矩形）。'''
+        if not self.showing_diff_pdf:
+            return
+        self.showing_diff_pdf = False
+        self.diff_rectangles = list()
+        self.load_pdf()
+        self.add_change_code('diff_state_changed')
+
+    def get_diff_change_by_n(self, change_n):
+        '''按 compare 的 n 字段反查 change dict（点击弹窗用）。'''
+        for change in (self.diff_result or {}).get('changes') or []:
+            if isinstance(change, dict) and change.get('n') == change_n:
+                return change
+        return None
+
     def init_backward_sync(self, x_offset, y_offset):
         if self.layout == None:
             _sync_debug('init_backward_sync: layout is None，不反查')
@@ -1426,8 +1526,10 @@ class Preview(Observable):
              position['pdf_line_offset'], position['pdf_line_text']) = refinement
             position['line'] -= 1  # helper 1-based → set_synctex_position 0-based
             ServiceLocator.get_workspace().jump_to_synctex_position(self.document, position)
-        # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到跳转落点。
-        self.add_change_code('synctex_backward')
+            # 通知独立窗口（若预览已 detach）present 主窗口，让用户看到跳转
+            # 落点。查询失败（无 .synctex.gz / 超时 / 解析不出）没有落点，
+            # 不发码——独立预览场景下不该无谓把主窗口抢到前台。
+            self.add_change_code('synctex_backward')
         return False
 
     def _get_pdf_line_offset(self, poppler_page, click_x, click_y):

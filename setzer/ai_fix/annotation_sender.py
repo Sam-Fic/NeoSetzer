@@ -201,7 +201,12 @@ class AnnotationSender(object):
         if document.get_filename() is None:
             self._toast(_('Please save the document first'))
             return False
-        return bool(document.save_to_disk())
+        saved = bool(document.save_to_disk())
+        # AI diff 基线：发送前快照正文（保存成功才有意义——行号/内容一致）。
+        # 静默：未武装（非 LaTeX/开关关）不影响发送流程。
+        if saved:
+            self.workspace.snapshot_ai_baseline(document)
+        return saved
 
     def _send_data(self, data, document, sent_entries=None):
         '''sent_entries: 成功发送后需从批注模型移除的 [(document, annotation)]；

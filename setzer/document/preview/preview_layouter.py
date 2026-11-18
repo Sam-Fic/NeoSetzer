@@ -28,6 +28,10 @@ from setzer.helpers.observable import Observable
 # 中属性访问（.x）也快于 dict 查找（['x']）。namedtuple 不可变，避免误改。
 SynctexRect = namedtuple('SynctexRect', ['page', 'x', 'y', 'width', 'height'])
 
+# AI diff 高亮矩形（diff PDF 视图）：坐标换算同 SynctexRect，多带 kind 供
+# presenter 按 add/del/change 着色。
+DiffRect = namedtuple('DiffRect', ['page', 'x', 'y', 'width', 'height', 'kind'])
+
 
 class PreviewLayouter(Observable):
 
@@ -101,6 +105,7 @@ class PreviewLayouter(Observable):
 
             layout.canvas_width = layout.page_width + 2 * layout.get_horizontal_margin(window_width)
             self.update_synctex_rectangles(layout)
+            self.update_diff_rectangles(layout)
             return layout
         else:
             return None
@@ -120,6 +125,27 @@ class PreviewLayouter(Observable):
             )
             layout.visible_synctex_rectangles.setdefault(rectangle['page'] - 1, []).append(new_rectangle)
 
+    def update_diff_rectangles(self, layout):
+        '''AI diff 矩形（diff PDF 视图）：dict → DiffRect 换算，按页分组。
+
+        坐标语义与 synctex 一致（v = 底边距页顶，y 轴向上），换算公式完全
+        相同——helpers/phitex_compare 已把 compare 的 y 向下 bbox 翻成这套
+        惯例。不在 diff 视图时 preview.diff_rectangles 为空，自然清空。
+        getattr 兜底：diff 是可选 overlay，测试桩/精简 Preview 可能没有
+        这个属性，等价于"无 diff 高亮"。'''
+        layout.diff_rectangles = dict()
+        sf = layout.scale_factor
+        for rectangle in getattr(self.preview, 'diff_rectangles', None) or ():
+            new_rectangle = DiffRect(
+                rectangle['page'],
+                rectangle['h'] * sf,
+                (rectangle['v'] - rectangle['height']) * sf,
+                rectangle['width'] * sf,
+                rectangle['height'] * sf,
+                rectangle.get('kind') or 'change',
+            )
+            layout.diff_rectangles.setdefault(rectangle['page'] - 1, []).append(new_rectangle)
+
 
 class PreviewLayout(object):
 
@@ -138,6 +164,7 @@ class PreviewLayout(object):
         self.scale_factor = None
         self.rotation = None
         self.visible_synctex_rectangles = dict()
+        self.diff_rectangles = dict()
         # per-page 几何（create_layout 填充）。
         # page_heights[i] 是第 i 页的 canvas 像素高（含 rotation 后的
         # 显示尺寸）；page_y_starts[i] 是第 i 页顶部的 canvas y 坐标。

@@ -53,8 +53,12 @@ class PreviewPanelView(Gtk.Box):
 
         # 模式/面板切换（整篇 PDF / 片段图 / 帮助面板）：Adw.ToggleGroup 分段
         # 控件（libadwaita 的 toggle group，图标档）。三档纯图标、无文字，
-        # tooltip 兼作无障碍名。presenter 按 active 索引裁决：0/1 是预览内部
-        # 模式，2 会把整个右侧边栏切到帮助面板。恒有一档亮着。
+        # tooltip 兼作无障碍名。presenter 按**档位名**裁决（不按索引）：
+        # help 档切到帮助面板，其余是预览内容模式。恒有一档亮着。
+        #
+        # 用 name 而非索引是硬要求：「AI diff 排版」档是按需增删的（没有 diff
+        # 结果时不该出现一个点开无内容的死档），索引会随它漂移。Adw.Toggle 也
+        # 不是 Widget、没有 set_visible，隐藏只能 remove（同侧栏 AI 面板档位）。
         self.mode_switch = Adw.ToggleGroup()
         self.mode_switch.set_valign(Gtk.Align.CENTER)
         self.mode_switch.add(Adw.Toggle(
@@ -108,7 +112,6 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
         self.zoom_out_button.set_tooltip_text(_('Zoom out'))
         self.zoom_out_button.add_css_class('flat')
-        self.zoom_out_button.set_can_focus(False)
         self.toolbar.append(self.zoom_out_button)
 
         # ToggleButton：处于 fit_to_width 模式时呈按下（checked）态，状态由
@@ -117,7 +120,6 @@ class PreviewPanelView(Gtk.Box):
         self.fit_width_button.set_icon_name('double-ended-arrows-horizontal-symbolic')
         self.fit_width_button.set_tooltip_text(_('Fit to Width'))
         self.fit_width_button.add_css_class('flat')
-        self.fit_width_button.set_can_focus(False)
         self.toolbar.append(self.fit_width_button)
 
         self.zoom_level_label = Gtk.Label()
@@ -125,7 +127,6 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_level_label.set_halign(Gtk.Align.CENTER)
         self.zoom_level_button = Gtk.MenuButton()
         self.zoom_level_button.set_popover(PopoverManager.create_popover('preview_zoom_level').view)
-        self.zoom_level_button.set_can_focus(False)
         self.zoom_level_button.set_tooltip_text(_('Set zoom level'))
         self.zoom_level_button.add_css_class('flat')
         self.zoom_level_button.set_child(self.zoom_level_label)
@@ -134,7 +135,6 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_in_button = Gtk.Button(icon_name='zoom-in-symbolic')
         self.zoom_in_button.set_tooltip_text(_('Zoom in'))
         self.zoom_in_button.add_css_class('flat')
-        self.zoom_in_button.set_can_focus(False)
         self.toolbar.append(self.zoom_in_button)
 
         # 放大镜开关：开启时按住左键显示放大镜；关闭则左键不触发放大镜
@@ -144,20 +144,17 @@ class PreviewPanelView(Gtk.Box):
         self.magnifier_toggle.set_tooltip_text(
             _('Magnifier: hold left mouse button on the PDF to zoom'))
         self.magnifier_toggle.add_css_class('flat')
-        self.magnifier_toggle.set_can_focus(False)
         self.toolbar.append(self.magnifier_toggle)
 
         self.recolor_pdf_toggle = Gtk.ToggleButton()
         self.recolor_pdf_toggle.set_icon_name('color-symbolic')
         self.recolor_pdf_toggle.set_tooltip_text(_('Match theme colors'))
         self.recolor_pdf_toggle.add_css_class('flat')
-        self.recolor_pdf_toggle.set_can_focus(False)
         self.toolbar.append(self.recolor_pdf_toggle)
 
         self.external_viewer_button = Gtk.Button(icon_name='web-browser-symbolic')
         self.external_viewer_button.set_tooltip_text(_('Open in external PDF viewer'))
         self.external_viewer_button.add_css_class('flat')
-        self.external_viewer_button.set_can_focus(False)
         self.toolbar.append(self.external_viewer_button)
 
         # 弹出为独立窗口：多显示器场景下把预览拖到另一块屏。图标 window-new-symbolic
@@ -166,7 +163,6 @@ class PreviewPanelView(Gtk.Box):
         self.detach_button = Gtk.Button(icon_name='window-new-symbolic')
         self.detach_button.set_tooltip_text(_('Detach preview to separate window'))
         self.detach_button.add_css_class('flat')
-        self.detach_button.set_can_focus(False)
         self.toolbar.append(self.detach_button)
 
         # 分段控件最后 append：工具栏最右端（detach 之后）。
@@ -197,3 +193,24 @@ class PreviewPanelView(Gtk.Box):
         self.target_bar_placeholder.set_hexpand(True)
         self.append(self.target_bar_placeholder)
 
+
+    def set_diff_toggle_visible(self, visible):
+        '''显示/隐藏「AI diff 排版」档位。
+
+        只有存在 diff 结果时才有这个内容可切，所以档位跟着结果出现/消失
+        ——不留一个点开什么都没有的死档位（同侧栏 AI 面板档位的取舍）。
+        Adw.Toggle 是纯 GObject、没有 set_visible，隐藏只能 remove；而
+        Adw.ToggleGroup 没有 insert，所以重新出现时只能追加到末尾：顺序
+        变成 pdf / snippet / help / diff。位置在「切到帮助」之后纯属外观，
+        档位本身靠 name 裁决，不影响行为。
+        '''
+        toggle = self.mode_switch.get_toggle_by_name('diff')
+        if visible and toggle is None:
+            # view-dual-symbolic 是 Adwaita symbolic/actions 里确有的一张
+            # （双栏对照的语感）；别用 changes-prevent-symbolic——那名字只在
+            # 第三方主题（breeze/HighContrast）里，Adwaita 下会退化成破图标。
+            self.mode_switch.add(Adw.Toggle(
+                name='diff', icon_name='view-dual-symbolic',
+                tooltip=_('Typeset diff of AI edits')))
+        elif not visible and toggle is not None:
+            self.mode_switch.remove(toggle)

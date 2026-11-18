@@ -181,6 +181,10 @@ class PreviewView(Gtk.Box):
         self.toast_overlay.set_vexpand(True)
 
         # 内容容器：持续状态 Banner + 预览卡片 + 提示语上下排列。
+        # 只有 external_pdf_banner 走 Banner——那是**持续**状态（当前显示的
+        # 不是最新 PDF），提示消失后用户就无从得知。AI diff 的"AI 改了几处"
+        # 是瞬时反馈：可重复查看的入口是工具栏分段控件的 diff 档（与结果同
+        # 生命周期），所以用 toast 通知（见 presenter），不占版面。
         self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content_box.set_vexpand(True)
 

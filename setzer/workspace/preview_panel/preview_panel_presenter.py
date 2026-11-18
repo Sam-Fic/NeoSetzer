@@ -160,6 +160,7 @@ class PreviewPanelPresenter(object):
             self._connected_preview.disconnect('position_changed', self.on_position_changed)
             self._connected_preview.disconnect('layout_changed', self.on_layout_changed)
             self._connected_preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
+            self._connected_preview.disconnect('diff_state_changed', self.on_diff_state_changed)
             self._connected_preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
             self._connected_preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
             self._connected_preview.zoom_manager.disconnect('zoom_mode_changed', self.on_zoom_mode_changed)
@@ -177,6 +178,7 @@ class PreviewPanelPresenter(object):
         doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
         if self.document == None or doc_preview is None:
             self.stack.set_visible_child(self.view.empty_placeholder)
+            self.view.set_diff_toggle_visible(False)
             self.update_label()
             self.update_buttons()
             self._detach_target_bar()
@@ -187,6 +189,13 @@ class PreviewPanelPresenter(object):
             if view.get_parent() is None:
                 self.stack.add_child(view)
             self.stack.set_visible_child(view)
+            # diff 档跟着目标文档走：切到没有 diff 的文档时档位消失，模式
+            # 若还停在 diff 就必须落回 pdf（否则档位灭了但内容还是 diff PDF
+            # —— 且那个 PDF 已随文档切换被替换掉了）。
+            if self.mode == 'diff' and doc_preview.diff_result is None:
+                self.mode = 'pdf'
+                self._sync_mode_switch()
+            self.view.set_diff_toggle_visible(doc_preview.diff_result is not None)
             self.update_label()
             self.update_buttons()
             self.update_zoom_level()
@@ -200,11 +209,31 @@ class PreviewPanelPresenter(object):
                 doc_preview.connect('position_changed', self.on_position_changed)
                 doc_preview.connect('layout_changed', self.on_layout_changed)
                 doc_preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
+                doc_preview.connect('diff_state_changed', self.on_diff_state_changed)
                 doc_preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
                 doc_preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
                 doc_preview.zoom_manager.connect('zoom_mode_changed', self.on_zoom_mode_changed)
                 self._connected_preview = doc_preview
                 self._attach_target_bar(view)
+
+    def on_diff_state_changed(self, preview):
+        '''diff 结果出现/消失：维护档位可见性，并在必要时从 diff 档落回。
+
+        三种情形分开处理，别混成一条「不在 diff 视图就回 pdf」：
+        * 结果没了（用户手改、文档重置）→ 档位移除 + 落回 pdf；
+        * 结果还在但视图被顶回正式 PDF（新一轮构建到达时 preview 会自动
+          干净地落回）→ 档位保留、模式落回 pdf，用户可以再切回去；
+        * 正常在 diff 视图里（show_diff_pdf 自己发的这条）→ 什么都不做。
+        '''
+        available = preview.diff_result is not None
+        self.view.set_diff_toggle_visible(available)
+        if self.mode != 'diff':
+            return
+        if not available:
+            self.set_mode('pdf')
+        elif not preview.showing_diff_pdf:
+            self.mode = 'pdf'
+            self._sync_mode_switch()
 
     def _ensure_preview_toolchain(self, document):
         '''预览目标没有工具链（也就没有 PreviewView）时补挂一次。
@@ -242,39 +271,95 @@ class PreviewPanelPresenter(object):
         self.set_mode('pdf' if self.mode == 'snippet' else 'snippet')
 
     def set_mode(self, mode):
-        '''切换侧栏的展示对象（模式是会话级的，不持久化）。'''
+        '''切换侧栏的展示对象（模式是会话级的，不持久化）。
+
+        'diff' 比 'pdf'/'snippet' 窄一档：它不换 stack 子页（与 'pdf' 共用
+        同一个 PDF 视图），只是让那个 Preview 以覆盖方式加载 diff 排版 PDF，
+        所以**不**走 set_preview_document（那会重挂工具链、切 stack 子页）。
+        缺 diff 结果时静默落回 pdf——档位理论上不该出现，但信号时序里可能
+        先到一步（例如结果刚被清、档位还没被移除）。
+        '''
+        if mode == 'diff':
+            if not self._diff_available():
+                mode = 'pdf'
+            else:
+                # 档位可能还没建起来（面板刚连上这份文档、或结果是在没有
+                # 面板连接时送达的）：先补上，否则下面的 _sync_mode_switch
+                # 找不到 diff 档会把它降级回 pdf。
+                self.view.set_diff_toggle_visible(True)
         if mode == self.mode:
             return
+        previous = self.mode
         self.mode = mode
         self._sync_mode_switch()
+        if mode == 'diff':
+            preview = self._target_preview()
+            if preview is not None:
+                preview.show_diff_pdf()
+            if preview is None or not preview.showing_diff_pdf:
+                # diff PDF 打不开（被 phitex clean 掉/损坏）：落回 pdf，
+                # 别让亮着的档位说谎。
+                self.mode = 'pdf'
+                self._sync_mode_switch()
+            self._sync_mode_action_state()
+            self.workspace.actions.update_actions()
+            return
+        if previous == 'diff':
+            # 离开 diff 视图：切回正式 PDF。diff **结果**保留——用户只是
+            # 去看别的内容，不是放弃审阅；放弃走横幅上的 Dismiss。
+            preview = self._target_preview()
+            if preview is not None:
+                preview.show_main_pdf()
         self.set_preview_document()
         self._sync_mode_action_state()
-        # PDF 专属 action 的启用状态跟随模式，交回 actions 模块统一裁决。
         self.workspace.actions.update_actions()
 
+    def _diff_available(self):
+        '''当前预览目标是否有一份可切换查看的 diff 结果。'''
+        preview = self._target_preview()
+        return preview is not None and preview.diff_result is not None
+
+    def _target_preview(self):
+        '''预览目标文档的 Preview（多文件工程里是 root 的那份）。
+
+        刻意用 get_preview_target_document 而非 self.document：片段模式下
+        self.document 是正在编辑的子文件，而 diff 挂在产出整篇 PDF 的那份
+        文档上（与 'pdf' 模式同一目标）。'''
+        document = self.workspace.get_preview_target_document()
+        return getattr(document, 'preview', None) if document is not None else None
+
     def _sync_mode_switch(self):
+        '''把 self.mode 落到分段控件上（按**档位名**定位，不按索引）。
+
+        name 定位是刚需：diff 档按需增删，索引会随它漂移。set_active_name
+        对未知名字会打 CRITICAL 并拒绝赋值，所以档位不存在时先降级到 pdf
+        ——这条同时兜住"结果已清但档位还没被移除"的短暂窗口。
+        '''
+        name = self.mode
+        if self.view.mode_switch.get_toggle_by_name(name) is None:
+            name = 'pdf'
+            self.mode = 'pdf'
         self._syncing_mode_switch = True
         try:
-            self.view.mode_switch.set_active(0 if self.mode == 'pdf' else 1)
+            self.view.mode_switch.set_active_name(name)
         finally:
             self._syncing_mode_switch = False
 
     def _on_mode_switch_changed(self, group, parameter):
         if self._syncing_mode_switch:
             return
-        active = group.get_active()
-        if active >= group.get_n_toggles():
-            # 全灭兜底：get_active() 是 guint 索引，无选中时返回 G_MAXUINT
-            # 而非负数（GIR 文档：索引超出档位数即未选中），必须按档位数判界。
-            # ToggleGroup 允许全灭，这里拨回当前档，恒有一档亮着。
+        name = group.get_active_name()
+        if name is None:
+            # 全灭兜底：get_active_name() 无选中时返回 None（get_active() 则
+            # 返回 G_MAXUINT）。ToggleGroup 允许全灭，拨回当前档，恒有一档亮。
             self._sync_mode_switch()
             return
-        if active == 2:
-            # 第三档：整个右侧边栏切到帮助面板（合并的原 switch to help）。
+        if name == 'help':
+            # help 档：整个右侧边栏切到帮助面板（合并的原 switch to help）。
             self._sync_mode_switch()
             self.workspace.set_show_preview_or_help(False, True)
             return
-        self.set_mode('pdf' if active == 0 else 'snippet')
+        self.set_mode(name)
 
     def _sync_mode_action_state(self):
         action = self.workspace.actions.actions.get('toggle-preview-snippet-mode')
@@ -480,7 +565,7 @@ class PreviewPanelPresenter(object):
                     current = 1
                 self.view.page_spin.set_range(1, max(total, 1))
                 self.view.page_spin.set_value(current)
-                self.view.paging_of_label.set_text(_('of ') + str(total))
+                self.view.paging_of_label.set_text(_('of {total}').format(total=total))
             else:
                 self.view.paging_of_label.set_text(_('No preview'))
 
@@ -614,36 +699,37 @@ class PreviewPanelPresenter(object):
 
     def _sync_help_switch(self, showing_help):
         '''同步帮助面板的分段控件：帮助面板显示时亮 help 档，否则亮当前
-        预览模式档。set_active 触发的 notify 回调由 _syncing_help_switch
-        压掉，不会反向触发切换。'''
+        预览模式档。set_active_name 触发的 notify 回调由 _syncing_help_switch
+        压掉，不会反向触发切换。
+
+        按 name 定位（与预览那组一致）：帮助面板这组固定三档、没有 diff 档，
+        所以 diff 模式归到 pdf 档——diff 视图本来就是整篇 PDF 的另一种加载。'''
         self._syncing_help_switch = True
         try:
             if showing_help:
-                self.main_window.help_panel.mode_switch.set_active(2)
+                name = 'help'
             else:
-                self.main_window.help_panel.mode_switch.set_active(
-                    0 if self.mode == 'pdf' else 1)
+                name = 'pdf' if self.mode in ('pdf', 'diff') else 'snippet'
+            self.main_window.help_panel.mode_switch.set_active_name(name)
         finally:
             self._syncing_help_switch = False
 
     def _on_help_switch_changed(self, group, parameter):
         '''帮助面板分段控件的档位变化。
 
-        help 档（index 2）：已在此面板，同步回亮即可。pdf/snippet 档：把
-        整个右侧边栏切回预览，并设好预览内部模式。若这次变化是 _sync_help_switch
-        自己写出的（_syncing_help_switch），直接忽略。'''
+        help 档：已在此面板，同步回亮即可。pdf/snippet 档：把整个右侧边栏
+        切回预览，并设好预览内部模式。若这次变化是 _sync_help_switch 自己
+        写出的（_syncing_help_switch），直接忽略。'''
         if self._syncing_help_switch:
             return
-        active = group.get_active()
-        if active == 2:
-            self._sync_help_switch(True)
-            return
-        if active >= group.get_n_toggles():
-            # 全灭态（G_MAXUINT，非负数）兜底：拨回 help 档，恒有一档亮着。
+        name = group.get_active_name()
+        if name is None or name == 'help':
+            # 全灭兜底（get_active_name 无选中返回 None）与 help 档同一处理：
+            # 拨回 help 档，恒有一档亮着。
             self._sync_help_switch(True)
             return
         # 切回预览并选中对应内部模式；set_mode 内部会 _sync_mode_switch。
-        self.set_mode('pdf' if active == 0 else 'snippet')
+        self.set_mode('pdf' if name == 'pdf' else 'snippet')
         self.workspace.set_show_preview_or_help(True, False)
 
     def _sync_pop_state(self):

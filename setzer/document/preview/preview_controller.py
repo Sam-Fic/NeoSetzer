@@ -315,6 +315,40 @@ class PreviewController(object):
             self._current_tooltip = tooltip
             self.view.drawing_area.set_tooltip_text(tooltip)
 
+    def _diff_change_at(self, x_offset, y_offset):
+        '''diff 视图下命中测试：点击点落在哪个 AI 改动矩形里。
+
+        坐标链与反向同步同源：canvas 偏移 → 未旋转页 pt（y 向下）。矩形
+        是字形紧贴盒，直接点字形才命中——向外扩 2pt 的容差，让"点到文字
+        边缘"也算数，不至于要点得像素级精准。多个矩形重叠时取第一个命中。
+        '''
+        preview = self.preview
+        if preview.layout is None:
+            return None
+        window_width = self.view.get_viewport_width()
+        data = preview.layout.get_page_number_and_offsets_by_document_offsets(
+            x_offset, y_offset, window_width)
+        if data is None:
+            return None
+        page_0based, x_pt, y_pt = data
+        tolerance = 2.0
+        for rectangle in preview.diff_rectangles:
+            if rectangle['page'] - 1 != page_0based:
+                continue
+            left = rectangle['h'] - tolerance
+            right = rectangle['h'] + rectangle['width'] + tolerance
+            top = rectangle['v'] - rectangle['height'] - tolerance
+            bottom = rectangle['v'] + tolerance
+            if left <= x_pt <= right and top <= y_pt <= bottom:
+                return preview.get_diff_change_by_n(rectangle.get('n'))
+        return None
+
+    def _show_diff_change_dialog(self, change):
+        '''展示该处改动的 before/after 详情。延迟导入：弹窗模块链进 Adw，
+        而本模块在部分无显示测试里被 import，顶层导入会拖累它们。'''
+        from setzer.document.preview.diff_change_dialog import show_diff_change_dialog
+        show_diff_change_dialog(self.view, change)
+
     def _get_link_at(self, x_offset, y_offset):
         '''返回鼠标位置命中的链接 [rect, target, type]，未命中返回 None。
 
@@ -375,7 +409,7 @@ class PreviewController(object):
                     # 直接打开外部 / 本地链接。
                     tooltip = _('Hold Ctrl and click to open this link')
                 elif link[2] == 'goto':
-                    link_target = _('Go to page ') + str(link[1].page_num)
+                    link_target = _('Go to page {n}').format(n=link[1].page_num)
                 break
 
         self._set_hover_feedback(cursor, link_target, tooltip)
@@ -409,6 +443,14 @@ class PreviewController(object):
                     # 普通点击不再直接打开 URI 链接，避免误触。提示用户
                     # 按住 Ctrl 再点击。
                     self._show_ctrl_hint_toast()
+                    return True
+            # diff 视图：点击命中 AI 改动矩形 → 详情弹窗。链接优先级更高
+            # （上面已判），弹窗又优先于放大镜/拖动选择——高亮区域内的点击
+            # 语义是"审阅这一处"，误入选择模式反而是意外。
+            if self.preview.showing_diff_pdf:
+                change = self._diff_change_at(x_offset, y_offset)
+                if change is not None:
+                    self._show_diff_change_dialog(change)
                     return True
             else:
                 # 无链接、无修饰键的普通左键按下：放大镜开启时进入放大镜

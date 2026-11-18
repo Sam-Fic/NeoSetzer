@@ -36,6 +36,7 @@ import setzer.document.build_system.builder.builder_backward_sync as builder_bac
 import setzer.document.build_system.phitex_session.phitex_session as phitex_session
 import setzer.document.build_system.query.query as query
 from setzer.document.change_highlight.change_highlight import ChangeHighlight
+from setzer.document.ai_diff.ai_diff import AiDiff
 from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers import toast
 from setzer.helpers.observable import Observable
@@ -57,6 +58,8 @@ class BuildSystem(Observable):
         self.active_query = None
         # 增量编译的改动高亮（仅 PhiTeX live 路径实际会用到，见 parse_result）。
         self.change_highlight = ChangeHighlight(document)
+        # AI 编辑的 PDF diff 显示（PhiTeX session compare，仅 PhiTeX live 路径）。
+        self.ai_diff = AiDiff(document, self)
         # is_phitex_live_build 的 1s 缓存，见该方法与 invalidate_phitex_live_cache。
         self._phitex_live_cache = None
         # 相关偏好（latex_interpreter / phitex_live_build）一改就作废缓存，
@@ -204,6 +207,9 @@ class BuildSystem(Observable):
         # 在途的改动高亮查询结束时用 idle_add 回主线程动 preview，而 preview 正
         # 随文档销毁——先立牌子让它自己放弃（见 ChangeHighlight.shutdown）。
         self.change_highlight.shutdown()
+        # AiDiff 同理（在途 compare 的回调也走 idle_add），并顺手停掉
+        # JOB-diff 旁路构建——它常驻 watch 内存，watch 本身可能还要留。
+        self.ai_diff.shutdown()
         try:
             self.settings.disconnect('settings_changed', self.invalidate_phitex_live_cache)
         except Exception:
@@ -496,6 +502,10 @@ class BuildSystem(Observable):
                     # 闪哪里都等价于没闪。tex_filename 取自构建结果而非当前文档——
                     # 带 % !TEX root 的子文件编译的是根文档。
                     if self.is_phitex_live_build():
+                        # 顺序有讲究：AiDiff 要在 highlight 消费脏行**之前**
+                        # 偷看一眼（不消费）来判断"用户是否在 buffer 里手改
+                        # 过"，以此区分用户编辑与 agent 的磁盘编辑。
+                        self.ai_diff.diff_after_build()
                         self.change_highlight.highlight_after_build(
                             pdf_filename, result_blob['build'].get('tex_filename'))
                 else:

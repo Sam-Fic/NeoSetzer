@@ -120,6 +120,49 @@ class PhitexSession:
             return parts[1]
         return None
 
+    # `session compare`（AI diff 显示的数据源）最低版本。1.0.3 起才从文档
+    # 已有构建 fork 出旁路 diff 构建；更早版本没有这个子命令（1.0.2 实测）。
+    _COMPARE_MIN_VERSION = (1, 0, 3)
+    _supports_compare_cache = None
+
+    @classmethod
+    def version_tuple(cls, version):
+        ''''1.0.4' → (1, 0, 4)；解析不了返回 None。
+
+        只取纯数字段：PhiTeX 的里程碑版本（1.6、1.618）不是每段都是整数，
+        但 1.0.x 区间内是，而 compare 门控只关心能不能到 1.0.3——解析失败
+        一律按"不支持"处理，宁可少显示也不炸。
+        '''
+        if not version:
+            return None
+        parts = version.split('.')
+        numbers = []
+        for part in parts[:3]:
+            if not part.isdigit():
+                return None
+            numbers.append(int(part))
+        return tuple(numbers)
+
+    @classmethod
+    def supports_compare(cls):
+        '''已装的 phitex 是否带 `session compare` 子命令。
+
+        每次构建后都会问一次，而两条探测路径都是子进程（~4ms），故按进程
+        生命周期缓存。先走版本号比较（一条命令就能判），版本读不出来再退
+        回 `session compare --help` 的退出码直接探测——版本字符串不可靠时
+        以实际能力为准。
+        '''
+        if cls._supports_compare_cache is not None:
+            return cls._supports_compare_cache
+        version = cls.version_tuple(cls.installed_version())
+        if version is not None:
+            supported = version >= cls._COMPARE_MIN_VERSION
+        else:
+            returncode, _ = cls.run('session', 'compare', '--help')
+            supported = returncode == 0
+        cls._supports_compare_cache = supported
+        return supported
+
     @classmethod
     def update_check_enabled(cls):
         '''用户配置里 update-check 是否开启。
@@ -242,6 +285,34 @@ class PhitexSession:
             return None
         return payload.get('problems')
 
+    def compare(self, baseline_path, timeout=_CALL_TIMEOUT_S):
+        '''`session compare <旧版> --json`：diff 排版 + 每 change 的页码/矩形。
+
+        baseline_path 是 AI 发送时的主文件快照（绝对路径）。PhiTeX 接受
+        "一份旧主文件副本"作为版本：diff 时只有主文件文本换成快照，
+        \\input/\\include 的子文件仍读当前版——多文件文档的子文件改动
+        看不出来，这是已知边界。
+
+        返回 (returncode, payload)。退出码沿 PhiTeX 语义：0 成功、1 是 diff
+        构建有 TeX 错误（payload 仍带 changes，只是定位全 null）、3 无 watch、
+        4 请求被拒（payload 形如 {"error": ..., "status": N}）。payload 解析
+        交给 helpers/phitex_compare，这里只负责把 stdout 完整带回。
+        '''
+        returncode, stdout = self._call(
+            self._session_args('compare', '--json', os.path.abspath(baseline_path)),
+            timeout=timeout)
+        return returncode, stdout
+
+    def compare_stop(self):
+        '''结束 agent 的 diff job（JOB-diff 旁路 session 随之销毁）。
+
+        没在 diff 时也不算错（stdout 是 "no agent's diff was running"，
+        exit 0），所以关文档/清横幅时可以无脑调，不用先问状态。
+        '''
+        if self.pid is None:
+            return
+        self._call(self._session_args('compare', '--stop'))
+
     def alive(self):
         '''watch 进程是否还活着。
 
@@ -270,8 +341,13 @@ class PhitexSession:
         return [shutil.which('phitex'), 'session', subcommand,
                 '--session', str(self.pid)] + list(extra)
 
-    def _call(self, command):
-        '''在 worker 线程里同步跑一条 phitex 子命令，返回 (returncode, stdout)。'''
+    def _call(self, command, timeout=_CALL_TIMEOUT_S):
+        '''在 worker 线程里同步跑一条 phitex 子命令，返回 (returncode, stdout)。
+
+        timeout 只在 communicate 上生效（进程起不来/启动阻塞由 Popen 层的
+        异常兜住）。compare 的 diff 构建首跑要 prime + 重排标记文本，远超
+        普通 6ms 子命令，调用方按需放宽。
+        '''
         try:
             process = popen_no_window(
                 command, cwd=os.path.dirname(self.tex_filename) or None,
@@ -280,7 +356,7 @@ class PhitexSession:
         except (FileNotFoundError, OSError):
             return None, None
         try:
-            stdout, _ = process.communicate(timeout=_CALL_TIMEOUT_S)
+            stdout, _ = process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
             process.communicate()
