@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib, Gio
 
 from setzer.helpers import animation_prefs
 from setzer.keyboard_shortcuts import shortcut_tooltips
@@ -86,18 +86,16 @@ class SearchBar(Gtk.SearchBar):
         self._update_counter_margin()
         self.find_row.append(self.entry_overlay)
 
-        self.find_history_button = Gtk.Button()
-        self.find_history_button.set_icon_name('document-open-recent-symbolic')
-        self.find_history_button.set_can_focus(False)
-        self.find_history_button.add_css_class('flat')
-        self.find_history_button.set_tooltip_text(_('Search history'))
+        # 查找历史弹窗：锚定到搜索输入框（原来挂在 find_history_button 上，
+        # 该按钮已收进 ⋮ 菜单；MenuButton 的 menu_model 与自定义 popover 互斥，
+        # 故 popup 改挂 entry_overlay，由菜单里的「Search history」项触发）。
         self.find_history_popup = SearchHistoryPopup()
-        self.find_history_popup.set_parent(self.find_history_button)
-        self.find_history_button.connect('clicked', self._on_find_history_button_clicked)
-        self.find_row.append(self.find_history_button)
+        self.find_history_popup.set_parent(self.entry_overlay)
 
-        # --- match-option toggles (case / regex / whole-word / preserve-case) ---
+        # --- match-option toggles (case / regex / whole-word) ---
         # 与 gedit / GNOME Text Editor 一致的右侧一排开关。
+        # 「保留大小写 / 在选区中搜索 / 搜索历史」三个低频控件收进 ⋮ 菜单
+        # （Gio.Menu 勾选项，见下方 _init_more_menu）。
         options_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         options_box.set_spacing(6)
         options_box.set_valign(Gtk.Align.CENTER)
@@ -129,27 +127,19 @@ class SearchBar(Gtk.SearchBar):
         self.word_toggle.set_tooltip_text(_('Match entire word'))
         options_box.append(self.word_toggle)
 
-        self.preserve_case_toggle = Gtk.ToggleButton()
-        self.preserve_case_toggle.set_child(Gtk.Image(icon_name='keyboard-caps-lock-wide-symbolic'))
-        self.preserve_case_toggle.set_can_focus(False)
-        self.preserve_case_toggle.set_hexpand(False)
-        self.preserve_case_toggle.add_css_class('flat')
-        self.preserve_case_toggle.add_css_class('search-toggle')
-        self.preserve_case_toggle.set_tooltip_text(_('Preserve case'))
-        options_box.append(self.preserve_case_toggle)
-
-        self.selection_toggle = Gtk.ToggleButton()
-        self.selection_toggle.set_child(Gtk.Image(icon_name='edit-select-all-symbolic'))
-        self.selection_toggle.set_can_focus(False)
-        self.selection_toggle.set_hexpand(False)
-        self.selection_toggle.add_css_class('flat')
-        self.selection_toggle.add_css_class('search-toggle')
-        self.selection_toggle.set_tooltip_text(_('Search in selection'))
-        # 常驻按钮，只切换 sensitive（有跨行选区时可用）而不切换 visible：
-        # 显隐会改变查找行的最小宽度，进而撑大编辑器列的最小宽度、挤压预览
-        # 侧栏份额（见 search.Search.__init__ 的说明）。恒占位可保持宽度稳定。
-        self.selection_toggle.set_sensitive(False)
-        options_box.append(self.selection_toggle)
+        # --- overflow menu (⋮): preserve-case / search-in-selection / history ---
+        # 低频选项收进标准 Gio.Menu 勾选菜单（布尔 stateful action 渲染为勾选项），
+        # 与 document_wizard / document_structure 的 MenuButton + ActionGroup 同款。
+        # 位置紧跟 3 个内联开关（归属「选项组」），在 ↑/↓ 导航之前。
+        # 「在选区中搜索」原为常驻占位按钮（显隐会改变查找行 min 宽度、挤压预览
+        # 侧栏份额）；改为菜单 action 后完全不参与布局，约束简化为 set_enabled。
+        self.more_button = Gtk.MenuButton()
+        self.more_button.set_icon_name('view-more-symbolic')
+        self.more_button.set_can_focus(False)
+        self.more_button.add_css_class('flat')
+        self.more_button.set_tooltip_text(_('More options'))
+        self._init_more_menu()
+        options_box.append(self.more_button)
 
         self.find_row.append(options_box)
 
@@ -199,13 +189,11 @@ class SearchBar(Gtk.SearchBar):
 
         self.replace_button = Gtk.Button.new_with_label(_('Replace'))
         self.replace_button.set_can_focus(False)
-        self.replace_button.set_tooltip_text(_('Replace selected result'))
         self.replace_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_button)
 
         self.replace_all_button = Gtk.Button.new_with_label(_('Replace All'))
         self.replace_all_button.set_can_focus(False)
-        self.replace_all_button.set_tooltip_text(_('Replace all results'))
         self.replace_all_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_all_button)
 
@@ -242,8 +230,67 @@ class SearchBar(Gtk.SearchBar):
         else:
             self.find_row.set_margin_bottom(0)
 
-    def _on_find_history_button_clicked(self, button):
-        self._toggle_popover(self.find_history_popup)
+    def _init_more_menu(self):
+        '''构建 ⋮ 按钮的 Gio.Menu 与 action 组。
+
+        actions 暴露给 search.Search：
+        - ``preserve-case`` / ``selection``：布尔 stateful，菜单渲染为勾选项；
+          search.py 读 get_state()、监听 notify::state。
+        - ``selection`` 可 set_enabled（跨行选区判断），菜单项原生置灰。
+        - ``history``：激活后在搜索框下方弹出查找历史 popup。
+          菜单项激活会先关闭菜单 popover，故用 idle 延迟弹出，避免同周期
+          两个 popover 冲突。
+        '''
+        self.search_actions = Gio.SimpleActionGroup()
+
+        self.preserve_case_action = Gio.SimpleAction.new_stateful(
+            'preserve-case', GLib.VariantType.new('b'),
+            GLib.Variant.new_boolean(False))
+        self.search_actions.add_action(self.preserve_case_action)
+
+        self.selection_action = Gio.SimpleAction.new_stateful(
+            'selection', GLib.VariantType.new('b'),
+            GLib.Variant.new_boolean(False))
+        # 初始置灰：沿用原「选区开关未选中跨行选区时不可用」的语义——只有
+        # 跨行选区时 update_selection_toggle_sensitivity 才会启用它。
+        self.selection_action.set_enabled(False)
+        self.search_actions.add_action(self.selection_action)
+
+        self.history_action = Gio.SimpleAction.new('history', None)
+        self.history_action.connect('activate', self._on_history_action_activate)
+        self.search_actions.add_action(self.history_action)
+
+        def make_item(title, action_name, icon_name):
+            item = Gio.MenuItem.new(title, 'search.' + action_name)
+            item.set_icon(Gio.ThemedIcon.new(icon_name))
+            return item
+
+        section_options = Gio.Menu()
+        section_options.append_item(make_item(
+            _('Preserve case'), 'preserve-case', 'keyboard-caps-lock-wide-symbolic'))
+        section_options.append_item(make_item(
+            _('Search in selection'), 'selection', 'edit-select-all-symbolic'))
+
+        section_history = Gio.Menu()
+        section_history.append_item(make_item(
+            _('Search history'), 'history', 'document-open-recent-symbolic'))
+
+        menu = Gio.Menu()
+        menu.append_section(None, section_options)
+        menu.append_section(None, section_history)
+
+        self.more_button.insert_action_group('search', self.search_actions)
+        self.more_button.set_menu_model(menu)
+        popover = self.more_button.get_popover()
+        if popover is not None:
+            popover.add_css_class('menu')
+
+    def _on_history_action_activate(self, action, parameter):
+        GLib.idle_add(self._popup_find_history)
+
+    def _popup_find_history(self):
+        self.find_history_popup.popup()
+        return GLib.SOURCE_REMOVE
 
     def _on_replace_history_button_clicked(self, button):
         self._toggle_popover(self.replace_history_popup)

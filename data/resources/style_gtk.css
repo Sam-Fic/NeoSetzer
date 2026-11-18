@@ -418,11 +418,14 @@ toolbarview > * > * > * {
 /*
  * 预览构建失败回退到旧 PDF 时，右上角的错误图标徽标。
  * 半透明圆角底 + 警告色，悬浮于 PDF 卡片上方，提示用户构建实际失败。
+ * 底色用主题窗口底色而非写死白色：深色模式下徽标随主题变深，
+ * 浮在白色 PDF 页面上仍然可见（原 rgba(255,255,255,.85) 在深色
+ * 模式下与页面同色、近乎隐形）。
  */
 .preview .errorBadge {
     opacity: 0.9;
     -gtk-icon-size: 18px;
-    background: rgba(255, 255, 255, 0.85);
+    background: alpha(@window_bg_color, 0.85);
     border-radius: 999px;
     padding: 3px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
@@ -612,6 +615,21 @@ toolbarview > * > * > * {
     border: none;
     border-bottom: none;
     box-shadow: none;
+}
+
+/*
+ * 搜索/替换历史弹窗（search_history_popup.py）的行内删除按钮：
+ * 默认隐藏，悬停所在行时淡入，保持行内容干净。
+ * 指针落在按钮上时必然处于行内 :hover，不存在「看不见但可点」的空档；
+ * :focus 覆盖键盘导航（Tab 聚焦到按钮时显示）。
+ */
+.search-history-popover row button {
+    opacity: 0;
+    transition: opacity 150ms;
+}
+.search-history-popover row:hover button,
+.search-history-popover row button:focus {
+    opacity: 1;
 }
 
 /*

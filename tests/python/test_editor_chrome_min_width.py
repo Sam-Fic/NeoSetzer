@@ -15,7 +15,8 @@
 
 1. 状态栏标签使用 ellipsize：最小宽度固定为「…」，不随文本/可见性变化；
 2. 搜索栏收起时隐藏整个控件，打开前再显示；
-3. 「在选区中搜索」开关常驻占位，只切 sensitive、不切 visible。
+3. 「在选区中搜索」收进 ⋮ 菜单（Gio.Menu action），完全不参与查找行布局，
+   灵敏度只用 set_enabled 控制、绝不用 set_visible。
 '''
 
 from pathlib import Path
@@ -69,15 +70,19 @@ class TestSearchBarMinWidth(unittest.TestCase):
         self.assertIn('self._schedule_search_view_hide()', self.body[start:end])
         self.assertIn('GLib.timeout_add(', self.body)
 
-    def test_selection_toggle_only_toggles_sensitivity(self):
-        # 显隐会改变查找行的 min 宽度，只允许切 sensitive
+    def test_selection_option_is_menu_action_not_inline_widget(self):
+        # 「在选区中搜索」已收进 ⋮ 菜单（Gio.Menu 布尔 stateful action）。
+        # action 不参与 widget 布局，查找行 min 宽度恒定；仍锁三条不变量：
+        # 1. search.py 不用 set_visible 切换查找行内任何控件（宽度跳变源）；
+        # 2. 灵敏度只经 set_enabled 控制（等价原 set_sensitive）；
+        # 3. 视图里不再有 selection/preserve-case 内联开关控件。
         self.assertNotIn('toggle.set_visible', self.body)
-        self.assertIn('self.view.selection_toggle.set_sensitive(available)',
+        self.assertIn('self.view.selection_action.set_enabled(available)',
                       self.body)
-        self.assertNotIn('self.selection_toggle.set_visible(False)',
-                         self.view_body)
-        self.assertIn('self.selection_toggle.set_sensitive(False)',
-                      self.view_body)
+        self.assertNotIn('self.selection_toggle', self.view_body)
+        self.assertNotIn('self.preserve_case_toggle', self.view_body)
+        self.assertIn('Gio.SimpleAction.new_stateful(', self.view_body)
+        self.assertIn('self.selection_action.set_enabled(False)', self.view_body)
 
 
 if __name__ == '__main__':

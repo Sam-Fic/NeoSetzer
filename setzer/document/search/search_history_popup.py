@@ -1,19 +1,33 @@
 #!/usr/bin/env python3
+# Copyright (C) 2017-present Robert Griesel
 # Copyright (C) 2026-present Sam-Fic
 
 # coding: utf-8
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GObject
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, GObject, Adw
 
 
 class SearchHistoryPopup(Gtk.Popover):
     """Popover showing search/replace history entries.
 
-    Each entry is a clickable row; clicking it emits ``item-selected`` with
-    the entry text. A per-row delete button removes a single entry. A
-    footer button clears the entire history.
+    Each entry is an Adw.ActionRow; activating a row emits ``item-selected``
+    with the entry text. A per-row suffix delete button (hidden until the
+    row is hovered, see ``.search-history-popover`` in style_gtk.css)
+    removes a single entry. The header holds the title plus a compact
+    ``Clear history`` button; an Adw.StatusPage is shown when empty.
+
+    Size: 400px wide; with entries present the popover keeps a ~520px
+    total minimum height via ``set_size_request(400, 460)`` (set in
+    ``populate``; the popover adds ~58px of its own padding), so it no
+    longer collapses when only a few entries are stored. The height guarantee
+    lives on the popover, NOT on the scroller: ``list.boxed-list`` paints the
+    card background over the whole ListBox allocation, so giving the scroller
+    a min height would stretch the card into the empty area below the rows.
+    The surplus space instead falls below the list and shows the plain
+    popover background, while the card only wraps the rows.
     """
 
     __gsignals__ = {
@@ -23,61 +37,95 @@ class SearchHistoryPopup(Gtk.Popover):
 
     def __init__(self):
         super().__init__()
-        self.set_size_request(260, -1)
+        self.add_css_class('search-history-popover')
+        self.set_size_request(400, -1)
         self.set_can_focus(True)
 
+        # 外围留白由 popover 自带 contents padding 提供（原实现即如此，
+        # 无需再加 margin）；spacing=12 对应 --setzer-spacing-md。
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.set_spacing(12)
+
+        # --- header: title + clear ---
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        header.set_spacing(6)
+
+        title = Gtk.Label(label=_('Search history'))
+        title.set_halign(Gtk.Align.START)
+        title.set_hexpand(True)
+        title.add_css_class('heading')
+        header.append(title)
+
+        self._clear_button = Gtk.Button(label=_('Clear history'))
+        self._clear_button.add_css_class('flat')
+        self._clear_button.add_css_class('destructive-action')
+        self._clear_button.set_valign(Gtk.Align.CENTER)
+        self._clear_button.connect('clicked', self._on_clear_clicked)
+        header.append(self._clear_button)
+
+        content.append(header)
+
+        # --- list ---
         self._listbox = Gtk.ListBox()
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         self._listbox.set_activate_on_single_click(True)
         self._listbox.add_css_class('boxed-list')
         self._listbox.connect('row-activated', self._on_row_activated)
 
-        self._empty_label = Gtk.Label(label=_('No history'))
-        self._empty_label.add_css_class('dim-label')
-        self._empty_label.set_margin_top(12)
-        self._empty_label.set_margin_bottom(12)
-
-        self._clear_button = Gtk.Button(label=_('Clear history'))
-        self._clear_button.add_css_class('flat')
-        self._clear_button.add_css_class('destructive-action')
-        self._clear_button.set_visible(False)
-        self._clear_button.connect('clicked', self._on_clear_clicked)
-
         self._scroller = Gtk.ScrolledWindow()
         self._scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self._scroller.set_max_content_height(300)
+        # propagate_natural_height：natural 跟随内容（否则 natural 被钉死、
+        # max_content_height 永不生效）；max 460 封顶，超出后滚动。
+        # 这里不设 min_content_height：保底高度由弹窗自身的 size_request
+        # 负责（见类 docstring），否则 ListBox 卡片底色会铺满空区。
+        self._scroller.set_propagate_natural_height(True)
+        self._scroller.set_max_content_height(460)
         self._scroller.set_child(self._listbox)
+        content.append(self._scroller)
 
-        self._content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._content.append(self._empty_label)
-        self._content.append(self._scroller)
-        self._content.append(self._clear_button)
-        self.set_child(self._content)
+        # --- empty state (ui-guidelines「空状态」：Adw.StatusPage，不留白板) ---
+        self._empty_status = Adw.StatusPage()
+        self._empty_status.add_css_class('compact')
+        self._empty_status.set_icon_name('document-open-recent-symbolic')
+        self._empty_status.set_title(_('No history'))
+        self._empty_status.set_visible(False)
+        content.append(self._empty_status)
 
+        self.set_child(content)
         self._clear_callback = None
 
     def populate(self, items, on_clear=None):
         """Fill the popup with history strings.
 
-        ``items`` is a list of strings (most-recent first). ``on_clear``
-        is called (without arguments) when the user clicks Clear.
+        ``items`` is a list of strings (most-recent first). ``on_clear`` is
+        called (without arguments) when the user clicks Clear.
         """
         self._clear_callback = on_clear
         self._clear_list()
 
         if not items:
-            self._empty_label.set_visible(True)
-            self._scroller.set_visible(False)
-            self._clear_button.set_visible(False)
+            self._show_empty_state()
             return
 
-        self._empty_label.set_visible(False)
+        # 有条目时弹窗整体保底 ~520px 总高（请求 460 + popover 自身内边距
+        # ~58，实测总高 518）。列表卡片保持自然高，盈余空间落在列表下方、
+        # 显示弹窗背景，而非把卡片撑进空区。
+        self.set_size_request(400, 460)
         self._scroller.set_visible(True)
         self._clear_button.set_visible(True)
+        self._empty_status.set_visible(False)
 
         for text in items:
             row = self._make_row(text)
             self._listbox.append(row)
+
+    def _show_empty_state(self):
+        '''无条目：隐藏列表与 Clear，显示 StatusPage 空状态。'''
+        # 空状态内容矮，取消高度保底，避免弹窗下缘留大段空区。
+        self.set_size_request(400, -1)
+        self._scroller.set_visible(False)
+        self._clear_button.set_visible(False)
+        self._empty_status.set_visible(True)
 
     def _clear_list(self):
         child = self._listbox.get_first_child()
@@ -87,22 +135,11 @@ class SearchHistoryPopup(Gtk.Popover):
             child = next_child
 
     def _make_row(self, text):
-        row = Gtk.ListBoxRow()
-        row_text = text.replace('\n', ' ')
-        if len(row_text) > 60:
-            row_text = row_text[:57] + '…'
-
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        box.set_margin_start(12)
-        box.set_margin_end(6)
-        box.set_margin_top(4)
-        box.set_margin_bottom(4)
-
-        label = Gtk.Label(label=row_text)
-        label.set_halign(Gtk.Align.START)
-        label.set_hexpand(True)
-        label.set_ellipsize(3)  # PANGO_ELLIPSIZE_END
-        box.append(label)
+        row = Adw.ActionRow()
+        row.set_activatable(True)
+        # ActionRow 标题自带 ellipsize，无需原 60 字手动截断；
+        # 换行符压平为单行显示，row._text 仍保留原文供信号使用。
+        row.set_title(text.replace('\n', ' '))
 
         delete_btn = Gtk.Button()
         delete_btn.set_icon_name('window-close-symbolic')
@@ -110,9 +147,8 @@ class SearchHistoryPopup(Gtk.Popover):
         delete_btn.set_can_focus(False)
         delete_btn.set_tooltip_text(_('Remove from history'))
         delete_btn.connect('clicked', self._on_delete_clicked, row)
-        box.append(delete_btn)
+        row.add_suffix(delete_btn)
 
-        row.set_child(box)
         row._text = text
         return row
 
@@ -125,9 +161,7 @@ class SearchHistoryPopup(Gtk.Popover):
         self.emit('item-deleted', getattr(row, '_text', ''))
         self._listbox.remove(row)
         if self._listbox.get_first_child() is None:
-            self._empty_label.set_visible(True)
-            self._scroller.set_visible(False)
-            self._clear_button.set_visible(False)
+            self._show_empty_state()
 
     def _on_clear_clicked(self, button):
         if callable(self._clear_callback):

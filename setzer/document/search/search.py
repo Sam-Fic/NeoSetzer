@@ -78,16 +78,19 @@ class Search(Observable):
         self.view.case_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.regex_toggle.connect('toggled', self.on_match_option_toggled)
         self.view.word_toggle.connect('toggled', self.on_match_option_toggled)
-        self.view.preserve_case_toggle.connect('toggled', self.on_match_option_toggled)
+        # 保留大小写收进 ⋮ 菜单：布尔 stateful action，状态变化仍走同一 handler
+        #（handler 只读 3 个内联开关，preserve-case 的 notify 触发它无副作用）。
+        self.view.preserve_case_action.connect('notify::state', self.on_match_option_toggled)
         self._replace_mode_handler = self.view.replace_mode_button.connect('toggled', self.on_replace_mode_toggled)
-        self._selection_toggle_handler = self.view.selection_toggle.connect('toggled', self.on_selection_toggle_toggled)
+        self._selection_action_handler = self.view.selection_action.connect('notify::state', self.on_selection_state_changed)
         self.document.connect('cursor_position_changed', self.on_selection_might_have_changed)
 
         self._search_in_selection = False
         self._selection_start = None
         self._selection_end = None
 
-        # 历史 popup 信号连接
+        # 查找历史 popup：条目选择/删除/显示前填充信号。弹窗本身由视图内
+        # ⋮ 菜单的 history action 触发（find_history_button 已移除），此处只挂数据信号。
         find_popup = self.view.find_history_popup
         find_popup.connect('item-selected', self._on_find_history_selected)
         find_popup.connect('item-deleted', self._on_find_history_deleted)
@@ -174,8 +177,13 @@ class Search(Observable):
         # 重新执行当前搜索（若搜索框非空），刷新高亮与计数。
         self.on_search_entry_changed(self.view.entry)
 
-    def on_selection_toggle_toggled(self, toggle_button=None):
-        if toggle_button.get_active():
+    def on_selection_state_changed(self, action=None, gparam=None):
+        '''⋮ 菜单「在选区中搜索」勾选项变化。
+
+        语义与原 toggle 一致：勾上时记录跨行选区边界（无选区则回退为未勾选），
+        取消勾选时清空选区限制，最后重跑搜索刷新高亮与计数。
+        '''
+        if action.get_state().get_boolean():
             buffer = self.document.source_buffer
             if buffer.get_has_selection():
                 start, end = buffer.get_selection_bounds()
@@ -183,7 +191,9 @@ class Search(Observable):
                 self._selection_end = end.get_offset()
                 self._search_in_selection = True
             else:
-                toggle_button.set_active(False)
+                # 无选区可限定：回退状态。set_state 会再次触发 notify，
+                # 但第二次进来时 state 已为 False，走 else 分支，不会递归。
+                action.set_state(GLib.Variant.new_boolean(False))
                 self._search_in_selection = False
                 self._selection_start = None
                 self._selection_end = None
@@ -204,19 +214,19 @@ class Search(Observable):
     def update_selection_toggle_sensitivity(self):
         '''「在选区中搜索」只在跨行选区时可用。
 
-        注意：只切 sensitive，不切 visible。按钮显隐会改变查找行的最小宽度，
-        而编辑器列的最小宽度会参与 Adw.OverlaySplitView 的「总宽 − 内容最小宽」
-        封顶计算——那会在选中文字时把预览侧栏压窄，表现为预览宽度跳变、不再
-        跟随设置里的占比。按钮常驻占位可保证宽度恒定。
+        选项已收进 ⋮ 菜单（Gio.Menu action），故用 set_enabled 置灰——action
+        完全不参与 widget 布局，原「只切 sensitive 不切 visible 以防查找行
+        min 宽度变化、挤压预览侧栏份额」的宽度问题不复存在，但 set_enabled
+        仍是唯一允许的开关（任何 set_visible 都会重新引入宽度跳变风险）。
         '''
         buffer = self.document.source_buffer
         available = False
         if buffer.get_has_selection():
             start, end = buffer.get_selection_bounds()
             available = start.get_line() != end.get_line()
-        self.view.selection_toggle.set_sensitive(available)
+        self.view.selection_action.set_enabled(available)
         if not available and self._search_in_selection:
-            self.view.selection_toggle.set_active(False)
+            self.view.selection_action.set_state(GLib.Variant.new_boolean(False))
 
     def on_search_close_button_click(self, button_object=None):
         self.on_search_stop()
@@ -277,7 +287,7 @@ class Search(Observable):
             dialog = DialogLocator.get_dialog('replace_confirmation')
             dialog.run(original, replacement, number_of_occurrences, self.search_context)
         else:
-            if self.view.preserve_case_toggle.get_active():
+            if self.view.preserve_case_action.get_state().get_boolean():
                 # preserve-case 必须逐匹配映射替换文本的大小写，GtkSource 原生
                 # replace_all 不支持，故走循环路径（整篇范围）。
                 self._replace_all_in_range(replacement, 0, None)
@@ -351,9 +361,9 @@ class Search(Observable):
 
         规则：匹配文本全大写 → 替换文本全大写；全小写 → 全小写；首字母大写且
         其余小写（Title Case）→ 替换文本首字母大写其余小写；其它情况保持替换
-        文本原样。仅当 preserve-case toggle 激活时生效，否则原样返回。
+        文本原样。仅当 ⋮ 菜单里「保留大小写」勾选时生效，否则原样返回。
         '''
-        if not self.view.preserve_case_toggle.get_active():
+        if not self.view.preserve_case_action.get_state().get_boolean():
             return replacement
         if matched_text.isupper() and matched_text.lower() != matched_text:
             return replacement.upper()
@@ -608,16 +618,16 @@ class Search(Observable):
         self.view.set_search_mode(False)
         self.view.replace_revealer.set_reveal_child(False)
         self.view.entry.set_text('')
-        # handler_block 避免 set_active(False) 触发 on_selection_toggle_toggled
+        # handler_block 避免 set_state(False) 触发 on_selection_state_changed
         # 回调链（该回调会在搜索栏已隐藏后再次调用 on_search_entry_changed，
         # 产生不必要的状态变更）。手动设置 _search_in_selection 等字段即可。
-        # 注意不能在这里隐藏按钮（它常驻占位以保持查找行宽度稳定），只复位
-        # active 与 sensitive 即可。
-        toggle = self.view.selection_toggle
-        toggle.handler_block(self._selection_toggle_handler)
-        toggle.set_active(False)
-        toggle.set_sensitive(False)
-        toggle.handler_unblock(self._selection_toggle_handler)
+        # 选项已收进 ⋮ 菜单，不再有常驻占位按钮，复位 state + enabled 即可
+        #（action 不参与布局，与查找行宽度无关）。
+        action = self.view.selection_action
+        action.handler_block(self._selection_action_handler)
+        action.set_state(GLib.Variant.new_boolean(False))
+        action.handler_unblock(self._selection_action_handler)
+        action.set_enabled(False)
         self._search_in_selection = False
         self._selection_start = None
         self._selection_end = None
