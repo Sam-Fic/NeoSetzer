@@ -129,5 +129,41 @@ class DirectoryResolutionTest(unittest.TestCase):
         self.assertEqual(directory, '/p/build')
 
 
+class RealSynctexOutputContractTest(unittest.TestCase):
+    '''synctex CLI 实测输出契约（2026-11 本机 synctex 1.5，pdflatex 相对/
+    绝对路径与 latexmk -output-directory 三种编译方式验证）：
+
+    - Input 恒为绝对路径，可能带 `./` 段；
+    - .synctex.gz 复制到独立缓存目录后经 -d 查询，Input 仍按编译时的
+      路径解析为绝对路径（gz 头里记录了编译目录，与 gz 所在目录无关）；
+    - -o 指向不存在的 PDF 也能靠 -d 的 <stem>.synctex.gz 命中。
+
+    workspace.jump_to_synctex_position 对 Input 的「绝对路径假设」
+    （isfile / same_file 比较）依赖本契约。'''
+
+    REAL_SUBFILE_OUTPUT = (
+        'This is SyncTeX command line utility, version 1.5\n'
+        'SyncTeX result begin\n'
+        'Output:main.pdf\n'
+        'Input:/tmp/proj/./sub/intro.tex\n'
+        'Line:2\n'
+        'Column:-1\n'
+        'Offset:0\n'
+        'Context:\n'
+        'SyncTeX result end\n')
+
+    def test_real_output_block_parses(self):
+        pos = synctex_query.parse_edit_output(self.REAL_SUBFILE_OUTPUT)
+        self.assertEqual(pos, {'filename': '/tmp/proj/sub/intro.tex',
+                               'line': 2, 'column': None, 'offset': 0})
+
+    def test_parsed_input_matches_document_filename_after_normpath(self):
+        # 反查同文件判定（jump_to_synctex_position）依赖：解析结果
+        # normpath 后必须与文档记录的文件名字符串相等。
+        pos = synctex_query.parse_edit_output(self.REAL_SUBFILE_OUTPUT)
+        self.assertEqual(os.path.normpath(pos['filename']),
+                         os.path.normpath('/tmp/proj/sub/intro.tex'))
+
+
 if __name__ == '__main__':
     unittest.main()

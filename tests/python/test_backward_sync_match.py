@@ -374,34 +374,48 @@ class BackwardBoundaryRedirectTest(unittest.TestCase):
         fake._map_pdf_offset_to_source.assert_called_once()
 
 
-def _jump_to_synctex_position(existing=()):
-    '''取 workspace.jump_to_synctex_position 的真实方法体（不 import GTK 栈）。'''
+def _jump_to_synctex_position(existing=(), realpath_map=None, normcase=None):
+    '''取 workspace.jump_to_synctex_position 的真实方法体（不 import GTK 栈）。
+
+    realpath_map/normcase 供 symlink / Windows 大小写用例注入变体。'''
     source = (ROOT / 'setzer/workspace/workspace.py').read_text(encoding='utf-8')
     tree = ast.parse(source)
     cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
     fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
               and n.name == 'jump_to_synctex_position')
+    if realpath_map is None:
+        realpath_map = {}
+    if normcase is None:
+        normcase = os.path.normcase
     fake_os = SimpleNamespace(path=SimpleNamespace(
-        normpath=os.path.normpath, isfile=lambda path: path in existing))
+        normpath=os.path.normpath, normcase=normcase,
+        isfile=lambda path: path in existing,
+        realpath=lambda path: realpath_map.get(path, path)))
     namespace = {'os': fake_os}
     exec(compile(ast.Module(body=[fn], type_ignores=[]),
                  '<workspace>', 'exec'), namespace)
     return namespace['jump_to_synctex_position']
 
 
-def _fake_document(filename):
+def _fake_document(filename, with_build_system=True):
     events = []
     document = SimpleNamespace(filename=filename, events=events,
                                get_filename=lambda: filename)
-    document.build_system = SimpleNamespace(
-        set_synctex_position=lambda target, position: events.append(
-            ('position', position['line'])))
+    if with_build_system:
+        document.build_system = SimpleNamespace(
+            set_synctex_position=lambda target, position: events.append(
+                ('position', position['line'])))
     document.scroll_cursor_to_center = lambda: events.append(('scroll',))
     return document
 
 
-def _fake_workspace(documents):
+def _fake_workspace(documents, open_documents=None):
+    '''documents：open_document_by_filename 能返回的文档（已开或可新建）；
+    open_documents：workspace.open_documents 里的存活文档，默认与 documents
+    一致。两者分离用于模拟僵尸文档（同文件名但已关闭）。'''
     events = []
+    if open_documents is None:
+        open_documents = list(documents)
     by_name = {document.filename: document for document in documents}
 
     def open_document_by_filename(filename):
@@ -410,6 +424,7 @@ def _fake_workspace(documents):
 
     return SimpleNamespace(
         events=events,
+        open_documents=open_documents,
         set_active_document=lambda document: events.append(
             ('activate', document.filename)),
         open_document_by_filename=open_document_by_filename)
@@ -418,11 +433,16 @@ def _fake_workspace(documents):
 class JumpToSynctexPositionTest(unittest.TestCase):
     '''Ctrl+点击 PDF 的反查落点。
 
-    两个实测过的坑：
+    实测过的坑：
     - 同文件：document 是**预览所属**文档（多文件工程里是 root），用户
       可能正停在子文件标签页。只挪光标不切标签页 = 「点了没反应」。
     - 跨文件：显式设了 root 的工程里，子文件 root_is_set=True / is_root=False，
       旧逻辑据此整条丢弃跳转 —— 「在子文件里点击属于 main 的正文」跳不过去。
+    - 竞态：反查在后台线程查 synctex（≤5s 超时）后经 idle 投递，期间预览
+      所属文档可能已被关闭——僵尸对象不得被 set_active_document。
+    - 路径形态：synctex 1.5 实测 Input 恒为绝对路径但可能带 `./` 段；
+      symlink / Windows 大小写变体须 realpath / normcase 兜底，否则同一
+      文件会开出第二个标签页。
     '''
 
     def test_same_file_activates_tab_before_positioning(self):
@@ -433,6 +453,62 @@ class JumpToSynctexPositionTest(unittest.TestCase):
         self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
         self.assertEqual(main.events, [('position', 42), ('scroll',)])
 
+    def test_dot_slash_input_matches_same_file(self):
+        # synctex edit 的 Input 实测带 `./` 段（如 /p/./main.tex）：
+        # normpath 清理后必须命中同文件分支，而不是落到重开分支。
+        main = _fake_document('/p/main.tex')
+        workspace = _fake_workspace([main])
+        _jump_to_synctex_position({'/p/./main.tex'})(
+            workspace, main, {'filename': '/p/./main.tex', 'line': 8})
+        self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
+        self.assertEqual(main.events, [('position', 8), ('scroll',)])
+
+    def test_case_insensitive_path_hits_same_file(self):
+        # Windows 大小写路径变体（normcase 在 POSIX 上是恒等，注入 lower
+        # 模拟）：归一后命中同文件分支，不开重复标签。
+        main = _fake_document('/p/main.tex')
+        workspace = _fake_workspace([main])
+        _jump_to_synctex_position({'/p/MAIN.tex'}, normcase=str.lower)(
+            workspace, main, {'filename': '/p/MAIN.tex', 'line': 1})
+        self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
+        self.assertEqual(main.events, [('position', 1), ('scroll',)])
+
+    def test_same_file_via_realpath_fallback(self):
+        # 文档经 symlink 打开（记录链接形式路径），synctex 返回真实路径：
+        # normpath/normcase 都不同，realpath 必须兜底命中同文件分支。
+        main = _fake_document('/p/link/main.tex')
+        workspace = _fake_workspace([main])
+        _jump_to_synctex_position(
+            {'/p/real/main.tex'},
+            realpath_map={'/p/link/main.tex': '/p/real/main.tex'})(
+                workspace, main, {'filename': '/p/real/main.tex', 'line': 6})
+        self.assertEqual(workspace.events, [('activate', '/p/link/main.tex')])
+        self.assertEqual(main.events, [('position', 6), ('scroll',)])
+
+    def test_same_file_without_build_system_still_activates(self):
+        # 会话恢复的轻量文档可能尚未挂工具链：仍要切标签页 + 滚动到原
+        # 光标，只是不定位（与跨文件分支的无工具链行为对称）。
+        main = _fake_document('/p/main.tex', with_build_system=False)
+        workspace = _fake_workspace([main])
+        _jump_to_synctex_position()(workspace, main,
+                                    {'filename': '/p/main.tex', 'line': 9})
+        self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
+        self.assertEqual(main.events, [('scroll',)])
+
+    def test_closed_document_is_reopened_not_activated(self):
+        # 僵尸文档（同文件名但已从 open_documents 移除）：不得 activate，
+        # 落到按文件名重开的分支——文件还在就重开标签并定位。
+        zombie = _fake_document('/p/main.tex')
+        child = _fake_document('/p/chapter.tex')
+        reopened = _fake_document('/p/main.tex')
+        workspace = _fake_workspace([child, reopened], open_documents=[child])
+        _jump_to_synctex_position({'/p/main.tex'})(
+            workspace, zombie, {'filename': '/p/main.tex', 'line': 5})
+        self.assertEqual(zombie.events, [])
+        self.assertEqual(workspace.events,
+                         [('open', '/p/main.tex'), ('activate', '/p/main.tex')])
+        self.assertEqual(reopened.events, [('position', 5), ('scroll',)])
+
     def test_child_document_jumps_into_root_source(self):
         child = _fake_document('/p/chapter.tex')
         main = _fake_document('/p/main.tex')
@@ -441,9 +517,23 @@ class JumpToSynctexPositionTest(unittest.TestCase):
         workspace = _fake_workspace([child, main])
         _jump_to_synctex_position({'/p/main.tex'})(
             workspace, child, {'filename': '/p/main.tex', 'line': 7})
-        self.assertEqual(workspace.events, [('open', '/p/main.tex')])
+        # main 已打开：realpath 扫描命中，直接激活 + 定位（不开新标签）。
+        self.assertEqual(workspace.events, [('activate', '/p/main.tex')])
         self.assertEqual(main.events, [('position', 7), ('scroll',)])
         self.assertEqual(child.events, [])
+
+    def test_realpath_target_hits_open_document_without_reopen(self):
+        # 反查目标是已打开文档的 symlink 形式路径：realpath 扫描必须命中
+        # 已打开文档并激活定位——绝不能再 open 出同一文件的第二个标签页。
+        child = _fake_document('/p/chapter.tex')
+        main = _fake_document('/p/real/main.tex')
+        workspace = _fake_workspace([child, main])
+        _jump_to_synctex_position(
+            {'/p/link/main.tex'},
+            realpath_map={'/p/link/main.tex': '/p/real/main.tex'})(
+                workspace, child, {'filename': '/p/link/main.tex', 'line': 3})
+        self.assertEqual(workspace.events, [('activate', '/p/real/main.tex')])
+        self.assertEqual(main.events, [('position', 3), ('scroll',)])
 
     def test_missing_target_file_is_ignored(self):
         child = _fake_document('/p/chapter.tex')
@@ -457,10 +547,60 @@ class JumpToSynctexPositionTest(unittest.TestCase):
         child = _fake_document('/p/chapter.tex')
         bare = SimpleNamespace(filename='/p/other.tex',
                                get_filename=lambda: '/p/other.tex')
-        workspace = _fake_workspace([child, bare])
+        # bare 只在 by_name、不在 open_documents：模拟目标未打开、由
+        # open_document_by_filename 新建返回。新建对象可能没有
+        # build_system（如 synctex 指向 .bib / \lstinputlisting 的 .py）。
+        workspace = _fake_workspace([child, bare], open_documents=[child])
         _jump_to_synctex_position({'/p/other.tex'})(
             workspace, child, {'filename': '/p/other.tex', 'line': 1})
-        self.assertEqual(workspace.events, [('open', '/p/other.tex')])
+        self.assertEqual(workspace.events,
+                         [('open', '/p/other.tex'), ('activate', '/p/other.tex')])
+
+
+def _deliver_backward_sync(extra_namespace=None):
+    '''取 preview._deliver_backward_sync 的真实方法体（不 import GTK 栈）。'''
+    source = (ROOT / 'setzer/document/preview/preview.py').read_text(
+        encoding='utf-8')
+    tree = ast.parse(source)
+    cls = next(n for n in tree.body if isinstance(n, ast.ClassDef))
+    fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+              and n.name == '_deliver_backward_sync')
+    namespace = dict(extra_namespace or {})
+    exec(compile(ast.Module(body=[fn], type_ignores=[]),
+                 '<preview>', 'exec'), namespace)
+    return namespace['_deliver_backward_sync']
+
+
+class DeliverBackwardSyncTest(unittest.TestCase):
+    '''反查投递门控：synctex 查询失败（position None）时不发
+    synctex_backward——独立预览窗口监听该码 present 主窗口，没有落点
+    就不该把主窗口抢到前台。'''
+
+    def _run(self, position):
+        events = []
+        workspace = SimpleNamespace(
+            jump_to_synctex_position=lambda document, pos: events.append(
+                ('jump', pos)))
+        preview = SimpleNamespace(
+            document=object(),
+            add_change_code=lambda code: events.append(('code', code)))
+        service_locator = SimpleNamespace(get_workspace=lambda: workspace)
+        namespace = {'ServiceLocator': service_locator}
+        _deliver_backward_sync(namespace)(preview, position,
+                                          ('word', 'ctx', 3, 'pdf line'))
+        return events
+
+    def test_success_jumps_and_notifies_detached_window(self):
+        events = self._run({'filename': '/p/main.tex', 'line': 43})
+        self.assertEqual(events[0], ('jump', {'filename': '/p/main.tex',
+                                              'line': 42, 'word': 'word',
+                                              'context': 'ctx',
+                                              'pdf_line_offset': 3,
+                                              'pdf_line_text': 'pdf line'}))
+        self.assertIn(('code', 'synctex_backward'), events)
+
+    def test_failure_does_not_raise_main_window(self):
+        self.assertEqual(self._run(None), [])
 
 
 if __name__ == '__main__':
