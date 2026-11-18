@@ -31,6 +31,19 @@ ruff check .
 - `_` / `ngettext` 翻译函数由 `setzer.in` 启动时注入 builtins（`builtins._ = trans.gettext`），各模块直接使用属正常写法，勿改成逐文件 import——那会破坏「界面语言偏好优先于系统语言」的机制；
 - 各包 `__init__.py` 里的导入是有意转出口，供其他模块短路径 import。
 
+### 测试
+
+```bash
+meson test -C builddir
+```
+
+两条硬约定（都源于真实事故）：
+
+- **新测试文件必须注册进 `tests/python/meson.build` 的条目表**。`meson test` 只运行已注册的文件——未注册的文件即使提交了也永远不会被执行（历史上曾累计 13 个这样的文件）。
+- **用 `unittest.TestCase` 风格**。套件以 `python3 -m unittest` 运行，pytest 风格的普通类 + `test_` 方法装载不到任何用例、静默跳过（曾因此埋没 `test_git_repository.py` 的 18 个用例）。
+
+测试在无显示环境下运行：GTK 强耦合的逻辑用 `load_method` 按需抽取方法 + 桩命名空间的方式测（范例：`test_frequent_build_ui_feedback.py`），不要在模块级实例化 widget。
+
 ### 翻译文件 diff 优化
 
 `sync-po.sh` 会重排 po 条目并刷新行号引用，导致 `git diff` 展示数千行噪音。

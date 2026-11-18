@@ -19,6 +19,7 @@
 
 import os
 import sys
+import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
@@ -31,7 +32,7 @@ from setzer.vcs.git_repository import (
 )
 
 
-class TestParseStatusPorcelain:
+class TestParseStatusPorcelain(unittest.TestCase):
 
     def test_branch_with_upstream_and_counts(self):
         output = (
@@ -72,7 +73,7 @@ class TestParseStatusPorcelain:
         assert files == []
 
 
-class TestParseLogHistory:
+class TestParseLogHistory(unittest.TestCase):
     def test_multiple_commits_in_log_order(self):
         output = ('abc1234\x1fAdd git panel\x1fAlice\x1f1700000000\n'
                   'def5678\x1fFix typo\x1fBob\x1f1690000000\n')
@@ -96,7 +97,7 @@ class TestParseLogHistory:
         assert commits[0]['timestamp'] == 0
 
 
-class TestParseNumDiff:
+class TestParseNumDiff(unittest.TestCase):
 
     def test_modified_lines(self):
         # 旧 5-7 行（3 行）替换为新 5-8 行（4 行）：全部算 modified（蓝条）
@@ -148,7 +149,7 @@ class TestParseNumDiff:
         assert marks['changed_count'] == 0
 
 
-class TestClassifyGitError:
+class TestClassifyGitError(unittest.TestCase):
     def test_missing_remote_wins_over_credentials(self):
         # 没有远程时 git 同时报 "does not appear to be a git repository" 和
         # "Could not read from remote repository"，应提示配置远程而非凭据。
@@ -165,3 +166,7 @@ class TestClassifyGitError:
     def test_unknown_output_returns_none(self):
         assert classify_git_error('something unexpected', 'push') is None
         assert classify_git_error('', 'commit') is None
+
+
+if __name__ == '__main__':
+    unittest.main()
