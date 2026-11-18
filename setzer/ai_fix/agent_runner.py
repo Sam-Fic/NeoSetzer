@@ -423,8 +423,9 @@ def run_headed_bare(tool_config, cwd, terminal_cmd=None):
     '''裸启动：终端 + 工具 executable（无参数），进入交互 TUI。
 
     供「快速打开 Agent 终端」使用：不预填 prompt，用户在 TUI 里自行输入。
-    所有内置 Agent CLI（opencode / claude / codex / gemini / aider）无参数
-    启动即进入交互模式。终端运行在 host 上，命令由 host shell 解析，
+    所有内置 Agent CLI（opencode / claude / codex / gemini / aider / pi /
+    codebuddy）无参数启动即进入交互模式。终端运行在 host 上，命令由 host
+    shell 解析，
     传裸名 executable 即可（与 run_headed 渲染模板传裸名一致）。
 
     Args:

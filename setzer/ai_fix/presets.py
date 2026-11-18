@@ -28,14 +28,28 @@
 无头模式已移除（安全考虑：Agent 在后台直接修改文件不安全）。
 仅保留有头模式：用户在终端里看到 Agent 的每一步操作。
 
-CLI 调用形式已通过 web 核实（2026-07）：
-  - opencode: TUI `opencode --prompt "{p}"`（初始 prompt 注入 TUI）
-  - claude:   `claude "{p}"`（位置参数=初始 prompt）
-  - codex:    `codex "{p}"`（无 exec=TUI 带初始 prompt）
-  - gemini:   `gemini -i "{p}"`（--prompt-interactive）
+CLI 调用形式已核实（opencode / pi / codebuddy 2026-11 本机 PTY 实测；
+claude / codex / gemini / aider 2026-11 web 核实官方文档，本机未装）：
+  - opencode: TUI `opencode --prompt "{p}"`（初始 prompt 注入 TUI 并自动
+              提交。2026-11 本机实测 2.0.29：自动发送；TUI 开启 bracketed
+              paste（ESC[?2004h），内嵌终端的多行注入按单条消息处理）
+  - claude:   `claude "{p}"`（位置参数=初始 prompt，官方 CLI reference）
+  - codex:    `codex "{p}"`（位置参数=TUI 初始 prompt，官方参考；
+              脚本化一次性运行才用 `codex exec`，本预设走交互 TUI）
+  - gemini:   `gemini -i "{p}"`（--prompt-interactive，初始 prompt 提交后
+              保持交互会话，官方文档）
   - aider:    `aider --message "{p}" --no-auto-commits`（可见终端一次性运行，
               不加 --yes 让用户在终端审批。Aider 的 TUI 无「交互+初始 prompt」flag，
               这是其 CLI 客观限制，故有头为可见一次性运行而非多轮交互）。
+  - pi:       `pi -- "{p}"`（`--` 结束选项解析，其后位置参数即初始 message，
+              TUI 打开即自动提交，不逐行误拆。2026-11 本机实测 pi 1.1.0：
+              初始 prompt 自动发送；TUI 自身开启 bracketed paste
+              （ESC[?2004h），内嵌终端的多行注入按单条消息处理）。
+  - codebuddy: `codebuddy "{p}"`（位置参数=初始 prompt，与 claude 同款。
+              2026-11 本机实测 CodeBuddy Code 2.184.0：首次进某目录弹信任
+              确认（回车选默认「Trust folder only」），确认后初始 prompt
+              自动发送；TUI 开启 bracketed paste，多行注入按单条消息处理。
+              别名 cbc 同用法）。
 """
 
 import copy
@@ -84,6 +98,12 @@ BUILTIN_TOOLS = [
         'headed_template': ['pi', '--', '{prompt}'],
         'builtin': True,
     },
+    {
+        'name': 'codebuddy',
+        'executable': 'codebuddy',
+        'headed_template': ['codebuddy', '{prompt}'],
+        'builtin': True,
+    },
 ]
 
 
@@ -99,6 +119,34 @@ def default_tools():
 def builtin_names():
     '''返回内置预设的 name 列表，供「不可删除」判断使用。'''
     return [t['name'] for t in BUILTIN_TOOLS]
+
+
+def merge_missing_builtins(tools):
+    '''把已保存工具列表中缺失的内置预设补进去（按内置顺序追加到尾部）。
+
+    内置预设不可经 UI 删除（见 builtin_names），保存列表缺某个内置只可能
+    来自旧版本 settings（升级场景：内置清单随版本演进新增，而 ai_fix_tools
+    一旦持久化就会被原样读回）。据此补全是安全的。同名工具以已保存版本
+    为准（内置模板可编辑，不覆盖用户的修改）；用户自定义工具与既有顺序
+    保持不变。
+
+    Args:
+        tools: 已保存的工具列表；非 list（异常落盘）时回退内置预设全量，
+               空列表原样返回（运行时回退与偏好页自愈已覆盖）。
+
+    Returns:
+        list：无缺失时原对象原样返回（调用方据此判断是否需要回写）；
+        有缺失时返回补全后的新列表。
+    '''
+    if not isinstance(tools, list):
+        return default_tools()
+    if not tools:
+        return tools
+    existing = {t.get('name') for t in tools if isinstance(t, dict)}
+    missing = [copy.deepcopy(t) for t in BUILTIN_TOOLS if t['name'] not in existing]
+    if not missing:
+        return tools
+    return list(tools) + missing
 
 
 # 批注预制提示词：选区批注 / 单条直发时可选的指令模板。

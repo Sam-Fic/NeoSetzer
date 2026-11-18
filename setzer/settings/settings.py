@@ -63,6 +63,7 @@ class Settings(Observable):
         else:
             self._migrate_conflicting_shortcut_defaults()
             self._drop_removed_preference_keys()
+            self._merge_missing_builtin_tools()
 
     @staticmethod
     def _migrate_presets_bytes(data):
@@ -345,6 +346,10 @@ class Settings(Observable):
         self.defaults['preferences']['ai_fix_tools'] = default_tools()
         # 内嵌 Agent 终端（侧栏 AI 页，VTE）：关闭或 VTE 缺失时回退外部终端。
         self.defaults['preferences']['ai_fix_embedded_terminal'] = True
+        # AI 编辑后的 PDF diff 显示（PhiTeX session compare）：发送 AI 任务时
+        # 快照正文，构建成功后 diff 出排版结果供审阅。仅 PhiTeX live 路径
+        # 实际生效；其他引擎/旧版 phitex 下静默不做。
+        self.defaults['preferences']['ai_diff_display'] = True
         # 选区批注的预制提示词（内置 4 个 + 用户可扩）：popover 与 AI 页下拉共用。
         from setzer.ai_fix.presets import default_annotation_presets
         self.defaults['preferences']['ai_annotation_presets'] = default_annotation_presets()
@@ -390,15 +395,15 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['find_previous'] = '<Control><Shift>g'
         self.defaults['keyboard_shortcuts']['help'] = 'F1'
         self.defaults['keyboard_shortcuts']['document_structure'] = '<Control><Shift>b'
-        # symbols 不能用 <Control><Shift>s：与 save_as 相同，而 save_as 在
-        # ShortcutControllerApp 中先注册，symbols 永远不会触发。F8 空闲且
-        # 与 F5/F6/F7（构建组）、F10-F12（界面组）同风格。
+        # symbols 不能用 <Control><Shift>s：与 save_as 相同，而 application
+        # accel 同键只能映射一个动作（后注册覆盖），symbols 永远不会触发。
+        # F8 空闲且与 F5/F6/F7（构建组）、F10-F12（界面组）同风格。
         self.defaults['keyboard_shortcuts']['symbols'] = 'F8'
         self.defaults['keyboard_shortcuts']['save_and_build'] = 'F5'
         self.defaults['keyboard_shortcuts']['build'] = 'F6'
         self.defaults['keyboard_shortcuts']['forward_sync'] = 'F7'
         # build_log 不能用 <Control><Shift>l：与 left（插入 \left）相同，
-        # 且 app 控制器在 CAPTURE 阶段消费事件，\left 永远不触发。F4 空闲。
+        # 而同键只能映射一个动作（后注册覆盖），\left 永远不触发。F4 空闲。
         self.defaults['keyboard_shortcuts']['build_log'] = 'F4'
         self.defaults['keyboard_shortcuts']['preview'] = '<Control><Shift>p'
         # 命令面板不使用 Ctrl+Shift+P（预览）或 Ctrl+Shift+K（删除行）；
@@ -441,7 +446,7 @@ class Settings(Observable):
         self.defaults['keyboard_shortcuts']['italic'] = '<Control>i'
         self.defaults['keyboard_shortcuts']['underline'] = '<Control>u'
         # typewriter 不能用 <Control><Shift>t：该键被 reopen_last_closed_document
-        # 占用（浏览器式"重开标签页"惯例，硬编码于 shortcut_controller_app.py）。
+        # 占用（浏览器式"重开标签页"惯例，同为可配置键、见 keyboard_shortcuts）。
         # 改用 <Control><Shift>y（Ctrl+Y 单键是 redo，加 Shift 后空闲）。
         self.defaults['keyboard_shortcuts']['typewriter'] = '<Control><Shift>y'
         self.defaults['keyboard_shortcuts']['emphasized'] = '<Control><Shift>e'
@@ -546,6 +551,26 @@ class Settings(Observable):
         for key in stale:
             del saved[key]
         self.pickle()
+
+    def _merge_missing_builtin_tools(self):
+        '''把新版新增的内置 Agent 工具补进已持久化的 ai_fix_tools。
+
+        ai_fix_tools 一旦持久化，unpickle 会原样读回——旧版本 settings.json
+        的工具列表不含后来加入 BUILTIN_TOOLS 的预设（如 pi），且内置预设
+        不可经 UI 删除，用户永远等不到它出现，只能「重置 AI 设置」。
+        加载时补齐缺失项：同名以已保存版本为准（内置模板可编辑，不覆盖
+        用户的修改），自定义工具与顺序不动；键未持久化过则不处理（get_value
+        直接回退含全量内置的 defaults）。与 _drop_removed_preference_keys
+        同范式：有变更才 pickle。
+        '''
+        saved = self.data.get('preferences')
+        if not isinstance(saved, dict) or 'ai_fix_tools' not in saved:
+            return
+        from setzer.ai_fix.presets import merge_missing_builtins
+        merged = merge_missing_builtins(saved['ai_fix_tools'])
+        if merged is not saved['ai_fix_tools']:
+            saved['ai_fix_tools'] = merged
+            self.pickle()
 
     def add_to_search_history(self, field, text, max_items=15):
         """Add text to search history ('find' or 'replace'). Dupes moved to top."""
