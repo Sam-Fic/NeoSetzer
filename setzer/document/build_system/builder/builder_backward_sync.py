@@ -22,6 +22,7 @@ import subprocess
 import setzer.document.build_system.builder.builder_build as builder_build
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.decode_output import decode_process_output
+from setzer.helpers import synctex_query
 from setzer.helpers.synctex_folder import synctex_folder
 
 
@@ -44,7 +45,11 @@ class BuilderBackwardSync(builder_build.BuilderBuild):
 
         synctex_dir = synctex_folder(self.config_folder, query.tex_filename)
         arguments = ['synctex', 'edit', '-o']
-        arguments.append(str(query.backward_sync_data['page']) + ':' + str(query.backward_sync_data['x']) + ':' + str(query.backward_sync_data['y']) + ':' + os.path.splitext(query.tex_filename)[0] + '.pdf')
+        # PDF 路径映射进查询目录：synctex CLI 优先读 PDF 旁边的 gz，输出
+        # 目录与源码目录重合时影子 gz 会被 phitex 粗记录遮蔽（见 query_pdf_path）。
+        pdf_path = synctex_query.query_pdf_path(
+            os.path.splitext(query.tex_filename)[0] + '.pdf', synctex_dir)
+        arguments.append(str(query.backward_sync_data['page']) + ':' + str(query.backward_sync_data['x']) + ':' + str(query.backward_sync_data['y']) + ':' + pdf_path)
         arguments.append('-d')
         arguments.append(synctex_dir)
         try:

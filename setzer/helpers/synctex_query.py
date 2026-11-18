@@ -57,6 +57,20 @@ def parse_view_output(raw):
     return rectangles
 
 
+def query_pdf_path(pdf_filename, synctex_directory):
+    '''synctex CLI 优先读 PDF 旁边的 .synctex.gz，-d 目录只是回退（实测）。
+    影子 synctex 把活动 gz 装在 synctex_directory，而 PDF 旁边躺着的还是
+    phitex 的粗记录——不处理的话影子 gz 永远被遮蔽。把 -o 的路径映射进
+    查询目录（该文件无需存在，synctex 只用它推导 gz 名），旁边无同名 gz
+    时 CLI 即回退到 -d，读到的就是我们指定的那份。查询目录里没 gz 时
+    原样返回，不影响外部编译/产物目录直查的回退路线。'''
+    if synctex_directory:
+        gz_name = os.path.splitext(os.path.basename(pdf_filename))[0] + '.synctex.gz'
+        if os.path.exists(os.path.join(synctex_directory, gz_name)):
+            return os.path.join(synctex_directory, os.path.basename(pdf_filename))
+    return pdf_filename
+
+
 def query_rectangles(tex_filename, pdf_filename, line, synctex_directory, offset=0,
                      timeout=5):
     '''把 tex_filename 的第 line 行（1-based）换成 PDF 上的矩形列表。
@@ -67,7 +81,8 @@ def query_rectangles(tex_filename, pdf_filename, line, synctex_directory, offset
     '''
     arguments = ['synctex', 'view', '-i',
                  '{}:{}:{}'.format(line, offset, tex_filename),
-                 '-o', pdf_filename, '-d', synctex_directory]
+                 '-o', query_pdf_path(pdf_filename, synctex_directory),
+                 '-d', synctex_directory]
     try:
         kwargs = dict(stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         if sys.platform == 'win32':
@@ -135,7 +150,7 @@ def query_source_position(pdf_filename, page, x, y, synctex_directory, timeout=5
     后台线程跑（subprocess 同步等待）。
     '''
     arguments = ['synctex', 'edit', '-o',
-                 '{}:{}:{}:{}'.format(page, x, y, pdf_filename),
+                 '{}:{}:{}:{}'.format(page, x, y, query_pdf_path(pdf_filename, synctex_directory)),
                  '-d', synctex_directory]
     try:
         kwargs = dict(stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)

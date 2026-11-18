@@ -518,6 +518,11 @@ class Preview(Observable):
         tex_filename = self.document.get_filename()
         if tex_filename is None or self.pdf_filename is None:
             return
+        # 影子 synctex 新鲜度门控：活动 gz 是影子产物但源码已改（指纹不
+        # 匹配）时不产生块选择，避免拿陈旧定位数据高亮错块。
+        build_system = getattr(self.document, 'build_system', None)
+        if build_system is not None and not build_system.synctex_is_fresh():
+            return
         buffer = self.document.source_buffer
         active_lines = buffer.get_text(buffer.get_start_iter(),
                                        buffer.get_end_iter(), True).splitlines(keepends=True)
@@ -1508,6 +1513,13 @@ class Preview(Observable):
         from setzer.helpers import synctex_query
         tex_filename = self.document.get_filename()
         if tex_filename is None or self.pdf_filename is None:
+            return False
+        # 影子 synctex 新鲜度门控：直查路径不经 can_sync，这里自行拦截，
+        # 不拿陈旧影子 gz 跳转到错行。
+        build_system = getattr(self.document, 'build_system', None)
+        if build_system is not None and not build_system.synctex_is_fresh():
+            from setzer.helpers import toast
+            toast.show(_('Sync data is being updated in the background. Try again in a moment.'), timeout=2)
             return False
         directory = synctex_query.synctex_directory_for_source(tex_filename, self.pdf_filename)
         pdf_filename = self.pdf_filename

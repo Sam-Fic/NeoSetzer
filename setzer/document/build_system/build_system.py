@@ -34,6 +34,7 @@ import setzer.document.build_system.builder.builder_build_glossaries as builder_
 import setzer.document.build_system.builder.builder_forward_sync as builder_forward_sync
 import setzer.document.build_system.builder.builder_backward_sync as builder_backward_sync
 import setzer.document.build_system.phitex_session.phitex_session as phitex_session
+import setzer.document.build_system.shadow_synctex.shadow_synctex as shadow_synctex
 import setzer.document.build_system.query.query as query
 from setzer.document.change_highlight.change_highlight import ChangeHighlight
 from setzer.document.ai_diff.ai_diff import AiDiff
@@ -41,6 +42,7 @@ from setzer.document.magic_comments import parse_magic_comments
 from setzer.helpers import toast
 from setzer.helpers.observable import Observable
 from setzer.helpers.sync_debug import sync_debug as _sync_debug
+from setzer.helpers.synctex_folder import synctex_folder
 from setzer.helpers.synctex_line_repair import repair_line
 from setzer.ai_fix import source_blocks
 from setzer.project.build_configuration import ProjectBuildConfiguration
@@ -65,6 +67,11 @@ class BuildSystem(Observable):
         # 相关偏好（latex_interpreter / phitex_live_build）一改就作废缓存，
         # 否则最长要等一秒才反映新引擎（auto_build 与构建命令拼装都读它）。
         self.settings.connect('settings_changed', self.invalidate_phitex_live_cache)
+        # 影子 synctex 开关：关→停运行器并恢复 phitex gz；开→唤醒重跑。
+        self.settings.connect('settings_changed', self._on_shadow_synctex_setting_changed)
+        # synctex_is_fresh 的短 TTL 缓存：mapper 逐行修复会高频问它，
+        # 每次都重算指纹（哈希上百个文件）会把后台线程拖慢。
+        self._synctex_fresh_cache = None
 
         # possible states: idle, ready_for_building
         # building_in_progress, building_to_stop
@@ -212,10 +219,12 @@ class BuildSystem(Observable):
         self.ai_diff.shutdown()
         try:
             self.settings.disconnect('settings_changed', self.invalidate_phitex_live_cache)
+            self.settings.disconnect('settings_changed', self._on_shadow_synctex_setting_changed)
         except Exception:
             pass
         builder = self.builders.get('build_latex')
-        if builder is not None and builder.phitex_session is not None:
+        if builder is not None and (builder.phitex_session is not None
+                                    or builder.shadow_runner is not None):
             threading.Thread(target=builder.stop_phitex_session, daemon=True).start()
 
     def change_build_state(self, state):
@@ -280,12 +289,87 @@ class BuildSystem(Observable):
         self.update_can_sync()
 
     def update_can_sync(self, *params):
+        # 新鲜度重算前作废缓存：影子安装/降级恢复后的这一次必须读最新 sidecar。
+        self._synctex_fresh_cache = None
         self.can_sync = False
-        if self.has_synctex_file and self.document.preview.poppler_document != None:
+        if self.has_synctex_file and self.document.preview.poppler_document != None \
+                and self.synctex_is_fresh():
             self.can_sync = True
         else:
             self.can_sync = False
         self.add_change_code('can_sync_changed', self.can_sync)
+
+    def _shadow_sidecar(self):
+        '''本文档 synctex 缓存目录的来源标记（无则 None）。'''
+        if self.document.filename is None:
+            return None
+        folder = synctex_folder(ServiceLocator.get_config_folder(),
+                                self.document.filename)
+        return shadow_synctex.read_sidecar(folder)
+
+    def synctex_is_fresh(self):
+        '''活动 synctex 是否与当前源码匹配（跳转/选区映射的门控）。
+
+        sidecar 标 shadow 时按指纹比对：影子 gz 生成后源码又改了（一次性
+        phitex 模式下两次手动构建之间）就禁用，直到下一轮构建+影子完成。
+        source='phitex'/无 sidecar 完全沿用现状（True）：phitex live 每次
+        构建都即时复制 gz，行号粗但有修复链兜底，不该被门控拦死。
+        结果缓存 0.5 s：mapper 逐行修复高频调用，指纹哈希不该逐行重算。
+        '''
+        now = time.time()
+        cache = self._synctex_fresh_cache
+        if cache is not None and now - cache[0] < 0.5:
+            return cache[1]
+        value = self._compute_synctex_fresh()
+        self._synctex_fresh_cache = (now, value)
+        return value
+
+    def _compute_synctex_fresh(self):
+        sidecar = self._shadow_sidecar()
+        if not sidecar or sidecar.get('source') != 'shadow':
+            return True
+        stored = sidecar.get('fingerprint')
+        if not stored or self.document.filename is None:
+            return False
+        return stored == shadow_synctex.source_fingerprint(self.document.filename)
+
+    def _on_shadow_synctex_setting_changed(self, settings, change):
+        '''偏好 phitex_shadow_synctex 翻转（含整页重置）时的生命周期。
+
+        关：停运行器、恢复备份的 phitex gz（修复链随之重新生效）；
+        开：上次构建是 phitex 且有 synctex 时立即唤醒重跑，不等下一轮构建。
+        '''
+        if not isinstance(change, tuple) or len(change) != 3:
+            return
+        section, item, _value = change
+        if section != 'preferences' or item not in ('phitex_shadow_synctex', None):
+            return
+        builder = self.builders.get('build_latex')
+        if builder is None:
+            return
+        if not shadow_synctex.setting_enabled():
+            if builder.shadow_runner is not None:
+                builder.shadow_runner.stop()
+                builder.shadow_runner = None
+            if self.document.filename is not None:
+                folder = synctex_folder(ServiceLocator.get_config_folder(),
+                                        self.document.filename)
+                shadow_synctex.restore_phitex(folder, self.document.filename)
+            self.update_can_sync()
+            return
+        if (self.last_build_interpreter == 'phitex' and self.has_synctex_file
+                and self.document.filename is not None):
+            runner = builder.shadow_runner
+            if runner is None or runner.stopped:
+                folder = synctex_folder(ServiceLocator.get_config_folder(),
+                                        self.document.filename)
+                runner = shadow_synctex.ShadowSynctexRunner(
+                    self.document.filename,
+                    builder.last_output_directory,
+                    folder,
+                    on_installed=builder._on_shadow_synctex_installed)
+                builder.shadow_runner = runner
+            runner.notify_dirty()
 
     def forward_sync(self, active_document):
         if not self.can_sync: return
@@ -835,8 +919,12 @@ class BuildSystem(Observable):
         phitex 1.0.2 的 --synctex 行号取自最后一次引擎运行的输入行，标题、
         列表项会成片落到后面某个章节命令上。其它引擎逐节点记录行号，不需要
         也不该二次纠正。没跑过构建（会话恢复后直接点击）时退回当前设置里的
-        引擎判断。
+        引擎判断。影子 synctex 生效（sidecar 标 shadow 且新鲜）时数据已是
+        原生引擎的精确记录，修复链同样停用；降级时返回 True 原样生效。
         '''
+        sidecar = self._shadow_sidecar()
+        if sidecar and sidecar.get('source') == 'shadow' and self.synctex_is_fresh():
+            return False
         interpreter = self.last_build_interpreter
         if interpreter is None:
             interpreter = self.get_effective_interpreter()

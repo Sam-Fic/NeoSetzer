@@ -29,6 +29,7 @@ from operator import itemgetter
 import setzer.document.build_system.builder.builder_build as builder_build
 import setzer.document.build_system.latex_log_parser.latex_log_parser as latex_log_parser
 import setzer.document.build_system.phitex_session.phitex_session as phitex_session
+import setzer.document.build_system.shadow_synctex.shadow_synctex as shadow_synctex
 from setzer.app.service_locator import ServiceLocator
 from setzer.helpers.synctex_folder import synctex_folder
 
@@ -43,6 +44,10 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         # PhiTeX 的增量图活在常驻 watch 进程里，builder 与文档同生命周期，
         # 故 session 挂在 builder 实例上天然做到每文档一个。
         self.phitex_session = None
+        # 影子 synctex 运行器（phitex 呈现 + 原生引擎后台精确定位），
+        # 与 session 同生命周期；最近一次构建的输出目录供开关切换时重建。
+        self.shadow_runner = None
+        self.last_output_directory = None
 
     def get_build_command(self, query, output_directory):
         '''按引擎拼装完整构建命令（含 tex 文件名）。
@@ -114,6 +119,12 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         enable_synctex = query.build_data.get('enable_synctex', True)
         latex_interpreter = query.build_data['latex_interpreter']
         output_directory = self.get_output_directory(query)
+        self.last_output_directory = output_directory
+        # 换到非 phitex 引擎：影子运行器不再有用（原生 gz 由下方 copy 链
+        # 直接覆盖活动位置），收掉避免后台继续跑无谓的原生编译。
+        if latex_interpreter != 'phitex' and self.shadow_runner is not None:
+            self.shadow_runner.stop()
+            self.shadow_runner = None
         try:
             os.makedirs(output_directory, exist_ok=True)
         except OSError:
@@ -171,6 +182,8 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
                 # 编译计数器无限增长 = soft-hang）。
                 print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
                 query.can_sync = False
+            if query.can_sync:
+                self._after_synctex_copy(query, output_directory, latex_interpreter)
         else:
             query.can_sync = False
         self.cleanup_files(query)
@@ -316,6 +329,8 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
             except OSError as e:
                 print('Setzer: failed to copy synctex file ({}); sync disabled for this build.'.format(e))
                 query.can_sync = False
+            if query.can_sync:
+                self._after_synctex_copy(query, output_directory, 'phitex')
 
         # do_cleanup 在 live 模式下故意不执行：watch 的增量图依赖输出目录里的
         # .aux/.toc/.bbl，删掉等于下一轮必然完整重跑，正好丢掉本模式的意义。
@@ -355,6 +370,46 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
         if self.phitex_session is not None:
             self.phitex_session.stop()
             self.phitex_session = None
+        if self.shadow_runner is not None:
+            self.shadow_runner.stop()
+            self.shadow_runner = None
+
+    def _after_synctex_copy(self, query, output_directory, interpreter):
+        '''synctex 复制成功后的影子链路：标记活动 gz 来源并唤醒运行器。
+
+        mark_phitex_source 与开关无关每次都调——上次会话留下的 shadow
+        sidecar 若不被本次覆盖，会把 phitex/原生 gz 误标成精确数据。
+        '''
+        folder = synctex_folder(self.config_folder, query.tex_filename)
+        shadow_synctex.mark_phitex_source(folder, query.tex_filename)
+        if interpreter == 'phitex' and shadow_synctex.setting_enabled():
+            self._shadow_runner_for(query, output_directory).notify_dirty()
+
+    def _shadow_runner_for(self, query, output_directory):
+        output_directory = output_directory or os.path.dirname(query.tex_filename)
+        runner = self.shadow_runner
+        if (runner is None or runner.stopped
+                or runner.tex_filename != query.tex_filename
+                or runner.output_directory != output_directory):
+            if runner is not None:
+                runner.stop()
+            folder = synctex_folder(self.config_folder, query.tex_filename)
+            runner = shadow_synctex.ShadowSynctexRunner(
+                query.tex_filename, output_directory, folder,
+                on_installed=self._on_shadow_synctex_installed)
+            self.shadow_runner = runner
+        return runner
+
+    def _on_shadow_synctex_installed(self):
+        '''影子 gz 安装完成（GLib.idle_add 回主线程）：重算各打开文档的
+        can_sync——新鲜度门控随 sidecar 翻转，按钮/跳转即时恢复。'''
+        workspace = ServiceLocator.get_workspace()
+        if workspace is not None:
+            for document in workspace.open_latex_documents:
+                build_system = getattr(document, 'build_system', None)
+                if build_system is not None:
+                    build_system.update_can_sync()
+        return False
 
     def _spawn_process(self, build_command, cwd):
         '''跨平台启动 LaTeX 构建进程。

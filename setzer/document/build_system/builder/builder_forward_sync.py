@@ -44,7 +44,10 @@ class BuilderForwardSync(builder_build.BuilderBuild):
         arguments = ['synctex', 'view', '-i']
         arguments.append(str(query.forward_sync_data['line']) + ':' + str(query.forward_sync_data['line_offset']) + ':' + query.forward_sync_data['filename'])
         arguments.append('-o')
-        arguments.append(os.path.splitext(query.tex_filename)[0] + '.pdf')
+        # PDF 路径映射进查询目录：synctex CLI 优先读 PDF 旁边的 gz，输出
+        # 目录与源码目录重合时影子 gz 会被 phitex 粗记录遮蔽（见 query_pdf_path）。
+        arguments.append(synctex_query.query_pdf_path(
+            os.path.splitext(query.tex_filename)[0] + '.pdf', synctex_dir))
         arguments.append('-d')
         arguments.append(synctex_dir)
         try:

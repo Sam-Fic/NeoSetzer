@@ -115,6 +115,7 @@ foreach t : [
   ['test_root_context', 'test_root_context.py'],
   ['test_settings_migration', 'test_settings_migration.py'],
   ['test_settings_realtime_persistence', 'test_settings_realtime_persistence.py'],
+  ['test_shadow_synctex', 'test_shadow_synctex.py'],
   ['test_shortcut_hardcoded_conflict', 'test_shortcut_hardcoded_conflict.py'],
   ['test_smart_list', 'test_smart_list.py'],
   ['test_smart_list_controller', 'test_smart_list_controller.py'],

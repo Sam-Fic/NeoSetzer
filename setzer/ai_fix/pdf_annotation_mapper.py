@@ -1073,6 +1073,12 @@ def map_selection(preview, document, payload, on_done):
     if payload is None or preview.pdf_filename is None or preview.poppler_document is None:
         GLib.idle_add(on_done, None)
         return
+    # 影子 synctex 新鲜度门控：陈旧影子 gz 会把选区映射到错行，
+    # 宁可不映射（调用方 toast 提示）也不拿错位的定位数据落批注。
+    build_system = getattr(document, 'build_system', None)
+    if build_system is not None and not build_system.synctex_is_fresh():
+        GLib.idle_add(on_done, None)
+        return
     pdf_filename = preview.pdf_filename
     tex_filename = document.get_filename()
     active_lines = None

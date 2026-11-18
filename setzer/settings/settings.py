@@ -152,6 +152,12 @@ class Settings(Observable):
         # 每轮都冷启动——实测 62 页文档改一行 6–14 ms 变成 1.25 s。
         # 见 phitex_session.PhitexSession 与 builder_build_latex.run_via_phitex_session。
         self.defaults['preferences']['phitex_live_build'] = True
+        # PhiTeX 专用：构建成功后台用原生引擎在影子目录重生成精确 synctex
+        # （phitex 自己的 synctex 行号粗，见 synctex_line_repair 与 mapper
+        # 兜底链）。呈现仍由 phitex 增量负责，影子产物校验布局一致后原子
+        # 替换缓存 gz；生成期间按源码指纹门控，引擎缺失/校验失败自动降级
+        # 回 phitex synctex。见 shadow_synctex.ShadowSynctexRunner。
+        self.defaults['preferences']['phitex_shadow_synctex'] = True
         # 构建按钮上的计时器（0:01、0:02…）。三态而非开关：
         #   always / never 由用户定；auto = 慢引擎显示、PhiTeX 常驻 session
         #   隐藏。计时器的价值是"还要等多久"，而 PhiTeX 增量一轮约 18 ms

@@ -57,6 +57,11 @@ class PageBuildSystem(object):
         self.view.option_phitex_live_build.connect(
             'notify::active', self.on_switch_toggled, 'phitex_live_build')
 
+        self.view.option_phitex_shadow_synctex.set_active(
+            self.settings.get_value('preferences', 'phitex_shadow_synctex'))
+        self.view.option_phitex_shadow_synctex.connect(
+            'notify::active', self.on_switch_toggled, 'phitex_shadow_synctex')
+
         # LaTeX interpreter combo
         self.view.option_latex_interpreter.connect('notify::selected', self.on_interpreter_selected)
 
@@ -196,6 +201,7 @@ class PageBuildSystem(object):
             self.view.option_output_chain.set_selected(
                 self.output_chain_values.index(defaults['latexmk_output_chain']))
             self.view.option_phitex_live_build.set_active(defaults['phitex_live_build'])
+            self.view.option_phitex_shadow_synctex.set_active(defaults['phitex_shadow_synctex'])
             self.view.option_build_timer.set_selected(
                 self.build_timer_values.index(defaults['build_timer']))
             # set_text 触发 changed 回调 → 自动写回设置
@@ -316,6 +322,7 @@ class PageBuildSystem(object):
         else:
             self.view.set_interpreter_note('')
         self.view.option_phitex_live_build.set_visible(phitex_active)
+        self.view.option_phitex_shadow_synctex.set_visible(phitex_active)
         self.view.option_system_commands.set_visible(not tectonic_active)
         # latexmk 路线与其输出链对两个自带编排的引擎都没有意义：tectonic
         # 走自己的构建图，phitex 一次调用即跑到不动点（BibTeX/biber/makeindex
@@ -616,6 +623,14 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         # 在检测结果回来后按需显示（与 option_use_latexmk 的处理一致）。
         self.option_phitex_live_build.set_visible(False)
         group_options.add(self.option_phitex_live_build)
+
+        # 影子 synctex：phitex 呈现 + 原生引擎后台精确定位。仅对 PhiTeX
+        # 有意义，初值隐藏，与 option_phitex_live_build 同条件显示。
+        self.option_phitex_shadow_synctex = Adw.SwitchRow()
+        self.option_phitex_shadow_synctex.set_title(_('Precise SyncTeX in Background'))
+        self.option_phitex_shadow_synctex.set_subtitle(_('While PhiTeX live preview is active, regenerate SyncTeX with the native TeX engine in the background for accurate jumping. Jumping is briefly unavailable while it updates.'))
+        self.option_phitex_shadow_synctex.set_visible(False)
+        group_options.add(self.option_phitex_shadow_synctex)
 
         # 输出链（上游 issue #223）：仅 latexmk 路线可切换。'pdfps' 让 latexmk
         # 编排 latex → dvips → ps2pdf，PSTricks/psfrag 等只在 PostScript 阶段

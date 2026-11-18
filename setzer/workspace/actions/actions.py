@@ -1408,6 +1408,13 @@ class Actions(object):
         if payload is None:
             self._show_file_template_toast(_('Select some text first'))
             return
+        # 影子 synctex 正在后台重生成（指纹不匹配）：给专用提示，
+        # 而不是误导用户去构建（mapper 入口还有一道同样的防御门控）。
+        build_system = getattr(document, 'build_system', None)
+        if build_system is not None and not build_system.synctex_is_fresh():
+            self._show_file_template_toast(
+                _('Sync data is being updated in the background. Try again in a moment.'))
+            return
         from setzer.ai_fix import pdf_annotation_mapper
 
         def on_done(mapping):
