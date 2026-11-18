@@ -75,8 +75,8 @@ jobs:
           Section: editors
           Priority: optional
           Architecture: ${ARCH}
-          Depends: python3:any, python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, gir1.2-gtk-4.0, gir1.2-adw-1, gir1.2-gtksource-5, gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-webkit-6.0, gir1.2-xdp-1.0
-          Recommends: texlive, gir1.2-vte-3.91
+          Depends: python3 (>= 3.10), python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, gir1.2-gtk-4.0 (>= 4.10), gir1.2-adw-1 (>= 1.5), gir1.2-gtksource-5 (>= 5.4), gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-xdp-1.0
+          Recommends: texlive, gir1.2-vte-3.91, gir1.2-webkit-6.0
           Maintainer: NeoSetzer Packaging <noreply@github.com>
           Description: LaTeX editor for the GNOME desktop
            Setzer is a LaTeX editor with a modern GTK4/libadwaita interface.
@@ -93,6 +93,40 @@ jobs:
 
           echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test package in a clean Ubuntu 24.04 container
+        env:
+          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+        run: |
+          set -eu
+          test -f "$PACKAGE_FILE"
+          docker run --rm -i \
+            -v "$PWD:/src:ro" \
+            ubuntu:24.04 bash -s -- "$(basename "$PACKAGE_FILE")" <<'CONTAINER'
+          set -eu
+
+          # 干净容器 + --no-install-recommends：只验证 Depends，等价于最小系统。
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            "/src/$1" xvfb xauth dbus
+
+          # 入口脚本在导入期就会加载全部 GI 模块，能抓住 typelib 缺失或版本过低。
+          setzer --version
+
+          # 真正创建窗口。12 秒后仍在运行说明启动阶段没有崩溃；
+          # 提前退出（非 124）说明依赖或资源有问题，打印日志后失败。
+          set +e
+          xvfb-run -a dbus-run-session -- timeout 12 setzer \
+            > /tmp/setzer-smoke.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 124 ]; then
+            echo "setzer exited during startup (status $status)"
+            cat /tmp/setzer-smoke.log
+            exit 1
+          fi
+          echo "GUI stayed alive for 12s"
+          CONTAINER
 
       - name: Upload Debian package artifact
         uses: actions/upload-artifact@v7

@@ -57,6 +57,15 @@ git push origin master "v${NEW_VERSION}"
 ### 5. 创建 GitHub Release
 
 ```bash
+# Release 正文顶部固定插入系统要求，避免旧发行版用户下载后才发现装不上
+cat > /tmp/release_notes.md <<'EOF'
+> **Linux（.deb）系统要求**：Ubuntu 24.04+ / Debian 13+（GTK 4.10+、libadwaita 1.5+）。
+> 更旧的发行版无法安装，请升级系统或使用 Flatpak；Windows / macOS 资产为自包含包，无此限制。
+
+---
+
+EOF
+
 # 提取 CHANGELOG.md 中新版本条目作为 Release 正文
 python3 -c "
 with open('CHANGELOG.md') as f:
@@ -64,7 +73,7 @@ with open('CHANGELOG.md') as f:
 start = content.find('## v${NEW_VERSION}')
 end = content.find('\n---\n', start)
 print(content[start:end])
-" > /tmp/release_notes.md
+" >> /tmp/release_notes.md
 echo "---" >> /tmp/release_notes.md
 
 gh release create "v${NEW_VERSION}" \
@@ -84,6 +93,8 @@ gh run list --repo Sam-Fic/NeoSetzer --limit 5
 - Build Debian package
 - Build Windows package
 - Build macOS package
+
+> `Build Debian package` 里包含一步「干净的 ubuntu:24.04 容器安装 + 启动」冒烟测试；它失败时不会上传 `.deb`，也不会更新 Release 资产。
 
 > macOS 任务若在 1–2 秒内被取消、提示 `The configuration 'macos-XX-...' is not supported`，说明运行器标签已被 GitHub 下线，改 `.github/workflows/build-macos.yml` 的 `runs-on` 即可，详见 [macOS 打包说明](packaging/macos.md#ci-运行器)。
 

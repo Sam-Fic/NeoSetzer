@@ -46,6 +46,7 @@ foreach t : [
   ['test_cite_optional_arg', 'test_cite_optional_arg.py'],
   ['test_code_folding_programmatic_load', 'test_code_folding_programmatic_load.py'],
   ['test_command_palette_catalog', 'test_command_palette_catalog.py'],
+  ['test_deb_packaging', 'test_deb_packaging.py'],
   ['test_decode_output', 'test_decode_output.py'],
   ['test_dialog_toast_host', 'test_dialog_toast_host.py'],
   ['test_document_state_paths', 'test_document_state_paths.py'],

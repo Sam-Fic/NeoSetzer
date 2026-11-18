@@ -43,7 +43,9 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 
 NeoSetzer is developed and tested on Ubuntu.
 
-> **Supported distributions:** NeoSetzer requires WebKitGTK 6.0 (gir1.2-webkit-6.0), which is available on **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) the `gir1.2-webkit-6.0` package does not exist and the `.deb` cannot be installed there. If you are on an older distribution, build from source as described below — the GTK4/WebKit bindings are resolved at runtime.
+> **Supported distributions:** The prebuilt `.deb` requires **GTK 4.10+**, **libadwaita 1.5+** and **Python 3.10+**; these constraints are declared in its `Depends`, so it targets **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) apt refuses the install because the version constraints cannot be satisfied, and building from source does not help either (`Adw.Dialog` and `Gtk.FileDialog` are resolved at import time). Upgrade the system or use Flatpak instead.
+>
+> `gir1.2-webkit-6.0` is an **optional** dependency (Recommends) used only by the embedded browser in the help panel. Without it the app starts normally and help pages open in the system browser.
 
 1. Run the following command to install prerequisite packages:
 
@@ -52,7 +54,7 @@ NeoSetzer is developed and tested on Ubuntu.
    apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-numpy gir1.2-xdp-1.0
    ```
 
-   > Note: `gir1.2-xdp-1.0` (the libportal GIR) is only used for Linux/Flatpak detection. It is not needed on Windows (see note below).
+   > Note: `gir1.2-xdp-1.0` (the libportal GIR) is only used for Linux/Flatpak detection. `gir1.2-webkit-6.0` is only used by the embedded browser in the help panel and can be skipped; without it help pages open in the system browser. Neither is needed on Windows (see note below).
 
 2. Clone the NeoSetzer repository from GitHub:
 

@@ -43,7 +43,9 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 
 NeoSetzer 在 Ubuntu 上开发和测试。
 
-> **支持的发行版：** NeoSetzer 需要 WebKitGTK 6.0（`gir1.2-webkit-6.0`），该包在 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上** 中可用。在更旧的系统（如 Ubuntu 22.04、Debian 12）上不存在 `gir1.2-webkit-6.0` 软件包，因此对应的 `.deb` 无法安装。如果你使用的是较旧的发行版，请按下面的方式从源码构建——GTK4/WebKit 绑定是在运行时解析的。
+> **支持的发行版：** 预编译 `.deb` 需要 **GTK 4.10+**、**libadwaita 1.5+** 和 **Python 3.10+**，这些版本约束已写入包的 `Depends`，因此适用于 **Ubuntu 24.04（Noble）及以上**、**Debian 13（trixie）及以上**。在更旧的系统（如 Ubuntu 22.04、Debian 12）上，apt 会因版本约束直接拒绝安装；这些系统也无法从源码运行（`Adw.Dialog`、`Gtk.FileDialog` 在导入时就要求对应版本），请升级系统或使用 Flatpak。
+>
+> `gir1.2-webkit-6.0` 是**可选**依赖（Recommends），只用于帮助面板的内嵌浏览器；缺少时应用正常启动，帮助页改用系统浏览器打开。
 
 1. 运行以下命令安装前置软件包：
 
@@ -52,7 +54,7 @@ NeoSetzer 在 Ubuntu 上开发和测试。
    apt-get install meson ninja-build python3-gi gir1.2-gtk-4.0 gir1.2-gtksource-5 gir1.2-pango-1.0 gir1.2-poppler-0.18 gir1.2-webkit-6.0 gettext python3-cairo python3-gi-cairo gir1.2-adw-1 python3-numpy gir1.2-xdp-1.0
    ```
 
-   > 注：`gir1.2-xdp-1.0` 仅用于 Linux/Flatpak 检测（即 libportal 的 GIR）。Windows 上不需要它（见下文说明）。
+   > 注：`gir1.2-xdp-1.0`（libportal 的 GIR）仅用于 Linux/Flatpak 检测。`gir1.2-webkit-6.0` 仅用于帮助面板的内嵌浏览器，可不安装；缺失时帮助页改用系统浏览器打开。Windows 上两者都不需要（见下文说明）。
 
 2. 从 GitHub 克隆 NeoSetzer 仓库：
 

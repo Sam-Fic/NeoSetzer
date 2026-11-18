@@ -10,17 +10,43 @@ NeoSetzer 的 Debian x64 安装包由 GitHub Actions 在 **Ubuntu 24.04** 上构
 |---|---|---|
 | `setzer_<version>_amd64.deb` | Debian/Ubuntu x64 | 使用 `dpkg-deb` 构建的安装包。 |
 
-当前包依赖 WebKitGTK 6，因此目标系统应提供 `gir1.2-webkit-6.0`；Ubuntu 24.04+ 和 Debian 13+ 是经过工作流验证的目标环境。
+当前包通过 `Depends` 使用发行版提供的运行时；**Ubuntu 24.04+** 和 **Debian 13+** 是经过工作流验证的目标环境。
+
+## 依赖模型
+
+`.deb` 只包含 NeoSetzer 自身的 Python 源码、资源与翻译（解压约 15 MB，压缩后约 4 MB）。GTK、libadwaita、Python 运行时与 TeX 都由发行版提供，由 apt 按 `Depends` 安装。包内**不**捆绑 GTK：Linux 上捆绑系统库会与宿主库冲突，需要自包含交付时应使用 Flatpak。
+
+`control` 中的版本约束与代码实际使用的 API 对应：
+
+| 依赖 | 约束 | 原因 |
+|---|---|---|
+| `python3` | `>= 3.10` | 源码使用 `X \| None` 类型注解 |
+| `gir1.2-gtk-4.0` | `>= 4.10` | `Gtk.FileDialog`、`Gtk.FontDialogButton` |
+| `gir1.2-adw-1` | `>= 1.5` | `Adw.Dialog`、`Adw.PreferencesDialog`、`Adw.AlertDialog` |
+| `gir1.2-gtksource-5` | `>= 5.4` | `GtkSource.StyleSchemePreview` |
+
+版本不足时 apt 会直接拒绝安装，不会出现「装上了但启动即崩」。更旧的发行版（Ubuntu 22.04、Debian 12 等）没有满足约束的软件包，属于预期的不支持范围。
+
+`gir1.2-webkit-6.0` 是 **Recommends**，只用于帮助面板的内嵌浏览器。缺失时应用正常启动，帮助页改用系统浏览器打开。
 
 ## AI 内嵌终端依赖（VTE）
 
 侧栏内嵌 Agent 终端依赖 `Vte-3.91` typelib（GTK4 绑定；注意 `Vte-2.91` 是 GTK3 绑定，与本应用的 GTK4 不兼容），已作为 **Recommends**（`gir1.2-vte-3.91`）写入工作流 `control` 元数据。它是可选依赖：缺失时应用正常启动，AI 发送自动回退到外部终端 + 剪贴板，不阻塞主流程。
 
-若后续引入 Flatpak 打包：需核实 `org.gnome.Platform` 运行时是否携带 `Vte-3.91` typelib（GNOME 运行时通常包含）；缺失时在 manifest 中追加 `vte` 模块（gtk4 分支）。当前仓库尚无 Flatpak manifest。
+若后续引入 Flatpak 打包：需核实 `org.gnome.Platform` 运行时是否携带 `Vte-3.91` typelib（GNOME 运行时通常包含）；缺失时在 manifest 中追加 `vte` 模块（gtk4 分支）。仓库根的 `org.cvfosammmm.Setzer.json` 即当前 Flatpak manifest。
 
 ## 正式发布
 
 发布流程（版本号、CHANGELOG、tag、GitHub Release）见 [docs/RELEASE.md](../RELEASE.md)。推送 `v*` 标签后，Debian、Windows 与 macOS 工作流会并行构建，并把各自制品附加到同一 GitHub Release。不要手动创建仅包含 `.deb` 的 Release；这样会导致跨平台资产和标签源码不一致。
+
+## CI 冒烟测试
+
+打包完成后，`build-deb.yml` 会在干净的 `ubuntu:24.04` 容器里用 `--no-install-recommends` 安装刚生成的 `.deb`（只依赖 `Depends`，等价于最小系统），然后：
+
+1. 执行 `setzer --version`，验证全部 GI typelib 与 Python 模块可导入；
+2. 用 `xvfb-run` + `dbus-run-session` 启动 GUI，确认 12 秒内进程没有退出。
+
+任一步失败都不会上传资产或发布 Release。本地验证时，把工作流该步骤的 heredoc 脚本原样保存后，用同一条 `docker run` 命令运行即可。
 
 ## 本地 Debian 构建
 
@@ -53,7 +79,9 @@ dpkg-deb -c "setzer_<version>_amd64.deb"
 | 现象 | 处理方式 |
 |---|---|
 | `msgfmt` 不存在 | 安装 `gettext`。 |
-| 运行期缺少 GTK、Adwaita 或 WebKit typelib | 使用工作流 `control` 中的依赖清单，或在目标系统安装对应发行版软件包。 |
+| `apt install` 报依赖不满足 | 目标系统低于包要求（GTK 4.10 / libadwaita 1.5），属于预期行为；升级到 Ubuntu 24.04+ 或 Debian 13+。 |
+| 绕过依赖强制安装后启动报 `Adw.Dialog` / `Gtk.FileDialog` 不存在 | 系统 GTK 或 libadwaita 版本不足。不要用 `--force-*` 安装，改用 Flatpak 或升级系统。 |
+| 帮助面板显示占位文案、导航按钮全灰 | 缺少 `gir1.2-webkit-6.0`（Recommends 可被跳过安装）。需要内嵌浏览器时安装该包并重启应用。 |
 | AI 发送打开的是外部终端而非侧栏内嵌终端 | 目标系统缺少 `gir1.2-vte-3.91`（Recommends 可被跳过安装）。安装该包后重启应用即可。 |
 | 安装后行为像旧版本 | 清理目标机中的旧 `__pycache__`；正式包不携带 Python 字节码。 |
 | 发布文件未进入 Release | 先确认标签版本和 `meson.build` 一致，再查看对应 Actions 运行。 |
