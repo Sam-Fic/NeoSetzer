@@ -101,6 +101,16 @@ class ContextMenu(Observable):
         '''Build the Gio.Menu model for the current context.'''
         model = Gio.Menu()
 
+        # AI section：PDF 选区 → 反查源码整行/整块 → 批注/直发
+        # （与源码右键菜单同 label，复用已译字符串）。AI Agent 总开关关闭时
+        # 整段不出现（空 section 不渲染）。置于菜单首位。
+        settings = getattr(getattr(self.preview, 'document', None), 'settings', None)
+        if is_ai_agent_enabled(settings):
+            ai_section = Gio.Menu()
+            ai_section.append_item(_action_item(_('Add AI Annotation…'), 'win.ai-annotate-pdf'))
+            ai_section.append_item(_action_item(_('Send Selection to Agent'), 'win.ai-send-pdf'))
+            model.append_section(None, ai_section)
+
         # Link-aware section (conditional).
         if link is not None:
             link_section = Gio.Menu()
@@ -131,16 +141,6 @@ class ContextMenu(Observable):
             page_section.append_item(_action_item(_('Copy Image'), 'win.preview-copy-image'))
             page_section.append_item(_action_item(_('Save Image As…'), 'win.preview-save-image'))
         model.append_section(None, page_section)
-
-        # AI section：PDF 选区 → 反查源码整行/整块 → 批注/直发
-        # （与源码右键菜单同 label，复用已译字符串）。AI Agent 总开关关闭时
-        # 整段不出现（空 section 不渲染）。
-        settings = getattr(getattr(self.preview, 'document', None), 'settings', None)
-        if is_ai_agent_enabled(settings):
-            ai_section = Gio.Menu()
-            ai_section.append_item(_action_item(_('Add AI Annotation…'), 'win.ai-annotate-pdf'))
-            ai_section.append_item(_action_item(_('Send Selection to Agent'), 'win.ai-send-pdf'))
-            model.append_section(None, ai_section)
 
         # Find & Print section.
         find_section = Gio.Menu()
