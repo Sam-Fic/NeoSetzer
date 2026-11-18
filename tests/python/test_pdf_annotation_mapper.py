@@ -50,6 +50,11 @@ class FakeBuildSystem:
         return line0  # 非 PhiTeX：恒等
 
 
+class FakePhitexBuildSystem(FakeBuildSystem):
+    def _phitex_synctex_lines_unreliable(self):
+        return True
+
+
 class FakeDocument:
     def __init__(self, filename='/p/main.tex'):
         self.filename = filename
@@ -777,11 +782,11 @@ class ResolveBlockVisualTest(unittest.TestCase):
     RECTS = VisualBlockSourceTest.RECTS
     EQ_BAND = VisualBlockSourceTest.EQ_BAND
 
-    def resolve(self, positions, x=100, y=37):
+    def resolve(self, edit, x=100, y=37):
         with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
                                return_value='/cache'), \
                 mock.patch.object(mapper.synctex_query, 'query_source_position',
-                                  side_effect=positions), \
+                                  side_effect=edit), \
                 mock.patch.object(mapper.synctex_query, 'query_rectangles',
                                   side_effect=VisualBlockSourceTest().view):
             return mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0, x, y,
@@ -790,20 +795,52 @@ class ResolveBlockVisualTest(unittest.TestCase):
 
     def test_wrong_pos_block_corrected_by_order(self):
         # 实测：公式内容 edit 反查落邻块（align 行）；顺序步进对应
-        # 纠正为点击 band 真正所属的 equation 块。
-        result = self.resolve([pos(line=7), pos(line=1), pos(line=3), pos(line=3)])
+        # 纠正为点击 band 真正所属的 equation 块。点击行守卫的 edit
+        # 也落块内（非 prose），不拦截。
+        def edit(pdf, page, x, y, directory):
+            return pos(line=1 if y < 25 else (7 if y < 85 else 3))
+        result = self.resolve(edit)
         self.assertIsNotNone(result)
         self.assertEqual((result['start_line'], result['end_line']), (2, 4))
         self.assertEqual(result['rect'], self.EQ_BAND)
 
     def test_pos_line_fallback_uses_order(self):
-        # 反查落块外文本行：降级搜索优先用步进对应的块（第三次
-        # 反查是降级路径里锚行校验；后两次是编号拆分的正文行校验）。
-        result = self.resolve([pos(line=1), pos(line=1), pos(line=1),
-                               pos(line=3), pos(line=3)])
+        # 反查落块外文本行：降级搜索优先用步进对应的块（点击行
+        # 守卫的 edit 落 intro，view 盒与公式行不重叠，不认 prose）。
+        def edit(pdf, page, x, y, directory):
+            return pos(line=1 if y < 85 else 3)
+        result = self.resolve(edit)
         self.assertIsNotNone(result)
         self.assertEqual((result['start_line'], result['end_line']), (2, 4))
         self.assertEqual(result['rect'], self.EQ_BAND)
+
+    def test_prose_click_in_merged_band_snaps_paragraph(self):
+        # 实测：公式与下方正文行隙≤10pt 聚成同一 band，点击正文行
+        # 被步进归给公式块。点击行经校验为 prose 时不做视觉归属，
+        # 吸附到源码段落。
+        rects = [(10, 10, 100, 20), (50, 32, 150, 42), (10, 46, 200, 56)]
+
+        def edit(pdf, page, x, y, directory):
+            return pos(line=1 if y < 25 else (3 if y < 44 else 5))
+
+        def view(tex, pdf, ln, directory):
+            if ln == 1:
+                return [vbox(10, 10, 100, 20)]
+            if ln == 5:
+                return [vbox(10, 46, 200, 56)]
+            return []
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  side_effect=edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          100, 51, active_lines=self.LINES,
+                                          glyph_rects=rects)
+        self.assertIsNotNone(result)
+        self.assertEqual(result['kind'], 'paragraph')
+        self.assertEqual((result['start_line'], result['end_line']), (5, 5))
 
     def test_without_glyphs_keeps_synctex_path(self):
         # 无字形预提取（旧调用方）：仍走 synctex 并集路径。
@@ -818,6 +855,29 @@ class ResolveBlockVisualTest(unittest.TestCase):
                                           140, 95, active_lines=self.LINES)
         self.assertIsNotNone(result)
         self.assertEqual(result['rect'], (100, 90, 180, 100))
+
+
+class SubBandAtClickTest(unittest.TestCase):
+    '''子带归属与紧框编号分组同口径（重叠区仅按 y 容差会误判）。'''
+
+    BAND = (48, 30, 152, 120)
+
+    def run_check(self, sub, tight, y=50):
+        with mock.patch.object(mapper, '_numbered_equation_rect',
+                               return_value=tight):
+            return mapper._sub_band_at_click(sub, self.BAND, [], 100, y,
+                                             [], 0, '/p/main.tex',
+                                             '/p/main.pdf', '/cache')
+
+    def test_tight_rect_overlap_decides(self):
+        # 两子带 y 范围互相侵入（Tall 盒重叠）：点击紧框属后式，
+        # 前子带仅小重叠不认；后子带完全覆盖认。
+        self.assertFalse(self.run_check((48, 30, 152, 62), (48, 55, 152, 110)))
+        self.assertTrue(self.run_check((48, 55, 152, 112), (48, 55, 152, 110)))
+
+    def test_no_tight_falls_back_to_y_pad(self):
+        self.assertTrue(self.run_check((48, 30, 152, 62), None, y=65))
+        self.assertFalse(self.run_check((48, 30, 152, 62), None, y=90))
 
 
 class ParagraphRangeTest(unittest.TestCase):
@@ -909,6 +969,102 @@ class ParagraphPdfRectTest(unittest.TestCase):
         self.assertIsNone(self.run_rect(para=(20, 30)))
 
 
+class VisualBlockSourceReverseTest(unittest.TestCase):
+    '''phitex 场景：align 盒记到下方 equation 行（自身行零记录），
+    上方 prose 锚同样失真；下方 outro 锚可靠，反向步进归属。'''
+
+    LINES = ['prose above\n', '\\begin{align}\n', 'a=1 \\\\\n', 'b=2\n',
+             '\\end{align}\n', '\\begin{equation}\n', 'c=3\n',
+             '\\end{equation}\n', 'outro below\n']
+    RECTS = [(10, 10, 100, 20), (50, 32, 150, 42), (60, 46, 140, 56),
+             (55, 70, 145, 80), (10, 94, 100, 104)]
+    ALIGN_BAND = (48, 30, 152, 58)
+    EQ_BAND = (53, 68, 147, 82)
+
+    def edit(self, pdf, page, x, y, directory):
+        # 上方 prose 与 align 区全落 equation 内容行；outro 归属正确。
+        return pos(line=7 if y < 90 else 9)
+
+    def view(self, tex, pdf, ln, directory):
+        return [vbox(10, 94, 100, 104)] if ln == 9 else []
+
+    def run_reverse(self, band, edit=None, view=None, lines=None):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=edit or self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view or self.view):
+            return mapper._visual_block_source_reverse(
+                band, self.RECTS, lines or self.LINES, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache')
+
+    def test_align_band_attributed_from_below_anchor(self):
+        self.assertEqual(self.run_reverse(self.ALIGN_BAND),
+                         (2, 5, 'environment', 'align'))
+
+    def test_equation_band_attributed_from_below_anchor(self):
+        self.assertEqual(self.run_reverse(self.EQ_BAND),
+                         (6, 8, 'environment', 'equation'))
+
+    def test_loose_prose_anchor_accepted(self):
+        # 严格 2pt 全边失配（phitex 盒右缘常差数 pt）：宽松半重叠
+        # 校验（_prose_row_line）仍认锚。
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 94, 108, 104)] if ln == 9 else []
+        self.assertEqual(self.run_reverse(self.ALIGN_BAND, view=view),
+                         (2, 5, 'environment', 'align'))
+
+    def test_source_page_mismatch_returns_none(self):
+        # 锚与块之间源码多出一行文本（页面换行等失配）→ 不猜。
+        # extra 插在 align 与 equation 之间：反向消费到它时页面已
+        # 进入目标 band，行↔行对应失配。
+        lines = self.LINES[:5] + ['extra\n'] + self.LINES[5:]
+
+        def edit(pdf, page, x, y, directory):
+            return pos(line=8 if y < 90 else 10)
+
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 94, 100, 104)] if ln == 10 else []
+        self.assertIsNone(self.run_reverse(self.ALIGN_BAND, edit=edit,
+                                           view=view, lines=lines))
+
+    def test_no_verified_anchor_below_returns_none(self):
+        self.assertIsNone(self.run_reverse(self.ALIGN_BAND, view=lambda *a: []))
+
+    def test_band_at_page_bottom_returns_none(self):
+        rects = self.RECTS[:4]
+        band = mapper._glyph_band(rects, 100, 75)
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=self.view):
+            result = mapper._visual_block_source_reverse(
+                band, rects, self.LINES, 0, '/p/main.tex', '/p/main.pdf',
+                '/cache')
+        self.assertIsNone(result)
+
+
+class ResolveBlockReverseTest(unittest.TestCase):
+    '''resolve_block 端到端：上方锚失真时反向步进纠正 edit 邻块。'''
+
+    LINES = VisualBlockSourceReverseTest.LINES
+    RECTS = VisualBlockSourceReverseTest.RECTS
+
+    def test_align_click_corrected_to_own_block(self):
+        with mock.patch.object(mapper.synctex_query, 'synctex_directory_for_source',
+                               return_value='/cache'), \
+                mock.patch.object(mapper.synctex_query, 'query_source_position',
+                                  side_effect=VisualBlockSourceReverseTest().edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=VisualBlockSourceReverseTest().view):
+            result = mapper.resolve_block(FakeDocument(), '/p/main.pdf', 0,
+                                          100, 37, active_lines=self.LINES,
+                                          glyph_rects=self.RECTS)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (2, 5))
+        self.assertEqual(result['env'], 'align')
+        self.assertEqual(result['rect'], VisualBlockSourceReverseTest.ALIGN_BAND)
+
+
 class ResolveParagraphTest(unittest.TestCase):
     '''普通正文点击：band 不归属视觉块 → 吸附源码段落而非邻块。'''
 
@@ -959,8 +1115,10 @@ class FallbackNoGuessTest(unittest.TestCase):
     RECTS = [(10, 10, 100, 20), (50, 34, 150, 44), (60, 48, 140, 58)]
 
     def test_text_band_not_guessed_to_visual_block(self):
-        with mock.patch.object(mapper.synctex_query, 'query_rectangles',
-                               return_value=[]), \
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=None), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[]), \
                 mock.patch.object(mapper, 'block_pdf_rect',
                                   return_value=(8, 8, 102, 22)) as rect_fn:
             result = mapper._fallback_block_at(self.LINES, 1, 0, 50, 15,
@@ -1142,6 +1300,72 @@ class ResolveNumberedSplitTest(unittest.TestCase):
         self.assertEqual((result['start_line'], result['end_line']), (4, 6))
         self.assertEqual(result['env'], 'equation')
         self.assertEqual(result['rect'], (48, 41, 214, 60))
+
+
+class BackwardMathRedirectTest(unittest.TestCase):
+    '''反向跳转数学区兜底：phitex 反查落 prose/邻块时视觉归属重定向。'''
+
+    LINES = VisualBlockSourceReverseTest.LINES
+    RECTS = VisualBlockSourceReverseTest.RECTS
+
+    def setUp(self):
+        self.document = SimpleNamespace(
+            filename='/p/main.tex', build_system=FakePhitexBuildSystem(),
+            get_filename=lambda: '/p/main.tex')
+
+    def run_redirect(self, position, x=100, y=37, document=None,
+                     glyph_rects=None, edit=None, view=None):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=edit or VisualBlockSourceReverseTest().edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view or VisualBlockSourceReverseTest().view):
+            return mapper.backward_math_redirect(
+                document or self.document, '/p/main.pdf', 0, x, y, position,
+                self.LINES,
+                self.RECTS if glyph_rects is None else glyph_rects, '/cache')
+
+    def test_prose_landing_redirected_to_align_content(self):
+        # 点击 align 反查落上方 prose（line 1）→ 重定向到块内首个
+        # 内容行（\begin{align} 为边界行，nearest_content_line 跳过）。
+        self.assertEqual(self.run_redirect(pos(line=1)), 3)
+
+    def test_wrong_block_landing_redirected(self):
+        # 反查落邻块 equation（line 7）：同样不在归属块内 → 重定向。
+        self.assertEqual(self.run_redirect(pos(line=7)), 3)
+
+    def test_non_phitex_not_redirected(self):
+        document = SimpleNamespace(filename='/p/main.tex',
+                                   build_system=FakeBuildSystem(),
+                                   get_filename=lambda: '/p/main.tex')
+        with mock.patch.object(mapper.synctex_query, 'query_source_position') as query:
+            result = self.run_redirect(pos(line=1), document=document)
+        self.assertIsNone(result)
+        query.assert_not_called()
+
+    def test_verified_prose_click_left_to_text_repair(self):
+        # 点击行经校验为正文 → 放行（交回 repair_line），不走步进。
+        def edit(pdf, page, x, y, directory):
+            return pos(line=9)
+
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 94, 100, 104)] if ln == 9 else []
+        with mock.patch.object(mapper, '_visual_block_source') as fwd, \
+                mock.patch.object(mapper, '_visual_block_source_reverse') as rev:
+            result = self.run_redirect(pos(line=9), x=50, y=99,
+                                       edit=edit, view=view)
+        self.assertIsNone(result)
+        fwd.assert_not_called()
+        rev.assert_not_called()
+
+    def test_position_inside_attributed_block_not_redirected(self):
+        # 反查已在归属块内（原生引擎正常情形）：不二次纠正。
+        self.assertIsNone(self.run_redirect(pos(line=3)))
+
+    def test_without_glyphs_returns_none(self):
+        self.assertIsNone(self.run_redirect(pos(line=1), glyph_rects=[]))
+
+    def test_none_position_returns_none(self):
+        self.assertIsNone(self.run_redirect(None))
 
 
 if __name__ == '__main__':

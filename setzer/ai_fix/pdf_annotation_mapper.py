@@ -280,6 +280,21 @@ def _is_visual_env(env):
     return env in _TABULAR_ENVS or env in _DISPLAY_MATH_ENVS or env is None
 
 
+def _click_seed_row(rows, band, x, y):
+    '''点击点落到的字形行（2pt 容差）；不在行内取垂直≤4pt 水平≤12pt
+    的最近行（与 _glyph_band 种子同口径）。无则 None。'''
+    for r in rows:
+        if r[1] - 2 <= y <= r[3] + 2 and r[0] - 2 <= x <= r[2] + 2:
+            return r
+    best = None
+    for r in rows:
+        dy = max(r[1] - y, y - r[3], 0.0)
+        dx = max(r[0] - x, x - r[2], 0.0)
+        if dy <= 4 and dx <= 12 and (best is None or dy < best[0]):
+            best = (dy, r)
+    return best[1] if best is not None else None
+
+
 def _row_anchor_line(row, lines, page, block_tex, pdf_filename, directory):
     '''字形行 → 源码行（edit 反查 + view 盒几何校验）。
 
@@ -310,15 +325,39 @@ def _row_anchor_line(row, lines, page, block_tex, pdf_filename, directory):
     return None
 
 
+def _prose_line_row(ln, rows, pi, page, block_tex, pdf_filename, directory,
+                    reverse):
+    '''prose 行 ln 的 view 盒 → 几何吻合的字形行索引（半重叠，从 pi
+    向已消费一侧搜 4 行）；无吻合返回 None。源码硬换行多行共享一个
+    页面行时，行↔行 1:1 消费会脱轨，靠它判定 ln 的输出是否已在
+    消费过的行里。'''
+    js = (range(pi, min(len(rows), pi + 4)) if reverse
+          else range(pi, max(-1, pi - 4), -1))
+    for rec in synctex_query.query_rectangles(block_tex, pdf_filename, ln,
+                                              directory):
+        if rec['page'] != page + 1:
+            continue
+        ry1 = rec['v'] - rec['height']
+        for j in js:
+            ox = min(rec['h'] + rec['width'], rows[j][2]) - max(rec['h'], rows[j][0])
+            oy = min(rec['v'], rows[j][3]) - max(ry1, rows[j][1])
+            if (ox >= 0.5 * min(rec['width'], rows[j][2] - rows[j][0])
+                    and oy >= 0.5 * min(rec['height'], rows[j][3] - rows[j][1])):
+                return j
+    return None
+
+
 def _visual_block_source(band, glyph_rects, lines, page, block_tex,
-                         pdf_filename, directory):
+                         pdf_filename, directory, x=None, y=None):
     '''band 的源码块归属：从 band 上方最近可靠锚行顺序步进对应。
 
     synctex edit 对数学内容常返回邻块（实测 cases 公式反查到 matrix
     块、align 首行反查到上一个 equation），仅靠反查行会拿错源块。
-    源码与页面同序：从锚行（_row_anchor_line 校验过）往下，源码文本
-    行↔页面字形行、源码视觉块↔页面 band 逐一对应消费；遇到 band 即
-    返回当前源块。对应失配（段落换行等）返回 None 交回反查行兜底。'''
+    源码与页面同序：从锚行（_row_anchor_line 校验过，失配再试
+    _prose_row_line 宽松校验）往下，源码文本行↔页面字形行、源码视觉
+    块↔页面 band 逐一对应消费；遇到 band 即返回当前源块。跨式 band
+    （相邻 equation 字形重叠聚行）按编号子带逐式消费，点击 y 判归属
+    哪一式。对应失配（段落换行等）返回 None 交回反查行兜底。'''
     rows = _glyph_rows(glyph_rects)
     first = None
     for i, r in enumerate(rows):
@@ -332,6 +371,9 @@ def _visual_block_source(band, glyph_rects, lines, page, block_tex,
     for i in range(first - 1, max(-1, first - 11), -1):
         ln = _row_anchor_line(rows[i], lines, page, block_tex,
                               pdf_filename, directory)
+        if ln is None:
+            ln = _prose_row_line(rows[i], lines, page, block_tex,
+                                 pdf_filename, directory)
         if ln is not None:
             anchor = ln
             pi = i + 1
@@ -339,6 +381,7 @@ def _visual_block_source(band, glyph_rects, lines, page, block_tex,
     if anchor is None:
         return None
     ln = anchor + 1
+    sub_other, sub_k = None, 0
     while ln <= len(lines) and ln <= anchor + 80 and pi < len(rows):
         st = lines[ln - 1].strip()
         if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
@@ -353,11 +396,36 @@ def _visual_block_source(band, glyph_rects, lines, page, block_tex,
             other = _glyph_band(glyph_rects, (r[0] + r[2]) / 2, (r[1] + r[3]) / 2)
             if other is None:
                 return None
+            # equation 跨式 band：编号子带按源码顺序逐式消费；
+            # align 等多号单块环境不拆。
+            subs = (_equation_sub_bands(glyph_rects, other)
+                    if env == 'equation' else []) or []
+            if other != sub_other:
+                sub_other, sub_k = other, 0
             if other == band:
-                return (start, end, kind, env)
-            while pi < len(rows) and rows[pi][3] > other[1] and rows[pi][1] < other[3]:
+                if len(subs) < 2 or y is None:
+                    return (start, end, kind, env)
+                sub = subs[sub_k] if sub_k < len(subs) else None
+                if sub is not None and _sub_band_at_click(
+                        sub, band, glyph_rects, x, y, lines, page,
+                        block_tex, pdf_filename, directory):
+                    return (start, end, kind, env)
+            match = other
+            if len(subs) >= 2 and sub_k < len(subs):
+                match = subs[sub_k]
+                sub_k += 1
+            while pi < len(rows) and rows[pi][3] > match[1] and rows[pi][1] < match[3]:
+                # merged 行还有未消费子带：留给下一式，不整行吞掉。
+                if any(rows[pi][3] > s[1] and rows[pi][1] < s[3]
+                       for s in subs[sub_k:]):
+                    break
                 pi += 1
             ln = end + 1
+            continue
+        j = _prose_line_row(ln, rows, pi, page, block_tex, pdf_filename,
+                            directory, False)
+        if j is not None and j < pi:
+            ln += 1  # 换行共享行：输出已在上方消费过的行里
             continue
         if pi >= first:
             return None
@@ -366,8 +434,113 @@ def _visual_block_source(band, glyph_rects, lines, page, block_tex,
     return None
 
 
+def _visual_block_source_reverse(band, glyph_rects, lines, page, block_tex,
+                                 pdf_filename, directory, x=None, y=None):
+    '''band 的源码块归属（反向）：从 band 下方最近可靠锚行向上步进对应。
+
+    phitex 把 align 等多行数学环境的盒整体记到上方正文行（公式自身行
+    零记录且错页），上方锚同样失真，_visual_block_source 无从认锚；
+    下方正文归属通常正确。源码与页面同序，逆序消费即反向对应：从下方
+    锚行（_row_anchor_line 严格校验，失配再试 _prose_row_line 宽松校验）
+    往上，源码文本行↔页面字形行、源码视觉块↔页面 band 逐一对应，遇到
+    band 即返回当前源块。跨式 band 按编号子带逆序逐式消费（同
+    _visual_block_source）。对应失配返回 None 交回反查行兜底。'''
+    rows = _glyph_rows(glyph_rects)
+    first = None
+    for i, r in enumerate(rows):
+        if r[3] > band[1] and r[1] < band[3]:
+            first = i
+            break
+    if first is None:
+        return None
+    last = first
+    while (last + 1 < len(rows) and rows[last + 1][3] > band[1]
+           and rows[last + 1][1] < band[3]):
+        last += 1
+    anchor = None
+    anchor_i = None
+    pi = last
+    prose_rows = set()
+    # 从 band 顶行起搜：band 内混入的正文行也需校验登记（供 prose
+    # 消费守卫放行）；数学行 edit 落块内被拒，不会误认锚。
+    for i in range(first, min(len(rows), last + 11)):
+        ln = _row_anchor_line(rows[i], lines, page, block_tex,
+                              pdf_filename, directory)
+        if ln is None:
+            ln = _prose_row_line(rows[i], lines, page, block_tex,
+                                 pdf_filename, directory)
+        if ln is not None:
+            prose_rows.add(i)
+            if anchor is None:
+                anchor = ln
+                anchor_i = i
+                pi = i - 1
+    if anchor is None:
+        return None
+    ln = anchor - 1
+    sub_other, sub_k = None, 0
+    while ln >= 1 and ln >= anchor - 80 and pi >= 0:
+        st = lines[ln - 1].strip()
+        if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
+                or source_blocks.is_no_output_line(st)):
+            ln -= 1
+            continue
+        start, end, kind, env = source_blocks.expand_to_block(lines, ln)
+        if kind != 'line':
+            # band 内混入的正文行会被 prose 消费合法吃掉，守卫只看
+            # 是否已越过 band 顶部。
+            if not _is_visual_env(env) or pi < first:
+                return None
+            r = rows[pi]
+            other = _glyph_band(glyph_rects, (r[0] + r[2]) / 2, (r[1] + r[3]) / 2)
+            if other is None:
+                return None
+            subs = (_equation_sub_bands(glyph_rects, other)
+                    if env == 'equation' else []) or []
+            # 锚下方的式不在反向消费路径上（实测锚在两式之间的正文），
+            # 只保留与锚上方字形行相交的子带，防顺序错位。
+            subs = [s for s in subs
+                    if any(rows[j][3] > s[1] and rows[j][1] < s[3]
+                           for j in range(anchor_i))]
+            if other != sub_other:
+                sub_other, sub_k = other, 0
+            if other == band:
+                if len(subs) < 2 or y is None:
+                    return (start, end, kind, env)
+                k = len(subs) - 1 - sub_k
+                sub = subs[k] if k >= 0 else None
+                if sub is not None and _sub_band_at_click(
+                        sub, band, glyph_rects, x, y, lines, page,
+                        block_tex, pdf_filename, directory):
+                    return (start, end, kind, env)
+            match = other
+            if len(subs) >= 2 and sub_k < len(subs):
+                match = subs[len(subs) - 1 - sub_k]
+                sub_k += 1
+            while pi >= 0 and rows[pi][3] > match[1] and rows[pi][1] < match[3]:
+                # merged 行还有未消费子带：留给下一式，不整行吞掉。
+                if any(rows[pi][3] > s[1] and rows[pi][1] < s[3]
+                       for s in subs[:len(subs) - sub_k]):
+                    break
+                pi -= 1
+            ln = start - 1
+            continue
+        j = _prose_line_row(ln, rows, pi, page, block_tex, pdf_filename,
+                            directory, True)
+        if j is not None and j > pi:
+            ln -= 1  # 换行共享行：输出已在下方消费过的行里
+            continue
+        # band 内混入的正文行（锚搜索校验过）可被 prose 合法消费；
+        # 其余行被 prose 吞掉即行↔行对应脱轨，不猜。
+        if pi <= last and pi not in prose_rows:
+            return None
+        pi -= 1
+        ln -= 1
+    return None
+
+
 def _paragraph_range(lines, line):
-    '''包含 line 的源码段落区间（极大连续非空/非注释/非纯边界/非无输出行）。
+    r'''包含 line 的源码段落区间（极大连续非空/非注释/非纯边界/非无输出行）。
 
     无输出行（\label 等）必须排除：edit 失真恰常落到这类行，若计入
     段落会把反查失真的公式/标题行误并入段落矩形。
@@ -479,6 +652,89 @@ def _prose_row_line(row, lines, page, block_tex, pdf_filename, directory):
     return None
 
 
+def _equation_glyphs(glyph_rects, run, prose):
+    '''run 内的公式字形（中心落在正文行内的剔除）。'''
+    glyphs = []
+    for g in glyph_rects:
+        if g[2] <= g[0] or g[3] < g[1]:
+            continue
+        if not (run[0] <= g[0] and g[2] <= run[2]
+                and run[1] <= g[1] and g[3] <= run[3]):
+            continue
+        cx, cy = (g[0] + g[2]) / 2, (g[1] + g[3]) / 2
+        if any(r[0] <= cx <= r[2] and r[1] <= cy <= r[3] for r in prose):
+            continue
+        glyphs.append(g)
+    return glyphs
+
+
+def _number_boxes(glyphs):
+    '''右缘编号盒簇（水平隔离≥阈值）：每式唯一的视觉锚。'''
+    if not glyphs:
+        return []
+    right = max(g[2] for g in glyphs)
+    # 编号盒整体落在右缘一个编号宽度的 zone 内（逐 glyph 右缘过滤会
+    # 只收进编号最右一个字，隔离隙误判 0）；zone 内再按尺寸筛。
+    cands = [g for g in glyphs
+             if g[0] >= right - (_NUMBER_BOX_MAX_W + 2.0) and g[2] <= right + 0.1
+             and 0 < g[2] - g[0] <= _NUMBER_BOX_MAX_W
+             and 0 < g[3] - g[1] <= _NUMBER_BOX_MAX_H]
+    clusters = []
+    for g in sorted(cands, key=lambda r: (r[1], r[0])):
+        if (clusters and g[1] <= clusters[-1][3] + 0.5
+                and g[0] <= clusters[-1][2] + 1.0):
+            c = clusters[-1]
+            clusters[-1] = (min(c[0], g[0]), min(c[1], g[1]),
+                            max(c[2], g[2]), max(c[3], g[3]))
+        else:
+            clusters.append(g)
+    numbers = []
+    for c in clusters:
+        if c[2] < right - 2.5:
+            continue
+        gap = min((c[0] - o[2] for o in glyphs
+                   if o[2] <= c[0] + 0.1 and o[3] > c[1] and o[1] < c[3]
+                   and not (o[0] >= c[0] - 0.1 and o[2] <= c[2] + 0.1)),
+                  default=999.0)
+        if gap >= _NUMBER_BOX_ISOLATION:
+            numbers.append(c)
+    return numbers
+
+
+def _equation_sub_bands(glyph_rects, band):
+    '''band 含≥2 个编号盒时按「字形盒底到编号中心距离」逐式拆成子带
+    （含 _VISUAL_PAD 外沿）；单式/无编号返回 None。相邻 equation 的字形
+    行垂直重叠聚成一行时（实测根号/分式 Tall 盒悬到邻式），band 跨式，
+    锚步进需按子带消费才能保持源码↔页面对应。'''
+    rows = _glyph_rows(glyph_rects)
+    run = None
+    for r in rows:
+        if r[3] > band[1] and r[1] < band[3] and r[0] < band[2] and r[2] > band[0]:
+            run = list(r) if run is None else [
+                min(run[0], r[0]), min(run[1], r[1]),
+                max(run[2], r[2]), max(run[3], r[3])]
+    if run is None:
+        return None
+    glyphs = _equation_glyphs(glyph_rects, run, [])
+    numbers = _number_boxes(glyphs)
+    if len(numbers) < 2:
+        return None
+    centers = [(c[1] + c[3]) / 2 for c in numbers]
+    groups = [[] for _ in numbers]
+    for g in glyphs:
+        i = min(range(len(numbers)), key=lambda k: abs(g[3] - centers[k]))
+        groups[i].append(g)
+    bands = []
+    for group in groups:
+        if not group:
+            continue
+        bands.append((min(g[0] for g in group) - _VISUAL_PAD,
+                      min(g[1] for g in group) - _VISUAL_PAD,
+                      max(g[2] for g in group) + _VISUAL_PAD,
+                      max(g[3] for g in group) + _VISUAL_PAD))
+    return bands or None
+
+
 def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
                             pdf_filename, directory):
     '''equation 连通 band 的紧框：剔除正文行 + 编号盒逐式拆分。
@@ -547,45 +803,10 @@ def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
                 if nb != run:
                     run = nb
                     changed = True
-    glyphs = []
-    for g in glyph_rects:
-        if g[2] <= g[0] or g[3] < g[1]:
-            continue
-        if not (run[0] <= g[0] and g[2] <= run[2]
-                and run[1] <= g[1] and g[3] <= run[3]):
-            continue
-        cx, cy = (g[0] + g[2]) / 2, (g[1] + g[3]) / 2
-        if any(r[0] <= cx <= r[2] and r[1] <= cy <= r[3] for r in prose):
-            continue
-        glyphs.append(g)
+    glyphs = _equation_glyphs(glyph_rects, run, prose)
     if not glyphs:
         return None
-    right = max(g[2] for g in glyphs)
-    # 编号盒整体落在右缘一个编号宽度的 zone 内（逐 glyph 右缘过滤会
-    # 只收进编号最右一个字，隔离隙误判 0）；zone 内再按尺寸筛。
-    cands = [g for g in glyphs
-             if g[0] >= right - (_NUMBER_BOX_MAX_W + 2.0) and g[2] <= right + 0.1
-             and 0 < g[2] - g[0] <= _NUMBER_BOX_MAX_W
-             and 0 < g[3] - g[1] <= _NUMBER_BOX_MAX_H]
-    clusters = []
-    for g in sorted(cands, key=lambda r: (r[1], r[0])):
-        if (clusters and g[1] <= clusters[-1][3] + 0.5
-                and g[0] <= clusters[-1][2] + 1.0):
-            c = clusters[-1]
-            clusters[-1] = (min(c[0], g[0]), min(c[1], g[1]),
-                            max(c[2], g[2]), max(c[3], g[3]))
-        else:
-            clusters.append(g)
-    numbers = []
-    for c in clusters:
-        if c[2] < right - 2.5:
-            continue
-        gap = min((c[0] - o[2] for o in glyphs
-                   if o[2] <= c[0] + 0.1 and o[3] > c[1] and o[1] < c[3]
-                   and not (o[0] >= c[0] - 0.1 and o[2] <= c[2] + 0.1)),
-                  default=999.0)
-        if gap >= _NUMBER_BOX_ISOLATION:
-            numbers.append(c)
+    numbers = _number_boxes(glyphs)
     if len(numbers) < 2:
         return (run[0] - _VISUAL_PAD, run[1] - _VISUAL_PAD,
                 run[2] + _VISUAL_PAD, run[3] + _VISUAL_PAD)
@@ -606,6 +827,20 @@ def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
     return (x1 - _VISUAL_PAD, y1 - _VISUAL_PAD, x2 + _VISUAL_PAD, y2 + _VISUAL_PAD)
 
 
+def _sub_band_at_click(sub, band, glyph_rects, x, y, lines, page, block_tex,
+                       pdf_filename, directory):
+    '''点击是否归属该子带：优先用编号分组紧框（与
+    _numbered_equation_rect 同口径，垂直重叠≥较小高度一半）——相邻
+    式 Tall 盒重叠时子带 y 范围互相侵入，仅按 y 容差会把重叠区
+    点击误判给上一式（实测与紧框分组不一致）。无紧框时退回 y 容差。'''
+    tight = _numbered_equation_rect(band, glyph_rects, x, y, lines, page,
+                                    block_tex, pdf_filename, directory)
+    if tight is not None:
+        oy = min(sub[3], tight[3]) - max(sub[1], tight[1])
+        return oy >= 0.5 * min(sub[3] - sub[1], tight[3] - tight[1])
+    return sub[1] - _BLOCK_ACCEPT_PAD_Y <= y <= sub[3] + _BLOCK_ACCEPT_PAD_Y
+
+
 def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
                        directory, image_rects, glyph_rects=()):
     '''空间降级：反查行不在块内（或块矩形不含点击点）时，在附近源码块中
@@ -617,9 +852,21 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
     '''
     ranges = source_blocks.compute_block_ranges(lines)
     band = _glyph_band(glyph_rects, x, y) if glyph_rects else None
+    prose_click = False
     if band is not None:
+        seed = _click_seed_row(_glyph_rows(glyph_rects), band, x, y)
+        prose_click = (seed is not None
+                       and _prose_row_line(seed, lines, page, block_tex,
+                                           pdf_filename, directory) is not None)
+    if band is not None and not prose_click:
+        # 点击在正文行（公式+正文聚成同一 band 等）时不做视觉块
+        # 归属，免得整 band 被归给其中的公式块。
         src = _visual_block_source(band, glyph_rects, lines, page,
-                                   block_tex, pdf_filename, directory)
+                                   block_tex, pdf_filename, directory, x, y)
+        if src is None:
+            src = _visual_block_source_reverse(band, glyph_rects, lines, page,
+                                               block_tex, pdf_filename,
+                                               directory, x, y)
         if src is not None:
             start, end, kind, env = src
             rect = band
@@ -684,20 +931,38 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
     start, end, kind, env = source_blocks.expand_to_block(lines, pos['line'])
     rect = None
     band = _glyph_band(glyph_rects, x, y) if glyph_rects else None
+    prose_click = False
+    if band is not None:
+        # 点击落在经校验的正文行（公式+正文聚成同一 band、页码等）：
+        # 不做视觉块归属，交回段落吸附，免得整 band 被归给其中的
+        # 公式块（实测公式下方正文点击被误归公式）。
+        seed = _click_seed_row(_glyph_rows(glyph_rects), band, x, y)
+        prose_click = (seed is not None
+                       and _prose_row_line(seed, lines, page, pos['filename'],
+                                           pdf_filename, directory) is not None)
     src = (_visual_block_source(band, glyph_rects, lines, page,
-                                pos['filename'], pdf_filename, directory)
-           if band is not None else None)
+                                pos['filename'], pdf_filename, directory, x, y)
+           if band is not None and not prose_click else None)
+    if (src is None and band is not None and not prose_click
+            and kind != 'line' and _is_visual_env(env)):
+        # 上方锚也失真（phitex 把数学盒记到上方正文行、公式自身行零
+        # 记录）时，从 band 下方可靠锚反向步进归属，防直接接受 edit
+        # 反查到的邻块。
+        src = _visual_block_source_reverse(band, glyph_rects, lines, page,
+                                           pos['filename'], pdf_filename,
+                                           directory, x, y)
     if kind != 'line':
         if band is not None and _is_visual_env(env):
-            if src is not None:
-                start, end, kind, env = src
-            rect = band
-            if env == 'equation':
-                tight = _numbered_equation_rect(
-                    band, glyph_rects, x, y, lines, page, pos['filename'],
-                    pdf_filename, directory)
-                if tight is not None:
-                    rect = tight
+            if not prose_click:
+                if src is not None:
+                    start, end, kind, env = src
+                rect = band
+                if env == 'equation':
+                    tight = _numbered_equation_rect(
+                        band, glyph_rects, x, y, lines, page, pos['filename'],
+                        pdf_filename, directory)
+                    if tight is not None:
+                        rect = tight
         else:
             rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
                                   page, start, end, lines, directory,
@@ -740,6 +1005,51 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
     start, end, kind, env, rect = fallback
     return {'filename': pos['filename'], 'start_line': start, 'end_line': end,
             'kind': kind, 'env': env, 'rect': rect}
+
+
+def backward_math_redirect(document, pdf_filename, page, x, y, position,
+                           active_lines, glyph_rects, directory):
+    '''反向跳转（Ctrl+点击）数学区兜底：返回重定向后的 1-based 行号或 None。
+
+    phitex 把 align 等数学环境的盒记到上方正文行，点击公式反查落 prose，
+    文本修复（repair_line）对数学行无可匹配文字救不回。用与块吸附一致
+    的视觉归属（上方/下方锚步进）判定点击 band 的源块：反查行不在归属
+    块内时重定向到块内首个内容行。仅 phitex 启用（其它引擎反查准确，
+    不该二次纠正）；点击行经校验为正文时直接放行（交回文本修复路径，
+    避免每次正文点击都付出步进查询开销）。position['line'] 为 helper
+    约定的 1-based。后台线程调用。
+    '''
+    if position is None or not glyph_rects:
+        return None
+    build_system = getattr(document, 'build_system', None)
+    unreliable = getattr(build_system, '_phitex_synctex_lines_unreliable', None)
+    if unreliable is None or not unreliable():
+        return None
+    band = _glyph_band(glyph_rects, x, y)
+    if band is None:
+        return None
+    lines = _lines_for(document, position['filename'], active_lines)
+    if not lines:
+        return None
+    rows = _glyph_rows(glyph_rects)
+    seed = _click_seed_row(rows, band, x, y)
+    if seed is not None and _prose_row_line(seed, lines, page,
+                                            position['filename'],
+                                            pdf_filename, directory) is not None:
+        return None
+    src = _visual_block_source(band, glyph_rects, lines, page,
+                               position['filename'], pdf_filename, directory,
+                               x, y)
+    if src is None:
+        src = _visual_block_source_reverse(band, glyph_rects, lines, page,
+                                           position['filename'], pdf_filename,
+                                           directory, x, y)
+    if src is None:
+        return None
+    start, end, _kind, _env = src
+    if start <= position['line'] <= end:
+        return None
+    return source_blocks.nearest_content_line(lines, start)
 
 
 def _line_text_at(poppler_document, page, x, y):

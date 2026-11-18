@@ -1512,12 +1512,35 @@ class Preview(Observable):
         directory = synctex_query.synctex_directory_for_source(tex_filename, self.pdf_filename)
         pdf_filename = self.pdf_filename
         refinement = (word, context, pdf_line_offset, pdf_line_text)
-    
+        # 主线程预提取本页字形盒与 buffer 快照：phitex 数学区反查落
+        # prose 时，后台线程用视觉块归属纠正落点（线程里不读 poppler/Gtk）。
+        try:
+            ok, glyphs = poppler_page.get_text_layout()
+            glyph_rects = [(g.x1, g.y1, g.x2, g.y2) for g in glyphs] if ok else []
+        except Exception:
+            glyph_rects = []
+        buffer = self.document.source_buffer
+        active_lines = buffer.get_text(buffer.get_start_iter(),
+                                       buffer.get_end_iter(), True).splitlines(keepends=True)
+        document = self.document
+
         def _run():
             position = synctex_query.query_source_position(
                 pdf_filename, page + 1, x, y, directory)
-            GLib.idle_add(self._deliver_backward_sync, position, refinement)
-    
+            refine = refinement
+            if position is not None and glyph_rects:
+                from setzer.ai_fix import pdf_annotation_mapper
+                target = pdf_annotation_mapper.backward_math_redirect(
+                    document, pdf_filename, page, x, y, position,
+                    active_lines, glyph_rects, directory)
+                if target is not None:
+                    _sync_debug('phitex 数学区反查落行 %s，视觉归属重定向到 %s' % (
+                        position['line'], target))
+                    position = dict(position, line=target)
+                    # 精修字段来自点击处 prose 文本，对数学行不再适用。
+                    refine = (None, None, None, None)
+            GLib.idle_add(self._deliver_backward_sync, position, refine)
+
         threading.Thread(target=_run, daemon=True).start()
     
     def _deliver_backward_sync(self, position, refinement):
