@@ -21,15 +21,31 @@ gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gio, GLib
 
 from setzer.ai_fix.availability import is_ai_agent_enabled
+from setzer.app.service_locator import ServiceLocator
 from setzer.app.ui_zoom import UIZoomManager
 from setzer.app.latex_templates import WRAP_COMMANDS, WRAP_ENVIRONMENTS, INSERT_TEMPLATES
+
+
+def _current_shortcuts():
+    '''当前 keyboard_shortcuts 键位表（菜单 accel 提示的唯一来源）。'''
+    settings = ServiceLocator.get_settings()
+    shortcuts = settings.get_value('keyboard_shortcuts', None)
+    if shortcuts is None:
+        shortcuts = settings.defaults['keyboard_shortcuts']
+    return shortcuts
 
 
 def _action_item(label, detailed_action, accel=None):
     '''A Gio.MenuItem for an action, optionally with a parseable accel.
 
     The ``accel`` attribute is rendered natively by Gtk.PopoverMenu as the
-    shortcut label on the right (e.g. ``<Control>z`` -> "Ctrl+Z").'''
+    shortcut label on the right (e.g. ``<Control>z`` -> "Ctrl+Z").
+
+    迁移到 application accel 的动作（forward-sync、AI 批注等）不要传
+    ``accel``：GtkPopoverMenu 会自动依据 application accel 渲染提示，
+    提示天然随改键更新。仅 document 层控制器持有的键（剪贴板、行操作等，
+    实测迁走会劫持输入框的 Ctrl+C/Ctrl+A）需要显式传入——调用方应从
+    settings 读取，不要写字面量。'''
     item = Gio.MenuItem.new(label, detailed_action)
     if accel is not None:
         item.set_attribute_value('accel', GLib.Variant('s', accel))
@@ -101,6 +117,15 @@ class ContextMenuView(Gtk.PopoverMenu):
         self.set_menu_model(self.model)
         self.add_child(self._build_zoom_widget(), 'zoom-controls')
         self.connect('map', self.on_map)
+        # 改键后原地重建带 accel 的四段，提示与新键位同步（model 引用不变，
+        # 共享同一 model 的编辑器右键菜单同步生效）。
+        ServiceLocator.get_settings().connect('settings_changed',
+                                              self.on_settings_changed)
+
+    def on_settings_changed(self, settings, parameter):
+        section, _item, _value = parameter
+        if section == 'keyboard_shortcuts':
+            self._populate_action_sections()
 
     def _build_model(self):
         model = Gio.Menu()
@@ -109,31 +134,20 @@ class ContextMenuView(Gtk.PopoverMenu):
         model.prepend_section(None, self.ai_section)
         model.prepend_section(None, self.spell_section)
 
-        section_edit = Gio.Menu()
-        section_edit.append_item(_action_item(_('Undo'), 'win.undo', '<Control>z'))
-        section_edit.append_item(_action_item(_('Redo'), 'win.redo', '<Control><Shift>z'))
-        model.append_section(None, section_edit)
-
-        section_clip = Gio.Menu()
-        section_clip.append_item(_action_item(_('Cut'), 'win.cut', '<Control>x'))
-        section_clip.append_item(_action_item(_('Copy'), 'win.copy', '<Control>c'))
-        section_clip.append_item(_action_item(_('Paste'), 'win.paste', '<Control>v'))
-        section_clip.append_item(_action_item(_('Delete'), 'win.delete-selection'))
-        model.append_section(None, section_clip)
-
-        section_select = Gio.Menu()
-        section_select.append_item(_action_item(_('Select All'), 'win.select-all', '<Control>a'))
-        model.append_section(None, section_select)
+        # 编辑/剪贴板/选择/行操作四段单独持有引用：键位偏好变化时原地重建
+        # （Gio.Menu 引用不变——编辑器右键菜单共享同一 model）。
+        self.section_edit = Gio.Menu()
+        self.section_clip = Gio.Menu()
+        self.section_select = Gio.Menu()
+        self.section_lines = Gio.Menu()
+        model.append_section(None, self.section_edit)
+        model.append_section(None, self.section_clip)
+        model.append_section(None, self.section_select)
+        model.append_section(None, self.section_lines)
 
         # 行操作：快捷键已存在（Alt+Up/Down、Alt+Shift+D、Tab/Shift+Tab），
         # 此前仅藏在线下，放进菜单提升可发现性。非 LaTeX 专属，对任何文档可用。
-        section_lines = Gio.Menu()
-        section_lines.append_item(_action_item(_('Duplicate Line'), 'win.duplicate-line', '<Alt><Shift>d'))
-        section_lines.append_item(_action_item(_('Move Line Up'), 'win.move-line-up', '<Alt>Up'))
-        section_lines.append_item(_action_item(_('Move Line Down'), 'win.move-line-down', '<Alt>Down'))
-        section_lines.append_item(_action_item(_('Indent'), 'win.indent', '<Tab>'))
-        section_lines.append_item(_action_item(_('Unindent'), 'win.outdent', '<Shift>Tab'))
-        model.append_section(None, section_lines)
+        # （section 内容由 _populate_action_sections() 填充。）
 
         # 折叠操作：Fold All / Unfold All。对任意文档类型可用，随代码折叠功能
         # 提供。原放在标题栏汉堡菜单，现移入 Shortcut Bar 的汉堡菜单（F12 上下文菜单），
@@ -153,7 +167,51 @@ class ContextMenuView(Gtk.PopoverMenu):
         zoom_section.append_item(zoom_item)
         model.append_section(None, zoom_section)
 
+        self._populate_action_sections()
         return model
+
+    def _populate_action_sections(self):
+        '''（重）建编辑 / 剪贴板 / 选择 / 行操作四段。
+
+        accel 提示从 keyboard_shortcuts 设置读取，与 ShortcutAccels 注册的
+        application accel 同源——改键后提示不漂移。这些键留在 document 层
+        控制器（迁到 application accel 会抢走对话框/输入框的 Ctrl+C、
+        Ctrl+A，见 shortcut_accels 模块注释），popover 不会为它们自动渲染
+        提示，故显式写 accel 属性；Tab/Shift+Tab 不可配置，用固定字面量。'''
+        shortcuts = _current_shortcuts()
+
+        self.section_edit.remove_all()
+        self.section_edit.append_item(
+            _action_item(_('Undo'), 'win.undo', shortcuts.get('undo') or None))
+        self.section_edit.append_item(
+            _action_item(_('Redo'), 'win.redo', shortcuts.get('redo') or None))
+
+        self.section_clip.remove_all()
+        self.section_clip.append_item(
+            _action_item(_('Cut'), 'win.cut', shortcuts.get('cut') or None))
+        self.section_clip.append_item(
+            _action_item(_('Copy'), 'win.copy', shortcuts.get('copy') or None))
+        self.section_clip.append_item(
+            _action_item(_('Paste'), 'win.paste', shortcuts.get('paste') or None))
+        self.section_clip.append_item(_action_item(_('Delete'), 'win.delete-selection'))
+
+        self.section_select.remove_all()
+        self.section_select.append_item(
+            _action_item(_('Select All'), 'win.select-all',
+                         shortcuts.get('select_all') or None))
+
+        self.section_lines.remove_all()
+        self.section_lines.append_item(
+            _action_item(_('Duplicate Line'), 'win.duplicate-line',
+                         shortcuts.get('duplicate_line') or None))
+        self.section_lines.append_item(
+            _action_item(_('Move Line Up'), 'win.move-line-up',
+                         shortcuts.get('move_line_up') or None))
+        self.section_lines.append_item(
+            _action_item(_('Move Line Down'), 'win.move-line-down',
+                         shortcuts.get('move_line_down') or None))
+        self.section_lines.append_item(_action_item(_('Indent'), 'win.indent', '<Tab>'))
+        self.section_lines.append_item(_action_item(_('Unindent'), 'win.outdent', '<Shift>Tab'))
 
     def _build_zoom_widget(self):
         box = Gtk.CenterBox()
@@ -258,7 +316,8 @@ class ContextMenuView(Gtk.PopoverMenu):
             return
 
         self.latex_section.append_item(
-            _action_item(_('Toggle Comment'), 'win.toggle-comment', '<Control>slash'))
+            _action_item(_('Toggle Comment'), 'win.toggle-comment',
+                         _current_shortcuts().get('toggle_comment') or None))
 
         if document.is_latex_document():
             # -- Label context items (right-click on \ref{...}) -----------------
@@ -298,8 +357,10 @@ class ContextMenuView(Gtk.PopoverMenu):
                 _('Insert Template'), insert_submenu)
 
             # -- Show in Preview ------------------------------------------------
+            # accel 不写：win.forward-sync 已是 application accel，提示由
+            # popover 依实际键位自动渲染（默认 F7，改键后自动跟随）。
             self.latex_section.append_item(
-                _action_item(_('Show in Preview'), 'win.forward-sync', 'F7'))
+                _action_item(_('Show in Preview'), 'win.forward-sync'))
 
             # -- Text transformations -----------------------------------------
             # Useful for both LaTeX prose and BibTeX field bodies; exposed

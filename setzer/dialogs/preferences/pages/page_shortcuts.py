@@ -25,7 +25,7 @@ import re
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.keyboard_shortcuts import shortcut_tooltips
-from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
+from setzer.keyboard_shortcuts.shortcut_accels import SETTINGS_KEY_TO_ACTION
 
 
 # 修饰符标准顺序，与 setzer/settings/settings.py 中 keyboard_shortcuts
@@ -62,7 +62,6 @@ class PageShortcuts(object):
         self.shortcut_entries = dict()
         self.current_shortcut_button = None
         self.key_controller = None
-        self._batch_update = False
         self._pending_assignment = None
         self._pending_import = None
         # title/description 字典懒加载缓存：首次调用 get_action_title/
@@ -107,57 +106,57 @@ class PageShortcuts(object):
     def get_action_title(self, action_name):
         if self._action_titles is None:
             self._action_titles = {
-                'new_document': _('New Document'),
-                'open_document': _('Open Document'),
+                'new_document': _('New document'),
+                'open_document': _('Open document'),
                 'save': _('Save'),
-                'save_as': _('Save As'),
+                'save_as': _('Save as'),
                 'print': _('Print'),
-                'close_document': _('Close Document'),
+                'close_document': _('Close document'),
                 'quit': _('Quit'),
-                'show_shortcuts': _('Show Keyboard Shortcuts'),
-                'show_open_docs': _('Show Open Documents'),
-                'switch_document': _('Switch Document'),
-                'show_document_chooser': _('Show Document Chooser'),
-                'zoom_in': _('Zoom In'),
-                'zoom_out': _('Zoom Out'),
-                'reset_zoom': _('Reset Zoom'),
+                'show_shortcuts': _('Show keyboard shortcuts'),
+                'show_open_docs': _('Show open documents'),
+                'switch_document': _('Switch document'),
+                'show_document_chooser': _('Show document chooser'),
+                'zoom_in': _('Zoom in'),
+                'zoom_out': _('Zoom out'),
+                'reset_zoom': _('Reset zoom'),
                 'find': _('Find'),
-                'find_and_replace': _('Find and Replace'),
-                'find_next': _('Find Next'),
-                'find_previous': _('Find Previous'),
+                'find_and_replace': _('Find and replace'),
+                'find_next': _('Find next'),
+                'find_previous': _('Find previous'),
                 'help': _('Help'),
-                'document_structure': _('Document Structure'),
+                'document_structure': _('Document structure'),
                 'symbols': _('Symbols'),
-                'save_and_build': _('Save and Build'),
+                'save_and_build': _('Save and build'),
                 'build': _('Build'),
-                'forward_sync': _('Forward Sync'),
-                'build_log': _('Build Log'),
+                'forward_sync': _('Forward sync'),
+                'build_log': _('Build log'),
                 'preview': _('Preview'),
-                'command_palette': _('Command Palette'),
-                'hamburger_menu': _('Hamburger Menu'),
-                'context_menu': _('Context Menu'),
+                'command_palette': _('Command palette'),
+                'hamburger_menu': _('Hamburger menu'),
+                'context_menu': _('Context menu'),
                 'cut': _('Cut'),
                 'copy': _('Copy'),
                 'paste': _('Paste'),
                 'undo': _('Undo'),
                 'redo': _('Redo'),
-                'select_all': _('Select All'),
-                'toggle_comment': _('Toggle Comment'),
-                'delete_line': _('Delete Line'),
-                'duplicate_line': _('Duplicate Line'),
-                'move_line_up': _('Move Line Up'),
-                'move_line_down': _('Move Line Down'),
-                'new_line': _('New Line'),
+                'select_all': _('Select all'),
+                'toggle_comment': _('Toggle comment'),
+                'delete_line': _('Delete line'),
+                'duplicate_line': _('Duplicate line'),
+                'move_line_up': _('Move line up'),
+                'move_line_down': _('Move line down'),
+                'new_line': _('New line'),
                 'bold': _('Bold'),
                 'italic': _('Italic'),
                 'underline': _('Underline'),
                 'typewriter': _('Typewriter'),
                 'emphasized': _('Emphasized'),
-                'quotation_marks': _('Quotation Marks'),
-                'list_item': _('List Item'),
+                'quotation_marks': _('Quotation marks'),
+                'list_item': _('List item'),
                 'environment': _('Environment'),
-                'inline_math': _('Inline Math'),
-                'display_math': _('Display Math'),
+                'inline_math': _('Inline math'),
+                'display_math': _('Display math'),
                 'equation': _('Equation'),
                 'subscript': _('Subscript'),
                 'superscript': _('Superscript'),
@@ -165,20 +164,20 @@ class PageShortcuts(object):
                 'left': _('Left'),
                 'right': _('Right'),
                 'show_preferences_dialog': _('Preferences'),
-                'show_about_dialog': _('About'),
-                'insert_table_dialog': _('Insert Table'),
-                'insert_matrix_dialog': _('Insert Matrix'),
-                'close_all_documents': _('Close All Documents'),
-                'restore_session': _('Restore Session'),
-                'reopen_last_closed_document': _('Reopen Last Closed Document'),
-                'pin_tab': _('Pin Tab'),
-                'select_next_occurrence': _('Select Next Occurrence'),
-                'select_all_occurrences': _('Select All Occurrences'),
-                'add_cursor_above': _('Add Cursor Above'),
-                'add_cursor_below': _('Add Cursor Below'),
-                'clear_multi_cursor': _('Clear Multi-Cursor'),
-                'ai_add_annotation': _('Add AI Annotation'),
-                'ai_send_selection': _('Send Selection to Agent')
+                'show_about_dialog': _('About NeoSetzer'),
+                'insert_table_dialog': _('Insert table'),
+                'insert_matrix_dialog': _('Insert matrix'),
+                'close_all_documents': _('Close all documents'),
+                'restore_session': _('Restore session'),
+                'reopen_last_closed_document': _('Reopen last closed document'),
+                'pin_tab': _('Pin tab'),
+                'select_next_occurrence': _('Select next occurrence'),
+                'select_all_occurrences': _('Select all occurrences'),
+                'add_cursor_above': _('Add cursor above'),
+                'add_cursor_below': _('Add cursor below'),
+                'clear_multi_cursor': _('Clear multi-cursor'),
+                'ai_add_annotation': _('Add AI annotation'),
+                'ai_send_selection': _('Send selection to agent')
             }
         return self._action_titles.get(action_name, action_name)
 
@@ -194,7 +193,7 @@ class PageShortcuts(object):
                 'quit': _('Quit the application'),
                 'show_shortcuts': _('Show keyboard shortcuts dialog'),
                 'show_open_docs': _('Show list of open documents'),
-                'switch_document': _('Switch to the next open document'),
+                'switch_document': _('Switch to another open document'),
                 'show_document_chooser': _('Show document chooser popover'),
                 'zoom_in': _('Zoom in the whole application'),
                 'zoom_out': _('Zoom out the whole application'),
@@ -290,12 +289,23 @@ class PageShortcuts(object):
         button.grab_focus()
 
     def on_key_pressed(self, controller, keyval, keycode, state):
-        if keyval == Gtk.KEY_Escape:
+        if keyval == Gdk.KEY_Escape:
             self.cancel_shortcut_capture()
             return True
 
         shortcut = self.event_to_shortcut(keyval, state)
         if shortcut:
+            # 重申自己当前的绑定不算冲突（用户只是确认了原键）。
+            shortcuts = self.settings.get_value('keyboard_shortcuts', None)
+            if shortcuts is None:
+                shortcuts = self.settings.defaults['keyboard_shortcuts']
+            if shortcut != shortcuts.get(self.current_action_name):
+                hardcoded = self.find_hardcoded_conflict(shortcut)
+                if hardcoded is not None:
+                    # 固定功能不可夺走：提示换键，不落盘。
+                    self._show_hardcoded_conflict_dialog(shortcut, hardcoded)
+                    self.cancel_shortcut_capture()
+                    return True
             conflicting_action = self.find_conflicting_action(self.current_action_name, shortcut)
             if conflicting_action is not None:
                 # 有冲突：弹确认对话框，让用户决定是否从其他操作夺走此快捷键。
@@ -309,22 +319,68 @@ class PageShortcuts(object):
 
         return False
 
+    def find_hardcoded_conflict(self, shortcut):
+        """Return the display label of a fixed (non-rebindable) function bound
+        to ``shortcut``, or ``None``.
+
+        Ctrl+L（跳转行）、Ctrl+Y（重做别名）与 Insert（覆写切换）不在
+        keyboard_shortcuts 设置里、无法重绑定，常规冲突检测看不到它们——
+        不拦的话用户可以把可配置键绑上去，改了却不生效。F3 / Shift+F3 已作
+        为 win.find-next / win.find-previous 的 accel 别名注册，
+        find_conflicting_action 扫 application accel 时天然可见，无需硬列。
+        Alt+Up/Down 不在此列：编辑态语义（移动行）本身就是可配置项，
+        常规检测已覆盖；非编辑态的章节导航与编辑态互斥。"""
+        labels = (
+            ('<Control>l', _('Go to line')),
+            ('<Control>y', _('Redo')),
+            ('Insert', _('Toggle insert / overwrite')),
+        )
+        for hardcoded, label in labels:
+            if shortcut == hardcoded:
+                return label
+        return None
+
+    def _show_hardcoded_conflict_dialog(self, shortcut, label):
+        dialog = Adw.AlertDialog(
+            heading=_('Shortcut already in use'),
+            body=_('“{shortcut}” is reserved for “{function}”, which cannot be rebound. Choose a different key combination.').format(
+                shortcut=shortcut, function=label))
+        dialog.add_response('close', _('Close'))
+        dialog.set_default_response('close')
+        dialog.set_close_response('close')
+        dialog.choose(self.preferences.view, None, None)
+
     def find_conflicting_action(self, action_name, shortcut):
         '''Return the name of another action already bound to ``shortcut``,
-        or ``None`` if there is no conflict.'''
+        or ``None`` if there is no conflict.
+
+        已迁移到 application accel 的键以 app.get_accels_for_action 的返回
+        为权威来源（同时覆盖主绑定与 F3 之类的固定别名）；未迁移的键
+        （document 层剪贴板键、LaTeX 插入键）回落到 settings 里的绑定值。'''
         shortcuts = self.settings.get_value('keyboard_shortcuts', None)
         if shortcuts is None:
             shortcuts = self.settings.defaults['keyboard_shortcuts']
+        target = _normalize_shortcut(shortcut)
+        app = self.main_window.app
         for other_action, other_shortcut in shortcuts.items():
-            if other_action != action_name and other_shortcut == shortcut:
-                return other_action
+            if other_action == action_name:
+                continue
+            effective = []
+            detailed_action = SETTINGS_KEY_TO_ACTION.get(other_action)
+            if detailed_action is not None:
+                effective = app.get_accels_for_action(detailed_action)
+            if not effective and other_shortcut:
+                effective = [other_shortcut]
+            for accel in effective:
+                if accel and _normalize_shortcut(accel) == target:
+                    return other_action
         return None
 
     def _show_conflict_dialog(self, action_name, shortcut, conflicting_action):
         self._pending_assignment = (action_name, shortcut, conflicting_action)
         other_title = self.get_action_title(conflicting_action)
         dialog = Adw.AlertDialog(
-            heading=_('Shortcut Already in Use'),
+            heading=_('Shortcut already in use'),
             body=_('This shortcut is currently assigned to "{other}". '
                    'Reassigning it will remove the shortcut from that action.').format(other=other_title))
         dialog.add_response('cancel', _('Cancel'))
@@ -338,12 +394,8 @@ class PageShortcuts(object):
         response_id = dialog.choose_finish(result)
         if response_id == 'reassign' and self._pending_assignment is not None:
             action_name, shortcut, conflicting_action = self._pending_assignment
-            # 用 _batch_update 避免两次 set_shortcut 各自更新 controller。
-            self._batch_update = True
             self.set_shortcut(conflicting_action, '')
             self.set_shortcut(action_name, shortcut)
-            self._batch_update = False
-            self.rebuild_shortcut_controllers()
         self._pending_assignment = None
 
     def event_to_shortcut(self, keyval, state):
@@ -381,17 +433,14 @@ class PageShortcuts(object):
             shortcuts = dict(self.settings.defaults['keyboard_shortcuts'])
 
         shortcuts[action_name] = shortcut
+        # 写设置即触发 settings_changed：ShortcutAccels 随之重注册
+        # application accel、Shortcuts 重建 document 层控制器，无需在此
+        # 手动同步（批量导入/重置也走同一路径）。
         self.settings.set_value('keyboard_shortcuts', None, shortcuts)
 
         if action_name in self.shortcut_entries:
             self.shortcut_entries[action_name]['shortcut'] = shortcut
             self.shortcut_entries[action_name]['button'].set_label(self.format_shortcut(shortcut))
-
-        if not self._batch_update:
-            # 单个快捷键修改：只更新该 action 的 trigger，不重建整个 controller。
-            # 重建会销毁所有已注册快捷键（含非配置的 F3/Shift+F3 等）并重新解析
-            # 全部 trigger 字符串——单次修改的开销与重置全部相同，不合理。
-            self.update_shortcut_controller(action_name, shortcut)
 
     def cancel_shortcut_capture(self):
         if self.key_controller and self.current_shortcut_button:
@@ -409,29 +458,20 @@ class PageShortcuts(object):
         self.current_shortcut_button = None
         self.current_action_name = None
 
-    def update_shortcut_controller(self, action_name, shortcut):
-        '''Update a single action's trigger on the existing controller.
-        Preferred over rebuild for single-key changes — O(1) vs O(n).'''
-        shortcuts = ServiceLocator.get_shortcuts()
-        if shortcuts and shortcuts.shortcut_controller_app:
-            shortcuts.shortcut_controller_app.update_shortcut(action_name, shortcut or '')
+    def _write_shortcuts(self, shortcuts):
+        '''一次性写入整张键位表（重置/导入用）并刷新全部行。
 
-    def rebuild_shortcut_controllers(self):
-        '''Full rebuild — destroy and recreate the entire ShortcutControllerApp.
-        Only for batch operations (reset all, import) where many shortcuts
-        change at once. For single changes, use update_shortcut_controller.'''
-        shortcuts = ServiceLocator.get_shortcuts()
-        if shortcuts:
-            old_controller = shortcuts.shortcut_controller_app
-            new_controller = ShortcutControllerApp()
-            self.main_window.remove_controller(old_controller)
-            shortcuts.shortcut_controller_app = new_controller
-            self.main_window.add_controller(new_controller)
+        单次 settings_changed 触发一次 accel 重注册 + document 控制器重建；
+        若逐键 set_value 会把这两步各重复 N 遍。'''
+        self.settings.set_value('keyboard_shortcuts', None, shortcuts)
+        for action_name, entry in self.shortcut_entries.items():
+            shortcut = shortcuts.get(action_name, '')
+            entry['shortcut'] = shortcut
+            entry['button'].set_label(self.format_shortcut(shortcut))
 
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
-            heading=_('Reset to Defaults?'),
-            body=_('All keyboard shortcuts will be restored to their default values.'))
+            heading=_('Reset to defaults?'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('reset', _('Reset'))
         dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
@@ -442,16 +482,11 @@ class PageShortcuts(object):
     def on_reset_confirmed(self, dialog, result):
         response_id = dialog.choose_finish(result)
         if response_id == 'reset':
-            defaults = self.settings.defaults['keyboard_shortcuts']
-            self._batch_update = True
-            for action_name, shortcut in defaults.items():
-                self.set_shortcut(action_name, shortcut)
-            self._batch_update = False
-            self.rebuild_shortcut_controllers()
+            self._write_shortcuts(dict(self.settings.defaults['keyboard_shortcuts']))
 
     def on_import_clicked(self, button):
         dialog = Gtk.FileDialog()
-        dialog.set_title(_('Import Keyboard Shortcuts'))
+        dialog.set_title(_('Import keyboard shortcuts'))
         
         filter_json = Gtk.FileFilter()
         filter_json.set_name(_('JSON files'))
@@ -548,21 +583,20 @@ class PageShortcuts(object):
         if resolve:
             merged = self._resolve_conflicts(merged, imported)
 
-        # _batch_update 避免 N 次 set_shortcut 各自更新 controller，
-        # 全部写完后一次 rebuild_shortcut_controllers。
-        self._batch_update = True
-        for action, shortcut in merged.items():
-            if shortcut != current.get(action):
-                self.set_shortcut(action, shortcut)
-        self._batch_update = False
-        self.rebuild_shortcut_controllers()
+        self._write_shortcuts(merged)
 
-        parts = [_('Imported {n} shortcuts').format(n=len(imported))]
-        if skipped_unknown > 0:
-            parts.append(_('skipped {m} unknown actions').format(m=skipped_unknown))
-        if skipped_invalid > 0:
-            parts.append(_('skipped {m} invalid shortcuts').format(m=skipped_invalid))
-        self._show_toast(', '.join(parts) + '.')
+        if skipped_unknown and skipped_invalid:
+            self._show_toast(_('Imported {n} shortcuts, skipped {m} unknown actions '
+                               'and {k} invalid shortcuts.').format(
+                n=len(imported), m=skipped_unknown, k=skipped_invalid))
+        elif skipped_unknown:
+            self._show_toast(_('Imported {n} shortcuts, skipped {m} unknown actions.').format(
+                n=len(imported), m=skipped_unknown))
+        elif skipped_invalid:
+            self._show_toast(_('Imported {n} shortcuts, skipped {m} invalid shortcuts.').format(
+                n=len(imported), m=skipped_invalid))
+        else:
+            self._show_toast(_('Imported {n} shortcuts').format(n=len(imported)))
 
     def _show_import_conflict_dialog(self, conflicts):
         details = '\n'.join(
@@ -574,10 +608,10 @@ class PageShortcuts(object):
                  'conflicting shortcut to the imported action and clear it from '
                  'the other action(s).').format(n=len(conflicts))
         dialog = Adw.AlertDialog(
-            heading=_('Shortcut Conflicts in Import'),
+            heading=_('Shortcut conflicts in import'),
             body=body + '\n\n' + details)
         dialog.add_response('cancel', _('Cancel'))
-        dialog.add_response('resolve', _('Import and Resolve'))
+        dialog.add_response('resolve', _('Import and resolve'))
         dialog.set_response_appearance('resolve', Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
@@ -592,7 +626,7 @@ class PageShortcuts(object):
 
     def on_export_clicked(self, button):
         dialog = Gtk.FileDialog()
-        dialog.set_title(_('Export Keyboard Shortcuts'))
+        dialog.set_title(_('Export keyboard shortcuts'))
 
         filter_json = Gtk.FileFilter()
         filter_json.set_name(_('JSON files'))
@@ -614,7 +648,7 @@ class PageShortcuts(object):
 
                 with open(file.get_path(), 'w', encoding='utf-8') as f:
                     json.dump(shortcuts, f, indent=2)
-                self._show_toast(_('Exported {n} shortcuts').format(n=len(shortcuts)))
+                # 导出成功不发 toast：选择器关闭即确认（非必要不打扰）
         except Exception as e:
             self._show_toast(_('Failed to export shortcuts: {error}').format(error=str(e)))
 
@@ -638,11 +672,11 @@ class PageShortcutsView(Adw.PreferencesPage):
 
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
-        self.set_title(_('Keyboard Shortcuts'))
+        self.set_title(_('Keyboard shortcuts'))
         self.set_icon_name('input-keyboard-symbolic')
 
         self.shortcuts_group = Adw.PreferencesGroup()
-        self.shortcuts_group.set_title(_('Keyboard Shortcuts'))
+        self.shortcuts_group.set_title(_('Keyboard shortcuts'))
         self.shortcuts_group.set_description(_('Click a shortcut button to change it. Press Escape to cancel.'))
         self.add(self.shortcuts_group)
 
@@ -651,7 +685,7 @@ class PageShortcutsView(Adw.PreferencesPage):
         self.add(group_actions)
 
         export_row = Adw.ActionRow()
-        export_row.set_title(_('Export Shortcuts'))
+        export_row.set_title(_('Export shortcuts'))
         export_row.set_subtitle(_('Save keyboard shortcuts to a JSON file'))
         self.export_button = Gtk.Button(label=_('Export'))
         self.export_button.set_valign(Gtk.Align.CENTER)
@@ -659,7 +693,7 @@ class PageShortcutsView(Adw.PreferencesPage):
         group_actions.add(export_row)
 
         import_row = Adw.ActionRow()
-        import_row.set_title(_('Import Shortcuts'))
+        import_row.set_title(_('Import shortcuts'))
         import_row.set_subtitle(_('Load keyboard shortcuts from a JSON file'))
         self.import_button = Gtk.Button(label=_('Import'))
         self.import_button.set_valign(Gtk.Align.CENTER)
@@ -669,7 +703,7 @@ class PageShortcutsView(Adw.PreferencesPage):
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
 
-        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
         self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)

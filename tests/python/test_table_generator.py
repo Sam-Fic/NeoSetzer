@@ -366,8 +366,8 @@ class TableGeneratorTest(unittest.TestCase):
             os.path.join(REPO, 'setzer/popovers/shortcutsbar/object_menu.py')).read_text(encoding='utf-8')
         self.assertIn("self.add_action_button('main', _('Table'), 'win.insert-table-dialog')", menu_source)
         shortcut_source = Path(
-            os.path.join(REPO, 'setzer/keyboard_shortcuts/shortcut_controller_app.py')).read_text(encoding='utf-8')
-        self.assertIn("self._register_configurable('insert_table_dialog'", shortcut_source)
+            os.path.join(REPO, 'setzer/keyboard_shortcuts/shortcut_accels.py')).read_text(encoding='utf-8')
+        self.assertIn("'insert_table_dialog': 'win.insert-table-dialog'", shortcut_source)
         table_controller_source = Path(
             os.path.join(REPO, 'setzer/dialogs/insert_table/insert_table_controller.py')).read_text(encoding='utf-8')
         self.assertIn("self.view.copy_button.connect('clicked', self._on_copy)", table_controller_source)

@@ -26,7 +26,6 @@ import json
 from setzer.app.service_locator import ServiceLocator
 from setzer.ai_fix import agent_runner
 from setzer.ai_fix.presets import default_tools, builtin_names
-from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
 
 
 # theme mode: display name -> stored value -> Adw.ColorScheme
@@ -154,6 +153,11 @@ class PageGeneral(object):
         self.view.option_embedded_terminal.connect(
             'notify::active', self.on_switch_toggled, 'ai_fix_embedded_terminal')
 
+        self.view.option_ai_diff.set_active(
+            self.settings.get_value('preferences', 'ai_diff_display'))
+        self.view.option_ai_diff.connect(
+            'notify::active', self.on_switch_toggled, 'ai_diff_display')
+
         self.view.option_tool.connect('notify::selected', self.on_tool_selected)
         self._rebuild_tool_combo()
 
@@ -187,12 +191,14 @@ class PageGeneral(object):
 
     def show_restart_dialog(self):
         dialog = Adw.AlertDialog(
-            heading=_('Restart Required'),
+            heading=_('Restart required'),
             body=_('The new language will take effect after the application is restarted.'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('restart', _('Restart'))
         dialog.set_response_appearance('restart', Adw.ResponseAppearance.SUGGESTED)
-        dialog.set_default_response('restart')
+        # 默认响应须安全侧：restart 会 os.execv 重启、丢弃未保存文档，
+        # Enter 不应直接触发重启。
+        dialog.set_default_response('cancel')
         dialog.set_close_response('cancel')
         dialog.choose(self.main_window, None, self.on_restart_response)
 
@@ -238,18 +244,9 @@ class PageGeneral(object):
         DialogLocator.get_dialog('first_run_tutorial').show_again()
 
     # ---- backup and restore（来自 Settings Data 页） ----
-    def rebuild_shortcut_controllers(self):
-        '''导入的快捷键需同步到当前应用：替换 app 级快捷键控制器（与
-        PageShortcuts 导入时一致）。'''
-        old = self.shortcuts.shortcut_controller_app
-        new = ShortcutControllerApp()
-        self.main_window.remove_controller(old)
-        self.shortcuts.shortcut_controller_app = new
-        self.main_window.add_controller(new)
-
     def on_export_clicked(self, button):
         dialog = Gtk.FileDialog()
-        dialog.set_title(_('Export Settings'))
+        dialog.set_title(_('Export settings'))
         dialog.set_initial_name('setzer-settings.json')
         filter_json = Gtk.FileFilter()
         filter_json.set_name('JSON')
@@ -277,11 +274,11 @@ class PageGeneral(object):
         except Exception as e:
             self._show_toast(_('Could not export settings: {}').format(e))
             return
-        self._show_toast(_('Settings exported.'))
+        # 导出成功不发 toast：选择器关闭即确认（非必要不打扰）
 
     def on_import_clicked(self, button):
         dialog = Gtk.FileDialog()
-        dialog.set_title(_('Import Settings'))
+        dialog.set_title(_('Import settings'))
         filter_json = Gtk.FileFilter()
         filter_json.set_name('JSON')
         filter_json.add_mime_type('application/json')
@@ -318,17 +315,16 @@ class PageGeneral(object):
                     imported[section] += 1
 
         self.settings.pickle()
-        if imported['keyboard_shortcuts'] > 0:
-            self.rebuild_shortcut_controllers()
-        self._show_toast(_('Settings imported. Reopen Preferences to see all changes.'))
+        # 键位改动经 settings_changed 由 ShortcutAccels 自行重注册，无需手动同步。
+        self._show_toast(_('Settings imported. Reopen preferences to see all changes.'))
 
     def on_reset_all_clicked(self, button):
         confirm = Adw.AlertDialog()
         confirm.set_heading(_('Reset all preferences?'))
-        confirm.set_body(_('This resets all preferences to their default values. '
-                           'Keyboard shortcuts and window layout are kept.'))
+        confirm.set_body(_('Keyboard shortcuts and window layout are kept.'))
         confirm.add_response('cancel', _('Cancel'))
         confirm.add_response('reset', _('Reset'))
+        confirm.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
         confirm.set_default_response('cancel')
         confirm.set_close_response('cancel')
         confirm.choose(self.main_window, None, self.on_reset_all_response)
@@ -338,7 +334,7 @@ class PageGeneral(object):
             return
         self.settings.reset_preferences()
         self.settings.pickle()
-        self._show_toast(_('Preferences reset. Reopen Preferences to see all changes.'))
+        self._show_toast(_('Preferences reset. Reopen preferences to see all changes.'))
 
     def _show_toast(self, message):
         # 先试偏好对话框：它在主窗口之上，走主窗口的 overlay 会被挡住。
@@ -351,8 +347,7 @@ class PageGeneral(object):
     # ---- reset ----
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
-            heading=_('Reset to Defaults?'),
-            body=_('All appearance settings will be restored to their default values.'))
+            heading=_('Reset to defaults?'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('reset', _('Reset'))
         dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
@@ -584,7 +579,7 @@ class PageGeneral(object):
 
     def on_ai_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
-            heading=_('Reset to Defaults?'),
+            heading=_('Reset to defaults?'),
             body=_('All AI agent settings will be restored to their default values. '
                    'Custom tools and trusted directories will be removed.'))
         dialog.add_response('cancel', _('Cancel'))
@@ -600,7 +595,7 @@ class PageGeneral(object):
             defaults = self.settings.defaults['preferences']
             for key in ('ai_fix_enabled', 'ai_fix_active_tool',
                         'ai_fix_terminal_cmd', 'ai_fix_trusted_dirs', 'ai_fix_tools',
-                        'ai_fix_embedded_terminal'):
+                        'ai_fix_embedded_terminal', 'ai_diff_display'):
                 self.settings.set_value('preferences', key, defaults[key])
             # 预制提示词用深拷贝，避免与 defaults 共享 dict。
             from setzer.ai_fix.presets import default_annotation_presets
@@ -608,6 +603,7 @@ class PageGeneral(object):
             self.settings.pickle()
             self.view.option_enabled.set_active(defaults['ai_fix_enabled'])
             self.view.option_embedded_terminal.set_active(defaults['ai_fix_embedded_terminal'])
+            self.view.option_ai_diff.set_active(defaults['ai_diff_display'])
             self.view.option_terminal_cmd.set_text(defaults['ai_fix_terminal_cmd'] or '')
             self._rebuild_tool_combo()
             self._rebuild_tools_list()
@@ -628,7 +624,7 @@ class PageGeneralView(Adw.PreferencesPage):
         self.add(group_theme)
 
         self.theme_combo = Adw.ComboRow()
-        self.theme_combo.set_title(_('Color Scheme'))
+        self.theme_combo.set_title(_('Color scheme'))
         theme_model = Gtk.StringList()
         for name, _value, _scheme in THEME_MODES:
             theme_model.append(_(name))
@@ -653,7 +649,7 @@ class PageGeneralView(Adw.PreferencesPage):
         self.add(group_language)
 
         self.language_combo = Adw.ComboRow()
-        self.language_combo.set_title(_('Interface Language'))
+        self.language_combo.set_title(_('Interface language'))
         self.language_combo.set_subtitle(_('Changes take effect after the application is restarted.'))
         language_model = Gtk.StringList()
         for name, _value in LANGUAGES:
@@ -663,7 +659,7 @@ class PageGeneralView(Adw.PreferencesPage):
 
         # on startup（应用级/界面设置，归属此通用页）
         group_startup = Adw.PreferencesGroup()
-        group_startup.set_title(_('On Startup'))
+        group_startup.set_title(_('On startup'))
         self.add(group_startup)
 
         self.startup_combo = Adw.ComboRow()
@@ -688,7 +684,7 @@ class PageGeneralView(Adw.PreferencesPage):
         self.preview_width_scale.set_value_pos(Gtk.PositionType.RIGHT)
         self.preview_width_scale.add_mark(50, Gtk.PositionType.BOTTOM, None)
         self.preview_width_row = Adw.ActionRow()
-        self.preview_width_row.set_title(_('Preview Sidebar Width'))
+        self.preview_width_row.set_title(_('Preview sidebar width'))
         self.preview_width_row.set_subtitle(_('Percentage of the window width allocated to the PDF preview.'))
         self.preview_width_row.add_suffix(self.preview_width_scale)
         group_preview.add(self.preview_width_row)
@@ -703,17 +699,17 @@ class PageGeneralView(Adw.PreferencesPage):
         group_preview.add(self.option_recolor_pdf)
 
         self.option_preview_zoom = Adw.ComboRow()
-        self.option_preview_zoom.set_title(_('Default Zoom'))
+        self.option_preview_zoom.set_title(_('Default zoom'))
         self.option_preview_zoom.set_subtitle(
             _('Initial zoom mode for the PDF preview.'))
         self.option_preview_zoom.set_tooltip_text(_(
             'Default zoom mode for the PDF preview. '
-            'Fit Width fills the preview width; Fit Text Width fits the text column; '
-            'Fit Height fills the preview height; Manual starts at 100%.'))
+            'Fit width fills the preview width; Fit text width fits the text column; '
+            'Fit height fills the preview height; Manual starts at 100%.'))
         zoom_model = Gtk.StringList.new([
-            _('Fit Width'),
-            _('Fit Text Width'),
-            _('Fit Height'),
+            _('Fit width'),
+            _('Fit text width'),
+            _('Fit height'),
             _('Manual (100%)'),
         ])
         self.option_preview_zoom.set_model(zoom_model)
@@ -732,7 +728,7 @@ class PageGeneralView(Adw.PreferencesPage):
         self.sidebar_width_scale.set_value_pos(Gtk.PositionType.RIGHT)
         self.sidebar_width_scale.add_mark(20, Gtk.PositionType.BOTTOM, None)
         self.sidebar_width_row = Adw.ActionRow()
-        self.sidebar_width_row.set_title(_('Sidebar Width'))
+        self.sidebar_width_row.set_title(_('Sidebar width'))
         self.sidebar_width_row.set_subtitle(_('Percentage of the window width allocated to the sidebar.'))
         self.sidebar_width_row.add_suffix(self.sidebar_width_scale)
         group_sidebar.add(self.sidebar_width_row)
@@ -741,12 +737,12 @@ class PageGeneralView(Adw.PreferencesPage):
         #      多个入口共用的配置）。置于 Tutorial/Backup 之前——功能配置区
         #      在前，备份/重置等档案性操作统一放页面末尾。----
         group_ai_main = Adw.PreferencesGroup()
-        group_ai_main.set_title(_('AI Settings'))
+        group_ai_main.set_title(_('AI settings'))
         self.add(group_ai_main)
 
         self.option_enabled = Adw.SwitchRow()
         self.option_enabled.set_title(_('Enable AI agent'))
-        self.option_enabled.set_subtitle(_('Enables AI Fix in the Build Log dialog and the agent terminal button in the header bar'))
+        self.option_enabled.set_subtitle(_('Enables AI Fix in the build log dialog and the agent terminal button in the header bar'))
         group_ai_main.add(self.option_enabled)
 
         self.option_embedded_terminal = Adw.SwitchRow()
@@ -759,6 +755,12 @@ class PageGeneralView(Adw.PreferencesPage):
             self.option_embedded_terminal.set_subtitle(
                 _('Embedded terminal (VTE) is not available on this system; an external terminal is used instead'))
         group_ai_main.add(self.option_embedded_terminal)
+
+        self.option_ai_diff = Adw.SwitchRow()
+        self.option_ai_diff.set_title(_('Show AI edits as a diff preview'))
+        self.option_ai_diff.set_subtitle(
+            _('Snapshot the document when sending an AI task; after the agent edits it, show the typeset changes for review (needs PhiTeX)'))
+        group_ai_main.add(self.option_ai_diff)
 
         self.option_tool = Adw.ComboRow()
         self.option_tool.set_title(_('Active agent tool'))
@@ -794,19 +796,18 @@ class PageGeneralView(Adw.PreferencesPage):
         group_ai_reset = Adw.PreferencesGroup()
         self.add(group_ai_reset)
 
-        self.ai_reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.ai_reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.ai_reset_button.set_halign(Gtk.Align.END)
         self.ai_reset_button.add_css_class('destructive-action')
         group_ai_reset.add(self.ai_reset_button)
 
         # tutorial（来自 First Run 页）
         group_tutorial = Adw.PreferencesGroup()
-        group_tutorial.set_title(_('First-Run Tutorial'))
+        group_tutorial.set_title(_('First-run tutorial'))
         self.add(group_tutorial)
 
         self.show_again_row = Adw.ActionRow()
         self.show_again_row.set_title(_('Show the tutorial again'))
-        self.show_again_row.set_subtitle(_('Open the welcome tips dialog.'))
         self.show_again_button = Gtk.Button(label=_('Show'))
         self.show_again_button.set_valign(Gtk.Align.CENTER)
         self.show_again_row.add_suffix(self.show_again_button)
@@ -815,14 +816,13 @@ class PageGeneralView(Adw.PreferencesPage):
 
         # backup and restore（来自 Settings Data 页）
         group_backup = Adw.PreferencesGroup()
-        group_backup.set_title(_('Backup and Restore'))
+        group_backup.set_title(_('Backup and restore'))
         group_backup.set_description(_('Export your preferences and keyboard shortcuts to a '
                                         'file, or import them on another machine.'))
         self.add(group_backup)
 
         self.export_row = Adw.ActionRow()
-        self.export_row.set_title(_('Export Settings'))
-        self.export_row.set_subtitle(_('Save your preferences and keyboard shortcuts to a file.'))
+        self.export_row.set_title(_('Export settings'))
         self.option_export = Gtk.Button(label=_('Export'))
         self.option_export.set_valign(Gtk.Align.CENTER)
         self.export_row.add_suffix(self.option_export)
@@ -830,8 +830,7 @@ class PageGeneralView(Adw.PreferencesPage):
         group_backup.add(self.export_row)
 
         self.import_row = Adw.ActionRow()
-        self.import_row.set_title(_('Import Settings'))
-        self.import_row.set_subtitle(_('Load preferences and keyboard shortcuts from a file.'))
+        self.import_row.set_title(_('Import settings'))
         self.option_import = Gtk.Button(label=_('Import'))
         self.option_import.set_valign(Gtk.Align.CENTER)
         self.import_row.add_suffix(self.option_import)
@@ -840,7 +839,6 @@ class PageGeneralView(Adw.PreferencesPage):
 
         self.reset_all_row = Adw.ActionRow()
         self.reset_all_row.set_title(_('Reset all preferences'))
-        self.reset_all_row.set_subtitle(_('Restore all preference values to their defaults.'))
         self.option_reset_all = Gtk.Button(label=_('Reset'))
         self.option_reset_all.add_css_class('destructive-action')
         self.option_reset_all.set_valign(Gtk.Align.CENTER)
@@ -852,7 +850,7 @@ class PageGeneralView(Adw.PreferencesPage):
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
 
-        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
         self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)

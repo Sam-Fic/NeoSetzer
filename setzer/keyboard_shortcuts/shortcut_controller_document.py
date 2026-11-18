@@ -49,6 +49,9 @@ class ShortcutControllerDocument(ShortcutController):
         self.create_and_add_shortcut(shortcuts.get('undo', '<Control>z'), self.actions.undo)
         self.create_and_add_shortcut(shortcuts.get('redo', '<Control><Shift>z'), self.actions.redo)
         self.create_and_add_shortcut('<Control>y', self.actions.redo)
+        # 全选：设置里可配置、快捷键窗口也列出，但此前从未注册过——Ctrl+A 只靠
+        # GtkTextView 内置行为兜底，改绑形同虚设。走 actions.select_all 显式注册。
+        self.create_and_add_shortcut(shortcuts.get('select_all', '<Control>a'), self.actions.select_all)
         # 删除行：原硬编码 <Control>d 与 VS Code/Sublime/IntelliJ 的「选中下一个
         # 相同词（多光标）」肌肉记忆冲突。改为 VS Code 标准的 Ctrl+Shift+K，
         # 并走 shortcuts.get() 让用户可在设置里改。Ctrl+D 暂不绑定，留作未来

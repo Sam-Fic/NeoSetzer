@@ -83,11 +83,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.document_stack.set_vexpand(True)
         # 不设 expand-tabs：标签按内容收缩，多文档时滚动而非均分占满，
         # 与 gedit / GNOME Text Editor 默认行为一致。
-        # 屏蔽 Adw 内置的 Ctrl+Tab / Ctrl+Shift+Tab 快捷键：app-level 的
-        # shortcut_controller_app 已有 switch_document（Ctrl+Tab，默认绑到
-        # switch_to_earliest_open_document）；两条同时响应会随机 race，让
-        # app-level 赢更可控。其它 Adw 内置（Alt+数字、Page Up/Dn、Home/End）
-        # 仍启用，给高级用户提供额外导航方式。
+        # 屏蔽 Adw 内置的 Ctrl+Tab / Ctrl+Shift+Tab 快捷键：shortcut_accels 已把
+        # switch_document 注册为 application accel（Ctrl+Tab 默认绑到
+        # switch_to_earliest_open_document）；两者同键并存时胜负取决于注册
+        # 顺序，显式禁用 Adw 内置让 win.switch-document 稳定生效。其它 Adw
+        # 内置（Alt+数字、Page Up/Dn、Home/End）仍启用，给高级用户额外导航。
         ALL_SHORTCUTS = (
             Adw.TabViewShortcuts.CONTROL_TAB
             | Adw.TabViewShortcuts.CONTROL_SHIFT_TAB

@@ -84,7 +84,7 @@ class HamburgerMenu(object):
         # 也不会丢失。win.new-latex-document 的默认快捷键为 Ctrl+N（可在偏好设置改）。
         section_new = Gio.Menu()
         new_latex = Gio.MenuItem.new(_('New LaTeX Document'), 'win.new-latex-document')
-        new_latex.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>n'))
+
         section_new.append_item(new_latex)
         section_new.append(_('New BibTeX Document'), 'win.new-bibtex-document')
         section_new.append(_('New Document from Template'), 'win.new-from-file-template')
@@ -93,20 +93,21 @@ class HamburgerMenu(object):
         # GMenu 的分隔线由 section 自动渲染：每个 append_section 之间出一条标准分隔线，
         # 不要用自定义 role=separator 的 MenuItem（会被 Gtk 渲染成空白行=空白项 bug）。
         section_save = Gio.Menu()
-        # Save Document（win.save）：补回普通 Save 项。原 section 只有 Save As / Save All，
+        # Save（win.save）：补回普通 Save 项。原 section 只有 Save As / Save All，
         # 缺普通 Save——窄窗 headerbar compact 模式隐藏 save 按钮后，用户仍可从这里保存
-        # （Ctrl+S 兜底，菜单项提升可发现性）。
-        save_doc = Gio.MenuItem.new(_('Save Document'), 'win.save')
-        save_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>s'))
+        # （Ctrl+S 兜底，菜单项提升可发现性）。标签按 HIG 用标准动词短语
+        # （"Save" / "Save As…"，不写 "Save Document"）。
+        save_doc = Gio.MenuItem.new(_('Save'), 'win.save')
+
         section_save.append_item(save_doc)
-        save_as = Gio.MenuItem.new(_('Save Document As…'), 'win.save-as')
-        save_as.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>s'))
+        save_as = Gio.MenuItem.new(_('Save As…'), 'win.save-as')
+
         section_save.append_item(save_as)
         section_save.append(_('Save All Documents'), 'win.save-all')
         # Export PDF As…：把 build 生成的 PDF 另存到其他位置（副本，不改源文件）。
         section_save.append(_('Export PDF As…'), 'win.export-pdf-as')
         print_item = Gio.MenuItem.new(_('Print…'), 'win.print')
-        print_item.set_attribute_value('accel', GLib.Variant('s', '<Control>p'))
+
         section_save.append_item(print_item)
         self.menu_model.append_section(None, section_save)
 
@@ -118,59 +119,68 @@ class HamburgerMenu(object):
 
         section_commands = Gio.Menu()
         command_palette = Gio.MenuItem.new(_('Command Palette'), 'win.show-command-palette')
-        command_palette.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>.'))
+
         section_commands.append_item(command_palette)
+        # Toggle Fullscreen 属应用级视图命令，按 HIG 放在收尾段
+        # （Preferences/Shortcuts/Help/About）之前的普通 section，不进收尾段。
+        fullscreen_item = Gio.MenuItem.new(_('Toggle Fullscreen'), 'win.toggle-fullscreen')
+
+        section_commands.append_item(fullscreen_item)
         self.menu_model.append_section(None, section_commands)
 
+        # 当前文档的两个分析对话框自成一段（语义上是文档操作，不是应用设置），
+        # 与下方收尾段（Preferences/Shortcuts/Help/About）保持一个分隔线。
+        section_document = Gio.Menu()
+        doc_props = Gio.MenuItem.new(_('Document Properties'), 'win.show-document-properties')
+        section_document.append_item(doc_props)
+        preamble_assistant = Gio.MenuItem.new(_('Preamble Assistant'), 'win.show-preamble-assistant')
+        section_document.append_item(preamble_assistant)
+        self.menu_model.append_section(None, section_document)
+
+        # HIG 收尾段固定顺序：Preferences → Keyboard Shortcuts → Help → About。
         section_prefs = Gio.Menu()
         prefs = Gio.MenuItem.new(_('Preferences'), 'win.show-preferences-dialog')
-        prefs.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>comma'))
-        section_prefs.append_item(prefs)
-        doc_props = Gio.MenuItem.new(_('Document Properties'), 'win.show-document-properties')
-        section_prefs.append_item(doc_props)
-        # Preamble Assistant 紧跟 Document Properties：两者都是当前文档的 LaTeX
-        # 对话框（查看/分析），而下一段已经接 Application（Fullscreen/Shortcuts/About），
-        # 把 Preamble Assistant 放在这里语义最连贯。Gio.Menu 按添加顺序渲染。
-        preamble_assistant = Gio.MenuItem.new(_('Preamble Assistant'), 'win.show-preamble-assistant')
-        section_prefs.append_item(preamble_assistant)
-        self.menu_model.append_section(None, section_prefs)
 
-        section_help = Gio.Menu()
-        fullscreen_item = Gio.MenuItem.new(_('Toggle Fullscreen'), 'win.toggle-fullscreen')
-        fullscreen_item.set_attribute_value('accel', GLib.Variant('s', 'F11'))
-        section_help.append_item(fullscreen_item)
+        section_prefs.append_item(prefs)
         shortcuts = Gio.MenuItem.new(_('Keyboard Shortcuts'), 'win.show-shortcuts-dialog')
-        shortcuts.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>question'))
-        section_help.append_item(shortcuts)
-        about = Gio.MenuItem.new(_('About'), 'win.show-about-dialog')
-        # 不设 accel 提示：show_about_dialog 现无默认快捷键（About 对话框菜单可达），
-        # 若仍写死 Ctrl+Shift+H 会与默认行为不一致、误导用户。
-        section_help.append_item(about)
-        self.menu_model.append_section(None, section_help)
+
+        section_prefs.append_item(shortcuts)
+        # Help 打开应用内帮助侧栏，行为同 win.show-help-panel；F1 提示由
+        # GtkPopoverMenu 依 application accel 自动渲染，改键后自动跟随。
+        help_item = Gio.MenuItem.new(_('Help'), 'win.show-help-panel')
+
+        section_prefs.append_item(help_item)
+        about = Gio.MenuItem.new(_('About NeoSetzer'), 'win.show-about-dialog')
+        # HIG：主菜单 About 项须带应用名。不设 accel 提示：show_about_dialog
+        # 现无默认快捷键（About 对话框菜单可达），若仍写死 Ctrl+Shift+H 会与
+        # 默认行为不一致、误导用户。
+        section_prefs.append_item(about)
+        self.menu_model.append_section(None, section_prefs)
 
         section_close = Gio.Menu()
         close_all = Gio.MenuItem.new(_('Close All Documents'), 'win.close-all-documents')
-        close_all.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>w'))
+
         section_close.append_item(close_all)
         close_doc = Gio.MenuItem.new(_('Close Document'), 'win.close-active-document')
-        close_doc.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>w'))
+
         section_close.append_item(close_doc)
         # Reopen Closed Document：原只有 Ctrl+Shift+T 快捷键、无菜单入口，可发现性为零。
         # 复用 actions 已注册的 win.reopen-last-closed-document action（enabled 状态
         # 由 update_actions 根据 _closed_document_stack 是否为空管理）。放在 Close 旁边
-        # 语义最近，Ctrl+Shift+T accel 与 shortcut_controller_app.py 注册的一致。
+        # 语义最近。accel 提示由 application accel 自动渲染（键值来自
+        # keyboard_shortcuts 设置，改键后自动跟随）。
         reopen_item = Gio.MenuItem.new(_('Reopen Closed Document'), 'win.reopen-last-closed-document')
-        reopen_item.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>t'))
+
         section_close.append_item(reopen_item)
         quit_item = Gio.MenuItem.new(_('Quit'), 'win.quit')
-        quit_item.set_attribute_value('accel', GLib.Variant('s', '<Ctrl>q'))
+
         section_close.append_item(quit_item)
         self.menu_model.append_section(None, section_close)
 
     def build_session_submenu(self):
         self.session_section.remove_all()
         restore = Gio.MenuItem.new(_('Restore Previous Session…'), 'win.restore-session')
-        restore.set_attribute_value('accel', GLib.Variant('s', '<Ctrl><Shift>j'))
+
         self.session_section.append_item(restore)
         self.session_section.append(_('Save Current Session…'), 'win.save-session')
         # Recent Sessions 作为 labeled section，自带分隔线，无需手动 separator

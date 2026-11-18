@@ -20,8 +20,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.popovers.popover_manager import PopoverManager
-from setzer.keyboard_shortcuts.shortcut_controller_app import ShortcutControllerApp
+from setzer.keyboard_shortcuts.shortcut_accels import ShortcutAccels, SectionNavigationController
 from setzer.keyboard_shortcuts.shortcut_controller_document import ShortcutControllerDocument
 from setzer.keyboard_shortcuts.shortcut_controller_latex import ShortcutControllerLaTeX, register_global_accels
 
@@ -32,9 +31,14 @@ class Shortcuts(object):
         self.main_window = ServiceLocator.get_main_window()
         self.workspace = ServiceLocator.get_workspace()
 
-        self.shortcut_controller_app = ShortcutControllerApp()
-
-        self.main_window.add_controller(self.shortcut_controller_app)
+        # 窗口级键走 application accel（见 shortcut_accels 模块注释：菜单提示
+        # 自动跟随改键、popover 打开时不再失效、冲突检测可全量扫描）。
+        # ShortcutAccels 自己监听 settings_changed，改键即时全局生效。
+        self.shortcut_accels = ShortcutAccels()
+        # 例外：章节导航 Alt+Up/Down 保留在窗口级控制器（编辑态需放行给
+        # document 层的移动行，application accel 做不到放行）。
+        self.section_nav_controller = SectionNavigationController()
+        self.main_window.add_controller(self.section_nav_controller)
         # LaTeX 带参动作的加速器（textbf/italic/fraction 等）是窗口级全局
         # 注册，与具体文档无关：应用启动时执行一次即可。此前随每个新建/
         # 打开的文档重复注册，实测每次 0.6-1s——是「新建文档 / 打开文件 /
@@ -47,15 +51,6 @@ class Shortcuts(object):
         for document in self.workspace.open_documents: self.setup_document_shortcuts(document)
         self.workspace.connect('new_document', self.on_new_document)
 
-        # 引用计数：多个 popover 可同时打开（如 preview_zoom_level 未关时
-        # 右键 source_view 打开 context_menu）。GTK4 的 Gtk.Popover 不互斥，
-        # 原代码每个 popup 都 remove_controller、每个 popdown 都 add_controller，
-        # 在第二个 popup 时重复 remove 触发 GTK critical，第二个 popdown 重复
-        # add 同样告警。计数确保只在深度 0↔1 转换时实际 add/remove。
-        self._popover_depth = 0
-        PopoverManager.connect('popup', self.on_popover_popup)
-        PopoverManager.connect('popdown', self.on_popover_popdown)
-
     def on_new_document(self, workspace, document):
         self.setup_document_shortcuts(document)
 
@@ -66,8 +61,7 @@ class Shortcuts(object):
             # 文档级控制器（cut/copy、注释、引号等）在创建时读取设置，不会
             # 自动跟随偏好页的修改。重建已打开文档的控制器，使用户改键位
             # 后立即生效——尤其 toggle_comment 此前只存在于 LaTeX 控制器，
-            # 偏好页的 update_shortcut_controller 只更新 app 控制器，改了也
-            # 不会影响当前文档。
+            # 偏好页只改设置，不重建就不会影响当前文档。
             self._refresh_document_shortcuts()
 
     def setup_document_shortcuts(self, document):
@@ -88,22 +82,5 @@ class Shortcuts(object):
                     document.view.source_view.remove_controller(controller)
                     setattr(document, attribute, None)
             self.setup_document_shortcuts(document)
-
-    def on_popover_popup(self, name):
-        # 仅在深度 0→1 转换时实际 remove_controller；深度 >0 时控制器
-        # 已被移除，跳过避免 GTK critical（重复 remove 同一控制器）。
-        if self._popover_depth == 0:
-            self.main_window.remove_controller(self.shortcut_controller_app)
-        self._popover_depth += 1
-
-    def on_popover_popdown(self, name):
-        # 若 popdown 在无对应 popup 时触发（depth 已为 0），直接返回——
-        # 此时控制器已 attach，重复 add_controller 会触发 GTK critical。
-        # 正常路径下仅在深度 1→0 转换时实际 add_controller。
-        if self._popover_depth == 0:
-            return
-        self._popover_depth -= 1
-        if self._popover_depth == 0:
-            self.main_window.add_controller(self.shortcut_controller_app)
 
 

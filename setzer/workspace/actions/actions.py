@@ -211,6 +211,9 @@ class Actions(object):
         self.add_action('show-command-palette', self.show_command_palette)
         self.add_action('show-about-dialog', self.show_about_dialog)
         self.add_action('show-context-menu', self.show_context_menu)
+        # Help 侧栏开关（汉堡菜单 Help 项入口）；F1 走 application accel
+        # 直接激活本动作（win.show-help-panel），行为与旧控制器一致。
+        self.add_action('show-help-panel', self.show_help_panel)
         # toggle-fullscreen 使用 PropertyAction 绑定 MainWindow.fullscreened 属性，
         # 无需手工 set_state / 回调——GTK 自动翻转布尔属性并同步 UI。
         fullscreen_action = Gio.PropertyAction.new('toggle-fullscreen', self.main_window, 'fullscreened')
@@ -1299,8 +1302,9 @@ class Actions(object):
             buffer.select_range(buffer.get_iter_at_offset(start_offset),
                                 buffer.get_iter_at_offset(end_offset))
             model = getattr(document, 'ai_annotations', None)
-            if model is not None and model.add_from_selection(comment, preset) is not None:
-                self._show_file_template_toast(_('Annotation added'))
+            if model is not None:
+                model.add_from_selection(comment, preset)
+                # 批注即时出现在 AI 侧栏列表，无需 toast（非必要不打扰）
 
         self._present_annotation_popover(document, start_offset, end_offset, on_save)
 
@@ -1811,10 +1815,14 @@ class Actions(object):
     # --- Preview context menu actions -----------------------------------------
 
     def _preview_shows_pdf(self):
-        '''预览栏当前是否展示整篇 PDF（片段模式下 PDF 专属 action 全部禁用）。'''
+        '''预览栏当前是否展示整篇 PDF（片段模式下 PDF 专属 action 全部禁用）。
+
+        diff 档也算：它展示的仍是整篇文档（latexdiff 标记版），缩放、复制、
+        打印、右键批注这些动作对它同样有意义。
+        '''
         panel = getattr(self.main_window, 'preview_panel', None)
         presenter = getattr(panel, 'presenter', None)
-        return presenter is None or presenter.get_mode() == 'pdf'
+        return presenter is None or presenter.get_mode() in ('pdf', 'diff')
 
     def toggle_preview_snippet_mode(self, action=None, parameter=None):
         '''预览栏在整篇 PDF / TikZ 片段图之间切换（模式状态归 presenter）。'''
@@ -1922,6 +1930,21 @@ class Actions(object):
 
     def show_about_dialog(self, action=None, parameter=''):
         DialogLocator.get_dialog('about').run()
+
+    def show_help_panel(self, action=None, parameter=None):
+        '''切换 Help 侧栏（汉堡菜单 Help 项与 F1 共用本实现——F1 是
+        win.show-help-panel 的 application accel），包括「当前显示预览时
+        按 F1 切到 Help」的分支。'''
+        toggle = self.main_window.headerbar.preview_help_toggle
+        if not toggle.get_sensitive():
+            return
+        if not toggle.get_active():
+            toggle.set_active(True)
+            self.workspace.set_show_preview_or_help(False, True)
+        elif self.workspace.show_help:
+            toggle.set_active(False)
+        else:
+            self.workspace.set_show_preview_or_help(False, True)
 
     def show_context_menu(self, action=None, parameter=''):
         PopoverManager.create_popover('context_menu').view.popup()
