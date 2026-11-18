@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-18 23:52+0800\n"
+"POT-Creation-Date: 2026-11-19 02:02+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/setzer/application/pt_BR/>\n"
@@ -222,6 +222,305 @@ msgstr "Runtime do Flatpak atualizado para GNOME 48"
 msgid "Mostly bugfixes, ..."
 msgstr "Principalmente correções de erros, …"
 
+#: data/resources/latexdb/languages/languages.xml:2
+#: data/resources/latexdb/languages/languages.xml:21
+#: data/resources/latexdb/languages/languages.xml:22
+#: data/resources/latexdb/languages/languages.xml:23
+#: data/resources/latexdb/languages/languages.xml:24
+#: data/resources/latexdb/languages/languages.xml:25
+msgid "English"
+msgstr "English"
+
+#: data/resources/latexdb/languages/languages.xml:3
+msgid "Español"
+msgstr "Español"
+
+#: data/resources/latexdb/languages/languages.xml:4
+#: data/resources/latexdb/languages/languages.xml:29
+msgid "Français"
+msgstr "Français"
+
+#: data/resources/latexdb/languages/languages.xml:5
+msgid "Русский"
+msgstr "Русский"
+
+#: data/resources/latexdb/languages/languages.xml:6
+#: data/resources/latexdb/languages/languages.xml:7
+msgid "Português"
+msgstr "Português"
+
+#: data/resources/latexdb/languages/languages.xml:8
+#: data/resources/latexdb/languages/languages.xml:31
+#: data/resources/latexdb/languages/languages.xml:32
+#: data/resources/latexdb/languages/languages.xml:33
+msgid "Deutsch"
+msgstr "Deutsch"
+
+#: data/resources/latexdb/languages/languages.xml:9
+msgid "Italiano"
+msgstr "Italiano"
+
+#: data/resources/latexdb/languages/languages.xml:10
+msgid "Afrikaans"
+msgstr "Afrikaans"
+
+#: data/resources/latexdb/languages/languages.xml:11
+msgid "Azərbaycanca"
+msgstr "Azərbaycanca"
+
+#: data/resources/latexdb/languages/languages.xml:12
+msgid "Euskara"
+msgstr "Euskara"
+
+#: data/resources/latexdb/languages/languages.xml:13
+msgid "Brezhoneg"
+msgstr "Brezhoneg"
+
+#: data/resources/latexdb/languages/languages.xml:14
+msgid "Български"
+msgstr "Български"
+
+#: data/resources/latexdb/languages/languages.xml:15
+msgid "Català"
+msgstr "Català"
+
+#: data/resources/latexdb/languages/languages.xml:16
+msgid "中文"
+msgstr "中文"
+
+#: data/resources/latexdb/languages/languages.xml:17
+msgid "Hrvatski"
+msgstr "Hrvatski"
+
+#: data/resources/latexdb/languages/languages.xml:18
+msgid "Čeština"
+msgstr "Čeština"
+
+#: data/resources/latexdb/languages/languages.xml:19
+msgid "Dansk"
+msgstr "Dansk"
+
+#: data/resources/latexdb/languages/languages.xml:20
+msgid "Nederlands"
+msgstr "Nederlands"
+
+#: data/resources/latexdb/languages/languages.xml:26
+msgid "Esperanto"
+msgstr "Esperanto"
+
+#: data/resources/latexdb/languages/languages.xml:27
+msgid "Eesti"
+msgstr "Eesti"
+
+#: data/resources/latexdb/languages/languages.xml:28
+msgid "Suomi"
+msgstr "Suomi"
+
+#: data/resources/latexdb/languages/languages.xml:30
+msgid "Galego"
+msgstr "Galego"
+
+#: data/resources/latexdb/languages/languages.xml:34
+#: data/resources/latexdb/languages/languages.xml:35
+msgid "Ελληνικά"
+msgstr "Ελληνικά"
+
+#: data/resources/latexdb/languages/languages.xml:36
+msgid "עברית"
+msgstr "עברית"
+
+#: data/resources/latexdb/languages/languages.xml:37
+msgid "Íslenska"
+msgstr "Íslenska"
+
+#: data/resources/latexdb/languages/languages.xml:38
+msgid "Bahasa Indonesia"
+msgstr "Bahasa Indonesia"
+
+#: data/resources/latexdb/languages/languages.xml:39
+msgid "Interlingua"
+msgstr "Interlingua"
+
+#: data/resources/latexdb/languages/languages.xml:40
+msgid "Gaeilge"
+msgstr "Gaeilge"
+
+#: data/resources/latexdb/languages/languages.xml:41
+msgid "Latina"
+msgstr "Latina"
+
+#: data/resources/latexdb/languages/languages.xml:42
+msgid "Dolnoserbšćina"
+msgstr "Dolnoserbšćina"
+
+#: data/resources/latexdb/languages/languages.xml:43
+msgid "Bahasa Melayu"
+msgstr "Bahasa Melayu"
+
+#: data/resources/latexdb/languages/languages.xml:44
+msgid "Davvisámegiella"
+msgstr "Davvisámegiella"
+
+#: data/resources/latexdb/languages/languages.xml:45
+#: data/resources/latexdb/languages/languages.xml:46
+msgid "Norsk"
+msgstr "Norsk"
+
+#: data/resources/latexdb/languages/languages.xml:47
+msgid "Polski"
+msgstr "Polski"
+
+#: data/resources/latexdb/languages/languages.xml:48
+msgid "Română"
+msgstr "Română"
+
+#: data/resources/latexdb/languages/languages.xml:49
+msgid "Gàidhlig"
+msgstr "Gàidhlig"
+
+#: data/resources/latexdb/languages/languages.xml:50
+msgid "Slovenčina"
+msgstr "Slovenčina"
+
+#: data/resources/latexdb/languages/languages.xml:51
+msgid "Slovenščina"
+msgstr "Slovenščina"
+
+#: data/resources/latexdb/languages/languages.xml:52
+msgid "Svenska"
+msgstr "Svenska"
+
+#: data/resources/latexdb/languages/languages.xml:53
+msgid "Српски"
+msgstr "Српски"
+
+#: data/resources/latexdb/languages/languages.xml:54
+msgid "Türkçe"
+msgstr "Türkçe"
+
+#: data/resources/latexdb/languages/languages.xml:55
+msgid "Українська"
+msgstr "Українська"
+
+#: data/resources/latexdb/languages/languages.xml:56
+msgid "Hornjoserbšćina"
+msgstr "Hornjoserbšćina"
+
+#: data/resources/latexdb/languages/languages.xml:57
+msgid "Cymraeg"
+msgstr "Cymraeg"
+
+#: data/resources/latexdb/packages/general.xml:2
+msgid "additional math fonts from AMS."
+msgstr "fontes matemáticas adicionais do AMS."
+
+#: data/resources/latexdb/packages/general.xml:3
+msgid "mathematics package from AMS."
+msgstr "pacote de matemática do AMS."
+
+#: data/resources/latexdb/packages/general.xml:4
+msgid "mathematical symbols from AMS."
+msgstr "símbolos matemáticos do AMS."
+
+#: data/resources/latexdb/packages/general.xml:5
+msgid "math theorems setting package from AMS."
+msgstr "pacote de configuração de teoremas matemáticos do AMS."
+
+#: data/resources/latexdb/packages/general.xml:6
+msgid "multilingual documents."
+msgstr "documentos multilíngues."
+
+#: data/resources/latexdb/packages/general.xml:7
+msgid "dirac braket and set notations."
+msgstr "notações braket de Dirac e de conjuntos."
+
+#: data/resources/latexdb/packages/general.xml:8
+msgid "bibliographies in LaTeX."
+msgstr "bibliografias em LaTeX."
+
+#: data/resources/latexdb/packages/general.xml:9
+msgid "simple arithmetic in LaTeX commands."
+msgstr "aritmética simples em comandos LaTeX."
+
+#: data/resources/latexdb/packages/general.xml:10
+msgid "foreground and background colors."
+msgstr "cores de primeiro plano e de fundo."
+
+#: data/resources/latexdb/packages/general.xml:11
+msgid "colored tables."
+msgstr "tabelas coloridas."
+
+#: data/resources/latexdb/packages/general.xml:12
+msgid "enumerate with redefinable labels."
+msgstr "enumerate com rótulos redefiníveis."
+
+#: data/resources/latexdb/packages/general.xml:13
+msgid "interface to document dimensions."
+msgstr "interface para as dimensões do documento."
+
+#: data/resources/latexdb/packages/general.xml:14
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
+msgid "create a glossary for your document."
+msgstr "criar um glossário para seu documento."
+
+#: data/resources/latexdb/packages/general.xml:15
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:184
+msgid "include graphics in your document."
+msgstr "incluir gráficos no seu documento."
+
+#: data/resources/latexdb/packages/general.xml:16
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:188
+msgid "create hyperlinks within your document."
+msgstr "criar hyperlinks dentro de seu documento."
+
+#: data/resources/latexdb/packages/general.xml:17
+msgid "conditional commands."
+msgstr "comandos condicionais."
+
+#: data/resources/latexdb/packages/general.xml:18
+msgid "provides a listing environment for embedding programming code."
+msgstr "fornece um ambiente listing para incorporar código de programação."
+
+#: data/resources/latexdb/packages/general.xml:19
+msgid "provides additional bibliography and citation styles."
+msgstr "fornece estilos adicionais de bibliografia e de citação."
+
+#: data/resources/latexdb/packages/general.xml:20
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+msgid "paragraphs without indentation."
+msgstr "parágrafos sem recuo."
+
+#: data/resources/latexdb/packages/general.xml:21
+msgid "create plots in two and three dimensions."
+msgstr "cria gráficos em duas e três dimensões."
+
+#: data/resources/latexdb/packages/general.xml:22
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:183
+msgid "contains symbols to be used in textmode."
+msgstr "contém símbolos para serem usados em modo texto."
+
+#: data/resources/latexdb/packages/general.xml:23
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
+msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
+msgstr "definir ambientes de teoremas (como \"definição\", \"lema\", …) com estilo personalizado."
+
+#: data/resources/latexdb/packages/general.xml:24
+msgid "graphics and plotting."
+msgstr "gráficos e plotagem."
+
+#: data/resources/latexdb/packages/general.xml:25
+msgid "set transparency for sections in your document."
+msgstr "define transparência para seções do seu documento."
+
+#: data/resources/latexdb/packages/general.xml:26
+msgid "type urls with the \\\\url{..} command without escaping them."
+msgstr "digita URLs com o comando \\\\url{..} sem escapá-las."
+
+#: data/resources/latexdb/packages/general.xml:27
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
+msgid "enables colored text."
+msgstr "habilita texto colorido."
+
 #: setzer/ai_fix/agent_runner.py:319
 msgid "No terminal emulator available. Install gnome-terminal / xterm or set a custom terminal in Preferences."
 msgstr "Nenhum emulador de terminal disponível. Instale gnome-terminal / xterm ou defina um terminal personalizado em Preferências."
@@ -328,8 +627,8 @@ msgid "Session ended — next send starts a new one"
 msgstr "Sessão encerrada — o próximo envio iniciará uma nova"
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:211
-#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:53
-#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:58
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:69
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:74
 msgid "Agent Terminal"
 msgstr "Terminal do agente"
 
@@ -350,15 +649,15 @@ msgid "No active document"
 msgstr "Nenhum documento ativo"
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1295
-#: setzer/workspace/actions/actions.py:1409
+#: setzer/workspace/actions/actions.py:1300
+#: setzer/workspace/actions/actions.py:1428
 msgid "Select some text first"
 msgstr "Selecione algum texto primeiro"
 
 #: setzer/ai_fix/annotation_sender.py:171
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:187
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:458
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:344
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:342
 msgid "Copied to clipboard"
 msgstr "Copiado para a área de transferência"
 
@@ -389,10 +688,10 @@ msgstr "Enviar para o agente de IA"
 
 #: setzer/ai_fix/preview_dialog_viewgtk.py:57
 #: setzer/dialogs/autosave_recovery/autosave_recovery.py:96
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:366
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:813
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:837
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1514
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:368
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:815
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:839
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516
 #: setzer/dialogs/build_save/build_save.py:38
 #: setzer/dialogs/building_failed/building_failed.py:56
 #: setzer/dialogs/close_confirmation/close_confirmation.py:58
@@ -420,8 +719,8 @@ msgstr "Enviar para o agente de IA"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:334
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:699
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:79
-#: setzer/workspace/actions/actions.py:475
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
+#: setzer/workspace/actions/actions.py:480
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/commit_dialog.py:70
@@ -486,7 +785,7 @@ msgid "Open Document"
 msgstr "Abrir Documento"
 
 #: setzer/command_palette/catalog.py:77
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1346
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1348
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:392
@@ -606,8 +905,8 @@ msgstr "Recortar"
 
 #: setzer/command_palette/catalog.py:95
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:139
-#: setzer/document/preview/context_menu/context_menu.py:117
-#: setzer/document/preview/context_menu/context_menu.py:130
+#: setzer/document/preview/context_menu/context_menu.py:127
+#: setzer/document/preview/context_menu/context_menu.py:140
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:193
 #: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
 msgid "Copy"
@@ -631,7 +930,7 @@ msgstr "Selecionar Tudo"
 #: setzer/command_palette/catalog.py:99
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:123
-#: setzer/dialogs/project_search_replace.py:74
+#: setzer/dialogs/project_search_replace.py:69
 msgid "Find"
 msgstr "Encontrar"
 
@@ -793,7 +1092,7 @@ msgstr "Redefinir Zoom"
 #: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131
 #: setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133
 #: setzer/command_palette/catalog.py:134
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:459
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:461
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:330
 #: setzer/dialogs/preferences/pages/page_appearance.py:676
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:134
@@ -955,19 +1254,19 @@ msgstr "Pacotes Disponíveis"
 msgid "Packages you can add to this document."
 msgstr "Pacotes que você pode adicionar a este documento."
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:65
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:67
 msgid "Add Package"
 msgstr "Adicionar Pacote"
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:72
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:74
 msgid "Installed Packages"
 msgstr "Pacotes Instalados"
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:73
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:75
 msgid "Packages currently used by this document."
 msgstr "Pacotes atualmente usados por este documento."
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:88
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:91
 msgid "Remove Package"
 msgstr "Remover Pacote"
 
@@ -1082,7 +1381,7 @@ msgid "Keywords"
 msgstr "Palavras-chave"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:110
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1160
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1162
 msgid "Reload"
 msgstr "Recarregar"
 
@@ -1134,149 +1433,149 @@ msgstr "Ordenar por ano"
 msgid "Sort bibliography entries"
 msgstr "Ordenar entradas bibliográficas"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:224
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:226
 msgid "Choose a BibTeX File"
 msgstr "Escolher um arquivo BibTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:225
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:227
 msgid "Choose a bibliography associated with the current document, or open a BibTeX file."
 msgstr "Escolha uma bibliografia associada ao documento atual ou abra um arquivo BibTeX."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:255
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:257
 msgid "Insert Citation"
 msgstr "Inserir citação"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:257
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:259
 msgid "Insert a \\cite command for this entry"
 msgstr "Inserir um comando \\cite para esta entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:260
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:262
 msgid "Edit Entry"
 msgstr "Editar entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:264
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:266
 msgid "Delete Entry"
 msgstr "Excluir entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:307
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:309
 msgid "Entry Details"
 msgstr "Detalhes da entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:311
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:313
 msgid "Entry Type"
 msgstr "Tipo de entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:312
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:314
 msgid "Entry type, for example article"
 msgstr "Tipo de entrada, por exemplo article"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:315
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:317
 msgid "Citation Key"
 msgstr "Chave de citação"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:316
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:318
 msgid "Unique citation key"
 msgstr "Chave de citação exclusiva"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:345
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:347
 msgid "Additional Fields"
 msgstr "Campos adicionais"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:349
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:351
 msgid "One field per line: name = value"
 msgstr "Um campo por linha: name = value"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:369
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:371
 msgid "Save Entry"
 msgstr "Salvar entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:389
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:478
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:391
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:480
 msgid "Insert Citations"
 msgstr "Inserir citações"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:392
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:394
 msgid "Select entries on the left, choose a command, optionally add a locator, and insert. The preview shows the final LaTeX text."
 msgstr "Selecione entradas à esquerda, escolha um comando, adicione opcionalmente um localizador e insira. A pré-visualização mostra o texto LaTeX final."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:401
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:403
 msgid "Command"
 msgstr "Comando"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:403
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:405
 msgid "Citation command to insert"
 msgstr "Comando de citação a inserir"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:411
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:413
 msgid "Locator"
 msgstr "Localizador"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:412
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:414
 msgid "Optional argument, e.g. p.~12 or ch.~3"
 msgstr "Argumento opcional, p. ex. p.~12 ou ch.~3"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:417
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:419
 msgid "Optional argument placed in [brackets] after the command"
 msgstr "Argumento opcional colocado entre [colchetes] após o comando"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:433
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:435
 msgid "Selected Keys"
 msgstr "Chaves selecionadas"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:438
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:440
 msgid "No keys selected yet."
 msgstr "Nenhuma chave selecionada ainda."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:473
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:475
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:684
 msgid "Actions"
 msgstr "Ações"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:474
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:476
 msgid "Clear Selection"
 msgstr "Limpar seleção"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:483
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:485
 msgid "Insert the citation text at the cursor in the active LaTeX document"
 msgstr "Inserir o texto da citação no cursor no documento LaTeX ativo"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:539
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:541
 msgid "Untitled BibTeX File"
 msgstr "Arquivo BibTeX sem título"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:637
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:639
 msgid "Add this entry to the citation list"
 msgstr "Adicionar esta entrada à lista de citações"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:657
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:659
 msgid "No Bibliography Entries Found"
 msgstr "Nenhuma entrada bibliográfica encontrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:658
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:660
 msgid "Add an entry or adjust the search query."
 msgstr "Adicione uma entrada ou ajuste a consulta de pesquisa."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:797
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:799
 msgid "Additional fields must use “name = value”"
 msgstr "Os campos adicionais devem usar “name = value”"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:801
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:803
 #: setzer/document/bibtex/entry_store.py:565
 #, python-brace-format
 msgid "The field “{field}” occurs more than once"
 msgstr "O campo “{field}” ocorre mais de uma vez"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:810
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:812
 msgid "Delete BibTeX Entry?"
 msgstr "Excluir entrada BibTeX?"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:811
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:813
 #, python-brace-format
 msgid "Delete “{key}” from this bibliography? This can be undone when the file is open in Setzer."
 msgstr "Excluir “{key}” desta bibliografia? Isso pode ser desfeito quando o arquivo estiver aberto no Setzer."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:814
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1461
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:816
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1463
 #: setzer/dialogs/document_wizard/pages/page_document_class.py:82
 #: setzer/dialogs/preferences/pages/page_snippets.py:75
 #: setzer/dialogs/project_build_configuration_viewgtk.py:193
@@ -1286,171 +1585,171 @@ msgstr "Excluir “{key}” desta bibliografia? Isso pode ser desfeito quando o 
 msgid "Delete"
 msgstr "Excluir"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:834
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:836
 msgid "Format Bibliography?"
 msgstr "Formatar bibliografia?"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:835
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:837
 msgid "Rewrite every entry with fields in a consistent order and aligned values. Comments and everything outside entries stay unchanged. This can be undone when the file is open in Setzer."
 msgstr "Reescrever cada entrada com campos em ordem consistente e valores alinhados. Comentários e tudo fora das entradas permanecem inalterados. Isso pode ser desfeito quando o arquivo está aberto no Setzer."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:838
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:840
 msgid "Format"
 msgstr "Formatar"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:851
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:853
 msgid "The bibliography already uses the canonical entry style"
 msgstr "A bibliografia já usa o estilo canônico de entrada"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:884
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:886
 msgid "Citation inserted"
 msgstr "Citação inserida"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:922
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:924
 msgid "Inserted citation with 1 key"
 msgstr "Citação inserida com 1 chave"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:924
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:926
 #, python-brace-format
 msgid "Inserted citation with {count} keys"
 msgstr "Citação inserida com {count} chaves"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1003
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1005
 msgid "No citation keys selected — click an entry to add it."
 msgstr "Nenhuma chave de citação selecionada — clique em uma entrada para adicioná-la."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1067
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1069
 #, python-brace-format
 msgid "Remove “{key}” from the citation list"
 msgstr "Remover \"{key}\" da lista de citações"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1086
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1088
 msgid "The open BibTeX document changed. Reload before saving."
 msgstr "O documento BibTeX aberto foi alterado. Recarregue-o antes de salvar."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1099
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1101
 msgid "No BibTeX file is selected"
 msgstr "Nenhum arquivo BibTeX foi selecionado"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1119
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1121
 msgid "Open BibTeX File"
 msgstr "Abrir arquivo BibTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1121
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1577
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1123
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1579
 #: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:106
 msgid "BibTeX Files"
 msgstr "Arquivos BibTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1183
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1185
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:371
 msgid "Protect Upper-Case"
 msgstr "Proteger maiúsculas"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1189
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1191
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:374
 msgid "Unicode → LaTeX"
 msgstr "Unicode → LaTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1195
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1197
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:377
 msgid "LaTeX → Unicode"
 msgstr "LaTeX → Unicode"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1332
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1334
 msgid "Manage @string Macros"
 msgstr "Gerenciar macros @string"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1341
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1343
 #: setzer/dialogs/preamble_assistant.py:66
 #: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
 msgid "_Close"
 msgstr "_Fechar"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1355
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1357
 msgid "Import @string macros from a .bib file"
 msgstr "Importar macros @string de um arquivo .bib"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1376
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1378
 msgid "Search string name or value"
 msgstr "Pesquisar nome ou valor da string"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1388
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1390
 msgid "@string Macros"
 msgstr "Macros @string"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1392
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1394
 msgid "New String"
 msgstr "Nova string"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1435
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1437
 msgid "No @string macros"
 msgstr "Nenhuma macro @string"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1436
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1438
 msgid "Use the + button to add one."
 msgstr "Use o botão + para adicionar uma."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1445
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1447
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:234
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:282
 #: setzer/dialogs/preferences/pages/page_snippets.py:185
 msgid "Name"
 msgstr "Nome"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1451
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1453
 msgid "Value"
 msgstr "Valor"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1472
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1474
 msgid "(untitled)"
 msgstr "(sem título)"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1473
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1475
 msgid "No value"
 msgstr "Sem valor"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1512
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1514
 msgid "Discard unsaved changes?"
 msgstr "Descartar alterações não salvas?"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1513
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1515
 msgid "Changes to @string macros have not been saved yet."
 msgstr "As alterações nas macros @string ainda não foram salvas."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1515
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1517
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
 msgid "Discard"
 msgstr "Descartar"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1533
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1535
 msgid "Enter a macro name first."
 msgstr "Digite um nome de macro primeiro."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1537
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1539
 #, python-brace-format
 msgid "Enter a value for the macro “{name}”."
 msgstr "Digite um valor para a macro \"{name}\"."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1572
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1574
 msgid "Save or discard your changes before importing."
 msgstr "Salve ou descarte suas alterações antes de importar."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1575
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1577
 msgid "Choose a BibTeX File to Import"
 msgstr "Escolher um arquivo BibTeX para importar"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1626
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1628
 #, python-brace-format
 msgid "Imported {count} new @string macros."
 msgstr "{count} novas macros @string importadas."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1629
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1631
 #, python-brace-format
 msgid "Skipped {count} duplicate names: {names}."
 msgstr "{count} nomes duplicados ignorados: {names}."
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1634
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1636
 #, python-brace-format
 msgid "Errors: {messages}"
 msgstr "Erros: {messages}"
@@ -2139,34 +2438,34 @@ msgstr "Pesquisar temas"
 msgid "Filter the available Beamer themes by name."
 msgstr "Filtre os temas Beamer disponíveis por nome."
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:161
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:163
 msgid "No themes match this search."
 msgstr "Nenhum tema corresponde a esta pesquisa."
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:168
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:349
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:165
 #: setzer/dialogs/preferences/pages/page_build_system.py:608
 msgid "Options"
 msgstr "Opções"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:172
 msgid "Show navigation buttons"
 msgstr "Mostrar botões de navegação"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:172
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:174
 msgid "Show or hide the Beamer navigation bar at the bottom of slides. Disabling gives a cleaner look for presentations."
 msgstr "Mostrar ou ocultar a barra de navegação do Beamer na parte inferior dos slides. Desativar oferece um visual mais limpo para apresentações."
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:175
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:177
 msgid "Align content to the top of pages"
 msgstr "Alinhar conteúdo no topo das páginas"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:176
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:178
 msgid "(\"t\" option, it's centered by default)"
 msgstr "(opção \"t\", centralizado por padrão)"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:178
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:180
 msgid "When enabled, slide content is top-aligned (the [t] option). When disabled, content is vertically centered — the Beamer default."
 msgstr "Quando ativado, o conteúdo do slide é alinhado ao topo (a opção [t]). Quando desativado, o conteúdo é centralizado verticalmente — padrão do Beamer."
 
@@ -2228,7 +2527,7 @@ msgstr "Livro KOMA-Script (scrbook)"
 msgid "KOMA-Script Letter (scrlttr2)"
 msgstr "Carta KOMA-Script (scrlttr2)"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:181
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:183
 msgid ""
 "<b>Article:</b>  For articles in scientific journals, term papers, handouts, short reports, …\n"
 "\n"
@@ -2238,19 +2537,19 @@ msgstr ""
 "\n"
 "Esta classe por si só é bem simples e é frequentemente usada como ponto de partida para leiautes mais personalizados."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:182
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:184
 msgid "<b>Book:</b>  For actual books containing many chapters and sections."
 msgstr "<b>Livro:</b>  Efetivamente para livros, contendo vários capítulos e seções."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:183
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:185
 msgid "<b>Report:</b>  For longer reports and articles containing more than one chapter, small books, thesis."
 msgstr "<b>Relatório:</b>  Para relatórios e artigos mais longos contendo mais de um capítulo; livretos, teses."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:184
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:186
 msgid "<b>Letter:</b>  For writing letters."
 msgstr "<b>Carta:</b>  Para escrever cartas."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:185
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:187
 msgid ""
 "<b>Beamer:</b>  A class for making presentation slides with LaTeX.\n"
 "\n"
@@ -2260,59 +2559,59 @@ msgstr ""
 "\n"
 "Existem vários estilos de apresentação pré-definidos."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:187
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:189
 msgid "<b>Scrartcl:</b>  KOMA-Script replacement for the article class. Adds many customizations and sensible defaults."
 msgstr "<b>Scrartcl:</b> substituto do KOMA-Script para a classe article. Adiciona muitas personalizações e valores padrão sensatos."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:188
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:190
 msgid "<b>Scrreprt:</b>  KOMA-Script replacement for the report class."
 msgstr "<b>Scrreprt:</b> substituto do KOMA-Script para a classe report."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:189
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:191
 msgid "<b>Scrbook:</b>  KOMA-Script replacement for the book class."
 msgstr "<b>Scrbook:</b> substituto do KOMA-Script para a classe book."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:190
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:192
 msgid "<b>Scrlttr2:</b>  KOMA-Script letter class with advanced features for address, date, and subject layout."
 msgstr "<b>Scrlttr2:</b> Classe de carta do KOMA-Script com recursos avançados para layout de endereço, data e assunto."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:210
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:212
 msgid "Templates"
 msgstr "Modelos"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:212
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:214
 msgid "Load template"
 msgstr "Carregar modelo"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:215
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:217
 msgid "Shows your saved presets. Use the ⋮ menu → “Save as Preset” to add one — otherwise only “None” is listed."
 msgstr "Mostra as predefinições salvas. Adicione uma pelo menu ⋮ → «Salvar como predefinição»; sem nenhuma salva, apenas «Nenhuma» é exibida."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:223
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:225
 msgid "Document templates"
 msgstr "Modelos de documento"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:225
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:227
 msgid "Use document template"
 msgstr "Usar modelo de documento"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:228
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:230
 msgid "Shows your saved document templates. Use the ⋮ menu → “Save Document Template” to add one — otherwise only “Use wizard settings” is listed."
 msgstr "Mostra os modelos de documento salvos. Adicione um pelo menu ⋮ → «Salvar modelo de documento»; sem nenhum salvo, apenas «Usar configurações do assistente» é exibida."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:247
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:249
 msgid "Delete selected document template"
 msgstr "Excluir o modelo de documento selecionado"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:274
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:276
 msgid "Use wizard settings"
 msgstr "Usar configurações do assistente"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:282
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:284
 msgid "Select a saved LaTeX source template to preview it here."
 msgstr "Selecione um modelo de código-fonte LaTeX salvo para visualizá-lo aqui."
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:288
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:290
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:247
 #: setzer/dialogs/document_wizard/pages/page_standard_settings.py:154
 msgid "None"
@@ -2335,45 +2634,17 @@ msgstr "<b>Pacotes AMS:</b> fornecem símbolos matemáticos, ambientes relaciona
 msgid "recommended"
 msgstr "recomendado"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:183
-msgid "contains symbols to be used in textmode."
-msgstr "contém símbolos para serem usados em modo texto."
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:184
-msgid "include graphics in your document."
-msgstr "incluir gráficos no seu documento."
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:185
 msgid "foreground and background color."
 msgstr "cor de primeiro plano e de fundo."
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
-msgid "enables colored text."
-msgstr "habilita texto colorido."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:187
 msgid "type urls with the \\url{..} command without escaping them."
 msgstr "digitar urls com o comando \\url{..} sem escapá-las."
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:188
-msgid "create hyperlinks within your document."
-msgstr "criar hyperlinks dentro de seu documento."
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
-msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
-msgstr "definir ambientes de teoremas (como \"definição\", \"lema\", …) com estilo personalizado."
-
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:190
 msgid "provides the \\listing environment for embedding programming code."
 msgstr "prover o ambiente \\listing para embutir código de programação."
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
-msgid "create a glossary for your document."
-msgstr "criar um glossário para seu documento."
-
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
-msgid "paragraphs without indentation."
-msgstr "parágrafos sem recuo."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:197
 msgid "Document properties"
@@ -3694,7 +3965,7 @@ msgid "Create new document"
 msgstr "Criar novo documento"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:51
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:56
 msgid "Open a document"
 msgstr "Abrir documento"
 
@@ -3704,7 +3975,7 @@ msgstr "Mostrar documentos recentes"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:117
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:125
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:127
 msgid "Show open documents"
 msgstr "Mostrar documentos abertos"
 
@@ -5405,7 +5676,7 @@ msgid "Save as"
 msgstr "Salvar como"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:114
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:204
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:214
 msgid "Close document"
 msgstr "Fechar Documento"
 
@@ -5452,7 +5723,7 @@ msgid "Forward sync"
 msgstr "Sincronização direta"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:133
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:75
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:83
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:535
 msgid "Build log"
 msgstr "Log de Compilação"
@@ -6023,7 +6294,7 @@ msgid "Build settings"
 msgstr "Configurações de compilação"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:206
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:198
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:208
 msgid "Root document"
 msgstr "Documento Raiz"
 
@@ -6089,20 +6360,20 @@ msgstr "Pré-visualizar as substituições"
 msgid "_Apply replacements"
 msgstr "_Aplicar substituições"
 
-#: setzer/dialogs/project_search_replace.py:76
+#: setzer/dialogs/project_search_replace.py:71
 msgid "Replace with"
 msgstr "Substituir por"
 
-#: setzer/dialogs/project_search_replace.py:80
+#: setzer/dialogs/project_search_replace.py:75
 #: setzer/document/search/search_viewgtk.py:109
 msgid "Match case"
 msgstr "Diferenciar maiúsculas/minúsculas"
 
-#: setzer/dialogs/project_search_replace.py:82
+#: setzer/dialogs/project_search_replace.py:77
 msgid "Match whole word"
 msgstr "Palavra inteira"
 
-#: setzer/dialogs/project_search_replace.py:84
+#: setzer/dialogs/project_search_replace.py:79
 msgid "Regular expression"
 msgstr "Expressão regular"
 
@@ -6231,23 +6502,26 @@ msgstr "Palavras ignoradas na sessão atual. Não são salvas e serão verificad
 msgid "Clear All"
 msgstr "Limpar Tudo"
 
-#: setzer/document/ai_annotations/annotation_popover.py:47
+#: setzer/document/ai_annotations/annotation_popover.py:48
 msgid "AI Annotation"
 msgstr "Anotação de IA"
 
-#: setzer/document/ai_annotations/annotation_popover.py:61
+#: setzer/document/ai_annotations/annotation_popover.py:67
 msgid "Preset instruction"
 msgstr "Instrução predefinida"
 
-#: setzer/document/ai_annotations/annotation_popover.py:64
-msgid "Save Annotation"
-msgstr "Salvar anotação"
-
-#: setzer/document/ai_annotations/annotation_popover.py:75
+#: setzer/document/ai_annotations/annotation_popover.py:72
+#: setzer/document/ai_annotations/annotation_popover.py:109
+#: setzer/document/ai_annotations/annotation_popover.py:167
 #: setzer/workspace/sidebar/ai_page/ai_page.py:279
 #: setzer/workspace/sidebar/ai_page/ai_page.py:309
 msgid "Custom (no preset)"
 msgstr "Personalizado (sem predefinição)"
+
+#: setzer/document/ai_annotations/annotation_popover.py:94
+#: setzer/document/ai_annotations/annotation_popover.py:96
+msgid "Save Annotation"
+msgstr "Salvar anotação"
 
 #: setzer/document/autocomplete/autocomplete_widget_viewgtk.py:347
 msgid "Label database unavailable (parse error)"
@@ -6479,33 +6753,33 @@ msgstr "Não foi possível salvar o documento: {error}"
 msgid "No PDF available for forward sync. Build the document first."
 msgstr "Nenhum PDF disponível para sincronização direta. Compile o documento primeiro."
 
-#: setzer/document/preview/context_menu/context_menu.py:107
-msgid "Open Link"
-msgstr "Abrir link"
-
 #: setzer/document/preview/context_menu/context_menu.py:110
-msgid "Copy Link Location"
-msgstr "Copiar endereço do link"
-
-#: setzer/document/preview/context_menu/context_menu.py:121
-#: setzer/document/preview/context_menu/context_menu.py:131
-msgid "Copy Image"
-msgstr "Copiar imagem"
-
-#: setzer/document/preview/context_menu/context_menu.py:125
-#: setzer/document/preview/context_menu/context_menu.py:132
-msgid "Save Image As…"
-msgstr "Salvar imagem como…"
-
-#: setzer/document/preview/context_menu/context_menu.py:141
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:296
 msgid "Add AI Annotation…"
 msgstr "Adicionar anotação de IA…"
 
-#: setzer/document/preview/context_menu/context_menu.py:142
+#: setzer/document/preview/context_menu/context_menu.py:111
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:298
 msgid "Send Selection to Agent"
 msgstr "Enviar a seleção para o agente"
+
+#: setzer/document/preview/context_menu/context_menu.py:117
+msgid "Open Link"
+msgstr "Abrir link"
+
+#: setzer/document/preview/context_menu/context_menu.py:120
+msgid "Copy Link Location"
+msgstr "Copiar endereço do link"
+
+#: setzer/document/preview/context_menu/context_menu.py:131
+#: setzer/document/preview/context_menu/context_menu.py:141
+msgid "Copy Image"
+msgstr "Copiar imagem"
+
+#: setzer/document/preview/context_menu/context_menu.py:135
+#: setzer/document/preview/context_menu/context_menu.py:142
+msgid "Save Image As…"
+msgstr "Salvar imagem como…"
 
 #: setzer/document/preview/context_menu/context_menu.py:148
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:109
@@ -6557,7 +6831,7 @@ msgid "No text recorded for this change"
 msgstr "Nenhum texto registrado para esta alteração"
 
 #: setzer/document/preview/preview.py:1522
-#: setzer/workspace/actions/actions.py:1416
+#: setzer/workspace/actions/actions.py:1435
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr "Os dados de sincronização estão sendo atualizados em segundo plano. Tente novamente em instantes."
 
@@ -6710,20 +6984,20 @@ msgid_plural "Replace all {amount} matches"
 msgstr[0] "Substituir todas as {amount} correspondência"
 msgstr[1] "Substituir todas as {amount} correspondências"
 
-#: setzer/document/search/search_history_popup.py:53
+#: setzer/document/search/search_history_popup.py:54
 #: setzer/document/search/search_viewgtk.py:276
 msgid "Search history"
 msgstr "Histórico de pesquisa"
 
-#: setzer/document/search/search_history_popup.py:59
+#: setzer/document/search/search_history_popup.py:60
 msgid "Clear history"
 msgstr "Limpar histórico"
 
-#: setzer/document/search/search_history_popup.py:90
+#: setzer/document/search/search_history_popup.py:91
 msgid "No history"
 msgstr "Sem histórico"
 
-#: setzer/document/search/search_history_popup.py:148
+#: setzer/document/search/search_history_popup.py:149
 msgid "Remove from history"
 msgstr "Remover do histórico"
 
@@ -6964,19 +7238,19 @@ msgid "Transform Selection"
 msgstr "Transformar seleção"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:41
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:161
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:166
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:115
 msgid "Recent Documents"
 msgstr "Documentos Recentes"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:121
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:105
 msgid "No Results"
 msgstr "Sem Resultados"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:58
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:95
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:100
 msgid "Other Documents"
 msgstr "Outros Documentos"
 
@@ -7003,7 +7277,7 @@ msgstr "Selecionar documento raiz"
 
 #: setzer/popovers/document_switcher/document_switcher.py:369
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:33
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:129
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:134
 msgid "Open Documents"
 msgstr "Documentos Abertos"
 
@@ -7011,36 +7285,36 @@ msgstr "Documentos Abertos"
 msgid "Search documents…"
 msgstr "Pesquisar documentos…"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:61
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:64
 msgid "Set one Document as Root"
 msgstr "Definir um Documento como Raiz"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:63
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:66
 msgid "Designate a document as the build root"
 msgstr "Designar um documento como raiz de compilação"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:68
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:72
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:185
 msgid "Unset Root Document"
 msgstr "Cancelar Documento Raiz"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:70
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:74
 msgid "Remove the root document designation"
 msgstr "Remover a designação de documento raiz"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:77
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:81
 msgid "Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements."
 msgstr "Clique em um documento na lista abaixo para defini-lo como raiz. O documento raiz será compilado, não importa qual documento você esteja editando no momento, e será sempre exibido na pré-visualização do .pdf. O registro de compilação também se referirá ao documento raiz. Isso é frequentemente útil ao trabalhar em grandes projetos, onde tipicamente um documento de nível superior (a raiz) conterá múltiplos arquivos de nível inferior por meio de comandos include."
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:80
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:84
 msgid "Exit root document selection mode"
 msgstr "Sair do modo de seleção de documento raiz"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:97
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:102
 msgid "Open a document not in the recent list"
 msgstr "Abrir um documento que não está na lista de recentes"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:103
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:108
 msgid "No matching documents"
 msgstr "Nenhum documento correspondente"
 
@@ -7641,32 +7915,36 @@ msgstr "Nada a ser commitado: nenhum arquivo foi selecionado."
 msgid "Choose File"
 msgstr "Escolher Arquivo"
 
-#: setzer/workspace/actions/actions.py:465
+#: setzer/workspace/actions/actions.py:470
 msgid "No .tex files were found in your Templates folder."
 msgstr "Nenhum arquivo .tex foi encontrado na sua pasta Modelos."
 
-#: setzer/workspace/actions/actions.py:472
-#: setzer/workspace/actions/actions.py:502
+#: setzer/workspace/actions/actions.py:477
+#: setzer/workspace/actions/actions.py:507
 msgid "Create document from template"
 msgstr "Criar documento a partir de modelo"
 
-#: setzer/workspace/actions/actions.py:473
+#: setzer/workspace/actions/actions.py:478
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "Escolha um modelo LaTeX e depois onde criar sua nova cópia."
 
-#: setzer/workspace/actions/actions.py:476
+#: setzer/workspace/actions/actions.py:481
 msgid "Choose location"
 msgstr "Escolher local"
 
-#: setzer/workspace/actions/actions.py:523
+#: setzer/workspace/actions/actions.py:528
 msgid "The selected destination is not a local file."
 msgstr "O destino selecionado não é um arquivo local."
 
-#: setzer/workspace/actions/actions.py:1423
-#: setzer/workspace/actions/actions.py:1428
-#: setzer/workspace/actions/actions.py:1438
+#: setzer/workspace/actions/actions.py:1442
+#: setzer/workspace/actions/actions.py:1447
+#: setzer/workspace/actions/actions.py:1457
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr "Não foi possível mapear a seleção do PDF para o código-fonte. Compile o documento primeiro."
+
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:81
+msgid "Keep this window on top"
+msgstr "Manter esta janela em primeiro plano"
 
 #: setzer/workspace/auto_build/auto_build.py:153
 msgid "Auto-build is not available for unsaved documents. Save the document to enable it."
@@ -7688,19 +7966,19 @@ msgstr "Sessão do agente pronta na barra lateral"
 msgid "Agent session ready in a separate window"
 msgstr "Sessão do agente pronta em uma janela separada"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:43
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:48
 msgid "Toggle sidebar (Document Structure / Symbols)"
 msgstr "Alternar barra lateral (Estrutura do documento / Símbolos)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:67
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:75
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Alternar painel de pré-visualização (Pré-visualização PDF / Ajuda)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:89
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
 msgid "Open AI agent in terminal"
 msgstr "Abrir o agente de IA no terminal"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:132
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:134
 msgid "Welcome to Setzer"
 msgstr "Bem-vindo ao Setzer"
 
@@ -7880,15 +8158,16 @@ msgstr "Nova sessão de agente iniciada"
 msgid "Preset used when sending a selection directly"
 msgstr "Predefinição usada ao enviar uma seleção diretamente"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:79
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:84
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:86
 msgid "Send All"
 msgstr "Enviar tudo"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:112
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:118
 msgid "No Annotations"
 msgstr "Nenhuma anotação"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:114
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:120
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
 msgstr "Selecione texto no editor e use o menu de contexto ou um atalho para adicionar uma anotação de IA."
 
@@ -7946,21 +8225,11 @@ msgstr "Sem Documento"
 msgid "Open a document to see its structure."
 msgstr "Abra um documento para ver sua estrutura."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:151
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
 msgid "Jump to section"
 msgstr "Ir para a seção"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:172
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:75
-msgid "Previous section"
-msgstr "Seção Anterior"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:179
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:81
-msgid "Next section"
-msgstr "Próxima Seção"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:190
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:171
 msgid "Search document structure"
 msgstr "Pesquisar na estrutura do documento"
 
@@ -8290,14 +8559,14 @@ msgid "Document Stats"
 msgstr "Estatísticas do Documento"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:81
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:207
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:229
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:205
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:213
 msgid "Package"
 msgstr "Pacote"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:160
-#: setzer/workspace/sidebar/symbols_page/symbols_page.py:213
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:240
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:211
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:224
 msgid "Insert"
 msgstr "Inserir"
 
@@ -8317,39 +8586,39 @@ msgstr "Copiar comando LaTeX"
 msgid "Jump to category"
 msgstr "Ir para a categoria"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:90
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:74
 msgid "Search symbols"
 msgstr "Pesquisar símbolos"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:145
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:129
 msgid "Recent"
 msgstr "Recentes"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:154
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:138
 msgid "Favorites"
 msgstr "Favoritos"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:162
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:146
 msgid "Greek Letters"
 msgstr "Letras Gregas"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:163
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:147
 msgid "Arrows"
 msgstr "Setas"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:164
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:148
 msgid "Relations"
 msgstr "Relações"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:165
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:149
 msgid "Operators"
 msgstr "Operadores"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:166
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
 msgid "Misc. Math"
 msgstr "Vários, Matemática"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:167
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:151
 msgid "Misc. Symbols"
 msgstr "Vários, Símbolos"
 
