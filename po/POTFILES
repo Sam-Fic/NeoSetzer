@@ -1,6 +1,7 @@
-# generated on Tue Nov 17 08:33:11 PM UTC 2026
+# generated on Tue Nov 17 10:25:31 PM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
+./data/org.cvfosammmm.Setzer.desktop
 
 ./setzer/ai_fix/agent_runner.py
 ./setzer/ai_fix/agent_session.py
@@ -134,6 +135,8 @@
 ./setzer/document/ai_annotations/ai_annotations.py
 ./setzer/document/ai_annotations/annotation_popover.py
 ./setzer/document/ai_annotations/__init__.py
+./setzer/document/ai_diff/ai_diff.py
+./setzer/document/ai_diff/__init__.py
 ./setzer/document/autocomplete/autocomplete_controller.py
 ./setzer/document/autocomplete/autocomplete.py
 ./setzer/document/autocomplete/autocomplete_widget.py
@@ -199,6 +202,7 @@
 ./setzer/document/parser/structure_numbering.py
 ./setzer/document/preview/context_menu/context_menu.py
 ./setzer/document/preview/context_menu/__init__.py
+./setzer/document/preview/diff_change_dialog.py
 ./setzer/document/preview/external_pdf_monitor.py
 ./setzer/document/preview/__init__.py
 ./setzer/document/preview/magnifier_geometry.py
@@ -256,6 +260,7 @@
 ./setzer/helpers/observable.py
 ./setzer/helpers/path.py
 ./setzer/helpers/persistence.py
+./setzer/helpers/phitex_compare.py
 ./setzer/helpers/scroll_animator.py
 ./setzer/helpers/symbol_categories.py
 ./setzer/helpers/sync_debug.py
@@ -268,7 +273,7 @@
 ./setzer/helpers/zoom_css.py
 ./setzer/helpers/zoom_math.py
 ./setzer/keyboard_shortcuts/__init__.py
-./setzer/keyboard_shortcuts/shortcut_controller_app.py
+./setzer/keyboard_shortcuts/shortcut_accels.py
 ./setzer/keyboard_shortcuts/shortcut_controller_document.py
 ./setzer/keyboard_shortcuts/shortcut_controller_latex.py
 ./setzer/keyboard_shortcuts/shortcut_controller.py

@@ -138,7 +138,7 @@ class BeamerSettingsPageView(PageView):
     def __init__(self):
         PageView.__init__(self)
 
-        self.headerbar_subtitle = _('Step') + ' 2: ' + _('Beamer settings')
+        self.headerbar_subtitle = _('Step 2: Beamer settings')
 
         self.theme_names = ['Warsaw', 'Malmoe', 'Luebeck', 'Copenhagen', 'Szeged', 'Singapore', 'Frankfurt', 'Darmstadt', 'Dresden', 'Ilmenau', 'Berlin', 'Hannover', 'Marburg', 'Goettingen', 'PaloAlto', 'Berkeley', 'Montpellier', 'JuanLesPins', 'Antibes', 'Rochester', 'Pittsburgh', 'EastLansing', 'CambridgeUS', 'AnnArbor', 'Madrid', 'Boadilla', 'Bergen', 'default']
 

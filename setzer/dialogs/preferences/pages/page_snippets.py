@@ -98,7 +98,7 @@ class SnippetsGroupView(Adw.PreferencesGroup):
 
     def __init__(self):
         Adw.PreferencesGroup.__init__(self)
-        self.set_title(_('LaTeX Snippets'))
+        self.set_title(_('LaTeX snippets'))
         self.set_description(_(
             'Create reusable LaTeX text and expand it from the editor completion list.'))
 
@@ -159,7 +159,7 @@ class SnippetEditorDialog(Adw.Dialog):
         Adw.Dialog.__init__(self)
         self.snippet = snippet
         self.on_save = on_save
-        self.set_title(_('Edit Snippet') if snippet else _('Add Snippet'))
+        self.set_title(_('Edit snippet') if snippet else _('Add snippet'))
         self.set_content_width(520)
         self.set_content_height(460)
 
@@ -192,7 +192,7 @@ class SnippetEditorDialog(Adw.Dialog):
         self.trigger_row.set_text(snippet.trigger if snippet else '\\')
         group.add(self.trigger_row)
 
-        body_label = Gtk.Label(label=_('Snippet Body'))
+        body_label = Gtk.Label(label=_('Snippet body'))
         body_label.set_halign(Gtk.Align.START)
         body_label.add_css_class('heading')
         content.append(body_label)

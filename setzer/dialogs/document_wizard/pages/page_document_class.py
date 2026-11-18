@@ -126,7 +126,7 @@ class DocumentClassPageView(PageView):
     def __init__(self):
         PageView.__init__(self)
 
-        self.headerbar_subtitle = _('Step') + ' 1: ' + _('Choose a document class')
+        self.headerbar_subtitle = _('Step 1: Choose a document class')
 
         self.list_rows = dict()
         self.group_lists = list()

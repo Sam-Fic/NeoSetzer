@@ -466,7 +466,8 @@ class DocumentStats(object):
             self._last_chars_lines_visible = True
             self.view.label_chars_value.set_text(chars_str)
             self.view.label_chars_desc.set_text(
-                _('Characters') + (f'  ({_("no spaces")}: {no_spaces_str})' if chars != '?' else ''))
+                _('Characters (without spaces: {n})').format(n=no_spaces_str)
+                if chars != '?' else _('Characters'))
             self.view.label_lines_value.set_text(lines_str)
             self.view.label_lines_desc.set_text(_('Lines'))
             self.view.stats_box.set_visible(True)

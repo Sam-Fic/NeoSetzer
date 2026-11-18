@@ -54,7 +54,7 @@ class ReplaceConfirmationDialog(object):
             heading=heading,
             body=body)
         self.view.add_response('cancel', _('Cancel'))
-        self.view.add_response('replace', _('Yes, replace all occurrences'))
+        self.view.add_response('replace', _('Replace all occurrences'))
         self.view.set_response_appearance('replace', Adw.ResponseAppearance.SUGGESTED)
         self.view.set_default_response('replace')
         self.view.set_close_response('cancel')

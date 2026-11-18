@@ -171,8 +171,7 @@ class PageBuildSystem(object):
 
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
-            heading=_('Reset to Defaults?'),
-            body=_('All build system settings will be restored to their default values.'))
+            heading=_('Reset to defaults?'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('reset', _('Reset'))
         dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
@@ -463,14 +462,13 @@ class PageBuildSystem(object):
         output = (stdout or '').strip()
         if returncode == 0:
             GLib.idle_add(self._end_phitex_sessions)
-            message = (_('PhiTeX upgraded.') + (' ' + output.splitlines()[0]
-                                                if output.splitlines() else ''))
+            message = (_('PhiTeX upgraded: {message}').format(message=output.splitlines()[0])
+                       if output.splitlines() else _('PhiTeX upgraded.'))
         elif returncode is None:
             message = _('PhiTeX could not be upgraded: the command did not run.')
         else:
-            message = _('PhiTeX could not be upgraded: ') + (output.splitlines()[-1]
-                                                             if output.splitlines()
-                                                             else str(returncode))
+            message = _('PhiTeX could not be upgraded: {message}').format(
+                message=output.splitlines()[-1] if output.splitlines() else str(returncode))
         GLib.idle_add(self._show_toast, message)
         GLib.idle_add(self.refresh_phitex_state)
 
@@ -526,11 +524,11 @@ class PageBuildSystemView(Adw.PreferencesPage):
 
     def __init__(self):
         Adw.PreferencesPage.__init__(self)
-        self.set_title(_('Build System'))
+        self.set_title(_('Build system'))
         self.set_icon_name('system-run-symbolic')
 
         self.group_interpreter = Adw.PreferencesGroup()
-        self.group_interpreter.set_title(_('LaTeX Interpreter'))
+        self.group_interpreter.set_title(_('LaTeX interpreter'))
         self.add(self.group_interpreter)
 
         # 引擎说明走组的 description，而不是往组里塞裸 Gtk.Label：后者会被
@@ -649,7 +647,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         group_options.add(self.option_build_timer)
 
         group_auto_build = Adw.PreferencesGroup()
-        group_auto_build.set_title(_('Auto Build'))
+        group_auto_build.set_title(_('Auto build'))
         self.add(group_auto_build)
 
         self.option_auto_build = Adw.SwitchRow()
@@ -696,6 +694,9 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         group_shell_escape.set_title(_('Embedded system commands'))
         self.add(group_shell_escape)
 
+        # 警示说明用「警告图标 + 左对齐警告色文字」的行内说明，不用 Adw.Banner：
+        # Banner 在本组里渲染成整幅灰底粗体居中文字，既没有警告图标、也不染警告色，
+        # 辨识度反而不如内联说明（用户反馈观感倒退，已回退）。
         shell_warning_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         shell_warning_box.set_margin_start(12)
         shell_warning_box.set_margin_end(12)
@@ -707,7 +708,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         shell_warning_icon.add_css_class('warning')
         shell_warning_label = Gtk.Label()
         shell_warning_label.set_wrap(True)
-        shell_warning_label.set_markup(_('Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources.'))
+        shell_warning_label.set_text(_('Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources.'))
         shell_warning_label.set_xalign(0)
         shell_warning_label.add_css_class('warning')
         shell_warning_box.append(shell_warning_icon)
@@ -738,7 +739,7 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
 
-        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
         self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)

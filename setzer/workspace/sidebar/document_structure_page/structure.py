@@ -514,7 +514,7 @@ class StructureSection(object):
 
         dialog = Adw.AlertDialog(
             heading=_('Delete Section?'),
-            body=_('Remove the entire section including its content. This action cannot be undone.'))
+            body=_('This action cannot be undone.'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('delete', _('Delete'))
         dialog.set_response_appearance('delete', Adw.ResponseAppearance.DESTRUCTIVE)

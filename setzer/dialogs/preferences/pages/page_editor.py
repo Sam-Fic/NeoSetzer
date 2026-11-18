@@ -29,6 +29,7 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.helpers import toast as toast_helpers
 from setzer.app.font_manager import FontManager
 from setzer.document.spellchecking.spellchecking import SpellChecker
 from setzer.document.chktex.chktex import ChktexLinter
@@ -522,7 +523,10 @@ class PageEditor(object):
                 msg = _('Font size is too small; clamped to 6pt minimum.')
             else:
                 msg = _('Font size is too large; clamped to 24pt maximum.')
-            self._show_toast(msg)
+            # 拖动字体选择器会连续触发 adjustment 事件，按消息文本节流，
+            # 同一句钳制提示窗口期内只弹一次（「非必要不打扰」）。
+            if toast_helpers.should_show(msg, throttle_ms=2500):
+                self._show_toast(msg)
 
     def on_line_spacing_changed(self, spin, pspec=None):
         value = int(spin.get_value())
@@ -835,44 +839,37 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_use_system_font = Adw.SwitchRow()
         self.option_use_system_font.set_title(_('Use the system fixed width font'))
         self.option_use_system_font.set_subtitle(font_string)
-        self.option_use_system_font.set_tooltip_text(_(
-            'Use the system fixed-width font for editing. '
-            'When enabled, the font set below is overridden.'))
+        self.option_use_system_font.set_tooltip_text(
+            _('When enabled, the font set below is overridden.'))
         group_font.add(self.option_use_system_font)
 
         self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
         self.font_chooser_button.set_valign(Gtk.Align.CENTER)
         self.font_chooser_row = Adw.ActionRow()
-        self.font_chooser_row.set_title(_('Set Editor Font'))
+        self.font_chooser_row.set_title(_('Set editor font'))
         self.font_chooser_row.add_suffix(self.font_chooser_button)
-        self.font_chooser_row.set_tooltip_text(_(
-            'Choose a custom font for the LaTeX editor. '
-            'Only active when "Use the system fixed width font" is off.'))
+        self.font_chooser_row.set_tooltip_text(
+            _('Only active when "Use the system fixed width font" is off.'))
         group_font.add(self.font_chooser_row)
 
         self.line_spacing_spin = Adw.SpinRow()
-        self.line_spacing_spin.set_title(_('Line Spacing'))
+        self.line_spacing_spin.set_title(_('Line spacing'))
         self.line_spacing_spin.set_subtitle(_('Extra vertical space between lines in pixels.'))
-        self.line_spacing_spin.set_tooltip_text(_(
-            'Extra vertical space between lines, in pixels. '
-            'Affects readability and line density in the editor.'))
         adjustment_line_spacing = Gtk.Adjustment(value=0, lower=0, upper=12, step_increment=1)
         self.line_spacing_spin.set_adjustment(adjustment_line_spacing)
         group_font.add(self.line_spacing_spin)
 
         group_tab_stops = Adw.PreferencesGroup()
-        group_tab_stops.set_title(_('Tab Stops'))
+        group_tab_stops.set_title(_('Tab stops'))
         self.add(group_tab_stops)
 
         self.option_spaces_instead_of_tabs = Adw.SwitchRow()
         self.option_spaces_instead_of_tabs.set_title(_('Insert spaces instead of tabs'))
         self.option_spaces_instead_of_tabs.set_subtitle(_('Use spaces when pressing Tab, instead of a tab character.'))
-        self.option_spaces_instead_of_tabs.set_tooltip_text(_(
-            'When enabled, pressing Tab inserts spaces instead of a tab character.'))
         group_tab_stops.add(self.option_spaces_instead_of_tabs)
 
         self.tab_width_row = Adw.SpinRow()
-        self.tab_width_row.set_title(_('Tab Width'))
+        self.tab_width_row.set_title(_('Tab width'))
         adjustment = Gtk.Adjustment(value=1, lower=1, upper=8, step_increment=1)
         self.tab_width_row.set_adjustment(adjustment)
         self.tab_width_row.set_tooltip_text(_(
@@ -891,7 +888,6 @@ class PageEditorView(Adw.PreferencesPage):
         self.max_undo_levels_row.set_title(_('Maximum undo depth'))
         self.max_undo_levels_row.set_subtitle(_('Maximum number of undo steps. 0 = unlimited.'))
         self.max_undo_levels_row.set_tooltip_text(_(
-            'Limit the number of undoable actions kept in memory. '
             'Lower values save memory for very large documents. '
             '0 keeps an unlimited history.'))
         adjustment_undo = Gtk.Adjustment(value=200, lower=0, upper=10000, step_increment=10)
@@ -899,97 +895,80 @@ class PageEditorView(Adw.PreferencesPage):
         group_undo.add(self.max_undo_levels_row)
 
         group_line_numbers = Adw.PreferencesGroup()
-        group_line_numbers.set_title(_('Line Numbers'))
+        group_line_numbers.set_title(_('Line numbers'))
         self.add(group_line_numbers)
 
         self.option_show_line_numbers = Adw.SwitchRow()
         self.option_show_line_numbers.set_title(_('Show line numbers'))
         self.option_show_line_numbers.set_subtitle(_('Display line numbers in the editor gutter.'))
-        self.option_show_line_numbers.set_tooltip_text(_(
-            'Display line numbers in the left gutter of the editor.'))
         group_line_numbers.add(self.option_show_line_numbers)
 
         group_right_margin = Adw.PreferencesGroup()
-        group_right_margin.set_title(_('Right Margin'))
+        group_right_margin.set_title(_('Right margin'))
         self.add(group_right_margin)
 
         self.option_show_right_margin = Adw.SwitchRow()
         self.option_show_right_margin.set_title(_('Show right margin guide'))
         self.option_show_right_margin.set_subtitle(_('Display a vertical line at a fixed column.'))
-        self.option_show_right_margin.set_tooltip_text(_(
-            'Display a vertical line at a fixed column position '
-            'to help keep lines within a recommended width.'))
         group_right_margin.add(self.option_show_right_margin)
 
         self.right_margin_position_row = Adw.SpinRow()
         self.right_margin_position_row.set_title(_('Right margin column'))
         self.right_margin_position_row.set_subtitle(_('Column position for the right margin guide.'))
-        self.right_margin_position_row.set_tooltip_text(_(
-            'Column position for the right margin guide vertical line. '
-            'LaTeX documents are typically kept within 80 columns.'))
+        self.right_margin_position_row.set_tooltip_text(
+            _('LaTeX documents are typically kept within 80 columns.'))
         adjustment_right_margin = Gtk.Adjustment(value=80, lower=40, upper=200, step_increment=1)
         self.right_margin_position_row.set_adjustment(adjustment_right_margin)
         group_right_margin.add(self.right_margin_position_row)
 
         group_line_wrapping = Adw.PreferencesGroup()
-        group_line_wrapping.set_title(_('Line Wrapping'))
+        group_line_wrapping.set_title(_('Line wrapping'))
         self.add(group_line_wrapping)
 
         self.option_line_wrapping = Adw.SwitchRow()
         self.option_line_wrapping.set_title(_('Enable line wrapping'))
         self.option_line_wrapping.set_subtitle(_('Wrap long lines instead of scrolling horizontally.'))
-        self.option_line_wrapping.set_tooltip_text(_(
-            'Wrap long lines to fit within the editor window '
-            'instead of scrolling horizontally.'))
         group_line_wrapping.add(self.option_line_wrapping)
 
         group_code_folding = Adw.PreferencesGroup()
-        group_code_folding.set_title(_('Code Folding'))
+        group_code_folding.set_title(_('Code folding'))
         self.add(group_code_folding)
 
         self.option_code_folding = Adw.SwitchRow()
         self.option_code_folding.set_title(_('Enable code folding'))
         self.option_code_folding.set_subtitle(_('Allow collapsing blocks of code such as environments.'))
-        self.option_code_folding.set_tooltip_text(_(
-            'Allow collapsing and expanding code blocks '
-            'such as LaTeX environments, sections, and functions.'))
         group_code_folding.add(self.option_code_folding)
 
         group_sticky_scroll = Adw.PreferencesGroup()
-        group_sticky_scroll.set_title(_('Sticky Scroll'))
+        group_sticky_scroll.set_title(_('Sticky scroll'))
         self.add(group_sticky_scroll)
 
         self.option_sticky_scroll = Adw.SwitchRow()
         self.option_sticky_scroll.set_title(_('Enable sticky scroll for sections'))
         self.option_sticky_scroll.set_subtitle(_('Show the current section header at the top of the editor while scrolling.'))
-        self.option_sticky_scroll.set_tooltip_text(_(
-            'Displays a sticky header at the top of the editor showing the '
-            'current section hierarchy (chapter, section, subsection, etc.) '
-            'as you scroll through long documents.'))
         group_sticky_scroll.add(self.option_sticky_scroll)
 
         group_math_preview = Adw.PreferencesGroup()
-        group_math_preview.set_title(_('Math Preview'))
+        group_math_preview.set_title(_('Math preview'))
         self.add(group_math_preview)
 
         self.option_math_hover_preview = Adw.SwitchRow()
-        self.option_math_hover_preview.set_title(_('Math Preview on Hover'))
+        self.option_math_hover_preview.set_title(_('Math preview on hover'))
         self.option_math_hover_preview.set_subtitle(_('Show a rendered preview of the formula under the mouse cursor.'))
         self.option_math_hover_preview.set_tooltip_text(_(
-            'Hover the mouse over a formula without holding any modifier key '
-            'to see a rendered preview. The formula is compiled with the '
-            'configured LaTeX interpreter using this document\'s preamble '
-            'and results are cached.'))
+            'Hover over a formula without holding any modifier key. Compiled '
+            'with the configured LaTeX interpreter using this document\'s '
+            'preamble; results are cached.'))
         group_math_preview.add(self.option_math_hover_preview)
 
         # 图形预览：TikZ 实时预览与它自己的编译延迟。与上面的「数学预览」
         # 分开成组——一个是悬停浮窗、一个是侧栏常驻视图，触发与宿主都不同。
         group_figure_preview = Adw.PreferencesGroup()
-        group_figure_preview.set_title(_('Figure Preview'))
+        group_figure_preview.set_title(_('Figure preview'))
         self.add(group_figure_preview)
 
         self.option_tikz_live_preview = Adw.SwitchRow()
-        self.option_tikz_live_preview.set_title(_('Live TikZ Preview'))
+        self.option_tikz_live_preview.set_title(_('Live TikZ preview'))
         self.option_tikz_live_preview.set_subtitle(_('Render the tikzpicture under the cursor in the preview sidebar.'))
         self.option_tikz_live_preview.set_tooltip_text(_(
             'When the cursor is inside a tikzpicture and you stop typing, the '
@@ -999,11 +978,10 @@ class PageEditorView(Adw.PreferencesPage):
         group_figure_preview.add(self.option_tikz_live_preview)
 
         self.tikz_preview_delay_row = Adw.SpinRow()
-        self.tikz_preview_delay_row.set_title(_('Delay Before Compiling (seconds)'))
+        self.tikz_preview_delay_row.set_title(_('Delay before compiling (seconds)'))
         self.tikz_preview_delay_row.set_subtitle(_('Wait time after the last keystroke.'))
-        self.tikz_preview_delay_row.set_tooltip_text(_(
-            'How long to wait after the last keystroke before compiling the '
-            'figure. Values below three tenths of a second are clamped.'))
+        self.tikz_preview_delay_row.set_tooltip_text(
+            _('Values below three tenths of a second are clamped.'))
         adjustment_tikz_delay = Gtk.Adjustment(value=0.6, lower=0.3, upper=10.0, step_increment=0.1)
         self.tikz_preview_delay_row.set_adjustment(adjustment_tikz_delay)
         self.tikz_preview_delay_row.set_digits(1)
@@ -1016,27 +994,21 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_highlight_current_line = Adw.SwitchRow()
         self.option_highlight_current_line.set_title(_('Highlight current line'))
         self.option_highlight_current_line.set_subtitle(_('Visually emphasize the line containing the cursor.'))
-        self.option_highlight_current_line.set_tooltip_text(_(
-            'Visually highlight the line where the cursor is located.'))
         group_highlighting.add(self.option_highlight_current_line)
 
         self.option_highlight_matching_brackets = Adw.SwitchRow()
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
         self.option_highlight_matching_brackets.set_subtitle(_('Highlight the bracket matching the one next to the cursor.'))
-        self.option_highlight_matching_brackets.set_tooltip_text(_(
-            'Highlight the bracket that matches the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_brackets)
 
         self.option_highlight_matching_begin_end = Adw.SwitchRow()
         self.option_highlight_matching_begin_end.set_title(_('Highlight matching \\begin/\\end'))
         self.option_highlight_matching_begin_end.set_subtitle(_('Highlight the environment matching the \\begin or \\end command next to the cursor.'))
-        self.option_highlight_matching_begin_end.set_tooltip_text(_(
-            'Highlight the \\begin{...}/\\end{...} pair that matches the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_begin_end)
 
         # 拼写检查：pyenchant 后端；缺库或系统无词典时整组置灰。
         group_spellchecking = Adw.PreferencesGroup()
-        group_spellchecking.set_title(_('Spell Checking'))
+        group_spellchecking.set_title(_('Spell checking'))
         self.add(group_spellchecking)
 
         self.option_spellchecking = Adw.SwitchRow()
@@ -1044,27 +1016,21 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_spellchecking.set_subtitle(_(
             'Underline misspelled words in the text. '
             'Commands, math and verbatim regions are skipped.'))
-        self.option_spellchecking.set_tooltip_text(_(
-            'Check spelling as you type using enchant/hunspell dictionaries. '
-            'LaTeX commands, math mode and verbatim environments are not checked. '
-            'Right-click a marked word for suggestions.'))
+        self.option_spellchecking.set_tooltip_text(
+            _('Right-click a marked word for suggestions.'))
         group_spellchecking.add(self.option_spellchecking)
 
         self.spellchecking_language_row = Adw.ComboRow()
         self.spellchecking_language_row.set_title(_('Language'))
         self.spellchecking_language_row.set_subtitle(_('Dictionary used for spell checking'))
         self.spellchecking_language_row.set_tooltip_text(_(
-            'The dictionary language for spell checking. '
             'Additional languages can be installed via hunspell/aspell packages.'))
         group_spellchecking.add(self.spellchecking_language_row)
 
         self.spellchecking_words_row = Adw.ActionRow()
-        self.spellchecking_words_row.set_title(_('Manage Words'))
+        self.spellchecking_words_row.set_title(_('Manage words'))
         self.spellchecking_words_row.set_subtitle(_(
             'View and edit ignored words and your user dictionary'))
-        self.spellchecking_words_row.set_tooltip_text(_(
-            'Manage the words you ignored for the current session and the '
-            'words saved permanently to your user dictionary.'))
         self.spellchecking_words_button = Gtk.Button(label=_('Open'))
         self.spellchecking_words_button.set_valign(Gtk.Align.CENTER)
         self.spellchecking_words_row.add_suffix(self.spellchecking_words_button)
@@ -1079,92 +1045,75 @@ class PageEditorView(Adw.PreferencesPage):
 
         # 可见字符：显示行尾 ¶ 和空白（空格 · Tab →），调试缩进问题时有用。
         group_visible_chars = Adw.PreferencesGroup()
-        group_visible_chars.set_title(_('Visible Characters'))
+        group_visible_chars.set_title(_('Visible characters'))
         self.add(group_visible_chars)
 
         self.option_show_line_endings = Adw.SwitchRow()
         self.option_show_line_endings.set_title(_('Show line endings'))
         self.option_show_line_endings.set_subtitle(_('Display line ending characters (¶) at the end of each line.'))
-        self.option_show_line_endings.set_tooltip_text(_(
-            'Display a paragraph symbol (¶) at the end of each line '
-            'to help identify trailing whitespace and line ending issues.'))
         group_visible_chars.add(self.option_show_line_endings)
 
         self.option_show_whitespace = Adw.SwitchRow()
         self.option_show_whitespace.set_title(_('Show whitespace'))
         self.option_show_whitespace.set_subtitle(_('Display whitespace characters (· for spaces, → for tabs).'))
-        self.option_show_whitespace.set_tooltip_text(_(
-            'Display symbols for spaces (·) and tabs (→) '
-            'to help debug indentation and trailing whitespace issues.'))
         group_visible_chars.add(self.option_show_whitespace)
 
         # 界面元素显隐：快捷键栏与多文档标签栏（与上方显示类设置相邻）
         group_shortcuts_bar = Adw.PreferencesGroup()
-        group_shortcuts_bar.set_title(_('Shortcuts Bar'))
+        group_shortcuts_bar.set_title(_('Shortcuts bar'))
         self.add(group_shortcuts_bar)
 
         self.option_show_shortcuts_bar = Adw.SwitchRow()
         self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
         self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
-        self.option_show_shortcuts_bar.set_tooltip_text(_(
-            'Display a bar of keyboard shortcuts above the editor.'))
         group_shortcuts_bar.add(self.option_show_shortcuts_bar)
 
         group_tab_bar = Adw.PreferencesGroup()
-        group_tab_bar.set_title(_('Tab Bar'))
+        group_tab_bar.set_title(_('Tab bar'))
         self.add(group_tab_bar)
 
         self.option_show_tab_bar = Adw.SwitchRow()
         self.option_show_tab_bar.set_title(_('Show tab bar'))
         self.option_show_tab_bar.set_subtitle(_('Display the multi-document tab bar above the shortcuts bar.'))
         self.option_show_tab_bar.set_tooltip_text(_(
-            'Display a bar of open documents above the shortcuts bar. '
             'When enabled, a single open document hides the bar automatically.'))
         group_tab_bar.add(self.option_show_tab_bar)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
         # 应用崩溃后下次启动可恢复未保存的编辑。
         group_auto_save = Adw.PreferencesGroup()
-        group_auto_save.set_title(_('Auto Save'))
+        group_auto_save.set_title(_('Auto save'))
         self.add(group_auto_save)
 
         self.option_auto_save_enabled = Adw.SwitchRow()
         self.option_auto_save_enabled.set_title(_('Enable auto save (crash recovery)'))
         self.option_auto_save_enabled.set_subtitle(_('Periodically save buffer to a temp file for crash recovery'))
-        self.option_auto_save_enabled.set_tooltip_text(_(
-            'Periodically save the buffer to a temporary file '
-            'for crash recovery. Setzer can restore unsaved edits '
-            'after an unexpected application exit.'))
         group_auto_save.add(self.option_auto_save_enabled)
 
         self.auto_save_delay_row = Adw.SpinRow()
         self.auto_save_delay_row.set_title(_('Auto save interval (seconds)'))
         adjustment_auto_save = Gtk.Adjustment(value=60, lower=10, upper=600, step_increment=5)
         self.auto_save_delay_row.set_adjustment(adjustment_auto_save)
-        self.auto_save_delay_row.set_tooltip_text(_(
-            'Time interval in seconds between automatic saves '
-            'when auto save is enabled.'))
         group_auto_save.add(self.auto_save_delay_row)
 
         # 外部变更：自动静默重载磁盘上被其他程序修改的文件。
         group_external_changes = Adw.PreferencesGroup()
-        group_external_changes.set_title(_('External Changes'))
+        group_external_changes.set_title(_('External changes'))
         self.add(group_external_changes)
 
         self.option_auto_reload_on_external_change = Adw.SwitchRow()
         self.option_auto_reload_on_external_change.set_title(_('Automatically reload changed files'))
         self.option_auto_reload_on_external_change.set_subtitle(
             _('Reload files modified by external applications without prompting'))
-        self.option_auto_reload_on_external_change.set_tooltip_text(_(
-            'Automatically reload files modified by external applications '
-            'without showing a prompt. Unsaved changes in the editor will be lost.'))
+        self.option_auto_reload_on_external_change.set_tooltip_text(
+            _('Unsaved changes in the editor will be lost.'))
         group_external_changes.add(self.option_auto_reload_on_external_change)
 
         # Git 集成（#216 gutter diff + #443 侧栏面板）：总开关关闭后
         # 不再执行任何 git 子进程，两个子开关可分别关闭 gutter 行级标记
         # 与侧栏面板。
         group_git = Adw.PreferencesGroup()
-        group_git.set_title(_('Git Integration'))
+        group_git.set_title(_('Git integration'))
         self.add(group_git)
 
         self.option_git_integration = Adw.SwitchRow()
@@ -1187,15 +1136,14 @@ class PageEditorView(Adw.PreferencesPage):
 
         # 新建文档默认设置：编码与行尾格式
         group_new_doc = Adw.PreferencesGroup()
-        group_new_doc.set_title(_('New Document'))
+        group_new_doc.set_title(_('New document'))
         self.add(group_new_doc)
 
         self.option_default_encoding = Adw.ComboRow()
-        self.option_default_encoding.set_title(_('Default Encoding'))
+        self.option_default_encoding.set_title(_('Default encoding'))
         self.option_default_encoding.set_subtitle(
             _('Encoding used when creating new documents'))
         self.option_default_encoding.set_tooltip_text(_(
-            'Default character encoding for new documents. '
             'UTF-8 is the recommended choice for cross-platform collaboration.'))
         encoding_list = Gtk.StringList.new([
             _('UTF-8'),
@@ -1207,16 +1155,13 @@ class PageEditorView(Adw.PreferencesPage):
         group_new_doc.add(self.option_default_encoding)
 
         self.option_default_line_ending = Adw.ComboRow()
-        self.option_default_line_ending.set_title(_('Default Line Ending'))
+        self.option_default_line_ending.set_title(_('Default line ending'))
         self.option_default_line_ending.set_subtitle(
             _('Line ending format for new documents'))
-        self.option_default_line_ending.set_tooltip_text(_(
-            'Default line ending format for new documents. '
-            'LF is Unix/macOS style; CRLF is Windows style; CR is old macOS style.'))
         line_ending_list = Gtk.StringList.new([
             _('LF (Unix)'),
             _('CRLF (Windows)'),
-            _('CR (Old macOS)'),
+            _('CR (old macOS)'),
         ])
         self.option_default_line_ending.set_model(line_ending_list)
         group_new_doc.add(self.option_default_line_ending)
@@ -1227,7 +1172,7 @@ class PageEditorView(Adw.PreferencesPage):
         self.add(group_autocomplete)
 
         self.option_autocomplete = Adw.SwitchRow()
-        self.option_autocomplete.set_title(_('Suggest matching LaTeX Commands'))
+        self.option_autocomplete.set_title(_('Suggest matching LaTeX commands'))
         self.option_autocomplete.set_subtitle(_('Show a completion popup as you type LaTeX commands.'))
         group_autocomplete.add(self.option_autocomplete)
 
@@ -1240,7 +1185,7 @@ class PageEditorView(Adw.PreferencesPage):
         group_autocomplete.add(row_trigger)
 
         self.nav_group = Adw.PreferencesGroup()
-        self.nav_group.set_title(_('Completion Navigation'))
+        self.nav_group.set_title(_('Completion navigation'))
         self.nav_group.set_description(_('Keys used to move and confirm within the completion popup.'))
         self.add(self.nav_group)
         self.nav_buttons = dict()
@@ -1252,7 +1197,7 @@ class PageEditorView(Adw.PreferencesPage):
         self.add(self.snippets_group)
 
         group_smart_typing = Adw.PreferencesGroup()
-        group_smart_typing.set_title(_('Smart Typing'))
+        group_smart_typing.set_title(_('Smart typing'))
         self.add(group_smart_typing)
 
         self.option_smart_quotes = Adw.SwitchRow()
@@ -1266,7 +1211,7 @@ class PageEditorView(Adw.PreferencesPage):
         group_smart_typing.add(self.option_auto_subscript)
 
         group_brackets = Adw.PreferencesGroup()
-        group_brackets.set_title(_('Brackets and Blocks'))
+        group_brackets.set_title(_('Brackets and blocks'))
         self.add(group_brackets)
 
         self.option_bracket_completion = Adw.SwitchRow()
@@ -1297,7 +1242,7 @@ class PageEditorView(Adw.PreferencesPage):
         # 多光标编辑（标准编辑功能）：ExpanderRow 自带的启用开关作总开关，
         # 各手势/快捷键可单独关闭。
         group_multicursor = Adw.PreferencesGroup()
-        group_multicursor.set_title(_('Multi-Cursor'))
+        group_multicursor.set_title(_('Multi-cursor'))
         self.add(group_multicursor)
 
         self.option_multicursor = Adw.ExpanderRow()
@@ -1337,7 +1282,7 @@ class PageEditorView(Adw.PreferencesPage):
         group_reset = Adw.PreferencesGroup()
         self.add(group_reset)
 
-        self.reset_button = Gtk.Button(label=_('Reset to Defaults'))
+        self.reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
         self.reset_button.add_css_class('destructive-action')
         group_reset.add(self.reset_button)

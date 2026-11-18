@@ -134,7 +134,7 @@ class StandardSettingsPageView(PageView):
     def __init__(self):
         PageView.__init__(self)
 
-        self.headerbar_subtitle = _('Step') + ' 2: ' + _('Standard document settings')
+        self.headerbar_subtitle = _('Step 2: Standard document settings')
 
         self.set_document_settings_page()
 

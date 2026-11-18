@@ -69,8 +69,7 @@ class CloseConfirmationDialog(object):
         names = '\n'.join('• ' + d.get_displayname() for d in documents)
         self.view = Adw.AlertDialog(
             heading=_('You have unsaved changes in {n} documents.').format(n=len(documents)),
-            body=_('The following documents have unsaved changes:\n\n{names}\n\n'
-                   'If you close without saving, these changes will be lost.').format(names=names))
+            body=_('{names}\n\nIf you close without saving, these changes will be lost.').format(names=names))
         # 与 setup 一致的 HIG 顺序：Cancel / Discard All / Save All。
         self.view.add_response('cancel', _('Cancel'))
         self.view.add_response('discard_all', _('Discard All'))

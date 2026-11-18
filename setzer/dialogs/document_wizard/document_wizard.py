@@ -384,8 +384,7 @@ class DocumentWizard(object):
     def open_save_template_dialog(self):
         '''弹出对话框，将当前设置另存为命名模板（报告 #5）。'''
         dialog = Adw.AlertDialog(
-            heading=_('Save as template'),
-            body=_('Enter a name for the new template.'))
+            heading=_('Save as template'))
         entry = Gtk.Entry()
         entry.set_hexpand(True)
         dialog.set_extra_child(entry)
@@ -436,9 +435,10 @@ class DocumentWizard(object):
         dialog = Adw.AlertDialog(
             heading=_('Cannot continue'),
             body=message)
-        dialog.add_response('ok', _('OK'))
-        dialog.set_default_response('ok')
-        dialog.set_close_response('ok')
+        # HIG：按钮标签用动词短语，不用泛化的 OK；按掉即回到表单修改。
+        dialog.add_response('close', _('Close'))
+        dialog.set_default_response('close')
+        dialog.set_close_response('close')
         dialog.choose(self.view, None, None)
 
     def goto_page(self, page_number):

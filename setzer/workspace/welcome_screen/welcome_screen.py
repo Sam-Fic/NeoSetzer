@@ -294,8 +294,7 @@ class WelcomeScreen(object):
             return
         dialog = Adw.AlertDialog(
             heading=_('Clear Recent List?'),
-            body=_('All documents will be removed from the recent list. '
-                   'This does not delete the files themselves.'))
+            body=_('This does not delete the files themselves.'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('clear', _('Clear'))
         dialog.set_response_appearance('clear', Adw.ResponseAppearance.DESTRUCTIVE)
