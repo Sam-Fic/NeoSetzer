@@ -76,8 +76,14 @@ class AiPageView(Gtk.Box):
         self.preset_menu_button.set_child(menu_box)
         self.toolbar.append(self.preset_menu_button)
 
-        self.send_all_button = Gtk.Button(label=_('Send All'))
+        # Send All：纯图标按钮（名称由 tooltip 展示），图标与批注行的
+        # 「发送单条」一致（mail-send-symbolic）。
+        self.send_all_button = Gtk.Button()
         self.send_all_button.add_css_class('suggested-action')
+        self.send_all_button.set_icon_name('mail-send-symbolic')
+        self.send_all_button.set_tooltip_text(_('Send All'))
+        self.send_all_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Send All')])
         self.toolbar.append(self.send_all_button)
 
         # 与其他页互为镜像的面板切换器（sidebar_viewgtk 统一同步）。
