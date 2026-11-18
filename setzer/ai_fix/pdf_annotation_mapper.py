@@ -104,6 +104,18 @@ _VISUAL_PAD = 2.0
 _PARAGRAPH_ROW_WINDOW = 250.0
 _PARAGRAPH_MAX_ROWS = 60
 
+# 编号公式逐式拆分：相邻 equation 块的字形行在密集排版下会连通成一个
+# band（块隙小于阈值、或根号 Tall 盒与邻式垂直重叠，实测重叠 4.2pt 与
+# 式内链式重叠同量级，纯几何聚行/间隙阈值都无法分离）。编号盒（右缘
+# 水平隔离的小盒簇）是每式唯一的视觉锚：字形按「盒底到编号中心的垂直
+# 距离」归属（根号等 Tall 盒悬在编号上方，盒底离本式编号更近），取点击
+# 字形所属组的并集为紧框。仅 equation（一号一块）启用；align/gather 等
+# 多号单块环境不拆。编号盒尺寸/隔离阈值实测编号宽 12.7 高 10.9、与内容
+# 水平隙≥24.6。
+_NUMBER_BOX_MAX_W = 20.0
+_NUMBER_BOX_MAX_H = 15.0
+_NUMBER_BOX_ISOLATION = 20.0
+
 
 def _rect_contains(rect, x, y, tol=_CLICK_TOL):
     x1, y1, x2, y2 = rect
@@ -437,6 +449,110 @@ def _paragraph_pdf_rect(glyph_rects, x, y, para, page, block_tex,
     return (x1 - _VISUAL_PAD, y1 - _VISUAL_PAD, x2 + _VISUAL_PAD, y2 + _VISUAL_PAD)
 
 
+def _prose_row_line(row, lines, page, block_tex, pdf_filename, directory):
+    '''字形行 → 可靠正文文本行（edit 反查 + view 盒宽松几何匹配）。
+
+    全宽正文行的字形并集与 synctex 盒右缘常差数 pt（_row_anchor_line 的
+    2pt 全边匹配会漏认），故只要求水平/垂直双向半重叠。数学行反查落块
+    内（kind!='line'）或几何不吻合，不会被误认成正文。'''
+    cx, cy = (row[0] + row[2]) / 2, (row[1] + row[3]) / 2
+    pos = synctex_query.query_source_position(pdf_filename, page + 1, cx, cy,
+                                              directory)
+    if pos is None:
+        return None
+    ln = pos['line']
+    if source_blocks.expand_to_block(lines, ln)[2] != 'line':
+        return None
+    st = lines[ln - 1].strip() if ln <= len(lines) else ''
+    if (not st or st.startswith('%') or _BOUNDARY_LINE_RE.match(st)
+            or source_blocks.is_no_output_line(st)):
+        return None
+    for r in synctex_query.query_rectangles(block_tex, pdf_filename, ln, directory):
+        if r['page'] != page + 1:
+            continue
+        ry1 = r['v'] - r['height']
+        ox = min(r['h'] + r['width'], row[2]) - max(r['h'], row[0])
+        oy = min(r['v'], row[3]) - max(ry1, row[1])
+        if (ox >= 0.5 * min(r['width'], row[2] - row[0])
+                and oy >= 0.5 * min(r['height'], row[3] - row[1])):
+            return ln
+    return None
+
+
+def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
+                            pdf_filename, directory):
+    '''band 含多个编号公式时的逐式紧框：编号盒簇分组字形并集。
+
+    先排除可靠正文行（散文字形不得混入公式组），再在剩余字形右缘找
+    水平隔离的编号盒簇；少于 2 个编号（单式/无编号）返回 None 交回
+    band。点击字形（2pt 容差）所属组即目标式；无命中字形按点击 y 最近
+    编号。返回含 _VISUAL_PAD 外沿的矩形。'''
+    rows = _glyph_rows(glyph_rects)
+    prose = []
+    for r in rows:
+        if r[3] <= band[1] or r[1] >= band[3] or r[2] <= band[0] or r[0] >= band[2]:
+            continue
+        if _prose_row_line(r, lines, page, block_tex, pdf_filename,
+                           directory) is not None:
+            prose.append(r)
+    glyphs = []
+    for g in glyph_rects:
+        if g[2] <= g[0] or g[3] < g[1]:
+            continue
+        if not (band[0] <= g[0] and g[2] <= band[2]
+                and band[1] <= g[1] and g[3] <= band[3]):
+            continue
+        cx, cy = (g[0] + g[2]) / 2, (g[1] + g[3]) / 2
+        if any(r[0] <= cx <= r[2] and r[1] <= cy <= r[3] for r in prose):
+            continue
+        glyphs.append(g)
+    if not glyphs:
+        return None
+    right = max(g[2] for g in glyphs)
+    # 编号盒整体落在右缘一个编号宽度的 zone 内（逐 glyph 右缘过滤会
+    # 只收进编号最右一个字，隔离隙误判 0）；zone 内再按尺寸筛。
+    cands = [g for g in glyphs
+             if g[0] >= right - (_NUMBER_BOX_MAX_W + 2.0) and g[2] <= right + 0.1
+             and 0 < g[2] - g[0] <= _NUMBER_BOX_MAX_W
+             and 0 < g[3] - g[1] <= _NUMBER_BOX_MAX_H]
+    clusters = []
+    for g in sorted(cands, key=lambda r: (r[1], r[0])):
+        if (clusters and g[1] <= clusters[-1][3] + 0.5
+                and g[0] <= clusters[-1][2] + 1.0):
+            c = clusters[-1]
+            clusters[-1] = (min(c[0], g[0]), min(c[1], g[1]),
+                            max(c[2], g[2]), max(c[3], g[3]))
+        else:
+            clusters.append(g)
+    numbers = []
+    for c in clusters:
+        if c[2] < right - 2.5:
+            continue
+        gap = min((c[0] - o[2] for o in glyphs
+                   if o[2] <= c[0] + 0.1 and o[3] > c[1] and o[1] < c[3]
+                   and not (o[0] >= c[0] - 0.1 and o[2] <= c[2] + 0.1)),
+                  default=999.0)
+        if gap >= _NUMBER_BOX_ISOLATION:
+            numbers.append(c)
+    if len(numbers) < 2:
+        return None
+    centers = [(c[1] + c[3]) / 2 for c in numbers]
+
+    def group_of(g):
+        return min(range(len(numbers)), key=lambda i: abs(g[3] - centers[i]))
+
+    seed = next((g for g in glyphs
+                 if g[0] - 2 <= x <= g[2] + 2 and g[1] - 2 <= y <= g[3] + 2), None)
+    target = (group_of(seed) if seed is not None
+              else min(range(len(numbers)), key=lambda i: abs(y - centers[i])))
+    group = [g for g in glyphs if group_of(g) == target]
+    x1 = min(g[0] for g in group)
+    y1 = min(g[1] for g in group)
+    x2 = max(g[2] for g in group)
+    y2 = max(g[3] for g in group)
+    return (x1 - _VISUAL_PAD, y1 - _VISUAL_PAD, x2 + _VISUAL_PAD, y2 + _VISUAL_PAD)
+
+
 def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
                        directory, image_rects, glyph_rects=()):
     '''空间降级：反查行不在块内（或块矩形不含点击点）时，在附近源码块中
@@ -454,6 +570,12 @@ def _fallback_block_at(lines, pos_line, page, x, y, block_tex, pdf_filename,
         if src is not None:
             start, end, kind, env = src
             rect = band
+            if env == 'equation':
+                tight = _numbered_equation_rect(
+                    band, glyph_rects, x, y, lines, page, block_tex,
+                    pdf_filename, directory)
+                if tight is not None:
+                    rect = tight
             if rect is not None and _block_accepts(rect, x, y, env):
                 return (start, end, kind, env, rect)
     candidates = []
@@ -517,6 +639,12 @@ def resolve_block(document, pdf_filename, page, x, y, active_lines=None,
             if src is not None:
                 start, end, kind, env = src
             rect = band
+            if env == 'equation':
+                tight = _numbered_equation_rect(
+                    band, glyph_rects, x, y, lines, page, pos['filename'],
+                    pdf_filename, directory)
+                if tight is not None:
+                    rect = tight
         else:
             rect = block_pdf_rect(tex_filename, pdf_filename, pos['filename'],
                                   page, start, end, lines, directory,

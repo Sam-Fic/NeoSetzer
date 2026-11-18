@@ -791,15 +791,16 @@ class ResolveBlockVisualTest(unittest.TestCase):
     def test_wrong_pos_block_corrected_by_order(self):
         # 实测：公式内容 edit 反查落邻块（align 行）；顺序步进对应
         # 纠正为点击 band 真正所属的 equation 块。
-        result = self.resolve([pos(line=7), pos(line=1)])
+        result = self.resolve([pos(line=7), pos(line=1), pos(line=3), pos(line=3)])
         self.assertIsNotNone(result)
         self.assertEqual((result['start_line'], result['end_line']), (2, 4))
         self.assertEqual(result['rect'], self.EQ_BAND)
 
     def test_pos_line_fallback_uses_order(self):
         # 反查落块外文本行：降级搜索优先用步进对应的块（第三次
-        # 反查是降级路径里锚行校验）。
-        result = self.resolve([pos(line=1), pos(line=1), pos(line=1)])
+        # 反查是降级路径里锚行校验；后两次是编号拆分的正文行校验）。
+        result = self.resolve([pos(line=1), pos(line=1), pos(line=1),
+                               pos(line=3), pos(line=3)])
         self.assertIsNotNone(result)
         self.assertEqual((result['start_line'], result['end_line']), (2, 4))
         self.assertEqual(result['rect'], self.EQ_BAND)
@@ -999,6 +1000,111 @@ class MapSelectionEntryTest(unittest.TestCase):
                                  {'kind': 'text', 'rects': {}, 'text': ''},
                                  results.append)
         self.assertEqual(results, [None])
+
+
+class ProseRowLineTest(unittest.TestCase):
+    '''宽松几何匹配的正文行认定（全宽行右缘差数 pt 仍认）。'''
+
+    LINES = ['intro\n', '\\begin{equation}\n', 'x=1\n',
+             '\\end{equation}\n', 'outro\n']
+    ROW = (10, 10, 100, 20)
+
+    def run_prose(self, position, rects, lines=None):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=position), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=rects):
+            return mapper._prose_row_line(self.ROW, lines or self.LINES, 0,
+                                          '/p/main.tex', '/p/main.pdf', '/cache')
+
+    def test_loose_geometry_accepts_wider_view_box(self):
+        # view 盒右缘比字形并集宽 10pt（2pt 全边匹配会漏认）→ 半重叠仍认。
+        self.assertEqual(self.run_prose(pos(line=1), [vbox(10, 10, 110, 20)]), 1)
+
+    def test_vertical_mismatch_rejected(self):
+        self.assertIsNone(self.run_prose(pos(line=1), [vbox(10, 60, 100, 70)]))
+
+    def test_block_line_rejected(self):
+        self.assertIsNone(self.run_prose(pos(line=2), [vbox(10, 10, 100, 20)]))
+
+    def test_no_output_line_rejected(self):
+        lines = ['intro\n', '\\label{eq:x}\n', 'outro\n']
+        self.assertIsNone(self.run_prose(pos(line=2), [vbox(10, 10, 100, 20)],
+                                         lines=lines))
+
+
+class NumberedEquationRectTest(unittest.TestCase):
+    '''相邻 equation 连通 band 的编号盒逐式拆分。'''
+
+    LINES = ['\\begin{equation}\n', 'a=1\n', '\\end{equation}\n',
+             '\\begin{equation}\n', 'b=2\n', '\\end{equation}\n', 'tail\n']
+    # 两式 Tall 盒垂直重叠聚成一行；编号盒右缘隔离；正文行隙 8 连通。
+    RECTS = [(60, 30, 70, 44), (50, 32, 150, 42),
+             (200, 34, 204, 44), (204, 34, 208, 44), (208, 34, 212, 44),
+             (60, 43, 70, 57), (50, 46, 150, 56),
+             (200, 48, 204, 58), (204, 48, 208, 58), (208, 48, 212, 58),
+             (10, 66, 212, 76)]
+
+    def edit(self, pdf, page, x, y, directory):
+        return pos(line=2 if y < 60 else 7)
+
+    def view(self, tex, pdf, ln, directory):
+        return [vbox(10, 66, 212, 76)] if ln == 7 else []
+
+    def run_rect(self, x, y, view=None):
+        band = mapper._glyph_band(self.RECTS, x, y)
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view or self.view):
+            return mapper._numbered_equation_rect(
+                band, self.RECTS, x, y, self.LINES, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache')
+
+    def test_click_second_equation_tight(self):
+        self.assertEqual(self.run_rect(100, 50), (48, 41, 214, 60))
+
+    def test_click_first_equation_tight(self):
+        self.assertEqual(self.run_rect(100, 36), (48, 28, 214, 46))
+
+    def test_click_tall_box_uses_glyph_group(self):
+        # 根号 Tall 盒点击：按命中字形归属（盒底离本式编号近）。
+        self.assertEqual(self.run_rect(65, 47), (48, 41, 214, 60))
+
+    def test_prose_row_excluded_from_group(self):
+        # 正文行虽连通进 band，但不得混入公式组（y2 止于 58+2）。
+        self.assertEqual(self.run_rect(100, 50)[3], 60)
+
+    def test_single_number_returns_none(self):
+        rects = self.RECTS[:5]
+        band = mapper._glyph_band(rects, 100, 36)
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=self.edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=self.view):
+            self.assertIsNone(mapper._numbered_equation_rect(
+                band, rects, 100, 36, self.LINES, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache'))
+
+
+class ResolveNumberedSplitTest(unittest.TestCase):
+    '''resolve_block 端到端：连通 band 的 equation 点击返回逐式紧框。'''
+
+    LINES = NumberedEquationRectTest.LINES
+    RECTS = NumberedEquationRectTest.RECTS[:10]
+
+    def test_equation_click_rect_tight_and_source_own_block(self):
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=pos(line=5)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[]):
+            result = mapper.resolve_block(
+                FakeDocument(), '/p/main.pdf', 0, 100, 50,
+                active_lines=self.LINES, glyph_rects=self.RECTS)
+        self.assertIsNotNone(result)
+        self.assertEqual((result['start_line'], result['end_line']), (4, 6))
+        self.assertEqual(result['env'], 'equation')
+        self.assertEqual(result['rect'], (48, 41, 214, 60))
 
 
 if __name__ == '__main__':
