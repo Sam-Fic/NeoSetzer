@@ -7,6 +7,7 @@ flatpak/
 .workbuddy/
 .vscode/
 .zcode/
+.trae/
 
 # Python
 *.pyc
