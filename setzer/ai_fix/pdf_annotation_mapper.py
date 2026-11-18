@@ -481,26 +481,78 @@ def _prose_row_line(row, lines, page, block_tex, pdf_filename, directory):
 
 def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
                             pdf_filename, directory):
-    '''band 含多个编号公式时的逐式紧框：编号盒簇分组字形并集。
+    '''equation 连通 band 的紧框：剔除正文行 + 编号盒逐式拆分。
 
-    先排除可靠正文行（散文字形不得混入公式组），再在剩余字形右缘找
-    水平隔离的编号盒簇；少于 2 个编号（单式/无编号）返回 None 交回
-    band。点击字形（2pt 容差）所属组即目标式；无命中字形按点击 y 最近
-    编号。返回含 _VISUAL_PAD 外沿的矩形。'''
+    正文行认定双 cue：synctex 锚（_prose_row_line）或行比点击种子行窄
+    且左缘明显更靠左（居中公式左缘内缩、散文贴左边界且更宽）。左缘
+    cue 必须附加「更窄」条件：多行公式（pmatrix 等）的宽内容行左缘
+    可比窄种子行左数十 pt，仅比左缘会误剔公式主体。剔除后从点击种子
+    行按间隙/水平重叠连通扩展出公式 run；run 内编号盒簇≥2 时再按
+    「盒底到编号中心距离」逐式分组取点击组，否则返回 run 并集
+    （单式/无编号但 band 混入正文的情形）。无公式种子返回 None 交回
+    band。返回含 _VISUAL_PAD 外沿的矩形。'''
     rows = _glyph_rows(glyph_rects)
+    if not rows:
+        return None
+    seed0 = None
+    for r in rows:
+        if r[1] - 2 <= y <= r[3] + 2 and r[0] - 2 <= x <= r[2] + 2:
+            seed0 = r
+            break
+    if seed0 is None:
+        best = None
+        for r in rows:
+            dy = max(r[1] - y, y - r[3], 0.0)
+            dx = max(r[0] - x, x - r[2], 0.0)
+            if dy <= 4 and dx <= 12 and (best is None or dy < best[0]):
+                best = (dy, r)
+        if best is None:
+            return None
+        seed0 = best[1]
     prose = []
+    kept = []
     for r in rows:
         if r[3] <= band[1] or r[1] >= band[3] or r[2] <= band[0] or r[0] >= band[2]:
             continue
-        if _prose_row_line(r, lines, page, block_tex, pdf_filename,
-                           directory) is not None:
+        if ((r[2] - r[0] < seed0[2] - seed0[0] and r[0] < seed0[0] - 10.0)
+                or _prose_row_line(r, lines, page, block_tex,
+                                   pdf_filename, directory) is not None):
             prose.append(r)
+        else:
+            kept.append(r)
+    seed = None
+    for r in kept:
+        if r[1] - 2 <= y <= r[3] + 2 and r[0] - 2 <= x <= r[2] + 2:
+            seed = r
+            break
+    if seed is None:
+        best = None
+        for r in kept:
+            dy = max(r[1] - y, y - r[3], 0.0)
+            dx = max(r[0] - x, x - r[2], 0.0)
+            if dy <= 4 and dx <= 12 and (best is None or dy < best[0]):
+                best = (dy, r)
+        if best is None:
+            return None
+        seed = best[1]
+    run = list(seed)
+    changed = True
+    while changed:
+        changed = False
+        for r in kept:
+            gap = max(run[1] - r[3], r[1] - run[3])
+            if gap <= _GLYPH_ROW_GAP and r[0] < run[2] and r[2] > run[0]:
+                nb = [min(run[0], r[0]), min(run[1], r[1]),
+                      max(run[2], r[2]), max(run[3], r[3])]
+                if nb != run:
+                    run = nb
+                    changed = True
     glyphs = []
     for g in glyph_rects:
         if g[2] <= g[0] or g[3] < g[1]:
             continue
-        if not (band[0] <= g[0] and g[2] <= band[2]
-                and band[1] <= g[1] and g[3] <= band[3]):
+        if not (run[0] <= g[0] and g[2] <= run[2]
+                and run[1] <= g[1] and g[3] <= run[3]):
             continue
         cx, cy = (g[0] + g[2]) / 2, (g[1] + g[3]) / 2
         if any(r[0] <= cx <= r[2] and r[1] <= cy <= r[3] for r in prose):
@@ -535,7 +587,8 @@ def _numbered_equation_rect(band, glyph_rects, x, y, lines, page, block_tex,
         if gap >= _NUMBER_BOX_ISOLATION:
             numbers.append(c)
     if len(numbers) < 2:
-        return None
+        return (run[0] - _VISUAL_PAD, run[1] - _VISUAL_PAD,
+                run[2] + _VISUAL_PAD, run[3] + _VISUAL_PAD)
     centers = [(c[1] + c[3]) / 2 for c in numbers]
 
     def group_of(g):

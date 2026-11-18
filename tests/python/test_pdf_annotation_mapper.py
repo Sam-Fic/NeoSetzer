@@ -1075,16 +1075,53 @@ class NumberedEquationRectTest(unittest.TestCase):
         # 正文行虽连通进 band，但不得混入公式组（y2 止于 58+2）。
         self.assertEqual(self.run_rect(100, 50)[3], 60)
 
-    def test_single_number_returns_none(self):
+    def test_single_number_returns_run(self):
+        # 单式无正文混入：run == band，返回 band 同框（不拆）。
         rects = self.RECTS[:5]
         band = mapper._glyph_band(rects, 100, 36)
         with mock.patch.object(mapper.synctex_query, 'query_source_position',
                                side_effect=self.edit), \
                 mock.patch.object(mapper.synctex_query, 'query_rectangles',
                                   side_effect=self.view):
-            self.assertIsNone(mapper._numbered_equation_rect(
+            self.assertEqual(mapper._numbered_equation_rect(
                 band, rects, 100, 36, self.LINES, 0,
-                '/p/main.tex', '/p/main.pdf', '/cache'))
+                '/p/main.tex', '/p/main.pdf', '/cache'), band)
+
+    def test_single_number_with_prose_trimmed(self):
+        # 单式 + 下方正文连通进 band：正文比公式宽，左缘 cue 不触发，
+        # 由 synctex 锚认定剔除；run 仅公式（y2 止于 44+2）。
+        rects = self.RECTS[:5] + [(10, 52, 212, 62)]
+        band = mapper._glyph_band(rects, 100, 36)
+
+        def edit(pdf, page, x, y, directory):
+            return pos(line=2 if y < 50 else 7)
+
+        def view(tex, pdf, ln, directory):
+            return [vbox(10, 52, 212, 62)] if ln == 7 else []
+
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               side_effect=edit), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  side_effect=view):
+            rect = mapper._numbered_equation_rect(
+                band, rects, 100, 36, self.LINES, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache')
+        self.assertEqual(rect, (48, 28, 214, 46))
+
+    def test_wide_matrix_row_not_trimmed_as_prose(self):
+        # 回归：pmatrix 宽内容行左缘比窄种子行左 20+pt，仅比左缘会
+        # 误剔公式主体；「更窄」条件保住宽行，run 覆盖全部三行。
+        rects = [(60, 30, 100, 40), (40, 44, 212, 60), (65, 64, 95, 74),
+                 (200, 46, 212, 56)]
+        band = mapper._glyph_band(rects, 80, 35)
+        with mock.patch.object(mapper.synctex_query, 'query_source_position',
+                               return_value=pos(line=2)), \
+                mock.patch.object(mapper.synctex_query, 'query_rectangles',
+                                  return_value=[]):
+            rect = mapper._numbered_equation_rect(
+                band, rects, 80, 35, self.LINES, 0,
+                '/p/main.tex', '/p/main.pdf', '/cache')
+        self.assertEqual(rect, (38, 28, 214, 76))
 
 
 class ResolveNumberedSplitTest(unittest.TestCase):
