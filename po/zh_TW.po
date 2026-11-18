@@ -4401,7 +4401,7 @@ msgstr "加入巨集套件(_A)"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:195
 msgid "Restart required"
-msgstr ""
+msgstr "需要重新啟動"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:196
 msgid "The new language will take effect after the application is restarted."
@@ -4414,7 +4414,7 @@ msgstr "重新啟動"
 #: setzer/dialogs/preferences/pages/page_appearance.py:259
 #: setzer/dialogs/preferences/pages/page_appearance.py:836
 msgid "Export settings"
-msgstr ""
+msgstr "匯出設定"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:285
 msgid "Could not export settings: {}"
@@ -4423,7 +4423,7 @@ msgstr "無法匯出設定：{}"
 #: setzer/dialogs/preferences/pages/page_appearance.py:291
 #: setzer/dialogs/preferences/pages/page_appearance.py:844
 msgid "Import settings"
-msgstr ""
+msgstr "匯入設定"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:310
 msgid "Could not read settings file: {}"
@@ -4435,7 +4435,7 @@ msgstr "無效的設定檔。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:330
 msgid "Settings imported. Reopen preferences to see all changes."
-msgstr ""
+msgstr "設定已匯入。請重新開啟偏好設定以查看所有變更。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:334
 msgid "Reset all preferences?"
@@ -4456,14 +4456,14 @@ msgstr "重設"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:348
 msgid "Preferences reset. Reopen preferences to see all changes."
-msgstr ""
+msgstr "偏好設定已重設。請重新開啟偏好設定以查看所有變更。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:361
 #: setzer/dialogs/preferences/pages/page_appearance.py:593
 #: setzer/dialogs/preferences/pages/page_build_system.py:174
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:475
 msgid "Reset to defaults?"
-msgstr ""
+msgstr "重設為預設值？"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:471
 msgid "(active)"
@@ -4515,7 +4515,7 @@ msgstr "主題"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:638
 msgid "Color scheme"
-msgstr ""
+msgstr "配色方案"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:647
 msgid "Animations"
@@ -4531,7 +4531,7 @@ msgstr "關閉側邊欄滑入滑出、各處淡入淡出與清單捲動動畫。
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:663
 msgid "Interface language"
-msgstr ""
+msgstr "介面語言"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:664
 msgid "Changes take effect after the application is restarted."
@@ -4539,7 +4539,7 @@ msgstr "變更將在應用程式重新啟動後生效。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:673
 msgid "On startup"
-msgstr ""
+msgstr "啟動時"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:678
 msgid "Whether to restore the previous session or start with an empty workspace."
@@ -4547,7 +4547,7 @@ msgstr "是否還原先前的作業階段，或以空白工作區啟動。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:698
 msgid "Preview sidebar width"
-msgstr ""
+msgstr "預覽側邊欄寬度"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:699
 msgid "Percentage of the window width allocated to the PDF preview."
@@ -4563,7 +4563,7 @@ msgstr "重新為 PDF 預覽著色，以符合亮色/暗色主題。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:713
 msgid "Default zoom"
-msgstr ""
+msgstr "預設縮放"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:715
 msgid "Initial zoom mode for the PDF preview."
@@ -4571,19 +4571,19 @@ msgstr "PDF 預覽的初始縮放模式。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:717
 msgid "Default zoom mode for the PDF preview. Fit width fills the preview width; Fit text width fits the text column; Fit height fills the preview height; Manual starts at 100%."
-msgstr ""
+msgstr "PDF 預覽的預設縮放模式。符合寬度會填滿預覽寬度；符合文字寬度會配合文字欄寬度；符合高度會填滿預覽高度；手動則從 100% 開始。"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:721
 msgid "Fit width"
-msgstr ""
+msgstr "符合寬度"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:722
 msgid "Fit text width"
-msgstr ""
+msgstr "符合文字寬度"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:723
 msgid "Fit height"
-msgstr ""
+msgstr "符合高度"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:724
 msgid "Manual (100%)"
@@ -4595,7 +4595,7 @@ msgstr "側邊欄"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:742
 msgid "Sidebar width"
-msgstr ""
+msgstr "側邊欄寬度"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:743
 msgid "Percentage of the window width allocated to the sidebar."
@@ -4603,7 +4603,7 @@ msgstr "分配給側邊欄的視窗寬度百分比"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:751
 msgid "AI settings"
-msgstr ""
+msgstr "AI 設定"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:755
 msgid "Enable AI agent"
@@ -4611,7 +4611,7 @@ msgstr "啟用 AI 代理"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:756
 msgid "Enables AI Fix in the build log dialog and the agent terminal button in the header bar"
-msgstr ""
+msgstr "啟用建置日誌對話框中的 AI 修復，以及標題列的 Agent 終端機按鈕"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:760
 msgid "Embed agent terminal in the sidebar"
@@ -4675,11 +4675,11 @@ msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的
 #: setzer/dialogs/preferences/pages/page_editor.py:1285
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:719
 msgid "Reset to defaults"
-msgstr ""
+msgstr "重設為預設值"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:817
 msgid "First-run tutorial"
-msgstr ""
+msgstr "首次執行教學"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:821
 msgid "Show the tutorial again"
@@ -4691,7 +4691,7 @@ msgstr "顯示"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:830
 msgid "Backup and restore"
-msgstr ""
+msgstr "備份與還原"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:831
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
@@ -4797,11 +4797,11 @@ msgstr "PhiTeX 升級失敗：{message}"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:527
 msgid "Build system"
-msgstr ""
+msgstr "建置系統"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:531
 msgid "LaTeX interpreter"
-msgstr ""
+msgstr "LaTeX 解譯器"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:545
 msgid ""
@@ -4926,7 +4926,7 @@ msgstr "永不顯示"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:650
 msgid "Auto build"
-msgstr ""
+msgstr "自動建置"
 
 #: setzer/dialogs/preferences/pages/page_build_system.py:654
 msgid "Automatically build and save after changes"
@@ -5103,7 +5103,7 @@ msgstr "開啟後，下方所設字型不再生效。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:849
 msgid "Set editor font"
-msgstr ""
+msgstr "設定編輯器字型"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:852
 msgid "Only active when \"Use the system fixed width font\" is off."
@@ -5111,7 +5111,7 @@ msgstr "僅在關閉「使用系統等寬字型」時生效。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:856
 msgid "Line spacing"
-msgstr ""
+msgstr "行間距"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:857
 msgid "Extra vertical space between lines in pixels."
@@ -5119,7 +5119,7 @@ msgstr "行與行之間額外的垂直間距（像素）。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:863
 msgid "Tab stops"
-msgstr ""
+msgstr "定位停駐點"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:867
 msgid "Insert spaces instead of tabs"
@@ -5131,7 +5131,7 @@ msgstr "按下 Tab 時使用空格，而非定位字元。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:872
 msgid "Tab width"
-msgstr ""
+msgstr "定位寬度"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:876
 msgid "Number of spaces a tab character occupies when \"Insert spaces instead of tabs\" is enabled."
@@ -5151,7 +5151,7 @@ msgstr "超長文件可調低以省記憶體；0 表示不限制。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:898
 msgid "Line numbers"
-msgstr ""
+msgstr "行號"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:902
 msgid "Show line numbers"
@@ -5163,7 +5163,7 @@ msgstr "在編輯器邊欄顯示行號。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:907
 msgid "Right margin"
-msgstr ""
+msgstr "右側邊界"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:911
 msgid "Show right margin guide"
@@ -5187,7 +5187,7 @@ msgstr "LaTeX 文件通常控制在 80 欄以內。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:925
 msgid "Line wrapping"
-msgstr ""
+msgstr "自動換行"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:929
 msgid "Enable line wrapping"
@@ -5199,7 +5199,7 @@ msgstr "自動換行長行，而非水平捲動。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:934
 msgid "Code folding"
-msgstr ""
+msgstr "程式碼摺疊"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:938
 msgid "Enable code folding"
@@ -5211,7 +5211,7 @@ msgstr "允許摺疊程式碼區塊（例如環境）。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:943
 msgid "Sticky scroll"
-msgstr ""
+msgstr "黏性捲動"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:947
 msgid "Enable sticky scroll for sections"
@@ -5223,11 +5223,11 @@ msgstr "捲動時在編輯器頂部顯示目前的章節標題。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:952
 msgid "Math preview"
-msgstr ""
+msgstr "數學預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:956
 msgid "Math preview on hover"
-msgstr ""
+msgstr "數學公式懸停預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:957
 msgid "Show a rendered preview of the formula under the mouse cursor."
@@ -5239,11 +5239,11 @@ msgstr "懸停在公式上（不按任何修飾鍵）即可預覽。使用目前
 
 #: setzer/dialogs/preferences/pages/page_editor.py:967
 msgid "Figure preview"
-msgstr ""
+msgstr "圖像預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:971
 msgid "Live TikZ preview"
-msgstr ""
+msgstr "TikZ 即時預覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:972
 msgid "Render the tikzpicture under the cursor in the preview sidebar."
@@ -5255,7 +5255,7 @@ msgstr "當游標位於 tikzpicture 內且停止輸入時，會以根文件的�
 
 #: setzer/dialogs/preferences/pages/page_editor.py:981
 msgid "Delay before compiling (seconds)"
-msgstr ""
+msgstr "編譯前延遲（秒）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:982
 msgid "Wait time after the last keystroke."
@@ -5295,7 +5295,7 @@ msgstr "高亮與游標旁 \\begin 或 \\end 指令成對的環境。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1011
 msgid "Spell checking"
-msgstr ""
+msgstr "拼寫檢查"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1015
 msgid "Check spelling as you type"
@@ -5319,7 +5319,7 @@ msgstr "更多語言可透過 hunspell/aspell 套件安裝。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1031
 msgid "Manage words"
-msgstr ""
+msgstr "管理單字"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1033
 msgid "View and edit ignored words and your user dictionary"
@@ -5335,7 +5335,7 @@ msgstr "在背景執行 chktex 並為可能的問題標出底線"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1048
 msgid "Visible characters"
-msgstr ""
+msgstr "可見字元"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1052
 msgid "Show line endings"
@@ -5355,7 +5355,7 @@ msgstr "顯示空白字元（· 表示空格，→ 表示定位）。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1063
 msgid "Shortcuts bar"
-msgstr ""
+msgstr "快捷鍵列"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1067
 msgid "Show shortcuts bar"
@@ -5367,7 +5367,7 @@ msgstr "在編輯器上方顯示快捷鍵列。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1072
 msgid "Tab bar"
-msgstr ""
+msgstr "分頁列"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1076
 msgid "Show tab bar"
@@ -5383,7 +5383,7 @@ msgstr "開啟後，僅開啟一個文件時分頁列自動隱藏。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1085
 msgid "Auto save"
-msgstr ""
+msgstr "自動儲存"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1089
 msgid "Enable auto save (crash recovery)"
@@ -5399,7 +5399,7 @@ msgstr "自動儲存間隔（秒）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1101
 msgid "External changes"
-msgstr ""
+msgstr "外部變更"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1105
 msgid "Automatically reload changed files"
@@ -5415,7 +5415,7 @@ msgstr "編輯器中未儲存的變更將遺失。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1116
 msgid "Git integration"
-msgstr ""
+msgstr "Git 整合"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1120
 msgid "Enable Git integration"
@@ -5444,11 +5444,11 @@ msgstr "分支狀態、最近提交，以及拉取 / 提交 / 推送操作"
 #: setzer/dialogs/preferences/pages/page_editor.py:1139
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:110
 msgid "New document"
-msgstr ""
+msgstr "新增文件"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1143
 msgid "Default encoding"
-msgstr ""
+msgstr "預設編碼"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1145
 msgid "Encoding used when creating new documents"
@@ -5476,7 +5476,7 @@ msgstr "UTF-16"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1158
 msgid "Default line ending"
-msgstr ""
+msgstr "預設行尾"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1160
 msgid "Line ending format for new documents"
@@ -5492,7 +5492,7 @@ msgstr "CRLF（Windows）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1164
 msgid "CR (old macOS)"
-msgstr ""
+msgstr "CR（舊版 macOS）"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1171
 msgid "Autocomplete"
@@ -5500,7 +5500,7 @@ msgstr "自動完成"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1175
 msgid "Suggest matching LaTeX commands"
-msgstr ""
+msgstr "建議相符的 LaTeX 指令"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1176
 msgid "Show a completion popup as you type LaTeX commands."
@@ -5516,7 +5516,7 @@ msgstr "按下以擷取開啟補齊彈出視窗的快捷鍵。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1188
 msgid "Completion navigation"
-msgstr ""
+msgstr "補齊導覽"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1189
 msgid "Keys used to move and confirm within the completion popup."
@@ -5524,7 +5524,7 @@ msgstr "用於在補齊彈出視窗中移動與確認的按鍵。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1200
 msgid "Smart typing"
-msgstr ""
+msgstr "智慧輸入"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1204
 msgid "Automatically add LaTeX quotation marks"
@@ -5545,7 +5545,7 @@ msgstr "在數學區輸入時將 x_12 變成 x_{12}。"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1214
 msgid "Brackets and blocks"
-msgstr ""
+msgstr "括號與區塊"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1218
 msgid "Automatically add closing brackets"
@@ -5589,7 +5589,7 @@ msgstr "輸入 \\begin{ 時，自動插入對應的 \\end{}（可用 Tab 跳至�
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1245
 msgid "Multi-cursor"
-msgstr ""
+msgstr "多游標"
 
 #: setzer/dialogs/preferences/pages/page_editor.py:1249
 msgid "Multi-cursor editing"
@@ -5659,11 +5659,11 @@ msgstr "輸入、刪除與縮排會套用至每個游標。"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:111
 msgid "Open document"
-msgstr ""
+msgstr "開啟文件"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:113
 msgid "Save as"
-msgstr ""
+msgstr "另存為"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:115
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:204
@@ -5677,19 +5677,19 @@ msgstr "結束"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:119
 msgid "Switch document"
-msgstr ""
+msgstr "切換文件"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:120
 msgid "Show document chooser"
-msgstr ""
+msgstr "顯示文件選擇器"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:126
 msgid "Find next"
-msgstr ""
+msgstr "尋找下一個"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:127
 msgid "Find previous"
-msgstr ""
+msgstr "尋找上一個符合項"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:128
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:149
@@ -5698,7 +5698,7 @@ msgstr "說明"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:129
 msgid "Document structure"
-msgstr ""
+msgstr "文件結構"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:130
 msgid "Symbols"
@@ -5706,11 +5706,11 @@ msgstr "符號"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:131
 msgid "Save and build"
-msgstr ""
+msgstr "儲存並建置"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:133
 msgid "Forward sync"
-msgstr ""
+msgstr "正向同步"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:134
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:75
@@ -5720,39 +5720,39 @@ msgstr "建置紀錄"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:136
 msgid "Command palette"
-msgstr ""
+msgstr "命令面板"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:137
 msgid "Hamburger menu"
-msgstr ""
+msgstr "漢堡選單"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:138
 msgid "Context menu"
-msgstr ""
+msgstr "右鍵選單"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:144
 msgid "Select all"
-msgstr ""
+msgstr "選取全部"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:145
 msgid "Toggle comment"
-msgstr ""
+msgstr "切換註解"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:146
 msgid "Delete line"
-msgstr ""
+msgstr "刪除行"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:147
 msgid "Duplicate line"
-msgstr ""
+msgstr "複製行"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:148
 msgid "Move line up"
-msgstr ""
+msgstr "上移行"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:149
 msgid "Move line down"
-msgstr ""
+msgstr "下移行"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:151
 #: setzer/popovers/shortcutsbar/math_menu.py:76
@@ -5789,47 +5789,47 @@ msgstr "強調文字"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:159
 msgid "Inline math"
-msgstr ""
+msgstr "行內數學"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:160
 msgid "Display math"
-msgstr ""
+msgstr "顯示數學"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:169
 msgid "Insert table"
-msgstr ""
+msgstr "插入表格"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:170
 msgid "Insert matrix"
-msgstr ""
+msgstr "插入矩陣"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:171
 msgid "Close all documents"
-msgstr ""
+msgstr "關閉所有文件"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:172
 msgid "Restore session"
-msgstr ""
+msgstr "還原工作階段"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:173
 msgid "Reopen last closed document"
-msgstr ""
+msgstr "重新開啟最後關閉的文件"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:174
 msgid "Pin tab"
-msgstr ""
+msgstr "釘選分頁"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:179
 msgid "Clear multi-cursor"
-msgstr ""
+msgstr "清除多游標"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:180
 msgid "Add AI annotation"
-msgstr ""
+msgstr "新增 AI 批註"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
 msgid "Send selection to agent"
-msgstr ""
+msgstr "將選取範圍傳送至 Agent"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:188
 msgid "Create a new LaTeX document"
@@ -6070,7 +6070,7 @@ msgstr "請按下想要的按鍵組合，或按 Escape 取消"
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:346
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:369
 msgid "Shortcut already in use"
-msgstr ""
+msgstr "快捷鍵已在使用中"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:347
 #, python-brace-format
@@ -6088,7 +6088,7 @@ msgstr "重新指派"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:495
 msgid "Import keyboard shortcuts"
-msgstr ""
+msgstr "匯入鍵盤快捷鍵"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:498
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:645
@@ -6127,15 +6127,15 @@ msgstr "匯入的檔案與既有或同批匯入的其他快捷鍵發生衝突（
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:624
 msgid "Shortcut conflicts in import"
-msgstr ""
+msgstr "匯入的快捷鍵衝突"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:627
 msgid "Import and resolve"
-msgstr ""
+msgstr "匯入並解決"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:642
 msgid "Export keyboard shortcuts"
-msgstr ""
+msgstr "匯出鍵盤快捷鍵"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:666
 #, python-brace-format
@@ -6145,7 +6145,7 @@ msgstr "匯出快捷鍵失敗：{error}"
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:688
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:692
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "鍵盤快捷鍵"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:693
 msgid "Click a shortcut button to change it. Press Escape to cancel."
@@ -6153,7 +6153,7 @@ msgstr "點擊快捷鍵按鈕即可變更，按 Escape 取消。"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:701
 msgid "Export shortcuts"
-msgstr ""
+msgstr "匯出快捷鍵"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:702
 msgid "Save keyboard shortcuts to a JSON file"
@@ -6161,7 +6161,7 @@ msgstr "將鍵盤快捷鍵儲存至 JSON 檔案"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:709
 msgid "Import shortcuts"
-msgstr ""
+msgstr "匯入快捷鍵"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:710
 msgid "Load keyboard shortcuts from a JSON file"
@@ -6177,7 +6177,7 @@ msgstr "程式片段「{}」將被永久刪除。"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:101
 msgid "LaTeX snippets"
-msgstr ""
+msgstr "LaTeX 程式片段"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:103
 msgid "Create reusable LaTeX text and expand it from the editor completion list."
@@ -6202,7 +6202,7 @@ msgstr "刪除程式片段"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:162
 msgid "Edit snippet"
-msgstr ""
+msgstr "編輯程式片段"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:190
 msgid "Trigger"
@@ -6210,7 +6210,7 @@ msgstr "觸發詞"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:195
 msgid "Snippet body"
-msgstr ""
+msgstr "程式片段內容"
 
 #: setzer/dialogs/preferences/pages/page_snippets.py:209
 msgid "Use • to place the cursor after inserting the snippet."
