@@ -65,7 +65,8 @@ class HeaderBar(object):
         # Adw.Breakpoint.add_setter(visible)：本 presenter 频繁 set_visible 这些按钮
         # （welcome/document 模式切换、show/hide_*_toggles），add_setter 会被覆盖。
         # 通过 _compact 标志在 show 路径末尾覆盖隐藏；set_compact 重跑当前模式生效/恢复。
-        # F1/F9 直接操作 toggle 的 set_active（见 shortcut_controller_app），不受
+        # F1/F9 直接操作 toggle 的 set_active（F1/F9 走 application accel，见
+        # shortcut_accels 的 win.show-help-panel / win.toggle-preview），不受
         # set_visible 影响，故隐藏 help_toggle 不会困住用户。
         self._compact = False
         # 当前活动文档的 build_system 'build_state' 信号 handler id + 文档引用。
@@ -171,6 +172,8 @@ class HeaderBar(object):
         self.view.center_button.set_sensitive(False)
         self.view.center_widget.set_visible_child_name('welcome')
         self.view.widget.add_css_class('welcome')
+        # 无文档时 WM 标题回到应用名（对应 show_document_name 中的同步）。
+        ServiceLocator.get_main_window().set_title('NeoSetzer')
         self.update_build_log_toggle_visibility()
         # 「在终端中打开 Agent」按钮仅在有 root/active latex 文档时显示；
         # welcome 模式下必须无条件隐藏，避免 update_toggles 收敛到达之前
@@ -193,6 +196,11 @@ class HeaderBar(object):
             self.view.document_title.set_subtitle(folder_text)
         else:
             self.view.document_title.set_subtitle('')
+        # WM 窗口标题（任务栏/alt-tab/屏幕阅读器可见）：HeaderBar 在主窗口
+        # 是悬浮 overlay 而非标题栏（见 workspace_viewgtk Pass-12 注释），
+        # 不会像标准 CSD 那样自动同步标题，须在此显式设置。
+        ServiceLocator.get_main_window().set_title(
+            document.get_basename() + mod_text + ' — NeoSetzer')
 
     def update_toggles(self):
         if self.workspace.get_active_latex_document():
@@ -365,6 +373,9 @@ class HeaderBar(object):
         if not cwd:
             self._toast(_('Please save the document first'))
             return
+        # AI diff 基线：这里不保存文档（用户可能有意留着 buffer 改动），
+        # 快照取 buffer 当前文本——与批注/build_log 入口不同，它们先落盘。
+        self.workspace.snapshot_ai_baseline(document)
 
         # 3. 取激活工具配置（找不到时回退第一个，与 _initiate_ai_fix 一致）
         # 3. 取激活工具配置（agent_runner.resolve_tool_config 优先按 active_tool_name，

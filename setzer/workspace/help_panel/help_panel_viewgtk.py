@@ -64,25 +64,21 @@ class HelpPanelView(Gtk.Box):
         self.home_button = Gtk.Button(icon_name='go-home-symbolic')
         self.home_button.set_tooltip_text(_('Help home'))
         self.home_button.add_css_class('flat')
-        self.home_button.set_can_focus(False)
         self.toolbar.append(self.home_button)
 
         self.up_button = Gtk.Button(icon_name='go-up-symbolic')
         self.up_button.set_tooltip_text(_('Scroll to top'))
         self.up_button.add_css_class('flat')
-        self.up_button.set_can_focus(False)
         self.toolbar.append(self.up_button)
 
         self.back_button = Gtk.Button(icon_name='go-previous-symbolic')
         self.back_button.set_tooltip_text(_('Back'))
         self.back_button.add_css_class('flat')
-        self.back_button.set_can_focus(False)
         self.toolbar.append(self.back_button)
 
         self.next_button = Gtk.Button(icon_name='go-next-symbolic')
         self.next_button.set_tooltip_text(_('Forward'))
         self.next_button.add_css_class('flat')
-        self.next_button.set_can_focus(False)
         self.toolbar.append(self.next_button)
 
         # 占位 spacer 把 search_button 推到右侧
@@ -94,7 +90,6 @@ class HelpPanelView(Gtk.Box):
         self.search_button.set_icon_name('edit-find-symbolic')
         self.search_button.set_tooltip_text(_('Search help documentation'))
         self.search_button.add_css_class('flat')
-        self.search_button.set_can_focus(False)
         self.toolbar.append(self.search_button)
 
         # 面板切换分段控件：与预览工具栏的 mode_switch 相同的三档
@@ -222,7 +217,6 @@ class HelpPanelView(Gtk.Box):
             self.js_info_button.set_icon_name('dialog-information-symbolic')
             self.js_info_button.set_tooltip_text(_('JavaScript is disabled'))
             self.js_info_button.add_css_class('flat')
-            self.js_info_button.set_can_focus(False)
 
             js_popover = Gtk.Popover()
             js_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

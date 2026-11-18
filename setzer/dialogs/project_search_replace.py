@@ -35,7 +35,6 @@ class ProjectSearchReplaceDialog:
 
     def _build_view(self):
         self.dialog = Adw.Dialog()
-        self.dialog.set_title(_('Search and Replace in Project'))
         self.dialog.set_content_width(720)
         self.dialog.set_content_height(560)
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -43,6 +42,32 @@ class ProjectSearchReplaceDialog:
         content.set_margin_bottom(18)
         content.set_margin_start(18)
         content.set_margin_end(18)
+
+        # 自建 HeaderBar（docs/ui-guidelines.md 规则#1）：悬浮态 Adw.Dialog 会
+        # 自带右上角关闭按钮，必须禁掉，仅保留手动 Cancel 单一关闭入口。
+        # 规则#2：文字按钮最多 2 个（Cancel / Apply），Preview 降级为 flat
+        # 图标按钮 + tooltip；Apply 是不可逆的全局替换，用 destructive-action。
+        headerbar = Adw.HeaderBar()
+        headerbar.set_show_end_title_buttons(False)
+        headerbar.set_title_widget(Adw.WindowTitle(
+            title=_('Search and Replace in Project')))
+        cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
+        cancel_button.connect('clicked', lambda *_: self.dialog.close())
+        headerbar.pack_start(cancel_button)
+        self.preview_button = Gtk.Button()
+        self.preview_button.set_icon_name('view-paged-symbolic')
+        self.preview_button.add_css_class('flat')
+        self.preview_button.set_tooltip_text(_('Preview replacements'))
+        self.preview_button.connect('clicked', self._on_preview)
+        headerbar.pack_end(self.preview_button)
+        self.apply_button = Gtk.Button.new_with_mnemonic(_('_Apply replacements'))
+        self.apply_button.add_css_class('destructive-action')
+        self.apply_button.connect('clicked', self._on_apply)
+        headerbar.pack_end(self.apply_button)
+        toolbar_view = Adw.ToolbarView()
+        toolbar_view.add_top_bar(headerbar)
+        toolbar_view.set_content(content)
+        self.dialog.set_child(toolbar_view)
 
         form = Adw.PreferencesGroup()
         self.search_entry = Adw.EntryRow()
@@ -71,19 +96,6 @@ class ProjectSearchReplaceDialog:
         content.append(create_text_input_card(
             preview, hexpand=True, vexpand=True, text_margin=12))
 
-        buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        buttons.set_halign(Gtk.Align.END)
-        cancel = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        cancel.connect('clicked', lambda *_: self.dialog.close())
-        preview_button = Gtk.Button.new_with_mnemonic(_('_Preview'))
-        preview_button.connect('clicked', self._on_preview)
-        self.apply_button = Gtk.Button.new_with_mnemonic(_('_Apply replacements'))
-        self.apply_button.add_css_class('destructive-action')
-        self.apply_button.connect('clicked', self._on_apply)
-        buttons.append(cancel)
-        buttons.append(preview_button)
-        buttons.append(self.apply_button)
-        content.append(buttons)
         # 应用失败要留在弹窗里改条件重试，提示必须落在弹窗自身；发到主窗口
         # 会藏在这个模态弹窗背后。用 ToastOverlay 包一层是最小改动。
         self.toast_overlay = Adw.ToastOverlay()

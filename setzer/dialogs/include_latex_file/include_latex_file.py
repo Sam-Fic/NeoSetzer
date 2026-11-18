@@ -19,7 +19,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Adw
 
 import os.path
 # pickle 仅用于迁移期兼容旧 settings（presets 字段旧版是 bytes）。
@@ -45,9 +45,10 @@ class IncludeLaTeXFile(object):
         self.view = view.IncludeLaTeXFileView(self.main_window)
         self.setup()
 
-        # set_active(True) 在状态由默认 False 变为 True 时已会发射 'toggled'
-        # 信号,从而触发 on_pathtype_chosen 完成初始化,无需再手动调用 toggled()。
-        self.view.pathtype_buttons[self.current_values['pathtype']].set_active(True)
+        # set_active_name() 在选中档位变化时发射 notify::active，触发
+        # on_pathtype_changed 完成初始化。默认档为 'rel'（第一档）时 ToggleGroup
+        # 已处于该状态、不发射，此时 current_values 与预设一致，无需回调。
+        self.view.pathtype_switcher.set_active_name(self.current_values['pathtype'])
         self.view.pathtype_info_button.set_active(False)
 
         self.view.include_button.set_sensitive(False)
@@ -87,23 +88,15 @@ class IncludeLaTeXFile(object):
         file_filter1.set_name(_('LaTeX Files'))
         self.view.file_chooser_button.add_filter(file_filter1)
 
-        first_button = None
-        for pathtype in self.pathtypes:
-            self.view.pathtype_buttons[pathtype] = Gtk.ToggleButton()
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            box.append(Gtk.Label(label=self.pathtypes[pathtype]))
-            box.set_margin_end(6)
-            box.set_margin_start(4)
-            self.view.pathtype_buttons[pathtype].set_child(box)
-            if first_button != None:
-                self.view.pathtype_buttons[pathtype].set_group(first_button)
-            self.view.pathtype_switcher.append(self.view.pathtype_buttons[pathtype])
-            self.view.pathtype_buttons[pathtype].connect('toggled', self.on_pathtype_chosen, pathtype)
-            if first_button == None: first_button = self.view.pathtype_buttons[pathtype]
+        for pathtype, label in self.pathtypes.items():
+            # 本机 adwaita 1.9 的 ToggleGroup.add 只收一个 Adw.Toggle 对象
+            # （先例：include_bibtex_file_viewgtk），不存在 (label, name) 便捷形式。
+            self.view.pathtype_switcher.add(Adw.Toggle(label=label, name=pathtype))
 
         # 注意:此连接必须在循环外执行,否则会在每次迭代中重复连接,
         # 导致 info 按钮每次切换触发多次回调。
         self.view.pathtype_info_button.connect('toggled', self.on_info_button_toggled)
+        self.view.pathtype_switcher.connect('notify::active', self.on_pathtype_changed)
         self.view.file_chooser_button.connect('file-set', self.on_file_chosen)
 
     def on_file_chosen(self, widget=None):
@@ -113,8 +106,12 @@ class IncludeLaTeXFile(object):
     def on_info_button_toggled(self, button):
         self.view.description_revealer.set_reveal_child(button.get_active())
 
-    def on_pathtype_chosen(self, button, pathtype):
-        self.current_values['pathtype'] = pathtype
+    def on_pathtype_changed(self, group, pspec=None):
+        # Adw.ToggleGroup 没有 'toggled' 信号，用 notify::active 监听档位切换；
+        # get_active_name() 兜底判 None（按 ui-guidelines 不做全灭态假设）。
+        name = group.get_active_name()
+        if name is not None:
+            self.current_values['pathtype'] = name
 
     def get_display_filename(self):
         if self.current_values['pathtype'] == 'rel':

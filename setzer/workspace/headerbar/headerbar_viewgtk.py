@@ -39,7 +39,6 @@ class HeaderBar(object):
         # sidebar toggles — 合并为单一按钮控制侧栏显隐
         self.sidebar_toggle = Gtk.ToggleButton()
         self.sidebar_toggle.set_child(Gtk.Image(icon_name='sidebar-show-symbolic'))
-        self.sidebar_toggle.set_can_focus(False)
         # tooltip 中的快捷键随设置动态渲染（原先写死 "(F2)"，早已与实际绑定脱节）
         shortcut_tooltips.set_tooltip(self.sidebar_toggle, _('Toggle sidebar (Document Structure / Symbols)'), 'document_structure', 'symbols')
 
@@ -49,7 +48,6 @@ class HeaderBar(object):
         # 最近文档已融合进标题栏大标题的 DocumentSwitcher 对话框中。
         self.open_document_button = Gtk.Button()
         self.open_document_button.set_child(Gtk.Image(icon_name='document-open-symbolic'))
-        self.open_document_button.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
         self.open_document_button.set_action_name('win.open-document-dialog')
 
@@ -61,12 +59,10 @@ class HeaderBar(object):
         # workspace menu (standard Libadwaita main menu via Gio.Menu)
         self.hamburger = PopoverManager.create_popover('hamburger_menu')
         self.menu_button = self.hamburger.get_menu_button()
-        self.menu_button.set_can_focus(False)
 
         # preview/help toggle — 合并为单一按钮控制右侧栏显隐
         self.preview_help_toggle = Gtk.ToggleButton()
         self.preview_help_toggle.set_child(Gtk.Image(icon_name='sidebar-show-right-symbolic'))
-        self.preview_help_toggle.set_can_focus(False)
         # 原先写死 "(F9)"，实际 preview=Ctrl+Shift+P、help=F1，现随设置动态渲染
         shortcut_tooltips.set_tooltip(self.preview_help_toggle, _('Toggle preview panel (PDF Preview / Help)'), 'preview', 'help')
 
@@ -76,7 +72,6 @@ class HeaderBar(object):
         # shortcutsbar 内的同名按钮完全一致，由 HeaderBar presenter 同步。
         self.build_log_toggle = Gtk.ToggleButton()
         self.build_log_toggle.set_child(Gtk.Image(icon_name='build-log-symbolic'))
-        self.build_log_toggle.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.build_log_toggle, _('Build log'), 'build_log')
 
         # 默认隐藏；HeaderBar presenter 根据 show_shortcuts_bar 显隐。
@@ -93,7 +88,6 @@ class HeaderBar(object):
         self.agent_terminal_button.set_child(Gtk.Image(icon_name='ai-slop-symbolic'))
         self.agent_terminal_button.set_tooltip_text(_('Open AI agent in terminal'))
         self.agent_terminal_button.add_css_class('flat')
-        self.agent_terminal_button.set_can_focus(False)
         self.agent_terminal_button.set_visible(False)
 
         # Pass-12: 预览/帮助按钮回到各自侧栏的内嵌工具栏（与左侧栏一致），
@@ -129,7 +123,6 @@ class HeaderBar(object):
 
         self.center_button = Gtk.Button()
         shortcut_tooltips.set_tooltip(self.center_button, _('Show open documents'), 'show_open_docs')
-        self.center_button.set_can_focus(False)
         self.center_button.set_halign(Gtk.Align.CENTER)
         self.center_button.set_child(self.center_box)
         self.center_button.add_css_class('flat')

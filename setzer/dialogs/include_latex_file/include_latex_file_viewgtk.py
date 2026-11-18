@@ -69,9 +69,10 @@ class IncludeLaTeXFileView(DialogView):
         label.set_margin_top(18)
         self.content.append(label)
 
-        self.pathtype_switcher = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.pathtype_switcher.add_css_class('linked')
-        self.pathtype_buttons = dict()
+        # 路径类型切换用 Adw.ToggleGroup 分段控件（docs/ui-guidelines.md 分段控件
+        # 规则，先例：include_bibtex_file）。档位 name 与 presenter 的
+        # current_values['pathtype'] 一致（rel / abs）。
+        self.pathtype_switcher = Adw.ToggleGroup()
 
         self.pathtype_info_button = Gtk.ToggleButton()
         self.pathtype_info_button.set_child(Gtk.Image(icon_name='dialog-information-symbolic'))
