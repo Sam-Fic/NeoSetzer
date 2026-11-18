@@ -124,6 +124,11 @@ class Actions(object):
         self.add_action('ai-annotate-pdf', self.ai_annotate_pdf)
         self.add_action('ai-send-pdf', self.ai_send_pdf)
         self._ai_annotation_popover = None
+        # AI 批注弹窗的帧级稳定门槛：settle（弹出前）与重锚（弹出后）都以
+        # 「锚点矩形连续 N 帧不变」为准——滚动对齐、视图分配与异步高亮行高
+        # 都是渐进生效的，任何一项未停都会改变矩形。60Hz 下 8 帧 ≈ 133ms。
+        self._ai_settle_stable_frames = 8
+        self._ai_reanchor_stable_frames = 20
         self.add_action('forward-sync', self.forward_sync)
 
         # Label context menu actions (right-click on \ref{...})
@@ -1325,11 +1330,11 @@ class Actions(object):
         if rect is None:
             return
         popover.present_for(document.view.source_view, rect, on_save_cb=on_save)
-        # 跨文件跳转刚切换标签页：弹出后仍可能有残余布局位移（视图
-        # 最终分配、异步高亮改变行高后再夹紧），pointing 矩形固定在
-        # widget 坐标不会跟随。随后几帧逐帧重算锚点修正弹窗位置。
-        # 代际序号：连续批注重用同一 popover，旧重锚链不得用旧
-        # end_offset 覆盖新弹窗的 pointing。
+        # 弹出后仍可能有残余布局位移（滚动对齐渐进生效、视图最终分配、
+        # 异步高亮改变行高），pointing 矩形固定在 widget 坐标不会跟随。
+        # 逐帧重算锚点，直到矩形连续多帧不变（见 _ai_reanchor_annotation_
+        # popover）；代际序号保证连续批注重用同一 popover 时，旧重锚链
+        # 不得用旧 end_offset 覆盖新弹窗的 pointing。
         self._ai_popover_seq = getattr(self, '_ai_popover_seq', 0) + 1
         self._ai_reanchor_annotation_popover(document, popover, end_offset,
                                              seq=self._ai_popover_seq)
@@ -1354,24 +1359,37 @@ class Actions(object):
         return rect
 
     def _ai_reanchor_annotation_popover(self, document, popover, end_offset,
-                                        ticks=0, seq=0):
-        '''弹出后逐帧重算锚点（frame clock tick 回调，布局稳定后）。
+                                        last_rect_key=None, stable=0,
+                                        deadline=None, seq=0):
+        '''弹出后逐帧重算锚点，直到矩形连续多帧不变才停（清零制）。
 
-        修正跨文件跳转后残余布局位移导致的弹窗位置错乱；popover 已
-        关闭/活动文档已切换/已被新一次弹出取代/达帧数上限即停。首帧
-        不查 visible：popup() 的 map 是异步的，立即查会误停。'''
-        if ticks >= 4 or (ticks > 0 and not popover.get_visible()):
-            return
+        修正弹出后残余布局位移导致的弹窗位置错乱。固定帧数的重锚不够：
+        scroll_to_mark 的对齐在布局验证期间渐进生效，实测弹出后滚动仍
+        漂移 ~100ms（54px）；异步高亮改行高会拖得更长——矩形一变即把
+        稳定计数清零，连续 _ai_reanchor_stable_frames 帧不变（≈330ms
+        @60Hz）才停，3 秒兜底上限。popover 已关闭/活动文档已切换/已被
+        新一次弹出取代（代际序号不符）即停。首帧不查 visible：popup()
+        的 map 是异步的，立即查会误停。'''
+        import time
+        now = time.monotonic()
+        if deadline is None:
+            deadline = now + 3.0
         if getattr(self, '_ai_popover_seq', 0) != seq:
             return
         if self.workspace.get_active_document() is not document:
             return
+        if stable > 0 and not popover.get_visible():
+            return
         rect = self._annotation_anchor_rect(document, end_offset)
         if rect is not None:
-            popover.set_pointing_to(rect)
-        source_view = document.view.source_view
-        frame_clock = source_view.get_frame_clock()
-        if frame_clock is None:
+            rect_key = (rect.x, rect.y, rect.width, rect.height)
+            if rect_key != last_rect_key:
+                popover.set_pointing_to(rect)
+                last_rect_key = rect_key
+                stable = 0
+            else:
+                stable += 1
+        if stable >= self._ai_reanchor_stable_frames or now >= deadline:
             return
 
         # 用 widget 的 add_tick_callback 而非 frame_clock.connect(
@@ -1383,10 +1401,11 @@ class Actions(object):
         # (widget, frame_clock)，见 scrolling_widget._decel_tick。
         def on_tick(widget, frame_clock):
             self._ai_reanchor_annotation_popover(document, popover,
-                                                 end_offset, ticks + 1, seq)
+                                                 end_offset, last_rect_key,
+                                                 stable, deadline, seq)
             return False
 
-        source_view.add_tick_callback(on_tick)
+        document.view.source_view.add_tick_callback(on_tick)
 
     def ai_annotate_pdf(self, action=None, parameter=None):
         '''预览右键「添加 AI 批注」：PDF 选区反查整行/整块 → 同步选中源码
@@ -1445,7 +1464,11 @@ class Actions(object):
             # 不再为 PDF 单独维护一套弹窗/落模型路径。
             if self.workspace.get_active_document() is not target:
                 self.workspace.set_active_document(target)
-            buffer.select_range(start, end)
+            # select_range 的第一个参数是光标（insert mark）落点。这里
+            # 故意传 (end, start)：光标放在选区末尾 = popover 锚点，
+            # scroll_cursor_to_center 居中的才是锚点本身。传 (start, end)
+            # 会居中选区起点，长选区时锚点落到视口外，settle 等不到。
+            buffer.select_range(end, start)
             target.scroll_cursor_to_center()
             # 等滚动/布局稳定再弹 popover：立即弹出时 buffer→widget 坐标
             # 换算可能基于未完成的视图分配或随后被滚动改变，锚点错位。
@@ -1453,56 +1476,49 @@ class Actions(object):
 
         pdf_annotation_mapper.map_selection(preview, document, payload, on_done)
 
-    def _ai_annotate_when_view_settled(self, target, attempt=0, deadline=None,
-                                       _state=None):
+    def _ai_annotate_when_view_settled(self, target, deadline=None,
+                                       last_rect_key=None, stable=0):
         '''等跳转滚动真正完成后再走源码侧 ai_add_annotation。
 
-        PDF 映射跳转刚 select_range + scroll_cursor_to_center：新激活/新开
-        文档的 scroll_to_mark 会被 GTK 推迟到布局完成才生效，此前滚动值
-        恒为旧值——仅查「滚动值两帧不变」会把「滚动尚未开始」误判为
-        稳定，popover 先弹、滚动后跳，锚点错位。故除视图已分配、滚动值
-        连续两帧不变外，还要求选区末尾已落入可见区（buffer 坐标比较，
-        容差一行高：文档首尾 GTK 夹紧无法居中时仍视为到位）且视图分配
-        尺寸连续两帧不变（新激活视图先拿到小分配再长到最终尺寸，期间
-        滚动会被再夹紧）。用低优先级 idle（排在 GTK 布局/绘制之后）
-        轮询；超过 2 秒兜底先补一次居中滚动再弹，避免视图异常时永不
-        弹出。基准值随链传参（_state）：连续两次批注的等待链并行时
-        不互相污染。'''
+        PDF 映射跳转刚 select_range + scroll_cursor_to_center：scroll_to_mark
+        的对齐是在布局验证期间渐进生效的——实测弹出前两次采样相等后，
+        滚动仍继续漂移 ~100ms（54px）。且低优先级 idle 在同一帧内可能
+        连跑多次，「连续两次采样相等」会把「漂移尚未开始」误判为稳定。
+        故改用帧节拍（add_tick_callback）轮询，判稳标准改为：popover
+        锚点矩形（buffer→widget 坐标，涵盖滚动、分配与异步高亮行高的
+        全部位移）连续 _ai_settle_stable_frames 帧不变，且选区末尾（锚点）
+        已落入可见区（容差一行高：文档首尾 GTK 夹紧无法居中时仍视为
+        到位）。超过 2 秒兜底先补一次居中滚动再弹，避免视图异常时永不
+        弹出。基准矩形随链传参：连续两次批注的等待链并行时不互相污染。
+        等待期间用户切换/关闭了目标文档：映射请求已过期，静默放弃。
+        ai_add_annotation 取的是活动文档，不拦会把批注落到别的文档。'''
         import time
         now = time.monotonic()
         if deadline is None:
             deadline = now + 2.0
-        if _state is None:
-            _state = {}
-        # 等待期间用户切换/关闭了目标文档：映射请求已过期，静默放弃。
-        # ai_add_annotation 取的是活动文档，不拦会把批注落到别的文档；
-        # 提前到读视图之前，目标已关闭时不再触碰其视图控件。
         workspace = getattr(self, 'workspace', None)
         if workspace is not None and workspace.get_active_document() is not target:
             return False
         view = getattr(target, 'view', None)
         source_view = getattr(view, 'source_view', None)
-        scrolled = getattr(view, 'scrolled_window', None)
-        allocated = (source_view is not None
-                     and source_view.get_allocated_height() > 0)
-        adjustment = scrolled.get_vadjustment() if scrolled is not None else None
-        value = adjustment.get_value() if adjustment is not None else None
-        prev = _state.get('value')
-        prev_alloc = _state.get('alloc')
-        alloc = ((source_view.get_allocated_width(), source_view.get_allocated_height())
-                 if source_view is not None else None)
-        # 无视图/滚动信息可监测时视为稳定，不阻塞弹窗；有信息时要求
-        # 视图已分配、滚动值与分配尺寸均连续两帧不变。
-        has_monitor = source_view is not None and adjustment is not None
-        settled = (not has_monitor
-                   or (allocated and value == prev and alloc == prev_alloc))
-        # 滚动到位门槛：选区末尾必须已在可见区内（防「滚动尚未开始」
-        # 的假稳定）。无 buffer/视图 API 的桩文档跳过该检查。
         buffer = getattr(target, 'source_buffer', None)
-        if (settled and has_monitor and buffer is not None
-                and hasattr(source_view, 'get_visible_rect')):
-            bounds = buffer.get_selection_bounds()
-            if bounds:
+        # 无视图/buffer 可监测的桩文档视为稳定，不阻塞弹窗。
+        settled = source_view is None or buffer is None
+        rect = None
+        bounds = buffer.get_selection_bounds() if buffer is not None else ()
+        if not settled and not bounds:
+            # 选区已丢失：放行到 ai_add_annotation，由其走「先选中文本」提示。
+            settled = True
+        if not settled:
+            rect = self._annotation_anchor_rect(target, bounds[1].get_offset())
+            rect_key = (None if rect is None
+                        else (rect.x, rect.y, rect.width, rect.height))
+            stable = 0 if rect_key != last_rect_key else stable + 1
+            last_rect_key = rect_key
+            settled = rect is not None and stable >= self._ai_settle_stable_frames
+            # 滚动到位门槛：锚点必须已在可见区内（防「滚动尚未开始」
+            # 的假稳定）。无视图 API 的桩文档跳过该检查。
+            if settled and hasattr(source_view, 'get_visible_rect'):
                 visible = source_view.get_visible_rect()
                 loc = source_view.get_iter_location(bounds[1])
                 tol = max(loc.height, 1)
@@ -1510,9 +1526,7 @@ class Actions(object):
                            <= visible.y + visible.height + tol)
                 if visible.height > 0 and not in_view:
                     settled = False
-        _state['value'] = value
-        _state['alloc'] = alloc
-        if settled or now >= deadline or attempt >= 120:
+        if settled or now >= deadline:
             if not settled:
                 # 兜底弹出前补一次居中滚动（视图异常/超时时尽力到位，
                 # 弹出后的逐帧重锚会再修正残余位移）。
@@ -1521,8 +1535,10 @@ class Actions(object):
                     scroll()
             self.ai_add_annotation()
             return False
-        GLib.idle_add(self._ai_annotate_when_view_settled, target,
-                      attempt + 1, deadline, _state, priority=GLib.PRIORITY_LOW)
+        source_view.add_tick_callback(lambda w, clk: self.
+                                      _ai_annotate_when_view_settled(
+                                          target, deadline, last_rect_key,
+                                          stable) or False)
         return False
 
     def _document_for_mapping(self, document, mapping):
