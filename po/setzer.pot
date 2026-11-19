@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 91\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 22:51+0800\n"
+"POT-Creation-Date: 2026-11-19 23:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -426,8 +426,8 @@ msgid "No active document"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1306
-#: setzer/workspace/actions/actions.py:1434
+#: setzer/workspace/actions/actions.py:1304
+#: setzer/workspace/actions/actions.py:1432
 msgid "Select some text first"
 msgstr ""
 
@@ -497,7 +497,7 @@ msgstr ""
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:731
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
-#: setzer/workspace/actions/actions.py:486
+#: setzer/workspace/actions/actions.py:493
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/git_section.py:496
@@ -616,7 +616,7 @@ msgstr ""
 msgid "Reopen Last Closed Document"
 msgstr ""
 
-#: setzer/command_palette/catalog.py:86 setzer/workspace/tab_context_menu.py:72
+#: setzer/command_palette/catalog.py:86 setzer/workspace/tab_context_menu.py:70
 msgid "Pin Tab"
 msgstr ""
 
@@ -6943,7 +6943,7 @@ msgid "Printing failed: {message}"
 msgstr ""
 
 #: setzer/document/preview/preview.py:1736
-#: setzer/workspace/actions/actions.py:1441
+#: setzer/workspace/actions/actions.py:1439
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr ""
 
@@ -8007,46 +8007,46 @@ msgstr ""
 msgid "Choose File"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:476
+#: setzer/workspace/actions/actions.py:483
 msgid "No .tex files were found in your Templates folder."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:483
-#: setzer/workspace/actions/actions.py:513
+#: setzer/workspace/actions/actions.py:490
+#: setzer/workspace/actions/actions.py:520
 msgid "Create document from template"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:484
+#: setzer/workspace/actions/actions.py:491
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:487
+#: setzer/workspace/actions/actions.py:494
 msgid "Choose location"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:534
+#: setzer/workspace/actions/actions.py:541
 msgid "The selected destination is not a local file."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:1448
-#: setzer/workspace/actions/actions.py:1453
-#: setzer/workspace/actions/actions.py:1463
+#: setzer/workspace/actions/actions.py:1446
+#: setzer/workspace/actions/actions.py:1451
+#: setzer/workspace/actions/actions.py:1461
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:2089
+#: setzer/workspace/actions/actions.py:2087
 msgid "Could not find “{}” in the PDF"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:2135
+#: setzer/workspace/actions/actions.py:2133
 msgid "Could not render “{}” as an image"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:2141
+#: setzer/workspace/actions/actions.py:2139
 msgid "“{}” copied as an image"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:2143
+#: setzer/workspace/actions/actions.py:2141
 msgid "Could not copy “{}” as an image"
 msgstr ""
 
@@ -8821,11 +8821,7 @@ msgstr ""
 msgid "Misc. Symbols"
 msgstr ""
 
-#: setzer/workspace/tab_context_menu.py:76
-msgid "Unpin Tab"
-msgstr ""
-
-#: setzer/workspace/tab_context_menu.py:80
+#: setzer/workspace/tab_context_menu.py:74
 msgid "Close Tab"
 msgstr ""
 

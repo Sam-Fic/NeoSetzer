@@ -7,7 +7,7 @@
 | 1 设计原则（强制） | 决策优先级、少写自定义 |
 | 2 设计令牌 | 不透明度、间距 |
 | 3 排版与色彩 | 字号、颜色层级、图标、描边、高对比度 |
-| 4 控件规范 | 输入框、窗口失焦、无障碍名称 |
+| 4 控件规范 | 输入框、窗口失焦、无障碍名称、选择控件语义 |
 | 5 布局与容器 | 通用布局、空状态、文本密集区入口 |
 | 6 弹窗与浮层 | 弹窗、HeaderBar 按钮、分段控件、偏好行 |
 | 7 轻反馈与打断 | 打扰阶梯、节流与静默 |
@@ -179,6 +179,40 @@
 
 - 纯图标按钮除 tooltip 外必须显式给出无障碍名称：`widget.update_property([Gtk.AccessibleProperty.LABEL], [_('…')])`，字符串复用同一 tooltip 文案，避免新增 msgid。
 - 自绘可点击控件（如文档结构展开器）必须保证同一操作有键盘路径（方向键展开/收起），不能只依赖鼠标手势。
+- 工具图标开关（`Gtk.ToggleButton`）同样属于图标按钮，必须给出无障碍名称，并用按下态表达「开」。
+
+### 4.4 选择控件语义
+
+| 场景 | 控件 | 约束 |
+|------|------|------|
+| 立即生效的二元设置 | `Adw.SwitchRow`（列表/弹窗内）、`Gtk.Switch`（工具栏） | 切换即生效，无确认步骤 |
+| 2–5 个互斥可见选项 | 单选组：`Gtk.CheckButton` + `set_group()`，或 `Adw.ComboRow` | 选项一屏可见时优先可见单选 |
+| 6 个及以上互斥选项 | `Adw.ComboRow` | 避免一长串单选行 |
+| 视图 / 面板 / 模式切换 | `Adw.ToggleGroup` | 恒有一档激活，规则见 6.3 |
+| 工具栏独立开关 | `Gtk.ToggleButton`（flat + symbolic 图标） | 配 tooltip 与无障碍 LABEL，见 4.3 |
+| 多选列表 | 行前缀 `Gtk.CheckButton`（`Adw.ActionRow.add_prefix`） | 行内不要改用开关 |
+| 单选 / 主从列表 | `Gtk.ListBox` 的 `SelectionMode.SINGLE` / `BROWSE` | 不再叠复选框 |
+| 纯展示列表 | `SelectionMode.NONE` | 行内不放交互控件 |
+| 菜单中的独立开关项 | 布尔 `Gio.SimpleAction`（stateful） | GTK 自动渲染为对勾，不要手写符号 |
+| 菜单中的互斥项 | 非布尔 stateful action + target | GTK 自动渲染为单选圆点 |
+| 一次性动作 | 普通 action | 不加任何选中指示符 |
+
+禁止：
+
+- 用开关表达多选，或用开关表达需要确认后才生效的选项（对话框例外见下）。
+- 用互斥的 `Gtk.ToggleButton` 组替代 `Adw.ToggleGroup`。
+- 在菜单里用两条文案相反的普通项表达同一开关（如 Pin / Unpin），应改为单一勾选项。
+- 手动给菜单项拼 `✓`、`•` 等字符；选中态交给 stateful action。
+- 在同一个列表行里同时放复选框和开关表达同一种选择。
+
+例外（保持现状，改动前先更新本节）：
+
+| 场景 | 位置 | 理由 |
+|------|------|------|
+| 确认式对话框（Insert / Save / Apply）中的二元选项仍用 `Adw.SwitchRow` | `insert_image`、`insert_table`、`document_wizard`、`project_build_configuration`、`document_properties`、`include_bibtex_file` | HIG 理论建议「需确认才生效」用勾选框；项目统一使用 Adw 行组件，与偏好页样式一致 |
+| 预览「适合宽度」用 `Gtk.ToggleButton` 表示四档 fit 模式中的一档 | [preview_panel_viewgtk.py](../setzer/workspace/preview_panel/preview_panel_viewgtk.py) | 常用档位快捷入口 + 缩放菜单完整档位；presenter 仅在 `fit_to_width` 时置按下 |
+| 构建日志过滤器用 `Gtk.ToggleButton` + 手写 popover | [build_log_dialog_viewgtk.py](../setzer/dialogs/build_log/build_log_dialog_viewgtk.py) | 规避 `Gtk.MenuButton` 在 `Adw.Dialog` 内无法二次点击关闭的已知问题 |
+| 主题选择器用 `Gtk.CheckButton` + `set_group()` 模拟单选并 CSS 重绘为色块 | [theme_selector.py](../setzer/popovers/theme_selector/theme_selector.py) | 自定义主题色块需要 CheckButton 的选中态；已设 `set_focus_on_click(False)` |
 
 ## 5 布局与容器
 
@@ -228,6 +262,8 @@
 | 单选 / 下拉 | `Adw.ComboRow` |
 | 数值 | `Adw.SpinRow` |
 | 文本输入 | `Adw.EntryRow` |
+
+确认式对话框（Insert / Save / Apply）同样使用上表行组件；这是 4.4 登记的例外。
 
 ## 7 轻反馈与打断（非必要不打扰）
 

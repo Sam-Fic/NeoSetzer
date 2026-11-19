@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 22:51+0800\n"
+"POT-Creation-Date: 2026-11-19 23:07+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/setzer/application/pt_BR/>\n"
@@ -657,8 +657,8 @@ msgid "No active document"
 msgstr "Nenhum documento ativo"
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1306
-#: setzer/workspace/actions/actions.py:1434
+#: setzer/workspace/actions/actions.py:1304
+#: setzer/workspace/actions/actions.py:1432
 msgid "Select some text first"
 msgstr "Selecione algum texto primeiro"
 
@@ -728,7 +728,7 @@ msgstr "Enviar para o agente de IA"
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:731
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
-#: setzer/workspace/actions/actions.py:486
+#: setzer/workspace/actions/actions.py:493
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
 #: setzer/workspace/sidebar/git/git_section.py:496
@@ -843,7 +843,7 @@ msgstr "Fechar Todos Documentos"
 msgid "Reopen Last Closed Document"
 msgstr "Reabrir o último documento fechado"
 
-#: setzer/command_palette/catalog.py:86 setzer/workspace/tab_context_menu.py:72
+#: setzer/command_palette/catalog.py:86 setzer/workspace/tab_context_menu.py:70
 msgid "Pin Tab"
 msgstr "Fixar aba"
 
@@ -6889,7 +6889,7 @@ msgid "No typeset crop available"
 msgstr "Nenhum recorte diagramado disponível"
 
 #: setzer/document/preview/preview.py:1736
-#: setzer/workspace/actions/actions.py:1441
+#: setzer/workspace/actions/actions.py:1439
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr "Os dados de sincronização estão sendo atualizados em segundo plano. Tente novamente em instantes."
 
@@ -8009,46 +8009,46 @@ msgstr "Nada a ser commitado: nenhum arquivo foi selecionado."
 msgid "Choose File"
 msgstr "Escolher Arquivo"
 
-#: setzer/workspace/actions/actions.py:476
+#: setzer/workspace/actions/actions.py:483
 msgid "No .tex files were found in your Templates folder."
 msgstr "Nenhum arquivo .tex foi encontrado na sua pasta Modelos."
 
-#: setzer/workspace/actions/actions.py:483
-#: setzer/workspace/actions/actions.py:513
+#: setzer/workspace/actions/actions.py:490
+#: setzer/workspace/actions/actions.py:520
 msgid "Create document from template"
 msgstr "Criar documento a partir de modelo"
 
-#: setzer/workspace/actions/actions.py:484
+#: setzer/workspace/actions/actions.py:491
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "Escolha um modelo LaTeX e depois onde criar sua nova cópia."
 
-#: setzer/workspace/actions/actions.py:487
+#: setzer/workspace/actions/actions.py:494
 msgid "Choose location"
 msgstr "Escolher local"
 
-#: setzer/workspace/actions/actions.py:534
+#: setzer/workspace/actions/actions.py:541
 msgid "The selected destination is not a local file."
 msgstr "O destino selecionado não é um arquivo local."
 
-#: setzer/workspace/actions/actions.py:1448
-#: setzer/workspace/actions/actions.py:1453
-#: setzer/workspace/actions/actions.py:1463
+#: setzer/workspace/actions/actions.py:1446
+#: setzer/workspace/actions/actions.py:1451
+#: setzer/workspace/actions/actions.py:1461
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr "Não foi possível mapear a seleção do PDF para o código-fonte. Compile o documento primeiro."
 
-#: setzer/workspace/actions/actions.py:2089
+#: setzer/workspace/actions/actions.py:2087
 msgid "Could not find “{}” in the PDF"
 msgstr "Não foi possível encontrar “{}” no PDF"
 
-#: setzer/workspace/actions/actions.py:2135
+#: setzer/workspace/actions/actions.py:2133
 msgid "Could not render “{}” as an image"
 msgstr "Não foi possível renderizar “{}” como imagem"
 
-#: setzer/workspace/actions/actions.py:2141
+#: setzer/workspace/actions/actions.py:2139
 msgid "“{}” copied as an image"
 msgstr "“{}” copiado como imagem"
 
-#: setzer/workspace/actions/actions.py:2143
+#: setzer/workspace/actions/actions.py:2141
 msgid "Could not copy “{}” as an image"
 msgstr "Não foi possível copiar “{}” como imagem"
 
@@ -8804,11 +8804,7 @@ msgstr "Vários, Matemática"
 msgid "Misc. Symbols"
 msgstr "Vários, Símbolos"
 
-#: setzer/workspace/tab_context_menu.py:76
-msgid "Unpin Tab"
-msgstr "Desafixar aba"
-
-#: setzer/workspace/tab_context_menu.py:80
+#: setzer/workspace/tab_context_menu.py:74
 msgid "Close Tab"
 msgstr "Fechar aba"
 

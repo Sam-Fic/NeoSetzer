@@ -41,13 +41,11 @@ class TabContextMenu(object):
     测试——旧实现对 TabBar 私有结构（tabboxchild css 名、pinned class）
     的反查已随该迁移整体删除。
 
-    菜单项是 'win.pin-tab' / 'win.unpin-tab' / 'win.close-tab'
-    （actions.py 注册）。Pin/Unpin 共用 toggle 语义但拆成两个动作，
-    菜单项用 hidden-when="action-disabled" 按 pinned 状态二选一显示
-    （Gio.Menu 不支持动态文案，官方 libadwaita demo 同款模式）；
-    update_actions() 负责按当前活跃文档同步动作 enable 态，setup-menu
-    时再按目标文档覆盖一次。菜单把取消固定路由到 win.unpin-tab；快捷键
-    Ctrl+Alt+P 仍为 toggle（pin_tab），不受菜单拆分影响。
+    菜单项是 'win.pin-tab' / 'win.close-tab'（actions.py 注册）。
+    pin-tab 是布尔 stateful action：菜单渲染为单一「Pin Tab」勾选项，
+    勾选态即目标标签的 pinned 状态，点击即切换；update_actions() 按当前
+    活跃文档同步 state/enable，setup-menu 时再按目标文档覆盖一次。
+    快捷键 Ctrl+Alt+P 仍为 toggle（pin_tab），与菜单共用同一动作。
     Close Tab 对 pinned 文档禁用——libadwaita 默认协议拒绝关闭 pinned
     页，菜单语义保持一致。
 
@@ -63,17 +61,13 @@ class TabContextMenu(object):
         tab_view = ServiceLocator.get_main_window().document_stack
 
         # 命中标签 → 目标文档（菜单打开期间生效），并按目标状态调整
-        # pin/unpin/close 动作 enable 态。page 为 None 的 emit 来自
+        # pin-tab 的勾选态与 close 的 enable 态。page 为 None 的 emit 来自
         # libadwaita 的菜单复位（右键空白处等），此时清空目标即可。
         tab_view.connect('setup-menu', self.on_setup_menu)
 
-        # 菜单模型：Pin/Unpin 二选一显示，Close 对 pinned 禁用。
+        # 菜单模型：Pin 为单一勾选项（勾选 = 已固定），Close 对 pinned 禁用。
         section = Gio.Menu()
         item = Gio.MenuItem.new(_('Pin Tab'), 'win.pin-tab')
-        item.set_attribute_value('hidden-when',
-                                 GLib.Variant.new_string('action-disabled'))
-        section.append_item(item)
-        item = Gio.MenuItem.new(_('Unpin Tab'), 'win.unpin-tab')
         item.set_attribute_value('hidden-when',
                                  GLib.Variant.new_string('action-disabled'))
         section.append_item(item)
@@ -103,10 +97,11 @@ class TabContextMenu(object):
             return
         document = self.workspace.presenter._page_to_doc.get(page)
         self._target_document = document
-        # 按目标文档覆盖动作 enable 态：pin/unpin 二选一，close 对
-        # pinned 禁用。菜单关闭后 update_actions() 会按活跃文档恢复。
+        # 按目标文档覆盖动作 enable 态与勾选态：pin-tab 始终可用，state
+        # 反映该标签是否已固定；close 对 pinned 禁用。菜单关闭后
+        # update_actions() 会按活跃文档恢复。
         actions = self.workspace.actions.actions
         pinned = self.workspace.is_document_pinned(document)
-        actions['pin-tab'].set_enabled(not pinned)
-        actions['unpin-tab'].set_enabled(pinned)
+        actions['pin-tab'].set_enabled(True)
+        actions['pin-tab'].set_state(GLib.Variant.new_boolean(pinned))
         actions['close-tab'].set_enabled(not pinned)

@@ -75,11 +75,15 @@ class Actions(object):
         self.add_action('close-active-document', self.close_active_document)
         self.add_action('reopen-last-closed-document', self.reopen_last_closed_document)
         # 标签条右键菜单：固定/取消固定与关闭目标标签。无菜单打开（快捷键
-        # 路径）时目标回退为当前活跃文档，见各回调。pin/unpin 拆成两个
-        # 动作供菜单按 pinned 状态二选一显示；enable 态在 update_actions
-        # 按活跃文档同步，setup-menu 时按目标文档覆盖。
-        self.add_action('pin-tab', self.pin_tab)
-        self.add_action('unpin-tab', self.unpin_tab)
+        # 路径）时目标回退为当前活跃文档，见各回调。pin-tab 用布尔 stateful
+        # action：菜单渲染为单一「Pin Tab」勾选项（checkmark 即 pinned 状态），
+        # enable/state 在 update_actions 按活跃文档同步，setup-menu 时按目标
+        # 文档覆盖。
+        pin_action = Gio.SimpleAction.new_stateful(
+            'pin-tab', None, GLib.Variant.new_boolean(False))
+        pin_action.connect('activate', self.pin_tab)
+        self.main_window.add_action(pin_action)
+        self.actions['pin-tab'] = pin_action
         self.add_action('close-tab', self.close_tab)
         self.add_action('go-to-line', self.go_to_line)
         self.add_action('toggle-bookmark', self.toggle_bookmark)
@@ -344,10 +348,13 @@ class Actions(object):
         self.actions['close-active-document'].set_enabled(document_active)
         self.actions['close-all-documents'].set_enabled(document_active)
         # 标签条右键菜单动作：无文档打开时禁用（菜单项灰显）。快捷键路径
-        # 的目标回退同为活跃文档，语义一致。
+        # 的目标回退同为活跃文档，语义一致。pin-tab 的 state 只反映菜单
+        # 勾选态；行为仍由 pin_tab() 按实时 pinned 状态 toggle，state 过期
+        # 不会影响实际动作。
         self.actions['close-tab'].set_enabled(document_active)
         self.actions['pin-tab'].set_enabled(document_active)
-        self.actions['unpin-tab'].set_enabled(document_active)
+        self.actions['pin-tab'].set_state(GLib.Variant.new_boolean(
+            document_active and self.workspace.is_document_pinned(document)))
         self.actions['reopen-last-closed-document'].set_enabled(len(self._closed_document_stack) > 0)
         self.actions['save-session'].set_enabled(document_active)
         self.actions['save'].set_enabled(enable_save)
@@ -848,19 +855,10 @@ class Actions(object):
         return document
 
     def pin_tab(self, action=None, parameter=None):
-        '''固定/取消固定标签页（Ctrl+Alt+P 与命令面板的 toggle 语义）。
-        标签条右键菜单不用本动作做取消固定——菜单按 pinned 状态二选一
-        显示 pin/unpin（hidden-when="action-disabled"），unpin 走
-        unpin_tab；快捷键保持 toggle，对无菜单路径最直观。'''
+        '''固定/取消固定标签页（Ctrl+Alt+P、命令面板与标签条右键菜单共用）。
+        action 的布尔 state 只用于菜单勾选显示；行为按实时 pinned 状态
+        toggle，不读 state，避免菜单关闭后 state 过期导致误操作。'''
         self.workspace.toggle_pin_document(self._pin_or_close_target_document())
-
-    def unpin_tab(self, action=None, parameter=None):
-        '''取消固定标签页（与 pin_tab 共享目标解析；对未固定目标是幂等
-        no-op）。pin/unpin 拆成两个动作供右键菜单按 pinned 状态二选一
-        显示（hidden-when="action-disabled"，官方 libadwaita demo 模式）。'''
-        document = self._pin_or_close_target_document()
-        if document is not None and self.workspace.is_document_pinned(document):
-            self.workspace.toggle_pin_document(document)
 
     def close_tab(self, action=None, parameter=None):
         '''关闭标签条右键菜单的目标标签（无菜单时关闭活跃文档）。
