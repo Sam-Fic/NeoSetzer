@@ -151,11 +151,13 @@ textview gutter {
  * 仅当列表拥有焦点（:focus-within）时才显示。accent 类（光标跟随）
  * 与 :selected（键盘焦点）语义不同，可共存，accent 行的叠加效果更深。
  * accent 类在无焦点时也应可见（较淡的底色），保持光标位置提示。
+ * accent 底色对所有带 .accent 类的列表行生效（不限于 .compact-rows），
+ * Document Structure 侧边栏与 Open Documents 弹窗共用同一"当前项"样式。
  */
-.compact-rows row:selected {
+.compact-rows row:selected:not(.accent) {
     background: transparent;
 }
-.compact-rows row.accent {
+row.accent {
     background: alpha(@theme_selected_bg_color, 0.12);
 }
 .compact-rows:focus-within row:selected {
@@ -163,6 +165,18 @@ textview gutter {
 }
 .compact-rows:focus-within row:selected.accent {
     background: alpha(@theme_selected_bg_color, 0.35);
+}
+
+/*
+ * 统一"当前项"选中样式（对话框类列表）：Bibliography Manager 条目列表、
+ * 文档向导（文档类 / Beamer 主题）、Add/Remove Packages 双列表。
+ * 这些列表用编程式 select_row 做当前项指示（无独立 accent 类），此前走
+ * libadwaita 原生 :selected 实底高亮，比统一方案深得多。加 .accent-selection
+ * 后与命令面板 / autocomplete 的半透明 0.25 选中一致。不做 :focus-within
+ * 门控——弹窗中选中即当前项指示，焦点移到详情面板时高亮需保留。
+ */
+.accent-selection row:selected {
+    background: alpha(@theme_selected_bg_color, 0.25);
 }
 
 /* 文档结构嵌套层级的细竖线树形指示符（替代大缩进）。调暗、收窄，
@@ -310,6 +324,25 @@ tabbar.inline tabbox {
     border-radius: 8px;
     margin: 0 6px;
     background: @card_bg_color;
+}
+
+/* 单文件并排 diff 窗口的文本卡片：与 .editor-card 同规范
+   （8px 圆角 + 卡片底色）。边距由窗口内容容器统一提供（12px），
+   故这里不再带 margin；圆角裁剪靠容器 set_overflow(HIDDEN)。 */
+.diff-card {
+    border-radius: 8px;
+    background: @card_bg_color;
+}
+/* diff 窗口两栏滚动区：关掉 overshoot/undershoot 提示条。
+   GTK 滚动到边界时会在 ScrolledWindow 上沿画一条灰影（超滚提示），
+   在卡片里看起来像正文顶部多了一条阴影，与编辑器观感不符。
+   做法同 .setzer-text-input-scroll。 */
+.diff-card overshoot,
+.diff-card undershoot {
+    background-image: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 /* F11 全屏 + shortcut 栏隐藏时，编辑器卡片顶部加 6px 间距，
@@ -870,5 +903,17 @@ headerbar {
  */
 .git-commit-message {
     border: 1px solid alpha(currentColor, 0.15);
+    border-radius: 12px;
+}
+
+/*
+ * 「圆角卡片蒙版」滚动容器：列表本身是 boxed-list 卡片（12px 圆角），滚动
+ * 时行会被视口的方角裁切、糊出卡片圆角；给 ScrolledWindow 同一圆角（代码
+ * 侧 set_overflow(HIDDEN)）让整块滚动显示区都落在圆角卡片内。用于 Git 页
+ * 的改动文件 / 提交历史列表，以及搜索/替换历史弹窗。
+ * 刻意不设背景与边框：未溢出时 ListBox 仍是原本的卡片，列表只有两三行时
+ * 也不会被 vexpand 拉成一张通到面板底部的大卡片。
+ */
+scrolledwindow.list-card-scroll {
     border-radius: 12px;
 }

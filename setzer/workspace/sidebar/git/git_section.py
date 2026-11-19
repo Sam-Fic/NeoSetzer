@@ -38,7 +38,7 @@ from setzer.document.build_system.phitex_session.phitex_session import PhitexSes
 from setzer.helpers import phitex_compare
 from setzer.vcs.git_repository import GitRepository, git_available
 from setzer.workspace.sidebar.git.git_section_viewgtk import GitSectionView
-from setzer.workspace.sidebar.git.diff_dialog import DiffDialog
+from setzer.workspace.sidebar.git.diff_dialog import DiffWindow
 
 # PDF diff（PhiTeX session compare）适用的文件扩展：与
 # workspace.create_document_from_filename 的可编译集合一致。
@@ -356,7 +356,7 @@ class GitSection(object):
         self._show_text_diff(entry)
 
     def _show_text_diff(self, entry):
-        '''并排文本 diff 弹窗（非 LaTeX 文件，或 PDF diff 不可用时的兜底）。'''
+        '''并排文本 diff 窗口（非 LaTeX 文件，或 PDF diff 不可用时的兜底）。'''
         if self.repo is None:
             return
         self.repo.file_versions(entry['path'],
@@ -367,8 +367,9 @@ class GitSection(object):
         if error:
             self.show_error(error)
             return
-        dialog = DiffDialog(path, old_text, new_text)
-        dialog.present(ServiceLocator.get_main_window())
+        window = DiffWindow(path, old_text, new_text,
+                            ServiceLocator.get_main_window())
+        window.present()
 
     def _pdf_diff_session(self, document):
         '''PDF diff 的前置条件检查，通过返回 PhitexSession，否则 None。
