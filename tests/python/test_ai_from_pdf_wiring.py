@@ -24,6 +24,10 @@ PDF 专用弹窗路径。直发分支（send=True）仍走统一发送控制器 
 
 方法体经 AST 提取 exec（与 test_file_template_actions 同模式），
 map_selection 补丁为同步回调，buffer 用真实 Gtk.TextBuffer。
+
+判稳契约（见 Actions._ai_annotate_when_view_settled）：锚点矩形连续
+_ai_settle_stable_frames 帧不变，且选区末尾已落入可见区。基准随链传参，
+tick 回调由测试手动推进。
 '''
 
 import ast
@@ -70,6 +74,12 @@ _REANCHOR = _load_method('_ai_reanchor_annotation_popover')
 def _mapping(start=2, end=3):
     return {'filename': '/p/chapter.tex', 'start_line': start, 'end_line': end,
             'focus_text': 'x=1', 'focus_kind': 'source'}
+
+
+def _rect(x, y, width, height):
+    rect = Gdk.Rectangle()
+    rect.x, rect.y, rect.width, rect.height = x, y, width, height
+    return rect
 
 
 class AiFromPdfTest(unittest.TestCase):
@@ -236,224 +246,181 @@ class DocumentForMappingTest(unittest.TestCase):
         self.assertIsNone(self.fake._document_for_mapping(self.document, {}))
 
 
-class ViewSettleTest(unittest.TestCase):
-    '''_ai_annotate_when_view_settled：视图未分配/滚动未稳定时推迟弹窗。'''
+class SettleHarness(unittest.TestCase):
+    '''_ai_annotate_when_view_settled 共用夹具。
+
+    真实 Gtk.TextBuffer 提供选区，视图用桩；add_tick_callback 只记录
+    续帧回调，由测试手动推进（不真进主循环）。
+    '''
+
+    STABLE_FRAMES = 8
 
     def setUp(self):
+        self.buffer = Gtk.TextBuffer()
+        self.buffer.set_text('\n'.join('line%d' % i for i in range(40)), -1)
+        # 选中 line10（offset 60..66）：模拟 PDF 反查映射后的源码选区。
+        self.buffer.select_range(self.buffer.get_iter_at_offset(60),
+                                 self.buffer.get_iter_at_offset(66))
+        self.source_view = mock.Mock()
+        self.visible = _rect(0, 0, 500, 500)
+        self.end_loc = _rect(10, 90, 60, 20)      # 锚点（选区末尾）在视口内
+        self.source_view.get_visible_rect.side_effect = lambda: self.visible
+        self.source_view.get_iter_location.side_effect = lambda it: self.end_loc
+        self.source_view.buffer_to_widget_coords.return_value = (10, 60)
+        self.ticks = []
+        self.source_view.add_tick_callback.side_effect = self._record_tick
         self.target = SimpleNamespace(
-            view=SimpleNamespace(
-                source_view=mock.Mock(),
-                scrolled_window=mock.Mock()))
-        self.adjustment = self.target.view.scrolled_window.get_vadjustment.return_value
-        self.fake = SimpleNamespace(ai_add_annotation=mock.Mock())
+            source_buffer=self.buffer,
+            view=SimpleNamespace(source_view=self.source_view),
+            scroll_cursor_to_center=mock.Mock())
+        self.fake = SimpleNamespace(
+            ai_add_annotation=mock.Mock(),
+            _ai_settle_stable_frames=self.STABLE_FRAMES)
+        self.fake._annotation_anchor_rect = _ANCHOR_RECT.__get__(self.fake)
         self.fake._ai_annotate_when_view_settled = _SETTLE.__get__(self.fake)
-        self.idle_calls = []
 
-    def _patch_idle(self):
-        # 捕获低优先级 idle 排程（不真正进主循环），返回补丁器。
-        def capture(fn, *args, **kwargs):
-            self.idle_calls.append((fn, args, kwargs))
-            return len(self.idle_calls)
-        return mock.patch('gi.repository.GLib.idle_add', side_effect=capture)
+    def _record_tick(self, callback):
+        self.ticks.append(callback)
+        return len(self.ticks)
 
-    def _settle(self, attempt=0, deadline=None):
-        # 基准值随链传参：续帧从上一次 idle 排程里取 _state。
-        state = self.idle_calls[-1][1][3] if self.idle_calls else None
+    def _make_target(self, widget_y):
+        '''另一个文档的 target：矩形固定，等待链自带独立基准。'''
+        view = mock.Mock()
+        view.get_visible_rect.return_value = _rect(0, 0, 500, 500)
+        view.get_iter_location.return_value = _rect(10, 200, 60, 20)
+        view.buffer_to_widget_coords.return_value = (10, widget_y)
+        view.add_tick_callback.side_effect = self._record_tick
+        return SimpleNamespace(
+            source_buffer=self.buffer,
+            view=SimpleNamespace(source_view=view),
+            scroll_cursor_to_center=mock.Mock())
+
+    def _start(self, target=None, deadline=None):
         return self.fake._ai_annotate_when_view_settled(
-            self.target, attempt, deadline, state)
+            target or self.target, deadline=deadline)
 
-    def test_unallocated_view_defers_popup(self):
-        self.target.view.source_view.get_allocated_height.return_value = 0
-        self.adjustment.get_value.return_value = 100.0
-        with self._patch_idle():
-            self._settle()
+    def _advance(self, frames=1):
+        '''推进 tick 链：执行上一帧排的续帧回调（未排则什么都不做）。'''
+        for _ in range(frames):
+            if not self.ticks:
+                return
+            self.ticks.pop(0)(self.source_view, None)
+
+
+class ViewSettleTest(SettleHarness):
+    '''_ai_annotate_when_view_settled：锚点矩形连续稳定 N 帧才弹窗。'''
+
+    def test_first_frame_defers_and_schedules_tick(self):
+        self._start()
         self.fake.ai_add_annotation.assert_not_called()
-        self.assertEqual(len(self.idle_calls), 1)
-        self.assertEqual(self.idle_calls[0][2].get('priority'),
-                         GLib.PRIORITY_LOW)
+        self.assertEqual(len(self.ticks), 1)
+        # 续帧用 add_tick_callback，回调必须恰好收 (widget, frame_clock)
+        # 两个位置参数（多一个 data 形参会 TypeError）。
+        self.assertEqual(len(inspect.signature(self.ticks[0]).parameters), 2)
 
-    def test_moving_scroll_defers_popup(self):
-        self.target.view.source_view.get_allocated_height.return_value = 500
-        self.adjustment.get_value.side_effect = [100.0, 200.0]
-        with self._patch_idle():
-            self._settle()          # 首帧：记录基准，无 prev 必推迟
-            self._settle(attempt=1)  # 次帧：值变化 → 继续等
+    def test_stable_anchor_pops_after_stable_frames(self):
+        self._start()               # 首帧只记基准
+        for _ in range(self.STABLE_FRAMES - 1):
+            self._advance()
+            self.fake.ai_add_annotation.assert_not_called()
+        self._advance()             # 稳定计数到阈值 → 弹出
+        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.ticks, [])
+
+    def test_moving_anchor_resets_stability(self):
+        # 滚动/布局仍在变化（矩形每帧不同）：不得提前弹。
+        self._start(deadline=float('inf'))
+        for i in range(self.STABLE_FRAMES * 3):
+            self.source_view.buffer_to_widget_coords.return_value = (
+                10, 60 + (i + 1) * 4)
+            self._advance()
         self.fake.ai_add_annotation.assert_not_called()
-        self.assertEqual(len(self.idle_calls), 2)
+        self.assertTrue(self.ticks)
 
-    def test_stable_view_pops_after_two_frames(self):
-        self.target.view.source_view.get_allocated_height.return_value = 500
-        self.adjustment.get_value.return_value = 100.0
-        with self._patch_idle():
-            self._settle()          # 首帧记录基准
-            self._settle(attempt=1)  # 次帧值不变 → 弹出
+    def test_deadline_fallback_rescrolls_before_pop(self):
+        # 兜底弹出前补一次居中滚动（尽力到位，重锚再修正残余）。
+        self._start(deadline=0.0)
+        self.target.scroll_cursor_to_center.assert_called_once()
         self.fake.ai_add_annotation.assert_called_once()
-        self.assertEqual(len(self.idle_calls), 1)
-
-    def test_deadline_fallback_pops(self):
-        self.target.view.source_view.get_allocated_height.return_value = 0
-        self.adjustment.get_value.return_value = 100.0
-        with self._patch_idle():
-            self._settle(deadline=0.0)  # monotonic() >= 0 恒真 → 兜底弹出
-        self.fake.ai_add_annotation.assert_called_once()
-        self.assertEqual(self.idle_calls, [])
-
-    def test_growing_allocation_defers_until_stable(self):
-        # 新激活视图先拿小分配再长到最终尺寸：分配尺寸变化期间
-        # 滚动会被再夹紧，不得提前弹。
-        # 每帧调两次（allocated 判定 + alloc 记录）：100→500→500。
-        self.target.view.source_view.get_allocated_height.side_effect = [
-            100, 100, 500, 500, 500, 500]
-        self.adjustment.get_value.return_value = 100.0
-        with self._patch_idle():
-            self._settle()          # 记录基准
-            self._settle(attempt=1)  # 分配 100→500 变化 → 推迟
-        self.fake.ai_add_annotation.assert_not_called()
-        self.assertEqual(len(self.idle_calls), 2)
-        with self._patch_idle():
-            self._settle(attempt=2)  # 分配稳定 → 弹出
-        self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.ticks, [])
 
     def test_missing_view_pops_immediately(self):
-        # 无 view 信息（桩文档）：value=None 视为稳定，不阻塞弹窗。
+        # 无视图/buffer 信息的桩文档视为稳定，不阻塞弹窗。
         target = SimpleNamespace()
-        with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(target)
+        self._start(target=target)
         self.fake.ai_add_annotation.assert_called_once()
-        self.assertEqual(self.idle_calls, [])
+        self.assertEqual(self.ticks, [])
 
     def test_switched_active_document_aborts(self):
         # 等待期间用户切换/关闭了目标文档：静默放弃，不得把批注
         # 落到别的文档的选区上。
         self.fake.workspace = mock.Mock()
         self.fake.workspace.get_active_document.return_value = SimpleNamespace()
-        with self._patch_idle():
-            self._settle()
+        self._start()
         self.fake.ai_add_annotation.assert_not_called()
-        self.assertEqual(self.idle_calls, [])
+        self.assertEqual(self.ticks, [])
 
     def test_parallel_chains_do_not_share_baseline(self):
         # 连续两次批注的等待链并行：基准值随链传参，不互相污染。
-        def mk_target(value):
-            adj = mock.Mock()
-            adj.get_value.return_value = value
-            sv = mock.Mock()
-            sv.get_allocated_height.return_value = 500
-            return SimpleNamespace(view=SimpleNamespace(
-                source_view=sv,
-                scrolled_window=mock.Mock(
-                    get_vadjustment=mock.Mock(return_value=adj))))
-        t1, t2 = mk_target(100.0), mk_target(200.0)
-        with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(t1)             # A 首帧
-            state_a = self.idle_calls[-1][1][3]
-            self.fake._ai_annotate_when_view_settled(t2)             # B 首帧
-            self.fake._ai_annotate_when_view_settled(t1, 1, None, state_a)  # A 次帧→弹
+        target_b = self._make_target(200)
+        self._start()                                  # A 首帧
+        self._advance(self.STABLE_FRAMES - 1)          # A 推到差一帧
+        self._start(target=target_b)                   # B 首帧
+        self.fake.ai_add_annotation.assert_not_called()
+        self._advance()                                # A 达阈值 → 弹
         self.fake.ai_add_annotation.assert_called_once()
 
 
-class ScrollArrivalTest(unittest.TestCase):
+class ScrollArrivalTest(SettleHarness):
     '''回归：滚动值假稳定（scroll_to_mark 尚未生效）不得提前弹窗。
 
-    新激活文档的滚动被 GTK 推迟到布局后，此前滚动值恒为旧值；
+    新激活文档的滚动被 GTK 推迟到布局后，此前锚点仍在视口外；
     必须等选区末尾真正落入可见区（滚动完成）才弹 popover。
     '''
 
-    def setUp(self):
-        self.buffer = Gtk.TextBuffer()
-        self.buffer.set_text('\n'.join('line%d' % i for i in range(40)), -1)
-        # 选中 line10（offset 60..66）：模拟跳转目标在视口下方。
-        self.buffer.select_range(self.buffer.get_iter_at_offset(60),
-                                 self.buffer.get_iter_at_offset(66))
-        self.source_view = mock.Mock()
-        self.source_view.get_allocated_height.return_value = 500
-        self.adjustment = mock.Mock()
-        self.adjustment.get_value.return_value = 0.0
-        self.target = SimpleNamespace(
-            source_buffer=self.buffer,
-            view=SimpleNamespace(
-                source_view=self.source_view,
-                scrolled_window=mock.Mock(
-                    get_vadjustment=mock.Mock(return_value=self.adjustment))))
-        self.fake = SimpleNamespace(ai_add_annotation=mock.Mock())
-        self.fake._ai_annotate_when_view_settled = _SETTLE.__get__(self.fake)
-        self.idle_calls = []
+    def _push_to_stable(self):
+        self._advance(self.STABLE_FRAMES + 1)
 
-    def _patch_idle(self):
-        def capture(fn, *args, **kwargs):
-            self.idle_calls.append((fn, args, kwargs))
-            return len(self.idle_calls)
-        return mock.patch('gi.repository.GLib.idle_add', side_effect=capture)
-
-    def _set_visible(self, y, height=500):
-        rect = Gdk.Rectangle()
-        rect.y, rect.height = y, height
-        self.source_view.get_visible_rect.return_value = rect
-
-    def _set_end_loc(self, y, height=20):
-        rect = Gdk.Rectangle()
-        rect.y, rect.height = y, height
-        self.source_view.get_iter_location.return_value = rect
-
-    def _frame(self, attempt=0):
-        # 基准值随链传参：续帧从上一次 idle 排程里取 _state。
-        state = self.idle_calls[-1][1][3] if self.idle_calls else None
-        return self.fake._ai_annotate_when_view_settled(
-            self.target, attempt, None, state)
-
-    def test_stable_value_but_target_not_in_view_defers(self):
-        # 滚动值连续不变但选区末尾仍在视口下方（滚动尚未开始）：
-        # 不得误判稳定；滚入可见区后次帧才弹。
-        self._set_visible(0)
-        self._set_end_loc(600)
-        with self._patch_idle():
-            self._frame()
-            self._frame(attempt=1)
+    def test_target_below_viewport_defers_even_when_rect_stable(self):
+        self.end_loc = _rect(10, 600, 60, 20)      # 视口 0..500
+        self._start(deadline=float('inf'))
+        self._push_to_stable()
         self.fake.ai_add_annotation.assert_not_called()
-        self.assertEqual(len(self.idle_calls), 2)
-        # 滚动完成：选区末尾入可见区，值仍稳定 → 弹出。
-        self._set_visible(120)
-        with self._patch_idle():
-            self._frame(attempt=2)
+        self.assertTrue(self.ticks)
+
+    def test_scrolling_target_into_view_lets_it_pop(self):
+        self.end_loc = _rect(10, 600, 60, 20)
+        self._start(deadline=float('inf'))
+        self._push_to_stable()
+        self.fake.ai_add_annotation.assert_not_called()
+        # 滚动完成：锚点入可见区，矩形仍稳定 → 次帧弹出。
+        self.end_loc = _rect(10, 120, 60, 20)
+        self._advance()
         self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.ticks, [])
 
     def test_never_in_view_pops_at_deadline(self):
-        self._set_visible(0)
-        self._set_end_loc(5000)
-        with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target, deadline=0.0)
-        self.fake.ai_add_annotation.assert_called_once()
-        self.assertEqual(self.idle_calls, [])
-
-    def test_deadline_fallback_rescrolls_before_pop(self):
-        # 兜底弹出前补一次居中滚动（尽力到位，重锚再修正残余）。
-        self.target.scroll_cursor_to_center = mock.Mock()
-        self._set_visible(0)
-        self._set_end_loc(5000)
-        with self._patch_idle():
-            self.fake._ai_annotate_when_view_settled(self.target, deadline=0.0)
+        self.end_loc = _rect(10, 5000, 60, 20)
+        self._start(deadline=0.0)
         self.target.scroll_cursor_to_center.assert_called_once()
         self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.ticks, [])
 
     def test_clamped_at_document_top_accepted_with_tolerance(self):
         # 文档首部 GTK 夹紧无法居中：选区末尾在可见区顶上方一行高
         # 容差内仍视为到位。
-        self._set_visible(0)
-        self._set_end_loc(-15)
-        with self._patch_idle():
-            self._frame()
-            self._frame(attempt=1)
+        self.end_loc = _rect(10, -15, 60, 20)
+        self._start(deadline=float('inf'))
+        self._push_to_stable()
         self.fake.ai_add_annotation.assert_called_once()
 
     def test_no_selection_skips_arrival_gate(self):
         self.buffer.select_range(self.buffer.get_iter_at_offset(0),
                                  self.buffer.get_iter_at_offset(0))
-        self._set_visible(0)
-        self._set_end_loc(5000)
-        with self._patch_idle():
-            self._frame()
-            self._frame(attempt=1)
+        self.end_loc = _rect(10, 5000, 60, 20)
+        self._start()
         self.fake.ai_add_annotation.assert_called_once()
+        self.assertEqual(self.ticks, [])
 
 
 class ReanchorTest(unittest.TestCase):
@@ -476,13 +443,19 @@ class ReanchorTest(unittest.TestCase):
         self.popover.get_visible.return_value = True
         self.workspace = mock.Mock()
         self.workspace.get_active_document.return_value = self.document
-        self.fake = SimpleNamespace(workspace=self.workspace)
+        self.fake = SimpleNamespace(
+            workspace=self.workspace,
+            _ai_reanchor_stable_frames=20)
         self.fake._annotation_anchor_rect = _ANCHOR_RECT.__get__(self.fake)
         self.fake._ai_reanchor_annotation_popover = _REANCHOR.__get__(self.fake)
 
-    def _reanchor(self, ticks=0):
-        self.fake._ai_reanchor_annotation_popover(self.document, self.popover,
-                                                  5, ticks)
+    @property
+    def _rect_key(self):
+        return (10, 60, 60, 20)
+
+    def _reanchor(self, last_rect_key=None, stable=0, seq=0):
+        self.fake._ai_reanchor_annotation_popover(
+            self.document, self.popover, 5, last_rect_key, stable, None, seq)
 
     def _tick_handlers(self):
         return [c.args[0] for c in
@@ -519,17 +492,19 @@ class ReanchorTest(unittest.TestCase):
 
     def test_closed_popover_stops(self):
         self.popover.get_visible.return_value = False
-        self._reanchor(ticks=1)
+        self._reanchor(stable=1)
         self.popover.set_pointing_to.assert_not_called()
         self.source_view.add_tick_callback.assert_not_called()
 
     def test_switched_document_stops(self):
         self.workspace.get_active_document.return_value = SimpleNamespace()
-        self._reanchor(ticks=1)
+        self._reanchor(stable=1)
         self.popover.set_pointing_to.assert_not_called()
 
-    def test_tick_cap_stops(self):
-        self._reanchor(ticks=4)
+    def test_stable_frame_cap_stops(self):
+        # 清零制：矩形连续 _ai_reanchor_stable_frames 帧不变即停。
+        cap = self.fake._ai_reanchor_stable_frames
+        self._reanchor(last_rect_key=self._rect_key, stable=cap - 1)
         self.popover.set_pointing_to.assert_not_called()
         self.source_view.add_tick_callback.assert_not_called()
 
@@ -537,7 +512,7 @@ class ReanchorTest(unittest.TestCase):
         # 连续批注重用同一 popover：旧重锚链（seq 落后）不得用旧
         # end_offset 覆盖新弹窗的 pointing。
         self.fake._ai_popover_seq = 2
-        self._reanchor(ticks=1)   # seq 默认 0 ≠ 2
+        self._reanchor(stable=1)   # seq 默认 0 ≠ 2
         self.popover.set_pointing_to.assert_not_called()
         self.source_view.add_tick_callback.assert_not_called()
 
