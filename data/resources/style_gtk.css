@@ -245,19 +245,6 @@ row.accent {
 }
 
 /*
- * Git 面板的历史空状态（仓库还没有提交）：它嵌在分支信息与操作按钮下面，
- * 沿用 .sidebar-empty-state 的 220px 最小高度会把整个分区撑得过空。
- * 这里退成小号占位：32px 图标、不设最小高度。
- */
-.sidebar-empty-state.git-history-empty {
-    min-height: 0;
-    padding: 8px 8px 4px;
-}
-.sidebar-empty-state.git-history-empty image {
-    -gtk-icon-size: 32px;
-}
-
-/*
  * 文件行副标题：显示相对目录，更 subtle。
  */
 .sidebar-file-row .subtitle {

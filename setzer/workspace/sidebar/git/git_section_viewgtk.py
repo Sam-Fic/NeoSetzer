@@ -256,12 +256,17 @@ class GitSectionView(Gtk.Box):
         self.history_scroller.set_child(self.history_list)
         self.commits_box.append(self.history_scroller)
 
-        # 仓库还没有任何提交：空状态占位（与其它侧栏分区的空状态同款）。
+        # 仓库还没有任何提交：空状态占位。规格与 Document Structure 页的空
+        # 状态完全一致（.compact + .sidebar-empty-state：48px 图标 / 220px
+        # 最小高度）。vexpand + valign CENTER 让它在滚动区原本占的整块空间里
+        # 垂直居中，而不是贴在顶端。
         self.history_empty = self._make_status_page(
             'document-open-recent-symbolic',
             _('No commits yet'),
             _('Commit your changes to start building history.'))
-        self.history_empty.add_css_class('git-history-empty')
+        self.history_empty.set_vexpand(True)
+        self.history_empty.set_valign(Gtk.Align.CENTER)
+        self.history_empty.set_visible(False)
         self.commits_box.append(self.history_empty)
 
     def _build_init_box(self):
@@ -269,6 +274,7 @@ class GitSectionView(Gtk.Box):
             'xsi-git-symbolic',
             _('Not a Git Repository'),
             _('Track changes and history for this folder with Git.'))
+        self.init_status.set_vexpand(True)
         self.button_init = Gtk.Button(label=_('Initialize Repository'))
         self.button_init.add_css_class('suggested-action')
         self.button_init.set_halign(Gtk.Align.CENTER)
