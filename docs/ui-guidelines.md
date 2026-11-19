@@ -47,11 +47,12 @@
 
 ### 2.2 间距
 
-统一使用五档标度（定义在 [style_gtk.css](../data/resources/style_gtk.css) 的 `--setzer-spacing-*`）：
+统一使用六档标度（定义在 [style_gtk.css](../data/resources/style_gtk.css) 的 `--setzer-spacing-*`）：
 
 | 档位 | 值 | 用途 |
 |------|----|------|
 | xs | 4px | 图标与文字微间隙、紧凑控件内部 |
+| edge | 10px | 侧栏内容边缘线：工具栏/搜索框/列表行/内容卡片的水平边缘（Python 侧 `set_margin_*` 写 10 并注释 `--setzer-spacing-edge`） |
 | sm | 6px | 弹层/菜单内部段间距、工具栏按钮间距、行内间隙 |
 | md | 12px | 对话框内容外边距、卡片间距、内容块间距、列间距 |
 | lg | 18px | 页面内大分区间距 |
@@ -59,8 +60,9 @@
 
 - 对话框（`Adw.Dialog`）内容外边距统一 12。
 - 弹层/菜单的外围留白由 Adw 自带 `popover > contents` 内边距提供，不要再给子容器叠加 `set_margin_*()`；内部段间距用 6，承载表单或卡片的弹层可用 12。
-- `Gtk.Box` 的 spacing 无法用 CSS 设置，Python 中只写 4/6/12/18/24，并在注释中标注对应档位。
-- 布局间距只取上表档位。1–3px 及个别光学对齐值（如标题栏 47px 基线的 7px、pill 按钮水平内边距 10px、色块留白 9px）必须写注释说明对齐锚点；不得无注释地出现 7/8/9/10/14/16/20 等非标值。
+- 侧栏所有页面的内容水平边缘统一压到 edge 档 10px，与 `.sidebar-toolbar` / `.sidebar-search-bar` 同一条线；libadwaita 默认值与此冲突时覆写（`.navigation-sidebar` 行 6px、preferences clamp 12px 均已覆写，见 style_gtk.css 注释）。
+- `Gtk.Box` 的 spacing 无法用 CSS 设置，Python 中只写 4/6/10/12/18/24，并在注释中标注对应档位。
+- 布局间距只取上表档位。1–3px 及个别光学对齐值（如标题栏 47px 基线的 7px、pill 按钮水平内边距 10px——该值按圆角半径推导，与 edge 档无关、色块留白 9px）必须写注释说明对齐锚点；不得无注释地出现 7/8/9/11/13/14/16/20 等非标值。
 - 同一界面内等价区块使用同一档位；嵌套容器不要重复叠加外边距，优先由父级统一控制。
 
 ## 3 排版与色彩

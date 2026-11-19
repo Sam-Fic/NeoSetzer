@@ -94,10 +94,10 @@ class GitPageView(Gtk.Box):
         # ---- 内容：GitSectionView（vexpand 链路见模块 docstring）----
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content_box.set_vexpand(True)
-        content_box.set_margin_start(12)
-        content_box.set_margin_end(12)
-        # 底部与左右同为 12px：列表滚到底时，卡片下沿到窗口底的距离与到
-        # 侧栏左边一致，不会出现「左右贴 12、底下空 24」的不对称留白。
+        content_box.set_margin_start(10)  # --setzer-spacing-edge
+        content_box.set_margin_end(10)
+        # 底部 12px：列表滚到底时，卡片下沿到窗口底不贴边（先例：统计页）。
+        # 水平 10px：全侧栏内容统一压到工具栏/搜索框的 10px 边缘线。
         content_box.set_margin_bottom(12)
         content_box.append(content)
         self.append(content_box)

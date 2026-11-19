@@ -130,12 +130,14 @@ class GitSidebarScrollTest(unittest.TestCase):
         self.assertLess(self.view.files_list.get_height(),
                         self.view.files_scroller.get_height())
 
-    def test_bottom_margin_matches_left_margin(self):
-        '''列表滚到底时卡片下沿到窗口底的距离要与侧边距一致（12px）。'''
+    def test_content_margins_sidebar_edge_line(self):
+        '''水平边距取 --setzer-spacing-edge 10px（全侧栏统一边缘线，
+        锚点：.sidebar-toolbar / .sidebar-search-bar）；底部 12px 保证
+        滚到底时卡片下沿不贴边（先例：统计页）。'''
         page = GitPageView(GitSectionView())
         content = page.get_last_child()
-        self.assertEqual(content.get_margin_start(), 12)
-        self.assertEqual(content.get_margin_end(), 12)
+        self.assertEqual(content.get_margin_start(), 10)
+        self.assertEqual(content.get_margin_end(), 10)
         self.assertEqual(content.get_margin_bottom(), 12)
 
     def test_scroller_follows_empty_states(self):

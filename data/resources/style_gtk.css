@@ -17,8 +17,11 @@
  * Python 代码应优先添加语义化 CSS class，而非 set_margin_*() 硬编码数值。
  * 定义在 window 上，自定义属性沿 widget 树继承，所有后代可用。
  *
- * 命名约定：--setzer-spacing-{xs|sm|md|lg|xl}
+ * 命名约定：--setzer-spacing-{xs|edge|sm|md|lg|xl}
  *   xs=4px  细微留白（如卡片内图标与文字间）
+ *   edge=10px 侧栏内容边缘线：工具栏/搜索框/列表行/内容卡片的水平边缘
+ *             （libadwaita .navigation-sidebar 行默认 6px、preferences
+ *             clamp 默认 12px，均覆写到本值统一）
  *   sm=6px  工具栏按钮间距、卡片内边距（对齐 Adw.HeaderBar 默认间距）
  *   md=12px 内容块间距、列表行间留白
  *   lg=18px 次级分区间距
@@ -30,6 +33,7 @@
  */
 window {
     --setzer-spacing-xs: 4px;
+    --setzer-spacing-edge: 10px;
     --setzer-spacing-sm: 6px;
     --setzer-spacing-md: 12px;
     --setzer-spacing-lg: 18px;
@@ -91,7 +95,7 @@ window {
        「标题栏 = 47px」也是编辑器卡片顶边、标签条顶边的基准线。
        工具栏若用对称的 6px（=46px），下方卡片顶边就比这条基准线低 1px，
        四列（AI 列表 / 编辑器卡片 / 标签 / 预览卡片）顶边对不齐。 */
-    padding: var(--setzer-spacing-sm) 10px 7px;
+    padding: var(--setzer-spacing-sm) var(--setzer-spacing-edge) 7px;
     /* 内容至少 34px（与 entry / button / tabbox 的 min-height 一致），
        6 + 34 + 7 = 47px，任何子控件组合都不会把工具栏压得比标题栏矮。 */
     min-height: 34px;
@@ -150,26 +154,26 @@ textview gutter {
 }
 
 .sidebar-search-bar {
-    /* 上下 6px；水平 10px 为光学对齐：与 .sidebar-toolbar 的 10px 水平
+    /* 上下 6px；水平为 --setzer-spacing-edge：与 .sidebar-toolbar 的水平
        内边距对齐，让搜索框左右边缘与工具栏按钮/下方符号网格同一条线。 */
-    padding: var(--setzer-spacing-sm) 10px;
+    padding: var(--setzer-spacing-sm) var(--setzer-spacing-edge);
 }
 
 /*
  * 结构页三列表（files/labels/todos）与文件树的行高亮块水平边距：与上方
- * 搜索框（.sidebar-search-bar 的 10px 内边距）取齐。libadwaita 默认给
- * .navigation-sidebar > row 的 margin 是 0 6px，这里覆写为 10px，
+ * 搜索框（.sidebar-search-bar 的 edge 档内边距）取齐。libadwaita 默认给
+ * .navigation-sidebar > row 的 margin 是 0 6px，这里覆写为 edge 档，
  * 让列表左右边缘与搜索框同一条线；行内盒的 14px padding 不动。
  */
 .structure-sidebar row,
 .navigation-sidebar.sidebar-tree > row {
-    margin-left: 10px;
-    margin-right: 10px;
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
 }
 .structure-sidebar listview.header > header,
 .structure-sidebar .heading {
-    margin-left: 10px;
-    margin-right: 10px;
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
 }
 
 /*
@@ -178,6 +182,17 @@ textview gutter {
  * 的 flat hover 叠加后会出现“两层矩形阴影”。这里只去掉 FlowBoxChild 在
  * hover/active/selected 时的装饰背景，保留焦点轮廓供键盘导航使用。
  */
+/*
+ * 符号网格边缘对齐：libadwaita 给 `flowbox > flowboxchild` 的默认 padding
+ * 是 3px，会把首末列符号按钮的悬停矩形推离 edge 档边缘线 3px（悬停矩形
+ * 落在 13px，与工具栏按钮的 10px 不同线）。给 flowbox 负 3px 水平 margin
+ * 抵消（1–3px 光学例外，锚点：flowboxchild 默认 padding）；符号间 6px
+ * 间距不变（child padding 3+3），flowbox 右缘 W-7 不会触发水平裁剪。
+ */
+.symbols-flowbox {
+    margin-left: -3px;
+    margin-right: -3px;
+}
 .symbols-flowbox flowboxchild:hover,
 .symbols-flowbox flowboxchild:active,
 .symbols-flowbox flowboxchild:selected {
@@ -303,22 +318,30 @@ row.accent {
  * 结构页子视图工具行（todos 的两档切换 This document / All documents）：
  * 页内工具行，位于 Adw.Sidebar 之上。顶距归零：与子视图工具栏的间距由
  * .sidebar-toolbar 的 7px 底距单独承担（同第一/二行工具栏之间的节奏，
- * 见 .sidebar-toolbar.subview-row）；左右与底部留 6px。
+ * 见 .sidebar-toolbar.subview-row）；水平 edge 档与 .sidebar-toolbar /
+ * .sidebar-search-bar 的边缘同一条线；底部留 6px。
  */
 .sidebar-subview-tools {
-    padding: 0 6px 6px;
+    padding: 0 var(--setzer-spacing-edge) 6px;
 }
 
 /*
- * AI 页批注列表：去掉 Adw.PreferencesPage 默认的 24px 上外边距。
+ * AI 页 / 符号页批注与分组列表：覆写 Adw.PreferencesPage 内建边距。
  * libadwaita 给 `preferencespage > scrolledwindow > viewport > clamp > box`
- * 设了 margin: 24px 12px —— 12px 水平留白要保留，但 24px 顶部留白会让第一条
- * 批注与工具栏之间空出一大截，顶边比预览卡片 / 标签条低。这里只清掉上边距，
- * 使首条批注紧贴工具栏下沿，与右侧标签条顶边、预览卡片顶边落在同一水平线。
- * 只作用于 .ai-page：符号页 / 结构页的分组带标题，需要那点呼吸空间。
+ * 设了 margin: 24px 12px。AI 页清掉 24px 上边距（首条批注紧贴工具栏下沿，
+ * 与右侧标签条 / 预览卡片顶边同线）；两页水平边距压到 10px——全侧栏内容
+ * 统一对齐 .sidebar-toolbar / .sidebar-search-bar 的 edge 档边缘线
+ * （git 页、统计页的显式 margin 同步为 edge 档 10px）。
  */
 .ai-page preferencespage > scrolledwindow > viewport > clamp > box {
     margin-top: 0;
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
+}
+preferencespage.symbols-page > scrolledwindow > viewport > clamp > box {
+    /* 24px 顶部呼吸保留：符号页分组带标题，需要与首行分隔。 */
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
 }
 
 /*

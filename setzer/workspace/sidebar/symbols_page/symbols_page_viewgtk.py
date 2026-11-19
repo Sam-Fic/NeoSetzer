@@ -95,6 +95,8 @@ class SymbolsPageView(Gtk.Box):
         # Adw.PreferencesPage 提供原生分组标题与滚动；其内部第一个子控件是
         # Gtk.ScrolledWindow，逻辑层通过 self.scrolled_window 访问其 vadjustment。
         self.page = Adw.PreferencesPage()
+        # 供 style_gtk.css 覆写 clamp 水平边距到 10px（与工具栏边缘同线）。
+        self.page.add_css_class('symbols-page')
         self.page.set_vexpand(True)
 
         self.no_results_status = Adw.StatusPage()

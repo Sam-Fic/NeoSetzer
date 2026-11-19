@@ -100,8 +100,9 @@ class AiPageView(Gtk.Box):
         # Send All：整行图标+文字按钮放批注档顶部（git 页 Commit 行同款
         # suggested-action；图标与批注行的「发送单条」一致）。放档内不放
         # 工具栏：终端档不该出现它，空列表时随 'list' 子页一起隐藏。
-        # 左右 12px 对齐 PreferencesPage clamp 的列表卡片边缘；底距 6px
-        # 对齐 git 页内容的行距节奏（顶部呼吸由工具栏 padding 提供）。
+        # 左右 10px 对齐 PreferencesPage clamp 的列表卡片边缘（全侧栏统一
+        # 10px 边缘线）；底距 6px 对齐 git 页内容的行距节奏（顶部呼吸由
+        # 工具栏 padding 提供）。
         self.send_all_button = Gtk.Button()
         send_all_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         send_all_box.set_halign(Gtk.Align.CENTER)
@@ -109,8 +110,8 @@ class AiPageView(Gtk.Box):
         send_all_box.append(Gtk.Label(label=_('Send All')))
         self.send_all_button.set_child(send_all_box)
         self.send_all_button.add_css_class('suggested-action')
-        self.send_all_button.set_margin_start(12)
-        self.send_all_button.set_margin_end(12)
+        self.send_all_button.set_margin_start(10)  # --setzer-spacing-edge
+        self.send_all_button.set_margin_end(10)
         self.send_all_button.set_margin_bottom(6)
 
         # 与 document structure 页同款：PreferencesPage 自带滚动与边距，
