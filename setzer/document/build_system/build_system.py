@@ -926,7 +926,6 @@ class BuildSystem(Observable):
                 position['line_text'] = line_text
         return position
 
-
     def start_building(self):
         if self.build_mode == 'forward_sync' and not self.has_synctex_file: return
         if self.build_mode == 'backward_sync' and self.backward_sync_data == None: return

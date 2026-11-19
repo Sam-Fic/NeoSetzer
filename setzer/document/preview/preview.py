@@ -1702,8 +1702,10 @@ class Preview(Observable):
         tex_filename = self.document.get_filename()
         if tex_filename is None or self.pdf_filename is None:
             return False
-        # 影子 synctex 新鲜度门控：直查路径不经 can_sync，这里自行拦截，
-        # 不拿陈旧影子 gz 跳转到错行。
+        # diff 视图显示的是 JOB-diff 旁路构建：origins/synctex 都属于正式
+        # PDF，点 diff 页反查会跳到错处，直接不反查。
+        if self.showing_diff_pdf:
+            return False
         build_system = getattr(self.document, 'build_system', None)
         # origins 快路径（PhiTeX viewer WS，逐字形源码映射）：比 synctex 精
         # 确到词、无行号失真（影子 gz 的整条修复/重定向链就是为治 synctex
@@ -1727,6 +1729,8 @@ class Preview(Observable):
                      'pdf_line_text': origin.get('line_text'),
                      'exact': True}, None)
                 return False
+        # 影子 synctex 新鲜度门控：直查路径不经 can_sync，这里自行拦截，
+        # 不拿陈旧影子 gz 跳转到错行。
         if build_system is not None and not build_system.synctex_is_fresh():
             from setzer.helpers import toast
             toast.show(_('Sync data is being updated in the background. Try again in a moment.'), timeout=2)

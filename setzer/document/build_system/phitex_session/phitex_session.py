@@ -68,6 +68,7 @@ class PhitexSession:
         # 的输出行里有（"… · viewer http://… · log …"），status --json 里也
         # 有（viewer 字段），两处都能补齐。
         self.viewer_url = None
+
     @property
     def config_signature(self):
         '''watch 的启动配置指纹。
@@ -332,29 +333,6 @@ class PhitexSession:
             return
         self._call(self._session_args('compare', '--stop'))
 
-    def png_compare_crop(self, baseline_ref, change_n, out_path, timeout=120):
-        '''`session png --compare <REV> --change N --out PATH`：diff 构建
-        里 change N 所在区域的裁剪 PNG（latexdiff 标记排版，1.0.3+）。
-
-        用于 diff 点击弹窗里的"这处改动排出来长什么样"缩略图。--compare 的
-        REV 与 session compare 同一语义（git rev 或旧副本路径，须与当初出
-        changes 的那份一致，change 编号才对得上）。返回 (returncode, stdout)；
-        PNG 是否落盘由调用方检查 out_path。
-
-        走 png 而不是自己从 diff PDF 裁：png 按字形边界自动收边（--context
-        的页边距），比拿 bbox 硬裁好看。
-        '''
-        from setzer.helpers.phitex_compare import looks_like_rev
-        if looks_like_rev(baseline_ref):
-            reference = baseline_ref
-        else:
-            reference = os.path.abspath(baseline_ref)
-        returncode, stdout = self._call(
-            self._session_args('png', '--compare', reference,
-                               '--change', str(change_n), '--out', out_path),
-            timeout=timeout)
-        return returncode, stdout
-
     def where_label(self, label, timeout=_CALL_TIMEOUT_S):
         '''`session where LABEL --json`：label 指向内容的页码与盒（页左上 pt）。
 
@@ -383,6 +361,29 @@ class PhitexSession:
         return self._call(
             self._session_args('png', '--label', label, '--out', out_path),
             timeout=timeout)
+
+    def png_compare_crop(self, baseline_ref, change_n, out_path, timeout=120):
+        '''`session png --compare <REV> --change N --out PATH`：diff 构建
+        里 change N 所在区域的裁剪 PNG（latexdiff 标记排版，1.0.3+）。
+
+        用于 diff 点击弹窗里的"这处改动排出来长什么样"缩略图。--compare 的
+        REV 与 session compare 同一语义（git rev 或旧副本路径，须与当初出
+        changes 的那份一致，change 编号才对得上）。返回 (returncode, stdout)；
+        PNG 是否落盘由调用方检查 out_path。
+
+        走 png 而不是自己从 diff PDF 裁：png 按字形边界自动收边（--context
+        的页边距），比拿 bbox 硬裁好看。
+        '''
+        from setzer.helpers.phitex_compare import looks_like_rev
+        if looks_like_rev(baseline_ref):
+            reference = baseline_ref
+        else:
+            reference = os.path.abspath(baseline_ref)
+        returncode, stdout = self._call(
+            self._session_args('png', '--compare', reference,
+                               '--change', str(change_n), '--out', out_path),
+            timeout=timeout)
+        return returncode, stdout
 
     def alive(self):
         '''watch 进程是否还活着。
