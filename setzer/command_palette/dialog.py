@@ -66,7 +66,9 @@ class CommandPaletteDialog(DialogView):
         self._settings_handler = None
 
         self.set_title(_('Command Palette'))
-        self.set_content_width(640)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）；高度 440：搜索框 +
+        # 可滚动列表（约 8 行命令）+ 底部提示行。
+        self.set_content_width(600)
         self.set_content_height(440)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -80,7 +82,6 @@ class CommandPaletteDialog(DialogView):
         self.search_entry.set_placeholder_text(_('Search commands'))
         self.search_entry.set_hexpand(True)
         self.search_entry.connect('search-changed', self.on_search_changed)
-        self.search_entry.connect('activate', self.on_activate)
         content.append(self.search_entry)
 
         self.listbox = Gtk.ListBox()
@@ -150,24 +151,17 @@ class CommandPaletteDialog(DialogView):
         self.refresh_results()
 
     def on_key_pressed(self, controller, keyval, keycode, state):
+        # 焦点常驻搜索框（GNOME 面板惯例）：方向键只改选中，Home/End 放行给
+        # entry 做文本光标导航；Enter 统一在 CAPTURE 阶段激活选中行，与焦点无关。
         if keyval == Gdk.KEY_Down:
             self.select_relative(1)
             return True
         if keyval == Gdk.KEY_Up:
             self.select_relative(-1)
             return True
-        if keyval == Gdk.KEY_Home:
-            self.select_index(0)
-            return True
-        if keyval == Gdk.KEY_End:
-            self.select_index(len(self.commands) - 1)
-            return True
         if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             return self.activate_selected()
         return False
-
-    def on_activate(self, entry):
-        self.activate_selected()
 
     def on_row_activated(self, listbox, row):
         command = getattr(row, 'command', None)
@@ -214,7 +208,10 @@ class CommandPaletteDialog(DialogView):
         row.set_activatable(False)
         row.set_selectable(False)
         row.add_css_class('command-palette-group-header')
-        label = Gtk.Label(label=GROUP_TITLES[group.identifier])
+        # GROUP_TITLES 在模块导入期求值，早于 gettext 注入，值仍是英文原文；
+        # 此处运行时再包一层才拿到译文。导入期调用兼作 xgettext 的 msgid
+        # 提取锚，不可删（同 catalog.py COMMANDS 的双保险模式）。
+        label = Gtk.Label(label=_(GROUP_TITLES[group.identifier]))
         label.add_css_class('heading')
         label.add_css_class('dimmed')
         label.set_halign(Gtk.Align.START)
@@ -264,9 +261,8 @@ class CommandPaletteDialog(DialogView):
     def select_index(self, index: int):
         if not self.commands or not 0 <= index < len(self.commands):
             return
-        row = self.command_rows[index]
-        self.listbox.select_row(row)
-        row.grab_focus()
+        # 只改选中不抢焦点：焦点留在搜索框，之后继续打字仍进查询框。
+        self.listbox.select_row(self.command_rows[index])
 
     def activate_selected(self) -> bool:
         row = self.listbox.get_selected_row()

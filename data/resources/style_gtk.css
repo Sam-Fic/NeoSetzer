@@ -903,7 +903,6 @@ headerbar {
 .command-palette-list {
     background-color: transparent;
     background: transparent;
-    border-radius: 14px;
     padding: 0;
     background-image: none;
 }
@@ -911,15 +910,6 @@ headerbar {
     background-color: @setzer_accent_selected;
     background: @setzer_accent_selected;
     border-radius: 8px;
-}
-
-/*
- * 命令面板空状态 StatusPage：收紧默认内边距，让图标+标题居中填满
- * 搜索框与底部提示之间的全部可用空间。
- */
-.command-palette-dialog statuspage {
-    padding-top: 0;
-    padding-bottom: 0;
 }
 
 .themeselector checkbutton {
