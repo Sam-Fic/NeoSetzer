@@ -79,6 +79,9 @@ class AgentTerminalWindow(Adw.Window):
         # 的按钮栈式插到更左）。平台不支持时直接隐藏。
         self.pin_button = Gtk.ToggleButton(icon_name='view-pin-symbolic')
         self.pin_button.set_tooltip_text(_('Keep this window on top'))
+        # 工具图标开关（§4.3）：GTK 自动维护 PRESSED 态，这里补 LABEL。
+        self.pin_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Keep this window on top')])
         self.headerbar.pack_end(self.pin_button)
         self._pin_toggled_id = self.pin_button.connect('toggled', self._on_pin_toggled)
         self._pin_syncing = False

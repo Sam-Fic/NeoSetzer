@@ -56,6 +56,7 @@ class IncludeLaTeXFileView(DialogView):
 
         label = Gtk.Label(label=_('LaTeX file to include'))
         label.set_xalign(0)
+        # 3px：标题与紧邻控件的下间隙（比 4px 档略紧的光学值，§2.2）。
         label.set_margin_bottom(3)
         label.set_margin_top(18)
         self.content.append(label)
@@ -65,6 +66,7 @@ class IncludeLaTeXFileView(DialogView):
 
         label = Gtk.Label(label=_('Type of path to included file'))
         label.set_xalign(0)
+        # 3px：标题与紧邻控件的下间隙（比 4px 档略紧的光学值，§2.2）。
         label.set_margin_bottom(3)
         label.set_margin_top(18)
         self.content.append(label)
@@ -78,6 +80,11 @@ class IncludeLaTeXFileView(DialogView):
         self.pathtype_info_button.set_child(Gtk.Image(icon_name='dialog-information-symbolic'))
         self.pathtype_info_button.add_css_class('circular')
         self.pathtype_info_button.add_css_class('flat')
+        # 说明显示开关：按下态表达说明可见。此前 tooltip/LABEL 全缺——纯图标
+        # 按钮读屏无声（§4.3）；tooltip 与无障碍名复用同一文案。
+        self.pathtype_info_button.set_tooltip_text(_('Path type explanation'))
+        self.pathtype_info_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Path type explanation')])
 
         box = Gtk.CenterBox()
         box.set_orientation(Gtk.Orientation.HORIZONTAL)

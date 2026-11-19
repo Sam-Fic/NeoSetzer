@@ -153,10 +153,13 @@ class StructureSectionView(structure_widget.StructureWidget):
             except TypeError:
                 pass
         # 暴露展开/收起状态给屏幕阅读器（仅对有子节点的行有意义）。
-        expanded_prop = getattr(Gtk.AccessibleProperty, 'EXPANDED', None)
-        if expanded_prop is not None and has_children:
+        # 注意：EXPANDED 是 AccessibleState 的成员而非 Property（GTK 4 实测：
+        # AccessibleProperty 里没有它），用错枚举时 getattr 拿到 None 会被
+        # 防御分支静默吞掉——树项的展开状态从未真正暴露。
+        expanded_state = getattr(Gtk.AccessibleState, 'EXPANDED', None)
+        if expanded_state is not None and has_children:
             try:
-                row.update_property(expanded_prop, expanded)
+                row.update_state(expanded_state, expanded)
             except (TypeError, ValueError):
                 pass
         # Right-click context menu: attach GestureClick with button=3 (secondary)

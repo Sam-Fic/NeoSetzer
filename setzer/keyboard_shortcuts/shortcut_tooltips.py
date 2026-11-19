@@ -25,6 +25,11 @@
 - 监听 settings 的 'settings_changed'（keyboard_shortcuts 段），
   用户改键后所有已注册控件的 tooltip 立即刷新；
 - 通过弱引用持有控件，随文档关闭等场景自动失效，不产生泄漏。
+
+顺带补无障碍名：纯图标按钮只有 tooltip，屏幕阅读器读不出用途
+（docs/ui-guidelines.md §4.3）。_apply 统一给「无可见文字」的控件
+设置 LABEL = base_text——与 tooltip 复用同一 msgid，不新增翻译条目；
+改键刷新路径（_on_settings_changed → _apply）同样覆盖。
 '''
 
 import weakref
@@ -95,6 +100,13 @@ def _apply(widget, base_text, action_names):
         widget.set_tooltip_text(base_text + ' (' + ' / '.join(labels) + ')')
     else:
         widget.set_tooltip_text(base_text)
+    # 纯图标按钮补无障碍名（§4.3）：LABEL 复用同一 base_text，避免新增
+    # msgid。有可见文字的按钮以可见文字为准，不覆盖——get_label() 非空
+    # 即文字按钮；get_label() 为 None/''（icon 按钮）或方法不存在
+    # （Gtk.MenuButton 没有 label 属性）时按 icon-only 处理。
+    get_label = getattr(widget, 'get_label', None)
+    if get_label is None or not get_label():
+        widget.update_property([Gtk.AccessibleProperty.LABEL], [base_text])
 
 
 def _prune():

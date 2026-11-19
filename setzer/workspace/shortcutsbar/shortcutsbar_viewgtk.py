@@ -124,6 +124,10 @@ class ShortcutsBar(Gtk.Box):
         self.overflow_button.set_icon_name('view-more-symbolic')
         self.overflow_button.add_css_class('flat')
         self.overflow_button.set_tooltip_text(_('More options'))
+        # 不走 shortcut_tooltips.set_tooltip 的 icon-only MenuButton：无障碍名
+        # 单独补（LABEL 复用同一 tooltip 文案，§4.3 不新增 msgid）。
+        self.overflow_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('More options')])
         self.overflow_button.set_visible(False)  # 宽时隐藏
         self.overflow_button.set_margin_start(6)
 

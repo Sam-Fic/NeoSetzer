@@ -147,6 +147,7 @@ class HelpPanelView(Gtk.Box):
         self.result_count_label = Gtk.Label()
         self.result_count_label.set_xalign(0)
         self.result_count_label.set_margin_top(6)
+        # 2px：caption 小字相对正文左缘的光学缩进（小字号补偿，§2.2）。
         self.result_count_label.set_margin_start(2)
         self.result_count_label.add_css_class('dim-label')
         self.result_count_label.set_visible(False)
@@ -227,6 +228,8 @@ class HelpPanelView(Gtk.Box):
             self.js_info_button.set_icon_name('dialog-information-symbolic')
             self.js_info_button.set_tooltip_text(_('JavaScript is disabled'))
             self.js_info_button.add_css_class('flat')
+            self.js_info_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('JavaScript is disabled')])
 
             js_popover = Gtk.Popover()
             js_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -307,9 +310,10 @@ class SearchResultView(Adw.ActionRow):
 
     def __init__(self, data):
         Adw.ActionRow.__init__(self)
-        self.set_can_focus(False)
         # Adw.ActionRow 默认 activatable=False（继承 PreferencesRow），点击不会
         # 发射 'activated' 信号，导致结果项无法跳转。显式开启可点击激活。
+        # 行保持可聚焦（不设 set_can_focus(False)）：键盘 Tab/方向键须能到达
+        # 结果行并以 Enter 触发 activated——点击跳转必须有键盘等价路径（§4.3）。
         self.set_activatable(True)
         self.set_use_markup(True)
         # title-lines/subtitle-lines = 0 表示不限制行数，Adwaita 会长文本自动换行；

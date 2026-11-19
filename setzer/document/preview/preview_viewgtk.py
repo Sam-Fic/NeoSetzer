@@ -52,7 +52,9 @@ class PageIndicatorButton(Gtk.Button):
         self.add_css_class('heading')
         # 16 个按钮不参与 Tab 焦点循环（用户不需要键盘 focus 它们）。
         self.set_can_focus(False)
-        self.set_tooltip_text(_('Scroll this page to the top'))
+        # tooltip / 无障碍名不在这里设：未分配页码的按钮不会 reveal（调用方
+        # 先 set_page_number 再 set_reveal_child），语义文案随页码在
+        # set_page_number 里更新，让每个徽章可区分。
         self._label = Gtk.Label()
         self._label.set_label('1')
         self.set_child(self._label)
@@ -63,9 +65,15 @@ class PageIndicatorButton(Gtk.Button):
 
         注意要按这个顺序：先改 _page_number 再 set_text。万一 set_text
         触发了重新布局导致 draw 在老 _page_number 上画了错误数字，
-        设置 _page_number 在前可避免这种情况。'''
+        设置 _page_number 在前可避免这种情况。
+
+        tooltip 与无障碍名带页码：固定文案「Scroll this page to the top」
+        对屏幕阅读器每个按钮听起来一样，带页码才能区分（§4.3）。'''
         self._page_number = page_number_1based
         self._label.set_text(str(page_number_1based))
+        accessible_text = _('Scroll page {} to the top').format(page_number_1based)
+        self.set_tooltip_text(accessible_text)
+        self.update_property([Gtk.AccessibleProperty.LABEL], [accessible_text])
 
     def get_page_number(self):
         return self._page_number

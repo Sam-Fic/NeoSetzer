@@ -198,6 +198,8 @@ class SearchBar(Gtk.SearchBar):
         self.replace_history_button.set_can_focus(True)
         self.replace_history_button.add_css_class('flat')
         self.replace_history_button.set_tooltip_text(_('Replacement history'))
+        self.replace_history_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Replacement history')])
         self.replace_history_popup = SearchHistoryPopup()
         self.replace_history_popup.set_parent(self.replace_history_button)
         self.replace_history_button.connect('clicked', self._on_replace_history_button_clicked)
@@ -230,7 +232,8 @@ class SearchBar(Gtk.SearchBar):
         '''根据 entry 是否有内容动态调整计数提示的右外边距。
 
         Gtk.SearchEntry 仅在内容非空时显示右侧「清空」按钮；有按钮时把计数
-        提示右移避开重叠，无按钮（空内容）时仅保持 12px 不贴边。'''
+        提示右移避开重叠（36px 为非间距标度值：12px 常规右距 + 清空按钮
+        占位宽，锚点是清空按钮左缘），无按钮（空内容）时仅保持 12px 不贴边。'''
         if len(self.entry.get_text()) > 0:
             self.match_counter.set_margin_end(36)
         else:

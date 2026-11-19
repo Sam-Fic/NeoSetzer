@@ -58,11 +58,15 @@ class DocumentWizardView(DialogView):
         self.back_button.set_icon_name('go-previous-symbolic')
         self.back_button.add_css_class('flat')
         self.back_button.set_tooltip_text(_('Go to the previous wizard page'))
+        self.back_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Go to the previous wizard page')])
 
         # 使用 Gio.Menu + Gtk.PopoverMenu，与汉堡菜单使用同样的组件。
         self.template_actions_button = Gtk.MenuButton()
         self.template_actions_button.set_icon_name('view-more-symbolic')
         self.template_actions_button.set_tooltip_text(_('Template actions'))
+        self.template_actions_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Template actions')])
         self._wizard_actions = Gio.SimpleActionGroup()
         self.template_actions_button.insert_action_group(
             'wizard', self._wizard_actions)

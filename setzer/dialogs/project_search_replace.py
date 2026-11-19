@@ -58,6 +58,8 @@ class ProjectSearchReplaceDialog:
         self.preview_button.set_icon_name('view-paged-symbolic')
         self.preview_button.add_css_class('flat')
         self.preview_button.set_tooltip_text(_('Preview replacements'))
+        self.preview_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Preview replacements')])
         self.preview_button.connect('clicked', self._on_preview)
         headerbar.pack_end(self.preview_button)
         self.apply_button = Gtk.Button.new_with_mnemonic(_('_Apply replacements'))
