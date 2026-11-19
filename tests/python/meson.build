@@ -102,6 +102,7 @@ foreach t : [
   ['test_preview_magnifier_lifecycle', 'test_preview_magnifier_lifecycle.py'],
   ['test_preview_no_flash_on_rebuild', 'test_preview_no_flash_on_rebuild.py'],
   ['test_preview_page_cache', 'test_preview_page_cache.py'],
+  ['test_pdf_preview_window_reparent', 'test_pdf_preview_window_reparent.py'],
   ['test_preview_pdf_bootstrap', 'test_preview_pdf_bootstrap.py'],
   ['test_preview_resize_drawing', 'test_preview_resize_drawing.py'],
   ['test_preview_scheduling', 'test_preview_scheduling.py'],

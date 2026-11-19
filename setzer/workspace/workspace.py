@@ -1406,6 +1406,11 @@ class Workspace(Observable):
             stack.remove(panel)
         except Exception:
             pass
+        # 移除可能失败（面板这时已不在 stack 里，或 stack 状态异常）。
+        # 面板带着父控件时 append 只会触发 GTK 警告并被静默丢弃，
+        # 独立窗口就整片空白——先把父子关系彻底断开。
+        if panel.get_parent() is not None:
+            panel.unparent()
         # 侧边栏切到 help：预览已弹出，侧栏只保留帮助（无 status page）。
         # 仅当用户当前在看 preview 时才切（若已在看 help 则不动）。
         if current_visible == 'preview':
@@ -1432,6 +1437,9 @@ class Workspace(Observable):
             self.presenter.update_preview_help_visibility(False)
 
         self.pdf_preview_window.present()
+        # map 之后立刻再排一次布局/重绘：跨 surface 搬移后子控件可能停在
+        # 只画背景的空白帧（分数缩放、窗口首帧未 map 完成时最容易出现）。
+        self.pdf_preview_window.force_relayout()
         self.add_change_code('preview_pop_state_changed', True)
 
     def pop_in_preview(self):
@@ -1449,6 +1457,10 @@ class Workspace(Observable):
 
         # reparent 回 preview_help_stack 的 'preview' 槽位。
         stack = self.main_window.preview_help_stack
+        # 同 pop_out：带父控件的 add_named 会被 GTK 静默丢弃，先断开。
+        if panel.get_parent() is not None:
+            panel.unparent()
+        panel.set_visible(True)
         try:
             stack.add_named(panel, 'preview')
         except Exception:

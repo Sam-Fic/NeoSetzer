@@ -79,8 +79,11 @@ class PdfPreviewWindow(Adw.Window):
         # 避免重复添加 timeout 回调：当用户快速切换时。
         self._zoom_update_timeout_id = None
 
-        # 关窗 = 收回，而非销毁。返回 True 阻止默认 destroy。
+        # 关窗 = 收回，而非销毁。返回 True 阻止 destroy。
         self.connect('close-request', self._on_close_request)
+        # 每次 map（present）后重新布局/缩放：首帧 alloc 有效后再算一遍，
+        # 不依赖固定 50ms 延时（慢机器/分数缩放下可能来不及）。
+        self.connect('map', self._on_map)
 
         # 跟踪活动文档切换：重连 sync 信号 + 更新标题。
         # 仅在弹出状态下生效（_on_active_doc_changed 内判断）。
@@ -112,6 +115,11 @@ class PdfPreviewWindow(Adw.Window):
     def set_panel(self, panel):
         '''把 preview_panel reparent 进本窗口内容区，并连接 sync 信号。'''
         self._panel = panel
+        if panel.get_parent() is not None:
+            panel.unparent()
+        panel.set_visible(True)
+        panel.set_hexpand(True)
+        panel.set_vexpand(True)
         self.content_box.append(panel)
         self._connect_active_preview()
         # 延迟调用 update_dynamic_zoom_levels，让 GTK 先完成尺寸分配。
@@ -157,8 +165,15 @@ class PdfPreviewWindow(Adw.Window):
 
         # 重置重试计数
         self._zoom_retry_count = 0
+        # layout 为 None 时 update_dynamic_zoom_levels 直接返回，DrawingArea
+        # 的 draw 也会早退 → 独立窗口只剩一张空白卡片。主动补建一次布局。
+        if doc_preview.layout is None:
+            doc_preview.setup_layout_and_zoom_levels()
         zoom_manager.update_dynamic_zoom_levels()
-        
+        # 新尺寸下的画布/页面纹理必须重绘，否则可能停在旧帧或空白帧。
+        view.queue_resize()
+        view.content.queue_draw()
+
         # 专门为 fit_to_text_width 模式做额外处理：
         # 延迟后强制重新应用一次，确保缩放比例和水平居中都正确
         if zoom_manager.zoom_mode == 'fit_to_text_width':
@@ -197,16 +212,29 @@ class PdfPreviewWindow(Adw.Window):
     def take_panel(self):
         '''把 preview_panel 从本窗口取回（交还侧边栏），断开 sync 信号。'''
         self._disconnect_active_preview()
-        if self._panel is not None:
-            try:
-                self.content_box.remove(self._panel)
-            except Exception:
-                pass
+        panel = self._panel
+        if panel is not None:
+            if panel.get_parent() is not None:
+                panel.unparent()
             self._panel = None
+        return panel
 
     def schedule_zoom_update(self):
         '''公开方法：安排缩放更新（用于 pop_in_preview 等场景）。'''
         self._schedule_zoom_update()
+
+    def force_relayout(self):
+        # Reparent across surfaces: force a fresh layout and redraw so the
+        # panel never stays on a background-only blank frame.
+        if self._panel is None:
+            return
+        self._panel.queue_resize()
+        self._panel.queue_draw()
+
+    def _on_map(self, window):
+        self.force_relayout()
+        self._schedule_zoom_update()
+        return False
 
     def _on_close_request(self, window):
         # 关窗 → 收回到侧边栏。pop_in_preview 会把 panel 取回并隐藏本窗口。
