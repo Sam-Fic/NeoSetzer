@@ -554,7 +554,10 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         else:
             self.no_interpreter_note = _('No LaTeX interpreter found. For instructions on installing LaTeX see <a href="https://en.wikibooks.org/wiki/LaTeX/Installation">https://en.wikibooks.org/wiki/LaTeX/Installation</a>')
         self.tectonic_note = _('Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href="https://tectonic-typesetting.github.io/tectonic/">Tectonic documentation</a>).')
-        self.phitex_note = _('PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX\u2019s, but LuaLaTeX is not supported yet. Editing stays instant only while a PhiTeX session is running; without one, use another interpreter for the fastest full rebuilds.')
+        # 组级说明只留两条用户决策需要的事实（fixpoint → latexmk 选项不适用；
+        # LuaLaTeX 不支持）。"session 之外编辑不再即时"属运行时观感，四句段落
+        # 做说明文字超出 HIG 对描述长度的预期，删。
+        self.phitex_note = _('PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX\u2019s, but LuaLaTeX is not supported yet.')
 
         self.option_latex_interpreter = Adw.ComboRow()
         self.option_latex_interpreter.set_title(_('Interpreter'))
@@ -570,6 +573,10 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         self.copy_phitex_prompt_button.set_icon_name('edit-copy-symbolic')
         self.copy_phitex_prompt_button.set_valign(Gtk.Align.CENTER)
         self.copy_phitex_prompt_button.set_tooltip_text(_('Copy the installation instructions to the clipboard'))
+        # 此按钮是行的 activatable widget，读屏对该行的朗读名依赖它（§4.3）。
+        self.copy_phitex_prompt_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Copy the installation instructions to the clipboard')])
         self.install_phitex_row.add_suffix(self.copy_phitex_prompt_button)
         self.install_phitex_row.set_activatable_widget(self.copy_phitex_prompt_button)
         # 同上：检测结果回来之前先藏起来。
@@ -595,7 +602,9 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
 
         self.phitex_upgrade_row = Adw.ActionRow()
         self.phitex_upgrade_row.set_title(_('Upgrade to the latest release'))
-        self.phitex_upgrade_row.set_subtitle(_('PhiTeX downloads and verifies its own release, then replaces its binary by rename. NeoSetzer only runs the command.'))
+        # "replaces its binary by rename" 是实现细节；用户关心谁下载、谁验证、
+        # 应用本身做什么。
+        self.phitex_upgrade_row.set_subtitle(_('PhiTeX downloads and verifies its own release. NeoSetzer only runs the command.'))
         self.phitex_upgrade_button = Gtk.Button(label=_('Upgrade'))
         self.phitex_upgrade_button.set_valign(Gtk.Align.CENTER)
         self.phitex_upgrade_row.add_suffix(self.phitex_upgrade_button)
@@ -609,7 +618,10 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         self.add(group_options)
 
         self.option_cleanup_build_files = Adw.SwitchRow()
-        self.option_cleanup_build_files.set_title(_('Automatically remove helper files (.log, .dvi, …) after building .pdf.'))
+        # 整句做标题会换行、破坏行高一致；标题用动宾短语，文件清单下沉副标题。
+        self.option_cleanup_build_files.set_title(_('Remove helper files after building'))
+        self.option_cleanup_build_files.set_subtitle(_(
+            'The .log, .dvi and similar helper files are deleted once the PDF is built.'))
         group_options.add(self.option_cleanup_build_files)
 
         self.option_use_latexmk = Adw.SwitchRow()
@@ -627,7 +639,8 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         # 影子 synctex：phitex 呈现 + 原生引擎后台精确定位。仅对 PhiTeX
         # 有意义，初值隐藏，与 option_phitex_live_build 同条件显示。
         self.option_phitex_shadow_synctex = Adw.SwitchRow()
-        self.option_phitex_shadow_synctex.set_title(_('Precise SyncTeX in Background'))
+        # 行标题统一 sentence case（旧串 "…in Background" 大小写不齐）。
+        self.option_phitex_shadow_synctex.set_title(_('Precise SyncTeX in the background'))
         self.option_phitex_shadow_synctex.set_subtitle(_('While PhiTeX live preview is active, regenerate SyncTeX with the native TeX engine in the background for accurate jumping. Jumping is briefly unavailable while it updates.'))
         self.option_phitex_shadow_synctex.set_visible(False)
         group_options.add(self.option_phitex_shadow_synctex)
@@ -637,7 +650,9 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         # 生效的宏包才能工作；最终产物仍是 PDF，预览不受影响。
         self.option_output_chain = Adw.ComboRow()
         self.option_output_chain.set_title(_('Output chain'))
-        self.option_output_chain.set_subtitle(_('PDF via PostScript runs latex → dvips → ps2pdf. Needed by PSTricks/psfrag; your interpreter choice is ignored on this route.'))
+        # 副标题只描述选中第二档才发生的事，选 "Direct PDF" 时读起来是错位的；
+        # 改为两档通用的适用条件，链路细节已在第二档选项标签里。
+        self.option_output_chain.set_subtitle(_('Needed by PSTricks and psfrag; the interpreter choice is bypassed on this route.'))
         output_chain_model = Gtk.StringList()
         for label in [_('Direct PDF'),
                       _('PDF via PostScript (DVI → dvips → ps2pdf)')]:
@@ -652,7 +667,9 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
 
         self.option_build_timer = Adw.ComboRow()
         self.option_build_timer.set_title(_('Elapsed-time counter on the build button'))
-        self.option_build_timer.set_subtitle(_('The counter only moves in whole seconds, so a build that finishes sooner never shows a number worth reading.'))
+        # 旧副标题解释"为什么 auto 存在"（开发者理由），却没说明默认档 auto
+        # 的语义；改为描述 auto 实际做什么。
+        self.option_build_timer.set_subtitle(_('Shown automatically for slower interpreters; hidden with PhiTeX live builds.'))
         build_timer_model = Gtk.StringList()
         for label in [_('Show once the build passes a second'),
                       _('Always show'),
@@ -690,17 +707,19 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
               'Disable to avoid interruptions while typing.'))
         group_auto_build.add(self.option_auto_build_autoshow_errors)
 
+        # 组标题与行标题原是 "Automatically show build log" / "Show build log"
+        # 两层复述：改为无标题组 + 单行承载完整语义；选项去掉上游遗留的前导
+        # ".. " 怪格式。
         group_build_log = Adw.PreferencesGroup()
-        group_build_log.set_title(_('Automatically show build log'))
         self.add(group_build_log)
 
         self.option_autoshow_build_log = Adw.ComboRow()
-        self.option_autoshow_build_log.set_title(_('Show build log'))
+        self.option_autoshow_build_log.set_title(_('Automatically show build log'))
         autoshow_model = Gtk.StringList()
-        for label in [_('.. only when errors occurred.'),
-                      _('.. on errors and warnings.'),
-                      _('.. on errors, warnings and badboxes.'),
-                      _('.. never.')]:
+        for label in [_('Only when errors occur'),
+                      _('On errors and warnings'),
+                      _('On errors, warnings and badboxes'),
+                      _('Never')]:
             autoshow_model.append(label)
         self.option_autoshow_build_log.set_model(autoshow_model)
         group_build_log.add(self.option_autoshow_build_log)
@@ -719,6 +738,8 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         shell_warning_box.set_margin_bottom(4)
         shell_warning_icon = Gtk.Image.new_from_icon_name('dialog-warning-symbolic')
         shell_warning_icon.set_valign(Gtk.Align.START)
+        # 2px：图标盒顶与多行 wrap 文字首行顶的视觉对齐（图标盒比字体 em 高，
+        # §2.2 光学例外）。
         shell_warning_icon.set_margin_top(2)
         shell_warning_icon.add_css_class('warning')
         shell_warning_label = Gtk.Label()

@@ -667,8 +667,9 @@ class PageGeneralView(Adw.PreferencesPage):
         self.add(group_startup)
 
         self.startup_combo = Adw.ComboRow()
+        # 行标题 "Open" + 组标题 "On startup" 已表达完整语义，两个选项
+        # （Last session / Empty workspace）本身就是说明，不再配副标题复述。
         self.startup_combo.set_title(_('Open'))
-        self.startup_combo.set_subtitle(_('Whether to restore the previous session or start with an empty workspace.'))
         startup_model = Gtk.StringList()
         for name, _value in STARTUP_MODES:
             startup_model.append(_(name))
@@ -697,15 +698,14 @@ class PageGeneralView(Adw.PreferencesPage):
         # 深浅色（recolor_pdf）。该值在 preview 工具栏有快速切换按钮，此处暴露
         # 为偏好以便持久化与重置。
         self.option_recolor_pdf = Adw.SwitchRow()
+        # 副标题与标题同一句话，纯复述，删（HIG：不为开关写复述性副标题）。
         self.option_recolor_pdf.set_title(_('Match PDF colors to theme'))
-        self.option_recolor_pdf.set_subtitle(
-            _('Recolor the PDF preview to match the light/dark theme.'))
         group_preview.add(self.option_recolor_pdf)
 
         self.option_preview_zoom = Adw.ComboRow()
+        # "Default zoom" 在 Preview 组内语境已完整，删副标题；四档模式的
+        # 差异说明保留在 tooltip（Fit width 与 Fit text width 不看说明分不清）。
         self.option_preview_zoom.set_title(_('Default zoom'))
-        self.option_preview_zoom.set_subtitle(
-            _('Initial zoom mode for the PDF preview.'))
         self.option_preview_zoom.set_tooltip_text(_(
             'Default zoom mode for the PDF preview. '
             'Fit width fills the preview width; Fit text width fits the text column; '
@@ -768,13 +768,15 @@ class PageGeneralView(Adw.PreferencesPage):
 
         self.option_tool = Adw.ComboRow()
         self.option_tool.set_title(_('Active agent tool'))
-        self.option_tool.set_subtitle(_('Which CLI to invoke for AI features'))
+        self.option_tool.set_subtitle(_('Used by AI Fix and the agent terminal'))
         group_ai_main.add(self.option_tool)
 
         self.option_terminal_cmd = Adw.EntryRow()
-        self.option_terminal_cmd.set_title(_('Terminal command (optional)'))
+        # "(optional)" 括号升级为常显副标题；检测链细节保留在 tooltip。
+        self.option_terminal_cmd.set_title(_('Terminal command'))
+        self.option_terminal_cmd.set_subtitle(_('Leave empty to detect automatically.'))
         self.option_terminal_cmd.set_tooltip_text(
-            _('Leave empty to auto-detect (gnome-terminal / xterm / konsole / …). '
+            _('Auto-detected terminal examples: gnome-terminal / xterm / konsole / …. '
               'Under Flatpak, flatpak-spawn --host is added automatically.'))
         group_ai_main.add(self.option_terminal_cmd)
 
@@ -796,11 +798,13 @@ class PageGeneralView(Adw.PreferencesPage):
                                               'Click delete to revoke trust for a project.'))
         self.add(self.group_trusted)
 
-        # AI 设置独立重置按钮（通用页自身的 reset_button 不含 AI 项）
+        # AI 设置独立重置按钮（通用页自身的 reset_button 不含 AI 项）。
+        # 标签写明范围：页面上还有第二个 "Reset to defaults"（本页项），
+        # 两个同名按钮不同范围会让人分不清哪个重置什么。
         group_ai_reset = Adw.PreferencesGroup()
         self.add(group_ai_reset)
 
-        self.ai_reset_button = Gtk.Button(label=_('Reset to defaults'))
+        self.ai_reset_button = Gtk.Button(label=_('Reset AI settings'))
         self.ai_reset_button.set_halign(Gtk.Align.END)
         self.ai_reset_button.add_css_class('destructive-action')
         group_ai_reset.add(self.ai_reset_button)

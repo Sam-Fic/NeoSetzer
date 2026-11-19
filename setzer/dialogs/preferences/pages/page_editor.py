@@ -325,10 +325,9 @@ class PageEditor(object):
         self.view.trigger_button.connect('clicked', self.on_trigger_capture_start)
 
         # 补全弹窗导航键
-        for setting_name, title, subtitle in self._nav_key_rows():
+        for setting_name, title in self._nav_key_rows():
             row = Adw.ActionRow()
             row.set_title(title)
-            row.set_subtitle(subtitle)
             button = Gtk.Button()
             button.set_valign(Gtk.Align.CENTER)
             button.set_label(self._accel_label(self.settings.get_value('preferences', setting_name)))
@@ -339,20 +338,16 @@ class PageEditor(object):
             self.view.nav_buttons[setting_name] = button
 
     # ---- 自动补全设置（从 page_autocomplete 移入）----
+    # 行标题即完整语义（组描述已交代这是补全弹窗内的导航键），不再配
+    # 复述性副标题。
     def _nav_key_rows(self):
         return [
-            ('autocomplete_previous', _('Select previous suggestion'),
-             _('Move the selection up one item in the completion popup.')),
-            ('autocomplete_next', _('Select next suggestion'),
-             _('Move the selection down one item in the completion popup.')),
-            ('autocomplete_previous_page', _('Previous page'),
-             _('Scroll the completion popup up one page.')),
-            ('autocomplete_next_page', _('Next page'),
-             _('Scroll the completion popup down one page.')),
-            ('autocomplete_accept', _('Accept suggestion'),
-             _('Insert the currently selected completion.')),
-            ('autocomplete_cancel', _('Dismiss popup'),
-             _('Close the completion popup without inserting anything.')),
+            ('autocomplete_previous', _('Select previous suggestion')),
+            ('autocomplete_next', _('Select next suggestion')),
+            ('autocomplete_previous_page', _('Previous page')),
+            ('autocomplete_next_page', _('Next page')),
+            ('autocomplete_accept', _('Accept suggestion')),
+            ('autocomplete_cancel', _('Dismiss popup')),
         ]
 
     def _accel_label(self, accel):
@@ -839,8 +834,6 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_use_system_font = Adw.SwitchRow()
         self.option_use_system_font.set_title(_('Use the system fixed width font'))
         self.option_use_system_font.set_subtitle(font_string)
-        self.option_use_system_font.set_tooltip_text(
-            _('When enabled, the font set below is overridden.'))
         group_font.add(self.option_use_system_font)
 
         self.font_chooser_button = Gtk.FontDialogButton(dialog=Gtk.FontDialog())
@@ -848,8 +841,6 @@ class PageEditorView(Adw.PreferencesPage):
         self.font_chooser_row = Adw.ActionRow()
         self.font_chooser_row.set_title(_('Set editor font'))
         self.font_chooser_row.add_suffix(self.font_chooser_button)
-        self.font_chooser_row.set_tooltip_text(
-            _('Only active when "Use the system fixed width font" is off.'))
         group_font.add(self.font_chooser_row)
 
         self.line_spacing_spin = Adw.SpinRow()
@@ -872,9 +863,10 @@ class PageEditorView(Adw.PreferencesPage):
         self.tab_width_row.set_title(_('Tab width'))
         adjustment = Gtk.Adjustment(value=1, lower=1, upper=8, step_increment=1)
         self.tab_width_row.set_adjustment(adjustment)
-        self.tab_width_row.set_tooltip_text(_(
-            'Number of spaces a tab character occupies '
-            'when "Insert spaces instead of tabs" is enabled.'))
+        # tab_width 同时决定已有 tab 字符的显示宽度与按 Tab 插入的缩进宽度
+        # （document_controller / document_presenter 两处读取），旧 tooltip 的
+        # "when spaces-instead-of-tabs enabled" 条件是错的。
+        self.tab_width_row.set_subtitle(_('Width of a tab character, in spaces.'))
         group_tab_stops.add(self.tab_width_row)
         self.tab_width_spinbutton = self.tab_width_row
 
@@ -886,10 +878,9 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.max_undo_levels_row = Adw.SpinRow()
         self.max_undo_levels_row.set_title(_('Maximum undo depth'))
-        self.max_undo_levels_row.set_subtitle(_('Maximum number of undo steps. 0 = unlimited.'))
-        self.max_undo_levels_row.set_tooltip_text(_(
-            'Lower values save memory for very large documents. '
-            '0 keeps an unlimited history.'))
+        # 首句与标题复述，只留补充信息（0 的含义 + 内存考量，原 tooltip 并入）。
+        self.max_undo_levels_row.set_subtitle(_(
+            '0 = unlimited. Lower values save memory for very large documents.'))
         adjustment_undo = Gtk.Adjustment(value=200, lower=0, upper=10000, step_increment=10)
         self.max_undo_levels_row.set_adjustment(adjustment_undo)
         group_undo.add(self.max_undo_levels_row)
@@ -900,7 +891,6 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_line_numbers = Adw.SwitchRow()
         self.option_show_line_numbers.set_title(_('Show line numbers'))
-        self.option_show_line_numbers.set_subtitle(_('Display line numbers in the editor gutter.'))
         group_line_numbers.add(self.option_show_line_numbers)
 
         group_right_margin = Adw.PreferencesGroup()
@@ -909,13 +899,12 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_right_margin = Adw.SwitchRow()
         self.option_show_right_margin.set_title(_('Show right margin guide'))
-        self.option_show_right_margin.set_subtitle(_('Display a vertical line at a fixed column.'))
         group_right_margin.add(self.option_show_right_margin)
 
         self.right_margin_position_row = Adw.SpinRow()
         self.right_margin_position_row.set_title(_('Right margin column'))
-        self.right_margin_position_row.set_subtitle(_('Column position for the right margin guide.'))
-        self.right_margin_position_row.set_tooltip_text(
+        # 80 列惯例原在 tooltip（不可发现），上提为常显副标题。
+        self.right_margin_position_row.set_subtitle(
             _('LaTeX documents are typically kept within 80 columns.'))
         adjustment_right_margin = Gtk.Adjustment(value=80, lower=40, upper=200, step_increment=1)
         self.right_margin_position_row.set_adjustment(adjustment_right_margin)
@@ -980,8 +969,6 @@ class PageEditorView(Adw.PreferencesPage):
         self.tikz_preview_delay_row = Adw.SpinRow()
         self.tikz_preview_delay_row.set_title(_('Delay before compiling (seconds)'))
         self.tikz_preview_delay_row.set_subtitle(_('Wait time after the last keystroke.'))
-        self.tikz_preview_delay_row.set_tooltip_text(
-            _('Values below three tenths of a second are clamped.'))
         adjustment_tikz_delay = Gtk.Adjustment(value=0.6, lower=0.3, upper=10.0, step_increment=0.1)
         self.tikz_preview_delay_row.set_adjustment(adjustment_tikz_delay)
         self.tikz_preview_delay_row.set_digits(1)
@@ -998,12 +985,10 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_highlight_matching_brackets = Adw.SwitchRow()
         self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
-        self.option_highlight_matching_brackets.set_subtitle(_('Highlight the bracket matching the one next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_brackets)
 
         self.option_highlight_matching_begin_end = Adw.SwitchRow()
         self.option_highlight_matching_begin_end.set_title(_('Highlight matching \\begin/\\end'))
-        self.option_highlight_matching_begin_end.set_subtitle(_('Highlight the environment matching the \\begin or \\end command next to the cursor.'))
         group_highlighting.add(self.option_highlight_matching_begin_end)
 
         # 拼写检查：pyenchant 后端；缺库或系统无词典时整组置灰。
@@ -1013,11 +998,10 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_spellchecking = Adw.SwitchRow()
         self.option_spellchecking.set_title(_('Check spelling as you type'))
+        # 首句复述标题已删；右键建议的提示原在 tooltip（不可发现），并入副标题。
         self.option_spellchecking.set_subtitle(_(
-            'Underline misspelled words in the text. '
-            'Commands, math and verbatim regions are skipped.'))
-        self.option_spellchecking.set_tooltip_text(
-            _('Right-click a marked word for suggestions.'))
+            'Commands, math and verbatim regions are skipped. '
+            'Right-click a marked word for suggestions.'))
         group_spellchecking.add(self.option_spellchecking)
 
         self.spellchecking_language_row = Adw.ComboRow()
@@ -1050,12 +1034,12 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_line_endings = Adw.SwitchRow()
         self.option_show_line_endings.set_title(_('Show line endings'))
-        self.option_show_line_endings.set_subtitle(_('Display line ending characters (¶) at the end of each line.'))
+        self.option_show_line_endings.set_subtitle(_('Show ¶ at the end of each line.'))
         group_visible_chars.add(self.option_show_line_endings)
 
         self.option_show_whitespace = Adw.SwitchRow()
         self.option_show_whitespace.set_title(_('Show whitespace'))
-        self.option_show_whitespace.set_subtitle(_('Display whitespace characters (· for spaces, → for tabs).'))
+        self.option_show_whitespace.set_subtitle(_('Show · for spaces and → for tabs.'))
         group_visible_chars.add(self.option_show_whitespace)
 
         # 界面元素显隐：快捷键栏与多文档标签栏（与上方显示类设置相邻）
@@ -1065,7 +1049,6 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_shortcuts_bar = Adw.SwitchRow()
         self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
-        self.option_show_shortcuts_bar.set_subtitle(_('Display the shortcuts bar above the editor.'))
         group_shortcuts_bar.add(self.option_show_shortcuts_bar)
 
         group_tab_bar = Adw.PreferencesGroup()
@@ -1074,9 +1057,9 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_show_tab_bar = Adw.SwitchRow()
         self.option_show_tab_bar.set_title(_('Show tab bar'))
-        self.option_show_tab_bar.set_subtitle(_('Display the multi-document tab bar above the shortcuts bar.'))
-        self.option_show_tab_bar.set_tooltip_text(_(
-            'When enabled, a single open document hides the bar automatically.'))
+        # 非显然的行为（单文档自动隐藏）原在 tooltip，上提为常显副标题。
+        self.option_show_tab_bar.set_subtitle(
+            _('Hidden automatically when only one document is open.'))
         group_tab_bar.add(self.option_show_tab_bar)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
@@ -1103,10 +1086,12 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_auto_reload_on_external_change = Adw.SwitchRow()
         self.option_auto_reload_on_external_change.set_title(_('Automatically reload changed files'))
+        # 旧 tooltip "Unsaved changes in the editor will be lost." 与实际行为
+        # 相反：document_controller._can_auto_reload_silently 对有未保存修改的
+        # 文档回退对话框，绝不静默覆盖。文案写真实行为。
         self.option_auto_reload_on_external_change.set_subtitle(
-            _('Reload files modified by external applications without prompting'))
-        self.option_auto_reload_on_external_change.set_tooltip_text(
-            _('Unsaved changes in the editor will be lost.'))
+            _('Reload files modified by external applications without prompting. '
+              'Files with unsaved changes always ask first.'))
         group_external_changes.add(self.option_auto_reload_on_external_change)
 
         # Git 集成（#216 gutter diff + #443 侧栏面板）：总开关关闭后
@@ -1141,10 +1126,9 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_default_encoding = Adw.ComboRow()
         self.option_default_encoding.set_title(_('Default encoding'))
+        # "Default" 已暗示用于新建文档，删复述副标题；推荐值上提为常显副标题。
         self.option_default_encoding.set_subtitle(
-            _('Encoding used when creating new documents'))
-        self.option_default_encoding.set_tooltip_text(_(
-            'UTF-8 is the recommended choice for cross-platform collaboration.'))
+            _('UTF-8 is the recommended choice for cross-platform collaboration.'))
         encoding_list = Gtk.StringList.new([
             _('UTF-8'),
             _('ISO-8859-1'),
@@ -1156,8 +1140,6 @@ class PageEditorView(Adw.PreferencesPage):
 
         self.option_default_line_ending = Adw.ComboRow()
         self.option_default_line_ending.set_title(_('Default line ending'))
-        self.option_default_line_ending.set_subtitle(
-            _('Line ending format for new documents'))
         line_ending_list = Gtk.StringList.new([
             _('LF (Unix)'),
             _('CRLF (Windows)'),
@@ -1220,8 +1202,12 @@ class PageEditorView(Adw.PreferencesPage):
         group_brackets.add(self.option_bracket_completion)
 
         self.option_selection_brackets = Adw.SwitchRow()
-        self.option_selection_brackets.set_title(_('Add brackets to selected text, instead of replacing it with them'))
-        self.option_selection_brackets.set_subtitle(_('Wrap the selected text in brackets, keeping it selected.'))
+        # 旧标题 "Add brackets to selected text, instead of replacing it with
+        # them"（上游遗留）极难解析：改为动宾短语 + 场景副标题。
+        self.option_selection_brackets.set_title(_('Wrap selection in brackets'))
+        self.option_selection_brackets.set_subtitle(_(
+            'When you type an opening bracket with text selected, wrap the '
+            'selection instead of replacing it.'))
         group_brackets.add(self.option_selection_brackets)
 
         self.option_tab_jump_brackets = Adw.SwitchRow()
@@ -1253,29 +1239,22 @@ class PageEditorView(Adw.PreferencesPage):
         self.option_multicursor.set_expanded(True)
         group_multicursor.add(self.option_multicursor)
 
+        # 子开关标题即完整手势描述，复述性副标题一律删（8 行 × 一句改写只会
+        # 增加扫描负担）。
         multicursor_rows = [
-            ('multicursor_alt_click', _('Alt+Click to add or remove a cursor'), _(
-                'Add a cursor at the clicked position, or remove an existing one.')),
-            ('multicursor_alt_drag', _('Alt+Drag column selection'), _(
-                'Drag to create a column (rectangular) selection.')),
-            ('multicursor_select_next', _('Select next occurrence'), _(
-                'Select the next match of the selected text or word.')),
-            ('multicursor_select_all', _('Select all occurrences'), _(
-                'Select every match of the selected text or word.')),
-            ('multicursor_add_above', _('Add cursor above'), _(
-                'Add a cursor on the line above each cursor.')),
-            ('multicursor_add_below', _('Add cursor below'), _(
-                'Add a cursor on the line below each cursor.')),
-            ('multicursor_escape_clear', _('Escape clears extra cursors'), _(
-                'Press Escape to remove all additional cursors.')),
-            ('multicursor_multiedit', _('Edit at all cursors'), _(
-                'Typing, deleting and indenting apply to every cursor.')),
+            ('multicursor_alt_click', _('Alt+Click to add or remove a cursor')),
+            ('multicursor_alt_drag', _('Alt+Drag column selection')),
+            ('multicursor_select_next', _('Select next occurrence')),
+            ('multicursor_select_all', _('Select all occurrences')),
+            ('multicursor_add_above', _('Add cursor above')),
+            ('multicursor_add_below', _('Add cursor below')),
+            ('multicursor_escape_clear', _('Escape clears extra cursors')),
+            ('multicursor_multiedit', _('Edit at all cursors')),
         ]
         self.multicursor_switches = dict()
-        for setting_name, title, subtitle in multicursor_rows:
+        for setting_name, title in multicursor_rows:
             switch = Adw.SwitchRow()
             switch.set_title(title)
-            switch.set_subtitle(subtitle)
             self.option_multicursor.add_row(switch)
             self.multicursor_switches[setting_name] = switch
 

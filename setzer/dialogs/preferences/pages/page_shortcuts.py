@@ -182,70 +182,28 @@ class PageShortcuts(object):
         return self._action_titles.get(action_name, action_name)
 
     def get_action_description(self, action_name):
+        '''行副标题：只保留有信息增量的描述。
+
+        纯复述标题的条目（quit → "Quit the application" 之类）一律删：73 行
+        全配副标题只会稀释真正需要解释的那几条（build 与 save_and_build 的
+        区别、forward_sync 的方向、multi-cursor 标注等），也拖慢整页扫描。
+        标题本身仍是搜索入口，删副标题不影响搜索命中。
+        '''
         if self._action_descriptions is None:
             self._action_descriptions = {
-                'new_document': _('Create a new LaTeX document'),
-                'open_document': _('Open an existing document'),
-                'save': _('Save the current document'),
-                'save_as': _('Save the active document with a new filename'),
-                'print': _('Print the active document'),
-                'close_document': _('Close the active document'),
-                'quit': _('Quit the application'),
-                'show_shortcuts': _('Show keyboard shortcuts dialog'),
-                'show_open_docs': _('Show list of open documents'),
-                'switch_document': _('Switch to another open document'),
-                'show_document_chooser': _('Show document chooser popover'),
-                'zoom_in': _('Zoom in the whole application'),
-                'zoom_out': _('Zoom out the whole application'),
-                'reset_zoom': _('Reset the application zoom to 100%'),
-                'find': _('Find text in document'),
-                'find_and_replace': _('Find and replace text'),
-                'find_next': _('Find next match'),
-                'find_previous': _('Find previous match'),
-                'help': _('Toggle help panel'),
-                'document_structure': _('Toggle document structure panel'),
-                'symbols': _('Toggle symbols panel'),
                 'save_and_build': _('Save and build PDF'),
                 'build': _('Build PDF without saving'),
                 'forward_sync': _('Sync PDF position to editor'),
+                'zoom_in': _('Zoom in the whole application'),
+                'zoom_out': _('Zoom out the whole application'),
+                'reset_zoom': _('Reset the application zoom to 100%'),
+                'help': _('Toggle help panel'),
+                'document_structure': _('Toggle document structure panel'),
+                'symbols': _('Toggle symbols panel'),
                 'build_log': _('Toggle build log panel'),
                 'preview': _('Toggle preview panel'),
                 'command_palette': _('Search and run application commands'),
-                'hamburger_menu': _('Show hamburger menu'),
-                'context_menu': _('Show context menu'),
-                'cut': _('Cut selected text'),
-                'copy': _('Copy selected text'),
-                'paste': _('Paste from clipboard'),
-                'undo': _('Undo last action'),
-                'redo': _('Redo last action'),
-                'select_all': _('Select all text'),
                 'toggle_comment': _('Comment/uncomment lines'),
-                'delete_line': _('Delete the current line'),
-                'duplicate_line': _('Duplicate the current line'),
-                'move_line_up': _('Move the current line up'),
-                'move_line_down': _('Move the current line down'),
-                'new_line': _('Insert new line'),
-                'bold': _('Insert bold text'),
-                'italic': _('Insert italic text'),
-                'underline': _('Insert underlined text'),
-                'typewriter': _('Insert typewriter text'),
-                'emphasized': _('Insert emphasized text'),
-                'quotation_marks': _('Insert quotation marks'),
-                'list_item': _('Insert list item'),
-                'environment': _('Insert environment'),
-                'inline_math': _('Insert inline math'),
-                'display_math': _('Insert display math'),
-                'equation': _('Insert equation'),
-                'subscript': _('Insert subscript'),
-                'superscript': _('Insert superscript'),
-                'fraction': _('Insert fraction'),
-                'left': _('Insert \\left'),
-                'right': _('Insert \\right'),
-                'show_preferences_dialog': _('Open the preferences dialog'),
-                'show_about_dialog': _('Show the about dialog'),
-                'close_all_documents': _('Close all open documents'),
-                'restore_session': _('Restore a previously saved session'),
-                'reopen_last_closed_document': _('Reopen the most recently closed document'),
                 'pin_tab': _('Pin or unpin the active document tab'),
                 'select_next_occurrence': _('Select the next occurrence of the selected text or word (multi-cursor)'),
                 'select_all_occurrences': _('Select all occurrences of the selected text or word (multi-cursor)'),
@@ -686,7 +644,6 @@ class PageShortcutsView(Adw.PreferencesPage):
 
         export_row = Adw.ActionRow()
         export_row.set_title(_('Export shortcuts'))
-        export_row.set_subtitle(_('Save keyboard shortcuts to a JSON file'))
         self.export_button = Gtk.Button(label=_('Export'))
         self.export_button.set_valign(Gtk.Align.CENTER)
         export_row.add_suffix(self.export_button)
@@ -694,7 +651,6 @@ class PageShortcutsView(Adw.PreferencesPage):
 
         import_row = Adw.ActionRow()
         import_row.set_title(_('Import shortcuts'))
-        import_row.set_subtitle(_('Load keyboard shortcuts from a JSON file'))
         self.import_button = Gtk.Button(label=_('Import'))
         self.import_button.set_valign(Gtk.Align.CENTER)
         import_row.add_suffix(self.import_button)
