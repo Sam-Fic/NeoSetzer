@@ -239,6 +239,8 @@ class PageEditor(object):
             self.settings.get_value('preferences', 'git_integration'))
         self.view.option_git_sidebar_panel.connect(
             'notify::active', self.on_switch_toggled, 'git_sidebar_panel')
+        # 总开关关闭时两个子开关置灰并说明原因（tooltip），见 _sync_git_sub_sensitivity。
+        self._sync_git_sub_sensitivity()
 
         self.view.auto_save_delay_row.set_property('value', self.settings.get_value('preferences', 'auto_save_delay'))
         self.view.auto_save_delay_row.connect('notify::value', self.preferences.spin_button_changed, 'auto_save_delay')
@@ -271,6 +273,7 @@ class PageEditor(object):
         self.view.font_chooser_button.set_font_desc(
             Pango.FontDescription.from_string(self.settings.get_value('preferences', 'font_string')))
         self.view.font_chooser_row.set_sensitive(not self.view.option_use_system_font.get_active())
+        self._sync_font_chooser_row()
         self.view.option_use_system_font.connect('notify::active', self.on_use_system_font_toggled)
         self.view.font_chooser_button.connect('notify::font-desc', self.on_font_set)
         self.view.line_spacing_spin.set_value(
@@ -398,6 +401,8 @@ class PageEditor(object):
             self._apply_preview_space_drawer()
         elif preference_name == 'tikz_live_preview':
             self._sync_tikz_preview_delay_sensitivity()
+        elif preference_name == 'git_integration':
+            self._sync_git_sub_sensitivity()
 
     def on_tikz_preview_delay_changed(self, spin_row, pspec):
         # 单位是秒（0.3–10.0，一位小数）：TikzPreview 侧按浮点读取。
@@ -405,9 +410,26 @@ class PageEditor(object):
                                 round(float(spin_row.get_property('value')), 2))
 
     def _sync_tikz_preview_delay_sensitivity(self):
-        '''总开关关闭时延迟输入无意义：置灰，避免用户调一个不起作用的旋钮。'''
-        self.view.tikz_preview_delay_row.set_sensitive(
-            self.view.option_tikz_live_preview.get_active())
+        '''总开关关闭时延迟输入无意义：置灰并写明原因，避免用户调一个不起作用的旋钮。'''
+        enabled = self.view.option_tikz_live_preview.get_active()
+        self.view.tikz_preview_delay_row.set_sensitive(enabled)
+        self.view.tikz_preview_delay_row.set_tooltip_text(
+            None if enabled else _('Live TikZ preview is turned off.'))
+
+    def _sync_git_sub_sensitivity(self):
+        '''Git 总开关关闭时两个子开关置灰并写明原因（HIG：禁用要解释为什么）。'''
+        enabled = self.view.option_git_integration.get_active()
+        for row in (self.view.option_git_gutter_diff, self.view.option_git_sidebar_panel):
+            row.set_sensitive(enabled)
+            row.set_tooltip_text(None if enabled else _('Git integration is turned off.'))
+
+    def _sync_font_chooser_row(self):
+        '''系统字体接管时字体选择行置灰，原因做成常显副标题而非 tooltip。'''
+        if self.view.option_use_system_font.get_active():
+            self.view.font_chooser_row.set_subtitle(
+                _('Disabled while the system fixed width font is used.'))
+        else:
+            self.view.font_chooser_row.set_subtitle('')
 
     def on_multicursor_master_toggled(self, expander, pspec):
         '''多光标总开关写回设置并联动子开关的可用状态。'''
@@ -498,6 +520,7 @@ class PageEditor(object):
     # ---- 字体（实时预览于 Appearance 组的预览 SourceView）----
     def on_use_system_font_toggled(self, switch, pspec):
         self.view.font_chooser_row.set_sensitive(not switch.get_active())
+        self._sync_font_chooser_row()
         self.settings.set_value('preferences', 'use_system_font', switch.get_active())
 
     def on_font_set(self, button, pspec=None):
@@ -707,6 +730,20 @@ class PageEditor(object):
             self.apply_preview_scheme()
 
     def on_reset_clicked(self, button):
+        # 与其余三页一致：重置前确认（这是批量不可逆操作，不能点了就抹）。
+        dialog = Adw.AlertDialog(
+            heading=_('Reset to defaults?'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('reset', _('Reset'))
+        dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        # 父窗口取偏好对话框：主窗口此刻被设置窗口盖住，确认框会出现在背后。
+        dialog.choose(self.preferences.view, None, self.on_reset_confirmed)
+
+    def on_reset_confirmed(self, dialog, result):
+        if dialog.choose_finish(result) != 'reset':
+            return
         defaults = self.settings.defaults['preferences']
         # editor_style_scheme 默认 '' = 跟随系统主题；写回后重建网格并刷新预览。
         ServiceLocator.set_style_scheme_name('')

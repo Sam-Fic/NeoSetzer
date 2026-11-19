@@ -13,6 +13,7 @@
 | `*.po` | 各语言的翻译文件 |
 | `sync-po.sh` | po 同步与校验脚本 |
 | `generate-potfiles.sh` | 重新生成 POTFILES 清单 |
+| `meson.build` | gettext 安装声明；`_ngettext` 复数 keyword（`--keyword=_ngettext:1,2`）在此定义 |
 
 `setzer` 是 gettext 域名和资源命名前缀，保留该名称以保持既有安装和翻译文件兼容性。
 
@@ -58,6 +59,16 @@ sed -i '/^"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;/d' po/setzer.pot
 - [ ] `./po/sync-po.sh --check` 全部通过
 - [ ] `po/setzer.pot` 已同步至最新（如改动了可翻译字符串）
 - [ ] 翻译由人工或大语言模型完成，禁用传统机器翻译引擎（Google 翻译、DeepL 等）
+
+## 批量修改译文
+
+脚本或手工批量改 `.po`（msgid 搬家、统一术语等）时注意：po 文件由 `sync-po.sh`（`msgcat --no-wrap --sort-by-file`）产出，行不折行、`#:` occurrence 注释一行一条。
+
+- 用 [polib](https://polib.readthedocs.io/) 时**加载与保存都传 `wrapwidth=-1`**——默认 78 会重折行、把多条 occurrence 合并成一行，产生大量 diff 噪音。
+- polib 保存后跑 `msgcat --no-wrap --sort-by-file po/X.po -o po/X.po` 归一化格式，再 `msgfmt --check po/X.po` 验证。
+- `entry.msgstr_plural` 的键是 **int**（`0` / `1`）不是字符串：用 `forms.get('0')` 会静默取到空串并清空译文。
+- 改 msgid 后旧译文可从 `git show HEAD:po/X.po` 解析找回，搬到新 msgid。
+- 数未翻译条目：`msgattrib --untranslated --no-obsolete po/X.po | grep '^msgid ' | sed 1d | grep -c '^msgid '`（msgattrib 会把头部条目也输出，`sed 1d` 跳过）。
 
 ## 新增语言
 

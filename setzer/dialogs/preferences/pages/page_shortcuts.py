@@ -453,8 +453,10 @@ class PageShortcuts(object):
         filters = Gio.ListStore.new(Gtk.FileFilter)
         filters.append(filter_json)
         dialog.set_filters(filters)
-        
-        dialog.open(self.main_window, None, self.on_import_response)
+
+        # FileDialog 挂到偏好对话框而非主窗口：主窗口此刻被设置窗口盖住，
+        # 选择器会出现在它背后（与 build 页升级确认框同一约定）。
+        dialog.open(self.preferences.view, None, self.on_import_response)
 
     def on_import_response(self, dialog, result):
         try:
@@ -594,7 +596,8 @@ class PageShortcuts(object):
         filters.append(filter_json)
         dialog.set_filters(filters)
 
-        dialog.save(self.main_window, None, self.on_export_response)
+        # 同导入：父窗口取偏好对话框，避免选择器被设置窗口盖住。
+        dialog.save(self.preferences.view, None, self.on_export_response)
 
     def on_export_response(self, dialog, result):
         try:

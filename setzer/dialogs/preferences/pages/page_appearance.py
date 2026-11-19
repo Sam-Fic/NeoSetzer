@@ -253,7 +253,10 @@ class PageGeneral(object):
         filter_json.add_mime_type('application/json')
         filter_json.add_pattern('*.json')
         dialog.set_default_filter(filter_json)
-        dialog.save(self.main_window, None, self.on_export_response)
+        # FileDialog 挂到偏好对话框而非主窗口：后者此刻被设置窗口盖住，
+        # 选择器会出现在它背后（与 build 页升级确认框同一约定）。
+        parent = getattr(self.preferences, 'view', None) or self.main_window
+        dialog.save(parent, None, self.on_export_response)
 
     def on_export_response(self, dialog, result):
         try:
@@ -284,7 +287,9 @@ class PageGeneral(object):
         filter_json.add_mime_type('application/json')
         filter_json.add_pattern('*.json')
         dialog.set_default_filter(filter_json)
-        dialog.open(self.main_window, None, self.on_import_response)
+        # 同导出：父窗口取偏好对话框，避免选择器被设置窗口盖住。
+        parent = getattr(self.preferences, 'view', None) or self.main_window
+        dialog.open(parent, None, self.on_import_response)
 
     def on_import_response(self, dialog, result):
         try:
@@ -521,11 +526,15 @@ class PageGeneral(object):
 
     def on_ai_enabled_toggled(self, switch, pspec):
         enabled = switch.get_active()
-        # 启用关闭时所有子项置灰
+        # 总开关关闭时所有子项置灰并写明原因（HIG：禁用要解释为什么）。
+        # 含 option_ai_diff：总开关关闭后 AI diff 不再有任何效果，此前漏在
+        # 置灰列表里，出现"上级关了它还能点"的不一致。
+        reason = None if enabled else _('The AI agent is turned off.')
         for w in (self.view.option_tool, self.view.option_terminal_cmd,
-                  self.view.option_embedded_terminal,
+                  self.view.option_embedded_terminal, self.view.option_ai_diff,
                   self.view.group_tools, self.view.group_add, self.view.group_trusted):
             w.set_sensitive(enabled)
+            w.set_tooltip_text(reason)
 
     def on_tool_selected(self, combo, pspec):
         if self._rebuilding_combo:

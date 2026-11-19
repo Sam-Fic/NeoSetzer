@@ -36,6 +36,10 @@ class PageBuildSystem(object):
     shell_values = ['disable', 'restricted', 'enable']
     output_chain_values = ['pdf', 'pdfps']
     build_timer_values = ['auto', 'always', 'never']
+    # PhiTeX live 接管期间的固定延迟（秒），与 workspace/auto_build.AutoBuild
+    # 的 PHITEX_DELAY_MS（150 ms）一致——偏好页显示的值必须就是运行时实际
+    # 生效的值，否则数字行展示的是一条没在用的旧偏好。
+    PHITEX_FORCED_DELAY_S = 0.15
 
     def __init__(self, preferences, settings):
         self.view = PageBuildSystemView()
@@ -80,7 +84,9 @@ class PageBuildSystem(object):
         self.view.option_auto_build.connect('notify::active', self.on_auto_build_toggled)
         self.view.option_auto_build_delay.set_property('value', self.settings.get_value('preferences', 'auto_build_delay'))
         self.view.option_auto_build_delay.connect('notify::value', self.on_delay_changed, 'auto_build_delay')
-        self.update_auto_build_delay_sensitivity()
+        # 初值态按"非 PhiTeX live"同步（auto_build 关闭时 delay/autoshow 置灰
+        # 带原因）；检测结果回来后 update_engine_specific_visibility 统一重算。
+        self._sync_auto_build_rows(False)
 
         # 输出链（issue #223，仅 latexmk 生效）与个人 TeX 树（issue #182）
         output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
@@ -97,7 +103,11 @@ class PageBuildSystem(object):
             self.settings.get_value('preferences', 'auto_build_autoshow_errors'))
         self.view.option_auto_build_autoshow_errors.connect(
             'notify::active', self.on_switch_toggled, 'auto_build_autoshow_errors')
-        self.update_auto_build_autoshow_errors_sensitivity()
+
+        # PhiTeX live 开关切换会进入/退出强制接管态，四行状态随之重算
+        # （on_switch_toggled 只负责写偏好）。
+        self.view.option_phitex_live_build.connect(
+            'notify::active', lambda *args: self._sync_auto_build_rows(self._phitex_active()))
 
         build_timer = self.settings.get_value('preferences', 'build_timer')
         if build_timer not in self.build_timer_values:
@@ -116,24 +126,114 @@ class PageBuildSystem(object):
         self.view.reset_button.connect('clicked', self.on_reset_clicked)
 
     def on_auto_build_toggled(self, switch, pspec):
-        value = switch.get_active()
-        self.settings.set_value('preferences', 'auto_build', value)
-        self.update_auto_build_delay_sensitivity()
-        self.update_auto_build_autoshow_errors_sensitivity()
+        self.settings.set_value('preferences', 'auto_build', switch.get_active())
+        # 主开关只影响这组行的置灰/恢复；PhiTeX 强制接管语义集中在
+        # _sync_auto_build_rows，两处共用同一条状态计算路径。
+        self._sync_auto_build_rows(self._phitex_active())
 
     def on_delay_changed(self, spin, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, float(spin.get_property('value')))
 
-    def update_auto_build_delay_sensitivity(self):
-        self.view.option_auto_build_delay.set_sensitive(self.view.option_auto_build.get_active())
-
-    def update_auto_build_autoshow_errors_sensitivity(self):
-        # auto_build 关闭时此设置无意义（不会触发自动构建），置灰避免误导。
-        self.view.option_auto_build_autoshow_errors.set_sensitive(
-            self.view.option_auto_build.get_active())
-
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())
+
+    def _phitex_active(self):
+        '''当前选中的解释器是否为 phitex（检测未完成/列表为空时为 False）。'''
+        selected = self.view.option_latex_interpreter.get_selected()
+        return (selected != Gtk.INVALID_LIST_POSITION
+                and selected < len(self.latex_interpreters)
+                and self.latex_interpreters[selected] == 'phitex')
+
+    # ---- auto build 四行状态：PhiTeX live 强制接管 / auto_build 置灰 ----
+    #
+    # 运行时语义见 workspace/auto_build.AutoBuild._auto_build_values：live 下
+    # auto_build 强制开、延迟固定 150 ms、helper files 强制保留、报错弹窗强制
+    # 关。此前偏好页只置灰不改值，开关显示的状态与实际生效值相反（用户看到
+    # "关"却总在自动构建）。这里统一：接管期间把显示值同步为强制值（block
+    # 回调防写回），退出接管恢复存储值；非接管时 auto_build 关闭的从属行
+    # 置灰并写明原因（HIG：禁用要解释为什么）。
+
+    def _sync_auto_build_rows(self, phitex_active):
+        live = (phitex_active and
+                self.settings.get_value('preferences', 'phitex_live_build'))
+        stored_auto_build = self.settings.get_value('preferences', 'auto_build')
+        if live:
+            self._force_switch_row(
+                self.view.option_auto_build, True, self.on_auto_build_toggled,
+                _('PhiTeX rebuilds as you type, which needs each edit written to disk first — auto build is always on for it.'))
+            self._force_delay_row(
+                _('PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, so a longer wait only delays the preview.'))
+            self._force_switch_row(
+                self.view.option_cleanup_build_files, False, self.on_switch_toggled,
+                _('A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) to know what an edit affects, so they are kept.'))
+            self._force_switch_row(
+                self.view.option_auto_build_autoshow_errors, False, self.on_switch_toggled,
+                _('With a PhiTeX session the build log never pops up on its own: errors show as squiggles in the text and highlighted areas in the preview.'))
+        else:
+            off_reason = None if stored_auto_build else _('Auto build is turned off.')
+            self._restore_switch_row(
+                self.view.option_auto_build, stored_auto_build, self.on_auto_build_toggled)
+            self._restore_delay_row(
+                self.settings.get_value('preferences', 'auto_build_delay'), off_reason)
+            self._restore_switch_row(
+                self.view.option_cleanup_build_files,
+                self.settings.get_value('preferences', 'cleanup_build_files'),
+                self.on_switch_toggled)
+            self._restore_switch_row(
+                self.view.option_auto_build_autoshow_errors,
+                self.settings.get_value('preferences', 'auto_build_autoshow_errors'),
+                self.on_switch_toggled)
+            self.view.option_auto_build_autoshow_errors.set_sensitive(
+                bool(stored_auto_build))
+            self.view.option_auto_build_autoshow_errors.set_tooltip_text(off_reason)
+
+    def _force_switch_row(self, row, value, handler, reason):
+        row.handler_block_by_func(handler)
+        try:
+            row.set_active(value)
+        finally:
+            row.handler_unblock_by_func(handler)
+        row.set_sensitive(False)
+        row.set_tooltip_text(reason)
+
+    def _restore_switch_row(self, row, value, handler):
+        row.handler_block_by_func(handler)
+        try:
+            row.set_active(value)
+        finally:
+            row.handler_unblock_by_func(handler)
+        row.set_sensitive(True)
+        row.set_tooltip_text(None)
+
+    def _force_delay_row(self, reason):
+        row = self.view.option_auto_build_delay
+        row.handler_block_by_func(self.on_delay_changed)
+        try:
+            # SpinRow 调整下限 0.5 s 装不下 0.15 s 的固定延迟：接管期间临时
+            # 放宽下限并切两位小数，恢复时按存储值还原。
+            adjustment = row.get_adjustment()
+            adjustment.configure(
+                self.PHITEX_FORCED_DELAY_S, self.PHITEX_FORCED_DELAY_S,
+                30.0, 0.5, 1.0, 0.0)
+            row.set_digits(2)
+            row.set_value(self.PHITEX_FORCED_DELAY_S)
+        finally:
+            row.handler_unblock_by_func(self.on_delay_changed)
+        row.set_sensitive(False)
+        row.set_tooltip_text(reason)
+
+    def _restore_delay_row(self, value, reason):
+        row = self.view.option_auto_build_delay
+        row.handler_block_by_func(self.on_delay_changed)
+        try:
+            adjustment = row.get_adjustment()
+            adjustment.configure(value, 0.5, 30.0, 0.5, 1.0, 0.0)
+            row.set_digits(1)
+            row.set_value(value)
+        finally:
+            row.handler_unblock_by_func(self.on_delay_changed)
+        row.set_sensitive(reason is None)
+        row.set_tooltip_text(reason)
 
     def on_interpreter_selected(self, combo, pspec):
         selected = combo.get_selected()
@@ -171,8 +271,13 @@ class PageBuildSystem(object):
         self.settings.set_value('preferences', 'texmf_home', entry.get_text().strip())
 
     def update_output_chain_sensitivity(self):
-        # 输出链只在 latexmk 路线下有意义（直接引擎路线硬编码直出 PDF）
-        self.view.option_output_chain.set_sensitive(self.view.option_use_latexmk.get_active())
+        # 输出链只在 latexmk 路线下有意义（直接引擎路线硬编码直出 PDF）；
+        # 置灰时写明原因（HIG：禁用要解释为什么）。
+        active = self.view.option_use_latexmk.get_active()
+        self.view.option_output_chain.set_sensitive(active)
+        self.view.option_output_chain.set_tooltip_text(
+            None if active
+            else _('Output chain only applies when latexmk builds the document.'))
 
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
@@ -334,34 +439,21 @@ class PageBuildSystem(object):
         self.view.option_output_chain.set_visible(
             self.latexmk_available and not hide_latexmk)
 
-        # PhiTeX 常驻 session 下这几项不再由用户决定，置灰而不是隐藏：
-        # 隐藏会让人以为设置丢了，置灰配上原因能读出"这个引擎接管了它"。
-        # 实际行为见 AutoBuild._auto_build_values 与 run_via_phitex_session。
-        self._set_row_state(
-            self.view.option_auto_build, not phitex_active,
-            _('PhiTeX rebuilds as you type, which needs each edit written to disk first — auto build is always on for it.'))
-        self._set_row_state(
-            self.view.option_auto_build_delay, not phitex_active,
-            _('PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, so a longer wait only delays the preview.'))
-        self._set_row_state(
-            self.view.option_cleanup_build_files, not phitex_active,
-            _('A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) to know what an edit affects, so they are kept.'))
-        # PhiTeX live 下这条已被无条件关掉（build_log.update_items），留着可点
-        # 就是"能打开但不生效"，与其它接管项同样处理。
-        self._set_row_state(
-            self.view.option_auto_build_autoshow_errors, not phitex_active,
-            _('With a PhiTeX session the build log never pops up on its own: errors show as squiggles in the text and highlighted areas in the preview.'))
+        # PhiTeX live 接管态：四行（auto_build/延迟/cleanup/报错弹窗）的显示
+        # 值、置灰与原因统一交给 _sync_auto_build_rows——它同时覆盖非接管时
+        # auto_build 主开关关闭的置灰路径（隐藏会让人以为设置丢了，置灰配上
+        # 原因能读出"这个引擎接管了它"）。
+        self._sync_auto_build_rows(phitex_active)
+
         # 这几项对 PhiTeX 有效，但只在 watch 启动那一刻读入；改动会结束当前
         # session，下一轮构建按新设置重起（付一次完整构建），见 config_signature。
+        # 没有 live session（live_build 关闭）时无 session 可结束，不提示。
+        live = (phitex_active and
+                self.settings.get_value('preferences', 'phitex_live_build'))
         restart_note = _('Changing this ends the running PhiTeX session; the next build starts a new one with the new setting.')
         for row in (self.view.option_enable_synctex, self.view.option_system_commands):
-            row.set_tooltip_text(restart_note if phitex_active else None)
-        self.view.option_texmf_home.set_tooltip_text(restart_note if phitex_active else None)
-
-    @staticmethod
-    def _set_row_state(row, enabled, reason_when_disabled):
-        row.set_sensitive(enabled)
-        row.set_tooltip_text(None if enabled else reason_when_disabled)
+            row.set_tooltip_text(restart_note if live else None)
+        self.view.option_texmf_home.set_tooltip_text(restart_note if live else None)
 
     def on_copy_install_prompt_clicked(self, button):
         '''把安装 PhiTeX 的说明复制进剪贴板，交给用户的 AI Agent 执行。
