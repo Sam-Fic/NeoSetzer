@@ -71,6 +71,11 @@
     </requires>
 
     <releases>
+        <release version="91" date="2026-11-19">
+            <description>
+                <p>PhiTeX viewer WebSocket page hashes and per-glyph origins with a character-accurate Ctrl+click fast path, an AI-edit PDF diff view with change navigation, a redesigned Git sidebar with scrolling lists and a standard-window side-by-side diff, plus HIG, shortcut, translation and build-resilience fixes.</p>
+            </description>
+        </release>
         <release version="90" date="2026-11-18">
             <description>
                 <p>An embedded AI agent terminal based on VTE, a redesigned Git sidebar panel with separate commit and push operations, hiding all AI entries when the agent is disabled, glyph-rectangle based PDF click-to-source with paragraph snapping, and many SyncTeX, preview and build-pipeline fixes.</p>

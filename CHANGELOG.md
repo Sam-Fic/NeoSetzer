@@ -1,6 +1,6 @@
 # Changelog
 
-## v91 — 2026-11-18
+## v91 — 2026-11-19
 
 ### 主要改进
 
@@ -30,6 +30,12 @@
 
 - **metainfo 与静态检查**：补 release 84–90 七条（此前软件中心只显示到 83）并将全部日期零填充为 ISO 8601；新增 `<icon>` 与 `<categories>`（后者是 `appstreamcli --pedantic` 在有 `<icon>` 时的硬性要求）；`ruff check .` 全仓清零（含 `setzer.in` 既有的 cairo noqa 标注、死导入与死赋值）；删除偏好页 Gtk.CheckButton 时代的 6 个无调用者处理器；向导 Back 按钮降级 flat 图标。
 
+- **并排 diff 改为标准窗口**：Git 并排 diff 从 `Adw.Dialog` 改为标准 `Adw.Window`，带真实标题栏、窗口标题/完整路径副标题与 Esc 关闭，模块级引用持有窗口避免提前回收；两栏复用编辑器的 GtkSource 配色与自动换行偏好，行号画进 view 左内缩的叠层（而非另起占位列造成竖线），按原始文件行号显示、换行续行画折行图标，滚动按视口顶对齐行双向同步，卡片顶部留白清零直顶标题栏。
+
+- **独立预览窗口与界面收尾修复**：Detach Preview 后的窗口此前 reparent 时未断开旧父控件、且 map 后才补布局，结果是只露出卡片底色的空白窗口——现在 reparent 前先 `unparent()`，present 与 map 后强制重排，layout 缺失时重新初始化。Git 侧栏的「工作区干净 / 无历史」空状态换用与文档结构页同规格的 `Adw.StatusPage` 并垂直居中；Files 侧栏子条目的竖线树形指示符改为纯缩进，消除突兀的竖线。
+
+- **无显示环境不再因量字体段错误**：偏好默认值设置时为量系统字体构造 `Gtk.TextView`，在 CI 等无显示环境直接 SIGSEGV（`Gtk.is_initialized()` 此时仍为真，挡不住）；改用 `Gdk.Display.get_default()` 判据，无显示时回退 `'monospace 11'`，并把批注锚点等待链的测试同步到新的判稳契约，CI 恢复全绿。
+
 ### Improvements
 
 - **fix**: Shortcut capture no longer crashes on any keypress (`Gtk.KEY_Escape` → `Gdk.KEY_Escape`); Preferences → Keyboard Shortcuts rebinds work again.
@@ -43,6 +49,9 @@
 - **docs**: metainfo gains releases 84–90 with ISO 8601 dates, an `<icon>` tag and `<categories>` (the latter is required by `appstreamcli --pedantic` once an `<icon>` is present); `ruff check .` is clean repo-wide; six dead Gtk.CheckButton-era preference handlers removed; the wizard Back button is now a flat icon button.
 - **test**: 13 previously committed but unregistered test files are now part of the meson suite (AI annotations, git repository, tab integration, …); `test_git_repository.py` was converted from pytest-style classes (silent no-ops under the unittest runner) to `unittest.TestCase`, reviving 18 cases. Suite now runs 129 python test modules + 2 desktop metadata validators.
 - **i18n**: po synced across all seven languages; desktop entries now merge translations at install time.
+- **feat**: Side-by-side Git diff opens in a standard `Adw.Window` with a real headerbar, window/path title and Esc-to-close, keeping a module-level reference so GTK does not collect it early. Both panes reuse the editor's GtkSource scheme and wrapping preference; line numbers are drawn into the view's own left margin instead of a separate placeholder column (which produced a stray vertical rule), use original file line numbers and show a fold icon on wrapped continuations, and the two scrollers stay synced by the line at the viewport top.
+- **fix**: A detached preview window no longer opens blank — reparenting unparents the panel first, forces a relayout after present/map and rebuilds the page layout when it is missing. Git sidebar clean/history-empty states move to `Adw.StatusPage`, and Files sidebar child rows use plain indentation instead of vertical tree bars.
+- **fix**: No-display environments no longer segfault while measuring the default font for preference defaults. `Gtk.is_initialized()` stays true without a display on GTK ≥ 4.14, so the guard now checks `Gdk.Display.get_default()` and falls back to `monospace 11`; the annotation-settle tests were updated to the new contract, restoring a green CI.
 
 ---
 
