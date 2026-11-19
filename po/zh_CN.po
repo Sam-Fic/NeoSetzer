@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 01:17+0800\n"
+"POT-Creation-Date: 2026-11-20 03:01+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -730,8 +730,8 @@ msgstr "发送给 AI 代理"
 #: setzer/document/preview/preview_controller.py:731
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:84
 #: setzer/workspace/actions/actions.py:493
-#: setzer/workspace/sidebar/document_structure_page/structure.py:363
-#: setzer/workspace/sidebar/document_structure_page/structure.py:518
+#: setzer/workspace/sidebar/document_structure_page/structure.py:366
+#: setzer/workspace/sidebar/document_structure_page/structure.py:521
 #: setzer/workspace/sidebar/git/git_section.py:496
 #: setzer/workspace/sidebar/git/git_section.py:554
 #: setzer/workspace/sidebar/git/git_section.py:607
@@ -827,7 +827,7 @@ msgstr "打印"
 
 #: setzer/command_palette/catalog.py:83
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:164
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:244
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:228
 msgid "Close Document"
 msgstr "关闭文档"
 
@@ -913,7 +913,7 @@ msgstr "剪切"
 #: setzer/document/preview/context_menu/context_menu.py:127
 #: setzer/document/preview/context_menu/context_menu.py:140
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:193
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:98
 msgid "Copy"
 msgstr "复制"
 
@@ -1584,7 +1584,7 @@ msgstr "要从此参考文献库中删除“{key}”吗？文件在 Setzer 中�
 #: setzer/dialogs/project_build_configuration_viewgtk.py:193
 #: setzer/dialogs/project_build_configuration_viewgtk.py:335
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:196
-#: setzer/workspace/sidebar/document_structure_page/structure.py:519
+#: setzer/workspace/sidebar/document_structure_page/structure.py:522
 msgid "Delete"
 msgstr "删除"
 
@@ -6039,7 +6039,7 @@ msgstr "复制配置"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:192
 #: setzer/dialogs/project_build_configuration_viewgtk.py:315
-#: setzer/workspace/sidebar/document_structure_page/structure.py:364
+#: setzer/workspace/sidebar/document_structure_page/structure.py:367
 msgid "Rename"
 msgstr "重命名"
 
@@ -6648,7 +6648,6 @@ msgstr "AI diff 排版失败：文档可能有编译错误"
 msgid "Document changed since the AI task: {} change"
 msgid_plural "Document changed since the AI task: {} changes"
 msgstr[0] "AI 任务后文档已更改：{} 处改动"
-msgstr[1] "AI 任务后文档已更改：{} 处改动"
 
 #: setzer/document/preview/preview_presenter.py:193
 msgid "AI edited this document: {} change"
@@ -7042,7 +7041,7 @@ msgid "Recent Documents"
 msgstr "最近文档"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:164
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:109
 msgid "No Results"
 msgstr "无结果"
@@ -7061,7 +7060,7 @@ msgid "Copy Relative Path"
 msgstr "复制相对路径"
 
 #: setzer/popovers/document_switcher/document_switcher.py:154
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:221
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:205
 msgid "Open Containing Folder"
 msgstr "打开所在文件夹"
 
@@ -7092,7 +7091,7 @@ msgid "Designate a document as the build root"
 msgstr "将文档指定为构建根"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:73
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:217
 msgid "Unset Root Document"
 msgstr "取消主文档设置"
 
@@ -8039,7 +8038,7 @@ msgstr "字符"
 msgid "Lines"
 msgstr "行数"
 
-#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:30
+#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:39
 msgid "These counts are updated after the document is saved."
 msgstr "这些计数会在文档保存后更新"
 
@@ -8072,94 +8071,101 @@ msgstr "选区：<b>{words}</b> 个词，<b>{chars}</b> 个字符（不含空白
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "字数统计需要 <tt>texcount</tt>（TeX Live 的一部分），但未找到。字符数与行数统计仍可用。参见 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">安装指南</a>"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:80
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:95
 msgid "No Document"
 msgstr "无文档"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:81
 msgid "Open a document to see its structure."
 msgstr "打开文档以查看其结构"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
-msgid "Jump to section"
-msgstr "跳转到章节"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:175
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:191
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:193
 msgid "Search document structure"
 msgstr "搜索文档结构"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:35
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:40
 msgid "No files"
 msgstr "无文件"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:36
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:41
 msgid "The main document is always shown. Add \\input{...} or \\include{...} to include other files."
 msgstr "主文档始终显示。添加 \\input{...} 或 \\include{...} 以包含其他文件"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:229
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:71
+msgid "Main Document"
+msgstr "主文档"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:85
+msgid "Included Files"
+msgstr "包含的文件"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:97
+msgid "Bibliographies"
+msgstr "参考文献文件"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:213
 msgid "Save Document As…"
 msgstr "文档另存为…"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:236
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:220
 msgid "Set as Root"
 msgstr "设为根文档"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:33
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:34
 msgid "No labels"
 msgstr "无标签"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:34
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:35
 msgid "Add \\label{...} to create references to figures, sections, and more."
 msgstr "添加 \\label{...} 以创建对图表、章节等的引用"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:76
 msgid "This label is never referenced."
 msgstr "此 label 从未被引用。"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:76
 msgid "Unused"
 msgstr "未使用"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:79
 msgid "Duplicate"
 msgstr "重复"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:79
 msgid "This label is defined more than once."
 msgstr "此 label 定义了不止一次。"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:103
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:95
 msgid "Copy \\ref{...}"
 msgstr "复制 \\ref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:104
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:96
 msgid "Copy \\pageref{...}"
 msgstr "复制 \\pageref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:105
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:97
 msgid "Copy \\autoref{...}"
 msgstr "复制 \\autoref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:362
+#: setzer/workspace/sidebar/document_structure_page/structure.py:365
 msgid "Rename Section"
 msgstr "重命名节"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:371
+#: setzer/workspace/sidebar/document_structure_page/structure.py:374
 msgid "Title:"
 msgstr "标题："
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:382
+#: setzer/workspace/sidebar/document_structure_page/structure.py:385
 msgid "Label:"
 msgstr "标签："
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:516
+#: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete Section?"
 msgstr "删除节？"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:517
+#: setzer/workspace/sidebar/document_structure_page/structure.py:520
 msgid "This action cannot be undone."
 msgstr "此操作无法撤销。"
 
@@ -8171,31 +8177,31 @@ msgstr "无文档结构"
 msgid "Add \\section{}, \\chapter{}, or other sectioning commands to outline your document."
 msgstr "添加 \\section{}、\\chapter{} 或其他章节命令来构建文档大纲"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:198
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:204
 msgid "Copy Title"
 msgstr "复制标题"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:205
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:211
 msgid "Copy Reference"
 msgstr "复制引用"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:207
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:213
 msgid "Copy Label"
 msgstr "复制标签"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:212
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:218
 msgid "Rename Section…"
 msgstr "重命名节"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:213
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:219
 msgid "Delete Section"
 msgstr "删除节"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:221
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:227
 msgid "Promote"
 msgstr "升级层级"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:222
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:228
 msgid "Demote"
 msgstr "降级层级"
 
@@ -8207,15 +8213,19 @@ msgstr "无待办事项"
 msgid "Add \\todo{...} to keep track of tasks."
 msgstr "添加 \\todo{...} 以记录任务"
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:44
-msgid "Show all open documents"
-msgstr "显示打开的文档"
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:58
+msgid "This document"
+msgstr "当前文档"
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:107
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:59
+msgid "All documents"
+msgstr "所有文档"
+
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:93
 msgid "Jump to"
 msgstr "跳转"
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:113
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:99
 msgid "Mark as Done"
 msgstr "标记为已完成"
 

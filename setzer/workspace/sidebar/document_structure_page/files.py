@@ -28,8 +28,9 @@ class FilesSection(object):
     def __init__(self, data_provider):
         self.data_provider = data_provider
         self.data_provider.connect('data_updated', self.update_items)
-        # 活跃文档切换时 accent 行要跟着挪（与 Document Structure 的
-        # 光标跟随语义一致）。数据重建由 data_updated 负责，这里只挪高亮。
+        # 活跃文档切换时选中项要跟着挪（Adw.Sidebar 的 selected 即高亮，
+        # 与 Document Structure 的光标跟随语义一致）。数据重建由
+        # data_updated 负责，这里只挪选中。
         data_provider.workspace.connect('new_active_document', self.on_new_active_document)
 
         self.view = files_section_view.FilesSectionView(self)
@@ -39,8 +40,9 @@ class FilesSection(object):
     def on_new_active_document(self, workspace, document=None):
         if not self.view.is_visible():
             return
+        # 选中项即活跃文档行：sync_accent_to_active_document 内部已含
+        # set_selected 对齐（Adw.Sidebar 迁移后选中即高亮，无需二次同步）。
         self.view.sync_accent_to_active_document()
-        self.view._sync_selection_to_accent_row()
 
     def on_row_activated(self, row):
         item_data = row.item_data

@@ -14,27 +14,31 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not to, see <http://www.gnu.org/licenses/>
 
 import gi
 gi.require_version('Gtk', '4.0')
+gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gdk, Gio
 
-import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+import setzer.workspace.sidebar.document_structure_page.sidebar_list_viewgtk as sidebar_list_view
 from setzer.app.service_locator import ServiceLocator
 
 
-class LabelsSectionView(structure_widget.StructureWidget):
+class LabelsSectionView(sidebar_list_view.SidebarListView):
 
     def __init__(self, model):
-        structure_widget.StructureWidget.__init__(self, model)
-        self.set_empty_state(
+        sidebar_list_view.SidebarListView.__init__(self, model)
+        self.set_placeholder_info(
             'tag-symbolic',
             _('No labels'),
             _('Add \\label{...} to create references to figures, sections, and more.')
         )
         # 右键菜单上下文：被右键的 label，win.label-ctx-* action 激活时读取。
         self._ctx_label = None
+        # 菜单是静态三项（复制 \ref/\pageref/\autoref），常驻挂到
+        # sidebar.menu_model；被右键的 label 由 setup-menu 信号更新。
+        self.sidebar.set_menu_model(self._build_menu_model())
         # 把上下文 action 注册到主窗口而非 PopoverMenu（见 _register_context_actions）。
         self._register_context_actions()
 
@@ -45,19 +49,27 @@ class LabelsSectionView(structure_widget.StructureWidget):
         signature = (id(doc), tuple((label[0], label[3]) for label in self.model.labels))
         if not self.populate_if_changed(signature):
             return
-        self.clear_rows()
+        self.clear_items()
+        # 按来源文档分组：分组=来源维度，Unused/Duplicate 徽章=状态维度，
+        # 两者解耦；组内保持 collate 排序不变。分组的 key 用 id(document)，
+        # 组标题用 displayname。
+        seen_documents = list()
         for label in self.model.labels:
-            row = self.make_row('tag-symbolic', label[0], 0)
-            row.item_data = label
-            self._apply_problem_badge(row, label)
-            self.append_row(row)
-        self.set_empty_state_visible(len(self.model.labels) == 0)
-        self._sync_selection_to_accent_row()
+            document = label[2]
+            key = id(document)
+            if key not in self._sections:
+                self.add_section(key, document.get_displayname())
+                seen_documents.append(key)
+            item = self.make_item(label[0], icon_name='tag-symbolic')
+            self._apply_problem_badge(item, label)
+            item.item_data = label
+            self.append_item(key, item)
+        self.select_first()
 
-    def _apply_problem_badge(self, row, label):
+    def _apply_problem_badge(self, item, label):
         # 问题标记 → (徽章文案, tooltip, css class)。字面量在使用处以 _()
         # 包裹（放类级常量里 xgettext 提取不到）；unused 用 dim 弱化呈现，
-        # duplicate 用 error 色强调。
+        # duplicate 用 error 色强调。徽章作为 item suffix 展示。
         flag = label[3] if len(label) > 3 else None
         if flag == 'unused':
             text, tooltip, css_class = (
@@ -71,39 +83,19 @@ class LabelsSectionView(structure_widget.StructureWidget):
         badge.add_css_class(css_class)
         badge.set_tooltip_text(tooltip)
         badge.set_valign(Gtk.Align.CENTER)
-        row.add_suffix(badge)
-        # make_row 默认以 label 名作为行 tooltip；有问题时说明更有用。
-        row.set_tooltip_text(tooltip)
+        item.set_suffix(badge)
+        # 有问题时行 tooltip 换成问题说明（比 label 名更有用）。
+        item.set_tooltip(tooltip)
 
-    def make_row(self, icon_name, text, indent):
-        row = super().make_row(icon_name, text, indent)
-        # Right-click context menu
-        row.right_click_gesture = Gtk.GestureClick()
-        row.right_click_gesture.set_button(3)
-        row.right_click_gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-        row.right_click_gesture.connect('pressed', self._on_row_right_click_pressed, row)
-        row.right_click_gesture.connect('released', self._on_row_right_click_released, row)
-        row.add_controller(row.right_click_gesture)
-        return row
-
-    def _on_row_right_click_pressed(self, gesture, n_press, x, y, row):
-        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-
-    def _on_row_right_click_released(self, gesture, n_press, x, y, row):
-        label = getattr(row, 'item_data', None)
-        if label is None:
-            return
-        self._show_context_menu(row, label, x, y)
-
-    def _build_menu_model(self, label):
+    def _build_menu_model(self):
         menu = Gio.Menu()
 
-        # Navigation section
-        nav_section = Gio.Menu()
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\ref{...}'), 'win.label-ctx-copy-ref'))
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\pageref{...}'), 'win.label-ctx-copy-pageref'))
-        nav_section.append_item(Gio.MenuItem.new(_('Copy \\autoref{...}'), 'win.label-ctx-copy-autoref'))
-        menu.append_section(None, nav_section)
+        # Actions section
+        actions_section = Gio.Menu()
+        actions_section.append_item(Gio.MenuItem.new(_('Copy \\ref{...}'), 'win.label-ctx-copy-ref'))
+        actions_section.append_item(Gio.MenuItem.new(_('Copy \\pageref{...}'), 'win.label-ctx-copy-pageref'))
+        actions_section.append_item(Gio.MenuItem.new(_('Copy \\autoref{...}'), 'win.label-ctx-copy-autoref'))
+        menu.append_section(None, actions_section)
 
         return menu
 
@@ -129,30 +121,12 @@ class LabelsSectionView(structure_widget.StructureWidget):
         add('label-ctx-copy-pageref', self._copy_pageref)
         add('label-ctx-copy-autoref', self._copy_autoref)
 
-    def _show_context_menu(self, row, label, x, y):
+    def _on_setup_menu(self, sidebar, item):
         # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
         # 这里再尝试一次（_register_context_actions 内部幂等）。
         self._register_context_actions()
-
-        menu_model = self._build_menu_model(label)
-
-        # 记录被右键的 label，win.label-ctx-* action 激活时使用。
-        self._ctx_label = label
-
-        popover = Gtk.PopoverMenu()
-        popover.set_parent(row)
-        popover.set_has_arrow(False)
-        popover.set_size_request(288, -1)
-        popover.set_menu_model(menu_model)
-
-        popover.set_offset(144, 0)
-        rect = Gdk.Rectangle()
-        rect.x = x
-        rect.y = y
-        rect.width = 1
-        rect.height = 1
-        popover.set_pointing_to(rect)
-        popover.popup()
+        # 记录被右键的 label（点空白处时 item 为 None）。
+        self._ctx_label = getattr(item, 'item_data', None) if item is not None else None
 
     def _copy_ref(self, action, parameter):
         label_name = self._ctx_label[0]

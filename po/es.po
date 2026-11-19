@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 01:17+0800\n"
+"POT-Creation-Date: 2026-11-20 03:01+0800\n"
 "PO-Revision-Date: 2023-06-28 06:49+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/setzer/application/es/>\n"
@@ -730,8 +730,8 @@ msgstr "Enviar al agente de IA"
 #: setzer/document/preview/preview_controller.py:731
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:84
 #: setzer/workspace/actions/actions.py:493
-#: setzer/workspace/sidebar/document_structure_page/structure.py:363
-#: setzer/workspace/sidebar/document_structure_page/structure.py:518
+#: setzer/workspace/sidebar/document_structure_page/structure.py:366
+#: setzer/workspace/sidebar/document_structure_page/structure.py:521
 #: setzer/workspace/sidebar/git/git_section.py:496
 #: setzer/workspace/sidebar/git/git_section.py:554
 #: setzer/workspace/sidebar/git/git_section.py:607
@@ -827,7 +827,7 @@ msgstr "Imprimir"
 
 #: setzer/command_palette/catalog.py:83
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:164
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:244
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:228
 msgid "Close Document"
 msgstr "Cerrar documento"
 
@@ -913,7 +913,7 @@ msgstr "Cortar"
 #: setzer/document/preview/context_menu/context_menu.py:127
 #: setzer/document/preview/context_menu/context_menu.py:140
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:193
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:98
 msgid "Copy"
 msgstr "Copiar"
 
@@ -1586,7 +1586,7 @@ msgstr "¿Eliminar «{key}» de esta bibliografía? Esto puede deshacerse cuando
 #: setzer/dialogs/project_build_configuration_viewgtk.py:193
 #: setzer/dialogs/project_build_configuration_viewgtk.py:335
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:196
-#: setzer/workspace/sidebar/document_structure_page/structure.py:519
+#: setzer/workspace/sidebar/document_structure_page/structure.py:522
 msgid "Delete"
 msgstr "Borrar"
 
@@ -6043,7 +6043,7 @@ msgstr "Duplicar perfil"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:192
 #: setzer/dialogs/project_build_configuration_viewgtk.py:315
-#: setzer/workspace/sidebar/document_structure_page/structure.py:364
+#: setzer/workspace/sidebar/document_structure_page/structure.py:367
 msgid "Rename"
 msgstr "Renombrar"
 
@@ -7055,7 +7055,7 @@ msgid "Recent Documents"
 msgstr "Documentos recientes"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:164
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:109
 msgid "No Results"
 msgstr "Sin resultados"
@@ -7074,7 +7074,7 @@ msgid "Copy Relative Path"
 msgstr "Copiar ruta relativa"
 
 #: setzer/popovers/document_switcher/document_switcher.py:154
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:221
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:205
 msgid "Open Containing Folder"
 msgstr "Abrir carpeta contenedora"
 
@@ -7105,7 +7105,7 @@ msgid "Designate a document as the build root"
 msgstr "Designar un documento como raiz de compilacion"
 
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:73
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:217
 msgid "Unset Root Document"
 msgstr "Desfijar documento principal"
 
@@ -8053,7 +8053,7 @@ msgstr "Caracteres"
 msgid "Lines"
 msgstr "Líneas"
 
-#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:30
+#: setzer/workspace/sidebar/document_stats/document_stats_viewgtk.py:39
 msgid "These counts are updated after the document is saved."
 msgstr "Estos conteos se actualizan después de guardar el documento."
 
@@ -8086,94 +8086,101 @@ msgstr "Selección: <b>{words}</b> palabras, <b>{chars}</b> caracteres (<b>{char
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "El conteo de palabras requiere <tt>texcount</tt> (parte de TeX Live), que no se encontró. El conteo de caracteres y líneas sigue disponible arriba. Consulte la <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">guía de instalación</a>."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:80
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:95
 msgid "No Document"
 msgstr "Sin documento"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:76
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:81
 msgid "Open a document to see its structure."
 msgstr "Abra un documento para ver su estructura."
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
-msgid "Jump to section"
-msgstr "Ir a la sección"
-
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:175
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:191
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:193
 msgid "Search document structure"
 msgstr "Buscar en la estructura del documento"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:35
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:40
 msgid "No files"
 msgstr "Sin archivos"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:36
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:41
 msgid "The main document is always shown. Add \\input{...} or \\include{...} to include other files."
 msgstr "El documento principal siempre se muestra. Añada \\input{...} o \\include{...} para incluir otros archivos."
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:229
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:71
+msgid "Main Document"
+msgstr "Documento principal"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:85
+msgid "Included Files"
+msgstr "Archivos incluidos"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:97
+msgid "Bibliographies"
+msgstr "Bibliografías"
+
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:213
 msgid "Save Document As…"
 msgstr "Guardar documento como"
 
-#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:236
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:220
 msgid "Set as Root"
 msgstr "Fijar como documento principal"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:33
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:34
 msgid "No labels"
 msgstr "Sin etiquetas"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:34
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:35
 msgid "Add \\label{...} to create references to figures, sections, and more."
 msgstr "Añada \\label{...} para crear referencias a figuras, secciones y más."
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:76
 msgid "This label is never referenced."
 msgstr "Esta etiqueta nunca se referencia."
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:64
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:76
 msgid "Unused"
 msgstr "Sin usar"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:79
 msgid "Duplicate"
 msgstr "Duplicada"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:67
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:79
 msgid "This label is defined more than once."
 msgstr "Esta etiqueta está definida más de una vez."
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:103
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:95
 msgid "Copy \\ref{...}"
 msgstr "Copiar \\ref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:104
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:96
 msgid "Copy \\pageref{...}"
 msgstr "Copiar \\pageref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:105
+#: setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py:97
 msgid "Copy \\autoref{...}"
 msgstr "Copiar \\autoref{...}"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:362
+#: setzer/workspace/sidebar/document_structure_page/structure.py:365
 msgid "Rename Section"
 msgstr "Renombrar sección"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:371
+#: setzer/workspace/sidebar/document_structure_page/structure.py:374
 msgid "Title:"
 msgstr "Título:"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:382
+#: setzer/workspace/sidebar/document_structure_page/structure.py:385
 msgid "Label:"
 msgstr "Etiqueta:"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:516
+#: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete Section?"
 msgstr "¿Eliminar sección?"
 
-#: setzer/workspace/sidebar/document_structure_page/structure.py:517
+#: setzer/workspace/sidebar/document_structure_page/structure.py:520
 msgid "This action cannot be undone."
 msgstr "Esta acción no se puede deshacer."
 
@@ -8185,31 +8192,31 @@ msgstr "Sin estructura de documento"
 msgid "Add \\section{}, \\chapter{}, or other sectioning commands to outline your document."
 msgstr "Añada \\section{}, \\chapter{} u otros comandos de seccionamiento para esquematizar su documento."
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:198
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:204
 msgid "Copy Title"
 msgstr "Copiar título"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:205
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:211
 msgid "Copy Reference"
 msgstr "Copiar referencia"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:207
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:213
 msgid "Copy Label"
 msgstr "Copiar etiqueta"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:212
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:218
 msgid "Rename Section…"
 msgstr "Renombrar sección…"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:213
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:219
 msgid "Delete Section"
 msgstr "Eliminar sección"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:221
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:227
 msgid "Promote"
 msgstr "Ascender"
 
-#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:222
+#: setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py:228
 msgid "Demote"
 msgstr "Descender"
 
@@ -8221,15 +8228,19 @@ msgstr "Sin tareas pendientes"
 msgid "Add \\todo{...} to keep track of tasks."
 msgstr "Añada \\todo{...} para llevar un seguimiento de las tareas."
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:44
-msgid "Show all open documents"
-msgstr "Mostrar todos los documentos abiertos"
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:58
+msgid "This document"
+msgstr "Este documento"
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:107
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:59
+msgid "All documents"
+msgstr "Todos los documentos"
+
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:93
 msgid "Jump to"
 msgstr "Saltar a"
 
-#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:113
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:99
 msgid "Mark as Done"
 msgstr "Marcar como hecho"
 

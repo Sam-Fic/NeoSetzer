@@ -19,12 +19,12 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gdk, Pango
+from gi.repository import Gtk, Adw, Gdk
 from setzer.widgets.search_highlight import escape_markup, highlight
 
 
 class StructureWidget(Gtk.Box):
-    '''Base class for the sidebar structure lists (structure/files/labels/todos).
+    '''Base class for the Document Structure tree view.
 
     Formerly a Gtk.DrawingArea with a custom snapshot()/draw_nodes() that
     hand-painted icons, text and a hover background; now a standard Gtk.ListBox
@@ -32,6 +32,10 @@ class StructureWidget(Gtk.Box):
     built-in row :hover state, and clicks are handled via the row-activated
     signal (delegated to the presenter's on_row_activated, which receives the
     row carrying an `item_data` payload).
+
+    files/labels/todos 三个平铺列表已迁至 SidebarListView（Adw.Sidebar），
+    本基类收缩为可折叠树专用——树需要 expander/层级缩进/TREE_ITEM 角色，
+    Adw.Sidebar 的平铺分组模型装不下。
     '''
 
     def __init__(self, model):
@@ -45,15 +49,20 @@ class StructureWidget(Gtk.Box):
         self.list_box.set_activate_on_single_click(True)
         self.list_box.set_can_focus(True)
         self.list_box.set_hexpand(True)
-        self.list_box.add_css_class('compact-rows')
-        self.list_box.add_css_class('boxed-list')
+        # navigation-sidebar（官方样式类）+ sidebar-tree（自定义行规格，
+        # 见 style_gtk.css）：与迁移后的 files/labels/todos 三个 Adw.Sidebar
+        # 子页统一外观——同款行高/内边距/圆角/中性选中。原 .compact-rows
+        # 紧凑密度与 accent 双态选中在树页退役（.compact-rows 仍被构建
+        # 日志面板使用）。
+        self.list_box.add_css_class('sidebar-tree')
+        self.list_box.add_css_class('navigation-sidebar')
         self.list_box.connect('row-activated', self.on_row_activated)
         self.list_box.connect('map', self._on_list_box_map)
 
-        # Focus-in handler: sync keyboard selection to the currently
-        # accent-highlighted row (the one matching the editor cursor),
-        # so keyboard navigation starts from the user's current context
-        # rather than the top of the list.
+        # Focus-in handler: sync keyboard selection to the cursor-follow
+        # row (the one matching the editor cursor, tracked via the
+        # _cursor_row attribute), so keyboard navigation starts from the
+        # user's current context rather than the top of the list.
         focus_controller = Gtk.EventControllerFocus()
         focus_controller.connect('enter', self._on_list_box_focus_in)
         self.list_box.add_controller(focus_controller)
@@ -98,37 +107,41 @@ class StructureWidget(Gtk.Box):
 
     def _on_list_box_map(self, widget):
         """When the list_box is first mapped, attempt to select the row
-        that matches the cursor position (accent-highlighted)."""
-        self._sync_selection_to_accent_row()
+        that matches the cursor position (cursor-follow row)."""
+        self.sync_selection_to_cursor_row()
 
     def _on_list_box_focus_in(self, controller):
         """When the list_box gains focus, sync the keyboard selection
-        to the accent-highlighted row so the user starts navigating
+        to the cursor-follow row so the user starts navigating
         from the section they're currently editing."""
-        self._sync_selection_to_accent_row()
+        self.sync_selection_to_cursor_row()
 
-    def _sync_selection_to_accent_row(self):
-        """Select the row that has the 'accent' CSS class (the row
-        matching the current editor cursor position). Falls back to
-        the first visible row if no row has 'accent'."""
+    def sync_selection_to_cursor_row(self):
+        """Select the row marked as the cursor-follow row (the row matching
+        the current editor cursor position, tracked by structure.py via the
+        ``_cursor_row`` attribute). Falls back to the first visible row.
+
+        迁移自 accent css 类标记：外观统一到 Adw.Sidebar 的官方中性选中后，
+        css 类不再承载"当前项"语义，改用行属性标记（无视觉副作用）。
+        """
         # GTK sets the initial selection to the first row; override it
         # to follow the cursor instead.
         selected = self.list_box.get_selected_row()
-        accent_row = self._find_accent_row()
-        if accent_row is not None and accent_row != selected:
-            self.list_box.select_row(accent_row)
+        cursor_row = self._find_cursor_row()
+        if cursor_row is not None and cursor_row != selected:
+            self.list_box.select_row(cursor_row)
         elif selected is None:
-            # No accent row and nothing selected — select first visible.
+            # No cursor-follow row and nothing selected — select first visible.
             first_visible = self._get_first_visible_row()
             if first_visible is not None:
                 self.list_box.select_row(first_visible)
 
-    def _find_accent_row(self):
-        """Walk visible rows looking for one with the 'accent' class."""
+    def _find_cursor_row(self):
+        """Walk visible rows looking for the one marked ``_cursor_row``."""
         child = self.list_box.get_first_child()
         while child is not None:
             if isinstance(child, Adw.ActionRow) and child.get_visible():
-                if child.has_css_class('accent'):
+                if getattr(child, '_cursor_row', False):
                     return child
             child = child.get_next_sibling()
         return None
@@ -216,10 +229,6 @@ class StructureWidget(Gtk.Box):
             return False
         self._last_signature = signature
         return True
-
-    def invalidate_signature(self):
-        '''强制下次 populate 重建（用于文档切换等需要无条件刷新的场景）。'''
-        self._last_signature = None
 
     def clear_rows(self):
         self._last_signature = None
@@ -360,42 +369,6 @@ class StructureWidget(Gtk.Box):
                         row._subtitle_label = sib
                         break
                     sib = sib.get_next_sibling()
-
-    def make_row(self, icon_name, text, indent):
-        row = Adw.ActionRow()
-        row.set_selectable(True)
-        row.set_activatable(True)
-        prefix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        # 纯缩进表达嵌套层级：按 indent 递增左缩进，不绘制竖线指示符，
-        # 与 Document Structure 的缩进方式保持一致。tree_depth 由像素
-        # indent 还原（每层 18px），仅用于无障碍层级。
-        tree_depth = indent // 18
-        if tree_depth > 0:
-            prefix_box.set_margin_start(indent)
-        prefix_box.append(Gtk.Image(icon_name=icon_name))
-        row.add_prefix(prefix_box)
-        row.set_title(text)
-        row._title_text = text
-        self._capture_row_labels(row, text)
-        # 标题可能被容器宽度截断（ellipsize），hover 时给出完整文本。
-        if row._title_label is not None:
-            row._title_label.set_ellipsize(Pango.EllipsizeMode.END)
-        row.set_tooltip_text(text)
-        # 无障碍：outline 行本质是文档结构的树形项，设为 tree-item 角色
-        # 并暴露层级，使屏幕阅读器能朗读「level N」而非仅标题文本。
-        # 防御性：旧版 GTK（< 4.10）无 AccessibleRole/Property 枚举时静默跳过。
-        role = getattr(Gtk.AccessibleRole, 'TREE_ITEM', None)
-        if role is not None:
-            row.set_accessible_role(role)
-        level_prop = getattr(Gtk.AccessibleProperty, 'LEVEL', None)
-        if level_prop is not None:
-            try:
-                row.update_property(level_prop, tree_depth + 1)
-            except TypeError:
-                # 某些 PyGObject 版本的 update_property 绑定与 GTK 头不匹配，
-                # 调用即抛 TypeError。a11y 层级为增强项，失败则跳过。
-                pass
-        return row
 
     def _find_child_of_type(self, widget, type_):
         if isinstance(widget, type_):

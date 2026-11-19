@@ -18,7 +18,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk, Gio, GLib, Adw
+from gi.repository import Gtk, Gdk, GLib, Adw
 
 import setzer.workspace.sidebar.symbols_page.symbols_page_viewgtk as symbols_page_view
 from setzer.app.service_locator import ServiceLocator
@@ -39,6 +39,9 @@ class SymbolsPage(ScrollAnimatorMixin):
 
         self.scroll_to = None
         self._current_section_title = ''  # 缓存 section title，用于变化检测
+        # 分类档位防递归：ToggleGroup notify::active → scroll_view，滚动又触发
+        # 高亮同步 set_active_name，双向同步需打标（同 Document Structure 页）。
+        self._syncing_category = False
         # 符号属性缓存：category -> {command: attrib_dict}。add_recent/favorite_symbol_to_flowbox
         # 原每次插入符号都 ET.parse 整个分类 XML（数十到上百节点）。运行时不可变，
         # 首次访问某分类时一次性解析建字典，后续 O(1) 查找。启动时 recent 列表
@@ -87,8 +90,8 @@ class SymbolsPage(ScrollAnimatorMixin):
         self.view.search_entry.connect('stop-search', self.on_search_stopped)
         self.view.search_entry.connect('changed', self.on_search_changed)
 
-        # 初始化下拉菜单
-        self._init_section_menu()
+        # 分类档位：点击滚动到对应分类 + 滚动时同步高亮
+        self._init_category_switcher()
 
         # widget 销毁时取消进行中的滚动动画 timeout，避免回调访问已释放的
         # scrolled_window 并持有引用阻碍 GC。SymbolsPage 非控件，故连接
@@ -246,8 +249,6 @@ class SymbolsPage(ScrollAnimatorMixin):
         self.favorites.append(new_item)
         self.add_favorite_symbol_to_flowbox(new_item)
         self.view.favorites_group.set_visible(True)
-        # 收藏列表改变时重建菜单（Favorites 现在可见了）
-        self._rebuild_section_menu()
         self.save_favorites()
 
     def remove_favorite_symbol(self, item):
@@ -260,8 +261,6 @@ class SymbolsPage(ScrollAnimatorMixin):
                 self.favorites_details.remove(symbol)
         if len(self.favorites) == 0:
             self.view.favorites_group.set_visible(False)
-            # 收藏列表清空时重建菜单（Favorites 不再可见）
-            self._rebuild_section_menu()
         self.save_favorites()
 
     def toggle_favorite_symbol(self, folder, command):
@@ -381,55 +380,53 @@ class SymbolsPage(ScrollAnimatorMixin):
         return current
 
     def update_section_label(self, sections=None):
-        # section title：仅变化时 set_text，避免每帧触发 Gtk.Label 无谓重绘
+        # 分类档位高亮同步：仅变化时拨档，避免每帧触发 ToggleGroup 无谓重绘
         current_title = self.get_current_section_title(sections)
         if current_title != self._current_section_title:
             self._current_section_title = current_title
-            self.view.section_menu_label.set_text(current_title)
+            self.update_active_toggle(current_title)
 
-    def _init_section_menu(self):
-        """初始化下拉菜单：绑定 action group，首次构建菜单项。"""
-        # 创建菜单模型
-        self._section_menu = Gio.Menu()
-        self._section_menu_section = Gio.Menu()
-        self._section_menu.append_section(None, self._section_menu_section)
+    def _init_category_switcher(self):
+        """绑定分类档位：点击滚动到对应分类；建 title → toggle name 映射。"""
+        # 分类 group 的 title 是翻译后的 label，toggle name 是 symbol folder，
+        # 建一次映射供滚动同步高亮查用。
+        self._title_to_toggle_name = {
+            label: folder
+            for folder, icon, label, width in self.view.symbols_lists
+        }
+        self.view.category_switch_group.connect(
+            'notify::active', self._on_category_toggle_activated)
 
-        # 创建 action group 用于处理菜单项点击
-        self._section_action_group = Gio.SimpleActionGroup()
-        self.view.section_menu_button.insert_action_group('symbols', self._section_action_group)
+    def _on_category_toggle_activated(self, group, pspec):
+        if self._syncing_category:
+            return
+        name = group.get_active_name()
+        if name is None:
+            return
+        for group_widget in self.view.labels:
+            title = group_widget.get_title()
+            if self._title_to_toggle_name.get(title) == name:
+                self._syncing_category = True
+                try:
+                    self.scroll_view(group_widget.get_allocation().y)
+                finally:
+                    self._syncing_category = False
+                return
 
-        # 为每个分类创建 action
-        self._section_actions = {}
-        for i, group in enumerate(self.view.labels):
-            action_name = f'jump-{i}'
-            action = Gio.SimpleAction.new(action_name, None)
-            action.connect('activate', self._on_section_menu_item_activated, i)
-            self._section_action_group.add_action(action)
-            self._section_actions[i] = action
+    def update_active_toggle(self, section_title):
+        """按当前滚动所在分区拨高亮档位。
 
-        # 构建菜单项
-        self._rebuild_section_menu()
-        self.view.section_menu_button.set_menu_model(self._section_menu)
-
-        # 给自动创建的 Popover 添加 .menu CSS class（项目标准做法）
-        popover = self.view.section_menu_button.get_popover()
-        if popover is not None:
-            popover.add_css_class('menu')
-
-    def _rebuild_section_menu(self):
-        """根据当前可见分类重建菜单项。"""
-        self._section_menu_section.remove_all()
-        for i, group in enumerate(self.view.labels):
-            if group.get_visible():
-                menu_item = Gio.MenuItem.new(group.get_title(), f'symbols.jump-{i}')
-                self._section_menu_section.append_item(menu_item)
-
-    def _on_section_menu_item_activated(self, action, parameter, index):
-        """菜单项点击：滚动到对应分类。"""
-        if index < len(self.view.labels):
-            group = self.view.labels[index]
-            if group.get_visible():
-                self.scroll_view(group.get_allocation().y)
+        Recent/Favorites 区域（及搜索态）无对应档位，保持最近一次高亮不变
+        （ToggleGroup 空态 active_name 行为不对称，见 adw-toggle-banner-api）。
+        """
+        name = self._title_to_toggle_name.get(section_title)
+        if name is None:
+            return
+        self._syncing_category = True
+        try:
+            self.view.category_switch_group.set_active_name(name)
+        finally:
+            self._syncing_category = False
 
     def scroll_next_section(self):
         # 不再对应按钮点击（按钮已删），仅供 Alt+Down 快捷键调用。
@@ -522,8 +519,8 @@ class SymbolsPage(ScrollAnimatorMixin):
                 any_symbols_found |= section_found
                 section.set_visible(section_found)
 
-        # 搜索无结果时隐藏菜单按钮
-        self.view.section_menu_button.set_visible(not search_active or any_symbols_found)
+        # 搜索激活时隐藏分类档位行（分区跳转对过滤结果无意义）
+        self.view.category_toolbar.set_visible(not search_active or any_symbols_found)
 
         if search_active and not any_symbols_found:
             self.view.search_entry.add_css_class('error')
@@ -531,9 +528,6 @@ class SymbolsPage(ScrollAnimatorMixin):
         else:
             self.view.search_entry.remove_css_class('error')
             self.view.content_stack.set_visible_child_name('content')
-
-        # 过滤后重建菜单（只显示可见分类）
-        self._rebuild_section_menu()
 
     def _symbol_matches_search(self, symbol, search_words):
         """检查单个 symbol 是否匹配搜索词列表。"""

@@ -14,56 +14,57 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not to, see <http://www.gnu.org/licenses/>
 
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, Gio, Adw
+from gi.repository import Adw, Gtk, Gio
 
-import setzer.workspace.sidebar.document_structure_page.structure_widget as structure_widget
+import setzer.workspace.sidebar.document_structure_page.sidebar_list_viewgtk as sidebar_list_view
 from setzer.app.service_locator import ServiceLocator
 
 
-class TodosSectionView(structure_widget.StructureWidget):
+class TodosSectionView(sidebar_list_view.SidebarListView):
 
     def __init__(self, model):
-        structure_widget.StructureWidget.__init__(self, model)
-        self.set_empty_state(
+        sidebar_list_view.SidebarListView.__init__(self, model)
+        self.set_placeholder_info(
             'starred-symbolic',
             _('No to-dos'),
             _('Add \\todo{...} to keep track of tasks.')
         )
         # 右键菜单上下文：被右键的 todo，win.todo-ctx-* action 激活时读取。
         self._ctx_todo = None
+        # 菜单为静态三项（Jump to / Copy / Mark as Done），常驻挂到
+        # sidebar.menu_model；被右键的 todo 由 setup-menu 信号更新。
+        self.sidebar.set_menu_model(self._build_menu_model())
         # 把上下文 action 注册到主窗口而非 PopoverMenu（见 _register_context_actions）。
         self._register_context_actions()
 
-        # 添加「Show all open documents」toggle
-        self.show_all_row = Adw.SwitchRow()
-        self.show_all_row.set_title(_('Show all open documents'))
-        self.show_all_row.set_active(self.model._show_all)
-        self.show_all_row.connect('notify::active', self._on_show_all_toggled)
+        # 「只看当前文档 / 汇总全部打开文档」两档切换：原为硬插 ListBox
+        # 第 0 位的 SwitchRow（Adw.Sidebar 无任意 header 行概念），切换式
+        # 重构后外置为页顶工具行。现按 ui-guidelines §4.4 用 Adw.ToggleGroup
+        # 表达互斥模式（§6.3 恒有一档激活），替代原 ToggleButton 的
+        # 「按下/未按下」模糊态——孤立开关看不出当前处于哪一档。
+        # 初始档先设再连回调，避免程序化激活触发一次多余的通知。
+        tools = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        tools.add_css_class('sidebar-subview-tools')
+        self.show_all_group = Adw.ToggleGroup()
+        self.show_all_group.set_valign(Gtk.Align.CENTER)
+        # 全宽等宽分段：与上方子视图切换器同款布局语言。
+        self.show_all_group.set_hexpand(True)
+        self.show_all_group.set_homogeneous(True)
+        self.show_all_group.add(Adw.Toggle(name='current', label=_('This document')))
+        self.show_all_group.add(Adw.Toggle(name='all', label=_('All documents')))
+        self.show_all_group.set_active_name(
+            'all' if self.model._show_all else 'current')
+        self.show_all_group.connect('notify::active', self._on_show_all_activated)
+        tools.append(self.show_all_group)
+        self.header_box.append(tools)
 
-        # 将 toggle 行插入到列表顶部（在 populate 的 rows 之前）
-        # 子类化 StructureWidget 的 ListBox，在 populate 顶部插入
-        listbox = self._get_listbox()
-        if listbox is not None:
-            listbox.insert(self.show_all_row, 0)
-
-    def _get_listbox(self):
-        '''从父类 StructureWidget 取得内部 ListBox。
-        StructureWidget 自建 ListBox 作为 self 的第一个子控件。'''
-        child = self.get_first_child()
-        while child is not None:
-            if isinstance(child, Gtk.ListBox):
-                return child
-            child = child.get_next_sibling()
-        return None
-
-    def _on_show_all_toggled(self, switch, gparam):
-        active = switch.get_active()
-        self.model.toggle_show_all(active)
+    def _on_show_all_activated(self, group, pspec):
+        self.model.toggle_show_all(group.get_active_name() == 'all')
 
     def populate(self):
         # 签名 = id(document) + 全部 todo 文本元组。按键不动 \todo 时签名命中。
@@ -71,35 +72,20 @@ class TodosSectionView(structure_widget.StructureWidget):
         signature = (id(doc), tuple(todo[0] for todo in self.model.todos))
         if not self.populate_if_changed(signature):
             return
-        self.clear_rows()
+        self.clear_items()
+        # 按来源文档分组（组内保持 offset 排序）；show_all 关闭时只有当前
+        # 文档一组。
         for todo in self.model.todos:
-            row = self.make_row('starred-symbolic', todo[0], 0)
-            row.item_data = todo
-            self.append_row(row)
-        self.set_empty_state_visible(len(self.model.todos) == 0)
-        self._sync_selection_to_accent_row()
+            document = todo[2]
+            key = id(document)
+            if key not in self._sections:
+                self.add_section(key, document.get_displayname())
+            item = self.make_item(todo[0], icon_name='starred-symbolic')
+            item.item_data = todo
+            self.append_item(key, item)
+        self.select_first()
 
-    def make_row(self, icon_name, text, indent):
-        row = super().make_row(icon_name, text, indent)
-        # Right-click context menu
-        row.right_click_gesture = Gtk.GestureClick()
-        row.right_click_gesture.set_button(3)
-        row.right_click_gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-        row.right_click_gesture.connect('pressed', self._on_row_right_click_pressed, row)
-        row.right_click_gesture.connect('released', self._on_row_right_click_released, row)
-        row.add_controller(row.right_click_gesture)
-        return row
-
-    def _on_row_right_click_pressed(self, gesture, n_press, x, y, row):
-        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-
-    def _on_row_right_click_released(self, gesture, n_press, x, y, row):
-        todo = getattr(row, 'item_data', None)
-        if todo is None:
-            return
-        self._show_context_menu(row, todo, x, y)
-
-    def _build_menu_model(self, todo):
+    def _build_menu_model(self):
         menu = Gio.Menu()
 
         # Navigation section
@@ -137,30 +123,12 @@ class TodosSectionView(structure_widget.StructureWidget):
         add('todo-ctx-copy', self._on_action_copy)
         add('todo-ctx-delete', self._on_action_delete)
 
-    def _show_context_menu(self, row, todo, x, y):
+    def _on_setup_menu(self, sidebar, item):
         # 惰性补注册：万一初始化顺序导致 __init__ 时 main_window 尚未就绪，
         # 这里再尝试一次（_register_context_actions 内部幂等）。
         self._register_context_actions()
-
-        menu_model = self._build_menu_model(todo)
-
-        # 记录被右键的 todo，win.todo-ctx-* action 激活时使用。
-        self._ctx_todo = todo
-
-        popover = Gtk.PopoverMenu()
-        popover.set_parent(row)
-        popover.set_has_arrow(False)
-        popover.set_size_request(288, -1)
-        popover.set_menu_model(menu_model)
-
-        popover.set_offset(144, 0)
-        rect = Gdk.Rectangle()
-        rect.x = x
-        rect.y = y
-        rect.width = 1
-        rect.height = 1
-        popover.set_pointing_to(rect)
-        popover.popup()
+        # 记录被右键的 todo（点空白处时 item 为 None）。
+        self._ctx_todo = getattr(item, 'item_data', None) if item is not None else None
 
     def _on_action_jump_to(self, action, parameter):
         self.model.jump_to_todo(self._ctx_todo)

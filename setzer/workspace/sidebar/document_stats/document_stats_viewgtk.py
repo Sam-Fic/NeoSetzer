@@ -26,6 +26,15 @@ class DocumentStatsView(Gtk.Box):
     def __init__(self):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
+        # 页面外边距（§2.2 md=12 / sm=6）：本视图原先住在 Adw.PreferencesPage
+        # （内建 margin 24px 12px），切换式重构后直接进裸 ScrolledWindow，
+        # 需要自己补回。水平 12 与 git / AI 页内容对齐；顶部 6 使首行与
+        # 工具栏的间距（工具栏底距 7 + 6）同三个列表页的首行节奏一致；
+        # 底部 12 保证滚到底时下沿不贴边（先例：git 页 content_box）。
+        self.set_margin_top(6)
+        self.set_margin_bottom(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
 
         description = Gtk.Label(label=_('These counts are updated after the document is saved.'))
         description.set_wrap(True)

@@ -19,7 +19,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Gtk, Adw
 
 import xml.etree.ElementTree as ET
 import os
@@ -36,38 +36,12 @@ class SymbolsPageView(Gtk.Box):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
 
-        # 顶部内嵌工具栏：左侧随滚动更新的“当前分区”标题下拉，再接一个
-        # 独立的查找切换按钮。外观由 .sidebar-toolbar 与 Document Structure
-        # 页统一。
+        # 顶部内嵌工具栏：左侧行首查找切换按钮，右侧顶层面板切换器。
+        # 外观由 .sidebar-toolbar 与 Document Structure 页统一。
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
         self.toolbar.set_valign(Gtk.Align.START)
         self.toolbar.set_halign(Gtk.Align.FILL)
-
-        # 下拉菜单：Gtk.MenuButton + .flat 样式（与项目中其他 MenuButton 一致）
-        self.section_menu_button = Gtk.MenuButton()
-        self.section_menu_button.add_css_class('flat')
-        self.section_menu_button.set_can_focus(True)
-        self.section_menu_button.set_halign(Gtk.Align.START)
-        self.section_menu_button.set_hexpand(True)
-        self.section_menu_button.set_tooltip_text(_('Jump to category'))
-        self.section_menu_button.update_property(
-            [Gtk.AccessibleProperty.LABEL], [_('Jump to category')])
-
-        menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
-        self.section_menu_label = Gtk.Label(label='')
-        # 正常正文颜色（不用 dimmed 灰字）。
-        self.section_menu_label.set_xalign(0.0)
-        self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
-        menu_box.append(self.section_menu_label)
-
-        arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
-        # 与 Gtk.DropDown 内置箭头同款：16px 正常亮度（旧版 12px+dim 偏小偏灰）。
-        arrow_icon.set_pixel_size(16)
-        menu_box.append(arrow_icon)
-
-        self.section_menu_button.set_child(menu_box)
-        self.toolbar.append(self.section_menu_button)
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
@@ -78,9 +52,27 @@ class SymbolsPageView(Gtk.Box):
             [Gtk.AccessibleProperty.LABEL], [_('Search symbols')])
         self.toolbar.append(self.search_button)
 
+        # 弹性隔断：把顶层面板切换器推到右侧（与 Document Structure 页同构）。
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        self.toolbar.append(spacer)
+
         # 与 Document Structure 页同款的面板切换器（互为镜像，见 sidebar_viewgtk）。
         self.switch_group = build_panel_switch_group()
         self.toolbar.append(self.switch_group)
+
+        # 第二行：六个符号分类的图标档（Adw.ToggleGroup，当前档随滚动高亮，
+        # 点击滚动到对应分类）。档位静态（ToggleGroup 不支持动态增删，见
+        # adw-toggle-banner-api 记忆），故 Recent/Favorites 不做档位。
+        # .subview-row 顶距归零：行间空隙由第一行的 7px 底距单独承担。
+        self.category_toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.category_toolbar.add_css_class('sidebar-toolbar')
+        self.category_toolbar.add_css_class('subview-row')
+        self.category_switch_group = Adw.ToggleGroup()
+        self.category_switch_group.set_valign(Gtk.Align.CENTER)
+        self.category_switch_group.set_homogeneous(True)
+        self.category_switch_group.set_hexpand(True)
+        self.category_toolbar.append(self.category_switch_group)
 
         self.search_revealer = Gtk.Revealer()
         # Gtk.Revealer 的默认过渡就是 SLIDE_DOWN/250ms；显式登记一次，让它
@@ -97,6 +89,7 @@ class SymbolsPageView(Gtk.Box):
         self.search_revealer.set_child(self.search_box)
 
         self.append(self.toolbar)
+        self.append(self.category_toolbar)
         self.append(self.search_revealer)
 
         # Adw.PreferencesPage 提供原生分组标题与滚动；其内部第一个子控件是
@@ -105,6 +98,8 @@ class SymbolsPageView(Gtk.Box):
         self.page.set_vexpand(True)
 
         self.no_results_status = Adw.StatusPage()
+        self.no_results_status.add_css_class('compact')
+        self.no_results_status.add_css_class('sidebar-empty-state')
         self.no_results_status.set_icon_name('action-unavailable-symbolic')
         self.no_results_status.set_title(_('No Results'))
         self.no_results_status.set_vexpand(True)
@@ -153,6 +148,12 @@ class SymbolsPageView(Gtk.Box):
         self.symbols_lists.append(['operators', 'own-symbols-operators-symbolic', _('Operators'), 47])
         self.symbols_lists.append(['misc_math', 'own-symbols-misc-math-symbolic', _('Misc. Math'), 42])
         self.symbols_lists.append(['misc_text', 'insert-text-symbolic', _('Misc. Symbols'), 38])
+
+        # 分类档位：每分类一档（图标 + tooltip），name 与 symbol folder 一致，
+        # 供逻辑层做 name → group 映射。
+        for folder, icon_name, label, width in self.symbols_lists:
+            self.category_switch_group.add(
+                Adw.Toggle(name=folder, icon_name=icon_name, tooltip=label))
 
         self.init_symbols_lists()
 

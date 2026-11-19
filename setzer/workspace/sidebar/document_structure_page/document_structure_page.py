@@ -14,118 +14,166 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not to, see <http://www.gnu.org/licenses/>
+# along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, GLib, Adw, Pango, Gio
+from gi.repository import Gtk, GLib, Adw
 
 from setzer.widgets.search_entry.search_entry import SearchEntry
 from setzer.helpers import animation_prefs
-from setzer.helpers.scroll_animator import ScrollAnimatorMixin
 from setzer.workspace.sidebar.sidebar_viewgtk import build_panel_switch_group
 
 
-class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
+# 子视图档位：切换式重构后，原「纵向堆叠的 PreferencesPage 长页」拆为五页
+# （Adw.Sidebar 内建滚动视口塞不进整页滚动流，见 adw-sidebar.c:2183）。
+# 档位顺序即默认页序，图标全部取自本库/Adwaita 已有素材。
+SUBVIEW_OPTIONS = (
+    ('structure', 'catlog-symbolic', 'Document Structure'),
+    ('files', 'folder-symbolic', 'Files'),
+    ('labels', 'tag-symbolic', 'Labels'),
+    ('todos', 'starred-symbolic', 'To-Dos'),
+    ('stats', 'info-outline-symbolic', 'Document Stats'),
+)
+
+
+def build_subview_switch_group():
+    '''构建子视图切换器（Adw.ToggleGroup 图标档）。
+
+    与顶层面板切换器（build_panel_switch_group）同款写法：图标档位 +
+    当前档高亮，不加 .flat 保留分段底槽。
+    '''
+    group = Adw.ToggleGroup()
+    group.set_valign(Gtk.Align.CENTER)
+    group.set_homogeneous(True)
+    for name, icon_name, label in SUBVIEW_OPTIONS:
+        group.add(Adw.Toggle(name=name, icon_name=icon_name, tooltip=_(label)))
+    return group
+
+
+class DocumentStructurePage(Gtk.Box):
 
     def __init__(self):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
+        # sections/section_widgets：name → 子视图页容器。stats 的
+        # DocumentStats.set_group(container) 用 sections['stats'] 做
+        # 非 latex 文档时的整页隐藏。
         self.sections = dict()
         self.section_widgets = dict()
-        self.section_titles = list()
-        self.scroll_to = None
-        self._current_section_title = ''  # 缓存 section title，用于变化检测
-        self._groups_cache = None         # page 的 group 列表缓存
-        self._closing_search = False      # 关闭搜索时阻止 set_text 副作用
-        self._suppress_scroll_handler = False  # 关闭搜索时跳过 on_scroll_or_resize
-        # 跟踪 section 导航滚动动画的 timeout id。原实现不跟踪，连续点击
-        # 下一/上一段时多个 timeout 同时写 adjustment 造成抖动；widget 销毁
-        # 时（duration 0.2s 内）timeout 仍访问已释放的 scrolled_window。
-        self._scroll_timeout_id = None
-        # 搜索过滤去抖 id：on_search_changed 原每次按键都对所有 section 的
-        # ListBox 全量 filter_rows（大文档数百行）。150ms 停顿后合并为一次。
         self._filter_idle_id = None
-        # 滚动去抖 id：on_scroll_or_resize 由 vadjustment 的 value-changed 每像素
-        # 触发，原每次都遍历所有 group（get_visible_sections）+ 2 次 C 调用/group。
-        # 合并为一次 idle 更新按钮敏感度 + section 标签。
-        self._scroll_update_idle_id = None
+        # 子视图切换防递归：ToggleGroup notify::active → set_visible_child_name，
+        # stack notify::visible-child → set_active_name，双向同步需打标。
+        self._syncing_subview = False
 
         self.add_buttons()
 
-        self.page = Adw.PreferencesPage()
-        self.page.set_vexpand(True)
-
-        self.no_results_status = Adw.StatusPage()
-        self.no_results_status.set_icon_name('action-unavailable-symbolic')
-        self.no_results_status.set_title(_('No Results'))
-        self.no_results_status.set_vexpand(True)
-        self.no_results_status.set_valign(Gtk.Align.CENTER)
-
-        self.content_stack = Gtk.Stack()
-        self.content_stack.set_vexpand(True)
+        # 五页子视图 stack（content 态的实体）。
+        self.view_stack = Gtk.Stack()
+        self.view_stack.set_vexpand(True)
         animation_prefs.set_transition(
-            self.content_stack, Gtk.StackTransitionType.CROSSFADE, 150)
-        self.content_stack.add_named(self.page, 'content')
-        self.content_stack.add_named(self.no_results_status, 'no-results')
+            self.view_stack, Gtk.StackTransitionType.CROSSFADE, 150)
 
         self.no_document_status = Adw.StatusPage()
+        self.no_document_status.add_css_class('compact')
+        self.no_document_status.add_css_class('sidebar-empty-state')
         self.no_document_status.set_icon_name('document-open-symbolic')
         self.no_document_status.set_title(_('No Document'))
         self.no_document_status.set_description(_('Open a document to see its structure.'))
         self.no_document_status.set_vexpand(True)
         self.no_document_status.set_valign(Gtk.Align.CENTER)
+
+        self.content_stack = Gtk.Stack()
+        self.content_stack.set_vexpand(True)
+        animation_prefs.set_transition(
+            self.content_stack, Gtk.StackTransitionType.CROSSFADE, 150)
+        self.content_stack.add_named(self.view_stack, 'content')
         self.content_stack.add_named(self.no_document_status, 'no-document')
 
         self.append(self.content_stack)
 
-        # Adw.PreferencesPage 自身不暴露 get_vadjustment()，但其内部第一个
-        # 子控件就是 Gtk.ScrolledWindow，从中取得 vadjustment 供滚动导航使用。
-        self.scrolled_window = self.page.get_first_child()
-        self.scrolled_window.get_vadjustment().connect('changed', self.on_scroll_or_resize)
-        self.scrolled_window.get_vadjustment().connect('value-changed', self.on_scroll_or_resize)
         self.search_button.connect('toggled', self.on_search_button_toggled)
         self.search_entry.connect('stop-search', self.on_search_stopped)
         self.search_entry.connect('changed', self.on_search_changed)
 
-        # 初始化下拉菜单
-        self._init_section_menu()
+        # 子视图切换器与 view_stack 双向同步（同 Sidebar 面板切换器的镜像
+        # 模式；权威状态是 stack 的可见子页）。初始对齐延迟到首个 add_section：
+        # __init__ 时 sidebar.py 尚未调用 add_section，view_stack 还是空的
+        # （set_visible_child_name 会打 CRITICAL）；而 Gtk.Stack 默认显示第一个
+        # 添加的页（files 先于 structure 注册），与 ToggleGroup 默认激活的第一档
+        # （structure）错位——首个子页落位时按档位切正。
+        self.subview_switch_group.connect('notify::active', self._on_subview_switch_activated)
+        self.view_stack.connect('notify::visible-child', self._on_view_stack_changed)
+        # 默认档固定为第一档——不能在此读 get_active_name()：add_section 时
+        # Gtk.Stack 首页注册会发射 notify 把 ToggleGroup 拨到 files，读到的
+        # 是被污染的状态（详见 _align_initial_subview）。
+        self._pending_initial_subview = SUBVIEW_OPTIONS[0][0]
 
-        # widget 销毁时取消进行中的滚动动画 timeout，避免回调访问已释放的
-        # scrolled_window 并持有引用阻碍 GC。
+        # widget 销毁时取消待执行的过滤去抖。
         self.connect('destroy', self._on_destroy)
 
     def _on_destroy(self, widget=None):
-        self._cancel_scroll_animation()
         if self._filter_idle_id is not None:
             try:
                 GLib.source_remove(self._filter_idle_id)
             except (ValueError, RuntimeError):
                 pass
             self._filter_idle_id = None
-        if self._scroll_update_idle_id is not None:
-            try:
-                GLib.source_remove(self._scroll_update_idle_id)
-            except (ValueError, RuntimeError):
-                pass
-            self._scroll_update_idle_id = None
 
     def add_section(self, name, title, widget):
-        group = Adw.PreferencesGroup()
-        group.set_title(title)
-        group.add_css_class('sidebar-section-group')
-        group.add(widget)
-        self.page.add(group)
-        self.sections[name] = group
-        self.section_widgets[name] = widget
-        self.section_titles.append(title)
-        self._groups_cache = None
-        self._rebuild_section_menu()
-        return group
+        '''登记子视图页。title 参数保留（原 PreferencesGroup 标题），分组
+        标题已由 Adw.SidebarSection / 各页内部承担，此处不再渲染。
 
-    def set_section_visible(self, name, visible):
-        self.sections[name].set_visible(visible)
+        structure 与 stats 原依赖 PreferencesPage 的整页滚动，拆页后各自
+        补一个 ScrolledWindow；三个 Adw.Sidebar 子页自带滚动视口，直接入栈。
+        '''
+        if name == 'structure':
+            container = self._wrap_tree_view(widget)
+        elif name == 'stats':
+            scrolled = Gtk.ScrolledWindow()
+            scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            scrolled.set_child(widget)
+            container = scrolled
+        else:
+            container = widget
+        self.view_stack.add_named(container, name)
+        self.sections[name] = container
+        self.section_widgets[name] = widget
+        # 默认档位页落位时才对齐两端：add_section 首页（files）注册时
+        # Gtk.Stack 自动设其为可见页并发射 notify，_on_view_stack_changed
+        # 会把 ToggleGroup 拨到 files——对齐值不能用此时的 get_active_name()
+        # （被污染），必须用 pending 本身。
+        if name == self._pending_initial_subview:
+            self._pending_initial_subview = None
+            self._syncing_subview = True
+            try:
+                self.subview_switch_group.set_active_name(name)
+                self.view_stack.set_visible_child_name(name)
+            finally:
+                self._syncing_subview = False
+        return container
+
+    def _wrap_tree_view(self, widget):
+        '''树页容器：滚动列表 + 搜索无命中页（树不走 Adw.Sidebar 的
+        placeholder 机制，filter_rows 后无命中时在页内切换）。'''
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_child(widget)
+
+        no_results = Adw.StatusPage()
+        no_results.add_css_class('compact')
+        no_results.add_css_class('sidebar-empty-state')
+        no_results.set_icon_name('action-unavailable-symbolic')
+        no_results.set_title(_('No Results'))
+
+        stack = Gtk.Stack()
+        animation_prefs.set_transition(
+            stack, Gtk.StackTransitionType.CROSSFADE, 150)
+        stack.add_named(scrolled, 'list')
+        stack.add_named(no_results, 'no-results')
+        self._tree_stack = stack
+        return stack
 
     def show_no_document(self):
         self.content_stack.set_visible_child_name('no-document')
@@ -134,37 +182,11 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.content_stack.set_visible_child_name('content')
 
     def add_buttons(self):
-        # 顶部内嵌工具栏：左侧为随滚动更新的“当前分区”标题下拉。
-        # 原有的上一段 / 下一段导航按钮已移除（下拉菜单 + Alt+Up/Down
-        # 快捷键 + 滚轮已覆盖该功能）。两页（Document Structure /
-        # Symbols）共享此结构，外观由 .sidebar-toolbar 统一。
+        # 第一行工具栏：左上搜索开关，右侧顶层面板切换器（Document
+        # Structure / Symbols / Git / AI Agent）。两页（Document Structure /
+        # Symbols）共享 .sidebar-toolbar 外观。
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
-
-        # 下拉菜单：Gtk.MenuButton + .flat 样式（与项目中其他 MenuButton 一致）
-        self.section_menu_button = Gtk.MenuButton()
-        self.section_menu_button.add_css_class('flat')
-        self.section_menu_button.set_can_focus(True)
-        self.section_menu_button.set_halign(Gtk.Align.START)
-        self.section_menu_button.set_hexpand(True)
-        self.section_menu_button.set_tooltip_text(_('Jump to section'))
-        self.section_menu_button.update_property(
-            [Gtk.AccessibleProperty.LABEL], [_('Jump to section')])
-
-        menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
-        self.section_menu_label = Gtk.Label(label='')
-        # 正常正文颜色（不用 dimmed 灰字）。
-        self.section_menu_label.set_xalign(0.0)
-        self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
-        menu_box.append(self.section_menu_label)
-
-        arrow_icon = Gtk.Image(icon_name='pan-down-symbolic')
-        # 与 Gtk.DropDown 内置箭头同款：16px 正常亮度（旧版 12px+dim 偏小偏灰）。
-        arrow_icon.set_pixel_size(16)
-        menu_box.append(arrow_icon)
-
-        self.section_menu_button.set_child(menu_box)
-        self.toolbar.append(self.section_menu_button)
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
@@ -175,10 +197,25 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
             [Gtk.AccessibleProperty.LABEL], [_('Search document structure')])
         self.toolbar.append(self.search_button)
 
+        # 弹性隔断：把顶层面板切换器推到右侧。
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        self.toolbar.append(spacer)
+
         # 面板切换：Adw.ToggleGroup 图标档（当前档高亮），取代原来「单按钮、
         # 图标显示目标面板」的写法；同步由 Sidebar.set_visible_child_name() 统一做。
         self.switch_group = build_panel_switch_group()
         self.toolbar.append(self.switch_group)
+
+        # 第二行：五档子视图切换器单独一行（Jump-to-section 菜单已被其
+        # 取代——原长页的分区跳转对象不复存在）。.subview-row 顶距归零：
+        # 行间空隙由第一行的 7px 底距单独承担，见 style_gtk.css。
+        self.subview_toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.subview_toolbar.add_css_class('sidebar-toolbar')
+        self.subview_toolbar.add_css_class('subview-row')
+        self.subview_switch_group = build_subview_switch_group()
+        self.subview_switch_group.set_hexpand(True)
+        self.subview_toolbar.append(self.subview_switch_group)
 
         self.search_revealer = Gtk.Revealer()
         animation_prefs.set_transition(
@@ -193,98 +230,57 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.search_revealer.set_child(self.search_box)
 
         self.append(self.toolbar)
+        self.append(self.subview_toolbar)
         self.append(self.search_revealer)
 
-    def on_scroll_or_resize(self, *args):
-        # 去抖：vadjustment 的 value-changed 每像素触发一次，原每次都遍历所有
-        # group（get_visible_sections，每组 2 次 C 调用）+ 重算 section 标题。
-        # 合并为一次 idle：连续滚动期间仅在每个事件循环空隙更新一次 UI。
-        if self._scroll_update_idle_id is None:
-            self._scroll_update_idle_id = GLib.idle_add(self._on_scroll_or_resize_idle)
+    # ---------- 子视图切换 ----------
 
-    def _on_scroll_or_resize_idle(self):
-        self._scroll_update_idle_id = None
-        visible_sections = self.get_visible_sections()
+    def _on_subview_switch_activated(self, group, pspec):
+        if self._syncing_subview:
+            return
+        name = group.get_active_name()
+        if name is not None:
+            self._syncing_subview = True
+            try:
+                self.view_stack.set_visible_child_name(name)
+            finally:
+                self._syncing_subview = False
 
-        # section title：仅变化时 set_text，避免每帧触发 Gtk.Label 无谓重绘
-        current_title = self._compute_current_title(visible_sections)
-        if current_title != self._current_section_title:
-            self._current_section_title = current_title
-            self.section_menu_label.set_text(current_title)
-        return False
-
-    def get_visible_sections(self):
-        """返回 [(title, absolute_y), ...]，含所有 visible group 的内容绝对 Y 坐标。"""
-        result = list()
-        groups = self.get_page_groups()
-        for i, group in enumerate(groups):
-            if not group.get_visible():
-                continue
-            title = self.section_titles[i] if i < len(self.section_titles) else group.get_title()
-            y = group.get_allocation().y
-            result.append((title, y))
-        return result
-
-    def get_section_offsets(self):
-        return [y for (title, y) in self.get_visible_sections()]
-
-    def _compute_current_title(self, sections):
-        '''返回当前滚动到视口顶部的分区标题；视口顶部位于第一段之前时返回首段标题。
-
-        接收已取的 visible_sections（绝对 Y），避免重复调用 get_visible_sections。
-        '''
-        if len(sections) == 0:
-            return ''
-        scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
-        current = sections[0][0]
-        for title, y in sections:
-            if y <= scrolling_offset + 1:
-                current = title
-            else:
-                break
-        return current
-
-    def get_page_groups(self):
-        # Adw.PreferencesPage 的实际结构：page → ScrolledWindow → Viewport →
-        # Clamp → Box → [Label, PreferencesGroup, ...]。groups 不是 page 的直接
-        # 子控件，需递归收集。原实现遍历 page 直接子只得到 ScrolledWindow，
-        # 导致 on_scroll_or_resize 一直只认到 1 个「section」，section 导航与
-        # 「当前分区」label 功能失效——此处一并修复。
-        if self._groups_cache is None:
-            groups = list()
-            self._collect_groups(self.page, groups)
-            self._groups_cache = groups
-        return self._groups_cache
-
-    def _collect_groups(self, widget, out):
-        child = widget.get_first_child()
-        while child is not None:
-            if isinstance(child, Adw.PreferencesGroup):
-                out.append(child)
-            else:
-                self._collect_groups(child, out)
-            child = child.get_next_sibling()
+    def _on_view_stack_changed(self, stack, pspec):
+        if self._syncing_subview:
+            return
+        name = stack.get_visible_child_name()
+        self._syncing_subview = True
+        try:
+            if name is not None and self.subview_switch_group.get_toggle_by_name(name) is not None:
+                self.subview_switch_group.set_active_name(name)
+        finally:
+            self._syncing_subview = False
 
     def scroll_next_section(self):
-        # 不再对应按钮点击（按钮已删），仅供 Alt+Down 快捷键调用。
-        scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
-
-        for label_offset in self.get_section_offsets():
-            if scrolling_offset < label_offset:
-                self.scroll_view(label_offset)
-                break
+        '''Alt+Down 快捷键：原为长页内跨分区滚动，切换式重构后对象消失，
+        重绑为下一个子视图档位（循环）。方法名保留以兼容 shortcut_accels.py
+        与 symbols_page 的同名鸭子接口。'''
+        self._cycle_subview(1)
 
     def scroll_prev_section(self):
-        # 仅供 Alt+Up 快捷键调用，见 scroll_next_section 注释。
-        scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
+        '''Alt+Up 快捷键，见 scroll_next_section 注释。'''
+        self._cycle_subview(-1)
 
-        for label_offset in reversed([0] + self.get_section_offsets()):
-            if scrolling_offset > label_offset:
-                self.scroll_view(label_offset)
-                break
+    def _cycle_subview(self, direction):
+        names = [option[0] for option in SUBVIEW_OPTIONS]
+        current = self.view_stack.get_visible_child_name()
+        try:
+            index = names.index(current)
+        except ValueError:
+            index = 0
+        self._syncing_subview = True
+        try:
+            self.view_stack.set_visible_child_name(names[(index + direction) % len(names)])
+        finally:
+            self._syncing_subview = False
 
-    def _get_scrolled_window(self):
-        return self.scrolled_window
+    # ---------- 搜索过滤 ----------
 
     def on_search_button_toggled(self, button):
         if button.get_active():
@@ -293,9 +289,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
             self.search_entry.grab_focus()
             self.filter_sections('')
         else:
-            # 先转移焦点到 scrolled_window，避免 Revealer 隐藏时搜索框失去焦点
-            # 导致 GTK 自动滚动到"下一个可聚焦控件"（越界到底部）。
-            self.scrolled_window.grab_focus()
             self.search_entry.set_text('')
             self.search_revealer.set_reveal_child(False)
 
@@ -304,7 +297,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
     def on_search_changed(self, entry):
         # 去抖：取消上一次待执行的过滤，150ms 停顿后合并为一次 filter_sections。
-        # 连续输入一个词的每个字符原本都触发全量 filter_rows，现合并为词末一次。
         if self._filter_idle_id is not None:
             GLib.source_remove(self._filter_idle_id)
         self._filter_idle_id = GLib.timeout_add(150, self._do_filter_sections)
@@ -316,66 +308,17 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         return False
 
     def filter_sections(self, query):
-        any_visible = False
-        for name, group in self.sections.items():
+        '''把搜索词下发到全部子视图。
+
+        三个 Adw.Sidebar 子视图走内建 GtkFilter（filter_items 内部同步改写
+        placeholder 文案：有搜索词 → No Results）；树页走 filter_rows 并按
+        命中与否在页内 list/no-results 两态间切换。搜索全局生效：切换子视图
+        可查看各页各自的命中情况，无需页级 no-results 态（已删）。
+        '''
+        any_tree_visible = self.section_widgets['structure'].filter_rows(query)
+        self._tree_stack.set_visible_child_name(
+            'no-results' if (query and not any_tree_visible) else 'list')
+        for name in ('files', 'labels', 'todos'):
             widget = self.section_widgets.get(name)
-            if widget and hasattr(widget, 'filter_rows'):
-                section_visible = widget.filter_rows(query)
-                group.set_visible(section_visible if query else True)
-                any_visible |= section_visible
-            else:
-                group.set_visible(not bool(query))
-        if query and not any_visible:
-            self.content_stack.set_visible_child_name('no-results')
-        else:
-            self.content_stack.set_visible_child_name('content')
-        # set_visible 仅改 group 可见性，不改变 group 列表结构，故 _groups_cache
-        #（持有全部 group 引用）仍有效。get_visible_sections 会重新读
-        # group.get_visible()，无需在此清空 cache 诱发 _collect_groups 全树遍历。
-        # 原实现每次搜索字符都清空，搜索期间滚动结果会反复重建 cache。
-
-        # 搜索无结果时隐藏菜单按钮
-        self.section_menu_button.set_visible(not query or any_visible)
-
-        # 过滤后重建菜单（只显示可见 section）
-        self._rebuild_section_menu()
-
-    def _init_section_menu(self):
-        """初始化下拉菜单的基础设施（menu model / action group / popover class）。"""
-        self._section_menu = Gio.Menu()
-        self._section_menu_section = Gio.Menu()
-        self._section_menu.append_section(None, self._section_menu_section)
-
-        self._section_action_group = Gio.SimpleActionGroup()
-        self.section_menu_button.insert_action_group('structure', self._section_action_group)
-        self.section_menu_button.set_menu_model(self._section_menu)
-
-        popover = self.section_menu_button.get_popover()
-        if popover is not None:
-            popover.add_css_class('menu')
-
-    def _rebuild_section_menu(self):
-        """根据当前 sections 重建菜单项和 actions。"""
-        # 清除旧 actions
-        for action in getattr(self, '_section_actions', {}).values():
-            self._section_action_group.remove_action(action.get_name())
-        self._section_actions = {}
-
-        self._section_menu_section.remove_all()
-        for i, (name, group) in enumerate(self.sections.items()):
-            if group.get_visible():
-                action_name = f'jump-{i}'
-                action = Gio.SimpleAction.new(action_name, None)
-                action.connect('activate', self._on_section_menu_item_activated, name)
-                self._section_action_group.add_action(action)
-                self._section_actions[i] = action
-
-                title = group.get_title() or name
-                menu_item = Gio.MenuItem.new(title, f'structure.{action_name}')
-                self._section_menu_section.append_item(menu_item)
-
-    def _on_section_menu_item_activated(self, action, parameter, name):
-        """菜单项点击：滚动到对应 section。"""
-        if name in self.sections:
-            group = self.sections[name]
-            self.scroll_view(group.get_allocation().y)
+            if widget is not None and hasattr(widget, 'filter_items'):
+                widget.filter_items(query)

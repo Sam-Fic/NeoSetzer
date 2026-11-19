@@ -96,7 +96,13 @@ class StructureSection(object):
         self.data_provider.workspace.active_document.view.source_view.grab_focus()
 
     def register_row(self, row, node):
-        self._row_map[id(node)] = row
+        '''以 (文档, 稳定偏移) 为键登记行。
+
+        键不用 id(node)：update_items 每次全量重建节点对象，而 populate 可能
+        因签名命中跳过行重建——id 键会随即失配，且被释放节点的 id 还可能被
+        新节点复用。(文档 id, offset) 跨重建稳定，行未重建时登记依旧有效。
+        '''
+        self._row_map[(id(node['item'][0]), node['offset'])] = row
 
     def on_document_changed(self, data_provider, new_document):
         """文档切换时，保存旧文档的折叠状态并加载新文档的。"""
@@ -167,14 +173,20 @@ class StructureSection(object):
                 break
 
         if self._current_highlight_row is not None:
-            self._current_highlight_row.remove_css_class('accent')
+            self._current_highlight_row._cursor_row = False
             self._current_highlight_row = None
 
         if target_node is not None:
-            row = self._row_map.get(id(target_node))
+            row = self._row_map.get((id(target_node['item'][0]), target_node['offset']))
             if row is not None:
-                row.add_css_class('accent')
+                # 光标跟随改用行属性标记（_cursor_row），不再挂 accent css 类：
+                # 树行外观统一到 Adw.Sidebar 的官方中性选中后，css 类不再承载
+                # "当前项"语义，选中行本身即指示。光标跟随行变化时同步选中，
+                # 否则侧栏高亮与编辑器所在节脱节（accent 类退役后选中式指示
+                # 的唯一实时同步点；只在本分支触发，同节内移动被上方短路）。
+                row._cursor_row = True
                 self._current_highlight_row = row
+                self.view.sync_selection_to_cursor_row()
             self._last_highlight_doc = document
             self._last_highlight_node = target_node
             self._last_highlight_line = target_node['item'][1]
@@ -291,16 +303,37 @@ class StructureSection(object):
 
         self.nodes_in_line = nodes_in_line
         self.nodes = nodes
-        self._row_map.clear()
-        self._current_highlight_row = None
+        # 节点对象每次全量重建，但 populate 可能因签名命中跳过行重建：行上
+        # 残留的 _cursor_row 标记必须显式清掉（_current_highlight_row 置 None
+        # 后无人在下轮高亮时清理，残留标记会让 _find_cursor_row 命中旧行）。
+        if self._current_highlight_row is not None:
+            self._current_highlight_row._cursor_row = False
+            self._current_highlight_row = None
+        # _row_map 不在此清除：键为 (文档, 稳定偏移)，行未重建时登记依旧有效；
+        # 真正的行重建由 populate 的重建路径自行清空并重新登记。
         # 节点已重建，旧的 _last_highlight_node 引用失效，重置缓存强制下次全量扫描。
         self._last_highlight_doc = None
         self._last_highlight_node = None
         self._last_highlight_line = None
         self._next_highlight_line = None
         self.view.populate()
+        self._refresh_row_item_data()
         if self.data_provider.document is not None:
             self.on_cursor_position_changed(self.data_provider, self.data_provider.document)
+
+    def _refresh_row_item_data(self):
+        '''把重建后的最新节点同步回现存行。
+
+        populate 签名命中跳过行重建时，行的 item_data 仍指向上一轮节点，其
+        starting_line 已因上方编辑整体平移——点击行会落到旧行号，光标落点
+        与高亮节对不上。行身份由 (文档, offset) 决定，此处按键把新节点写回
+        行，行对象与外观保持不变；重建路径下 add_nodes 已写入新节点，此处
+        赋值幂等。
+        '''
+        for node in self.nodes_in_line:
+            row = self._row_map.get((id(node['item'][0]), node['offset']))
+            if row is not None:
+                row.item_data = node
 
     def _get_document_for_node(self, node):
         document = node['item'][0]

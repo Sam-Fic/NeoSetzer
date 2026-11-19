@@ -49,8 +49,11 @@ class AgentTerminalView(Gtk.Box):
         self._header_title = None
 
         # ---- 迷你工具栏（卡片外上方，同 preview 工具栏布局）----
+        # .subview-row 顶距归零：本视图只嵌入 AI 页工具栏之下，行间空隙由
+        # 主工具栏的 7px 底距单独承担（见 style_gtk.css .subview-row）。
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
+        self.toolbar.add_css_class('subview-row')
 
         self.tool_label = Gtk.Label(label='')
         self.tool_label.add_css_class('dimmed')

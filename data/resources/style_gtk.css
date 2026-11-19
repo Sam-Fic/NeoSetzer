@@ -98,6 +98,16 @@ window {
 }
 
 /*
+ * 工具栏下的第二行（结构页子视图切换器行、AI 页 Agent 终端迷你工具栏）：
+ * 顶距归零。行间空隙 = 第一行的 7px 底距（47px 基线的一部分，见上，
+ * 不能动），自己不再叠加 6px 顶距——否则两行按钮之间隔出 7+6=13px 空档，
+ * 比同一工具栏内部 6px 的按钮间距松一倍。
+ */
+.sidebar-toolbar.subview-row {
+    padding-top: 0;
+}
+
+/*
  * 工具栏内独立按钮（如 symbols 页的查找按钮）与左侧相邻控件组的间距。
  * 原在 Python 中 set_margin_start(6) 硬编码，迁移到 CSS 引用间距变量。
  *
@@ -146,6 +156,23 @@ textview gutter {
 }
 
 /*
+ * 结构页三列表（files/labels/todos）与文件树的行高亮块水平边距：与上方
+ * 搜索框（.sidebar-search-bar 的 10px 内边距）取齐。libadwaita 默认给
+ * .navigation-sidebar > row 的 margin 是 0 6px，这里覆写为 10px，
+ * 让列表左右边缘与搜索框同一条线；行内盒的 14px padding 不动。
+ */
+.structure-sidebar row,
+.navigation-sidebar.sidebar-tree > row {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.structure-sidebar listview.header > header,
+.structure-sidebar .heading {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+/*
  * 符号网格：每个符号都是内部 Gtk.Button 外再包一层 Gtk.FlowBoxChild。
  * Libadwaita 默认会给 FlowBoxChild 自身绘制悬停/激活/选中背景，与内部按钮
  * 的 flat hover 叠加后会出现“两层矩形阴影”。这里只去掉 FlowBoxChild 在
@@ -160,10 +187,11 @@ textview gutter {
 }
 
 /*
- * 收紧 Adw.ActionRow 行距：构建日志面板与文档结构侧边栏共用。
+ * 收紧 Adw.ActionRow 行距：构建日志面板专用。
  * libadwaita 默认 list row 垂直 padding 较大（~8px）+ ActionRow 内部 .header
  * box 上下 margin（~6px），行距偏松。.compact-rows 作用域内收紧到更紧凑密度。
  * 仅作用于带 .compact-rows 的 ListBox，不影响其他列表。
+ * （文档结构树已改走 .sidebar-tree 规格，不再共用此密度。）
  */
 .compact-rows row {
     /* 1px 上下 + 28px 最小高：紧凑行距（叠加 ActionRow 自带 padding 后的
@@ -181,25 +209,82 @@ textview gutter {
 }
 
 /*
- * 键盘导航选择态：BROWSE 模式下 GTK 给选中行加 :selected 伪类。
- * 但列表失去焦点后（如点击行跳转到编辑器）不应残留选中高亮——
- * 仅当列表拥有焦点（:focus-within）时才显示。accent 类（光标跟随）
- * 与 :selected（键盘焦点）语义不同，可共存，accent 行的叠加效果更深。
- * accent 类在无焦点时也应可见（较淡的底色），保持光标位置提示。
- * accent 底色对所有带 .accent 类的列表行生效（不限于 .compact-rows），
- * Document Structure 侧边栏与 Open Documents 弹窗共用同一"当前项"样式。
+ * 文档结构树列表：行规格对齐 Adw.Sidebar（官方 _sidebars.scss 的
+ * `.navigation-sidebar > row` 内部盒），与迁移后的 files/labels/todos
+ * 三个 Adw.Sidebar 子页外观统一——同款行高、内边距、中性选中。
+ *
+ * 关键覆盖点（ActionRow 默认值比侧栏行松很多，漏一处就露馅）：
+ * - row 本体 padding 0（官方通用 navigation-sidebar 行是 0 8px）；
+ * - header 盒自然流（行高由 row 级 min-height 36px 主导，与 Adw.Sidebar
+ *   子页行的官方 min-height 36px 一致）+ padding 5px 14px；
+ * - title 盒上下 margin 6px 归零。
+ *
+ * 选择器双写：ActionRow 内部结构在 1.9 是 row > box.header（无 content
+ * 层），1.11.alpha 起加了 box.content 层——两条链都写，跨版本命中。
+ * 原本此处还有 accent（光标跟随底色）与 :focus-within 选中双态规则，
+ * 统一后退役：树行不再挂 .accent 类，光标跟随仅用编程式选中表达
+ * （选中行即官方 navigation-sidebar 中性高亮）。
  */
-.compact-rows row:selected:not(.accent) {
-    background: transparent;
+/* 选择器写法注意：GTK 4.22 新 CSS 引擎的 specificity 按 node name 数优先，
+   `list > row`（2 name，官方默认行 padding 2px）会压过 `.X > row`（1 name
+   2 class，application 优先级也救不回）——必须用 `.sidebar-tree list > row`
+   形态（name 数打平后 class 胜出）才能真正覆盖行 padding。 */
+.navigation-sidebar.sidebar-tree > row,
+.sidebar-tree list > row {
+    padding: 0;
+    /* 36px：行高统一目标。官方 .navigation-sidebar > row 的 min-height
+       36px 实测生效（libadwaita 1.9 内嵌 CSS），Adw.Sidebar 子页行高即
+       36px，树行同规格。row 级 min-height 在 GTK 4.22 是实测生效的层
+       （GtkBox 级的失效）。 */
+    min-height: 36px;
 }
+.navigation-sidebar.sidebar-tree > row > box.header,
+.sidebar-tree > row > box.content > box.header {
+    /* 内容盒自然流，行高由 row 级 min-height 36 主导。padding 5px 14px
+       同 Adw.Sidebar 行内盒（下方「Adw.Sidebar 行内盒对齐」）；margin 全
+       归零消官方 ActionRow 的左右 12px（左侧间距对齐的关键）。 */
+    min-height: 20px;
+    padding: 5px 14px;
+    margin: 0;
+}
+.navigation-sidebar.sidebar-tree > row > box.header > box.title,
+.navigation-sidebar.sidebar-tree > row > box.content > box.header > box.title {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.sidebar-tree row image {
+    -gtk-icon-size: 16px;
+}
+.sidebar-tree .structure-expander {
+    /* 1px：三角指示符与行标题之间的发丝间隙，§2.2 光学例外。 */
+    margin: 0 1px;
+}
+.sidebar-tree {
+    /* 顶距归零：与子视图工具栏的间距由 .sidebar-toolbar 的 7px 底距单独
+       承担（同 .sidebar-toolbar.subview-row / .sidebar-subview-tools 的
+       节奏），不再叠加官方 navigation-sidebar 自带的 6px padding-top 出
+       13px 空档。底部 4px 保留（滚到底时末行不贴边）。 */
+    padding-top: 0;
+}
+
+/*
+ * Adw.Sidebar 行内盒对齐：官方行高由 .navigation-sidebar > row 的
+ * min-height: 36px 决定（实测生效，此前"未生效、行高≈28px"的判断有误）；
+ * 本规则只统一行内盒的垂直留白（5px 上下 + label），与树行的 5px 14px
+ * 同规格。应用内 Adw.Sidebar 仅结构页三个子页使用，无其它作用面。
+ */
+sidebar .navigation-sidebar > row > box {
+    padding: 5px 14px;
+}
+
+/*
+ * "当前项"淡底（Open Documents 弹窗等非侧栏列表）：迁移前
+ * Document Structure 侧边栏与弹窗共用同一 accent 方案；侧栏统一到
+ * navigation-sidebar 选中样式后，此规则仅剩弹窗类列表使用。
+ * 详见 .accent-selection（深度选中变体）。
+ */
 row.accent {
     background: @setzer_accent_subtle;
-}
-.compact-rows:focus-within row:selected {
-    background: @setzer_accent_selected;
-}
-.compact-rows:focus-within row:selected.accent {
-    background: @setzer_accent_strong;
 }
 
 /*
@@ -214,26 +299,14 @@ row.accent {
     background: @setzer_accent_selected;
 }
 
-/* 文档结构树形展开器（折叠/展开的三角形按钮）。作为 ActionRow 内的普通
-   widget，无原生按钮视觉；仅作可点击指示，不显示悬停/按下背景。 */
-.compact-rows .structure-expander {
-    /* 1px：三角指示符与行标题之间的发丝间隙，§2.2 光学例外。 */
-    margin: 0 1px;
-}
-
 /*
- * 侧边栏分区组标题：字号/字重交给 Adw.PreferencesGroup 内部的 heading 样式，
- * 这里只收紧间距。
+ * 结构页子视图工具行（todos 的两档切换 This document / All documents）：
+ * 页内工具行，位于 Adw.Sidebar 之上。顶距归零：与子视图工具栏的间距由
+ * .sidebar-toolbar 的 7px 底距单独承担（同第一/二行工具栏之间的节奏，
+ * 见 .sidebar-toolbar.subview-row）；左右与底部留 6px。
  */
-.sidebar-section-group > .header {
-    /* 2px：组标题与首行内容之间的发丝间隙，§2.2 光学例外。 */
-    margin-bottom: 2px;
-}
-.sidebar-section-group {
-    padding-top: 0;
-}
-.sidebar-section-group > box {
-    padding-top: 0;
+.sidebar-subview-tools {
+    padding: 0 6px 6px;
 }
 
 /*

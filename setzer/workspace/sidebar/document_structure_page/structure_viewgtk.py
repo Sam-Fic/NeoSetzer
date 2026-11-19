@@ -55,15 +55,17 @@ class StructureSectionView(structure_widget.StructureWidget):
         # 保证展开/收起时新出现的行也遵循活跃搜索过滤。
         filter_query = self._last_filter_query
         self.clear_rows()
+        # 行全部销毁：(文档, offset) 键的登记随之失效，先清空再由 add_nodes
+        # 对新行重新登记，避免已销毁行的残留键被 highlight_current_section 命中。
+        self.model._row_map.clear()
         self.add_nodes(self.model.nodes, 0)
         self.set_empty_state_visible(len(self.model.nodes) == 0)
         if filter_query:
             self.filter_rows(filter_query)
-        # After rebuilding rows, sync the keyboard selection.
-        # The _sync_selection_to_accent_row() is inherited from StructureWidget
-        # and will select the row matching the cursor position (accent class)
-        # or fall back to the first visible row.
-        self._sync_selection_to_accent_row()
+        # 不在此同步选中：此刻 _cursor_row 标记尚未重算（update_items / toggle_node
+        # 在 populate 之后才调 highlight_current_section），同步会退化为选第一行——
+        # 正是高亮与编辑器所在节脱节的来源。选中由 highlight_current_section 内的
+        # sync_selection_to_cursor_row 统一驱动。
 
     def _collect_signature(self, nodes, level, acc):
         for node in nodes:
@@ -93,6 +95,13 @@ class StructureSectionView(structure_widget.StructureWidget):
     def make_row(self, icon_name, text, level, node, has_children, expanded):
         row = Adw.ActionRow()
         row.set_selectable(True)
+        # 行高对齐 Adw.Sidebar：官方 .navigation-sidebar > row 的
+        # min-height: 36px 实测生效（libadwaita 1.9 内嵌 CSS），Adw.Sidebar
+        # 子页行高即 36px，树行同抬 36px。用 widget 级尺寸请求而非 CSS
+        # min-height——GTK 4.22 的 min-height 语义漂移（content-box）导致
+        # CSS 层叠压不住 ActionRow 内部结构。树行单行文本 ellipsize，
+        # 不会换行，固定高度安全。
+        row.set_size_request(-1, 36)
         # 保留行可激活：点击行（非展开器）仍跳转至对应节。
         row.set_activatable(True)
         # Store tree navigation info on the row for keyboard handling.

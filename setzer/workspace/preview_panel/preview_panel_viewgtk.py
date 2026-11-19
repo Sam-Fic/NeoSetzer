@@ -110,7 +110,7 @@ class PreviewPanelView(Gtk.Box):
         self.toolbar.append(self.stale_label)
 
         # 右侧：zoom_out / fit_width / zoom_level / zoom_in / recolor / external
-        self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
+        self.zoom_out_button = Gtk.Button(icon_name='loupe-minus-symbolic')
         self.zoom_out_button.set_tooltip_text(_('Zoom out'))
         self.zoom_out_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Zoom out')])
@@ -139,7 +139,7 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_level_button.set_child(self.zoom_level_label)
         self.toolbar.append(self.zoom_level_button)
 
-        self.zoom_in_button = Gtk.Button(icon_name='zoom-in-symbolic')
+        self.zoom_in_button = Gtk.Button(icon_name='loupe-plus-symbolic')
         self.zoom_in_button.set_tooltip_text(_('Zoom in'))
         self.zoom_in_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Zoom in')])

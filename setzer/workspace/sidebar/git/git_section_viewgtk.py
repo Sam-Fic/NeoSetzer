@@ -234,7 +234,7 @@ class GitSectionView(Gtk.Box):
         self.changes_box.append(self.files_scroller)
 
         # 工作区干净：不用单行灰字，改为与 Document Structure 空状态同款的
-        # Adw.StatusPage（.compact + .sidebar-empty-state：48px 图标 /
+        # Adw.StatusPage（.compact + .sidebar-empty-state：64px 图标 /
         # 0.95em 标题）。vexpand 吃掉改动列表原本占的高度，内容在剩余空间
         # 里垂直居中；高度不够时内部 ScrolledWindow 已开
         # propagate-natural-height，不会自己滚起来。
