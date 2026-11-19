@@ -70,6 +70,13 @@ sed -i '/^"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;/d' po/setzer.pot
 - 改 msgid 后旧译文可从 `git show HEAD:po/X.po` 解析找回，搬到新 msgid。
 - 数未翻译条目：`msgattrib --untranslated --no-obsolete po/X.po | grep '^msgid ' | sed 1d | grep -c '^msgid '`（msgattrib 会把头部条目也输出，`sed 1d` 跳过）。
 
+## 规范形态与归一化
+
+po 的规范形态即 `sync-po.sh` 的产物：`msgcat --sort-by-file --no-wrap`——`#:` occurrence 注释一条一行、msgstr 不折行、条目按源码位置排序。绕过脚本的手改（polib 默认 wrapwidth、裸 `msgmerge`、xgettext 直接产出等）会留下折行漂移，下一次 sync 会把整个文件重排进 diff。
+
+- 2026-11-20 已一次性收敛历史漂移（commit `6fab5ec4`，已登记 [.git-blame-ignore-revs](../.git-blame-ignore-revs)）。此后按「更新翻译」流程走，diff 应当干净；若 po 再次出现大面积格式 diff，先怀疑有人绕过了 `sync-po.sh`。
+- 纯格式归一化必须单独成 commit，不与语义改动（改 msgid、改译文）混合，并把提交 hash 登记进根目录 [.git-blame-ignore-revs](../.git-blame-ignore-revs)：GitHub blame 视图自动跳过；本地生效执行 `git config blame.ignoreRevsFile .git-blame-ignore-revs`。
+
 ## 新增语言
 
 将 `lang` 替换为语言代码：
