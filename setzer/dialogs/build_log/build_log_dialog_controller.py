@@ -543,9 +543,7 @@ class BuildLogDialogController(object):
             success, msg = session.send(prompt, cwd)
             if success:
                 workspace.set_show_ai_agent(True)
-                window = getattr(workspace, 'agent_terminal_window', None)
-                if window is not None and window.get_visible():
-                    window.present()
+                workspace.reveal_agent_terminal()
             self._toast(msg)
             return
 

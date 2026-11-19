@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:45+0800\n"
+"POT-Creation-Date: 2026-11-20 01:17+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Traditional)\n"
@@ -571,7 +571,7 @@ msgstr "未設定 Agent 工具。請在偏好設定 → 一般 → AI 設定中�
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:453
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:525
 #: setzer/workspace/headerbar/headerbar.py:374
-#: setzer/workspace/sidebar/ai_page/ai_page.py:324
+#: setzer/workspace/sidebar/ai_page/ai_page.py:307
 msgid "Please save the document first"
 msgstr "請先儲存檔案"
 
@@ -728,7 +728,7 @@ msgstr "傳送至 AI 代理"
 #: setzer/dialogs/project_build_configuration_viewgtk.py:334
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
 #: setzer/document/preview/preview_controller.py:731
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:84
 #: setzer/workspace/actions/actions.py:493
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
@@ -933,7 +933,7 @@ msgid "Select All"
 msgstr "全選"
 
 #: setzer/command_palette/catalog.py:99
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:183
 #: setzer/dialogs/project_search_replace.py:71
 msgid "Find"
@@ -3572,7 +3572,7 @@ msgid "Number of matrix columns"
 msgstr "矩陣行數"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:159
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:165
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:217
 #: setzer/popovers/shortcutsbar/text_menu.py:42
 msgid "Environment"
@@ -3983,68 +3983,68 @@ msgstr ""
 msgid "LaTeX Interpreter is missing."
 msgstr "缺少 LaTeX 直譯器。"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:44
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:50
 msgid "Documents"
 msgstr "文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:45
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:51
 msgid "Create new document"
 msgstr "建立新文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:52
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:59
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Open a document"
 msgstr "開啟文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:47
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:53
 msgid "Show recent documents"
 msgstr "顯示最近使用的文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:54
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:177
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:139
 msgid "Show open documents"
 msgstr "顯示已開啟的文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:49
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:55
 msgid "Switch to another open document"
 msgstr "切換至其他開啟的文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:50
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:56
 msgid "Save the current document"
 msgstr "儲存目前文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:51
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:57
 msgid "Save the document with a new filename"
 msgstr "以新檔案名稱儲存文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:52
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58
 msgid "Close the current document"
 msgstr "關閉目前文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:53
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:59
 msgid "Close all open documents"
 msgstr "關閉所有開啟的檔案"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:54
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:60
 msgid "Restore a previously saved session"
 msgstr "恢復先前儲存的作業階段"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:57
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:63
 msgid "Reopen the last closed document"
 msgstr "重新開啟最後關閉的檔案"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:64
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:267
 msgid "Pin or unpin the active document tab"
 msgstr "釘選或取消釘選目前文件分頁"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:61
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:67
 msgid "Tools"
 msgstr "工具"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:68
 #: setzer/document/build_widget/build_widget.py:365
 #: setzer/document/build_widget/build_widget_viewgtk.py:62
 #: setzer/document/build_widget/build_widget_viewgtk.py:65
@@ -4052,311 +4052,311 @@ msgstr "工具"
 msgid "Save and build .pdf-file from document"
 msgstr "儲存文件並建置 .pdf 檔案"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:63
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:69
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:255
 msgid "Build PDF without saving"
 msgstr "不儲存即建置 PDF"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:64
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:70
 msgid "Show current position in preview"
 msgstr "在預覽中顯示目前位置"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:66
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:72
 msgid "Print the current document"
 msgstr "列印目前文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:69
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:75
 msgid "Windows and panels"
 msgstr "視窗與面板"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:70
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:76
 msgid "Open the preferences dialog"
 msgstr "開啟偏好設定對話框"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:75
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:81
 msgid "Show the about dialog"
 msgstr "顯示關於對話框"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:76
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:82
 msgid "Show help panel"
 msgstr "顯示說明面板"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:77
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83
 msgid "Toggle fullscreen"
 msgstr "切換全螢幕"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:78
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:84
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:261
 msgid "Toggle document structure panel"
 msgstr "切換文件結構"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:81
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:87
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:262
 msgid "Toggle symbols panel"
 msgstr "切換符號"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:82
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:88
 msgid "Toggle build log"
 msgstr "顯示建置紀錄"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:89
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:264
 msgid "Toggle preview panel"
 msgstr "切換預覽"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:84
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:90
 msgid "Open command palette"
 msgstr "開啟命令面板"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:85
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:91
 msgid "Show global menu"
 msgstr "顯示全域選單"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:86
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92
 msgid "Show context menu"
 msgstr "顯示右鍵選單"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:87
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:93
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:176
 msgid "Show keyboard shortcuts"
 msgstr "顯示鍵盤快捷鍵"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:88
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:94
 msgid "Quit the application"
 msgstr "關閉應用程式"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:91
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:97
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:104
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:184
 msgid "Find and replace"
 msgstr "尋找與取代"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:93
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:96
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:99
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102
 msgid "Find the next match"
 msgstr "尋找下一個符合項"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:94
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:97
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:100
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103
 msgid "Find the previous match"
 msgstr "尋找上一個符合項"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:101
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:107
 #: setzer/popovers/context_menu/context_menu_viewgtk.py:224
 #: setzer/workspace/context_menu/context_menu.py:109
 msgid "Zoom"
 msgstr "縮放"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:108
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:180
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:143
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:145
 msgid "Zoom in"
 msgstr "放大"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:109
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:181
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:114
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:116
 msgid "Zoom out"
 msgstr "縮小"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:104
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:110
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:182
 msgid "Reset zoom"
 msgstr "重設縮放"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:107
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:113
 msgid "Copy and paste"
 msgstr "複製與貼上"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:108
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:114
 msgid "Copy selected text to clipboard"
 msgstr "複製選取文字至剪貼簿"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:109
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:115
 msgid "Cut selected text to clipboard"
 msgstr "剪下選取文字至剪貼簿"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:110
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:116
 msgid "Paste text from clipboard"
 msgstr "從剪貼簿貼上文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:113
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:119
 msgid "Undo and redo"
 msgstr "復原與重做"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:114
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:120
 msgid "Undo previous text edit"
 msgstr "復原上一次文字編輯"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:115
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:117
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:121
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:123
 msgid "Redo previous text edit"
 msgstr "重做上一次文字編輯"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:120
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:126
 msgid "Selection"
 msgstr "選取"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:121
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:127
 msgid "Select all text"
 msgstr "選取所有文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:123
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:129
 msgid "Select next occurrence of the current word"
 msgstr "選取下一個相同詞"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:124
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:130
 msgid "Select all occurrences of the current word"
 msgstr "選取所有相同詞"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:125
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:131
 #: setzer/dialogs/preferences/pages/page_editor.py:1272
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:236
 msgid "Add cursor above"
 msgstr "在上方新增游標"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:126
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:132
 #: setzer/dialogs/preferences/pages/page_editor.py:1273
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:237
 msgid "Add cursor below"
 msgstr "在下方新增游標"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:127
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:133
 msgid "Clear extra cursors"
 msgstr "清除多餘游標"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:130
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:136
 msgid "Editing"
 msgstr "編輯"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:131
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:137
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:354
 msgid "Toggle insert / overwrite"
 msgstr "切換插入/覆寫"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:133
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:139
 msgid "Move current line up"
 msgstr "上移目前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:134
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:140
 msgid "Move current line down"
 msgstr "下移目前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:139
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:145
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:352
 msgid "Go to line"
 msgstr "跳至行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:140
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:146
 msgid "Delete current line"
 msgstr "刪除目前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:142
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:148
 msgid "Duplicate current line"
 msgstr "複製目前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:143
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:149
 msgid "Toggle bookmark on current line"
 msgstr "在目前行加入/移除書籤"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:144
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:150
 msgid "Go to next bookmark"
 msgstr "跳到下一個書籤"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:145
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:151
 msgid "Go to previous bookmark"
 msgstr "跳到上一個書籤"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:148
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:154
 msgid "LaTeX shortcuts"
 msgstr "LaTeX 快速鍵"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:149
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:155
 msgid "Comment / Uncomment current line(s)"
 msgstr "註解/取消註解目前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:150
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:156
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:209
 msgid "New line"
 msgstr "新行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:151
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:157
 msgid "Bold text"
 msgstr "粗體文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:152
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:158
 msgid "Italic text"
 msgstr "斜體文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:153
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:159
 msgid "Underlined text"
 msgstr "底線文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:155
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:161
 msgid "Typewriter text"
 msgstr "打字機文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:156
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:162
 msgid "Emphasized text"
 msgstr "強調文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:157
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:163
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:215
 msgid "Quotation marks"
 msgstr "引號"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:158
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:164
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:216
 msgid "List item"
 msgstr "清單項目"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:162
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:168
 msgid "Math shortcuts"
 msgstr "數學快速鍵"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:163
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:169
 msgid "Inline math section"
 msgstr "行內數學區段"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:164
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:170
 msgid "Display math section"
 msgstr "顯示數學區段"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:165
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:171
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:220
 msgid "Equation"
 msgstr "方程式"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:166
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:172
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:221
 #: setzer/popovers/shortcutsbar/math_menu.py:41
 msgid "Subscript"
 msgstr "下標"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:167
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:173
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:222
 #: setzer/popovers/shortcutsbar/math_menu.py:42
 msgid "Superscript"
 msgstr "上標"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:168
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:174
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:223
 #: setzer/popovers/shortcutsbar/math_menu.py:43
 msgid "Fraction"
 msgstr "分數"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:175
-#: setzer/workspace/sidebar/ai_page/ai_page.py:48
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:181
+#: setzer/workspace/sidebar/ai_page/ai_page.py:50
 msgid "AI Agent"
 msgstr "AI Agent"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:178
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:184
 msgid "Annotate selection for AI agent"
 msgstr "為 AI 代理程式加入選區批註"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:179
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:185
 msgid "Send selection to AI agent"
 msgstr "將選區傳送給 AI 代理程式"
 
@@ -5595,7 +5595,7 @@ msgid "Save as"
 msgstr "另存為"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:174
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:214
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:215
 msgid "Close document"
 msgstr "關閉文件"
 
@@ -6048,7 +6048,7 @@ msgid "Build settings"
 msgstr "建置設定"
 
 #: setzer/dialogs/project_build_configuration_viewgtk.py:206
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:208
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:209
 msgid "Root document"
 msgstr "根文件"
 
@@ -6269,8 +6269,6 @@ msgstr "預製指令"
 #: setzer/document/ai_annotations/annotation_popover.py:74
 #: setzer/document/ai_annotations/annotation_popover.py:111
 #: setzer/document/ai_annotations/annotation_popover.py:169
-#: setzer/workspace/sidebar/ai_page/ai_page.py:280
-#: setzer/workspace/sidebar/ai_page/ai_page.py:310
 msgid "Custom (no preset)"
 msgstr "自訂（無預製）"
 
@@ -6600,7 +6598,7 @@ msgstr "此變更沒有記錄到文字"
 msgid "Typeset"
 msgstr "排版效果"
 
-#: setzer/document/preview/diff_change_dialog.py:195
+#: setzer/document/preview/diff_change_dialog.py:194
 msgid "No typeset crop available"
 msgstr "沒有可用的排版裁剪"
 
@@ -6845,7 +6843,7 @@ msgstr "保留大小寫"
 msgid "Search in selection"
 msgstr "在選取範圍中搜尋"
 
-#: setzer/document/snippet_preview/math_preview_popover.py:161
+#: setzer/document/snippet_preview/math_preview_popover.py:160
 msgid "Rendering formula…"
 msgstr "正在渲染公式…"
 
@@ -7038,7 +7036,7 @@ msgid "Transform Selection"
 msgstr "選取"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:41
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:166
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:167
 #: setzer/popovers/hamburger_menu/hamburger_menu.py:115
 msgid "Recent Documents"
 msgstr "最近的文件"
@@ -7050,7 +7048,7 @@ msgid "No Results"
 msgstr "沒有結果"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:58
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:100
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:101
 msgid "Other Documents"
 msgstr "其他文件"
 
@@ -7077,7 +7075,7 @@ msgstr "選取根文件"
 
 #: setzer/popovers/document_switcher/document_switcher.py:369
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:33
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:134
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:135
 msgid "Open Documents"
 msgstr "開啟的文件"
 
@@ -7089,32 +7087,32 @@ msgstr "搜尋開啟的文件…"
 msgid "Set one Document as Root"
 msgstr "將一份文件設為根文件"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:66
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:67
 msgid "Designate a document as the build root"
 msgstr "將文件指定為建置根目錄"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:72
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:73
 #: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
 msgid "Unset Root Document"
 msgstr "取消根文件設定"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:74
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:75
 msgid "Remove the root document designation"
 msgstr "保留目前版本(_K)"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:81
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:82
 msgid "Click on a document in the list below to set it as root. The root document will get built, no matter which document you are currently editing, and it will always display in the .pdf preview. The build log will also refer to the root document. This is often useful for working on large projects where typically a top level document (the root) will contain multiple lower level files via include statements."
 msgstr "點擊下方清單中的文件，將其設為根文件。無論您目前編輯哪份文件，根文件都會被建置，並一律顯示於 .pdf預覽中。建置紀錄也會參考根文件。這對大型專案通常很有用，因為頂層文件（根文件）通常會透過 include 語句包含多個下層檔案。"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:84
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:85
 msgid "Exit root document selection mode"
 msgstr "退出根文件選擇模式"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:102
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:103
 msgid "Open a document not in the recent list"
 msgstr "從最近清單移除所有文件"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:108
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:109
 msgid "No matching documents"
 msgstr "沒有相符的文件"
 
@@ -7975,54 +7973,56 @@ msgstr "物件"
 msgid "Context Menu"
 msgstr "右鍵選單"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:141
+#: setzer/workspace/sidebar/ai_page/ai_page.py:144
 msgid "From a PDF selection"
 msgstr "來自 PDF 選取範圍"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:163
+#: setzer/workspace/sidebar/ai_page/ai_page.py:166
 #, python-brace-format
 msgid "lines {range}"
 msgstr "第 {range} 行"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:171
+#: setzer/workspace/sidebar/ai_page/ai_page.py:174
 msgid "Jump to source"
 msgstr "跳轉到原始碼"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:172
+#: setzer/workspace/sidebar/ai_page/ai_page.py:175
 msgid "Edit annotation"
 msgstr "編輯批註"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:173
+#: setzer/workspace/sidebar/ai_page/ai_page.py:176
 msgid "Send this annotation"
 msgstr "傳送此批註"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:174
+#: setzer/workspace/sidebar/ai_page/ai_page.py:177
 msgid "Copy prompt for this annotation"
 msgstr "複製此批註的 prompt"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:175
+#: setzer/workspace/sidebar/ai_page/ai_page.py:178
 msgid "Delete annotation"
 msgstr "刪除批註"
 
-#: setzer/workspace/sidebar/ai_page/ai_page.py:327
+#: setzer/workspace/sidebar/ai_page/ai_page.py:310
 msgid "Started a new agent session"
 msgstr "已開啟新的 Agent 工作階段"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:61
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:64
-msgid "Preset used when sending a selection directly"
-msgstr "直發選取範圍時使用的預製提示詞"
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:77
+msgid "Agent CLI"
+msgstr "Agent CLI"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:77
+msgid "Annotations"
+msgstr "批註"
+
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:109
 msgid "Send All"
 msgstr "全部傳送"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:121
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:139
 msgid "No Annotations"
 msgstr "暫無批註"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:123
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:141
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
 msgstr "在編輯器中選取文字，使用右鍵選單或快捷鍵新增 AI 批註。"
 
@@ -8620,17 +8620,17 @@ msgstr "無法開啟作業階段：{name}"
 msgid "Could not save workspace state: {error}"
 msgstr "無法儲存工作區狀態：{error}"
 
-#: setzer/workspace/workspace_viewgtk.py:337
-#: setzer/workspace/workspace_viewgtk.py:600
-#: setzer/workspace/workspace_viewgtk.py:607
+#: setzer/workspace/workspace_viewgtk.py:339
+#: setzer/workspace/workspace_viewgtk.py:602
+#: setzer/workspace/workspace_viewgtk.py:609
 msgid "Drop to open file"
 msgstr "拖放以開啟檔案"
 
-#: setzer/workspace/workspace_viewgtk.py:605
+#: setzer/workspace/workspace_viewgtk.py:607
 #, python-brace-format
 msgid "Will open {count} files"
 msgstr "將開啟 {count} 個檔案"
 
-#: setzer/workspace/workspace_viewgtk.py:609
+#: setzer/workspace/workspace_viewgtk.py:611
 msgid "Cannot open this file type"
 msgstr "無法開啟此類型的檔案"

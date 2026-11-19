@@ -272,11 +272,10 @@ class AnnotationSender(object):
                 # 发送成功：批注已完成使命，从列表移除（annotations_changed
                 # 信号自动触发 AI 页重建）。
                 self._remove_sent(sent_entries)
-                # 让用户看到终端：切到侧栏 AI 页；已弹出则抬起独立窗口。
+                # 让用户看到终端：切到侧栏 AI 页并切到终端档；已弹出则抬起
+                # 独立窗口。
                 self.workspace.set_show_ai_agent(True)
-                window = getattr(self.workspace, 'agent_terminal_window', None)
-                if window is not None and window.get_visible():
-                    window.present()
+                self.workspace.reveal_agent_terminal()
             self._toast(msg)
             return
 

@@ -15,11 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-"""侧栏 AI 页控制器：批注列表 + Agent 终端。
+"""侧栏 AI 页控制器：批注列表 + Agent 终端（工具栏档位切换）。
 
 批注跨所有打开文档收集、按添加顺序平铺；行内按钮 = 跳转源码 / 编辑 /
-单发 / 删除。终端区由 AgentSession + AgentTerminalView 提供，弹出独立
-窗口经 workspace.pop_out_agent_terminal / pop_in_agent_terminal。
+单发 / 删除。批注列表与终端两档内容单栈不同屏展现（同 Git 页
+Changes/Commits），工具栏档位是事实源；终端区由 AgentSession +
+AgentTerminalView 提供，弹出独立窗口经 workspace.pop_out_agent_terminal
+/ pop_in_agent_terminal，发送成功经 reveal_terminal 亮出终端。
 """
 
 import os
@@ -27,7 +29,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib, Gio, Pango
+from gi.repository import Gtk, Adw, GLib, Pango
 
 from setzer.app.service_locator import ServiceLocator
 from setzer.ai_fix.agent_terminal_viewgtk import AgentTerminalView
@@ -58,11 +60,12 @@ class AiPage(object):
         self.workspace.connect('document_removed', self.on_document_list_changed)
 
         self.view.send_all_button.connect('clicked', self.on_send_all_clicked)
+        # 档位（ToggleGroup 无 toggled 信号）：notify::active 驱动内容栈。
+        self.view.view_toggle.connect('notify::active', self.on_view_toggle)
         self.terminal_view.close_session_button.connect('clicked', self.on_close_session_clicked)
         self.terminal_view.new_session_button.connect('clicked', self.on_new_session_clicked)
         self.terminal_view.pop_button.connect('clicked', self.on_pop_clicked)
 
-        self.rebuild_preset_menu()
         self.rebuild_list()
 
     # ---- 批注收集 ----
@@ -272,42 +275,22 @@ class AiPage(object):
     def _presets(self):
         return self.workspace.settings.get_value('preferences', 'ai_annotation_presets') or []
 
-    def rebuild_preset_menu(self):
-        '''与 document structure section 菜单同款：Gio.Menu + 有状态 action
-        （state=当前 preset name，popover 自动给选中项打勾）。'''
-        presets = self._presets()
-        menu = Gio.Menu()
-        item = Gio.MenuItem.new(_('Custom (no preset)'), 'preset.select')
-        item.set_action_and_target_value('preset.select', GLib.Variant('s', ''))
-        menu.append_item(item)
-        for preset in presets:
-            name = preset.get('name', '')
-            item = Gio.MenuItem.new(name, 'preset.select')
-            item.set_action_and_target_value('preset.select', GLib.Variant('s', name))
-            menu.append_item(item)
-        self.view.preset_menu_button.set_menu_model(menu)
-        popover = self.view.preset_menu_button.get_popover()
-        if popover is not None:
-            popover.add_css_class('menu')
+    def on_view_toggle(self, group, pspec=None):
+        '''批注/终端档位：驱动内容栈。终端已弹出时页内没有终端可显，
+        抬起独立窗口并把档位弹回批注（set_active_view 重入本回调切内容）。'''
+        name = group.get_active_name()
+        if name is None:
+            return
+        if name == 'agent' and self.terminal_view._popped_out:
+            self.workspace.pop_out_agent_terminal()  # 已弹出态 → present()
+            self.view.set_active_view('annotations')
+            return
+        self.view.set_content_view(name)
 
-        if not hasattr(self, '_preset_action'):
-            self._preset_action = Gio.SimpleAction.new_stateful(
-                'select', GLib.VariantType('s'), GLib.Variant('s', ''))
-            self._preset_action.connect('change-state', self.on_preset_action)
-            group = Gio.SimpleActionGroup()
-            group.add_action(self._preset_action)
-            self.view.preset_menu_button.insert_action_group('preset', group)
-        self._sync_preset_state(self.sender.default_preset or '')
-
-    def on_preset_action(self, action, value):
-        action.set_state(value)
-        name = value.get_string()
-        self.sender.default_preset = name or None
-        self._sync_preset_state(name)
-
-    def _sync_preset_state(self, name):
-        self._preset_action.set_state(GLib.Variant('s', name))
-        self.view.preset_menu_label.set_text(name or _('Custom (no preset)'))
+    def reveal_terminal(self):
+        '''发送成功后亮出终端：页内切到终端档（已弹出则由 workspace 抬窗）。'''
+        if not self.terminal_view._popped_out:
+            self.view.set_active_view('agent')
 
     def on_send_all_clicked(self, button):
         self.sender.send_annotations(self._all_entries())

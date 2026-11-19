@@ -26,6 +26,7 @@ foreach t : [
   ['test_ai_annotations', 'test_ai_annotations.py'],
   ['test_ai_diff', 'test_ai_diff.py'],
   ['test_ai_from_pdf_wiring', 'test_ai_from_pdf_wiring.py'],
+  ['test_ai_page_view_toggle', 'test_ai_page_view_toggle.py'],
   ['test_animation_prefs', 'test_animation_prefs.py'],
   ['test_annotation_prompt_builder', 'test_annotation_prompt_builder.py'],
   ['test_annotation_sender', 'test_annotation_sender.py'],

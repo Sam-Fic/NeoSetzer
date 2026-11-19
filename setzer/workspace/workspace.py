@@ -1565,7 +1565,7 @@ class Workspace(Observable):
         '''把 AI 页终端区（工具栏 + 卡片）整体弹出为独立窗口。
 
         仿 pop_out_preview 的整体 reparent：VTE 与 PTY 随 widget 搬移，
-        会话不中断。不改 show_ai_agent（侧栏 AI 页保留批注列表）。
+        会话不中断。不改 show_ai_agent（侧栏 AI 页弹回批注档）。
         '''
         if self.agent_terminal_popped_out:
             if self.agent_terminal_window is not None:
@@ -1577,25 +1577,38 @@ class Workspace(Observable):
         if self.agent_terminal_window is None:
             self.agent_terminal_window = agent_terminal_window.AgentTerminalWindow(self)
         panel = ai_page.terminal_view
-        ai_page.view.paned.set_end_child(None)
+        ai_page.view.detach_agent_panel()
         self.agent_terminal_window.set_panel(panel)
         panel.set_popped_out(True)
         self.agent_terminal_popped_out = True
         self.agent_terminal_window.present()
 
     def pop_in_agent_terminal(self, end_session=False):
-        '''收回终端区到 AI 页。end_session=True（关窗 X）时同时杀会话。'''
+        '''收回终端区到 AI 页（落在终端档）。end_session=True（关窗 X）时同时杀会话。'''
         if self.agent_terminal_popped_out and self.agent_terminal_window is not None:
             ai_page = getattr(self.sidebar, 'ai_page', None)
             self.agent_terminal_window.take_panel()
             if ai_page is not None:
-                ai_page.view.paned.set_end_child(ai_page.terminal_view)
+                # 先清弹出标记再装回：attach 会触发档位回调，回调里靠该
+                # 标记区分「页内切档」与「终端不在页内」两种情形。
                 ai_page.terminal_view.set_popped_out(False)
+                ai_page.view.attach_agent_panel()
             # 隐藏而非销毁：保留几何状态便于下次弹出。
             self.agent_terminal_window.set_visible(False)
             self.agent_terminal_popped_out = False
         if end_session:
             self.get_agent_session().end_session()
+
+    def reveal_agent_terminal(self):
+        '''发送成功后确保终端可见：已弹出 → 抬起独立窗口；否则侧栏 AI 页
+        切到终端档。'''
+        if self.agent_terminal_popped_out:
+            if self.agent_terminal_window is not None:
+                self.agent_terminal_window.present()
+            return
+        ai_page = getattr(self.sidebar, 'ai_page', None)
+        if ai_page is not None:
+            ai_page.reveal_terminal()
 
     def set_show_preview_or_help(self, show_preview, show_help):
         if show_preview != self.show_preview or show_help != self.show_help:
