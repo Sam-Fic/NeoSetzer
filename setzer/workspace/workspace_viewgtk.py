@@ -294,7 +294,9 @@ class MainWindow(Adw.ApplicationWindow):
         self._loading_overlay.add_css_class('loading-overlay')
         self._loading_overlay.set_can_target(False)
 
-        self._loading_spinner = Gtk.Spinner()
+        # Adw.Spinner 无 start()/stop()：永远在转，动画挂在 frame clock 上，
+        # loading 页不显示（未映射）时自然静止，无需手动停转。
+        self._loading_spinner = Adw.Spinner()
         self._loading_spinner.set_size_request(48, 48)
         self._loading_spinner.set_halign(Gtk.Align.CENTER)
         self._loading_spinner.set_valign(Gtk.Align.CENTER)
@@ -969,13 +971,12 @@ class MainWindow(Adw.ApplicationWindow):
     def show_loading_spinner(self):
         '''显示全屏 loading overlay。
 
-        立即切换到 loading 页并启动 spinner 动画。取消任何待执行的
+        立即切换到 loading 页（spinner 可见即转动）。取消任何待执行的
         hide（show 优先级高于 hide：若 show 在 deferred hide 之前到达，
         hide 应被取消，否则会错误地隐藏刚显示的 spinner）。
         '''
         self._spinner_hide_pending = False
         self._content_stack.set_visible_child_name('loading')
-        self._loading_spinner.start()
 
     def hide_loading_spinner(self):
         '''隐藏全屏 loading overlay（延迟到 idle 执行）。
@@ -998,7 +999,6 @@ class MainWindow(Adw.ApplicationWindow):
         '''idle 回调：真正执行隐藏。若期间有新的 show 到达则跳过。'''
         self._spinner_hide_pending = False
         if self._content_stack.get_visible_child_name() == 'loading':
-            self._loading_spinner.stop()
             self._content_stack.set_visible_child_name('content')
         return False
 

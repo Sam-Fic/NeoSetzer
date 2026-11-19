@@ -208,7 +208,7 @@ class SnippetEditorDialog(Adw.Dialog):
 
         hint = Gtk.Label(label=_('Use • to place the cursor after inserting the snippet.'))
         hint.set_halign(Gtk.Align.START)
-        hint.add_css_class('dim-label')
+        hint.add_css_class('dimmed')
         hint.add_css_class('caption')
         hint.set_wrap(True)
         content.append(hint)

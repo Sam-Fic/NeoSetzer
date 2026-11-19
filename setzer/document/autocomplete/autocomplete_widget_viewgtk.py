@@ -279,7 +279,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
             #   片段等类型选取主题 symbolic 图标，set_pixel_size(16) 固定尺寸
             #   避免行高被撑大。
             # - 详情列：从 dotlabels 提取参数名（如 \dfrac 的 "num, den"），
-            #   右对齐 + dim-label + caption 降级视觉权重，与查找/文件行的副标题风格一致。
+            #   右对齐 + dimmed + caption 降级视觉权重，与查找/文件行的副标题风格一致。
             # 使用 Gtk.Grid 替代 Gtk.Box：Grid 默认透明，不会阻断 ListBoxRow 的背景色
             # 渲染（Box 在某些主题下会绘制自己的背景，导致 boxed-list 背景色丢失）。
             icon = Gtk.Image()
@@ -300,7 +300,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
             detail_label.set_xalign(1.0)
             detail_label.set_margin_start(12)
             detail_label.set_margin_end(6)
-            detail_label.add_css_class('dim-label')
+            detail_label.add_css_class('dimmed')
             detail_label.add_css_class('caption')
             detail_label.set_visible(bool(detail))
 
@@ -353,7 +353,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
         # 2px 上下微间隙：与上方命令行同为紧凑行密度（§2.2 光学例外）。
         label.set_margin_top(2)
         label.set_margin_bottom(2)
-        label.add_css_class('dim-label')
+        label.add_css_class('dimmed')
         label.add_css_class('caption')
 
         row = Gtk.ListBoxRow()
@@ -373,7 +373,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
         # 2px 上下微间隙：与上方命令行同为紧凑行密度（§2.2 光学例外）。
         label.set_margin_top(2)
         label.set_margin_bottom(2)
-        label.add_css_class('dim-label')
+        label.add_css_class('dimmed')
         label.add_css_class('caption')
         self._counter_label = label
 

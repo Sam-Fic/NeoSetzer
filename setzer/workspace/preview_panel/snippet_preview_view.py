@@ -17,7 +17,7 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Adw, Gtk
 
 # 缩放档位上下限与步长。与 PDF 预览的离散档位不同：片段是单张图，
 # 倍数缩放的连续手感更合适。
@@ -90,13 +90,13 @@ class SnippetPreviewView(Gtk.Box):
         self.status_box.set_halign(Gtk.Align.CENTER)
         self.status_box.set_valign(Gtk.Align.CENTER)
         self.status_box.add_css_class('snippet-preview-status')
-        self.spinner = Gtk.Spinner()
+        self.spinner = Adw.Spinner()
         self.status_box.append(self.spinner)
         self.status_label = Gtk.Label()
         self.status_label.set_wrap(True)
         self.status_label.set_justify(Gtk.Justification.CENTER)
         self.status_label.set_max_width_chars(28)
-        self.status_label.add_css_class('dim-label')
+        self.status_label.add_css_class('dimmed')
         self.status_box.append(self.status_label)
         self.retry_button = Gtk.Button(label=_('Retry'))
         self.retry_button.set_halign(Gtk.Align.CENTER)
@@ -159,11 +159,8 @@ class SnippetPreviewView(Gtk.Box):
         self._apply_zoom()
 
     def _set_status(self, icon, message, retry):
+        # Adw.Spinner 永远在转，可见性即播放开关（未映射时 frame clock 静止）。
         self.spinner.set_visible(icon == 'loading')
-        if icon == 'loading':
-            self.spinner.start()
-        else:
-            self.spinner.stop()
         self.status_label.set_text(message)
         self.status_label.set_visible(bool(message))
         self.retry_button.set_visible(retry)

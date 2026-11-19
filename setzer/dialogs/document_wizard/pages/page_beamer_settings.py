@@ -163,7 +163,7 @@ class BeamerSettingsPageView(PageView):
             label=_('No themes match this search.'))
         self.no_themes_label.set_halign(Gtk.Align.START)
         self.no_themes_label.set_wrap(True)
-        self.no_themes_label.add_css_class('dim-label')
+        self.no_themes_label.add_css_class('dimmed')
         self.no_themes_label.set_visible(False)
 
         self.group_options = Adw.PreferencesGroup()

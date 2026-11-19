@@ -56,7 +56,8 @@ class DocumentChooserView(object):
         self.other_documents_row = Adw.ActionRow()
         self.other_documents_row.set_activatable(True)
         self.other_documents_row.set_title(_('Other Documents') + '…')
-        self.other_documents_row.set_icon_name('document-open-symbolic')
+        # set_icon_name 自 1.3 废弃，官方等价写法是把图标加为 prefix。
+        self.other_documents_row.add_prefix(Gtk.Image.new_from_icon_name('document-open-symbolic'))
         self.other_group.add(self.other_documents_row)
         self.page.add(self.other_group)
 

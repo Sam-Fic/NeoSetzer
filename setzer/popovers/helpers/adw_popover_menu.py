@@ -96,7 +96,7 @@ class AdwPopoverMenu(Gtk.Popover):
             row.add_prefix(icon)
         if shortcut is not None:
             shortcut_label = Gtk.Label(label=shortcut)
-            shortcut_label.add_css_class('dim-label')
+            shortcut_label.add_css_class('dimmed')
             row.add_suffix(shortcut_label)
         if action_name is not None:
             row.set_action_name(action_name)
@@ -124,7 +124,7 @@ class AdwPopoverMenu(Gtk.Popover):
         if check:
             check_img = Gtk.Image(icon_name='object-select-symbolic')
             check_img.set_pixel_size(16)
-            check_img.add_css_class('dim-label')
+            check_img.add_css_class('dimmed')
             row.add_suffix(check_img)
         row._callback = callback
         row._callback_data = user_data

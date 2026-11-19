@@ -30,7 +30,7 @@ class DocumentStatsView(Gtk.Box):
         description = Gtk.Label(label=_('These counts are updated after the document is saved.'))
         description.set_wrap(True)
         description.set_xalign(0)
-        description.add_css_class('dim-label')
+        description.add_css_class('dimmed')
         description.add_css_class('caption')
         self.append(description)
 
@@ -61,7 +61,7 @@ class DocumentStatsView(Gtk.Box):
 
         self.label_chars_desc = Gtk.Label()
         self.label_chars_desc.set_xalign(0)
-        self.label_chars_desc.add_css_class('dim-label')
+        self.label_chars_desc.add_css_class('dimmed')
         self.label_chars_desc.add_css_class('caption')
         self.col_chars.append(self.label_chars_desc)
 
@@ -76,7 +76,7 @@ class DocumentStatsView(Gtk.Box):
 
         self.label_lines_desc = Gtk.Label()
         self.label_lines_desc.set_xalign(0)
-        self.label_lines_desc.add_css_class('dim-label')
+        self.label_lines_desc.add_css_class('dimmed')
         self.label_lines_desc.add_css_class('caption')
         self.col_lines.append(self.label_lines_desc)
 
@@ -100,7 +100,7 @@ class DocumentStatsView(Gtk.Box):
         self.label_texcount_missing.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.label_texcount_missing.set_xalign(0)
         self.label_texcount_missing.set_margin_top(12)
-        self.label_texcount_missing.add_css_class('dim-label')
+        self.label_texcount_missing.add_css_class('dimmed')
         self.label_texcount_missing.add_css_class('caption')
         self.label_texcount_missing.set_visible(False)
         self.append(self.label_texcount_missing)

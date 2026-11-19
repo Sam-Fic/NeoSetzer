@@ -78,7 +78,7 @@ def attach_symbol_hover_preview(button, symbol):
 
         if symbol[2] is not None:
             package_label = Gtk.Label(label=_('Package') + ': ' + symbol[2])
-            package_label.add_css_class('dim-label')
+            package_label.add_css_class('dimmed')
             box.append(package_label)
 
         popover.set_child(box)

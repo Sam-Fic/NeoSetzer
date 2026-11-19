@@ -96,7 +96,7 @@ class PreviewPanelView(Gtk.Box):
         self.paging_of_label = Gtk.Label()
         self.paging_of_label.set_xalign(0)
         self.paging_of_label.set_hexpand(False)
-        self.paging_of_label.add_css_class('dim-label')
+        self.paging_of_label.add_css_class('dimmed')
         self.toolbar.append(self.paging_of_label)
 
         # 构建失败提示：居中显示在页码区与右侧按钮之间的空白区，红色突出严重性。
@@ -210,7 +210,7 @@ class PreviewPanelView(Gtk.Box):
             [Gtk.AccessibleProperty.LABEL], [_('Previous change')])
         self.diff_nav.append(self.diff_nav_prev_button)
         self.diff_nav_label = Gtk.Label()
-        self.diff_nav_label.add_css_class('dim-label')
+        self.diff_nav_label.add_css_class('dimmed')
         self.diff_nav_label.set_width_chars(6)
         self.diff_nav.append(self.diff_nav_label)
         self.diff_nav_next_button = Gtk.Button(icon_name='go-next-symbolic')

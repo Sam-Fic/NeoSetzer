@@ -27,6 +27,12 @@ from setzer.app.service_locator import ServiceLocator
 
 
 class KeyboardShortcutsDialog(object):
+    '''键盘快捷键弹窗（Adw.ShortcutsDialog，libadwaita 1.8）。
+
+    采用编程构建而非官方的静态 shortcuts-dialog.ui 资源约定（AdwApplication
+    自动接线 app.shortcuts）：快捷键数据须运行时从设置读取（用户可改键），
+    标题是可翻译字符串，静态 UI 文件无法表达。
+    '''
 
     def __init__(self, main_window):
         self.main_window = main_window

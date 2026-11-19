@@ -61,7 +61,7 @@ class LabelsSectionView(structure_widget.StructureWidget):
         flag = label[3] if len(label) > 3 else None
         if flag == 'unused':
             text, tooltip, css_class = (
-                _('Unused'), _('This label is never referenced.'), 'dim-label')
+                _('Unused'), _('This label is never referenced.'), 'dimmed')
         elif flag == 'duplicate':
             text, tooltip, css_class = (
                 _('Duplicate'), _('This label is defined more than once.'), 'error')

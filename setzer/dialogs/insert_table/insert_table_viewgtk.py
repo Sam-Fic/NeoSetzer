@@ -165,7 +165,7 @@ class InsertTableView(DialogView):
         self.import_status = Gtk.Label()
         self.import_status.set_halign(Gtk.Align.START)
         self.import_status.set_wrap(True)
-        self.import_status.add_css_class('dim-label')
+        self.import_status.add_css_class('dimmed')
         data_group.add(self.import_status)
         content.append(data_group)
 
@@ -336,13 +336,13 @@ class InsertTableView(DialogView):
 
         for column_index in range(columns):
             label = Gtk.Label(label=str(column_index + 1))
-            label.add_css_class('dim-label')
+            label.add_css_class('dimmed')
             label.set_halign(Gtk.Align.CENTER)
             self.cell_grid.attach(label, column_index + 1, 0, 1, 1)
 
         for row_index in range(rows):
             row_label = Gtk.Label(label=str(row_index + 1))
-            row_label.add_css_class('dim-label')
+            row_label.add_css_class('dimmed')
             row_label.set_halign(Gtk.Align.CENTER)
             self.cell_grid.attach(row_label, 0, row_index + 1, 1, 1)
             entries = []
@@ -408,7 +408,7 @@ class InsertTableView(DialogView):
         self.merge_rows = []
         if not merges:
             placeholder = Gtk.Label(label=_('No merged cells'))
-            placeholder.add_css_class('dim-label')
+            placeholder.add_css_class('dimmed')
             placeholder.set_halign(Gtk.Align.START)
             self.merge_list.append(placeholder)
             return
@@ -457,7 +457,7 @@ class InsertTableView(DialogView):
             self.merge_status.add_css_class('error')
         else:
             self.merge_status.remove_css_class('error')
-            self.merge_status.add_css_class('dim-label')
+            self.merge_status.add_css_class('dimmed')
 
     def set_merge_error(self, message=''):
         self.set_merge_status(message, is_error=bool(message))
@@ -483,11 +483,11 @@ class InsertTableView(DialogView):
         self.import_status.set_text(message)
         self.import_status.set_visible(bool(message))
         if is_error:
-            self.import_status.remove_css_class('dim-label')
+            self.import_status.remove_css_class('dimmed')
             self.import_status.add_css_class('error')
         else:
             self.import_status.remove_css_class('error')
-            self.import_status.add_css_class('dim-label')
+            self.import_status.add_css_class('dimmed')
 
     def get_cells(self):
         return tuple(tuple(entry.get_text() for entry in row) for row in self.cell_entries)

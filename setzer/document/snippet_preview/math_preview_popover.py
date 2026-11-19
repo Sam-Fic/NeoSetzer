@@ -56,7 +56,7 @@ DENSITY），按 50% 显示 = 公式以文档字号的 2 倍大小弹出，hidpi
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gdk, Gtk
+from gi.repository import Adw, Gdk, Gtk
 
 # 预览贴图的最大显示尺寸（逻辑像素）。贴图以 4x 密度渲染、按 50% 显示
 # （= 文档字号 2 倍），此处上限即「文档尺寸 2 倍」下的弹窗上限。
@@ -155,11 +155,10 @@ class MathPreviewPopover(object):
         self._loading_box.set_margin_bottom(4)
         self._loading_box.set_margin_start(6)
         self._loading_box.set_margin_end(6)
-        self._spinner = Gtk.Spinner()
-        self._spinner.start()
+        self._spinner = Adw.Spinner()
         self._loading_box.append(self._spinner)
         loading_label = Gtk.Label(label=_('Rendering formula…'))
-        loading_label.add_css_class('dim-label')
+        loading_label.add_css_class('dimmed')
         self._loading_box.append(loading_label)
 
         self._picture = _FormulaPicture()
@@ -239,9 +238,6 @@ class MathPreviewPopover(object):
         return self.popover is not None and self.popover.get_visible()
 
     def _set_state_loading(self, loading):
+        # Adw.Spinner 永远在转，随 _loading_box 显隐（未映射时自动静止）。
         self._loading_box.set_visible(loading)
         self._picture.set_visible(not loading)
-        if loading:
-            self._spinner.start()
-        else:
-            self._spinner.stop()

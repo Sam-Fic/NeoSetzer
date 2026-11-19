@@ -213,7 +213,7 @@ class PreviewView(Gtk.Box):
 
         self.target_label = Gtk.Label()
         self.target_label.add_css_class('caption')
-        self.target_label.add_css_class('dim-label')
+        self.target_label.add_css_class('dimmed')
         self.target_label.set_halign(Gtk.Align.START)
         self.target_label.set_can_target(False)
         self.target_label.add_css_class('preview-target-label')

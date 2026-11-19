@@ -243,7 +243,7 @@ class BibliographyManagerDialog(DialogView):
         self.details_box.append(self.details_title)
 
         self.details_subtitle = Gtk.Label()
-        self.details_subtitle.add_css_class('dim-label')
+        self.details_subtitle.add_css_class('dimmed')
         self.details_subtitle.set_halign(Gtk.Align.START)
         self.details_subtitle.set_wrap(True)
         self.details_box.append(self.details_subtitle)
@@ -354,7 +354,7 @@ class BibliographyManagerDialog(DialogView):
         extra_column.append(extra_label)
         extra_hint = Gtk.Label(label=_('One field per line: name = value'))
         extra_hint.set_halign(Gtk.Align.START)
-        extra_hint.add_css_class('dim-label')
+        extra_hint.add_css_class('dimmed')
         extra_hint.set_wrap(True)
         extra_column.append(extra_hint)
         self.extra_fields = Gtk.TextView()
@@ -444,7 +444,7 @@ class BibliographyManagerDialog(DialogView):
             label=_('No keys selected yet.'),
         )
         self.cited_chips_empty_label.set_halign(Gtk.Align.CENTER)
-        self.cited_chips_empty_label.add_css_class('dim-label')
+        self.cited_chips_empty_label.add_css_class('dimmed')
         chips_column.append(self.cited_chips_empty_label)
         # Adw.WrapBox：Adwaita 的“自动换行 box”，是 chips 的标准容器。
         # 取代手拼 Gtk.FlowBox；子项可以是任意 Gtk.Widget。

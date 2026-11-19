@@ -45,7 +45,7 @@ window {
  * 令牌基于语义色定义，明暗主题切换时自动重新解析。
  *
  *   令牌                     数值    用途
- *   setzer_text_dim          0.55    次要文字（等同 dim-label）
+ *   setzer_text_dim          0.55    次要文字（等同 dimmed）
  *   setzer_input_fill        0.06    输入框填充
  *   setzer_overlay_accent    0.10    强调色提示浮层（拖放高亮）
  *   setzer_overlay_error     0.10    错误色提示浮层（拖放拒绝）
@@ -398,7 +398,7 @@ tabbar.inline tabbox {
 
 /*
  * 编辑器底部状态栏：位于卡片下方，独立于圆角矩形。
- * 与卡片共享左右 margin（6px），文字 dim-label 灰化，caption 小字号。
+ * 与卡片共享左右 margin（6px），文字 dimmed 灰化，caption 小字号。
  */
 .editor-statusbar {
     /* 2px 垂直：状态栏单行 caption 的紧凑内边距（§2.2 光学例外）。 */

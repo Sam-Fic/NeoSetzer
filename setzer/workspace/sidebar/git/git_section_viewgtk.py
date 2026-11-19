@@ -138,7 +138,7 @@ class GitSectionView(Gtk.Box):
         # 2px：与左侧分支名之间的发丝间隙（caption 对 caption，6px 档视觉
         # 过宽，§2.2 光学例外）。
         self.label_ahead_behind.set_margin_start(2)
-        self.label_ahead_behind.add_css_class('dim-label')
+        self.label_ahead_behind.add_css_class('dimmed')
         self.label_ahead_behind.add_css_class('caption')
         self.branch_box.append(self.label_ahead_behind)
 
@@ -187,7 +187,7 @@ class GitSectionView(Gtk.Box):
         # 9px 光学例外：TextView 文本左内边距 8px + 1px 边框，占位文字
         # 与输入文本左缘对齐。
         self.message_placeholder.set_margin_start(9)
-        self.message_placeholder.add_css_class('dim-label')
+        self.message_placeholder.add_css_class('dimmed')
         self.message_overlay.add_overlay(self.message_placeholder)
         self.changes_box.append(self.message_overlay)
 
@@ -202,7 +202,7 @@ class GitSectionView(Gtk.Box):
         self.label_error.set_wrap(True)
         self.label_error.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.label_error.set_xalign(0)
-        self.label_error.add_css_class('dim-label')
+        self.label_error.add_css_class('dimmed')
         self.label_error.add_css_class('caption')
         self.label_error.set_visible(False)
         self.changes_box.append(self.label_error)

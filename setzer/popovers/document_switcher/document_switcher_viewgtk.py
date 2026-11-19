@@ -62,7 +62,8 @@ class DocumentSwitcherView(object):
         # 与统一方案的 accent 半透明底并存（见 row.set_selectable 相关注释）。
         self.set_root_document_row.set_selectable(False)
         self.set_root_document_row.set_title(_('Set one Document as Root'))
-        self.set_root_document_row.set_icon_name('document-properties-symbolic')
+        # set_icon_name 自 1.3 废弃，官方等价写法是把图标加为 prefix。
+        self.set_root_document_row.add_prefix(Gtk.Image.new_from_icon_name('document-properties-symbolic'))
         self.set_root_document_row.set_tooltip_text(_('Designate a document as the build root'))
         self.root_group.add(self.set_root_document_row)
 
@@ -70,7 +71,7 @@ class DocumentSwitcherView(object):
         self.unset_root_document_row.set_activatable(True)
         self.unset_root_document_row.set_selectable(False)
         self.unset_root_document_row.set_title(_('Unset Root Document'))
-        self.unset_root_document_row.set_icon_name('edit-clear-symbolic')
+        self.unset_root_document_row.add_prefix(Gtk.Image.new_from_icon_name('edit-clear-symbolic'))
         self.unset_root_document_row.set_tooltip_text(_('Remove the root document designation'))
         self.root_group.add(self.unset_root_document_row)
         self.root_group.set_visible(False)
@@ -98,7 +99,7 @@ class DocumentSwitcherView(object):
         self.other_documents_row.set_activatable(True)
         self.other_documents_row.set_selectable(False)
         self.other_documents_row.set_title(_('Other Documents') + '…')
-        self.other_documents_row.set_icon_name('document-open-symbolic')
+        self.other_documents_row.add_prefix(Gtk.Image.new_from_icon_name('document-open-symbolic'))
         self.other_documents_row.set_tooltip_text(_('Open a document not in the recent list'))
         self.other_group.add(self.other_documents_row)
         self.page.add(self.other_group)
@@ -106,7 +107,7 @@ class DocumentSwitcherView(object):
         # 空状态。
         self.empty_group = Adw.PreferencesGroup()
         self.empty_label = Gtk.Label(label=_('No matching documents'))
-        self.empty_label.add_css_class('dim-label')
+        self.empty_label.add_css_class('dimmed')
         self.empty_label.set_margin_top(12)
         self.empty_group.add(self.empty_label)
         self.empty_group.set_visible(False)

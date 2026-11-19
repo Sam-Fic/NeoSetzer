@@ -56,7 +56,7 @@ class SymbolsPageView(Gtk.Box):
 
         menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.section_menu_label = Gtk.Label(label='')
-        # 正常正文颜色（不用 dim-label 灰字）。
+        # 正常正文颜色（不用 dimmed 灰字）。
         self.section_menu_label.set_xalign(0.0)
         self.section_menu_label.set_ellipsize(Pango.EllipsizeMode.END)
         menu_box.append(self.section_menu_label)

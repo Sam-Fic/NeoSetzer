@@ -82,7 +82,7 @@ class SearchBar(Gtk.SearchBar):
         # 默认仅靠右不贴边；当 entry 有内容、Gtk.SearchEntry 显示「清空」按钮时，
         # 由 _update_counter_margin 调大右边距避开它（见下方连接）。
         self.match_counter.set_margin_end(12)
-        self.match_counter.add_css_class('dim-label')
+        self.match_counter.add_css_class('dimmed')
         self.entry_overlay.add_overlay(self.match_counter)
         self.entry.connect('notify::text', self._update_counter_margin)
         self._update_counter_margin()

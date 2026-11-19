@@ -409,7 +409,7 @@ class DiffWindow(Adw.Window):
 
         if not rows:
             empty = Gtk.Label(label=_('No changes in this file.'))
-            empty.add_css_class('dim-label')
+            empty.add_css_class('dimmed')
             empty.set_vexpand(True)
             empty.set_valign(Gtk.Align.CENTER)
             self.content.append(empty)
@@ -417,7 +417,7 @@ class DiffWindow(Adw.Window):
             self._build_columns(rows)
             if truncated:
                 note = Gtk.Label(label=_('Diff truncated: too many lines to display.'))
-                note.add_css_class('dim-label')
+                note.add_css_class('dimmed')
                 note.add_css_class('caption')
                 note.set_halign(Gtk.Align.START)
                 self.content.append(note)

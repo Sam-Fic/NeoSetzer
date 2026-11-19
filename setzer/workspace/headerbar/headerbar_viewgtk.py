@@ -130,7 +130,7 @@ class HeaderBar(object):
 
         # 文件名右侧的下箭头，暗示该按钮可点击（展开已打开文档列表）
         self.center_down_arrow = Gtk.Image(icon_name='pan-down-symbolic')
-        self.center_down_arrow.add_css_class('dim-label')
+        self.center_down_arrow.add_css_class('dimmed')
         self.center_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.center_box.append(self.document_title)
         self.center_box.append(self.center_down_arrow)

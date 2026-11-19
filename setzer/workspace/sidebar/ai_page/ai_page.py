@@ -165,7 +165,7 @@ class AiPage(object):
         range_text = '{}–{}'.format(*line_range) if line_range else '?'
         lines_label = Gtk.Label(label=_('lines {range}').format(range=range_text))
         lines_label.add_css_class('caption')
-        lines_label.add_css_class('dim-label')
+        lines_label.add_css_class('dimmed')
         lines_label.set_hexpand(True)
         lines_label.set_xalign(0.0)
         header.append(lines_label)
@@ -186,7 +186,7 @@ class AiPage(object):
         # 行 2：选区摘录（单行省略）
         snippet = model.get_text(annotation).replace('\n', ' ⏎ ')
         snippet_label = Gtk.Label(label=snippet)
-        snippet_label.add_css_class('dim-label')
+        snippet_label.add_css_class('dimmed')
         snippet_label.add_css_class('caption')
         snippet_label.set_xalign(0.0)
         snippet_label.set_ellipsize(Pango.EllipsizeMode.END)

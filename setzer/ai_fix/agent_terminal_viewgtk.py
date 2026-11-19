@@ -53,11 +53,11 @@ class AgentTerminalView(Gtk.Box):
         self.toolbar.add_css_class('sidebar-toolbar')
 
         self.tool_label = Gtk.Label(label='')
-        self.tool_label.add_css_class('dim-label')
+        self.tool_label.add_css_class('dimmed')
         self.toolbar.append(self.tool_label)
 
         self.status_label = Gtk.Label(label='')
-        self.status_label.add_css_class('dim-label')
+        self.status_label.add_css_class('dimmed')
         self.status_label.set_xalign(0.0)
         self.status_label.set_hexpand(True)
         self.status_label.set_ellipsize(Pango.EllipsizeMode.END)

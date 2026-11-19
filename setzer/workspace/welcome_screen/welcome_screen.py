@@ -198,12 +198,12 @@ class WelcomeScreen(object):
         modified_image = Gtk.Image(icon_name='document-revert-symbolic')
         modified_image.set_tooltip_text(_('Changed on disk since last opened'))
         modified_image.set_visible(False)
-        modified_image.add_css_class('dim-label')
+        modified_image.add_css_class('dimmed')
         info_box.append(modified_image)
         row._modified_image = modified_image
 
         info_label = Gtk.Label()
-        info_label.add_css_class('dim-label')
+        info_label.add_css_class('dimmed')
         info_label.add_css_class('caption')
         info_box.append(info_label)
         row._info_label = info_label
@@ -265,13 +265,13 @@ class WelcomeScreen(object):
         row._pin_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Unpin') if pinned else _('Pin')])
         if pinned:
-            row._pin_button.remove_css_class('dim-label')
+            row._pin_button.remove_css_class('dimmed')
             if not row._pin_button.has_css_class('accent'):
                 row._pin_button.add_css_class('accent')
         else:
             row._pin_button.remove_css_class('accent')
-            if not row._pin_button.has_css_class('dim-label'):
-                row._pin_button.add_css_class('dim-label')
+            if not row._pin_button.has_css_class('dimmed'):
+                row._pin_button.add_css_class('dimmed')
 
     @staticmethod
     def _format_size(n):

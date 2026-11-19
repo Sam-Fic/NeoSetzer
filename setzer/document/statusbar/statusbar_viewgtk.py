@@ -61,7 +61,7 @@ class StatusBarView(Gtk.Box):
                       self.labels_count_label, self.todos_count_label,
                       self.zoom_label):
             label.add_css_class('caption')
-            label.add_css_class('dim-label')
+            label.add_css_class('dimmed')
             # 省略号模式：标签的最小宽度固定为「…」的宽度，不再随文本长度变化。
             # 否则状态栏会参与编辑器列的最小宽度计算（Gtk.Box 的横向 min 是
             # 各子控件 min 之和），而 Adw.OverlaySplitView 用「总宽 − 内容最小宽」
@@ -82,7 +82,7 @@ class StatusBarView(Gtk.Box):
         self.build_status_button.set_visible(False)
         self.build_status_label = Gtk.Label(label='')
         self.build_status_label.add_css_class('caption')
-        self.build_status_label.add_css_class('dim-label')
+        self.build_status_label.add_css_class('dimmed')
         # 同上：构建结果文本（错误/警告数）变化不得改变状态栏最小宽度。
         self.build_status_label.set_ellipsize(Pango.EllipsizeMode.END)
         self.build_status_button.set_child(self.build_status_label)
@@ -90,7 +90,7 @@ class StatusBarView(Gtk.Box):
         # 右侧选区词数：仅有选区时可见（无选区时 set_visible(False)）
         self.selection_label = Gtk.Label(label='')
         self.selection_label.add_css_class('caption')
-        self.selection_label.add_css_class('dim-label')
+        self.selection_label.add_css_class('dimmed')
         self.selection_label.set_halign(Gtk.Align.END)
         # 省略号把 text="" → "7 lines selected" 的最小宽度变化压到「…」宽度，
         # 选区出现/消失不会再撑大编辑器列的最小宽度（见 info_box 的注释）。

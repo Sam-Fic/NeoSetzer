@@ -103,7 +103,7 @@ class CommandPaletteDialog(DialogView):
         content.append(self.empty_status_page)
 
         self.hint_label = Gtk.Label(label=_('Use ↑ and ↓ to select, Enter to run'))
-        self.hint_label.add_css_class('dim-label')
+        self.hint_label.add_css_class('dimmed')
         self.hint_label.set_halign(Gtk.Align.START)
         content.append(self.hint_label)
 
@@ -216,7 +216,7 @@ class CommandPaletteDialog(DialogView):
         row.add_css_class('command-palette-group-header')
         label = Gtk.Label(label=GROUP_TITLES[group.identifier])
         label.add_css_class('heading')
-        label.add_css_class('dim-label')
+        label.add_css_class('dimmed')
         label.set_halign(Gtk.Align.START)
         label.set_margin_top(12)
         # 2px：组标题与其下首行之间的发丝间隙（§2.2 光学例外）。
@@ -240,12 +240,12 @@ class CommandPaletteDialog(DialogView):
         shortcut = get_action_label(command.settings_shortcut_key)
         if shortcut:
             shortcut_label = Gtk.Label(label=shortcut)
-            shortcut_label.add_css_class('dim-label')
+            shortcut_label.add_css_class('dimmed')
             shortcut_label.set_halign(Gtk.Align.END)
             row.add_suffix(shortcut_label)
 
         category = Gtk.Label(label=_(command.category))
-        category.add_css_class('dim-label')
+        category.add_css_class('dimmed')
         category.set_halign(Gtk.Align.END)
         row.add_suffix(category)
 

@@ -143,13 +143,13 @@ class HelpPanelView(Gtk.Box):
         self.search_content_box.append(self.search_entry)
 
         # 搜索结果计数：显示 "{n} results" 或空查询时隐藏。
-        # dim-label 让计数低调不抢眼，与结果列表区分。
+        # dimmed 让计数低调不抢眼，与结果列表区分。
         self.result_count_label = Gtk.Label()
         self.result_count_label.set_xalign(0)
         self.result_count_label.set_margin_top(6)
         # 2px：caption 小字相对正文左缘的光学缩进（小字号补偿，§2.2）。
         self.result_count_label.set_margin_start(2)
-        self.result_count_label.add_css_class('dim-label')
+        self.result_count_label.add_css_class('dimmed')
         self.result_count_label.set_visible(False)
         self.search_content_box.append(self.result_count_label)
 
@@ -251,7 +251,7 @@ class HelpPanelView(Gtk.Box):
             js_body.set_xalign(0)
             js_body.set_wrap(True)
             js_body.set_max_width_chars(42)
-            js_body.add_css_class('dim-label')
+            js_body.add_css_class('dimmed')
             js_box.append(js_body)
 
             js_popover.set_child(js_box)
@@ -270,7 +270,7 @@ class HelpPanelView(Gtk.Box):
                 _('Help page rendering requires WebKit6. '
                   'Search is still available — click a result to open it '
                   'in your web browser.'))
-            self.content.add_css_class('dim-label')
+            self.content.add_css_class('dimmed')
             self.content.set_margin_start(12)
             self.content.set_margin_end(12)
             self.content.set_margin_top(12)

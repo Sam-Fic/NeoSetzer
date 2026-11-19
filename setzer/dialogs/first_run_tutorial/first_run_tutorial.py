@@ -94,7 +94,7 @@ class FirstRunTutorialDialog(object):
         intro.set_wrap(True)
         intro.set_xalign(0.0)
         intro.add_css_class('caption')
-        intro.add_css_class('dim-label')
+        intro.add_css_class('dimmed')
         box.append(intro)
 
         # 核心功能要点由无 GTK 内容模块集中定义，便于验证内容顺序、
