@@ -27,7 +27,7 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 
 | 平台 | 状态 | 运行时栈 |
 |------|------|----------|
-| Linux（Ubuntu 25.10+、Debian 14+、Fedora、Arch 等） | 完全支持 | 系统 GTK4 + libadwaita 1.8+ |
+| Linux（Ubuntu 26.04+、Debian 14+、Fedora、Arch 等） | 完全支持 | 系统 GTK4 + libadwaita 1.9+ |
 | Windows 10/11（x86_64） | 通过 MSYS2 支持 | 便携式 MSYS2 UCRT64 GTK4 栈 |
 | macOS Apple Silicon（ARM64） | 已支持 | 自包含 `.app` 发布包 |
 | WSL（Windows Subsystem for Linux） | 作为 Linux 应用支持 | WSL 内的 Linux 发行版 |
@@ -43,7 +43,7 @@ NeoSetzer 在 **Linux**、**Windows** 和 **macOS** 上使用同一套源码运�
 
 NeoSetzer 在 Ubuntu 上开发和测试。
 
-> **支持的发行版：** 预编译 `.deb` 需要 **GTK 4.10+**、**libadwaita 1.8+**（GNOME 49 或更新；应用还使用了 `Adw.ToggleGroup`、`Adw.Spinner`、`Adw.ShortcutsDialog`）和 **Python 3.10+**，这些版本约束已写入包的 `Depends`，因此适用于 **Ubuntu 25.10（Questing）及以上**、**Debian 14（forky）及以上**。更旧的发行版不满足约束：apt 会直接拒绝安装（Ubuntu 24.04 自带 libadwaita 1.5、Debian 13 自带 1.7），从源码运行也不行（上述 GI 绑定在导入时就要求对应版本），请升级系统或使用 Flatpak。
+> **支持的发行版：** 预编译 `.deb` 需要 **GTK 4.10+**、**libadwaita 1.9+**（GNOME 50 或更新；应用还使用了 `Adw.ToggleGroup`、`Adw.Spinner`、`Adw.ShortcutsDialog`、`Adw.Sidebar`）和 **Python 3.10+**，这些版本约束已写入包的 `Depends`，因此适用于 **Ubuntu 26.04 及以上**、**Debian 14（forky）及以上**。更旧的发行版不满足约束：apt 会直接拒绝安装（Ubuntu 24.04 自带 libadwaita 1.5、Ubuntu 25.10 自带 1.8），从源码运行也不行（上述 GI 绑定在导入时就要求对应版本），请升级系统或使用 Flatpak。
 >
 > `gir1.2-webkit-6.0` 是**可选**依赖（Recommends），只用于帮助面板的内嵌浏览器；缺少时应用正常启动，帮助页改用系统浏览器打开。
 

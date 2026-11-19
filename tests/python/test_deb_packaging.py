@@ -37,7 +37,7 @@ class TestDebPackaging(unittest.TestCase):
         for requirement in [
             'python3 (>= 3.10)',
             'gir1.2-gtk-4.0 (>= 4.10)',
-            'gir1.2-adw-1 (>= 1.8)',
+            'gir1.2-adw-1 (>= 1.9)',
             'gir1.2-gtksource-5 (>= 5.4)',
         ]:
             with self.subTest(requirement=requirement):
@@ -48,13 +48,13 @@ class TestDebPackaging(unittest.TestCase):
         self.assertIn('gir1.2-webkit-6.0', self.control_field('Recommends'))
 
     def test_smoke_test_runs_before_upload(self):
-        smoke = self.body.find('Smoke test package in a clean Ubuntu 25.10 container')
+        smoke = self.body.find('Smoke test package in a clean Ubuntu 26.04 container')
         upload = self.body.find('Upload Debian package artifact')
         self.assertNotEqual(smoke, -1, '缺少干净容器冒烟测试步骤')
         self.assertLess(smoke, upload, '冒烟测试必须在上传资产之前')
 
         step = self.body[smoke:upload]
-        self.assertIn('ubuntu:25.10', step)
+        self.assertIn('ubuntu:26.04', step)
         self.assertIn('--no-install-recommends', step)
         self.assertIn('setzer --version', step)
         self.assertIn('xvfb-run', step)

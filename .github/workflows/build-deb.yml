@@ -75,7 +75,7 @@ jobs:
           Section: editors
           Priority: optional
           Architecture: ${ARCH}
-          Depends: python3 (>= 3.10), python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, gir1.2-gtk-4.0 (>= 4.10), gir1.2-adw-1 (>= 1.8), gir1.2-gtksource-5 (>= 5.4), gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-xdp-1.0
+          Depends: python3 (>= 3.10), python3-gi, python3-cairo, python3-gi-cairo, python3-numpy, gir1.2-gtk-4.0 (>= 4.10), gir1.2-adw-1 (>= 1.9), gir1.2-gtksource-5 (>= 5.4), gir1.2-pango-1.0, gir1.2-poppler-0.18, gir1.2-xdp-1.0
           Recommends: texlive, gir1.2-vte-3.91, gir1.2-webkit-6.0
           Maintainer: NeoSetzer Packaging <noreply@github.com>
           Description: LaTeX editor for the GNOME desktop
@@ -94,10 +94,10 @@ jobs:
           echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
 
-      # 冒烟容器须满足包的 Depends：libadwaita >= 1.8 自 Ubuntu 25.10 起
-      # （24.04 是 1.5，apt 会拒绝安装）。构建 runner 保持 24.04——打包纯
+      # 冒烟容器须满足包的 Depends：libadwaita >= 1.9 自 Ubuntu 26.04 起
+      # （25.10 是 1.8，apt 会拒绝安装）。构建 runner 保持 24.04——打包纯
       # DESTDIR 拷贝，不运行应用。
-      - name: Smoke test package in a clean Ubuntu 25.10 container
+      - name: Smoke test package in a clean Ubuntu 26.04 container
         env:
           PACKAGE_FILE: ${{ steps.package.outputs.file }}
         run: |
@@ -105,7 +105,7 @@ jobs:
           test -f "$PACKAGE_FILE"
           docker run --rm -i \
             -v "$PWD:/src:ro" \
-            ubuntu:25.10 bash -s -- "$(basename "$PACKAGE_FILE")" <<'CONTAINER'
+            ubuntu:26.04 bash -s -- "$(basename "$PACKAGE_FILE")" <<'CONTAINER'
           set -eu
 
           # 干净容器 + --no-install-recommends：只验证 Depends，等价于最小系统。
