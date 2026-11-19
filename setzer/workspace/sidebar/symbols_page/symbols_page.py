@@ -83,8 +83,6 @@ class SymbolsPage(ScrollAnimatorMixin):
         self.view.scrolled_window.get_hadjustment().connect('changed', self.on_symbols_view_size_allocate)
         self.view.scrolled_window.get_vadjustment().connect('changed', self.on_scroll_or_resize)
         self.view.scrolled_window.get_vadjustment().connect('value-changed', self.on_scroll_or_resize)
-        self.view.next_button.connect('clicked', self.on_next_button_clicked)
-        self.view.prev_button.connect('clicked', self.on_prev_button_clicked)
         self.view.search_button.connect('toggled', self.on_search_button_toggled)
         self.view.search_entry.connect('stop-search', self.on_search_stopped)
         self.view.search_entry.connect('changed', self.on_search_changed)
@@ -346,21 +344,8 @@ class SymbolsPage(ScrollAnimatorMixin):
             toast_overlay.add_toast(toast)
 
     def on_scroll_or_resize(self, *args):
-        scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
-        if scrolling_offset == 0:
-            self.view.prev_button.set_sensitive(False)
-        else:
-            self.view.prev_button.set_sensitive(True)
-
-        # 一次取 visible sections，复用给按钮敏感度 + section label，
-        # 避免每帧调用两次 get_visible_sections（各遍历全部 labels）。
+        # 原 prev/next 按钮敏感度计算已随按钮移除，仅剩 section label 更新。
         sections = self.get_visible_sections()
-        if len(sections) == 0:
-            self.view.next_button.set_sensitive(False)
-        else:
-            final_offset = sections[-1][1]
-            self.view.next_button.set_sensitive(scrolling_offset < final_offset)
-
         self.update_section_label(sections)
 
     def get_visible_sections(self):
@@ -446,7 +431,8 @@ class SymbolsPage(ScrollAnimatorMixin):
             if group.get_visible():
                 self.scroll_view(group.get_allocation().y)
 
-    def on_next_button_clicked(self, button):
+    def scroll_next_section(self):
+        # 不再对应按钮点击（按钮已删），仅供 Alt+Down 快捷键调用。
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
 
         for label_offset in self.get_section_offsets():
@@ -454,7 +440,8 @@ class SymbolsPage(ScrollAnimatorMixin):
                 self.scroll_view(label_offset)
                 break
 
-    def on_prev_button_clicked(self, button):
+    def scroll_prev_section(self):
+        # 仅供 Alt+Up 快捷键调用，见 scroll_next_section 注释。
         scrolling_offset = self.view.scrolled_window.get_vadjustment().get_value()
 
         for label_offset in reversed([0] + self.get_section_offsets()):

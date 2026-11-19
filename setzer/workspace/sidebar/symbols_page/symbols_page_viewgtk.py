@@ -36,9 +36,9 @@ class SymbolsPageView(Gtk.Box):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
 
-        # 顶部内嵌工具栏：左侧随滚动更新的“当前分区”标题，右侧 linked 的
-        # 上一段 / 下一段导航按钮，再接一个独立的查找切换按钮。外观由
-        # .sidebar-toolbar 与 Document Structure 页统一。
+        # 顶部内嵌工具栏：左侧随滚动更新的“当前分区”标题下拉，再接一个
+        # 独立的查找切换按钮。外观由 .sidebar-toolbar 与 Document Structure
+        # 页统一。
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
         self.toolbar.set_valign(Gtk.Align.START)
@@ -66,22 +66,6 @@ class SymbolsPageView(Gtk.Box):
 
         self.section_menu_button.set_child(menu_box)
         self.toolbar.append(self.section_menu_button)
-
-        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-
-        self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
-        self.prev_button.set_can_focus(False)
-        self.prev_button.add_css_class('flat')
-        self.prev_button.set_tooltip_text(_('Previous section') + '  (Alt+Up)')
-        self.nav_box.append(self.prev_button)
-
-        self.next_button = Gtk.Button(icon_name='go-down-symbolic')
-        self.next_button.set_can_focus(False)
-        self.next_button.add_css_class('flat')
-        self.next_button.set_tooltip_text(_('Next section') + '  (Alt+Down)')
-        self.nav_box.append(self.next_button)
-
-        self.toolbar.append(self.nav_box)
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')

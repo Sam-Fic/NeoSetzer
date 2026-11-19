@@ -85,8 +85,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.scrolled_window = self.page.get_first_child()
         self.scrolled_window.get_vadjustment().connect('changed', self.on_scroll_or_resize)
         self.scrolled_window.get_vadjustment().connect('value-changed', self.on_scroll_or_resize)
-        self.next_button.connect('clicked', self.on_next_button_clicked)
-        self.prev_button.connect('clicked', self.on_prev_button_clicked)
         self.search_button.connect('toggled', self.on_search_button_toggled)
         self.search_entry.connect('stop-search', self.on_search_stopped)
         self.search_entry.connect('changed', self.on_search_changed)
@@ -136,8 +134,9 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
         self.content_stack.set_visible_child_name('content')
 
     def add_buttons(self):
-        # 顶部内嵌工具栏：左侧为随滚动更新的“当前分区”标题，右侧为
-        # linked 的上一段 / 下一段导航按钮。两页（Document Structure /
+        # 顶部内嵌工具栏：左侧为随滚动更新的“当前分区”标题下拉。
+        # 原有的上一段 / 下一段导航按钮已移除（下拉菜单 + Alt+Up/Down
+        # 快捷键 + 滚轮已覆盖该功能）。两页（Document Structure /
         # Symbols）共享此结构，外观由 .sidebar-toolbar 统一。
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.toolbar.add_css_class('sidebar-toolbar')
@@ -164,24 +163,6 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
         self.section_menu_button.set_child(menu_box)
         self.toolbar.append(self.section_menu_button)
-
-        self.nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-
-        self.prev_button = Gtk.Button()
-        self.prev_button.set_icon_name('go-up-symbolic')
-        self.prev_button.set_tooltip_text(_('Previous section') + '  (Alt+Up)')
-        self.prev_button.add_css_class('flat')
-        self.prev_button.set_can_focus(False)
-        self.nav_box.append(self.prev_button)
-
-        self.next_button = Gtk.Button()
-        self.next_button.set_icon_name('go-down-symbolic')
-        self.next_button.set_tooltip_text(_('Next section') + '  (Alt+Down)')
-        self.next_button.add_css_class('flat')
-        self.next_button.set_can_focus(False)
-        self.nav_box.append(self.next_button)
-
-        self.toolbar.append(self.nav_box)
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
@@ -219,16 +200,7 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
 
     def _on_scroll_or_resize_idle(self):
         self._scroll_update_idle_id = None
-        scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
-        self.prev_button.set_sensitive(scrolling_offset != 0)
-
-        # 一次取 visible sections，复用给按钮敏感度 + section label
         visible_sections = self.get_visible_sections()
-
-        vadj = self.scrolled_window.get_vadjustment()
-        at_bottom = scrolling_offset + vadj.get_page_size() >= vadj.get_upper() - 1
-        has_next = len(visible_sections) > 0 and scrolling_offset < visible_sections[-1][1]
-        self.next_button.set_sensitive(not at_bottom and has_next)
 
         # section title：仅变化时 set_text，避免每帧触发 Gtk.Label 无谓重绘
         current_title = self._compute_current_title(visible_sections)
@@ -289,7 +261,8 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
                 self._collect_groups(child, out)
             child = child.get_next_sibling()
 
-    def on_next_button_clicked(self, button):
+    def scroll_next_section(self):
+        # 不再对应按钮点击（按钮已删），仅供 Alt+Down 快捷键调用。
         scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
 
         for label_offset in self.get_section_offsets():
@@ -297,7 +270,8 @@ class DocumentStructurePage(Gtk.Box, ScrollAnimatorMixin):
                 self.scroll_view(label_offset)
                 break
 
-    def on_prev_button_clicked(self, button):
+    def scroll_prev_section(self):
+        # 仅供 Alt+Up 快捷键调用，见 scroll_next_section 注释。
         scrolling_offset = self.scrolled_window.get_vadjustment().get_value()
 
         for label_offset in reversed([0] + self.get_section_offsets()):

@@ -261,6 +261,6 @@ class SectionNavigationController(ShortcutController):
         else:
             page = sidebar.document_structure_page
         if direction < 0:
-            page.on_prev_button_clicked(None)
+            page.scroll_prev_section()
         else:
-            page.on_next_button_clicked(None)
+            page.scroll_next_section()
