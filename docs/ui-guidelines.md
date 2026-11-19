@@ -11,7 +11,7 @@
 | 5 布局与容器 | 通用布局、空状态、文本密集区入口 |
 | 6 弹窗与浮层 | 弹窗、HeaderBar 按钮、分段控件、偏好行 |
 | 7 轻反馈与打断 | 打扰阶梯、节流与静默 |
-| 8 工程约定 | 翻译调用时机 |
+| 8 工程约定 | 翻译调用时机、动画、文案 |
 
 ## 1 设计原则（强制）
 
@@ -28,7 +28,8 @@
 |------|------|------|------|
 | 表面 / 状态 | `dim` | 0.55 | 次要文字 |
 | 表面 / 状态 | `fill` | 0.06 | 输入框填充 |
-| 表面 / 状态 | `overlay` | 0.10 | 强调 / 错误提示浮层 |
+| 表面 / 状态 | `overlay-accent` | 0.10 | 强调色提示浮层（拖放高亮） |
+| 表面 / 状态 | `overlay-error` | 0.10 | 错误色提示浮层（拖放拒绝） |
 | 表面 / 状态 | `accent-subtle` | 0.12 | 当前项（列表无焦点） |
 | 表面 / 状态 | `accent-selected` | 0.25 | 选中项 |
 | 表面 / 状态 | `accent-strong` | 0.35 | 选中且当前项 |
@@ -41,6 +42,7 @@
 
 - 颜色优先 libadwaita 语义色（`@window_bg_color` 等）；半透明表面与状态色只用 `@setzer_*` 令牌，例如 `@setzer_input_fill`、`@setzer_focus_ring`、`@setzer_accent_selected`、`@setzer_shadow_strong`。
 - 新增半透明样式时先复用现有令牌；确需新档位时在令牌区扩展并同步本表，不在使用处写 `alpha(..., 0.xx)` 或 `opacity: 0.xx`。
+- 0/1 的 `opacity` 不属于半透明档位：仅用于显隐/淡入淡出动画（先例：搜索历史删除按钮 hover 淡入、拖放时欢迎页 `.dnd-blank` 淡出），不受上条约束。
 - Python 侧（Cairo 绘制）使用 `ColorManager.OPACITY_DIM` 等常量，与 CSS 层级保持一致。
 
 ### 2.2 间距
@@ -119,6 +121,8 @@
 - `Adw.StatusPage` 官方默认 96，紧凑侧栏可降到 64，但不要用 48。
 - 不使用 14 / 18 / 28 / 48 等中间尺寸（`set_pixel_size()` 与 `-gtk-icon-size` 都算），避免高 DPI 下模糊。
 - UI 图标一律用 symbolic 图标，颜色交给语义色，不写死。
+- 自定义 symbolic 图标从 `~/icon-library`（GNOME icon-library 克隆的 icon-dev-kit 集合）挑选，复制到 `data/resources/icons/hicolor/scalable/actions/`（gresource 自动打包）；缺图标先向用户确认来源，不自造。
+- 符号面板网格中的符号字形（按原始宽高等比渲染）与悬停放大预览属内容渲染，不受本节尺寸档约束；悬停预览常量仍对齐档位取值（先例：`PREVIEW_PIXEL_SIZE = 64`）。
 
 ### 3.4 描边
 
@@ -180,6 +184,7 @@
 - 纯图标按钮除 tooltip 外必须显式给出无障碍名称：`widget.update_property([Gtk.AccessibleProperty.LABEL], [_('…')])`，字符串复用同一 tooltip 文案，避免新增 msgid。
 - 自绘可点击控件（如文档结构展开器）必须保证同一操作有键盘路径（方向键展开/收起），不能只依赖鼠标手势。
 - 工具图标开关（`Gtk.ToggleButton`）同样属于图标按钮，必须给出无障碍名称，并用按下态表达「开」。
+- 按钮不得用 `set_can_focus(False)` 关闭键盘可达；要避免点击抢焦点用 `set_focus_on_click(False)`，两者作用不同（先例：构建日志弹窗按钮显式 `set_can_focus(True)`）。
 
 ### 4.4 选择控件语义
 
@@ -219,6 +224,7 @@
 ### 5.1 通用布局
 
 - 圆角、间距、按钮尺寸使用组件默认值，不手写固定数值；同一界面内等价区块的间距保持一致。
+- 自绘输入类控件的圆角**逐处对齐相邻组件**（Adwaita 默认 button/entry 9px、boxed-list 卡片 12px），不做全局统一覆盖；主题默认值不显式覆盖。
 - 纯说明文字不要包在卡片/带底框的容器里，避免制造可交互的错觉。
 - 文本密集区不引入带边框的普通按钮；轻量入口用 flat 按钮 + `dim-label`。
 - 按钮尺寸与交互反馈遵循 Adwaita 默认规范，不手工硬编码尺寸或关闭原生点击动画。
@@ -236,6 +242,8 @@
 ### 6.1 弹窗组件
 
 使用 `Adw.Dialog`、`Adw.PreferencesDialog` 等弹窗组件时，禁止同时保留系统默认右上角关闭按钮（右上角 X）和手动添加的 Close/Cancel 按钮。创建弹窗时必须调用 `set_show_end_title_buttons(False)` 禁用默认关闭按钮，仅保留单一手动关闭入口。
+
+例外：无手动关闭按钮的弹窗不调用本 API——默认 X 就是唯一的关闭入口，禁用它会移除唯一的入口（先例：构建日志、Add / Remove Packages）。
 
 ### 6.2 HeaderBar 按钮布局
 
@@ -278,6 +286,8 @@
 | 最重 | 模态弹窗 | 不可逆 / 有后果的操作确认、需要立即处置的错误 |
 
 - 反馈默认落在能表达清楚的最轻一档。
+- **Banner 与 Toast 的判据**：提示消失后用户会不会失去关键状态或唯一入口？会 → Banner（先例：外部 PDF 变更提醒——提示没了用户就不知道自己在看旧 PDF）；不会、入口已由持久控件表达（如分段档位与结果同生同灭）→ Toast + 动作按钮（[toast.py](../setzer/helpers/toast.py) 支持 `button_label` / `on_button_clicked`）。
+- **编程式打开文档一律静默**（synctex 跳转、侧栏 include、结构树、build log、AI 映射等）：`open_document_by_filename` 保持默认 `notify_if_already_open=False`，只有用户显式发起的打开（文件选择器、最近文档）才传 True。
 - **例行成功不提示**：界面本身已可见的结果不再另发 toast——保存后标题/标签已变化、导出完成即文件选择器关闭、面板切换本身可见、构建结果有按钮区常驻的 Success!/Failed(N)! 文字。
 - **重复事件必须收敛**：同一原因反复触发的提示走 [toast.py](../setzer/helpers/toast.py) 的 key 节流（先例：预览失败 8s、换行环绕提示）；自动构建循环内的成功/失败结果一律静默（输入中间态不是事件），只有用户主动构建的失败才发 toast；一次性告警用 one-shot 标志位（先例：`auto_build._untitled_warned`、`workspace._persistence_warning_shown`）。
 - **打断的边界**：只有不可逆/有后果的操作确认、需要用户做选择、需要立即处置的错误才允许模态打断；被动结果（打印失败、保存失败等）走 toast，异常弹窗须节流防连环堆叠（先例：`exception_handler` 30s 窗口）。
@@ -287,3 +297,15 @@
 ### 8.1 翻译调用的时机
 
 `_` / `ngettext` 由 setzer.in 启动时注入 builtins。类体在模块导入时求值，过早调用 `_` 会 NameError——翻译调用必须推迟到 `_build_ui()` 等运行时路径（先例：theme_selector 的 THEME_MODES 存原文）。gi-free 且需单测的模块，用 builtins 委托 + 回退的包装函数（先例：[build_status_text.py](../setzer/helpers/build_status_text.py)，其复数包装 `_ngettext` 已在 po/meson.build 声明 keyword）。
+
+- **丢弃式解包会破坏注入**：任何模块里写 `_, x = ...` 会把 str 写进模块全局 `_`、遮蔽 builtins 查找，此后该模块所有 `_(…)` 报 `TypeError: 'str' object is not callable`。丢弃项必须用具名变量接（任何名为 `_` 的赋值都会中招）。
+
+### 8.2 动画
+
+所有 Stack / Revealer 过渡统一经 [animation_prefs.py](../setzer/helpers/animation_prefs.py) 的 `set_transition()` 设置，**禁止裸调 `set_transition_type`**——CI 的 AST 检查会拦截（[test_animation_prefs.py](../tests/python/test_animation_prefs.py)），保证「减弱动画」偏好一处生效。
+
+- `RevealerTransitionType.NONE` 收起时仍按子控件全高申请尺寸；需要完全收起用 Stack `NONE` + duration 0，Revealer 保留滑动 type + duration 0。
+
+### 8.3 界面文案
+
+- 省略号统一用 `…`，不用三个英文句点 `...`。

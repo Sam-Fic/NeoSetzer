@@ -36,6 +36,8 @@
 
 - **无显示环境不再因量字体段错误**：偏好默认值设置时为量系统字体构造 `Gtk.TextView`，在 CI 等无显示环境直接 SIGSEGV（`Gtk.is_initialized()` 此时仍为真，挡不住）；改用 `Gdk.Display.get_default()` 判据，无显示时回退 `'monospace 11'`，并把批注锚点等待链的测试同步到新的判稳契约，CI 恢复全绿。
 
+- **文档整理与规范沉淀**：新增 `docs/dev/gtk-pitfalls.md`（GTK4 / libadwaita 实测 API 坑位清单）与 `docs/dev/ui-verification.md`（Xvfb headless / 本机 niri 两套 UI 目检流程），AGENTS.md 索引同步扩展并新增协作纪律节；ui-guidelines 沉淀圆角取邻居、按钮键盘可达、图标来源、Banner/Toast 判据、编程式打开静默、丢弃式解包禁令、动画中枢与省略号约定，并修正 overlay 令牌名与实际 CSS 定义一致；CONTRIBUTING 补 dev 启动入口陷阱与测试守卫判据；po/README 补批量修改译文技术并补齐文件清单；RELEASE 补 promote-artifact workflow 说明；修复 packaging 两处锚点链接，macOS 打包补排队失败的重跑指引；删除过期的上游 issue 快照与各 AI 工具目录遗留的已完成计划/日志。
+
 ### Improvements
 
 - **fix**: Shortcut capture no longer crashes on any keypress (`Gtk.KEY_Escape` → `Gdk.KEY_Escape`); Preferences → Keyboard Shortcuts rebinds work again.
@@ -52,6 +54,7 @@
 - **feat**: Side-by-side Git diff opens in a standard `Adw.Window` with a real headerbar, window/path title and Esc-to-close, keeping a module-level reference so GTK does not collect it early. Both panes reuse the editor's GtkSource scheme and wrapping preference; line numbers are drawn into the view's own left margin instead of a separate placeholder column (which produced a stray vertical rule), use original file line numbers and show a fold icon on wrapped continuations, and the two scrollers stay synced by the line at the viewport top.
 - **fix**: A detached preview window no longer opens blank — reparenting unparents the panel first, forces a relayout after present/map and rebuilds the page layout when it is missing. Git sidebar clean/history-empty states move to `Adw.StatusPage`, and Files sidebar child rows use plain indentation instead of vertical tree bars.
 - **fix**: No-display environments no longer segfault while measuring the default font for preference defaults. `Gtk.is_initialized()` stays true without a display on GTK ≥ 4.14, so the guard now checks `Gdk.Display.get_default()` and falls back to `monospace 11`; the annotation-settle tests were updated to the new contract, restoring a green CI.
+- **docs**: Add `docs/dev/gtk-pitfalls.md` (GTK4 / libadwaita API pitfalls) and `docs/dev/ui-verification.md` (Xvfb headless / local niri visual-verification flows); AGENTS.md gains index entries and a collaboration-discipline section. ui-guidelines absorbs recent conventions (neighbor-matched radii, keyboard reachability, icon sources, Banner-vs-Toast criteria, silent programmatic opens, no `_`-shadowing unpack, animation_prefs, `…` ellipsis) and aligns the overlay token names with the CSS definitions; CONTRIBUTING documents the dev launcher trap and the headless test guard; po/README gains bulk-edit techniques and completes its file listing; RELEASE.md documents the promote-artifact workflow; two packaging anchor links fixed and the macOS runner queuing failure gains a rerun guide; the stale upstream issue snapshot and leftover AI-tool plans/logs were removed.
 
 ---
 

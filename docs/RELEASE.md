@@ -94,6 +94,8 @@ gh run list --repo Sam-Fic/NeoSetzer --limit 5
 - Build Windows package
 - Build macOS package
 
+> 资产丢失或需替换时，可手动触发 [promote-artifact.yml](../.github/workflows/promote-artifact.yml)（`workflow_dispatch`，输入 run id、artifact 名与目标 tag）把指定 run 的 artifact 补传到已有 Release。
+
 > `Build Debian package` 里包含一步「干净的 ubuntu:24.04 容器安装 + 启动」冒烟测试；它失败时不会上传 `.deb`，也不会更新 Release 资产。
 
 > macOS 任务若在 1–2 秒内被取消、提示 `The configuration 'macos-XX-...' is not supported`，说明运行器标签已被 GitHub 下线，改 `.github/workflows/build-macos.yml` 的 `runs-on` 即可，详见 [macOS 打包说明](packaging/macos.md#ci-运行器)。

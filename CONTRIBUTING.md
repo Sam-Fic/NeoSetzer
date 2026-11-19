@@ -18,13 +18,17 @@ ninja -C builddir
 ./scripts/dev/setzer.dev
 ```
 
+运行 GUI 一律用 `./scripts/dev/setzer.dev`：它把仓库源码注入 `sys.path` 并直接指向源码内资源（改 CSS 即时生效）。不要用其它入口——`/usr/lib/python3/dist-packages` 装有系统级旧版 Setzer，`python -I`（隔离模式，忽略 PYTHONPATH）或仓库内 `build/setzer`（不注入 `sys.path`）都会静默导入旧版，表现为「对象没有某方法/属性」的诡异 AttributeError。临时脚本需在文件头部显式 `sys.path.insert(0, <仓库根>)` 再 import。
+
 ### 静态检查
 
 项目用 [ruff](https://docs.astral.sh/ruff/) 做静态检查（只启用 pyflakes 规则集），配置在根目录 `ruff.toml`。提交前建议跑一次，要求零告警：
 
 ```bash
-ruff check .
+ruff check . --no-cache
 ```
+
+`--no-cache` 避免缓存报出已修复文件的旧错误。
 
 两点项目约定已写进配置，不是误报也不是需要绕开的告警：
 
@@ -43,6 +47,8 @@ meson test -C builddir
 - **用 `unittest.TestCase` 风格**。套件以 `python3 -m unittest` 运行，pytest 风格的普通类 + `test_` 方法装载不到任何用例、静默跳过（曾因此埋没 `test_git_repository.py` 的 18 个用例）。
 
 测试在无显示环境下运行：GTK 强耦合的逻辑用 `load_method` 按需抽取方法 + 桩命名空间的方式测（范例：`test_frequent_build_ui_feedback.py`），不要在模块级实例化 widget。
+
+需要真实 widget 的用例必须以 `Gdk.Display.get_default() is not None` 作跳过守卫——无显示环境下 `Gtk.init()` 依然成功，但实例化 Python 定义的 widget 子类会直接 SIGSEGV（详见 [docs/dev/gtk-pitfalls.md](docs/dev/gtk-pitfalls.md) 第 6 节；范例：`test_agent_terminal_headerbar.py`）。
 
 ### 翻译文件 diff 优化
 

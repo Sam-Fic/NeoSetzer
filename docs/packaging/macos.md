@@ -14,7 +14,7 @@ xattr -dr com.apple.quarantine Setzer.app
 
 ## 正式发布
 
-macOS 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正式发布流程)：同步 `meson.build` 与 `CHANGELOG.md`，然后推送匹配的 `v*` 标签。`build-macos.yml` 会生成 `.app`、压缩为 ZIP，并上传到与 Linux 和 Windows 资产相同的 GitHub Release。
+macOS 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正式发布)：同步 `meson.build` 与 `CHANGELOG.md`，然后推送匹配的 `v*` 标签。`build-macos.yml` 会生成 `.app`、压缩为 ZIP，并上传到与 Linux 和 Windows 资产相同的 GitHub Release。
 
 工作流会验证应用入口可执行，并检查包内是否存在：
 
@@ -30,6 +30,14 @@ macOS 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正
 macOS 包固定使用 `macos-15`（Apple Silicon）运行器。
 
 macos-14 的运行器配置（`macos-14-arm64-us-default`）已被 GitHub 下线：tag 触发的任务会在 1 秒内以 `The configuration 'macos-14-arm64-us-default' is not supported` 取消，既不产出资产，也不会有编译错误可看。**不要把 `runs-on` 改回 `macos-14`。**
+
+另一种失败形态是**排队失败**：公共 arm64 runner 容量紧张时，任务排队十几分钟仍分配不到机器，最终以 `The job was not acquired by Runner of type hosted even after multiple attempts` 失败。这不是运行器下线（下线的报错是 1 秒内 `not supported`），直接重跑即可：
+
+```bash
+gh run rerun <run-id> --repo Sam-Fic/NeoSetzer --failed
+```
+
+一般几分钟内就能拿到机器并跑完。**不要为此改 `runs-on`**——换更新的标签排的是同一个公共 pool，等于把「重跑就好」的偶发问题换成依赖组合未验证的常发问题。
 
 升级到更新的运行器时：
 

@@ -18,7 +18,7 @@ ucrt64\bin\setzer.bat
 
 ## 正式发布
 
-Windows 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正式发布流程)：更新版本号和 `CHANGELOG.md`，然后推送与 `meson.build` 匹配的 `v*` 标签。`build-windows.yml` 会自动构建并把 ZIP 上传到同一 GitHub Release。
+Windows 包不单独创建 Release。请遵循 [Debian 发布流程](debian.md#正式发布)：更新版本号和 `CHANGELOG.md`，然后推送与 `meson.build` 匹配的 `v*` 标签。`build-windows.yml` 会自动构建并把 ZIP 上传到同一 GitHub Release。
 
 工作流会检查以下条件：
 
