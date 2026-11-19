@@ -25,6 +25,10 @@ from gi.repository import Gdk, Adw
 
 class ColorManager():
 
+    # 不透明度令牌：与 style_gtk.css 的 --setzer-opacity-* 对应。
+    # Python 侧绘制需要半透明文字/图形时引用这里，不写裸数值。
+    OPACITY_DIM = 0.55
+
     main_window = None
     # 颜色缓存：name -> Gdk.RGBA（lookup_color 的原始结果）。
     # get_ui_color 在每帧 draw 中被多次调用（gutter/preview），lookup_color 是

@@ -182,7 +182,7 @@ class BeamerSettingsPageView(PageView):
         self.group_options.add(self.option_show_navigation)
         self.group_options.add(self.option_top_align)
 
-        self.preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.preview_box.set_halign(Gtk.Align.CENTER)
 
         self.preview_images = dict()

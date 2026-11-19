@@ -77,7 +77,7 @@ class SpellCheckingWordsView(DialogView):
 
         self.ignored_clear_button = Gtk.Button(label=_('Clear All'))
         self.ignored_clear_button.set_halign(Gtk.Align.END)
-        self.ignored_clear_button.set_margin_top(8)
+        self.ignored_clear_button.set_margin_top(6)
         self.ignored_clear_button.set_margin_bottom(4)
         self.ignored_group.add(self.ignored_clear_button)
         content.append(self.ignored_group)

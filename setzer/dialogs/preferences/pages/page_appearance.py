@@ -770,7 +770,7 @@ class PageGeneralView(Adw.PreferencesPage):
         self.option_terminal_cmd = Adw.EntryRow()
         self.option_terminal_cmd.set_title(_('Terminal command (optional)'))
         self.option_terminal_cmd.set_tooltip_text(
-            _('Leave empty to auto-detect (gnome-terminal / xterm / konsole / ...). '
+            _('Leave empty to auto-detect (gnome-terminal / xterm / konsole / …). '
               'Under Flatpak, flatpak-spawn --host is added automatically.'))
         group_ai_main.add(self.option_terminal_cmd)
 

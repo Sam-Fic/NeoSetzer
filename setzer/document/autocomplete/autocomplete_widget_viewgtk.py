@@ -272,7 +272,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
 
             dotlabels = [d for d in item['dotlabels'].split('###') if d]
             for dotlabel in dotlabels:
-                command_text = command_text.replace('•', '<span alpha="60%">' + GLib.markup_escape_text(dotlabel) + '</span>', 1)
+                command_text = command_text.replace('•', '<span alpha="55%">' + GLib.markup_escape_text(dotlabel) + '</span>', 1)
 
             # 复刻 gnome-builder 补全行的三列布局：图标 | 命令文本 | 详情（参数名）。
             # - 图标列：_get_icon_name 按环境名 / 章节 / 字体样式 / 引用 / 数学 /

@@ -36,8 +36,8 @@ class AddRemovePackagesDialogView(DialogView):
         self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content_box.set_margin_start(12)
         self.content_box.set_margin_end(12)
-        self.content_box.set_margin_top(18)
-        self.content_box.set_margin_bottom(18)
+        self.content_box.set_margin_top(12)
+        self.content_box.set_margin_bottom(12)
         self.content_box.set_spacing(24)
         self.topbox.append(self.content_box)
 

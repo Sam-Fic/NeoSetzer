@@ -33,8 +33,7 @@ Popover 会抢占 seat grab，与编辑器上其它抓取型浮层（补全 widg
 - 贴图内容（白色公式位图）的圆角裁剪用 Gtk.Overflow.HIDDEN：GTK 会把
   内容裁进 border-radius 圆角矩形，四角透出 popover 底色。
 - 不套 Gtk.Frame：少一层嵌套少一层半径换算，链路只有 popover → 贴图
-  两级；贴图的 1px 描边走 CSS outline（负偏移内缩，outline 不参与盒
-  模型，不会让测量尺寸偏离显示尺寸）。
+  两级；贴图不画描边，浮起感由 popover 自身的投影提供。
 
 防闪烁设计（与控制器 document_controller 的 leave 处理配合）：
 - 弹窗锚定**整个公式区域**的矩形（set_pointing_to）——GTK 保证弹窗只
@@ -75,8 +74,7 @@ _CSS = (
     'popover.math-preview-popover > contents {{'
     ' border-radius: {radius}px; padding: {padding}px; }}'
     '.math-preview-picture {{'
-    ' border-radius: {picture_radius}px;'
-    ' outline: 1px solid var(--border-color); outline-offset: -1px; }}'
+    ' border-radius: {picture_radius}px; }}'
 ).format(radius=_POPOVER_RADIUS, padding=_POPOVER_CONTENTS_PADDING,
          picture_radius=_PICTURE_RADIUS)
 
@@ -152,7 +150,7 @@ class MathPreviewPopover(object):
         popover.set_has_arrow(True)
         popover.add_css_class('math-preview-popover')
 
-        self._loading_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self._loading_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self._loading_box.set_margin_top(4)
         self._loading_box.set_margin_bottom(4)
         self._loading_box.set_margin_start(6)

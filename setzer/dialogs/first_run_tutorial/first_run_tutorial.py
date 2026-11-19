@@ -85,7 +85,7 @@ class FirstRunTutorialDialog(object):
 
         self.view.set_child(toolbar)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
         clamp.set_child(box)
 
         intro = Gtk.Label()
@@ -115,7 +115,7 @@ class FirstRunTutorialDialog(object):
             row.set_title(GLib.markup_escape_text(title))
             row.set_subtitle(GLib.markup_escape_text(subtitle))
             image = Gtk.Image.new_from_icon_name(icon_name)
-            image.set_pixel_size(28)
+            image.set_pixel_size(32)
             row.add_prefix(image)
             listbox.append(row)
 

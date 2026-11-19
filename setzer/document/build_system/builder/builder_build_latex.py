@@ -601,7 +601,7 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
                 f.seek(max(0, size - 8192))
                 tail = f.read().decode('utf-8', errors='replace')
         except (OSError, FileNotFoundError):
-            return 'No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. This often indicates a toolchain failure (e.g. xdvipdfmx/fontloader) that the LaTeX log parser does not detect.'
+            return _('No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. This usually indicates a toolchain failure, such as xdvipdfmx or the fontloader, that the LaTeX log parser cannot detect.')
 
         # 优先级匹配：xdvipdfmx fatal > 任何 fatal > kpathsea 严重警告
         for pattern in ('xdvipdfmx:fatal', 'dvipdfmx:fatal',
@@ -615,6 +615,6 @@ class BuilderBuildLaTeX(builder_build.BuilderBuild):
                     snippet = snippet[:200] + '…'
                 return snippet
 
-        return 'No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. Check the build log for toolchain-level errors (xdvipdfmx, fontloader, kpathsea).'
+        return _('No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. Check the build log for toolchain-level errors (xdvipdfmx, fontloader, kpathsea).')
 
 

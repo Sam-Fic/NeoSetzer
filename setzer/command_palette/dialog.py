@@ -70,10 +70,10 @@ class CommandPaletteDialog(DialogView):
         self.set_content_height(440)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
+        content.set_margin_top(12)
+        content.set_margin_bottom(12)
+        content.set_margin_start(12)
+        content.set_margin_end(12)
         self.topbox.append(content)
 
         self.search_entry = Gtk.SearchEntry()
@@ -218,7 +218,7 @@ class CommandPaletteDialog(DialogView):
         label.add_css_class('heading')
         label.add_css_class('dim-label')
         label.set_halign(Gtk.Align.START)
-        label.set_margin_top(10)
+        label.set_margin_top(12)
         label.set_margin_bottom(2)
         label.set_margin_start(12)
         label.set_margin_end(12)

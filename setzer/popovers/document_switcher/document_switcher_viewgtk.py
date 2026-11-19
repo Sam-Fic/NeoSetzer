@@ -83,7 +83,7 @@ class DocumentSwitcherView(object):
         self.cancel_button = Gtk.Button(label=_('Cancel'))
         self.cancel_button.set_tooltip_text(_('Exit root document selection mode'))
         self.cancel_button.set_halign(Gtk.Align.CENTER)
-        self.cancel_button.set_margin_top(10)
+        self.cancel_button.set_margin_top(6)
         self.cancel_button.set_margin_bottom(6)
         self.cancel_button.set_hexpand(True)
         self.cancel_button.set_margin_start(12)

@@ -106,6 +106,7 @@ class PreviewPanelView(Gtk.Box):
         self.stale_label.set_halign(Gtk.Align.CENTER)
         self.stale_label.set_hexpand(True)
         self.stale_label.add_css_class('preview-stale-label')
+        self.stale_label.add_css_class('heading')
         self.toolbar.append(self.stale_label)
 
         # 右侧：zoom_out / fit_width / zoom_level / zoom_in / recolor / external

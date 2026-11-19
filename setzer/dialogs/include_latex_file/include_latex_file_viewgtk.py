@@ -50,8 +50,8 @@ class IncludeLaTeXFileView(DialogView):
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content.set_vexpand(True)
-        self.content.set_margin_start(18)
-        self.content.set_margin_end(18)
+        self.content.set_margin_start(12)
+        self.content.set_margin_end(12)
         self.topbox.append(self.content)
 
         label = Gtk.Label(label=_('LaTeX file to include'))

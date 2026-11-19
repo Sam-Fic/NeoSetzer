@@ -131,19 +131,16 @@ class PreviewMagnifier(Gtk.DrawingArea):
                 ctx.paint()
         ctx.restore()
 
-        # 描边：外圈半透明黑保证任意底色上的轮廓对比度，内圈主题边框色收边。
-        border = ColorManager.get_ui_color('borders')
+        # 描边：外圈半透明黑保证任意底色上的轮廓对比度。单一描边层，
+        # 不再叠加内圈 @borders。
         ctx.set_source_rgba(0, 0, 0, 0.35)
         ctx.set_line_width(1)
         ctx.arc(width / 2, height / 2, radius, 0, 2 * math.pi)
         ctx.stroke()
-        ctx.set_source_rgba(border.red, border.green, border.blue, border.alpha)
-        ctx.arc(width / 2, height / 2, max(radius - 1, 0), 0, 2 * math.pi)
-        ctx.stroke()
 
         # 圆心十字标记：旁置式下玻璃圆心显示的是「光标处」的内容。
         fg = ColorManager.get_ui_color('view_fg_color')
-        ctx.set_source_rgba(fg.red, fg.green, fg.blue, 0.85)
+        ctx.set_source_rgba(fg.red, fg.green, fg.blue, 1.0)
         arm = 5
         center_x, center_y = width / 2, height / 2
         ctx.move_to(center_x - arm, center_y)

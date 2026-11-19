@@ -18,7 +18,7 @@
 """圆角文本输入卡片：多行文本输入框的统一外观。
 
 AI 批注 popover 与「发送到 AI Agent」弹窗的 prompt 编辑区共用同一套
-「灰底 + 1px 边框 + 9px 圆角 + 内缩文字」的输入框外观，避免各处各写
+「6% 前景色填充 + 9px 圆角 + 内缩文字」的输入框外观，避免各处各写
 一份 CSS 导致观感漂移（旧 popover 直接给 ScrolledWindow 挂 .card，
 TextView 自身背景是直角方块，会盖住圆角）。9px 对齐 libadwaita 默认
 按钮/输入框圆角——这些卡片周边的控件（对话框按钮等）都是这个值。
@@ -43,9 +43,14 @@ SCROLL_CSS_CLASS = 'setzer-text-input-scroll'
 
 _CSS = '''
 textview.setzer-text-input {
-    background-color: @card_bg_color;
-    border: 1px solid @borders;
+    background-color: @setzer_input_fill;
+    border: none;
     border-radius: 9px;
+}
+textview.setzer-text-input:focus,
+textview.setzer-text-input:focus-within {
+    /* 填充与聚焦环强度统一由 style_gtk.css 的颜色令牌控制。 */
+    box-shadow: inset 0 0 0 2px @setzer_focus_ring;
 }
 /* overshoot/undershoot 提示条画在 ScrolledWindow 边缘、不受子件 overflow
    裁剪，滚动时会溢出圆角外框，因此整体关掉——圆角卡片本身已足够提示
@@ -57,6 +62,16 @@ scrolledwindow.setzer-text-input-scroll undershoot {
     border: none;
     box-shadow: none;
 }
+/* 高对比度：6% 填充几乎不可见，补 1px 边框；聚焦环用不透明 accent。 */
+@media (prefers-contrast: more) {
+    textview.setzer-text-input {
+        box-shadow: inset 0 0 0 1px @borders;
+    }
+    textview.setzer-text-input:focus,
+    textview.setzer-text-input:focus-within {
+        box-shadow: inset 0 0 0 2px @theme_selected_bg_color;
+    }
+}
 '''
 
 _css_provider = None
@@ -66,7 +81,7 @@ def _ensure_css():
     '''把卡片样式注册到 display（全局只注册一次）。
 
     display 级 provider 重复 add 会堆积，因此用模块级单例守卫；display
-    尚未可用（无 GUI 环境单测）时直接跳过，控件仍可构建，只是没有边框。
+    尚未可用（无 GUI 环境单测）时直接跳过，控件仍可构建，只是没有填充与焦点环。
     '''
     global _css_provider
     if _css_provider is not None:

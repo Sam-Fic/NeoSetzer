@@ -272,7 +272,7 @@ class PageShortcuts(object):
         self.current_shortcut_button = button
         self.current_action_name = action_name
 
-        button.set_label(_('Press shortcut...'))
+        button.set_label(_('Press shortcut…'))
         button.add_css_class('suggested-action')
         # tooltip 补充 Escape 取消提示：group description 已提及，但用户
         # 点击按钮后视线聚焦在按钮上，可能看不到顶部的 group 描述。

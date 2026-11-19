@@ -11,7 +11,7 @@
  */
 
 /*
- * Setzer 间距标度 —— 单一事实来源（single source of truth）。
+ * Setzer 设计令牌（间距 + 不透明度）—— 单一事实来源（single source of truth）。
  *
  * GTK 4.10+ 支持 CSS 自定义属性与 var() 引用（运行时 GTK 4.22 已验证）。
  * Python 代码应优先添加语义化 CSS class，而非 set_margin_*() 硬编码数值。
@@ -34,7 +34,44 @@ window {
     --setzer-spacing-md: 12px;
     --setzer-spacing-lg: 18px;
     --setzer-spacing-xl: 24px;
+    /* 不透明度层级：数值只在这里出现，规则中一律使用下面的令牌。 */
+    --setzer-opacity-dim: 0.55;
 }
+
+/*
+ * 颜色令牌（半透明表面 / 状态色 / 阴影）。
+ *
+ * 规则中不直接写 alpha(...) 数值：需要半透明时引用这里的名字。
+ * 令牌基于语义色定义，明暗主题切换时自动重新解析。
+ *
+ *   令牌                     数值    用途
+ *   setzer_text_dim          0.55    次要文字（等同 dim-label）
+ *   setzer_input_fill        0.06    输入框填充
+ *   setzer_overlay_accent    0.10    强调色提示浮层（拖放高亮）
+ *   setzer_overlay_error     0.10    错误色提示浮层（拖放拒绝）
+ *   setzer_accent_subtle     0.12    当前项（列表无焦点）
+ *   setzer_accent_selected   0.25    选中项
+ *   setzer_accent_strong     0.35    选中且当前项
+ *   setzer_focus_ring        0.60    输入框聚焦内环
+ *   setzer_shadow_soft       0.03    阴影：环境层
+ *   setzer_shadow_medium     0.07    阴影：中间层
+ *   setzer_shadow_edge       0.12    阴影：浮层描边层
+ *   setzer_shadow_strong     0.16    阴影：浮层主层
+ *   setzer_shadow_deep       0.25    阴影：徽标等深投影
+ */
+@define-color setzer_text_dim alpha(@window_fg_color, 0.55);
+@define-color setzer_input_fill alpha(@window_fg_color, 0.06);
+@define-color setzer_overlay_accent alpha(@theme_selected_bg_color, 0.10);
+@define-color setzer_overlay_error alpha(@error_color, 0.10);
+@define-color setzer_accent_subtle alpha(@theme_selected_bg_color, 0.12);
+@define-color setzer_accent_selected alpha(@theme_selected_bg_color, 0.25);
+@define-color setzer_accent_strong alpha(@theme_selected_bg_color, 0.35);
+@define-color setzer_focus_ring alpha(@theme_selected_bg_color, 0.60);
+@define-color setzer_shadow_soft alpha(black, 0.03);
+@define-color setzer_shadow_medium alpha(black, 0.07);
+@define-color setzer_shadow_edge alpha(black, 0.12);
+@define-color setzer_shadow_strong alpha(black, 0.16);
+@define-color setzer_shadow_deep alpha(black, 0.25);
 
 /*
  * 侧边栏（Document Structure / Symbols / Preview / Help）共享的内嵌工具栏。
@@ -93,12 +130,6 @@ headerbar {
     background-color: transparent;
 }
 
-/* 工具栏左侧的“当前分区”标题：随滚动更新，dim-label 提供灰化，
-   此处只加粗以与正文区分。配合 ellipsize 截断长标题。 */
-.sidebar-section-title {
-    font-weight: 700;
-}
-
 /* 符号面板的搜索条：左右留白，与上方工具栏、下方符号网格区分。 */
 /* 隐藏 GtkSourceView 内置行号 gutter，由自定义 Gutter 统一绘制。 */
 .sourceview gutter,
@@ -109,7 +140,9 @@ textview gutter {
 }
 
 .sidebar-search-bar {
-    padding: var(--setzer-spacing-sm) 10px 8px;
+    /* 上下 6px；水平 10px 为光学对齐：与 .sidebar-toolbar 的 10px 水平
+       内边距对齐，让搜索框左右边缘与工具栏按钮/下方符号网格同一条线。 */
+    padding: var(--setzer-spacing-sm) 10px;
 }
 
 /*
@@ -158,13 +191,13 @@ textview gutter {
     background: transparent;
 }
 row.accent {
-    background: alpha(@theme_selected_bg_color, 0.12);
+    background: @setzer_accent_subtle;
 }
 .compact-rows:focus-within row:selected {
-    background: alpha(@theme_selected_bg_color, 0.25);
+    background: @setzer_accent_selected;
 }
 .compact-rows:focus-within row:selected.accent {
-    background: alpha(@theme_selected_bg_color, 0.35);
+    background: @setzer_accent_strong;
 }
 
 /*
@@ -176,7 +209,7 @@ row.accent {
  * 门控——弹窗中选中即当前项指示，焦点移到详情面板时高亮需保留。
  */
 .accent-selection row:selected {
-    background: alpha(@theme_selected_bg_color, 0.25);
+    background: @setzer_accent_selected;
 }
 
 /* 文档结构树形展开器（折叠/展开的三角形按钮）。作为 ActionRow 内的普通
@@ -186,13 +219,9 @@ row.accent {
 }
 
 /*
- * 侧边栏分区组标题：降低视觉重量，更现代、紧凑。
+ * 侧边栏分区组标题：字号/字重交给 Adw.PreferencesGroup 内部的 heading 样式，
+ * 这里只收紧间距。
  */
-.sidebar-section-group > .header > .title {
-    font-weight: 500;
-    font-size: 0.9em;
-    opacity: 0.85;
-}
 .sidebar-section-group > .header {
     margin-bottom: 2px;
 }
@@ -219,8 +248,7 @@ row.accent {
  * 空状态占位：现代、低调，避免空分区显得空洞。
  */
 .sidebar-empty-state {
-    padding: 4px 8px 12px;
-    opacity: 0.85;
+    padding: var(--setzer-spacing-xs) var(--setzer-spacing-md) var(--setzer-spacing-md);
     margin-top: 0;
     /* Ensure the status page is tall enough for its icon/title/description
        and does not start scrolling its own internal ScrolledWindow.
@@ -228,27 +256,16 @@ row.accent {
     min-height: 220px;
 }
 .sidebar-empty-state image {
-    -gtk-icon-size: 48px;
+    /* HIG 只允许 16/32/64/128；空状态属「占位图形」，用 64。 */
+    -gtk-icon-size: 64px;
 }
-.sidebar-empty-state .title {
-    font-size: 0.95em;
-    font-weight: 600;
-}
-.sidebar-empty-state .description {
-    font-size: 0.85em;
-}
-
-/*
- * 文件行副标题：显示相对目录，更 subtle。
- */
-.sidebar-file-row .subtitle {
-    font-size: 0.8em;
-    opacity: 0.6;
-}
+/* 空状态的标题/描述字号交给 Adw.StatusPage（.compact → title-2 / body），
+ * 文件行副标题交给 Adw.ActionRow（smaller + dim），均不再自定义。 */
 
 /*
  * Files 列表"已在标签页打开"的后缀圆点：accent 色小圆点，与副标题同样
  * subtle，不抢行标题的视觉重心。
+ * 0.6em 是非文字字号例外：这里调的是圆点字符的视觉尺寸，不参与字号层级。
  */
 .sidebar-open-dot {
     font-size: 0.6em;
@@ -441,18 +458,17 @@ toolbarview > * > * > * {
 
 /*
  * 预览构建失败回退到旧 PDF 时，右上角的错误图标徽标。
- * 半透明圆角底 + 警告色，悬浮于 PDF 卡片上方，提示用户构建实际失败。
- * 底色用主题窗口底色而非写死白色：深色模式下徽标随主题变深，
- * 浮在白色 PDF 页面上仍然可见（原 rgba(255,255,255,.85) 在深色
- * 模式下与页面同色、近乎隐形）。
+ * 圆角底 + 警告色，悬浮于 PDF 卡片上方，提示用户构建实际失败。
+ * 底色用标准浮层语义色 @popover_bg_color：明暗模式自动适配，
+ * 浮在白色 PDF 页面上都有足够对比，不再额外叠加透明度。
  */
 .preview .errorBadge {
-    opacity: 0.9;
-    -gtk-icon-size: 18px;
-    background: alpha(@window_bg_color, 0.85);
+    /* HIG 图标尺寸只允许 16/32/64/128。 */
+    -gtk-icon-size: 16px;
+    background: @popover_bg_color;
     border-radius: 999px;
     padding: 3px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 1px 3px @setzer_shadow_deep;
 }
 
 /*
@@ -462,24 +478,27 @@ toolbarview > * > * > * {
  */
 /* search-toggle: default button sizing, no manual overrides */
 
-/* 预览面板页码输入框：紧凑圆角深色背景，居中数字。
+/* 预览面板页码输入框：紧凑圆角输入底色，居中数字。
+ * 无描边：填充用 6% 前景色混合——浅色主题下比周围略深、深色主题下略亮，
+ * 边界靠色差而不是细线；只有聚焦时才画 2px accent 内环。
  * 注意：不要添加 padding 或 min-height，否则会撑大工具栏高度。 */
 /* 居中对齐由代码里 set_alignment(0.5) 实现（GTK CSS 不支持 text-align）。 */
 .preview-page-entry {
-    background: rgba(128, 128, 128, 0.2);
+    background: @setzer_input_fill;
     border-radius: 9px;
     border: none;
-}
-.preview-page-entry:focus {
-    background: rgba(128, 128, 128, 0.3);
     box-shadow: none;
-    outline: 1px solid alpha(@theme_color, 0.5);
+}
+.preview-page-entry:focus,
+.preview-page-entry:focus-within {
+    /* 聚焦环：强度由 setzer_focus_ring 令牌统一控制。 */
+    box-shadow: inset 0 0 0 2px @setzer_focus_ring;
+    outline: none;
 }
 
 /* 构建失败时显示在页码区的红色提示，突出严重性。 */
 .preview-stale-label {
     color: @error_color;
-    font-weight: bold;
 }
 
 /*
@@ -494,36 +513,25 @@ toolbarview > * > * > * {
  * 本规则只调整尺寸 / 圆角 / 字号 / 颜色。
  *
  * 设计要点:
- * - 显式配色而非依赖默认按钮主题色：深色模式下若 PDF 做 recoloring，页面会变
- *   深，若按钮仍走 @button_bg_color（深色）就会"深色按钮浮在深色页面上"几乎
- *   看不见。这里改用固定的灰底，不依赖主题变量、也不依赖 PDF 是否反色。
- * - 不用强调色、不用阴影，按主题给固定灰底：
- *   浅色模式 = 淡灰底 + 深灰字；深色模式 = 深灰底 + 浅灰字。
- *   你的深色模式下 PDF 未开启 recoloring（页面为白色），深灰底胶囊浮白页清晰
- *   可见；浅色模式淡灰底浮白页对比度偏低，但数字本身用深灰字仍可读。
+ * - 配色全部走标准语义色：浮层底色 @popover_bg_color + 前景 @window_fg_color，
+ *   明暗主题自动适配，不再维护浅色/深色的固定灰值。
+ * - 深色模式下若 PDF 未开 recoloring（页面为白色），深色浮层底浮在白页上
+ *   清晰可见；浅色模式下用 @borders 内描边勾勒轮廓，避免白底与白页融在一起。
+ * - 不用强调色、不用阴影。
  * - 圆角 pill：min-height=28 + border-radius=14 让 1-2 位数字按钮是完美
  *   椭圆;3+ 位数字时按钮变宽,圆角仍 14px,看起来像 pill。
- * - 数字字号比正文略大、加粗,与一般按钮的次级强调接近。
+ * - 数字字号/字重交给 heading 样式（默认字号 + 700）。
  * - 滚动时才显示(由 view 的 timeout 控制 set_visible),静止后自动隐藏。
  */
 .page-indicator-button {
     min-height: 28px;
+    /* 10px 水平内边距为 pill 光学例外：圆角半径 14px（= 高 28px 的一半），
+       两侧留白略小于半径以保持数字居中且按钮不显臃肿。 */
     padding: 0 10px;
     border-radius: 14px;
-    font-weight: bold;
-    font-size: 0.9em;
-}
-/* 浅色模式：淡灰底 + 深灰字（由 Python 按 Adw.StyleManager 实际状态加
- * .theme-light / .theme-dark 类触发，不依赖 @media prefers-color-scheme，
- * 因为 Setzer 的深色模式是应用内强制切换，系统偏好未必同步）。 */
-.page-indicator-button.theme-light {
-    background-color: #e3e3e3;
-    color: #2e2e2e;
-}
-/* 深色模式：深灰底 + 浅灰字 */
-.page-indicator-button.theme-dark {
-    background-color: #3a3a3a;
-    color: #f4f4f4;
+    background-color: @popover_bg_color;
+    color: @window_fg_color;
+    box-shadow: inset 0 0 0 1px @borders;
 }
 /* label 不要再加 padding,否则会把数字从按钮中心推开。 */
 .page-indicator-button label {
@@ -533,17 +541,14 @@ toolbarview > * > * > * {
 
 /*
  * 构建日志阶段分隔标题：Adw.PreferencesGroup 的 header 内插入 Gtk.Label
- * 作 stage header（stage: 'BibTeX' / 'LaTeX'）。样式要低调但可区分：
- * - 小字号 + dim-label 降低视觉重量；
- * - 左侧细竖线 + 内边距形成"分区柱"隐喻，与 group header 的粗体标题
- *   形成层级：group header 是"类型分区"，stage header 是"阶段子分区"。
+ * 作 stage header（stage: 'BibTeX' / 'LaTeX'）。
+ * - 小字号加粗由 caption-heading 提供（Python 侧添加），dim 降低视觉重量；
+ * - 与 group header 的 heading 形成层级：group 是"类型分区"，
+ *   stage 是"阶段子分区"。
  */
 .build-log-stage-header {
-    font-size: 0.85em;
-    font-weight: bold;
-    color: @window_fg_color;
-    opacity: 0.55;
-    padding: 2px 0 2px 8px;
+    opacity: var(--setzer-opacity-dim);
+    padding: 2px 0 2px var(--setzer-spacing-sm);
     margin-top: 2px;
 }
 
@@ -569,9 +574,9 @@ toolbarview > * > * > * {
     border-radius: 12px;
 }
 .preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview:not(.selected) {
-    box-shadow: 0 0 0 1px alpha(black, 0.03),
-                0 1px 3px 1px alpha(black, 0.07),
-                0 2px 6px 2px alpha(black, 0.03);
+    box-shadow: 0 0 0 1px @setzer_shadow_soft,
+                0 1px 3px 1px @setzer_shadow_medium,
+                0 2px 6px 2px @setzer_shadow_soft;
 }
 /* 选中态：直接对齐 gtksourceview 库自带 CSS（从 libgtksourceview-5 gresource
  * 提取的真实原文），1:1 复刻参考项目外观：
@@ -591,8 +596,8 @@ toolbarview > * > * > * {
 @media (prefers-contrast: more) {
     .preferences .scheme-flowbox flowboxchild GtkSourceStyleSchemePreview:not(.selected) {
         box-shadow: 0 0 0 1px @borders,
-                    0 1px 3px 1px alpha(black, 0.07),
-                    0 2px 6px 2px alpha(black, 0.03);
+                    0 1px 3px 1px @setzer_shadow_medium,
+                    0 2px 6px 2px @setzer_shadow_soft;
     }
 }
 
@@ -676,22 +681,17 @@ headerbar {
 .drop-highlight {
     border: 3px solid @theme_selected_bg_color;
     border-radius: 12px;
-    background: alpha(@theme_selected_bg_color, 0.10);
+    background: @setzer_overlay_accent;
 }
 .drop-highlight.drop-reject {
     border-color: @error_color;
-    background: alpha(@error_color, 0.10);
+    background: @setzer_overlay_error;
 }
 /* 编辑器模式下的拖放浮层：复用 .editor-card 的圆角（8px）与左右内边距（6px），
    使高亮框与编辑器卡片同形、正好覆盖其上。welcome 模式不挂此类，沿用 12px 圆角。 */
 .drop-highlight.editor-mode {
     border-radius: 8px;
 }
-.drop-label {
-    font-weight: 600;
-    font-size: 1.1em;
-}
-
 /*
  * 关闭 GTK/Adwaita/Yaru 自带的 drop(active) 默认高亮：DropTarget 激活时，挂它的控件
  * 进入 :drop(active) 状态并会向祖先控件传播，Yaru 主题用 border-color / box-shadow
@@ -732,11 +732,11 @@ headerbar {
 
 /*
  * 全屏加载指示器：纯色背景 + 居中 spinner，覆盖整个应用。
- * 背景使用 @theme_bg_color 跟随系统明暗主题。
+ * 背景使用标准基础表面色 @window_bg_color 跟随明暗主题。
  * set_can_target(False) 让点击穿透，不拦截用户操作。
  */
 .loading-overlay {
-    background: @theme_bg_color;
+    background: @window_bg_color;
 }
 
 /*
@@ -751,22 +751,20 @@ headerbar {
     border: none;
 }
 .autocomplete-widget {
-    /* 使用主题的 window_bg_color 但不依赖可能的 alpha 通道，强制不透明 */
-    background-color: @window_bg_color;
-    background: @window_bg_color;
+    /* 浮层语义色，与真正的 popover 同源，明暗主题自动适配 */
+    background-color: @popover_bg_color;
+    background: @popover_bg_color;
     border-radius: 14px;
-    border: 1px solid @borders;
     padding: 6px;
-    /* 确保补全卡片完全不透明，不继承任何父级透明度 */
-    opacity: 1;
-    /* 强制覆盖任何可能的 inherited 透明度 */
+    /* 无描边：用柔和投影表达「浮起」，与 Adw.Popover 的表达方式一致 */
     background-image: none;
-    box-shadow: none;
+    box-shadow: 0 2px 8px @setzer_shadow_strong,
+                0 0 2px @setzer_shadow_edge;
     outline: none;
 }
 .autocomplete-widget row:selected {
-    background-color: alpha(@theme_selected_bg_color, 0.25);
-    background: alpha(@theme_selected_bg_color, 0.25);
+    background-color: @setzer_accent_selected;
+    background: @setzer_accent_selected;
     border-radius: 8px;
 }
 
@@ -781,13 +779,15 @@ headerbar {
  * 因此这里必须用 .themeselector（类选择器）而非 themeselector（类型名选择器）。
  */
 .themeselector {
+    /* 9px 光学例外：三个圆形色块（44px）两侧留白，让视觉重量与菜单项
+       文本基线对齐；不套用间距标度。 */
     margin: 9px;
 }
 
 /*
  * 命令面板命令列表（替代 libadwaita 的 boxed-list 卡片样式）。
  * boxed-list 会给 ListBox 加圆角边框 + 阴影；这里去掉阴影与卡片边框，
- * 仅保留主题背景与行分隔，呈现扁平列表外观。
+ * 让列表直接透出命令面板对话框的窗口底色，呈现扁平列表外观。
  * GTK 的 CSS 解析器不支持 !important，靠选择器特异性压过 libadwaita 默认样式。
  */
 .command-palette-list,
@@ -799,16 +799,15 @@ headerbar {
     outline: none;
 }
 .command-palette-list {
-    background-color: @window_bg_color;
-    background: @window_bg_color;
+    background-color: transparent;
+    background: transparent;
     border-radius: 14px;
     padding: 0;
     background-image: none;
-    opacity: 1;
 }
 .command-palette-list row:selected {
-    background-color: alpha(@theme_selected_bg_color, 0.25);
-    background: alpha(@theme_selected_bg_color, 0.25);
+    background-color: @setzer_accent_selected;
+    background: @setzer_accent_selected;
     border-radius: 8px;
 }
 
@@ -873,18 +872,23 @@ headerbar {
  */
 .git-status-badge {
     font-family: monospace;
-    font-weight: 700;
     min-width: 16px;
 }
 
 /*
- * Git 页 commit message 输入框：TextView 无内建边框，手绘一圈描边，让输入区
- * 和下方按钮形成一体感。圆角对齐 libadwaita boxed-list 的卡片圆角 12px
- * （下方 Changes 文件列表即此值），与同屏组件保持一致。
+ * Git 页 commit message 输入框：无描边，靠 6% 前景色填充与周围底色区分，
+ * 只有聚焦时才画 2px accent 内环。圆角对齐 libadwaita boxed-list 的卡片
+ * 圆角 12px（下方 Changes 文件列表即此值），与同屏组件保持一致。
  */
 .git-commit-message {
-    border: 1px solid alpha(currentColor, 0.15);
+    background-color: @setzer_input_fill;
+    border: none;
     border-radius: 12px;
+}
+.git-commit-message:focus,
+.git-commit-message:focus-within {
+    /* 聚焦环：强度由 setzer_focus_ring 令牌统一控制。 */
+    box-shadow: inset 0 0 0 2px @setzer_focus_ring;
 }
 
 /*
@@ -897,4 +901,42 @@ headerbar {
  */
 scrolledwindow.list-card-scroll {
     border-radius: 12px;
+}
+
+/*
+ * 高对比度（prefers-contrast: more）兜底。
+ *
+ * 本应用为「去线」把卡片、输入框、分隔线都改成靠底色/阴影区分；在 GNOME
+ * 高对比度主题里阴影不可见、@card_bg_color 与窗口底色相同，这些边界会整体
+ * 消失。这里只补回「可辨识边界」所需的最小描边，不恢复任何装饰性线条。
+ * 统一用 inset box-shadow 而非 border，避免改变布局尺寸（侧栏工具栏 47px
+ * 对齐依赖精确高度）。必须放在文件末尾：同优先级的常态规则在后面会覆盖它。
+ */
+@media (prefers-contrast: more) {
+    .editor-card,
+    .diff-card,
+    .preview-card,
+    .agent-terminal-card {
+        box-shadow: inset 0 0 0 1px @borders;
+    }
+    .autocomplete-widget {
+        box-shadow: inset 0 0 0 1px @borders;
+    }
+    .git-commit-message,
+    .preview-page-entry {
+        box-shadow: inset 0 0 0 1px @borders;
+    }
+    .git-commit-message:focus,
+    .git-commit-message:focus-within,
+    .preview-page-entry:focus,
+    .preview-page-entry:focus-within {
+        /* HC 下把 60% 聚焦环提升为不透明 accent。 */
+        box-shadow: inset 0 0 0 2px @theme_selected_bg_color;
+    }
+    .sidebar-toolbar {
+        box-shadow: inset 0 -1px @borders;
+    }
+    .document-searchbar > revealer > box {
+        box-shadow: inset 0 -1px @borders;
+    }
 }

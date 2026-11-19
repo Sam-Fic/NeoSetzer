@@ -47,7 +47,7 @@ class BuildWidgetView(Gtk.Box):
         self.timer_label = Gtk.Label(label='0:00')
         # 按钮内只保留 [停止图标] + 计时器；构建阶段 “阶段名 · Pass N” 不放进
         # 按钮（会把它撑长），改放按钮 tooltip（见 set_stage / clear_stage）。
-        self.active_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.active_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         # 计时器隐藏后按钮仍有 24px 最小宽度；FILL 的 Box 会被拉满，只剩
         # 停止图标时它就贴在左边。居中让 Box 收缩到图标宽度。
         self.active_box.set_halign(Gtk.Align.CENTER)

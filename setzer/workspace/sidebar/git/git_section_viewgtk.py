@@ -125,7 +125,7 @@ class GitSectionView(Gtk.Box):
 
         # 分支行：分支名 + ahead/behind 徽标 + Pull/Push 图标按钮。
         # Pull/Push 是低频动作，降为 .flat 图标按钮，不与 Commit 争视觉权重。
-        self.branch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.branch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.changes_box.append(self.branch_box)
 
         self.label_branch = Gtk.Label()
@@ -151,12 +151,17 @@ class GitSectionView(Gtk.Box):
         # gresource 打包；文件尚未入库时按钮显示空白图标，不报错。
         self.button_pull.set_icon_name('base-down-arrow-symbolic')
         self.button_pull.set_tooltip_text(_('Update this branch from the remote (fast-forward only)'))
+        self.button_pull.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Update this branch from the remote (fast-forward only)')])
         self.branch_box.append(self.button_pull)
 
         self.button_push = Gtk.Button()
         self.button_push.add_css_class('flat')
         self.button_push.set_icon_name('base-up-arrow-symbolic')
         self.button_push.set_tooltip_text(_('Push commits to the remote'))
+        self.button_push.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Push commits to the remote')])
         self.branch_box.append(self.button_push)
 
         # Commit message 输入区。TextView（VSCode 式多行），placeholder 用
@@ -177,6 +182,8 @@ class GitSectionView(Gtk.Box):
         self.message_placeholder.set_xalign(0)
         self.message_placeholder.set_valign(Gtk.Align.START)
         self.message_placeholder.set_margin_top(6)
+        # 9px 光学例外：TextView 文本左内边距 8px + 1px 边框，占位文字
+        # 与输入文本左缘对齐。
         self.message_placeholder.set_margin_start(9)
         self.message_placeholder.add_css_class('dim-label')
         self.message_overlay.add_overlay(self.message_placeholder)
@@ -377,6 +384,7 @@ class GitSectionView(Gtk.Box):
         badge = Gtk.Label(label=status.strip() or '?')
         badge.set_valign(Gtk.Align.CENTER)
         badge.add_css_class('git-status-badge')
+        badge.add_css_class('caption-heading')
         # 着色：新增/未跟踪绿，删除红，改动橙红。首字母判定足够（MM 等组合
         # 以未暂存侧为准）。
         if status.strip().startswith(('A', 'U', '?')):

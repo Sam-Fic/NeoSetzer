@@ -140,9 +140,10 @@ class AiPage(object):
         if annotation.get('focus'):
             row.set_tooltip_text(_('From a PDF selection'))
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        box.set_margin_top(8)
-        box.set_margin_bottom(8)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        # 行内上下留白用 sm=6，与侧栏列表行的紧凑节奏一致。
+        box.set_margin_top(6)
+        box.set_margin_bottom(6)
         # 水平内边距对齐 Adw.ActionRow（document structure 行）的 12px。
         box.set_margin_start(12)
         box.set_margin_end(12)

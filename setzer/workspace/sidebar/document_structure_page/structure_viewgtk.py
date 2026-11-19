@@ -111,13 +111,13 @@ class StructureSectionView(structure_widget.StructureWidget):
             # 在 pressed 时 claim 事件序列，阻止事件冒泡到 ListBox 行触发 row-activated
             # （即跳转），仅在展开器上收起/展开而不导航；released 时执行切换。
             expander = Gtk.Box()
-            # 点击命中区放大到 22×22，箭头仍保持 14px 居中，便于点击/触控。
+            # 点击命中区放大到 22×22，箭头保持 HIG 标准 16px 居中，便于点击/触控。
             expander.set_size_request(22, 22)
             expander.set_valign(Gtk.Align.CENTER)
             expander.add_css_class('structure-expander')
             arrow = Gtk.Image()
             arrow.set_from_icon_name('pan-down-symbolic' if expanded else 'pan-end-symbolic')
-            arrow.set_pixel_size(14)
+            arrow.set_pixel_size(16)
             expander.append(arrow)
             gesture = Gtk.GestureClick()
             gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)

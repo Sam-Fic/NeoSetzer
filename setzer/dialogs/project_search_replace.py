@@ -38,10 +38,10 @@ class ProjectSearchReplaceDialog:
         self.dialog.set_content_width(720)
         self.dialog.set_content_height(560)
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
+        content.set_margin_top(12)
+        content.set_margin_bottom(12)
+        content.set_margin_start(12)
+        content.set_margin_end(12)
 
         # 自建 HeaderBar（docs/ui-guidelines.md 规则#1）：悬浮态 Adw.Dialog 会
         # 自带右上角关闭按钮，必须禁掉，仅保留手动 Cancel 单一关闭入口。

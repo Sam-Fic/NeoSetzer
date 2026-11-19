@@ -76,11 +76,8 @@ class BuildLogFilterPopover(Gtk.Popover):
 
         # 根容器：垂直 Box，spacing 留给 PreferencesGroup 之间的视觉间隔
         # (boxed list 自身有内部 padding，多个 group 紧密相邻即可)。
+        # 外边距交给 Adw popover 自带的 contents padding，避免重复叠加。
         outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        outer_box.set_margin_top(8)
-        outer_box.set_margin_bottom(8)
-        outer_box.set_margin_start(8)
-        outer_box.set_margin_end(8)
 
         # ---- 段 1：File / Type 两个 Adw.ComboRow 在同一个 PreferencesGroup（无标题）----
         # 无标题 PreferencesGroup：set_title('') 隐藏标题，group 仍展示为
@@ -101,9 +98,9 @@ class BuildLogFilterPopover(Gtk.Popover):
         # 两个 SpinButton 仍用普通 Gtk.Box 横排。它们与上方 ComboRow
         # 视觉不一致是已有设计（行号输入需要两个并排 + "–" 分隔），
         # 与本次 ComboRow 化正交。
-        line_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        line_box.set_margin_top(8)
-        line_box.set_margin_bottom(8)
+        line_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        line_box.set_margin_top(6)
+        line_box.set_margin_bottom(6)
         line_label = Gtk.Label(label=_('Lines:'))
         line_label.set_halign(Gtk.Align.START)
         line_box.append(line_label)

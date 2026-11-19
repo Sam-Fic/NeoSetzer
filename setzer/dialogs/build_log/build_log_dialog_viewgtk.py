@@ -528,6 +528,7 @@ class BuildLogList(Gtk.ListBox):
         '''
         row = Gtk.ListBoxRow()
         row.add_css_class('build-log-stage-header')
+        row.add_css_class('caption-heading')
         label = Gtk.Label(label=stage)
         label.set_xalign(0)
         row.set_child(label)

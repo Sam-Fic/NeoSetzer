@@ -712,10 +712,10 @@ flatpak install org.freedesktop.Sdk.Extension.texlive''')
         # 警示说明用「警告图标 + 左对齐警告色文字」的行内说明，不用 Adw.Banner：
         # Banner 在本组里渲染成整幅灰底粗体居中文字，既没有警告图标、也不染警告色，
         # 辨识度反而不如内联说明（用户反馈观感倒退，已回退）。
-        shell_warning_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        shell_warning_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         shell_warning_box.set_margin_start(12)
         shell_warning_box.set_margin_end(12)
-        shell_warning_box.set_margin_top(10)
+        shell_warning_box.set_margin_top(12)
         shell_warning_box.set_margin_bottom(4)
         shell_warning_icon = Gtk.Image.new_from_icon_name('dialog-warning-symbolic')
         shell_warning_icon.set_valign(Gtk.Align.START)

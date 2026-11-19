@@ -111,11 +111,11 @@ class BibliographyManagerDialog(DialogView):
         self.banner.connect('button-clicked', self._on_banner_reload)
         self.topbox.append(self.banner)
 
-        header = Gtk.Box(spacing=8)
+        header = Gtk.Box(spacing=6)
         header.set_margin_top(12)
-        header.set_margin_bottom(8)
-        header.set_margin_start(18)
-        header.set_margin_end(18)
+        header.set_margin_bottom(12)
+        header.set_margin_start(12)
+        header.set_margin_end(12)
         self.topbox.append(header)
 
         self.source_model = Gtk.StringList.new([])
@@ -160,10 +160,10 @@ class BibliographyManagerDialog(DialogView):
         self.paned.set_vexpand(True)
         self.topbox.append(self.paned)
 
-        left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        left.set_margin_start(18)
-        left.set_margin_bottom(18)
-        left.set_margin_end(8)
+        left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        left.set_margin_start(12)
+        left.set_margin_bottom(12)
+        left.set_margin_end(6)
         self.paned.set_start_child(left)
 
         self.search_entry = Gtk.SearchEntry()
@@ -213,9 +213,9 @@ class BibliographyManagerDialog(DialogView):
         left.append(entry_scroller)
 
         right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        right.set_margin_end(18)
-        right.set_margin_bottom(18)
-        right.set_margin_start(8)
+        right.set_margin_end(12)
+        right.set_margin_bottom(12)
+        right.set_margin_start(6)
         self.paned.set_end_child(right)
 
         # 插入侧栏：多选条目 + 命令 + 可选 locator + 实时预览。
@@ -256,7 +256,7 @@ class BibliographyManagerDialog(DialogView):
         self.details_box.append(create_text_input_card(
             self.details_view, hexpand=True, vexpand=True, text_margin=12))
 
-        actions = Gtk.Box(spacing=8)
+        actions = Gtk.Box(spacing=6)
         actions.set_halign(Gtk.Align.END)
         self.insert_button = Gtk.Button(label=_('Insert Citation'))
         self.insert_button.set_icon_name('insert-text-symbolic')

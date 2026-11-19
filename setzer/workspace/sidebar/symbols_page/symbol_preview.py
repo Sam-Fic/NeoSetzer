@@ -62,10 +62,7 @@ def attach_symbol_hover_preview(button, symbol):
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.set_spacing(6)
-        box.set_margin_top(10)
-        box.set_margin_bottom(10)
-        box.set_margin_start(10)
-        box.set_margin_end(10)
+        # 外边距交给 Adw popover 自带的 contents padding，避免重复叠加。
 
         image = Gtk.Image(icon_name='sidebar-' + symbol[0] + '-symbolic')
         image.set_pixel_size(PREVIEW_PIXEL_SIZE)

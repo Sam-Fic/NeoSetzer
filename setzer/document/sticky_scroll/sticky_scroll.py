@@ -424,17 +424,7 @@ class StickyScroll(Observable):
             if entry_height > 0:
                 self._draw_section(ctx, self._next_section, 0, y_cursor, width, entry_height, fg, bg, alpha, len(self.current_sections) > 0)
 
-        # 最底部一条分割线：仅整体底边绘制，用于与下方编辑区内容分隔，
-        # 行间不画（已在 _draw_section 中移除）。用前景色做柔和细分隔。
-        if height > 0:
-            border_color = Gdk.RGBA()
-            if fg is not None:
-                border_color = Gdk.RGBA(red=fg.red, green=fg.green, blue=fg.blue, alpha=fg.alpha)
-            border_color.alpha = 0.3
-            Gdk.cairo_set_source_rgba(ctx, border_color)
-            ctx.rectangle(0, height - 1, width, 1)
-            ctx.fill()
-
+        # 不再绘制底部分割线：浮层本身有半透明底色，细线属于装饰性描边。
         ctx.restore()
 
     def _sync_font_desc(self):
@@ -473,7 +463,7 @@ class StickyScroll(Observable):
         type_color = Gdk.RGBA()
         if fg is not None:
             type_color = Gdk.RGBA(red=fg.red, green=fg.green, blue=fg.blue, alpha=fg.alpha)
-        type_color.alpha = 0.5 * alpha
+        type_color.alpha = ColorManager.OPACITY_DIM * alpha
         Gdk.cairo_set_source_rgba(ctx, type_color)
 
         text_y = y + (height - type_height) / 2

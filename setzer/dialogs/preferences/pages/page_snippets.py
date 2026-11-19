@@ -172,10 +172,10 @@ class SnippetEditorDialog(Adw.Dialog):
         self.set_child(toolbar)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
+        content.set_margin_top(12)
+        content.set_margin_bottom(12)
+        content.set_margin_start(12)
+        content.set_margin_end(12)
         toolbar.set_content(content)
 
         group = Adw.PreferencesGroup()

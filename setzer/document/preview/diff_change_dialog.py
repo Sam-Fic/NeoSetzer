@@ -75,14 +75,14 @@ class DiffChangeDialog(Adw.Dialog):
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         content.set_margin_top(12)
-        content.set_margin_bottom(16)
-        content.set_margin_start(16)
-        content.set_margin_end(16)
+        content.set_margin_bottom(12)
+        content.set_margin_start(12)
+        content.set_margin_end(12)
 
         # 元信息行：kind 徽章 + 源位置（file:line 指当前版本文件）。
         kind = change.get('kind') or 'change'
         kind_text, color_class = _KIND_INFO.get(kind, _KIND_INFO['change'])
-        meta_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        meta_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         kind_label = Gtk.Label(label=_(kind_text))
         kind_label.add_css_class(color_class)
         kind_label.add_css_class('heading')
@@ -138,8 +138,8 @@ class DiffChangeDialog(Adw.Dialog):
         label.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         label.set_selectable(True)
         label.set_xalign(0.0)
-        label.set_margin_top(10)
-        label.set_margin_bottom(10)
+        label.set_margin_top(12)
+        label.set_margin_bottom(12)
         label.set_margin_start(12)
         label.set_margin_end(12)
         label.add_css_class(color_class)
@@ -167,8 +167,8 @@ class DiffChangeDialog(Adw.Dialog):
         card.set_margin_start(2)
         placeholder = Gtk.Spinner()
         placeholder.set_spinning(True)
-        placeholder.set_margin_top(14)
-        placeholder.set_margin_bottom(14)
+        placeholder.set_margin_top(12)
+        placeholder.set_margin_bottom(12)
         card.append(placeholder)
         box.append(card)
         self._crop_card = card
@@ -193,15 +193,15 @@ class DiffChangeDialog(Adw.Dialog):
             label = Gtk.Label(label=_('No typeset crop available'))
             label.add_css_class('caption')
             label.add_css_class('dim-label')
-            label.set_margin_top(10)
-            label.set_margin_bottom(10)
+            label.set_margin_top(12)
+            label.set_margin_bottom(12)
             card.append(label)
             return False
         picture = Gtk.Picture.new_for_filename(path)
         picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
         picture.set_hexpand(True)
-        picture.set_margin_top(8)
-        picture.set_margin_bottom(8)
+        picture.set_margin_top(6)
+        picture.set_margin_bottom(6)
         card.append(picture)
         # 高度随内容变化：弹窗开了 follows_content_size，但已显示后追加内容
         # 需要主动收一次尺寸，否则底部留白。

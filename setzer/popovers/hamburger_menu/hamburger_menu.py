@@ -87,7 +87,7 @@ class HamburgerMenu(object):
 
         section_new.append_item(new_latex)
         section_new.append(_('New BibTeX Document'), 'win.new-bibtex-document')
-        section_new.append(_('New Document from Template'), 'win.new-from-file-template')
+        section_new.append(_('New Document from Template…'), 'win.new-from-file-template')
         self.menu_model.append_section(None, section_new)
 
         # GMenu 的分隔线由 section 自动渲染：每个 append_section 之间出一条标准分隔线，

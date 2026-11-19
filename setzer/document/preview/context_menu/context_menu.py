@@ -233,11 +233,8 @@ class ContextMenu(Observable):
     def _build_search_popover(self):
         popover = Gtk.Popover()
         popover.set_size_request(340, -1)
+        # 外边距交给 Adw popover 自带的 contents padding，避免重复叠加。
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        box.set_margin_start(8)
-        box.set_margin_end(8)
-        box.set_margin_top(8)
-        box.set_margin_bottom(8)
 
         entry = Gtk.SearchEntry()
         entry.set_hexpand(True)

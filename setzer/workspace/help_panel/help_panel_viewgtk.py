@@ -136,7 +136,7 @@ class HelpPanelView(Gtk.Box):
         # dim-label 让计数低调不抢眼，与结果列表区分。
         self.result_count_label = Gtk.Label()
         self.result_count_label.set_xalign(0)
-        self.result_count_label.set_margin_top(8)
+        self.result_count_label.set_margin_top(6)
         self.result_count_label.set_margin_start(2)
         self.result_count_label.add_css_class('dim-label')
         self.result_count_label.set_visible(False)

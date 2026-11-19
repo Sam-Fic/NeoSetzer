@@ -329,6 +329,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.drop_highlight.set_valign(Gtk.Align.FILL)
         self.drop_label = Gtk.Label()
         self.drop_label.add_css_class('drop-label')
+        self.drop_label.add_css_class('title-4')
         self.drop_label.set_hexpand(True)
         self.drop_label.set_vexpand(True)
         self.drop_label.set_valign(Gtk.Align.CENTER)

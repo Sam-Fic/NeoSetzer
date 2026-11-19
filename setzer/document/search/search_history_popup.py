@@ -46,11 +46,9 @@ class SearchHistoryPopup(Gtk.Popover):
         self.set_size_request(400, -1)
         self.set_can_focus(True)
 
-        # 外围留白由 popover 自带 contents padding 提供（libadwaita 默认
-        # padding: 8px）；spacing 与之取齐（8），使「标题栏↔列表」间距等于
-        # 「标题栏↔弹窗顶部」留白。
+        # 外围留白由 popover 自带 contents padding 提供；内部段间距用 sm=6。
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.set_spacing(8)
+        content.set_spacing(6)
 
         # --- header: title + clear ---
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)

@@ -192,13 +192,13 @@ class WelcomeScreen(object):
         row.add_prefix(icon)
 
         # 右侧信息区：修改指示 + 文件大小 · 时间戳 + 置顶按钮 + 移除按钮
-        info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         info_box.set_valign(Gtk.Align.CENTER)
 
         modified_image = Gtk.Image(icon_name='document-revert-symbolic')
         modified_image.set_tooltip_text(_('Changed on disk since last opened'))
         modified_image.set_visible(False)
-        modified_image.set_opacity(0.6)
+        modified_image.add_css_class('dim-label')
         info_box.append(modified_image)
         row._modified_image = modified_image
 

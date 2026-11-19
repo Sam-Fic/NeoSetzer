@@ -86,7 +86,7 @@ class SnippetPreviewView(Gtk.Box):
         self.picture_box.append(self.picture)
         self.overlay.set_child(self.picture_box)
 
-        self.status_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.status_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.status_box.set_halign(Gtk.Align.CENTER)
         self.status_box.set_valign(Gtk.Align.CENTER)
         self.status_box.add_css_class('snippet-preview-status')

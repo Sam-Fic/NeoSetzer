@@ -50,10 +50,10 @@ class PageView(Gtk.Box):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
 
-        self.set_margin_start(18)
-        self.set_margin_end(18)
-        self.set_margin_top(18)
-        self.set_margin_bottom(18)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
+        self.set_margin_top(12)
+        self.set_margin_bottom(12)
         self.set_spacing(18)
 
         # Fill the dialog's content area so a ScrolledWindow child can

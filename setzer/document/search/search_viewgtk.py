@@ -65,6 +65,8 @@ class SearchBar(Gtk.SearchBar):
         self.replace_mode_button.set_can_focus(False)
         self.replace_mode_button.add_css_class('flat')
         self.replace_mode_button.set_tooltip_text(_('Search and replace'))
+        self.replace_mode_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Search and replace')])
         self.replace_mode_button.connect('notify::active', self._on_replace_mode_active_notify)
         self.find_row.append(self.replace_mode_button)
 
@@ -107,6 +109,8 @@ class SearchBar(Gtk.SearchBar):
         self.case_toggle.add_css_class('flat')
         self.case_toggle.add_css_class('search-toggle')
         self.case_toggle.set_tooltip_text(_('Match case'))
+        self.case_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Match case')])
         options_box.append(self.case_toggle)
 
         self.regex_toggle = Gtk.ToggleButton()
@@ -116,6 +120,8 @@ class SearchBar(Gtk.SearchBar):
         self.regex_toggle.add_css_class('flat')
         self.regex_toggle.add_css_class('search-toggle')
         self.regex_toggle.set_tooltip_text(_('Use regular expressions'))
+        self.regex_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Use regular expressions')])
         options_box.append(self.regex_toggle)
 
         self.word_toggle = Gtk.ToggleButton()
@@ -125,6 +131,8 @@ class SearchBar(Gtk.SearchBar):
         self.word_toggle.add_css_class('flat')
         self.word_toggle.add_css_class('search-toggle')
         self.word_toggle.set_tooltip_text(_('Match entire word'))
+        self.word_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Match entire word')])
         options_box.append(self.word_toggle)
 
         # --- overflow menu (⋮): preserve-case / search-in-selection / history ---
@@ -138,6 +146,8 @@ class SearchBar(Gtk.SearchBar):
         self.more_button.set_can_focus(False)
         self.more_button.add_css_class('flat')
         self.more_button.set_tooltip_text(_('More options'))
+        self.more_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('More options')])
         self._init_more_menu()
         options_box.append(self.more_button)
 
@@ -146,17 +156,23 @@ class SearchBar(Gtk.SearchBar):
         self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
         self.prev_button.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.prev_button, _('Previous result'), 'find_previous')
+        self.prev_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Previous result')])
         self.find_row.append(self.prev_button)
 
         self.next_button = Gtk.Button(icon_name='go-down-symbolic')
         self.next_button.set_can_focus(False)
         shortcut_tooltips.set_tooltip(self.next_button, _('Next result'), 'find_next')
+        self.next_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Next result')])
         self.find_row.append(self.next_button)
 
         self.close_button = Gtk.Button(icon_name='window-close-symbolic')
         self.close_button.add_css_class('flat')
         self.close_button.set_can_focus(False)
         self.close_button.set_tooltip_text(_('Close search') + ' (Esc)')
+        self.close_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Close search')])
         self.find_row.append(self.close_button)
 
         content.append(self.find_row)
