@@ -73,7 +73,10 @@ class PreambleAssistantDialog(DialogView):
         self.headerbar.pack_end(self.add_button)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(12)
+        # 顶部不留额外边距：headerbar 自带上下内边距（约 6px），加上
+        # margin_top 会让标题栏与列表之间的间距明显大于弹窗顶部的间距；
+        # 置 0 后两处间距一致。
+        content.set_margin_top(0)
         content.set_margin_bottom(12)
         content.set_margin_start(12)
         content.set_margin_end(12)
@@ -87,12 +90,21 @@ class PreambleAssistantDialog(DialogView):
         # 滚到底时最后一行不贴容器底边（wrap_content 同款处理）。
         self.listbox.set_margin_bottom(12)
 
-        # 无建议时的空状态占位（ui-guidelines「空状态」用 Adw.StatusPage）。
+        # 无建议时的空状态（ui-guidelines「空状态」用 Adw.StatusPage）。
+        # 不用 ListBox.set_placeholder：placeholder 会作为列表行渲染，
+        # 被 boxed-list 的卡片背景框住；标准形态是空状态时直接展示
+        # StatusPage 本身，不带卡片。用 Gtk.Stack 在两者间切换。
         status = Adw.StatusPage()
         status.set_icon_name('dialog-information-symbolic')
         status.set_title(
             _('No missing package suggestions were found in this document.'))
-        self.listbox.set_placeholder(status)
+        self.stack = Gtk.Stack()
+        # Stack 默认垂直 homogeneous，高度取两个子级的最大值——StatusPage
+        # 很高，会把 boxed-list 卡片撑满整个弹窗。关掉后卡片高度只跟随
+        # 当前可见子级（设置页那样：几行就框多高）。
+        self.stack.set_vhomogeneous(False)
+        self.stack.add_named(self.listbox, 'suggestions')
+        self.stack.add_named(status, 'empty')
 
         # 限宽居中：与 libadwaita demo 的 Boxed Lists 页一致
         # (demo/pages/lists/adw-demo-page-lists.ui)，列表最大 400px，
@@ -100,7 +112,7 @@ class PreambleAssistantDialog(DialogView):
         clamp = Adw.Clamp()
         clamp.set_maximum_size(400)
         clamp.set_tightening_threshold(300)
-        clamp.set_child(self.listbox)
+        clamp.set_child(self.stack)
 
         scroll = Gtk.ScrolledWindow()
         scroll.hscrollbar_policy = Gtk.PolicyType.NEVER
@@ -137,9 +149,11 @@ class PreambleAssistantDialog(DialogView):
             self.listbox.remove(row)
         self.suggestion_rows.clear()
         if not self.suggestions:
-            # 列表为空时 set_placeholder 的 Adw.StatusPage 自动显示。
+            # 列表为空时切换到不带卡片背景的 StatusPage 空状态。
+            self.stack.set_visible_child_name('empty')
             self.add_button.set_sensitive(False)
             return
+        self.stack.set_visible_child_name('suggestions')
         for suggestion in self.suggestions:
             availability = _('available in NeoSetzer’s package database') \
                 if suggestion.available_in_database else \

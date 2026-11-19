@@ -64,11 +64,6 @@ class ProjectSearchReplaceDialog:
         self.apply_button.add_css_class('destructive-action')
         self.apply_button.connect('clicked', self._on_apply)
         headerbar.pack_end(self.apply_button)
-        toolbar_view = Adw.ToolbarView()
-        toolbar_view.add_top_bar(headerbar)
-        toolbar_view.set_content(content)
-        self.dialog.set_child(toolbar_view)
-
         form = Adw.PreferencesGroup()
         self.search_entry = Adw.EntryRow()
         self.search_entry.set_title(_('Find'))
@@ -98,9 +93,14 @@ class ProjectSearchReplaceDialog:
 
         # 应用失败要留在弹窗里改条件重试，提示必须落在弹窗自身；发到主窗口
         # 会藏在这个模态弹窗背后。用 ToastOverlay 包一层是最小改动。
+        # 包裹顺序：content → toast_overlay → toolbar_view → dialog，
+        # 否则 content 先挂上 toolbar_view，set_child 会因已有 parent 被拒。
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_child(content)
-        self.dialog.set_child(self.toast_overlay)
+        toolbar_view = Adw.ToolbarView()
+        toolbar_view.add_top_bar(headerbar)
+        toolbar_view.set_content(self.toast_overlay)
+        self.dialog.set_child(toolbar_view)
 
     def _options(self):
         return {
