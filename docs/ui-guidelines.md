@@ -26,19 +26,19 @@
 
 | 类别 | 令牌 | 数值 | 用途 |
 |------|------|------|------|
-| 表面 / 状态 | `dim` | 0.55 | 次要文字 |
 | 表面 / 状态 | `fill` | 0.06 | 输入框填充 |
 | 表面 / 状态 | `overlay-accent` | 0.10 | 强调色提示浮层（拖放高亮） |
 | 表面 / 状态 | `overlay-error` | 0.10 | 错误色提示浮层（拖放拒绝） |
 | 表面 / 状态 | `accent-subtle` | 0.12 | 当前项（列表无焦点） |
 | 表面 / 状态 | `accent-selected` | 0.25 | 选中项 |
-| 表面 / 状态 | `accent-strong` | 0.35 | 选中且当前项 |
 | 表面 / 状态 | `focus-ring` | 0.60 | 输入框聚焦内环 |
 | 阴影 | `soft` | 0.03 | 环境层 |
 | 阴影 | `medium` | 0.07 | 中间层 |
 | 阴影 | `edge` | 0.12 | 浮层描边层 |
 | 阴影 | `strong` | 0.16 | 浮层主层 |
 | 阴影 | `deep` | 0.25 | 徽标等深投影 |
+
+令牌按**颜色角色**组织而非按 alpha 值去重：同值不同底色（如 `overlay-accent` 选中色 / `overlay-error` 错误色，均 0.10）是不同角色，不合并；次要文字的 dim 档（0.55）走 `--setzer-opacity-dim` + `.dimmed`，不占颜色令牌。
 
 - 颜色优先 libadwaita 语义色（`@window_bg_color` 等）；半透明表面与状态色只用 `@setzer_*` 令牌，例如 `@setzer_input_fill`、`@setzer_focus_ring`、`@setzer_accent_selected`、`@setzer_shadow_strong`。
 - 新增半透明样式时先复用现有令牌；确需新档位时在令牌区扩展并同步本表，不在使用处写 `alpha(..., 0.xx)` 或 `opacity: 0.xx`。

@@ -49,13 +49,11 @@ window {
  * 令牌基于语义色定义，明暗主题切换时自动重新解析。
  *
  *   令牌                     数值    用途
- *   setzer_text_dim          0.55    次要文字（等同 dimmed）
  *   setzer_input_fill        0.06    输入框填充
  *   setzer_overlay_accent    0.10    强调色提示浮层（拖放高亮）
  *   setzer_overlay_error     0.10    错误色提示浮层（拖放拒绝）
  *   setzer_accent_subtle     0.12    当前项（列表无焦点）
  *   setzer_accent_selected   0.25    选中项
- *   setzer_accent_strong     0.35    选中且当前项
  *   setzer_focus_ring        0.60    输入框聚焦内环
  *   setzer_shadow_soft       0.03    阴影：环境层
  *   setzer_shadow_medium     0.07    阴影：中间层
@@ -63,13 +61,11 @@ window {
  *   setzer_shadow_strong     0.16    阴影：浮层主层
  *   setzer_shadow_deep       0.25    阴影：徽标等深投影
  */
-@define-color setzer_text_dim alpha(@window_fg_color, 0.55);
 @define-color setzer_input_fill alpha(@window_fg_color, 0.06);
 @define-color setzer_overlay_accent alpha(@theme_selected_bg_color, 0.10);
 @define-color setzer_overlay_error alpha(@error_color, 0.10);
 @define-color setzer_accent_subtle alpha(@theme_selected_bg_color, 0.12);
 @define-color setzer_accent_selected alpha(@theme_selected_bg_color, 0.25);
-@define-color setzer_accent_strong alpha(@theme_selected_bg_color, 0.35);
 @define-color setzer_focus_ring alpha(@theme_selected_bg_color, 0.60);
 @define-color setzer_shadow_soft alpha(black, 0.03);
 @define-color setzer_shadow_medium alpha(black, 0.07);
