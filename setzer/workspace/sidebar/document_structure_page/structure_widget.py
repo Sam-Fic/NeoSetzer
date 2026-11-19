@@ -335,7 +335,7 @@ class StructureWidget(Gtk.Box):
         Adw.ActionRow has no public API to fetch these labels, and set_title()
         only accepts plain text, so we locate them by walking the widget tree.
         The subtitle label is the title label's sibling inside the same
-        (header) container, which avoids mistaking tree-line prefix labels.'''
+        (header) container, which avoids mistaking prefix widgets' labels.'''
         labels = []
         def collect(w):
             if isinstance(w, Gtk.Label):
@@ -366,17 +366,12 @@ class StructureWidget(Gtk.Box):
         row.set_selectable(True)
         row.set_activatable(True)
         prefix_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        # 用细竖线树形指示符（│ ）表达嵌套层级，替代原来每层约 18px 的
-        # 不间断空格缩进。深层嵌套（subsubsection 4+）时大幅减少横向占用，
-        # 让章节名保持可见。tree_depth 由像素 indent 还原（每层 18px）。
+        # 纯缩进表达嵌套层级：按 indent 递增左缩进，不绘制竖线指示符，
+        # 与 Document Structure 的缩进方式保持一致。tree_depth 由像素
+        # indent 还原（每层 18px），仅用于无障碍层级。
         tree_depth = indent // 18
         if tree_depth > 0:
-            tree_label = Gtk.Label(label='│ ' * tree_depth)
-            tree_label.set_xalign(0.0)
-            tree_label.set_valign(Gtk.Align.FILL)
-            tree_label.add_css_class('dim-label')
-            tree_label.add_css_class('structure-tree-line')
-            prefix_box.append(tree_label)
+            prefix_box.set_margin_start(indent)
         prefix_box.append(Gtk.Image(icon_name=icon_name))
         row.add_prefix(prefix_box)
         row.set_title(text)

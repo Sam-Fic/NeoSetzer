@@ -179,12 +179,6 @@ row.accent {
     background: alpha(@theme_selected_bg_color, 0.25);
 }
 
-/* 文档结构嵌套层级的细竖线树形指示符（替代大缩进）。调暗、收窄，
-   与行高对齐，呈现层级而非占用过多横向空间。 */
-.compact-rows .structure-tree-line {
-    opacity: 0.45;
-    margin-right: 2px;
-}
 /* 文档结构树形展开器（折叠/展开的三角形按钮）。作为 ActionRow 内的普通
    widget，无原生按钮视觉；仅作可点击指示，不显示悬停/按下背景。 */
 .compact-rows .structure-expander {
