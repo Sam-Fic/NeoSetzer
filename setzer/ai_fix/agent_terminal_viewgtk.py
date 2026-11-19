@@ -66,6 +66,8 @@ class AgentTerminalView(Gtk.Box):
         self.close_session_button = Gtk.Button(icon_name='process-stop-symbolic')
         self.close_session_button.add_css_class('flat')
         self.close_session_button.set_tooltip_text(_('End session and stop the agent'))
+        self.close_session_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('End session and stop the agent')])
         self.toolbar.append(self.close_session_button)
 
         # 图标用 chat-message-new-symbolic（气泡+加号）：view-refresh 是"刷新"
@@ -73,6 +75,9 @@ class AgentTerminalView(Gtk.Box):
         self.new_session_button = Gtk.Button(icon_name='chat-message-new-symbolic')
         self.new_session_button.add_css_class('flat')
         self.new_session_button.set_tooltip_text(_('New session (in the active document’s directory)'))
+        self.new_session_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('New session (in the active document’s directory)')])
         self.toolbar.append(self.new_session_button)
 
         self.pop_button = Gtk.Button(icon_name='window-new-symbolic')
@@ -218,6 +223,10 @@ class AgentTerminalView(Gtk.Box):
         if popped_out:
             self.pop_button.set_icon_name('view-restore-symbolic')
             self.pop_button.set_tooltip_text(_('Dock back into the sidebar'))
+            self.pop_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Dock back into the sidebar')])
         else:
             self.pop_button.set_icon_name('window-new-symbolic')
             self.pop_button.set_tooltip_text(_('Open in a separate window'))
+            self.pop_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Open in a separate window')])

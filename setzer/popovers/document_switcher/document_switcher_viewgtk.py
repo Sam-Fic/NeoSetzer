@@ -97,7 +97,7 @@ class DocumentSwitcherView(object):
         self.other_documents_row = Adw.ActionRow()
         self.other_documents_row.set_activatable(True)
         self.other_documents_row.set_selectable(False)
-        self.other_documents_row.set_title(_('Other Documents') + '...')
+        self.other_documents_row.set_title(_('Other Documents') + '…')
         self.other_documents_row.set_icon_name('document-open-symbolic')
         self.other_documents_row.set_tooltip_text(_('Open a document not in the recent list'))
         self.other_group.add(self.other_documents_row)

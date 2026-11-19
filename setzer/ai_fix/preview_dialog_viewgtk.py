@@ -55,13 +55,13 @@ class PreviewDialogView(DialogView):
 
         # 取消按钮（左侧，非 flat）
         self.cancel_button = Gtk.Button(label=_('Cancel'))
-        self.cancel_button.set_can_focus(False)
+        self.cancel_button.set_can_focus(True)
         self.headerbar.pack_start(self.cancel_button)
 
         # 发送按钮（右侧，suggested-action 强调色）
         self.send_button = Gtk.Button(label=_('Send'))
         self.send_button.add_css_class('suggested-action')
-        self.send_button.set_can_focus(False)
+        self.send_button.set_can_focus(True)
         self.headerbar.pack_end(self.send_button)
 
         # 内容：垂直堆叠 prompt TextView + 信任复选框

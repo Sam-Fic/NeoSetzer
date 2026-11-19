@@ -176,13 +176,16 @@ class ProjectBuildConfigurationDialog():
         # flat 无边框样式与 page_build_system 的行内删除按钮一致。
         up = Gtk.Button(icon_name='go-up-symbolic')
         up.set_tooltip_text(_('Move up'))
+        up.update_property([Gtk.AccessibleProperty.LABEL], [_('Move up')])
         up.connect('clicked', lambda b: self._move_task(profile, position, -1))
         down = Gtk.Button(icon_name='go-down-symbolic')
         down.set_tooltip_text(_('Move down'))
+        down.update_property([Gtk.AccessibleProperty.LABEL], [_('Move down')])
         down.connect('clicked', lambda b: self._move_task(profile, position, 1))
         remove = Gtk.Button(icon_name='window-close-symbolic')
         remove.add_css_class('destructive-action')
         remove.set_tooltip_text(_('Remove task'))
+        remove.update_property([Gtk.AccessibleProperty.LABEL], [_('Remove task')])
         remove.connect('clicked', lambda b: self._remove_task(profile, position))
         for button in (up, down, remove):
             button.set_has_frame(False)

@@ -244,10 +244,12 @@ class ContextMenu(Observable):
 
         prev = Gtk.Button(icon_name='go-up-symbolic')
         prev.set_tooltip_text(_('Previous Match'))
+        prev.update_property([Gtk.AccessibleProperty.LABEL], [_('Previous Match')])
         prev.connect('clicked', self._on_search_prev)
 
         nxt = Gtk.Button(icon_name='go-down-symbolic')
         nxt.set_tooltip_text(_('Next Match'))
+        nxt.update_property([Gtk.AccessibleProperty.LABEL], [_('Next Match')])
         nxt.connect('clicked', self._on_search_next)
 
         box.append(entry)

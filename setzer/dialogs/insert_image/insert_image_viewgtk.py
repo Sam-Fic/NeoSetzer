@@ -54,8 +54,11 @@ class InsertImageView(DialogView):
 
         self.save_defaults_button = Gtk.Button(icon_name='document-save-symbolic')
         self.save_defaults_button.set_tooltip_text(_('Store the current options to be used next time'))
+        self.save_defaults_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Store the current options to be used next time')])
         self.save_defaults_button.add_css_class('flat')
-        self.save_defaults_button.set_can_focus(False)
+        self.save_defaults_button.set_can_focus(True)
         self.headerbar.pack_start(self.save_defaults_button)
 
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
@@ -136,7 +139,7 @@ class InsertImageView(DialogView):
 
         self.placement_row = Adw.ComboRow()
         self.placement_row.set_title(_('Float placement'))
-        self.placement_row.set_subtitle(_('e.g. [ht] — use "H" for forced in-place (needs float package)'))
+        self.placement_row.set_subtitle(_('For example [ht] — use "H" for forced in-place (needs float package)'))
 
         # 为下拉列表项设置自定义 factory，使每个选项都有完整文字的悬停气泡
         def _setup_list_item(factory, list_item):
@@ -178,7 +181,7 @@ class InsertImageView(DialogView):
         layout_group.add(self.scale_row)
 
         self.width_row = Adw.EntryRow()
-        self.width_row.set_title(_('Width (optional, e.g. 0.8\\textwidth)'))
+        self.width_row.set_title(_('Width (optional, such as 0.8\\textwidth)'))
         layout_group.add(self.width_row)
 
         self.centered_switch = Adw.SwitchRow()

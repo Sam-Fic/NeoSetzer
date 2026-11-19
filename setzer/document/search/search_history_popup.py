@@ -152,8 +152,10 @@ class SearchHistoryPopup(Gtk.Popover):
         delete_btn = Gtk.Button()
         delete_btn.set_icon_name('window-close-symbolic')
         delete_btn.add_css_class('flat')
-        delete_btn.set_can_focus(False)
+        delete_btn.set_can_focus(True)
         delete_btn.set_tooltip_text(_('Remove from history'))
+        delete_btn.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Remove from history')])
         # suffix 盒子默认纵向 fill，会把按钮拉伸到整行高，悬停背景变成
         # 高条；valign=CENTER + 正方形 size_request 让悬停区域是方块。
         delete_btn.set_valign(Gtk.Align.CENTER)

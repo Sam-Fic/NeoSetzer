@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: setzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 22:35+0800\n"
+"POT-Creation-Date: 2026-11-19 22:51+0800\n"
 "PO-Revision-Date: 2023-06-28 14:11+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/setzer/application/it/>\n"
@@ -587,54 +587,58 @@ msgid "Sent to {tool} (copied to clipboard as fallback)."
 msgstr "Inviato a {tool} (copiato negli appunti come riserva)."
 
 #: setzer/ai_fix/agent_terminal_viewgtk.py:68
+#: setzer/ai_fix/agent_terminal_viewgtk.py:70
 msgid "End session and stop the agent"
 msgstr "Termina la sessione e ferma l'agente"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:75
+#: setzer/ai_fix/agent_terminal_viewgtk.py:77
+#: setzer/ai_fix/agent_terminal_viewgtk.py:80
 msgid "New session (in the active document’s directory)"
 msgstr "Nuova sessione (nella cartella del documento attivo)"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:80
-#: setzer/ai_fix/agent_terminal_viewgtk.py:223
+#: setzer/ai_fix/agent_terminal_viewgtk.py:85
+#: setzer/ai_fix/agent_terminal_viewgtk.py:230
+#: setzer/ai_fix/agent_terminal_viewgtk.py:232
 msgid "Open in a separate window"
 msgstr "Apri in una finestra separata"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:104
-#: setzer/ai_fix/agent_terminal_viewgtk.py:154
+#: setzer/ai_fix/agent_terminal_viewgtk.py:109
+#: setzer/ai_fix/agent_terminal_viewgtk.py:159
 msgid "No active session"
 msgstr "Nessuna sessione attiva"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:105
+#: setzer/ai_fix/agent_terminal_viewgtk.py:110
 msgid "Send an annotation or a selection to start the agent in this terminal."
 msgstr "Invia un'annotazione o una selezione per avviare l'agente in questo terminale."
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:110
+#: setzer/ai_fix/agent_terminal_viewgtk.py:115
 msgid "Embedded terminal unavailable"
 msgstr "Terminale integrato non disponibile"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:111
+#: setzer/ai_fix/agent_terminal_viewgtk.py:116
 msgid "VTE is not available on this system. Sending will open the agent in an external terminal instead; the prompt is also copied to the clipboard."
 msgstr "VTE non è disponibile su questo sistema. L'invio aprirà l'agente in un terminale esterno; il prompt viene copiato anche negli appunti."
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:148
+#: setzer/ai_fix/agent_terminal_viewgtk.py:153
 msgid "Session active"
 msgstr "Sessione attiva"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:150
+#: setzer/ai_fix/agent_terminal_viewgtk.py:155
 msgid "Starting…"
 msgstr "Avvio…"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:152
+#: setzer/ai_fix/agent_terminal_viewgtk.py:157
 msgid "Session ended — next send starts a new one"
 msgstr "Sessione terminata: il prossimo invio ne avvierà una nuova"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:211
+#: setzer/ai_fix/agent_terminal_viewgtk.py:216
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:69
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:74
 msgid "Agent Terminal"
 msgstr "Terminale dell'agente"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:220
+#: setzer/ai_fix/agent_terminal_viewgtk.py:225
+#: setzer/ai_fix/agent_terminal_viewgtk.py:227
 msgid "Dock back into the sidebar"
 msgstr "Riaggancia alla barra laterale"
 
@@ -658,7 +662,7 @@ msgstr "Seleziona prima del testo"
 
 #: setzer/ai_fix/annotation_sender.py:171
 #: setzer/dialogs/build_log/build_log_dialog_controller.py:187
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:458
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:477
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:342
 msgid "Copied to clipboard"
 msgstr "Copiato negli appunti"
@@ -707,8 +711,8 @@ msgstr "Invia all'agente AI"
 #: setzer/dialogs/preferences/pages/page_appearance.py:196
 #: setzer/dialogs/preferences/pages/page_appearance.py:325
 #: setzer/dialogs/preferences/pages/page_appearance.py:351
-#: setzer/dialogs/preferences/pages/page_appearance.py:585
-#: setzer/dialogs/preferences/pages/page_appearance.py:887
+#: setzer/dialogs/preferences/pages/page_appearance.py:589
+#: setzer/dialogs/preferences/pages/page_appearance.py:891
 #: setzer/dialogs/preferences/pages/page_build_system.py:180
 #: setzer/dialogs/preferences/pages/page_build_system.py:451
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:386
@@ -728,7 +732,7 @@ msgstr "Invia all'agente AI"
 #: setzer/workspace/sidebar/git/git_section.py:496
 #: setzer/workspace/sidebar/git/git_section.py:554
 #: setzer/workspace/sidebar/git/git_section.py:607
-#: setzer/workspace/welcome_screen/welcome_screen.py:298
+#: setzer/workspace/welcome_screen/welcome_screen.py:302
 msgid "Cancel"
 msgstr "Annulla"
 
@@ -791,7 +795,7 @@ msgstr "Apri documento"
 #: setzer/dialogs/close_confirmation/close_confirmation.py:60
 #: setzer/dialogs/document_wizard/document_wizard.py:365
 #: setzer/dialogs/document_wizard/document_wizard.py:392
-#: setzer/dialogs/preferences/pages/page_appearance.py:890
+#: setzer/dialogs/preferences/pages/page_appearance.py:894
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:111
 #: setzer/dialogs/preferences/pages/page_snippets.py:227
 #: setzer/dialogs/project_build_configuration_viewgtk.py:160
@@ -1096,7 +1100,7 @@ msgstr "Reimposta zoom"
 #: setzer/command_palette/catalog.py:134
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:465
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:330
-#: setzer/dialogs/preferences/pages/page_appearance.py:676
+#: setzer/dialogs/preferences/pages/page_appearance.py:680
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:134
 msgid "Preview"
 msgstr "Anteprima"
@@ -1513,8 +1517,8 @@ msgid "Locator"
 msgstr "Localizzatore"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:418
-msgid "Optional argument, e.g. p.~12 or ch.~3"
-msgstr "Argomento facoltativo, p. es. p.~12 o cap.~3"
+msgid "Optional argument, such as p.~12 or ch.~3"
+msgstr "Argomento facoltativo, ad esempio p.~12 o cap.~3"
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:423
 msgid "Optional argument placed in [brackets] after the command"
@@ -1908,63 +1912,76 @@ msgstr[0] "{amount} avviso o badbox"
 msgstr[1] "{amount} avvisi o badbox"
 
 #: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:69
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:71
 msgid "Copy all log entries"
 msgstr "Copia tutte le voci del registro"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:76
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:78
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:80
 msgid "Save log to file"
 msgstr "Salva il registro su file"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:86
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:90
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:92
 msgid "Fix all errors with AI"
 msgstr "Correggi tutti gli errori con l'IA"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:97
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:103
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:105
 msgid "Filter log entries"
 msgstr "Filtra le voci del registro"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:106
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:114
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:116
 msgid "Restore ignored warnings"
 msgstr "Ripristina gli avvisi ignorati"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:140
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:150
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:152
 msgid "Search build log"
 msgstr "Cerca nel registro di compilazione"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:196
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:208
 #: setzer/dialogs/build_log/build_log_filter_popover.py:118
 msgid "Errors"
 msgstr "Errori"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:197
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:209
 #: setzer/dialogs/build_log/build_log_filter_popover.py:121
 msgid "Warnings"
 msgstr "Avvisi"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:198
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:210
 #: setzer/dialogs/build_log/build_log_filter_popover.py:124
 msgid "Badboxes"
 msgstr "Badbox"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:233
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:226
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:228
+msgid "Collapse or expand group"
+msgstr "Comprimi o espandi il gruppo"
+
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:248
 msgid "No build log items to show."
 msgstr "Nessun elemento del registro di compilazione da mostrare."
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:300
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:315
 #, python-brace-format
 msgid "Restore {count} ignored warning type(s)"
 msgstr "Ripristina {count} tipo di avviso ignorato"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:425
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:478
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:440
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:442
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:497
 msgid "Copy to clipboard"
 msgstr "Copia negli appunti"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:439
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:456
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:458
 msgid "Fix this error with AI"
 msgstr "Correggi questo errore con l'IA"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:482
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:501
 #, python-brace-format
 msgid "Ignore “{label}” warnings"
 msgstr "Ignora gli avvisi “{label}”"
@@ -2404,15 +2421,15 @@ msgid "On: use LaTeX default margins (about 1 inch / 2.54 cm). Off: set custom m
 msgstr "Attivo: usa i margini predefiniti di LaTeX (circa 1 pollice / 2,54 cm). Disattivo: imposta i margini sotto."
 
 #: setzer/dialogs/document_wizard/pages/page.py:146
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:116
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:367
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:119
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:370
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:164
 msgid "Left"
 msgstr "Sinistra"
 
 #: setzer/dialogs/document_wizard/pages/page.py:147
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:117
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:369
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:120
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:372
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:165
 msgid "Right"
 msgstr "Destra"
@@ -2673,14 +2690,14 @@ msgstr "Usato nel comando \\date{}. Usa \\today per la data odierna."
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:347
-#: setzer/dialogs/preferences/pages/page_appearance.py:648
+#: setzer/dialogs/preferences/pages/page_appearance.py:652
 #: setzer/dialogs/preferences/pages/page_editor.py:1024
 msgid "Language"
 msgstr "Lingua"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:220
-msgid "The main language for hyphenation patterns and automatic labels (e.g. \"Abstract\" vs \"Zusammenfassung\")."
-msgstr "La lingua principale per i modelli di sillabazione e le etichette automatiche (es. \"Abstract\" vs \"Zusammenfassung\")."
+msgid "The main language for hyphenation patterns and automatic labels (such as \"Abstract\" vs \"Zusammenfassung\")."
+msgstr "La lingua principale per i modelli di sillabazione e le etichette automatiche (ad esempio \"Abstract\" vs \"Zusammenfassung\")."
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:237
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:240
@@ -2729,7 +2746,7 @@ msgid "References"
 msgstr "Riferimenti"
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:296
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:135
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
 msgid "Layout"
 msgstr "Layout"
 
@@ -2839,8 +2856,8 @@ msgid "Place"
 msgstr "Luogo"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:241
-msgid "Location printed above the date, e.g. \"Berlin\". Only used by scrlttr2."
-msgstr "Luogo stampato sopra la data, p. es. «Berlino». Usato solo da scrlttr2."
+msgid "Location printed above the date, such as \"Berlin\". Only used by scrlttr2."
+msgstr "Località stampata sopra la data, ad esempio \"Berlin\". Usata solo da scrlttr2."
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:243
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:287
@@ -2929,16 +2946,16 @@ msgid "Opening"
 msgstr "Formula di apertura"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:301
-msgid "The salutation, e.g. \"Dear Sir or Madam,\""
-msgstr "La formula di saluto, ad es. \"Gentile Signore o Signora,\""
+msgid "The salutation, such as \"Dear Sir or Madam,\""
+msgstr "Il saluto, ad esempio \"Gentile Signora o Signore,\""
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:303
 msgid "Closing"
 msgstr "Formula di chiusura"
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:304
-msgid "The closing phrase, e.g. \"Yours sincerely,\""
-msgstr "La frase di chiusura, ad es. \"Cordiali saluti,\""
+msgid "The closing phrase, such as \"Yours sincerely,\""
+msgstr "La formula di chiusura, ad esempio \"Cordiali saluti,\""
 
 #: setzer/dialogs/document_wizard/pages/page_letter_settings.py:311
 msgid "Envelope and folding"
@@ -3331,20 +3348,20 @@ msgstr "<b>Percorso relativo:</b> Imposta il percorso relativo al documento prin
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:61
 #: setzer/dialogs/insert_image/insert_image_controller.py:122
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:92
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:95
 msgid "No file chosen"
 msgstr "Nessun file selezionato"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:62
 #: setzer/dialogs/insert_image/insert_image_controller.py:116
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:93
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:96
 msgid "_Choose…"
 msgstr "_Scegli…"
 
 #: setzer/dialogs/insert_image/insert_image_controller.py:66
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:203
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:205
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:279
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:206
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:208
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:282
 msgid "Caption"
 msgstr "Didascalia"
 
@@ -3361,232 +3378,235 @@ msgid "Saved"
 msgstr "Salvato"
 
 #: setzer/dialogs/insert_image/insert_image_viewgtk.py:56
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:59
 msgid "Store the current options to be used next time"
 msgstr "Salva le opzioni correnti per essere usate la prossima volta"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:61
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:71
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:97
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:64
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:74
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:100
 msgid "_Insert"
 msgstr "_Inserisci"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:80
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
 msgid "Image Source"
 msgstr "Origine dell'immagine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:83
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
 msgid "Source"
 msgstr "Origine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:84
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:87
 msgid "Where the image comes from"
 msgstr "Da dove proviene l'immagine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:85
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:88
 msgid "Pick an image file or use the picture currently on the clipboard"
 msgstr "Scegli un file immagine o usa l'immagine attualmente negli appunti"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:89
 msgid "From clipboard (pasted)"
 msgstr "Dagli appunti (incollata)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:86
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:89
 msgid "From file…"
 msgstr "Da file…"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:91
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:94
 msgid "Image File"
 msgstr "File immagine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:114
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:117
 msgid "Save Location"
 msgstr "Posizione di salvataggio"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:117
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:120
 msgid "File name (without extension)"
 msgstr "Nome del file (senza estensione)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:118
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:121
 msgid "Base name used when saving the image, without .png"
 msgstr "Nome base usato per salvare l'immagine, senza .png"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:122
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:125
 msgid "Subfolder"
 msgstr "Sottocartella"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:124
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:127
 msgid "Subfolder inside the document folder where the image is stored"
 msgstr "Sottocartella della cartella del documento in cui è salvata l'immagine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:129
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:132
 msgid "Image will be saved as PNG into \"<document folder>/<subfolder>/<file name>.png\"."
 msgstr "L'immagine sarà salvata come PNG in \"<document folder>/<subfolder>/<file name>.png\"."
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:258
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:261
 msgid "Float placement"
 msgstr "Posizionamento dei float"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:139
-msgid "e.g. [ht] — use \"H\" for forced in-place (needs float package)"
-msgstr "es. [ht] — usa \"H\" per forzare la posizione (richiede il pacchetto float)"
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:142
+msgid "For example [ht] — use \"H\" for forced in-place (needs float package)"
+msgstr "Ad esempio [ht] — usa \"H\" per forzare la posizione (richiede il pacchetto float)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:159
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
 msgid "htbp (here, top, bottom, page) — most flexible, default"
 msgstr "htbp (here, top, bottom, page) — il più flessibile, impostazione predefinita"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:160
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
 msgid "ht (here, top) — common default"
 msgstr "ht (here, top) — impostazione predefinita comune"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:161
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:262
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:265
 msgid "h (here only)"
 msgstr "h (solo qui)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:162
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:263
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:165
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:266
 msgid "t (top)"
 msgstr "t (alto)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:163
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:166
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:267
 msgid "b (bottom)"
 msgstr "b (basso)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:265
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:167
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:268
 msgid "p (separate float page)"
 msgstr "p (pagina flottante separata)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:165
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:168
 msgid "H (HERE, forced in place by float package)"
 msgstr "H (QUI, forzato in posizione dal pacchetto float)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:166
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:169
 msgid "h! (here, override restrictions with !)"
 msgstr "h! (qui, ignora le restrizioni con !)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:173
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:176
 msgid "Scale"
 msgstr "Scala"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:174
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:177
 msgid "Relative size, 1.0 = original"
 msgstr "Dimensione relativa, 1.0 = originale"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:181
-msgid "Width (optional, e.g. 0.8\\textwidth)"
-msgstr "Larghezza (opzionale, es. 0.8\\\\textwidth)"
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:184
+msgid "Width (optional, such as 0.8\\textwidth)"
+msgstr "Larghezza (facoltativa, ad esempio 0.8\\textwidth)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:185
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:188
 msgid "Center the image"
 msgstr "Centra l'immagine"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:186
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:189
 #, python-brace-format
 msgid "Wrap in \\begin{center}…\\end{center}"
 msgstr "Racchiudi in \\\\begin{center}…\\\\end{center}"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:191
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:194
 msgid "Use figure environment"
 msgstr "Usa l'ambiente figure"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:192
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:195
 msgid "Floating wrapper with caption &amp; label"
 msgstr "Contenitore flottante con didascalia &amp; etichetta"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:200
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:203
 msgid "Caption &amp; Label"
 msgstr "Didascalia &amp; Etichetta"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:204
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:207
 msgid "Text shown below the image; leave empty for no caption"
 msgstr "Testo mostrato sotto l'immagine; lascia vuoto per non inserire alcuna didascalia"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:209
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:283
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:212
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:286
 msgid "Label (for \\ref)"
 msgstr "Etichetta (per \\\\ref)"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:210
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:213
 msgid "Identifier used with \\ref to cross-reference this figure"
 msgstr "Identificatore usato con \\\\ref per fare riferimento a questa figura"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:214
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:217
 #, python-brace-format
 msgid "Label is referenced with \\ref{label}. Leave \"fig:\" prefix or customize."
 msgstr "L'etichetta viene richiamata con \\\\ref{label}. Mantieni il prefisso \"fig:\" o personalizzalo."
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:250
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:253
 msgid "Change…"
 msgstr "Cambia…"
 
 #: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:67
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:70
 #: setzer/dialogs/insert_table/insert_table_viewgtk.py:93
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:96
 msgid "Copy the generated LaTeX without changing the document"
 msgstr "Copia il codice LaTeX generato senza modificare il documento"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:87
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:90
 msgid "Matrix Size"
 msgstr "Dimensione matrice"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:89
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:115
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:92
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:118
 msgid "Rows"
 msgstr "Righe"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:90
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:93
 msgid "Number of matrix rows"
 msgstr "Numero di righe della matrice"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:95
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:121
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:98
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:124
 msgid "Columns"
 msgstr "Colonne"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:96
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:99
 msgid "Number of matrix columns"
 msgstr "Numero di colonne della matrice"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:103
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:159
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:157
 #: setzer/popovers/shortcutsbar/text_menu.py:42
 msgid "Environment"
 msgstr "Ambiente"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:105
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:108
 msgid "Matrix environment"
 msgstr "Ambiente matrice"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:109
 msgid "Bracketed variants come from amsmath; matrix* requires mathtools"
 msgstr "Le varianti tra parentesi provengono da amsmath; matrix* richiede mathtools"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:112
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:115
 msgid "Column alignment"
 msgstr "Allineamento colonne"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:113
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:116
 msgid "Only matrix* supports an alignment argument"
 msgstr "Solo matrix* supporta un argomento di allineamento"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:115
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:368
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:118
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:371
 msgid "Center"
 msgstr "Centro"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:121
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:124
 msgid "Required packages are added automatically"
 msgstr "I pacchetti richiesti vengono aggiunti automaticamente"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:122
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:125
 msgid "amsmath for bracketed matrices; mathtools for matrix*."
 msgstr "amsmath per le matrici tra parentesi; mathtools per matrix*."
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:128
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:290
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:131
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:293
 msgid "LaTeX Preview"
 msgstr "Anteprima LaTeX"
 
@@ -3664,253 +3684,255 @@ msgstr "Modifica intervallo unito: riga {row}, colonna {column}."
 msgid "Header repetition was disabled because a first-row merge spans multiple rows."
 msgstr "La ripetizione dell’intestazione è stata disattivata perché un’unione nella prima riga comprende più righe."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:113
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:116
 msgid "Table Size"
 msgstr "Dimensioni della tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:116
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:119
 msgid "Number of table rows"
 msgstr "Numero di righe della tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:122
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:125
 msgid "Number of table columns"
 msgstr "Numero di colonne della tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:129
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:132
 msgid "Table Data"
 msgstr "Dati della tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:130
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:133
 msgid "Enter cell content as LaTeX. Use Tab and Shift+Tab to move between cells."
 msgstr "Inserisci il contenuto delle celle come LaTeX. Usa Tab e Maiusc+Tab per spostarti tra le celle."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:145
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
 msgid "Import format"
 msgstr "Formato di importazione"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:146
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:149
 msgid "Auto uses TSV when the text contains tabs; otherwise it uses comma CSV"
 msgstr "Automatico usa TSV quando il testo contiene tabulazioni; altrimenti usa CSV con virgole."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:148
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:151
 msgid "Auto (TSV when tabs are present)"
 msgstr "Automatico (TSV se sono presenti tabulazioni)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:149
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:152
 msgid "TSV (tab-separated)"
 msgstr "TSV (separato da tabulazioni)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:150
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:153
 msgid "CSV (comma-separated)"
 msgstr "CSV (separato da virgole)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:151
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:154
 msgid "CSV (semicolon-separated)"
 msgstr "CSV (separato da punto e virgola)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:155
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:158
 msgid "_Paste TSV/CSV"
 msgstr "_Incolla TSV/CSV"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:156
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:159
 msgid "Replace the grid with text from the clipboard"
 msgstr "Sostituisci la griglia con il testo dagli appunti"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:158
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:161
 msgid "_Import CSV/TSV File"
 msgstr "_Importa file CSV/TSV"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:159
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:162
 msgid "Replace the grid with UTF-8 CSV or TSV data from a file"
 msgstr "Sostituisci la griglia con dati CSV o TSV UTF-8 da un file"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:170
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:173
 msgid "Column Alignment"
 msgstr "Allineamento delle colonne"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:174
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:177
 msgid "Merge Cells"
 msgstr "Unisci celle"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:175
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:178
 msgid "Merge a rectangular range. The top-left cell supplies the generated LaTeX content."
 msgstr "Unisci un intervallo rettangolare. La cella in alto a sinistra fornisce il contenuto LaTeX generato."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:177
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:180
 msgid "Start row"
 msgstr "Riga iniziale"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:181
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:184
 msgid "Start column"
 msgstr "Colonna iniziale"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:185
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:188
 msgid "Rows to merge"
 msgstr "Righe da unire"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:189
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:192
 msgid "Columns to merge"
 msgstr "Colonne da unire"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:192
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:195
 msgid "_Add Merge"
 msgstr "_Aggiungi unione"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:195
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:198
 msgid "Add the selected cell range to the table"
 msgstr "Aggiungi l’intervallo di celle selezionato alla tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:197
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:200
 msgid "_Update Merge"
 msgstr "_Aggiorna unione"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:200
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:203
 msgid "Replace the selected merged range with the values above"
 msgstr "Sostituisci l’intervallo unito selezionato con i valori sopra"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:202
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:205
 msgid "_Cancel Merge Edit"
 msgstr "_Annulla modifica unione"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:216
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:219
 #: setzer/dialogs/preferences/pages/page_editor.py:801
 msgid "Appearance"
 msgstr "Aspetto"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:218
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:221
 msgid "Rule style"
 msgstr "Stile delle linee"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:219
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:222
 msgid "Plain rules use \\hline; Booktabs uses professional horizontal rules"
 msgstr "Le linee semplici usano \\hline; Booktabs usa regole orizzontali professionali."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:221
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:224
 msgid "Plain rules"
 msgstr "Linee semplici"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:222
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:225
 msgid "Booktabs"
 msgstr "Booktabs"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:226
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:229
 msgid "Use first row as header"
 msgstr "Usa la prima riga come intestazione"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:227
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:230
 msgid "Add a separating rule below the first row with Booktabs"
 msgstr "Aggiungi una linea di separazione sotto la prima riga con Booktabs"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:231
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:234
 msgid "Repeat header on following pages"
 msgstr "Ripeti l’intestazione nelle pagine successive"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:232
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:235
 msgid "Repeat the first row when a long table continues on a new page"
 msgstr "Ripeti la prima riga quando una tabella lunga continua in una nuova pagina"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:238
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:241
 msgid "Table Environment"
 msgstr "Ambiente table"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:240
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:243
 msgid "Output environment"
 msgstr "Ambiente di output"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:241
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:244
 msgid "Long tables may continue across pages and are not floating tables"
 msgstr "Le tabelle lunghe possono continuare su più pagine e non sono tabelle flottanti"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:243
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:246
 msgid "Standard table"
 msgstr "Tabella standard"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:244
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:247
 msgid "Long table (multiple pages)"
 msgstr "Tabella lunga (più pagine)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:248
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:251
 msgid "Long tables cannot use a table float"
 msgstr "Le tabelle lunghe non possono usare un float table"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:249
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:252
 msgid "Caption and label are placed inside longtable; float placement and centering are unavailable."
 msgstr "Didascalia ed etichetta sono inserite all’interno di longtable; la posizione flottante e la centratura non sono disponibili."
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:253
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:256
 msgid "Use table environment"
 msgstr "Usa l’ambiente table"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:254
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:257
 msgid "Wrap tabular in a floating table with caption and label support"
 msgstr "Racchiudi tabular in una tabella flottante con supporto per didascalia ed etichetta"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:260
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:263
 msgid "htbp (here, top, bottom, page) — default"
 msgstr "htbp (qui, in alto, in basso, pagina) — predefinito"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:261
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:264
 msgid "ht (here, top)"
 msgstr "ht (qui, in alto)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:266
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:269
 msgid "H (forced in place; needs float package)"
 msgstr "H (forzato in posizione; richiede il pacchetto float)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:267
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:270
 msgid "h! (here, override restrictions)"
 msgstr "h! (qui, ignora le restrizioni)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:271
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:274
 msgid "Center the table"
 msgstr "Centra la tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:277
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:280
 msgid "Caption & Label"
 msgstr "Didascalia & Etichetta"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:280
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:283
 msgid "Text displayed above the table; leave empty to omit it"
 msgstr "Testo visualizzato sopra la tabella; lascia vuoto per ometterlo"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:284
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:287
 msgid "Identifier used with \\ref to cross-reference this table"
 msgstr "Identificatore usato con \\ref per fare riferimento incrociato a questa tabella"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:354
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:469
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:357
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:476
 #, python-brace-format
 msgid "Row {row}, column {column}"
 msgstr "Riga {row}, colonna {column}"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:373
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:376
 #, python-brace-format
 msgid "Column {column}"
 msgstr "Colonna {column}"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:407
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:410
 msgid "No merged cells"
 msgstr "Nessuna cella unita"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:414
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:417
 #, python-brace-format
 msgid "Merged range: row {row}, column {column}"
 msgstr "Intervallo unito: riga {row}, colonna {column}"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:416
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:419
 #, python-brace-format
 msgid "{rows} rows × {columns} columns"
 msgstr "{rows} righe × {columns} colonne"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:421
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:424
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
 msgid "Edit this merged range"
 msgstr "Modifica questo intervallo unito"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:428
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:433
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:435
 msgid "Remove this merged range"
 msgstr "Rimuovi questo intervallo unito"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:467
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:474
 msgid "Covered by a merged cell"
 msgstr "Coperta da una cella unita"
 
@@ -3968,7 +3990,8 @@ msgid "Create new document"
 msgstr "Crea un documento"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:56
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:59
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Open a document"
 msgstr "Apri un documento"
 
@@ -3978,7 +4001,7 @@ msgstr "Mostra documenti recenti"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:117
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:127
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:139
 msgid "Show open documents"
 msgstr "Mostra documenti aperti"
 
@@ -4026,7 +4049,8 @@ msgstr "Strumenti"
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62
 #: setzer/document/build_widget/build_widget.py:365
 #: setzer/document/build_widget/build_widget_viewgtk.py:62
-#: setzer/document/build_widget/build_widget_viewgtk.py:88
+#: setzer/document/build_widget/build_widget_viewgtk.py:65
+#: setzer/document/build_widget/build_widget_viewgtk.py:93
 msgid "Save and build .pdf-file from document"
 msgstr "Salva e compila il file .pdf dal documento"
 
@@ -4131,13 +4155,15 @@ msgstr "Zoom"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:120
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:137
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:143
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:145
 msgid "Zoom in"
 msgstr "Zoom in"
 
 #: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:121
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:114
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:116
 msgid "Zoom out"
 msgstr "Zoom out"
 
@@ -4342,7 +4368,7 @@ msgid "Send selection to AI agent"
 msgstr "Invia la selezione all'agente AI"
 
 #: setzer/dialogs/open_document/open_document.py:39
-#: setzer/dialogs/preferences/pages/page_appearance.py:666
+#: setzer/dialogs/preferences/pages/page_appearance.py:670
 #: setzer/dialogs/preferences/pages/page_editor.py:1034
 #: setzer/document/preview/preview_controller.py:732
 msgid "Open"
@@ -4417,7 +4443,7 @@ msgid "Restart"
 msgstr "Riavvia"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:249
-#: setzer/dialogs/preferences/pages/page_appearance.py:825
+#: setzer/dialogs/preferences/pages/page_appearance.py:829
 msgid "Export settings"
 msgstr "Esporta impostazioni"
 
@@ -4426,7 +4452,7 @@ msgid "Could not export settings: {}"
 msgstr "Impossibile esportare le impostazioni: {}"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:281
-#: setzer/dialogs/preferences/pages/page_appearance.py:833
+#: setzer/dialogs/preferences/pages/page_appearance.py:837
 msgid "Import settings"
 msgstr "Importa impostazioni"
 
@@ -4452,8 +4478,8 @@ msgstr "Scorciatoie e layout della finestra restano invariati."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:326
 #: setzer/dialogs/preferences/pages/page_appearance.py:352
-#: setzer/dialogs/preferences/pages/page_appearance.py:586
-#: setzer/dialogs/preferences/pages/page_appearance.py:842
+#: setzer/dialogs/preferences/pages/page_appearance.py:590
+#: setzer/dialogs/preferences/pages/page_appearance.py:846
 #: setzer/dialogs/preferences/pages/page_build_system.py:181
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:476
 msgid "Reset"
@@ -4464,7 +4490,7 @@ msgid "Preferences reset. Reopen preferences to see all changes."
 msgstr "Preferenze ripristinate. Riapri le preferenze per vedere tutte le modifiche."
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:350
-#: setzer/dialogs/preferences/pages/page_appearance.py:582
+#: setzer/dialogs/preferences/pages/page_appearance.py:586
 #: setzer/dialogs/preferences/pages/page_build_system.py:179
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:474
 msgid "Reset to defaults?"
@@ -4491,248 +4517,250 @@ msgid "not installed"
 msgstr "non installato"
 
 #: setzer/dialogs/preferences/pages/page_appearance.py:480
+#: setzer/dialogs/preferences/pages/page_appearance.py:482
 msgid "Remove this custom tool"
 msgstr "Rimuovi questo strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:498
+#: setzer/dialogs/preferences/pages/page_appearance.py:500
 msgid "No trusted directories yet"
 msgstr "Nessuna directory attendibile ancora"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:499
+#: setzer/dialogs/preferences/pages/page_appearance.py:501
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "Seleziona «Non chiedere più» nella finestra di anteprima per aggiungerne una."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:512
+#: setzer/dialogs/preferences/pages/page_appearance.py:514
+#: setzer/dialogs/preferences/pages/page_appearance.py:516
 msgid "Remove from trusted list"
 msgstr "Rimuovi dall'elenco attendibile"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:583
+#: setzer/dialogs/preferences/pages/page_appearance.py:587
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "Tutte le impostazioni dell’agente IA verranno ripristinate ai valori predefiniti. Strumenti personalizzati e directory attendibili verranno rimossi."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:617
+#: setzer/dialogs/preferences/pages/page_appearance.py:621
 msgid "General"
 msgstr "Generale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:623
+#: setzer/dialogs/preferences/pages/page_appearance.py:627
 msgid "Theme"
 msgstr "Tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:627
+#: setzer/dialogs/preferences/pages/page_appearance.py:631
 msgid "Color scheme"
 msgstr "Schema di colori"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:636
+#: setzer/dialogs/preferences/pages/page_appearance.py:640
 msgid "Animations"
 msgstr "Animazioni"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:640
+#: setzer/dialogs/preferences/pages/page_appearance.py:644
 msgid "Reduce animations"
 msgstr "Riduci le animazioni"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:642
+#: setzer/dialogs/preferences/pages/page_appearance.py:646
 msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
 msgstr "Disattiva lo scorrimento della barra laterale, le dissolvenze e le animazioni di scorrimento degli elenchi. Le animazioni di apertura e chiusura delle finestre non sono interessate."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:652
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Interface language"
 msgstr "Lingua dell'interfaccia"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:653
+#: setzer/dialogs/preferences/pages/page_appearance.py:657
 msgid "Changes take effect after the application is restarted."
 msgstr "Le modifiche hanno effetto dopo il riavvio dell'applicazione."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:662
+#: setzer/dialogs/preferences/pages/page_appearance.py:666
 msgid "On startup"
 msgstr "All'avvio"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:667
+#: setzer/dialogs/preferences/pages/page_appearance.py:671
 msgid "Whether to restore the previous session or start with an empty workspace."
 msgstr "Se ripristinare la sessione precedente o avviare con un'area di lavoro vuota."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:687
+#: setzer/dialogs/preferences/pages/page_appearance.py:691
 msgid "Preview sidebar width"
 msgstr "Larghezza della barra laterale di anteprima"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:688
+#: setzer/dialogs/preferences/pages/page_appearance.py:692
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "Percentuale della larghezza della finestra allocata all'anteprima PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:696
+#: setzer/dialogs/preferences/pages/page_appearance.py:700
 msgid "Match PDF colors to theme"
 msgstr "Abbina i colori del PDF al tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:698
+#: setzer/dialogs/preferences/pages/page_appearance.py:702
 msgid "Recolor the PDF preview to match the light/dark theme."
 msgstr "Ricolora l'anteprima del PDF per abbinarla al tema chiaro/scuro."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:702
+#: setzer/dialogs/preferences/pages/page_appearance.py:706
 msgid "Default zoom"
 msgstr "Zoom predefinito"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:704
+#: setzer/dialogs/preferences/pages/page_appearance.py:708
 msgid "Initial zoom mode for the PDF preview."
 msgstr "Modalità di zoom iniziale per l'anteprima PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:706
+#: setzer/dialogs/preferences/pages/page_appearance.py:710
 msgid "Default zoom mode for the PDF preview. Fit width fills the preview width; Fit text width fits the text column; Fit height fills the preview height; Manual starts at 100%."
 msgstr "Modalità di zoom predefinita per l'anteprima PDF. «Adatta alla larghezza» riempie la larghezza dell'anteprima; «Adatta alla larghezza del testo» adatta la colonna di testo; «Adatta all'altezza» riempie l'altezza dell'anteprima; «Manuale» parte dal 100%."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:710
+#: setzer/dialogs/preferences/pages/page_appearance.py:714
 msgid "Fit width"
 msgstr "Adatta alla larghezza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:711
+#: setzer/dialogs/preferences/pages/page_appearance.py:715
 msgid "Fit text width"
 msgstr "Adatta alla larghezza del testo"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:712
+#: setzer/dialogs/preferences/pages/page_appearance.py:716
 msgid "Fit height"
 msgstr "Adatta all'altezza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:713
+#: setzer/dialogs/preferences/pages/page_appearance.py:717
 msgid "Manual (100%)"
 msgstr "Manuale (100%)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:720
+#: setzer/dialogs/preferences/pages/page_appearance.py:724
 msgid "Sidebar"
 msgstr "Barra laterale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:731
+#: setzer/dialogs/preferences/pages/page_appearance.py:735
 msgid "Sidebar width"
 msgstr "Larghezza della barra laterale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:732
+#: setzer/dialogs/preferences/pages/page_appearance.py:736
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "Percentuale della larghezza della finestra allocata alla barra laterale."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:740
+#: setzer/dialogs/preferences/pages/page_appearance.py:744
 msgid "AI settings"
 msgstr "Impostazioni IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:744
+#: setzer/dialogs/preferences/pages/page_appearance.py:748
 msgid "Enable AI agent"
 msgstr "Attiva agente IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:745
+#: setzer/dialogs/preferences/pages/page_appearance.py:749
 msgid "Enables AI Fix in the build log dialog and the agent terminal button in the header bar"
 msgstr "Abilita la correzione IA nel dialogo del registro di compilazione e il pulsante del terminale dell'agente nella barra superiore"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:749
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
 msgid "Embed agent terminal in the sidebar"
 msgstr "Incorpora il terminale dell'agente nella barra laterale"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:753
+#: setzer/dialogs/preferences/pages/page_appearance.py:757
 msgid "Run the agent in the AI Agent sidebar page and keep one session across sends"
 msgstr "Esegui l'agente nella pagina Agente IA della barra laterale e mantieni una sola sessione tra gli invii"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:756
+#: setzer/dialogs/preferences/pages/page_appearance.py:760
 msgid "Embedded terminal (VTE) is not available on this system; an external terminal is used instead"
 msgstr "Il terminale integrato (VTE) non è disponibile su questo sistema; verrà usato un terminale esterno"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:760
+#: setzer/dialogs/preferences/pages/page_appearance.py:764
 msgid "Show AI edits as a diff preview"
 msgstr "Mostra le modifiche dell'IA come anteprima del diff"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:762
+#: setzer/dialogs/preferences/pages/page_appearance.py:766
 msgid "Snapshot the document when sending an AI task; after the agent edits it, show the typeset changes for review (needs PhiTeX)"
 msgstr "Scatta un'istantanea del documento all'invio di un'attività all'IA; dopo la modifica dell'agente, mostra le modifiche impaginate per la revisione (richiede PhiTeX)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:766
+#: setzer/dialogs/preferences/pages/page_appearance.py:770
 msgid "Active agent tool"
 msgstr "Strumento agente attivo"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:767
+#: setzer/dialogs/preferences/pages/page_appearance.py:771
 msgid "Which CLI to invoke for AI features"
 msgstr "CLI da richiamare per le funzionalità IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:771
+#: setzer/dialogs/preferences/pages/page_appearance.py:775
 msgid "Terminal command (optional)"
 msgstr "Comando terminale (opzionale)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:773
+#: setzer/dialogs/preferences/pages/page_appearance.py:777
 msgid "Leave empty to auto-detect (gnome-terminal / xterm / konsole / …). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "Lasciare vuoto per il rilevamento automatico (gnome-terminal / xterm / konsole / …). In Flatpak, flatpak-spawn --host viene aggiunto automaticamente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:778
+#: setzer/dialogs/preferences/pages/page_appearance.py:782
 msgid "Agent tools"
 msgstr "Strumenti agente"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:779
+#: setzer/dialogs/preferences/pages/page_appearance.py:783
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "Le preimpostazioni integrate non possono essere rimosse. Aggiungere uno strumento personalizzato per integrare altre CLI agente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:785
+#: setzer/dialogs/preferences/pages/page_appearance.py:789
 msgid "+ Add custom tool"
 msgstr "+ Aggiungi strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:790
+#: setzer/dialogs/preferences/pages/page_appearance.py:794
 msgid "Trusted directories"
 msgstr "Directory attendibili"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:791
+#: setzer/dialogs/preferences/pages/page_appearance.py:795
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "Directory in cui la finestra di anteprima viene saltata. Fare clic su elimina per revocare la fiducia per un progetto."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:799
-#: setzer/dialogs/preferences/pages/page_appearance.py:853
+#: setzer/dialogs/preferences/pages/page_appearance.py:803
+#: setzer/dialogs/preferences/pages/page_appearance.py:857
 #: setzer/dialogs/preferences/pages/page_build_system.py:757
 #: setzer/dialogs/preferences/pages/page_editor.py:1285
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:706
 msgid "Reset to defaults"
 msgstr "Ripristina i valori predefiniti"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:806
+#: setzer/dialogs/preferences/pages/page_appearance.py:810
 msgid "First-run tutorial"
 msgstr "Tutorial del primo avvio"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:810
+#: setzer/dialogs/preferences/pages/page_appearance.py:814
 msgid "Show the tutorial again"
 msgstr "Mostra di nuovo il tutorial"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:811
+#: setzer/dialogs/preferences/pages/page_appearance.py:815
 msgid "Show"
 msgstr "Mostra"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:819
+#: setzer/dialogs/preferences/pages/page_appearance.py:823
 msgid "Backup and restore"
 msgstr "Backup e ripristino"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:820
+#: setzer/dialogs/preferences/pages/page_appearance.py:824
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "Esporta le tue preferenze e le scorciatoie da tastiera in un file, o importale su un altro computer."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:826
+#: setzer/dialogs/preferences/pages/page_appearance.py:830
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:690
 msgid "Export"
 msgstr "Esporta"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:834
+#: setzer/dialogs/preferences/pages/page_appearance.py:838
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:698
 msgid "Import"
 msgstr "Importa"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:841
+#: setzer/dialogs/preferences/pages/page_appearance.py:845
 msgid "Reset all preferences"
 msgstr "Ripristina tutte le preferenze"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:869
+#: setzer/dialogs/preferences/pages/page_appearance.py:873
 msgid "Add custom tool"
 msgstr "Aggiungi strumento personalizzato"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:899
+#: setzer/dialogs/preferences/pages/page_appearance.py:903
 msgid "Tool name (unique)"
 msgstr "Nome strumento (unico)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:903
-msgid "Executable (e.g. aider)"
-msgstr "Eseguibile (es. aider)"
-
 #: setzer/dialogs/preferences/pages/page_appearance.py:907
+msgid "Executable (such as aider)"
+msgstr "Eseguibile (ad esempio aider)"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:911
 msgid "Headed command template"
 msgstr "Template comando con intestazione"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:909
+#: setzer/dialogs/preferences/pages/page_appearance.py:913
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "Argomenti separati da spazi. Usare {prompt} / {file} / {cwd} come segnaposto. Esempio: aider --message {prompt} --no-auto-commits. Se lasciato vuoto o senza {prompt}, il prompt viene copiato negli appunti."
@@ -5726,7 +5754,8 @@ msgid "Forward sync"
 msgstr "Sincronizzazione in avanti"
 
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:133
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:83
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:91
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:535
 msgid "Build log"
 msgstr "Log di compilazione"
@@ -6239,34 +6268,37 @@ msgid "Set active"
 msgstr "Imposta come attivo"
 
 #: setzer/dialogs/project_build_configuration.py:178
+#: setzer/dialogs/project_build_configuration.py:179
 msgid "Move up"
 msgstr "Sposta su"
 
-#: setzer/dialogs/project_build_configuration.py:181
+#: setzer/dialogs/project_build_configuration.py:182
+#: setzer/dialogs/project_build_configuration.py:183
 msgid "Move down"
 msgstr "Sposta giù"
 
-#: setzer/dialogs/project_build_configuration.py:185
+#: setzer/dialogs/project_build_configuration.py:187
+#: setzer/dialogs/project_build_configuration.py:188
 msgid "Remove task"
 msgstr "Rimuovi attività"
 
-#: setzer/dialogs/project_build_configuration.py:213
+#: setzer/dialogs/project_build_configuration.py:216
 msgid "New profile"
 msgstr "Nuovo profilo"
 
-#: setzer/dialogs/project_build_configuration.py:231
+#: setzer/dialogs/project_build_configuration.py:234
 msgid "copy"
 msgstr "copia"
 
-#: setzer/dialogs/project_build_configuration.py:257
+#: setzer/dialogs/project_build_configuration.py:260
 msgid "A profile with this name already exists."
 msgstr "Esiste già un profilo con questo nome."
 
-#: setzer/dialogs/project_build_configuration.py:331
+#: setzer/dialogs/project_build_configuration.py:334
 msgid "Select root document"
 msgstr "Seleziona documento radice"
 
-#: setzer/dialogs/project_build_configuration.py:337
+#: setzer/dialogs/project_build_configuration.py:340
 msgid "Select output directory"
 msgstr "Seleziona directory di output"
 
@@ -6511,19 +6543,20 @@ msgid "AI Annotation"
 msgstr "Annotazione IA"
 
 #: setzer/document/ai_annotations/annotation_popover.py:67
+#: setzer/document/ai_annotations/annotation_popover.py:69
 msgid "Preset instruction"
 msgstr "Istruzione predefinita"
 
-#: setzer/document/ai_annotations/annotation_popover.py:72
-#: setzer/document/ai_annotations/annotation_popover.py:109
-#: setzer/document/ai_annotations/annotation_popover.py:167
+#: setzer/document/ai_annotations/annotation_popover.py:74
+#: setzer/document/ai_annotations/annotation_popover.py:111
+#: setzer/document/ai_annotations/annotation_popover.py:169
 #: setzer/workspace/sidebar/ai_page/ai_page.py:280
 #: setzer/workspace/sidebar/ai_page/ai_page.py:310
 msgid "Custom (no preset)"
 msgstr "Personalizzato (nessun predefinito)"
 
-#: setzer/document/ai_annotations/annotation_popover.py:94
 #: setzer/document/ai_annotations/annotation_popover.py:96
+#: setzer/document/ai_annotations/annotation_popover.py:98
 msgid "Save Annotation"
 msgstr "Salva annotazione"
 
@@ -6748,11 +6781,12 @@ msgstr "Compilazione fallita"
 msgid "Stop building"
 msgstr "Ferma compilazione"
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:67
+#: setzer/document/build_widget/build_widget_viewgtk.py:70
+#: setzer/document/build_widget/build_widget_viewgtk.py:72
 msgid "Cleanup build files"
 msgstr "Pulisci dai file di compilazione"
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:134
+#: setzer/document/build_widget/build_widget_viewgtk.py:139
 msgid "Pass {}"
 msgstr "Passo {}"
 
@@ -6819,10 +6853,12 @@ msgid "Find in PDF…"
 msgstr "Trova nel PDF…"
 
 #: setzer/document/preview/context_menu/context_menu.py:246
+#: setzer/document/preview/context_menu/context_menu.py:247
 msgid "Previous Match"
 msgstr "Occorrenza precedente"
 
-#: setzer/document/preview/context_menu/context_menu.py:250
+#: setzer/document/preview/context_menu/context_menu.py:251
+#: setzer/document/preview/context_menu/context_menu.py:252
 msgid "Next Match"
 msgstr "Occorrenza successiva"
 
@@ -7029,6 +7065,7 @@ msgid "No history"
 msgstr "Nessuna cronologia"
 
 #: setzer/document/search/search_history_popup.py:156
+#: setzer/document/search/search_history_popup.py:158
 msgid "Remove from history"
 msgstr "Rimuovi dalla cronologia"
 
@@ -7291,7 +7328,7 @@ msgstr "Documenti recenti"
 
 #: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:105
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:109
 msgid "No Results"
 msgstr "Nessun risultato"
 
@@ -7397,7 +7434,8 @@ msgid "Main Menu"
 msgstr "Menu principale"
 
 #: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:122
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:124
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:126
 msgid "Fit to Width"
 msgstr "Adatta alla larghezza"
 
@@ -8037,18 +8075,21 @@ msgid "Agent session ready in a separate window"
 msgstr "Sessione dell'agente pronta in una finestra separata"
 
 #: setzer/workspace/headerbar/headerbar_viewgtk.py:48
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:51
 msgid "Toggle sidebar (Document Structure / Symbols)"
 msgstr "Attiva/disattiva barra laterale (Struttura documento / Simboli)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:75
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:80
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:83
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "Attiva/disattiva pannello anteprima (Anteprima PDF / Aiuto)"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:103
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:105
 msgid "Open AI agent in terminal"
 msgstr "Apri l’agente IA nel terminale"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:134
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:146
 msgid "Welcome to Setzer"
 msgstr "Benvenuto in Setzer"
 
@@ -8065,66 +8106,71 @@ msgid "No results for '{query}'"
 msgstr "Nessun risultato trovato per «{query}»"
 
 #: setzer/workspace/help_panel/help_panel_viewgtk.py:65
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:67
 msgid "Help home"
 msgstr "Home della guida"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:70
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:72
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:74
 msgid "Scroll to top"
 msgstr "Scorri in alto"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:75
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:79
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:81
 msgid "Back"
 msgstr "Indietro"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:80
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:86
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:88
 msgid "Forward"
 msgstr "Avanti"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:91
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:99
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:101
 msgid "Search help documentation"
 msgstr "Cerca nella documentazione di aiuto"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:104
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:114
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:66
 msgid "Full PDF preview"
 msgstr "Anteprima del PDF completo"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:107
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:117
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:69
 msgid "TikZ snippet preview"
 msgstr "Anteprima di frammenti TikZ"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:110
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:120
 #: setzer/workspace/preview_panel/preview_panel_viewgtk.py:75
 msgid "Switch to Help"
 msgstr "Passa alla Guida"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:128
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:138
 msgid "Search help"
 msgstr "Cerca nell'aiuto"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:168
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:178
 msgid "No results found"
 msgstr "Nessun risultato trovato"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:177
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:187
 msgid "Search Help"
 msgstr "Cerca aiuto"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:178
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:188
 msgid "Type a keyword to search the documentation."
 msgstr "Digita una parola chiave per cercare nella documentazione."
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:218
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:229
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:228
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:239
 msgid "JavaScript is disabled"
 msgstr "JavaScript è disabilitato"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:235
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:245
 msgid "Help pages render with JavaScript disabled for security. Static documentation displays normally; interactive examples that depend on JavaScript will not run."
 msgstr "Le pagine di aiuto vengono visualizzate con JavaScript disabilitato per sicurezza. La documentazione statica viene mostrata normalmente; gli esempi interattivi che dipendono da JavaScript non verranno eseguiti."
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:257
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:267
 msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
 msgstr "Il rendering delle pagine di aiuto richiede WebKit6. La ricerca è comunque disponibile — fai clic su un risultato per aprirlo nel tuo browser web."
 
@@ -8149,39 +8195,47 @@ msgstr "di {total}"
 msgid "No preview"
 msgstr "Nessuna anteprima"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:131
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:135
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:137
 msgid "Set zoom level"
 msgstr "Imposta livello zoom"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:146
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:154
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "Lente d’ingrandimento: tieni premuto il pulsante sinistro del mouse sul PDF per ingrandire"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:152
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:163
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:165
 msgid "Match theme colors"
 msgstr "Abbina i colori del tema"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:170
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:172
 msgid "Open in external PDF viewer"
 msgstr "Apri in un visualizzatore PDF esterno"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:165
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:180
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:182
 msgid "Detach preview to separate window"
 msgstr "Stacca l'anteprima in una finestra separata"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:174
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:191
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:193
 msgid "End AI review"
 msgstr "Termina la revisione dell’IA"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:189
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:208
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:210
 msgid "Previous change"
 msgstr "Modifica precedente"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:196
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:217
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:219
 msgid "Next change"
 msgstr "Modifica successiva"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:251
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:274
 msgid "Typeset diff of AI edits"
 msgstr "Diff impaginato delle modifiche dell'IA"
 
@@ -8237,19 +8291,20 @@ msgid "Started a new agent session"
 msgstr "Nuova sessione dell'agente avviata"
 
 #: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:61
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:64
 msgid "Preset used when sending a selection directly"
 msgstr "Predefinito usato nell'invio diretto di una selezione"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:84
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:86
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
 msgid "Send All"
 msgstr "Invia tutto"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:118
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:121
 msgid "No Annotations"
 msgstr "Nessuna annotazione"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:120
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:123
 msgid "Select text in the editor and use the right-click menu or shortcut to add an AI annotation."
 msgstr "Seleziona del testo nell'editor e usa il menu contestuale o una scorciatoia per aggiungere un'annotazione IA."
 
@@ -8309,10 +8364,12 @@ msgid "Open a document to see its structure."
 msgstr "Apri un documento per vedere la sua struttura."
 
 #: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
 msgid "Jump to section"
 msgstr "Vai alla sezione"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:171
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:175
 msgid "Search document structure"
 msgstr "Cerca nella struttura del documento"
 
@@ -8646,14 +8703,16 @@ msgid "Initialize Repository"
 msgstr "Inizializza repository"
 
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:401
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:403
 msgid "View file"
 msgstr "Mostra file"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:408
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:410
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:412
 msgid "Discard changes in this file"
 msgstr "Scarta le modifiche in questo file"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:428
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:432
 msgid "(no commit message)"
 msgstr "(nessun messaggio di commit)"
 
@@ -8679,13 +8738,13 @@ msgstr "Statistiche del documento"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:78
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:205
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:213
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:217
 msgid "Package"
 msgstr "Pacchetto"
 
 #: setzer/workspace/sidebar/symbols_page/symbol_preview.py:157
 #: setzer/workspace/sidebar/symbols_page/symbols_page.py:211
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:224
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:228
 msgid "Insert"
 msgstr "Inserisci"
 
@@ -8702,42 +8761,44 @@ msgid "Copy LaTeX Command"
 msgstr "Copia il comando LaTeX"
 
 #: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:53
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:55
 msgid "Jump to category"
 msgstr "Vai alla categoria"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:74
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:76
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:78
 msgid "Search symbols"
 msgstr "Cerca simboli"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:129
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:133
 msgid "Recent"
 msgstr "Recenti"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:138
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:142
 msgid "Favorites"
 msgstr "Preferiti"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:146
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
 msgid "Greek Letters"
 msgstr "Lettere greche"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:147
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:151
 msgid "Arrows"
 msgstr "Frecce"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:148
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:152
 msgid "Relations"
 msgstr "Relazioni"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:149
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:153
 msgid "Operators"
 msgstr "Operatori"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:150
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:154
 msgid "Misc. Math"
 msgstr "Matematica varia"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:151
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:155
 msgid "Misc. Symbols"
 msgstr "Simboli vari"
 
@@ -8754,26 +8815,29 @@ msgid "Changed on disk since last opened"
 msgstr "Modificato su disco dall'ultima apertura"
 
 #: setzer/workspace/welcome_screen/welcome_screen.py:225
+#: setzer/workspace/welcome_screen/welcome_screen.py:227
 msgid "Remove from recent list"
 msgstr "Rimuovi dall'elenco recenti"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:262
+#: setzer/workspace/welcome_screen/welcome_screen.py:264
+#: setzer/workspace/welcome_screen/welcome_screen.py:266
 msgid "Pin"
 msgstr "Blocca"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:262
+#: setzer/workspace/welcome_screen/welcome_screen.py:264
+#: setzer/workspace/welcome_screen/welcome_screen.py:266
 msgid "Unpin"
 msgstr "Sblocca"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:296
+#: setzer/workspace/welcome_screen/welcome_screen.py:300
 msgid "Clear Recent List?"
 msgstr "Cancellare l'elenco recenti?"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:297
+#: setzer/workspace/welcome_screen/welcome_screen.py:301
 msgid "This does not delete the files themselves."
 msgstr "I file stessi non vengono eliminati."
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:299
+#: setzer/workspace/welcome_screen/welcome_screen.py:303
 msgid "Clear"
 msgstr "Cancella"
 

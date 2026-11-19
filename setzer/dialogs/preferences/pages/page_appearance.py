@@ -478,6 +478,8 @@ class PageGeneral(object):
             del_btn.set_valign(Gtk.Align.CENTER)
             del_btn.add_css_class('flat')
             del_btn.set_tooltip_text(_('Remove this custom tool'))
+            del_btn.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Remove this custom tool')])
             del_btn.connect('clicked', self.on_delete_tool_clicked, name)
             row.add_suffix(del_btn)
         return row
@@ -510,6 +512,8 @@ class PageGeneral(object):
             del_btn.set_valign(Gtk.Align.CENTER)
             del_btn.add_css_class('flat')
             del_btn.set_tooltip_text(_('Remove from trusted list'))
+            del_btn.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Remove from trusted list')])
             del_btn.connect('clicked', self.on_delete_trusted_clicked, d)
             row.add_suffix(del_btn)
             group.add(row)
@@ -900,7 +904,7 @@ class AddCustomToolDialog(object):
         group.add(self.name_entry)
 
         self.exec_entry = Adw.EntryRow()
-        self.exec_entry.set_title(_('Executable (e.g. aider)'))
+        self.exec_entry.set_title(_('Executable (such as aider)'))
         group.add(self.exec_entry)
 
         self.headed_entry = Adw.EntryRow()

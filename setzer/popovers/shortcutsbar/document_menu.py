@@ -36,14 +36,14 @@ class DocumentMenu(GioMenuBuilder):
         GioMenuBuilder.__init__(self)
 
         self.add_insert_symbol_item('main', '\\documentclass', ['\\documentclass[•]{•}'])
-        self.add_action_button('main', _('Add / Remove Packages') + '...', 'win.add-remove-packages-dialog')
+        self.add_action_button('main', _('Add / Remove Packages') + '…', 'win.add-remove-packages-dialog')
         self.add_menu_button(_('Document Info'), 'document_info')
         self.add_separator()
         self.add_before_after_item('main', _('Document Environment'), ['\\begin{document}\n\t', '\n\\end{document}'])
         self.add_insert_symbol_item('main', _('Show Title') + ' (\\maketitle)', ['\\maketitle'])
         self.add_insert_symbol_item('main', _('Table of Contents'), ['\\tableofcontents'])
         self.add_separator()
-        self.add_action_button('main', _('Include LaTeX File') + ' (\\input)...', 'win.include-latex-file')
+        self.add_action_button('main', _('Include LaTeX File') + ' (\\input)…', 'win.include-latex-file')
 
         # 每文档 LaTeX 解释器覆盖子菜单（对应 actions.on_set_build_interpreter）。
         # 子菜单标题直接带出当前生效的引擎：两个选择入口（本文档 / 全局）

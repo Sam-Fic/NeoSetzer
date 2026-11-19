@@ -55,10 +55,13 @@ class AiPageView(Gtk.Box):
         # label + 右箭头，popover 用 .menu 样式（控制器侧接 Gio.Menu）。
         self.preset_menu_button = Gtk.MenuButton()
         self.preset_menu_button.add_css_class('flat')
-        self.preset_menu_button.set_can_focus(False)
+        self.preset_menu_button.set_can_focus(True)
         self.preset_menu_button.set_halign(Gtk.Align.START)
         self.preset_menu_button.set_hexpand(True)
         self.preset_menu_button.set_tooltip_text(_('Preset used when sending a selection directly'))
+        self.preset_menu_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Preset used when sending a selection directly')])
 
         menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.preset_menu_label = Gtk.Label(label='')

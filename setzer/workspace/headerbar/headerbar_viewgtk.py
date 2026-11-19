@@ -46,6 +46,9 @@ class HeaderBar(object):
         self.sidebar_toggle.set_child(Gtk.Image(icon_name='sidebar-show-symbolic'))
         # tooltip 中的快捷键随设置动态渲染（原先写死 "(F2)"，早已与实际绑定脱节）
         shortcut_tooltips.set_tooltip(self.sidebar_toggle, _('Toggle sidebar (Document Structure / Symbols)'), 'document_structure', 'symbols')
+        self.sidebar_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Toggle sidebar (Document Structure / Symbols)')])
 
         self.widget.pack_start(self.sidebar_toggle)
 
@@ -54,6 +57,8 @@ class HeaderBar(object):
         self.open_document_button = Gtk.Button()
         self.open_document_button.set_child(Gtk.Image(icon_name='document-open-symbolic'))
         shortcut_tooltips.set_tooltip(self.open_document_button, _('Open a document'), 'open_document')
+        self.open_document_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Open a document')])
         self.open_document_button.set_action_name('win.open-document-dialog')
 
         # 新建文档不再占用顶栏：LaTeX / BibTeX / 模板三种入口统一收进
@@ -73,6 +78,9 @@ class HeaderBar(object):
         self.preview_help_toggle.set_child(Gtk.Image(icon_name='sidebar-show-right-symbolic'))
         # 原先写死 "(F9)"，实际 preview=Ctrl+Shift+P、help=F1，现随设置动态渲染
         shortcut_tooltips.set_tooltip(self.preview_help_toggle, _('Toggle preview panel (PDF Preview / Help)'), 'preview', 'help')
+        self.preview_help_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Toggle preview panel (PDF Preview / Help)')])
 
         # Build log 按钮（标题栏副本）：仅在用户关闭 Shortcuts Bar
         # （Preferences → Editor → Show Shortcuts Bar = False）时显示，
@@ -81,6 +89,8 @@ class HeaderBar(object):
         self.build_log_toggle = Gtk.ToggleButton()
         self.build_log_toggle.set_child(Gtk.Image(icon_name='build-log-symbolic'))
         shortcut_tooltips.set_tooltip(self.build_log_toggle, _('Build log'), 'build_log')
+        self.build_log_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Build log')])
 
         # 默认隐藏；HeaderBar presenter 根据 show_shortcuts_bar 显隐。
         self.build_log_toggle.set_visible(False)
@@ -91,6 +101,8 @@ class HeaderBar(object):
         self.agent_terminal_button = Gtk.Button()
         self.agent_terminal_button.set_child(Gtk.Image(icon_name='ai-slop-symbolic'))
         self.agent_terminal_button.set_tooltip_text(_('Open AI agent in terminal'))
+        self.agent_terminal_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Open AI agent in terminal')])
         self.agent_terminal_button.add_css_class('flat')
         self.agent_terminal_button.set_visible(False)
 

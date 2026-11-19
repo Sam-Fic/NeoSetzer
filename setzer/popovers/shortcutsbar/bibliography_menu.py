@@ -28,8 +28,8 @@ class BibliographyMenu(GioMenuBuilder):
     def __init__(self, popover_manager=None):
         GioMenuBuilder.__init__(self)
 
-        self.add_action_button('main', _('Include BibTeX File') + '...', 'win.include-bibtex-file')
-        self.add_action_button('main', _('Manage Bibliography') + '...', 'win.manage-bibliography')
+        self.add_action_button('main', _('Include BibTeX File') + '…', 'win.include-bibtex-file')
+        self.add_action_button('main', _('Manage Bibliography') + '…', 'win.manage-bibliography')
         self.add_action_button('main', _('Include \'natbib\' Package'), 'win.add-packages', GLib.Variant('as', ['natbib']))
         self.add_separator()
         self.add_insert_symbol_item('main', _('Citation'), ['\\cite{•}'])

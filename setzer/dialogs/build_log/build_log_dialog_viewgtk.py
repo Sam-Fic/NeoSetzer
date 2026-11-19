@@ -67,15 +67,19 @@ class BuildLogDialogView(DialogView):
         # Copy All 按钮
         self.copy_all_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_all_button.set_tooltip_text(_('Copy all log entries'))
+        self.copy_all_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Copy all log entries')])
         self.copy_all_button.add_css_class('flat')
-        self.copy_all_button.set_can_focus(False)
+        self.copy_all_button.set_can_focus(True)
         self.headerbar.pack_end(self.copy_all_button)
 
         # Save Log As 按钮
         self.save_log_button = Gtk.Button(icon_name='document-save-symbolic')
         self.save_log_button.set_tooltip_text(_('Save log to file'))
+        self.save_log_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Save log to file')])
         self.save_log_button.add_css_class('flat')
-        self.save_log_button.set_can_focus(False)
+        self.save_log_button.set_can_focus(True)
         self.headerbar.pack_end(self.save_log_button)
 
         # AI Fix All 按钮：批量把当前可见错误发给 Agent CLI 修复。
@@ -84,8 +88,10 @@ class BuildLogDialogView(DialogView):
         # 仅 Errors 类型才显示（presenter.populate 后由 controller 控制 sensitive）。
         self.ai_fix_all_button = Gtk.Button(icon_name='ai-slop-symbolic')
         self.ai_fix_all_button.set_tooltip_text(_('Fix all errors with AI'))
+        self.ai_fix_all_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Fix all errors with AI')])
         self.ai_fix_all_button.add_css_class('flat')
-        self.ai_fix_all_button.set_can_focus(False)
+        self.ai_fix_all_button.set_can_focus(True)
         self.headerbar.pack_end(self.ai_fix_all_button)
 
         # Filter 按钮 + 弹出菜单
@@ -95,8 +101,10 @@ class BuildLogDialogView(DialogView):
         self.filter_button = Gtk.ToggleButton()
         self.filter_button.set_child(Gtk.Image(icon_name='edit-select-all-symbolic'))
         self.filter_button.set_tooltip_text(_('Filter log entries'))
+        self.filter_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Filter log entries')])
         self.filter_button.add_css_class('flat')
-        self.filter_button.set_can_focus(False)
+        self.filter_button.set_can_focus(True)
         self.headerbar.pack_end(self.filter_button)
 
         # 「恢复忽略的警告」按钮：仅当存在被忽略的 warning 类型时显示，
@@ -104,8 +112,10 @@ class BuildLogDialogView(DialogView):
         self.restore_button = Gtk.Button()
         self.restore_button.set_child(Gtk.Image(icon_name='edit-undo-symbolic'))
         self.restore_button.set_tooltip_text(_('Restore ignored warnings'))
+        self.restore_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Restore ignored warnings')])
         self.restore_button.add_css_class('flat')
-        self.restore_button.set_can_focus(False)
+        self.restore_button.set_can_focus(True)
         self.restore_button.set_visible(False)
         self.restore_button.connect('clicked', self._on_restore_ignored_clicked)
         self.headerbar.pack_end(self.restore_button)
@@ -138,8 +148,10 @@ class BuildLogDialogView(DialogView):
         # 搜索按钮（toggle 控制搜索栏显隐）
         self.search_button = Gtk.ToggleButton(icon_name='edit-find-symbolic')
         self.search_button.set_tooltip_text(_('Search build log'))
+        self.search_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Search build log')])
         self.search_button.add_css_class('flat')
-        self.search_button.set_can_focus(False)
+        self.search_button.set_can_focus(True)
         self.headerbar.pack_start(self.search_button)
 
         # 搜索栏：用 Gtk.Revealer 包裹 Gtk.SearchEntry（不放 Gtk.SearchBar）。
@@ -211,7 +223,10 @@ class BuildLogDialogView(DialogView):
             toggle_btn = Gtk.Button()
             toggle_btn.set_icon_name('pan-down-symbolic')
             toggle_btn.add_css_class('flat')
-            toggle_btn.set_can_focus(False)
+            toggle_btn.set_tooltip_text(_('Collapse or expand group'))
+            toggle_btn.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Collapse or expand group')])
+            toggle_btn.set_can_focus(True)
             toggle_btn.connect('clicked', self._on_group_toggle_clicked, item_type)
             group.set_header_suffix(toggle_btn)
             self.toggle_buttons[item_type] = toggle_btn
@@ -423,9 +438,11 @@ class BuildLogList(Gtk.ListBox):
         # 行尾复制按钮：点击复制当前单行。
         copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
         copy_button.set_tooltip_text(_('Copy to clipboard'))
+        copy_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Copy to clipboard')])
         copy_button.add_css_class('flat')
         copy_button.set_valign(Gtk.Align.CENTER)
-        copy_button.set_can_focus(False)
+        copy_button.set_can_focus(True)
         copy_button.connect('clicked', self.on_copy_row_clicked, row)
         row.add_suffix(copy_button)
 
@@ -437,9 +454,11 @@ class BuildLogList(Gtk.ListBox):
         if self.ai_fix_enabled:
             ai_fix_button = Gtk.Button(icon_name='ai-slop-symbolic')
             ai_fix_button.set_tooltip_text(_('Fix this error with AI'))
+            ai_fix_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Fix this error with AI')])
             ai_fix_button.add_css_class('flat')
             ai_fix_button.set_valign(Gtk.Align.CENTER)
-            ai_fix_button.set_can_focus(False)
+            ai_fix_button.set_can_focus(True)
             ai_fix_button.connect('clicked', self.on_ai_fix_row_clicked, row)
             row.add_suffix(ai_fix_button)
 

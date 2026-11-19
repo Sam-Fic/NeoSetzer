@@ -65,8 +65,11 @@ class InsertMatrixView(DialogView):
         self.headerbar.pack_start(self.cancel_button)
         self.copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
+        self.copy_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Copy the generated LaTeX without changing the document')])
         self.copy_button.add_css_class('flat')
-        self.copy_button.set_can_focus(False)
+        self.copy_button.set_can_focus(True)
         self.headerbar.pack_start(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')

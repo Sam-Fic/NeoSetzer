@@ -65,8 +65,10 @@ class AnnotationPopover(Gtk.Popover):
         # 打圆点）。
         self.preset_button = Gtk.MenuButton()
         self.preset_button.set_tooltip_text(_('Preset instruction'))
+        self.preset_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Preset instruction')])
         self.preset_button.set_hexpand(True)
-        self.preset_button.set_can_focus(False)
+        self.preset_button.set_can_focus(True)
 
         preset_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.preset_label = Gtk.Label(label=_('Custom (no preset)'))

@@ -223,6 +223,8 @@ class WelcomeScreen(object):
         remove_button.set_valign(Gtk.Align.CENTER)
         remove_button.add_css_class('flat')
         remove_button.set_tooltip_text(_('Remove from recent list'))
+        remove_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Remove from recent list')])
         remove_button.connect('clicked', self.on_remove_recent_clicked, filename)
         info_box.append(remove_button)
 
@@ -260,6 +262,8 @@ class WelcomeScreen(object):
 
         pinned = self.workspace.is_pinned_recent_document(filename)
         row._pin_button.set_tooltip_text(_('Unpin') if pinned else _('Pin'))
+        row._pin_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Unpin') if pinned else _('Pin')])
         if pinned:
             row._pin_button.remove_css_class('dim-label')
             if not row._pin_button.has_css_class('accent'):

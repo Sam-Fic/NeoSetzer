@@ -41,6 +41,9 @@ class FakeButton:
     def set_tooltip_text(self, text):
         pass
 
+    def update_property(self, properties, values):
+        pass
+
     def set_has_frame(self, value):
         pass
 

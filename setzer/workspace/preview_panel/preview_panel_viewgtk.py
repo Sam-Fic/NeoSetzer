@@ -112,6 +112,8 @@ class PreviewPanelView(Gtk.Box):
         # 右侧：zoom_out / fit_width / zoom_level / zoom_in / recolor / external
         self.zoom_out_button = Gtk.Button(icon_name='zoom-out-symbolic')
         self.zoom_out_button.set_tooltip_text(_('Zoom out'))
+        self.zoom_out_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Zoom out')])
         self.zoom_out_button.add_css_class('flat')
         self.toolbar.append(self.zoom_out_button)
 
@@ -120,6 +122,8 @@ class PreviewPanelView(Gtk.Box):
         self.fit_width_button = Gtk.ToggleButton()
         self.fit_width_button.set_icon_name('double-ended-arrows-horizontal-symbolic')
         self.fit_width_button.set_tooltip_text(_('Fit to Width'))
+        self.fit_width_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Fit to Width')])
         self.fit_width_button.add_css_class('flat')
         self.toolbar.append(self.fit_width_button)
 
@@ -129,12 +133,16 @@ class PreviewPanelView(Gtk.Box):
         self.zoom_level_button = Gtk.MenuButton()
         self.zoom_level_button.set_popover(PopoverManager.create_popover('preview_zoom_level').view)
         self.zoom_level_button.set_tooltip_text(_('Set zoom level'))
+        self.zoom_level_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Set zoom level')])
         self.zoom_level_button.add_css_class('flat')
         self.zoom_level_button.set_child(self.zoom_level_label)
         self.toolbar.append(self.zoom_level_button)
 
         self.zoom_in_button = Gtk.Button(icon_name='zoom-in-symbolic')
         self.zoom_in_button.set_tooltip_text(_('Zoom in'))
+        self.zoom_in_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Zoom in')])
         self.zoom_in_button.add_css_class('flat')
         self.toolbar.append(self.zoom_in_button)
 
@@ -144,17 +152,24 @@ class PreviewPanelView(Gtk.Box):
         self.magnifier_toggle.set_icon_name('edit-find-symbolic')
         self.magnifier_toggle.set_tooltip_text(
             _('Magnifier: hold left mouse button on the PDF to zoom'))
+        self.magnifier_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Magnifier: hold left mouse button on the PDF to zoom')])
         self.magnifier_toggle.add_css_class('flat')
         self.toolbar.append(self.magnifier_toggle)
 
         self.recolor_pdf_toggle = Gtk.ToggleButton()
         self.recolor_pdf_toggle.set_icon_name('color-symbolic')
         self.recolor_pdf_toggle.set_tooltip_text(_('Match theme colors'))
+        self.recolor_pdf_toggle.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Match theme colors')])
         self.recolor_pdf_toggle.add_css_class('flat')
         self.toolbar.append(self.recolor_pdf_toggle)
 
         self.external_viewer_button = Gtk.Button(icon_name='web-browser-symbolic')
         self.external_viewer_button.set_tooltip_text(_('Open in external PDF viewer'))
+        self.external_viewer_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Open in external PDF viewer')])
         self.external_viewer_button.add_css_class('flat')
         self.toolbar.append(self.external_viewer_button)
 
@@ -163,6 +178,8 @@ class PreviewPanelView(Gtk.Box):
         # （独立窗口已 detached，收回走窗口关闭按钮）。
         self.detach_button = Gtk.Button(icon_name='window-new-symbolic')
         self.detach_button.set_tooltip_text(_('Detach preview to separate window'))
+        self.detach_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Detach preview to separate window')])
         self.detach_button.add_css_class('flat')
         self.toolbar.append(self.detach_button)
 
@@ -172,6 +189,8 @@ class PreviewPanelView(Gtk.Box):
         # "这轮我看完了"。window-close-symbolic 对应 GNOME 的 dismiss 惯例。
         self.diff_end_button = Gtk.Button(icon_name='window-close-symbolic')
         self.diff_end_button.set_tooltip_text(_('End AI review'))
+        self.diff_end_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('End AI review')])
         self.diff_end_button.add_css_class('flat')
         self.diff_end_button.set_visible(False)
         self._on_diff_end_requested = None
@@ -187,6 +206,8 @@ class PreviewPanelView(Gtk.Box):
         self.diff_nav.add_css_class('linked')
         self.diff_nav_prev_button = Gtk.Button(icon_name='go-previous-symbolic')
         self.diff_nav_prev_button.set_tooltip_text(_('Previous change'))
+        self.diff_nav_prev_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Previous change')])
         self.diff_nav.append(self.diff_nav_prev_button)
         self.diff_nav_label = Gtk.Label()
         self.diff_nav_label.add_css_class('dim-label')
@@ -194,6 +215,8 @@ class PreviewPanelView(Gtk.Box):
         self.diff_nav.append(self.diff_nav_label)
         self.diff_nav_next_button = Gtk.Button(icon_name='go-next-symbolic')
         self.diff_nav_next_button.set_tooltip_text(_('Next change'))
+        self.diff_nav_next_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Next change')])
         self.diff_nav.append(self.diff_nav_next_button)
         self.diff_nav.set_visible(False)
         self._on_diff_nav_previous = None

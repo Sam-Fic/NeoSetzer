@@ -415,7 +415,7 @@ class BibliographyManagerDialog(DialogView):
 
         locator_row = Adw.ActionRow()
         locator_row.set_title(_('Locator'))
-        locator_row.set_subtitle(_('Optional argument, e.g. p.~12 or ch.~3'))
+        locator_row.set_subtitle(_('Optional argument, such as p.~12 or ch.~3'))
         self.insert_locator_entry = Gtk.Entry()
         self.insert_locator_entry.set_placeholder_text('p.~12')
         self.insert_locator_entry.set_valign(Gtk.Align.CENTER)
@@ -1345,12 +1345,12 @@ class _StringsDialog(DialogView):
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)
         close_button = Gtk.Button.new_with_mnemonic(_('_Close'))
-        close_button.set_can_focus(False)
+        close_button.set_can_focus(True)
         close_button.connect('clicked', self._on_close_requested)
         self.headerbar.pack_start(close_button)
 
         self.save_button = Gtk.Button(label=_('Save'))
-        self.save_button.set_can_focus(False)
+        self.save_button.set_can_focus(True)
         self.save_button.add_css_class('suggested-action')
         self.save_button.set_sensitive(False)
         self.save_button.connect('clicked', self._on_save)

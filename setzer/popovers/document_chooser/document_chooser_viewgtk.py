@@ -55,7 +55,7 @@ class DocumentChooserView(object):
         self.other_group = Adw.PreferencesGroup()
         self.other_documents_row = Adw.ActionRow()
         self.other_documents_row.set_activatable(True)
-        self.other_documents_row.set_title(_('Other Documents') + '...')
+        self.other_documents_row.set_title(_('Other Documents') + '…')
         self.other_documents_row.set_icon_name('document-open-symbolic')
         self.other_group.add(self.other_documents_row)
         self.page.add(self.other_group)

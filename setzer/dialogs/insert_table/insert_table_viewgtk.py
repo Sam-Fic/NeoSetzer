@@ -91,8 +91,11 @@ class InsertTableView(DialogView):
         self.headerbar.pack_start(self.cancel_button)
         self.copy_button = Gtk.Button(icon_name='edit-copy-symbolic')
         self.copy_button.set_tooltip_text(_('Copy the generated LaTeX without changing the document'))
+        self.copy_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Copy the generated LaTeX without changing the document')])
         self.copy_button.add_css_class('flat')
-        self.copy_button.set_can_focus(False)
+        self.copy_button.set_can_focus(True)
         self.headerbar.pack_start(self.copy_button)
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
@@ -419,6 +422,8 @@ class InsertTableView(DialogView):
             edit_button.set_has_frame(False)
             edit_button.add_css_class('flat')
             edit_button.set_tooltip_text(_('Edit this merged range'))
+            edit_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Edit this merged range')])
             if on_edit is not None:
                 edit_button.connect('clicked', lambda button, item=merge: on_edit(item))
             row.add_suffix(edit_button)
@@ -426,6 +431,8 @@ class InsertTableView(DialogView):
             remove_button.set_has_frame(False)
             remove_button.add_css_class('flat')
             remove_button.set_tooltip_text(_('Remove this merged range'))
+            remove_button.update_property(
+                [Gtk.AccessibleProperty.LABEL], [_('Remove this merged range')])
             if on_remove is not None:
                 remove_button.connect('clicked', lambda button, item=merge: on_remove(item))
             row.add_suffix(remove_button)

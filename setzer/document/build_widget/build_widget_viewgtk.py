@@ -60,11 +60,16 @@ class BuildWidgetView(Gtk.Box):
         self._building_tooltip_base = _('Stop building')
 
         shortcut_tooltips.set_tooltip(self.build_button, _('Save and build .pdf-file from document'), 'save_and_build')
+        self.build_button.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Save and build .pdf-file from document')])
         self.build_button.add_css_class('suggested-action')
 
         self.clean_button = Gtk.Button()
         self.clean_button.set_child(Gtk.Image(icon_name='edit-clear-all-symbolic'))
         self.clean_button.set_tooltip_text(_('Cleanup build files'))
+        self.clean_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Cleanup build files')])
         self.clean_button.add_css_class('flat')
 
         self.append(self.clean_button)

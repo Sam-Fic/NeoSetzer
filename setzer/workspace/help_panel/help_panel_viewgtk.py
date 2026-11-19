@@ -63,21 +63,29 @@ class HelpPanelView(Gtk.Box):
 
         self.home_button = Gtk.Button(icon_name='go-home-symbolic')
         self.home_button.set_tooltip_text(_('Help home'))
+        self.home_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Help home')])
         self.home_button.add_css_class('flat')
         self.toolbar.append(self.home_button)
 
         self.up_button = Gtk.Button(icon_name='go-up-symbolic')
         self.up_button.set_tooltip_text(_('Scroll to top'))
+        self.up_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Scroll to top')])
         self.up_button.add_css_class('flat')
         self.toolbar.append(self.up_button)
 
         self.back_button = Gtk.Button(icon_name='go-previous-symbolic')
         self.back_button.set_tooltip_text(_('Back'))
+        self.back_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Back')])
         self.back_button.add_css_class('flat')
         self.toolbar.append(self.back_button)
 
         self.next_button = Gtk.Button(icon_name='go-next-symbolic')
         self.next_button.set_tooltip_text(_('Forward'))
+        self.next_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Forward')])
         self.next_button.add_css_class('flat')
         self.toolbar.append(self.next_button)
 
@@ -89,6 +97,8 @@ class HelpPanelView(Gtk.Box):
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
         self.search_button.set_tooltip_text(_('Search help documentation'))
+        self.search_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Search help documentation')])
         self.search_button.add_css_class('flat')
         self.toolbar.append(self.search_button)
 

@@ -47,10 +47,12 @@ class SymbolsPageView(Gtk.Box):
         # 下拉菜单：Gtk.MenuButton + .flat 样式（与项目中其他 MenuButton 一致）
         self.section_menu_button = Gtk.MenuButton()
         self.section_menu_button.add_css_class('flat')
-        self.section_menu_button.set_can_focus(False)
+        self.section_menu_button.set_can_focus(True)
         self.section_menu_button.set_halign(Gtk.Align.START)
         self.section_menu_button.set_hexpand(True)
         self.section_menu_button.set_tooltip_text(_('Jump to category'))
+        self.section_menu_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Jump to category')])
 
         menu_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.section_menu_label = Gtk.Label(label='')
@@ -69,9 +71,11 @@ class SymbolsPageView(Gtk.Box):
 
         self.search_button = Gtk.ToggleButton()
         self.search_button.set_icon_name('edit-find-symbolic')
-        self.search_button.set_can_focus(False)
+        self.search_button.set_can_focus(True)
         self.search_button.add_css_class('flat')
         self.search_button.set_tooltip_text(_('Search symbols'))
+        self.search_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Search symbols')])
         self.toolbar.append(self.search_button)
 
         # 与 Document Structure 页同款的面板切换器（互为镜像，见 sidebar_viewgtk）。

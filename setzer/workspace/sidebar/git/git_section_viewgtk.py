@@ -399,6 +399,8 @@ class GitSectionView(Gtk.Box):
         open_button.add_css_class('flat')
         open_button.set_icon_name('file-code-symbolic')
         open_button.set_tooltip_text(_('View file'))
+        open_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('View file')])
         open_button.set_valign(Gtk.Align.CENTER)
         row.add_suffix(open_button)
 
@@ -406,6 +408,8 @@ class GitSectionView(Gtk.Box):
         discard.add_css_class('flat')
         discard.set_icon_name('edit-delete-symbolic')
         discard.set_tooltip_text(_('Discard changes in this file'))
+        discard.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Discard changes in this file')])
         discard.set_valign(Gtk.Align.CENTER)
         row.add_suffix(discard)
 

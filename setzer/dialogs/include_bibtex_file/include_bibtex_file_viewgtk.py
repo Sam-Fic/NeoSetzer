@@ -72,17 +72,17 @@ class IncludeBibTeXFileView(DialogView):
         self.topbox.set_size_request(400, -1)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_can_focus(False)
+        self.cancel_button.set_can_focus(True)
         self.headerbar.pack_start(self.cancel_button)
 
         self.include_button = Gtk.Button.new_with_mnemonic(_('_Include'))
-        self.include_button.set_can_focus(False)
+        self.include_button.set_can_focus(True)
         self.include_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.include_button)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.content.set_margin_start(18)
-        self.content.set_margin_end(18)
+        self.content.set_margin_start(12)
+        self.content.set_margin_end(12)
 
         # 直接用 Adw.PreferencesGroup 提供原生设置界面外观。
         # 不用 Adw.PreferencesPage：它内部自带 Gtk.ScrolledWindow，

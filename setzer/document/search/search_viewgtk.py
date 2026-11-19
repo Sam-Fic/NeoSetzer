@@ -62,7 +62,7 @@ class SearchBar(Gtk.SearchBar):
         # 当前处于替换模式。
         self.replace_mode_button = Gtk.ToggleButton()
         self.replace_mode_button.set_child(Gtk.Image(icon_name='go-next-symbolic'))
-        self.replace_mode_button.set_can_focus(False)
+        self.replace_mode_button.set_can_focus(True)
         self.replace_mode_button.add_css_class('flat')
         self.replace_mode_button.set_tooltip_text(_('Search and replace'))
         self.replace_mode_button.update_property(
@@ -104,7 +104,7 @@ class SearchBar(Gtk.SearchBar):
 
         self.case_toggle = Gtk.ToggleButton()
         self.case_toggle.set_child(Gtk.Image(icon_name='uppercase-symbolic'))
-        self.case_toggle.set_can_focus(False)
+        self.case_toggle.set_can_focus(True)
         self.case_toggle.set_hexpand(False)
         self.case_toggle.add_css_class('flat')
         self.case_toggle.add_css_class('search-toggle')
@@ -115,7 +115,7 @@ class SearchBar(Gtk.SearchBar):
 
         self.regex_toggle = Gtk.ToggleButton()
         self.regex_toggle.set_child(Gtk.Image(icon_name='regex-symbolic'))
-        self.regex_toggle.set_can_focus(False)
+        self.regex_toggle.set_can_focus(True)
         self.regex_toggle.set_hexpand(False)
         self.regex_toggle.add_css_class('flat')
         self.regex_toggle.add_css_class('search-toggle')
@@ -126,7 +126,7 @@ class SearchBar(Gtk.SearchBar):
 
         self.word_toggle = Gtk.ToggleButton()
         self.word_toggle.set_child(Gtk.Image(icon_name='completion-word-symbolic'))
-        self.word_toggle.set_can_focus(False)
+        self.word_toggle.set_can_focus(True)
         self.word_toggle.set_hexpand(False)
         self.word_toggle.add_css_class('flat')
         self.word_toggle.add_css_class('search-toggle')
@@ -143,7 +143,7 @@ class SearchBar(Gtk.SearchBar):
         # 侧栏份额）；改为菜单 action 后完全不参与布局，约束简化为 set_enabled。
         self.more_button = Gtk.MenuButton()
         self.more_button.set_icon_name('view-more-symbolic')
-        self.more_button.set_can_focus(False)
+        self.more_button.set_can_focus(True)
         self.more_button.add_css_class('flat')
         self.more_button.set_tooltip_text(_('More options'))
         self.more_button.update_property(
@@ -154,14 +154,14 @@ class SearchBar(Gtk.SearchBar):
         self.find_row.append(options_box)
 
         self.prev_button = Gtk.Button(icon_name='go-up-symbolic')
-        self.prev_button.set_can_focus(False)
+        self.prev_button.set_can_focus(True)
         shortcut_tooltips.set_tooltip(self.prev_button, _('Previous result'), 'find_previous')
         self.prev_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Previous result')])
         self.find_row.append(self.prev_button)
 
         self.next_button = Gtk.Button(icon_name='go-down-symbolic')
-        self.next_button.set_can_focus(False)
+        self.next_button.set_can_focus(True)
         shortcut_tooltips.set_tooltip(self.next_button, _('Next result'), 'find_next')
         self.next_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Next result')])
@@ -169,7 +169,7 @@ class SearchBar(Gtk.SearchBar):
 
         self.close_button = Gtk.Button(icon_name='window-close-symbolic')
         self.close_button.add_css_class('flat')
-        self.close_button.set_can_focus(False)
+        self.close_button.set_can_focus(True)
         self.close_button.set_tooltip_text(_('Close search') + ' (Esc)')
         self.close_button.update_property(
             [Gtk.AccessibleProperty.LABEL], [_('Close search')])
@@ -195,7 +195,7 @@ class SearchBar(Gtk.SearchBar):
 
         self.replace_history_button = Gtk.Button()
         self.replace_history_button.set_icon_name('document-open-recent-symbolic')
-        self.replace_history_button.set_can_focus(False)
+        self.replace_history_button.set_can_focus(True)
         self.replace_history_button.add_css_class('flat')
         self.replace_history_button.set_tooltip_text(_('Replacement history'))
         self.replace_history_popup = SearchHistoryPopup()
@@ -204,12 +204,12 @@ class SearchBar(Gtk.SearchBar):
         self.replace_wrapper.append(self.replace_history_button)
 
         self.replace_button = Gtk.Button.new_with_label(_('Replace'))
-        self.replace_button.set_can_focus(False)
+        self.replace_button.set_can_focus(True)
         self.replace_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_button)
 
         self.replace_all_button = Gtk.Button.new_with_label(_('Replace All'))
-        self.replace_all_button.set_can_focus(False)
+        self.replace_all_button.set_can_focus(True)
         self.replace_all_button.set_sensitive(False)
         self.replace_wrapper.append(self.replace_all_button)
 

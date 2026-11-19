@@ -43,6 +43,6 @@ def ellipsize_back(ctx, text, max_width):
             upper_bound = new_bound
         else:
             lower_bound = new_bound
-    return text[:upper_bound] + '...'
+    return text[:upper_bound] + '…'
 
 

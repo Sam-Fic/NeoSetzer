@@ -218,7 +218,7 @@ class GeneralSettingsPageView(PageView):
         self.language_combo = Adw.ComboRow()
         self.language_combo.set_title(_('Language'))
         self.language_combo.set_tooltip_text(_('The main language for hyphenation patterns and automatic labels '
-                                                '(e.g. "Abstract" vs "Zusammenfassung").'))
+                                                '(such as "Abstract" vs "Zusammenfassung").'))
         self.language_combo.set_model(Gtk.StringList())
         if hasattr(self.language_combo, 'set_enable_search'):
             self.language_combo.set_enable_search(True)

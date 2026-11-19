@@ -40,11 +40,11 @@ class IncludeLaTeXFileView(DialogView):
         self.topbox.set_size_request(400, -1)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_('_Cancel'))
-        self.cancel_button.set_can_focus(False)
+        self.cancel_button.set_can_focus(True)
         self.headerbar.pack_start(self.cancel_button)
 
         self.include_button = Gtk.Button.new_with_mnemonic(_('_Include'))
-        self.include_button.set_can_focus(False)
+        self.include_button.set_can_focus(True)
         self.include_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.include_button)
 
