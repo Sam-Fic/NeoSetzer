@@ -18,7 +18,8 @@
 
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, GLib
+gi.require_version('Gdk', '4.0')
+from gi.repository import Gtk, Gdk, GLib
 import os
 import os.path
 import pickle
@@ -366,9 +367,15 @@ class Settings(Observable):
         self.defaults['preferences']['ignored_warning_types'] = []
 
         self.defaults['preferences']['use_system_font'] = True
-        textview = Gtk.TextView()
-        textview.set_monospace(True)
-        font_string = textview.get_pango_context().get_font_description().to_string()
+        # 系统字体只能在有显示时由 Gtk.TextView 度量：无显示环境（CI、纯配置
+        # 读写）里实例化 widget 会在 GTK 内部直接 SIGSEGV，而 Gtk.is_initialized()
+        # 在 GTK ≥4.14 无显示时也返回 True，挡不住它。用 Gdk.Display 判断，
+        # 无显示回退到与 FontManager.default_font_string 一致的 'monospace 11'。
+        font_string = 'monospace 11'
+        if Gdk.Display.get_default() is not None:
+            textview = Gtk.TextView()
+            textview.set_monospace(True)
+            font_string = textview.get_pango_context().get_font_description().to_string()
         self.defaults['preferences']['font_string'] = font_string
         # 编辑器字号缩放倍率（1.0 = 默认）：与 font_string 分离，使 system font 模式
         # 下的缩放偏好也能跨重启持久化。

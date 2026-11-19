@@ -86,6 +86,13 @@ def install():
     })
     repository.Gtk = gtk
 
+    # Gdk：set_defaults 用 Gdk.Display.get_default() 判断是否有显示。
+    # 伪环境按无显示处理 → 免去实例化 widget，走纯字符串字体回退。
+    gdk = types.ModuleType('Gdk')
+    gdk.Display = type('Display', (), {
+        'get_default': staticmethod(lambda: None)})
+    repository.Gdk = gdk
+
     repository.Pango = types.ModuleType('Pango')
 
     # GLib：Settings 的去抖持久化在测试中仅需要能登记 timeout 和移除 source。
