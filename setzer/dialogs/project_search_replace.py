@@ -35,6 +35,8 @@ class ProjectSearchReplaceDialog:
 
     def _build_view(self):
         self.dialog = Adw.Dialog()
+        # 宽度 720 为 §6.5 档位外特例：双栏编辑器（搜索结果 + 预览），
+        # 拉宽是设计意图，不进档位。
         self.dialog.set_content_width(720)
         self.dialog.set_content_height(560)
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)

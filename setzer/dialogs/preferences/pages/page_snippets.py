@@ -160,7 +160,9 @@ class SnippetEditorDialog(Adw.Dialog):
         self.snippet = snippet
         self.on_save = on_save
         self.set_title(_('Edit snippet') if snippet else _('Add snippet'))
-        self.set_content_width(520)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）；高度内容驱动。
+        # 表单：固定设计尺寸，不可拖拽。
+        self.set_content_width(600)
         self.set_content_height(460)
 
         toolbar = Adw.ToolbarView()

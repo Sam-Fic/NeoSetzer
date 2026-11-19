@@ -99,6 +99,8 @@ class BibliographyManagerDialog(DialogView):
         self.cited_keys = set()
 
         self.set_title(_('Manage Bibliography'))
+        # 宽度 1040 为 §6.5 档位外特例：双栏编辑器（左列表 + 右表单），
+        # 拉宽是设计意图，不进档位。
         self.set_content_width(1040)
         self.set_content_height(680)
         self._build_view()
@@ -1336,7 +1338,8 @@ class _StringsDialog(DialogView):
 
     def _build_view(self):
         self.set_title(_('Manage @string Macros'))
-        self.set_content_width(560)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）；高度内容驱动。
+        self.set_content_width(600)
         self.set_content_height(520)
         # Adw.Dialog 无 set_modal：present() 展示时天然模态
 

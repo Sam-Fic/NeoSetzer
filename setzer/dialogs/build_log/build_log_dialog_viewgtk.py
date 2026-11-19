@@ -55,7 +55,9 @@ class BuildLogDialogView(DialogView):
 
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
-        self.set_content_width(640)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）：PreferencesPage 内容
+        # 恰为 600，窗口与内容无隐性错位；高度内容驱动。
+        self.set_content_width(600)
         self.set_content_height(480)
 
         # HeaderBar 标题
@@ -162,9 +164,9 @@ class BuildLogDialogView(DialogView):
         animation_prefs.set_transition(
             self.search_revealer, Gtk.RevealerTransitionType.SLIDE_DOWN, 150)
 
+        # 官方默认 600/400（原 threshold 500 无锚点，已归默认）：
+        # 空构造即默认，见 docs/ui-guidelines.md §5.2。
         search_clamp = Adw.Clamp()
-        search_clamp.set_maximum_size(600)
-        search_clamp.set_tightening_threshold(500)
 
         search_bar_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         search_bar_box.set_margin_top(4)

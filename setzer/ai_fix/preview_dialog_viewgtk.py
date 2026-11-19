@@ -41,7 +41,8 @@ class PreviewDialogView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
         self.set_title(_('Send to AI Agent'))
-        self.set_content_width(640)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）；高度内容驱动。
+        self.set_content_width(600)
         self.set_content_height(520)
 
         # HeaderBar 标题（移除默认关闭按钮，左侧已有 Cancel）

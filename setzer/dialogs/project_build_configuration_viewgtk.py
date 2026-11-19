@@ -142,7 +142,9 @@ class ProjectBuildConfigurationView(DialogView):
 
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
-        self.set_content_width(680)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）：PreferencesPage 内容
+        # 恰为 600，窗口与内容无隐性错位；高度内容驱动。
+        self.set_content_width(600)
         self.set_content_height(560)
 
         self.headerbar.set_title_widget(Adw.WindowTitle(

@@ -78,7 +78,7 @@
 | 附属小字 | `caption` |
 | 小号加粗 | `caption-heading` |
 | 展示型标题 | `title-3` / `title-4` |
-| 超大欢迎语 | `large-title` |
+| 超大欢迎语 | `large-title`（GTK 基础样式，随 libadwaita 的 gtk.css 提供） |
 | 等宽文本 | `monospace` |
 | 数字对齐 | `numeric` |
 
@@ -120,7 +120,7 @@
 | 64 | 空状态等占位图形（紧凑侧栏；替代 48） |
 | 128 | 超大展示场景 |
 
-- `Adw.StatusPage` 官方默认 96，紧凑侧栏可降到 64，但不要用 48。
+- `Adw.StatusPage` 官方图标档位（样式表实测）：普通 128 / `.compact` 96 / `.spinner` 64；紧凑侧栏在 `.compact` 基础上覆写到 64，但不要用 48。
 - 不使用 14 / 18 / 28 / 48 等中间尺寸（`set_pixel_size()` 与 `-gtk-icon-size` 都算），避免高 DPI 下模糊。
 - UI 图标一律用 symbolic 图标，颜色交给语义色，不写死。
 - 自定义 symbolic 图标从 `~/icon-library`（GNOME icon-library 克隆的 icon-dev-kit 集合）挑选，复制到 `data/resources/icons/hicolor/scalable/actions/`（gresource 自动打包）；缺图标先向用户确认来源，不自造。
@@ -231,13 +231,59 @@
 - 文本密集区不引入带边框的普通按钮；轻量入口用 flat 按钮 + `dimmed`。
 - 按钮尺寸与交互反馈遵循 Adwaita 默认规范，不手工硬编码尺寸或关闭原生点击动画。
 
-### 5.2 空状态
+### 5.2 内容限宽（Adw.Clamp）
+
+在**更宽的固定容器**里给 preferences 风格的内容（`Adw.PreferencesGroup` + boxed-list、表单）限宽居中，避免列表横向铺满变成长条：可拖拽的主窗口内容区（welcome 页）、宽于内容弹窗（wizard 840 里夹 760、preamble 600 里夹 400）。`Adw.Dialog` 天生不可拖拽、宽度就是 `set_content_width`，弹窗宽=内容宽时 clamp 是空转，不要加。
+
+- **默认值不手设**：`Adw.Clamp()` 不设属性即官方默认 `maximum_size=600` / `tightening_threshold=400`（`adw-clamp-layout.c`），与 `Adw.PreferencesPage` 内建 clamp 一致。走 `Adw.PreferencesPage` 的页面自动享受，不用再包。
+- **结构**：`ScrolledWindow → Adw.Clamp → 内容`（先例：wizard `wrap_content`、preamble_assistant）。
+- **非默认值收三档**：通用档位常量在 [helpers/clamp.py](../setzer/helpers/clamp.py)——`NARROW` 400/300（紧凑列表/弹层，锚定 libadwaita demo 的 Boxed Lists 页）、`WIDE` 760/520（并排双列布局，由并排算术推导）。官方默认不用常量，`Adw.Clamp()` 空构造即 600/400。
+- **锚点驱动的特殊值仍就地手写并注释**，不硬塞进档位（例：welcome 页 520 与按钮堆叠 breakpoint（<500px）区间协调）。不做无注释魔法数。
+- **限宽值不是间距 token**：它属于内容宽度锚点（同标题栏 47px 基线一族），不进 `--setzer-spacing-*` 六档标度，Python 侧直接写数字。
+- **不该用的地方**：双栏编辑器布局（bibliography_manager、project_search_replace——拉宽是有意设计）、侧栏整体（宽度走 fraction + 10px 边缘线体系，见 5.5）、宽度跟随内容的 MessageDialog。
+
+### 5.3 空状态
 
 面板/列表无内容时用 `Adw.StatusPage`（icon + 标题，可选说明文字），不留白板。
 
-### 5.3 文本密集区的轻量入口
+### 5.4 文本密集区的轻量入口
 
 状态栏等文本密集区域的可点击入口用 flat `Gtk.Button` 包 `caption` + `dimmed` 的子 label（先例：状态栏构建结果指示），CSS 上收敛按钮内边距与相邻 label 的视觉密度一致（见 `.editor-statusbar > button`），不引入带边框的普通按钮。
+
+### 5.5 侧栏
+
+应用最大的自绘界面区域，有独立于弹窗/页面的节奏体系。实现锚点（47px 构成、行规格逐条数值）记录在 [style_gtk.css](../data/resources/style_gtk.css) 注释里，本节只放决策性规则。
+
+**容器形态**
+
+- 左侧栏（结构/符号/AI/git 四页）= `sidebar_split`，右栏（预览/帮助共用一个 stack）= `preview_split`，均为 `Adw.OverlaySplitView`；<700px breakpoint 时两者折叠为浮层抽屉。
+- **组件事实：`Adw.OverlaySplitView` 没有可拖拽分隔条**（源码只有触屏边缘滑动手势，宽度只能由 `sidebar-width-fraction` 程序化设置，min/max 只是钳制首选值）。侧栏调宽入口是偏好设置外观页的滑杆；`notify::sidebar-width-fraction` 监听只做持久化，没有拖拽语义。写新代码不要假设分隔条存在。
+- help_panel 在 `preview_split` 内，`set_size_request(300, -1)` 只是下限，实宽随 preview fraction 走，不是固定宽。
+
+**宽度策略：不用 Clamp**
+
+- 侧栏宽度 = fraction（滑杆调节 + 持久化），内容横向对齐走 10px 边缘线（§2.2 edge 档）；Clamp 的居中钉宽与边缘线体系冲突，侧栏整体不用（§5.2 豁免）。
+
+**47px 垂直基线**
+
+- `.sidebar-toolbar` = 6px 顶 + ≥34px 内容 + 7px 底 = 47px，与 `Adw.HeaderBar` min-height 等高，保证编辑器列/标签条/预览卡片顶边对齐；改任何侧栏工具栏高度前先读 style_gtk.css `.sidebar-toolbar` 注释。
+- 第二行（子视图切换器行）顶距归零，行间空隙由第一行的 7px 底距承担；`.sidebar-tree` 列表顶距同理归零，不叠加官方 navigation-sidebar 自带的 6px padding-top（会出 13px 空档）。
+
+**行规格**
+
+- 结构页三列表用 `Adw.Sidebar`（官方行规格）；文件树手写但统一走 `.sidebar-tree` / `.navigation-sidebar` 样式：行高 36px、row 本体 padding 0（覆写官方 0 8px）、行内盒 14px padding 不动。
+- 普通列表行密度用 `.compact-rows`（先例：git 历史列表、build log 的 boxed-list + compact-rows 范式）。
+
+**空状态**
+
+- **左侧栏专属**：`Adw.StatusPage` + `.compact` + `.sidebar-empty-state`（min-height 220px），图标 64px——HIG 图标档位 16/32/64/128，空状态属「占位图形」取 64，禁 48（§3.3）。左栏空间窄，缩小空态避免喧宾夺主。
+- **右栏（预览/帮助）用默认尺寸**：右栏一般足够宽，不缺 StatusPage 默认那档呼吸感，空态只挂 `.compact`，不加 `.sidebar-empty-state`。紧凑空态不外溢到右栏。
+- `Adw.Sidebar` 过滤后为空时用其内建 placeholder 机制接管空态，不另摆 StatusPage。
+
+**滚动**
+
+- 长内容（git 文件列表等）包 `ScrolledWindow`：窗口变矮时滚动区压缩到面板高度，不得把页面撑出窗口。
+- 内容外边距挂在滚动容器上而非列表上，配 `.list-card-scroll` 圆角蒙版（滚到底时行被裁进 boxed-list 圆角内）。
 
 ## 6 弹窗与浮层
 
@@ -274,6 +320,22 @@
 | 文本输入 | `Adw.EntryRow` |
 
 确认式对话框（Insert / Save / Apply）同样使用上表行组件；这是 4.4 登记的例外。
+
+### 6.5 弹窗默认尺寸与可调性
+
+`Adw.Dialog` 宽度收四档，对齐 §5.2 的 clamp 锚点；`set_content_width` 必须取档或写注释锚点：
+
+| 档 | 宽 | 适用 | 先例 |
+|----|-----|------|------|
+| S | 400 | 选择器/窄工具 | include_latex、include_bibtex、document_switcher/chooser |
+| M | 600 | preferences 风格、表单、列表、面板（默认档） | spellchecking、build_log、palette、insert_image 等 |
+| L | 760 | 带大网格/大预览的构建器 | insert_table（= clamp `WIDE`） |
+| 特例 | — | 档位装不下的有锚点布局 | wizard 840（并排算术）、diff_change 480（预览浮层） |
+
+- M 档与 clamp 默认值（600）重合：preferences 风格弹窗的内容宽与 clamp 上限完全咬合，不再出现「窗口 640/680、内容 600」的隐性错位。
+- **高度不设档**：内容驱动，取自然高或按内容定值；修改尺寸时在行内写一句内容依据（如「560：词表可滚动区 + 头尾控件」）。
+- **可调性是组件天性，不手动设置**：`Adw.Dialog` / `Adw.PreferencesDialog` 从设计上**不可拖拽**（libadwaita 内部对承载窗口 `gtk_window_set_resizable(FALSE)`，也没有 `set_resizable` API），`set_content_width/height` 即设计尺寸，改值即改设计；`Adw.Window` 查看器窗口才可调。禁止给任何 Adw 弹窗写 `set_resizable`——PyGObject 上直接 AttributeError。
+- `Adw.Window` 查看器（git diff、PDF 预览、Agent 终端）**豁免档位**：`default_size` 按内容身份设值并写注释（git diff 980×620 代码审阅横向优先、PDF 520×720 纸张竖版比例、终端 720×520 常规窗口比例）。
 
 ## 7 轻反馈与打断（非必要不打扰）
 

@@ -28,7 +28,9 @@ class DocumentChooserView(object):
     def __init__(self):
         self.dialog = Adw.PreferencesDialog()
         self.dialog.set_title(_('Open Document'))
-        self.dialog.set_content_width(420)
+        # 宽度 S 档 400（docs/ui-guidelines.md §6.5）。文档选择器：固定
+        # 设计尺寸，不可拖拽；高度内容驱动。
+        self.dialog.set_content_width(400)
         self.dialog.set_content_height(480)
 
         self.search_entry = Gtk.SearchEntry()

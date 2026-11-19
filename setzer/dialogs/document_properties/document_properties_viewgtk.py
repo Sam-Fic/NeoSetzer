@@ -41,7 +41,8 @@ class DocumentPropertiesView(DialogView):
             '8',
         ]
 
-        self.set_content_width(500)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）：与 clamp 默认上限重合。
+        self.set_content_width(600)
         self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Document Properties')))
         self.headerbar.set_show_start_title_buttons(False)
         self.headerbar.set_show_end_title_buttons(False)

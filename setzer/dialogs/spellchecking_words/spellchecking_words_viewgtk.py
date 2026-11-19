@@ -33,7 +33,8 @@ class SpellCheckingWordsView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
-        self.set_content_width(440)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）：与 clamp 默认上限重合。
+        self.set_content_width(600)
         self.set_content_height(560)
         self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Spell Checking Words')))
         self.headerbar.set_show_start_title_buttons(False)

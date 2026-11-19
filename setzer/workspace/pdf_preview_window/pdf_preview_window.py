@@ -56,6 +56,7 @@ class PdfPreviewWindow(Adw.Window):
             self.set_transient_for(self.main_window)
         self.set_modal(False)
         self.set_title('PDF Preview')
+        # 查看器窗口豁免 §6.5 档位：纸张竖版比例（520×720）。
         self.set_default_size(520, 720)
 
         # ToolbarView + HeaderBar：libadwaita 推荐的带标题栏窗口结构。

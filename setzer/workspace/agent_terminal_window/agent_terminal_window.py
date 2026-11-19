@@ -67,6 +67,7 @@ class AgentTerminalWindow(Adw.Window):
             self.set_transient_for(self.main_window)
         self.set_modal(False)
         self.set_title(_('Agent Terminal'))
+        # 查看器窗口豁免 §6.5 档位：常规窗口比例（720×520）。
         self.set_default_size(720, 520)
 
         self.toolbar_view = Adw.ToolbarView()

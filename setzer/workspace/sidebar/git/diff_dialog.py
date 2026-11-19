@@ -376,6 +376,7 @@ class DiffWindow(Adw.Window):
     def __init__(self, path, old_text, new_text, parent=None):
         super().__init__()
         self.set_title(os.path.basename(path))
+        # 查看器窗口豁免 §6.5 档位：代码审阅横向空间优先（980×620）。
         self.set_default_size(980, 620)
         if parent is not None:
             self.set_transient_for(parent)

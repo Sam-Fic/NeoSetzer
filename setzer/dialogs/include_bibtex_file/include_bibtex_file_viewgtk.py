@@ -63,6 +63,8 @@ class IncludeBibTeXFileView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
+        # 宽度 S 档 400（docs/ui-guidelines.md §6.5）。选择器：固定设计
+        # 尺寸，不可拖拽；高度内容驱动。
         self.set_content_width(400)
         self.set_content_height(300)
         self.set_can_focus(False)

@@ -69,9 +69,11 @@ def WelcomeScreenView():
     column.append(status)
 
     # --- width-limited content ---
+    # 520：与按钮堆叠 breakpoint（<500px，见 workspace_viewgtk）区间协调的
+    # 特殊锚点值（docs/ui-guidelines.md §5.2），不走 NARROW/默认档。
+    # threshold 保持官方默认 400，不手设。
     clamp = Adw.Clamp()
     clamp.set_maximum_size(520)
-    clamp.set_tightening_threshold(400)
     column.append(clamp)
 
     content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)

@@ -23,6 +23,7 @@ from gi.repository import Gtk
 from gi.repository import Adw
 
 from setzer.dialogs.document_wizard.pages.page import Page, PageView
+from setzer.helpers import clamp as clamp_tiers
 from setzer.helpers.text_input_card import create_text_input_card
 from setzer.dialogs.document_wizard import page_map
 from setzer.app.service_locator import ServiceLocator
@@ -264,10 +265,12 @@ class DocumentClassPageView(PageView):
 
         # 把内容放入滚动容器（ScrolledWindow + Clamp），这样 Step 1 的高度也被
         # 收进和其它步骤一致的 520px 对话框高度，内容超长时滚动而不是撑大窗口。
-        # Clamp 最大宽 760 让并排的文档类列表（348）+ 预览（366）+ 间距 24
+        # WIDE 档（760）让并排的文档类列表（348）+ 预览（366）+ 间距 24
         # （共 738）刚好在 840px 对话框里并排，窄屏则收缩/滚动。
         self.append(self.wrap_content(
-            self.content, maximum_size=760, tightening_threshold=520))
+            self.content,
+            maximum_size=clamp_tiers.WIDE,
+            tightening_threshold=clamp_tiers.WIDE_THRESHOLD))
 
     def set_document_templates(self, templates):
         '''Populate the source-template chooser with validated store metadata.'''

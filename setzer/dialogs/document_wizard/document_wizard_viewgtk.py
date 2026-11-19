@@ -32,8 +32,11 @@ class DocumentWizardView(DialogView):
 
         # 内容自然高度会把对话框压得很矮（如文档类页），这里用
         # content_width/height 给出一个舒适的初始/最小尺寸。注意这只设定
-        # 下限：对话框仍可被用户拖拽缩放，窄屏时由窗口管理器裁剪，各页面
-        # 内部继续靠 Clamp、BreakpointBin 和滚动容器自适应宽窄窗口。
+        # 下限：Adw.Dialog 天生不可拖拽（adw-dialog.c 内部对窗口
+        # gtk_window_set_resizable(FALSE)），宽高即设计尺寸；各页面内部继续
+        # 靠 Clamp、BreakpointBin 和滚动容器自适应内容变化。
+        # 宽度 840 为 §6.5 档位外特例：锚定 document_class 页的并排布局算术
+        # （WIDE 760 + 向导 chrome）。
         self.set_content_width(840)
         self.set_content_height(900)
         self.headerbar.set_show_start_title_buttons(False)

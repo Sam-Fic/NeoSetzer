@@ -56,9 +56,10 @@ class FirstRunTutorialDialog(object):
     def setup(self):
         self.view = Adw.Dialog()
         self.view.set_title(_('Welcome to NeoSetzer'))
-        # Adw.Dialog 会按 content 自然撑开并可被用户拖拽缩放；
-        # 这里给一个舒适的默认尺寸，避免初次弹出过窄。
-        self.view.set_content_width(620)
+        # Adw.Dialog 按 content 自然撑开，天生不可拖拽（宽高即设计尺寸）；
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5），与内容 clamp 上限重合；
+        # 高度内容驱动，避免初次弹出过窄。
+        self.view.set_content_width(600)
         self.view.set_content_height(560)
 
         headerbar = Adw.HeaderBar()
@@ -74,8 +75,9 @@ class FirstRunTutorialDialog(object):
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
+        # 官方默认 600/400（原 580 无锚点，已归默认）：空构造即默认，
+        # 见 docs/ui-guidelines.md §5.2。
         clamp = Adw.Clamp()
-        clamp.set_maximum_size(580)
         clamp.set_margin_top(24)
         clamp.set_margin_bottom(24)
         clamp.set_margin_start(24)

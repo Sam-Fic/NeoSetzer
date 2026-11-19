@@ -60,6 +60,8 @@ class DiffChangeDialog(Adw.Dialog):
         change_n = change.get('n')
         section = (change.get('section') or '').strip()
         self.set_title(_('Change {}').format(change_n) if section == '' else section)
+        # 宽度 480 为 §6.5 档位外特例：预览浮层，跟手小窗，不进档位。
+        # 静态小窗：固定尺寸 + follows_content_size。
         self.set_content_width(480)
         self.set_content_height(360)
         self.set_follows_content_size(True)

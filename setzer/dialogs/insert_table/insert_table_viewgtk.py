@@ -74,6 +74,8 @@ class InsertTableView(DialogView):
 
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
+        # 宽度 L 档 760（docs/ui-guidelines.md §6.5，= clamp WIDE，容纳单元格
+        # 网格）；高度内容驱动。构建器表单：固定设计尺寸，不可拖拽。
         self.set_content_width(760)
         self.set_content_height(760)
         self.cell_entries = []

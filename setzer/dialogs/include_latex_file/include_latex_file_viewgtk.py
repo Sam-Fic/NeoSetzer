@@ -32,6 +32,8 @@ class IncludeLaTeXFileView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
+        # 宽度 S 档 400（docs/ui-guidelines.md §6.5）。选择器：固定设计
+        # 尺寸，不可拖拽。
         self.set_content_width(400)
         self.set_can_focus(False)
         self.headerbar.set_show_start_title_buttons(False)

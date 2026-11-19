@@ -24,6 +24,7 @@ from gi.repository import Adw, Gtk
 
 from setzer.app.latex_db import LaTeXDB
 from setzer.dialogs.helpers.dialog_viewgtk import DialogView
+from setzer.helpers import clamp as clamp_tiers
 from setzer.project.preamble_assistant import PreambleAssistant
 
 
@@ -49,9 +50,10 @@ class PreambleAssistantDialog(DialogView):
         self.document = None
         self.suggestions = ()
 
-        # 高度恒定：不随建议条数跳动；宽度让 400px 列表居中留白。
-        # 卡片本身不膨胀（见下方 ScrolledWindow 注释），多余空间是弹窗背景。
-        self.set_content_width(620)
+        # 高度恒定：不随建议条数跳动；宽度 M 档 600（docs/ui-guidelines.md
+        # §6.5），让 NARROW 限宽列表居中留白。卡片本身不膨胀（见下方
+        # ScrolledWindow 注释），多余空间是弹窗背景。
+        self.set_content_width(600)
         self.set_content_height(410)
 
         # 标题栏标题。
@@ -110,8 +112,8 @@ class PreambleAssistantDialog(DialogView):
         # (demo/pages/lists/adw-demo-page-lists.ui)，列表最大 400px，
         # 不会铺满 620px 弹窗；窄于 tightening_threshold 时随弹窗收缩。
         clamp = Adw.Clamp()
-        clamp.set_maximum_size(400)
-        clamp.set_tightening_threshold(300)
+        clamp.set_maximum_size(clamp_tiers.NARROW)
+        clamp.set_tightening_threshold(clamp_tiers.NARROW_THRESHOLD)
         clamp.set_child(self.stack)
 
         scroll = Gtk.ScrolledWindow()

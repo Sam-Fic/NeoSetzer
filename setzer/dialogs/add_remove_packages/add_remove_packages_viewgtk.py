@@ -29,7 +29,8 @@ class AddRemovePackagesDialogView(DialogView):
     def __init__(self, main_window):
         DialogView.__init__(self, main_window)
 
-        self.set_content_width(650)
+        # 宽度 M 档 600（docs/ui-guidelines.md §6.5）；高度由双列表滚动区撑起。
+        self.set_content_width(600)
         self.set_can_focus(False)
         self.headerbar.set_title_widget(Adw.WindowTitle(title=_('Add / Remove Packages')))
 

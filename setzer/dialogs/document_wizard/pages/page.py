@@ -62,7 +62,7 @@ class PageView(Gtk.Box):
 
         self.headerbar_subtitle = ''
 
-    def wrap_content(self, content, maximum_size=500, tightening_threshold=400):
+    def wrap_content(self, content, maximum_size=600, tightening_threshold=400):
         '''Wrap a child widget in an Adw.Clamp inside a Gtk.ScrolledWindow.
 
         The clamp keeps rows at a comfortable form width instead of
