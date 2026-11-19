@@ -58,6 +58,21 @@ def pump(ms=150):
     loop.run()
 
 
+def pump_until(predicate, max_ms=3000, step_ms=30):
+    '''按步长泵主循环，直到 predicate 为真或超时（返回是否满足）。
+
+    滚动偏移要等 frame clock 跑到布局相位才落到 viewport 子控件的几何上，
+    本机（Wayland/niri）实测这一步要 ~1.7s 才稳定发生，固定时长的 pump
+    会间歇性赶不上——必须轮询等待，不能用固定 sleep。'''
+    elapsed = 0
+    while elapsed < max_ms:
+        pump(step_ms)
+        elapsed += step_ms
+        if predicate():
+            return True
+    return False
+
+
 def bounds_y(widget, ancestor):
     ok, rect = widget.compute_bounds(ancestor)
     assert ok
@@ -116,8 +131,13 @@ class GitSidebarScrollTest(unittest.TestCase):
                         self.view.files_list.get_height())
         before = bounds_y(self.view.files_list, scroller)
         adjustment.set_value(adjustment.get_upper() - adjustment.get_page_size())
-        pump()
-        self.assertLess(bounds_y(self.view.files_list, scroller), before)
+        # 偏移经 frame clock 布局相位落地（本机实测 ~1.7s），轮询等待。
+        self.assertTrue(
+            pump_until(
+                lambda: bounds_y(self.view.files_list, scroller) < before),
+            '滚动偏移 3s 内未应用到布局：bounds_y=%r value=%r upper=%r' % (
+                bounds_y(self.view.files_list, scroller),
+                adjustment.get_value(), adjustment.get_upper()))
 
     def test_overflowing_history_can_scroll(self):
         self.view.set_repo_view('commits')
