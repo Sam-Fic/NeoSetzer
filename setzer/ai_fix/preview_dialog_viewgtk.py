@@ -71,14 +71,6 @@ class PreviewDialogView(DialogView):
         content_box.set_margin_start(12)
         content_box.set_margin_end(12)
 
-        # 提示标签
-        self.hint_label = Gtk.Label()
-        self.hint_label.set_wrap(True)
-        self.hint_label.set_xalign(0)
-        self.hint_label.set_markup(_('Edit the prompt below if needed, then click <b>Send</b> to launch the agent.'))
-        self.hint_label.add_css_class('dim-label')
-        content_box.append(self.hint_label)
-
         # prompt 编辑区（可滚动，monospace）：统一圆角文本输入卡片外观
         self.prompt_buffer = Gtk.TextBuffer()
         self.prompt_view = Gtk.TextView(buffer=self.prompt_buffer)

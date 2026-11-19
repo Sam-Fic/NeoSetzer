@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:11+0800\n"
+"POT-Creation-Date: 2026-11-20 00:45+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Traditional)\n"
@@ -743,15 +743,11 @@ msgstr "取消(_C)"
 msgid "Send"
 msgstr "傳送"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:78
-msgid "Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
-msgstr "如有需要可編輯下方提示詞，然後點擊<b>傳送</b>以啟動代理"
-
-#: setzer/ai_fix/preview_dialog_viewgtk.py:97
+#: setzer/ai_fix/preview_dialog_viewgtk.py:89
 msgid "Don't ask again for this project"
 msgstr "此專案不再詢問"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:98
+#: setzer/ai_fix/preview_dialog_viewgtk.py:90
 msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
 msgstr "今後略過目前文件目錄的此預覽對話方塊。可在偏好設定 → 一般 → AI 設定 → 信任目錄中撤銷。"
 

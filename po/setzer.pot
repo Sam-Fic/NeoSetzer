@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 91\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:11+0800\n"
+"POT-Creation-Date: 2026-11-20 00:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -512,16 +512,11 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:78
-msgid ""
-"Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
-msgstr ""
-
-#: setzer/ai_fix/preview_dialog_viewgtk.py:97
+#: setzer/ai_fix/preview_dialog_viewgtk.py:89
 msgid "Don't ask again for this project"
 msgstr ""
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:98
+#: setzer/ai_fix/preview_dialog_viewgtk.py:90
 msgid ""
 "Skip this preview dialog for the current document's directory in the future. "
 "You can revoke this in Preferences → General → AI Settings → Trusted "

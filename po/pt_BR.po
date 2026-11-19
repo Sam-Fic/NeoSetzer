@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 70\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:11+0800\n"
+"POT-Creation-Date: 2026-11-20 00:45+0800\n"
 "PO-Revision-Date: 2026-07-27 00:00+0000\n"
 "Last-Translator: Carlos <carlos157oliveira@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/setzer/application/pt_BR/>\n"
@@ -743,15 +743,11 @@ msgstr "_Cancelar"
 msgid "Send"
 msgstr "Enviar"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:78
-msgid "Edit the prompt below if needed, then click <b>Send</b> to launch the agent."
-msgstr "Se necessário, edite o prompt abaixo e clique em <b>Enviar</b> para iniciar o agente."
-
-#: setzer/ai_fix/preview_dialog_viewgtk.py:97
+#: setzer/ai_fix/preview_dialog_viewgtk.py:89
 msgid "Don't ask again for this project"
 msgstr "Não perguntar novamente neste projeto"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:98
+#: setzer/ai_fix/preview_dialog_viewgtk.py:90
 msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
 msgstr "Pular esta caixa de diálogo de visualização para o diretório do documento atual de agora em diante. Pode ser desfeito em Preferências → Geral → Configurações de IA → Diretórios confiáveis."
 

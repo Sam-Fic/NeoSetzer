@@ -1,0 +1,6 @@
+# 6fab5ec4 chore(po): 归一化为 sync-po.sh 规范形态
+#
+# 纯格式变更（#: occurrence 注释一条一行），无语义改动。
+# GitHub blame 视图自动跳过此提交；本地生效：
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+6fab5ec42364c26d7a00173785094415272a9785
