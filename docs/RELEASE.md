@@ -59,7 +59,7 @@ git push origin master "v${NEW_VERSION}"
 ```bash
 # Release 正文顶部固定插入系统要求，避免旧发行版用户下载后才发现装不上
 cat > /tmp/release_notes.md <<'EOF'
-> **Linux（.deb）系统要求**：Ubuntu 24.04+ / Debian 13+（GTK 4.10+、libadwaita 1.5+）。
+> **Linux（.deb）系统要求**：Ubuntu 25.10+ / Debian 14+（GTK 4.10+、libadwaita 1.8+）。
 > 更旧的发行版无法安装，请升级系统或使用 Flatpak；Windows / macOS 资产为自包含包，无此限制。
 
 ---

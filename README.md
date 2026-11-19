@@ -27,7 +27,7 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 
 | Platform | Status | Runtime stack |
 |----------|--------|---------------|
-| Linux (Debian/Ubuntu 24.04+, Fedora, Arch, ...) | Fully supported | System GTK4 + libadwaita |
+| Linux (Ubuntu 25.10+, Debian 14+, Fedora, Arch, ...) | Fully supported | System GTK4 + libadwaita 1.8+ |
 | Windows 10/11 (x86_64) | Supported via MSYS2 | Portable MSYS2 UCRT64 GTK4 stack |
 | macOS Apple Silicon (ARM64) | Supported | Self-contained `.app` release package |
 | WSL (Windows Subsystem for Linux) | Supported as Linux app | Linux distribution inside WSL |
@@ -43,7 +43,7 @@ NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. 
 
 NeoSetzer is developed and tested on Ubuntu.
 
-> **Supported distributions:** The prebuilt `.deb` requires **GTK 4.10+**, **libadwaita 1.5+** and **Python 3.10+**; these constraints are declared in its `Depends`, so it targets **Ubuntu 24.04 (Noble) or newer** and **Debian 13 (trixie) or newer**. On older releases (e.g. Ubuntu 22.04, Debian 12) apt refuses the install because the version constraints cannot be satisfied, and building from source does not help either (`Adw.Dialog` and `Gtk.FileDialog` are resolved at import time). Upgrade the system or use Flatpak instead.
+> **Supported distributions:** The prebuilt `.deb` requires **GTK 4.10+**, **libadwaita 1.8+** (GNOME 49 or newer; the app also uses `Adw.ToggleGroup`, `Adw.Spinner` and `Adw.ShortcutsDialog`) and **Python 3.10+**; these constraints are declared in its `Depends`, so it targets **Ubuntu 25.10 (Questing) or newer** and **Debian 14 (forky) or newer**. Older releases do not satisfy the constraints: apt refuses the install (e.g. Ubuntu 24.04 ships libadwaita 1.5, Debian 13 ships 1.7), and building from source does not help either (the GI bindings above are resolved at import time). Upgrade the system or use Flatpak instead.
 >
 > `gir1.2-webkit-6.0` is an **optional** dependency (Recommends) used only by the embedded browser in the help panel. Without it the app starts normally and help pages open in the system browser.
 

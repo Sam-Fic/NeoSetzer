@@ -10,7 +10,7 @@ NeoSetzer 的 Debian x64 安装包由 GitHub Actions 在 **Ubuntu 24.04** 上构
 |---|---|---|
 | `setzer_<version>_amd64.deb` | Debian/Ubuntu x64 | 使用 `dpkg-deb` 构建的安装包。 |
 
-当前包通过 `Depends` 使用发行版提供的运行时；**Ubuntu 24.04+** 和 **Debian 13+** 是经过工作流验证的目标环境。
+当前包通过 `Depends` 使用发行版提供的运行时；**Ubuntu 25.10+** 和 **Debian 14+** 是经过工作流验证的目标环境（冒烟容器为 Ubuntu 25.10）。
 
 ## 依赖模型
 
@@ -22,10 +22,10 @@ NeoSetzer 的 Debian x64 安装包由 GitHub Actions 在 **Ubuntu 24.04** 上构
 |---|---|---|
 | `python3` | `>= 3.10` | 源码使用 `X \| None` 类型注解 |
 | `gir1.2-gtk-4.0` | `>= 4.10` | `Gtk.FileDialog`、`Gtk.FontDialogButton` |
-| `gir1.2-adw-1` | `>= 1.5` | `Adw.Dialog`、`Adw.PreferencesDialog`、`Adw.AlertDialog` |
+| `gir1.2-adw-1` | `>= 1.8` | `Adw.Dialog`、`Adw.PreferencesDialog`、`Adw.AlertDialog`，以及 `Adw.Spinner`（1.6）、`Adw.ToggleGroup`（1.7）、`Adw.ShortcutsDialog`（1.8） |
 | `gir1.2-gtksource-5` | `>= 5.4` | `GtkSource.StyleSchemePreview` |
 
-版本不足时 apt 会直接拒绝安装，不会出现「装上了但启动即崩」。更旧的发行版（Ubuntu 22.04、Debian 12 等）没有满足约束的软件包，属于预期的不支持范围。
+版本不足时 apt 会直接拒绝安装，不会出现「装上了但启动即崩」。更旧的发行版（Ubuntu 24.04 自带 libadwaita 1.5、Debian 13 自带 1.7 等）没有满足约束的软件包，属于预期的不支持范围。
 
 `gir1.2-webkit-6.0` 是 **Recommends**，只用于帮助面板的内嵌浏览器。缺失时应用正常启动，帮助页改用系统浏览器打开。
 
@@ -79,7 +79,7 @@ dpkg-deb -c "setzer_<version>_amd64.deb"
 | 现象 | 处理方式 |
 |---|---|
 | `msgfmt` 不存在 | 安装 `gettext`。 |
-| `apt install` 报依赖不满足 | 目标系统低于包要求（GTK 4.10 / libadwaita 1.5），属于预期行为；升级到 Ubuntu 24.04+ 或 Debian 13+。 |
+| `apt install` 报依赖不满足 | 目标系统低于包要求（GTK 4.10 / libadwaita 1.8），属于预期行为；升级到 Ubuntu 25.10+ 或 Debian 14+。 |
 | 绕过依赖强制安装后启动报 `Adw.Dialog` / `Gtk.FileDialog` 不存在 | 系统 GTK 或 libadwaita 版本不足。不要用 `--force-*` 安装，改用 Flatpak 或升级系统。 |
 | 帮助面板显示占位文案、导航按钮全灰 | 缺少 `gir1.2-webkit-6.0`（Recommends 可被跳过安装）。需要内嵌浏览器时安装该包并重启应用。 |
 | AI 发送打开的是外部终端而非侧栏内嵌终端 | 目标系统缺少 `gir1.2-vte-3.91`（Recommends 可被跳过安装）。安装该包后重启应用即可。 |
