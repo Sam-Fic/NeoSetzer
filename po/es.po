@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:03+0800\n"
+"POT-Creation-Date: 2026-11-20 00:11+0800\n"
 "PO-Revision-Date: 2023-06-28 06:49+0000\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/setzer/application/es/>\n"
@@ -642,7 +642,7 @@ msgstr "(documento sin guardar)"
 msgid "Send to AI Agent"
 msgstr "Enviar al agente de IA"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:100 setzer/dialogs/bibliography_manager/bibliography_manager.py:372 setzer/dialogs/bibliography_manager/bibliography_manager.py:819 setzer/dialogs/bibliography_manager/bibliography_manager.py:843 setzer/dialogs/bibliography_manager/bibliography_manager.py:1519 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:330 setzer/dialogs/preferences/pages/page_appearance.py:356 setzer/dialogs/preferences/pages/page_appearance.py:598 setzer/dialogs/preferences/pages/page_appearance.py:907 setzer/dialogs/preferences/pages/page_build_system.py:285 setzer/dialogs/preferences/pages/page_build_system.py:543 setzer/dialogs/preferences/pages/page_editor.py:736 setzer/dialogs/preferences/pages/page_shortcuts.py:404 setzer/dialogs/preferences/pages/page_shortcuts.py:493 setzer/dialogs/preferences/pages/page_shortcuts.py:633 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:493 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:496 setzer/workspace/sidebar/git/git_section.py:554 setzer/workspace/sidebar/git/git_section.py:607 setzer/workspace/welcome_screen/welcome_screen.py:302
+#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:100 setzer/dialogs/bibliography_manager/bibliography_manager.py:372 setzer/dialogs/bibliography_manager/bibliography_manager.py:819 setzer/dialogs/bibliography_manager/bibliography_manager.py:843 setzer/dialogs/bibliography_manager/bibliography_manager.py:1519 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:330 setzer/dialogs/preferences/pages/page_appearance.py:362 setzer/dialogs/preferences/pages/page_appearance.py:618 setzer/dialogs/preferences/pages/page_appearance.py:927 setzer/dialogs/preferences/pages/page_build_system.py:288 setzer/dialogs/preferences/pages/page_build_system.py:546 setzer/dialogs/preferences/pages/page_editor.py:736 setzer/dialogs/preferences/pages/page_shortcuts.py:404 setzer/dialogs/preferences/pages/page_shortcuts.py:493 setzer/dialogs/preferences/pages/page_shortcuts.py:633 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:493 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:496 setzer/workspace/sidebar/git/git_section.py:554 setzer/workspace/sidebar/git/git_section.py:607 setzer/workspace/welcome_screen/welcome_screen.py:302
 msgid "Cancel"
 msgstr "_Cancelar"
 
@@ -686,7 +686,7 @@ msgstr "Documento BibTeX nuevo"
 msgid "Open Document"
 msgstr "Abrir un documento"
 
-#: setzer/command_palette/catalog.py:77 setzer/dialogs/bibliography_manager/bibliography_manager.py:1352 setzer/dialogs/close_confirmation/close_confirmation.py:60 setzer/dialogs/document_wizard/document_wizard.py:365 setzer/dialogs/document_wizard/document_wizard.py:392 setzer/dialogs/preferences/pages/page_appearance.py:910 setzer/dialogs/preferences/pages/page_shortcuts.py:171 setzer/dialogs/preferences/pages/page_snippets.py:227 setzer/dialogs/project_build_configuration_viewgtk.py:160 setzer/popovers/hamburger_menu/hamburger_menu.py:100
+#: setzer/command_palette/catalog.py:77 setzer/dialogs/bibliography_manager/bibliography_manager.py:1352 setzer/dialogs/close_confirmation/close_confirmation.py:60 setzer/dialogs/document_wizard/document_wizard.py:365 setzer/dialogs/document_wizard/document_wizard.py:392 setzer/dialogs/preferences/pages/page_appearance.py:930 setzer/dialogs/preferences/pages/page_shortcuts.py:171 setzer/dialogs/preferences/pages/page_snippets.py:227 setzer/dialogs/project_build_configuration_viewgtk.py:160 setzer/popovers/hamburger_menu/hamburger_menu.py:100
 msgid "Save"
 msgstr "Guardar"
 
@@ -914,7 +914,7 @@ msgstr "Alejar"
 msgid "Reset Zoom"
 msgstr "Restablecer zoom"
 
-#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131 setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133 setzer/command_palette/catalog.py:134 setzer/dialogs/bibliography_manager/bibliography_manager.py:465 setzer/dialogs/document_wizard/pages/page_general_settings.py:330 setzer/dialogs/preferences/pages/page_appearance.py:690 setzer/dialogs/preferences/pages/page_shortcuts.py:194
+#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131 setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133 setzer/command_palette/catalog.py:134 setzer/dialogs/bibliography_manager/bibliography_manager.py:465 setzer/dialogs/document_wizard/pages/page_general_settings.py:330 setzer/dialogs/preferences/pages/page_appearance.py:710 setzer/dialogs/preferences/pages/page_shortcuts.py:194
 msgid "Preview"
 msgstr "Vista previa"
 
@@ -1879,7 +1879,7 @@ msgstr "Sobrescribir opciones de compilación"
 msgid "Auto Build"
 msgstr "Compilación automática"
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94 setzer/dialogs/preferences/pages/page_build_system.py:720
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94 setzer/dialogs/preferences/pages/page_build_system.py:723
 msgid "Use latexmk"
 msgstr "Usar latexmk"
 
@@ -2153,7 +2153,7 @@ msgstr "Filtre los temas de Beamer disponibles por nombre."
 msgid "No themes match this search."
 msgstr "Ningún tema coincide con esta búsqueda."
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170 setzer/dialogs/document_wizard/pages/page_letter_settings.py:349 setzer/dialogs/document_wizard/pages/page_standard_settings.py:165 setzer/dialogs/preferences/pages/page_build_system.py:709
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170 setzer/dialogs/document_wizard/pages/page_letter_settings.py:349 setzer/dialogs/document_wizard/pages/page_standard_settings.py:165 setzer/dialogs/preferences/pages/page_build_system.py:712
 msgid "Options"
 msgstr "Opciones"
 
@@ -2329,7 +2329,7 @@ msgstr "Paso 3: Ajustes generales del documento"
 msgid "<b>AMS packages:</b> provide mathematical symbols, math-related environments, …"
 msgstr "<b>Paquetes AMS:</b> proporcionan símbolos matemáticos, entornos relacionados con las matemáticas, …"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182 setzer/dialogs/document_wizard/pages/page_general_settings.py:184 setzer/dialogs/document_wizard/pages/page_general_settings.py:192 setzer/dialogs/document_wizard/pages/page_general_settings.py:245 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102 setzer/dialogs/preferences/pages/page_build_system.py:849
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182 setzer/dialogs/document_wizard/pages/page_general_settings.py:184 setzer/dialogs/document_wizard/pages/page_general_settings.py:192 setzer/dialogs/document_wizard/pages/page_general_settings.py:245 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102 setzer/dialogs/preferences/pages/page_build_system.py:852
 msgid "recommended"
 msgstr "recomendado"
 
@@ -2365,7 +2365,7 @@ msgstr "Fecha"
 msgid "Used in the \\date{} command. Use \\today for the current date."
 msgstr "Se usa en el comando \\date{}. Use \\today para la fecha actual."
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215 setzer/dialogs/document_wizard/pages/page_general_settings.py:219 setzer/dialogs/document_wizard/pages/page_general_settings.py:347 setzer/dialogs/preferences/pages/page_appearance.py:661 setzer/dialogs/preferences/pages/page_editor.py:1055
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215 setzer/dialogs/document_wizard/pages/page_general_settings.py:219 setzer/dialogs/document_wizard/pages/page_general_settings.py:347 setzer/dialogs/preferences/pages/page_appearance.py:681 setzer/dialogs/preferences/pages/page_editor.py:1055
 msgid "Language"
 msgstr "Idioma"
 
@@ -3927,7 +3927,7 @@ msgstr "Anotar la selección para el agente de IA"
 msgid "Send selection to AI agent"
 msgstr "Enviar la selección al agente de IA"
 
-#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:681 setzer/dialogs/preferences/pages/page_editor.py:1065 setzer/document/preview/preview_controller.py:732
+#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:701 setzer/dialogs/preferences/pages/page_editor.py:1065 setzer/document/preview/preview_controller.py:732
 msgid "Open"
 msgstr "Abrir"
 
@@ -3998,7 +3998,7 @@ msgstr "El nuevo idioma surtirá efecto tras reiniciar la aplicación."
 msgid "Restart"
 msgstr "Reiniciar"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:249 setzer/dialogs/preferences/pages/page_appearance.py:845
+#: setzer/dialogs/preferences/pages/page_appearance.py:249 setzer/dialogs/preferences/pages/page_appearance.py:865
 msgid "Export settings"
 msgstr "Exportar configuración"
 
@@ -4006,7 +4006,7 @@ msgstr "Exportar configuración"
 msgid "Could not export settings: {}"
 msgstr "No se pudo exportar la configuración: {}"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:284 setzer/dialogs/preferences/pages/page_appearance.py:853
+#: setzer/dialogs/preferences/pages/page_appearance.py:284 setzer/dialogs/preferences/pages/page_appearance.py:873
 msgid "Import settings"
 msgstr "Importar configuración"
 
@@ -4030,354 +4030,362 @@ msgstr "¿Restablecer todas las preferencias?"
 msgid "Keyboard shortcuts and window layout are kept."
 msgstr "Los atajos y la disposición de la ventana se conservan."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:331 setzer/dialogs/preferences/pages/page_appearance.py:357 setzer/dialogs/preferences/pages/page_appearance.py:599 setzer/dialogs/preferences/pages/page_appearance.py:862 setzer/dialogs/preferences/pages/page_build_system.py:286 setzer/dialogs/preferences/pages/page_editor.py:737 setzer/dialogs/preferences/pages/page_shortcuts.py:494
+#: setzer/dialogs/preferences/pages/page_appearance.py:331 setzer/dialogs/preferences/pages/page_appearance.py:363 setzer/dialogs/preferences/pages/page_appearance.py:619 setzer/dialogs/preferences/pages/page_appearance.py:882 setzer/dialogs/preferences/pages/page_build_system.py:289 setzer/dialogs/preferences/pages/page_editor.py:737 setzer/dialogs/preferences/pages/page_shortcuts.py:494
 msgid "Reset"
 msgstr "Restablecer"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:342
+#: setzer/dialogs/preferences/pages/page_appearance.py:342 setzer/dialogs/preferences/pages/page_appearance.py:406
 msgid "Preferences reset. Reopen preferences to see all changes."
 msgstr "Preferencias restablecidas. Vuelva a abrir las preferencias para ver todos los cambios."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:355 setzer/dialogs/preferences/pages/page_appearance.py:595 setzer/dialogs/preferences/pages/page_build_system.py:284 setzer/dialogs/preferences/pages/page_editor.py:735 setzer/dialogs/preferences/pages/page_shortcuts.py:492
+#: setzer/dialogs/preferences/pages/page_appearance.py:355 setzer/dialogs/preferences/pages/page_appearance.py:615 setzer/dialogs/preferences/pages/page_build_system.py:287 setzer/dialogs/preferences/pages/page_editor.py:735 setzer/dialogs/preferences/pages/page_shortcuts.py:492
 msgid "Reset to defaults?"
 msgstr "¿Restablecer los valores predeterminados?"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:465
+#: setzer/dialogs/preferences/pages/page_appearance.py:360
+msgid "This resets the settings on this page, including the preview and sidebar widths. AI settings and keyboard shortcuts are not affected."
+msgstr "Esto restablece los ajustes de esta página, incluidos los anchos de la vista previa y la barra lateral. Los ajustes de IA y los atajos de teclado no se ven afectados."
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:404
+msgid "Preferences reset. Restart the application to apply the language change."
+msgstr "Ajustes restablecidos. Reinicie la aplicación para aplicar el cambio de idioma."
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:485
 msgid "(active)"
 msgstr "(activo)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:489
 msgid "built-in"
 msgstr "integrado"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:471
+#: setzer/dialogs/preferences/pages/page_appearance.py:491
 msgid "custom"
 msgstr "personalizado"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:474
+#: setzer/dialogs/preferences/pages/page_appearance.py:494
 msgid "installed"
 msgstr "instalado"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:476
+#: setzer/dialogs/preferences/pages/page_appearance.py:496
 msgid "not installed"
 msgstr "no instalado"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:485 setzer/dialogs/preferences/pages/page_appearance.py:487
+#: setzer/dialogs/preferences/pages/page_appearance.py:505 setzer/dialogs/preferences/pages/page_appearance.py:507
 msgid "Remove this custom tool"
 msgstr "Eliminar esta herramienta personalizada"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:505
+#: setzer/dialogs/preferences/pages/page_appearance.py:525
 msgid "No trusted directories yet"
 msgstr "Aún no hay directorios de confianza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:506
+#: setzer/dialogs/preferences/pages/page_appearance.py:526
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "Marque «No preguntar de nuevo» en el diálogo de vista previa para añadir uno."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:519 setzer/dialogs/preferences/pages/page_appearance.py:521
+#: setzer/dialogs/preferences/pages/page_appearance.py:539 setzer/dialogs/preferences/pages/page_appearance.py:541
 msgid "Remove from trusted list"
 msgstr "Eliminar de la lista de confianza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:532
+#: setzer/dialogs/preferences/pages/page_appearance.py:552
 msgid "The AI agent is turned off."
 msgstr "El agente de IA está desactivado."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:596
+#: setzer/dialogs/preferences/pages/page_appearance.py:616
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "Todos los ajustes del agente de IA se restaurarán a sus valores predeterminados. Las herramientas personalizadas y los directorios de confianza se eliminarán."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:630
+#: setzer/dialogs/preferences/pages/page_appearance.py:650
 msgid "General"
 msgstr "General"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:636
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Theme"
 msgstr "Tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:640
+#: setzer/dialogs/preferences/pages/page_appearance.py:660
 msgid "Color scheme"
 msgstr "Esquema de color"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:649
+#: setzer/dialogs/preferences/pages/page_appearance.py:669
 msgid "Animations"
 msgstr "Animaciones"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:653
+#: setzer/dialogs/preferences/pages/page_appearance.py:673
 msgid "Reduce animations"
 msgstr "Reducir las animaciones"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:655
+#: setzer/dialogs/preferences/pages/page_appearance.py:675
 msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
 msgstr "Desactiva el deslizamiento de la barra lateral, los fundidos y las animaciones de desplazamiento de las listas. Las animaciones de apertura y cierre de las ventanas no se ven afectadas."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:665
+#: setzer/dialogs/preferences/pages/page_appearance.py:685
 msgid "Interface language"
 msgstr "Idioma de la interfaz"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:666
+#: setzer/dialogs/preferences/pages/page_appearance.py:686
 msgid "Changes take effect after the application is restarted."
 msgstr "Los cambios surten efecto tras reiniciar la aplicación."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:675
+#: setzer/dialogs/preferences/pages/page_appearance.py:695
 msgid "On startup"
 msgstr "Al inicio"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:701
+#: setzer/dialogs/preferences/pages/page_appearance.py:721
 msgid "Preview sidebar width"
 msgstr "Ancho de la barra lateral de vista previa"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:702
+#: setzer/dialogs/preferences/pages/page_appearance.py:722
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "Porcentaje del ancho de la ventana asignado a la vista previa del PDF."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:711
+#: setzer/dialogs/preferences/pages/page_appearance.py:731
 msgid "Match PDF colors to theme"
 msgstr "Hacer coincidir los colores del PDF con el tema"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:717
+#: setzer/dialogs/preferences/pages/page_appearance.py:737
 msgid "Default zoom"
 msgstr "Zoom predeterminado"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:719
+#: setzer/dialogs/preferences/pages/page_appearance.py:739
 msgid "Default zoom mode for the PDF preview. Fit width fills the preview width; Fit text width fits the text column; Fit height fills the preview height; Manual starts at 100%."
 msgstr "Modo de zoom predeterminado para la vista previa del PDF. «Ajustar al ancho» ocupa todo el ancho de la vista previa; «Ajustar al ancho del texto» ajusta la columna de texto; «Ajustar a la altura» ocupa toda la altura de la vista previa; «Manual» empieza al 100 %."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:723
+#: setzer/dialogs/preferences/pages/page_appearance.py:743
 msgid "Fit width"
 msgstr "Ajustar al ancho"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:724
+#: setzer/dialogs/preferences/pages/page_appearance.py:744
 msgid "Fit text width"
 msgstr "Ajustar al ancho del texto"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:725
+#: setzer/dialogs/preferences/pages/page_appearance.py:745
 msgid "Fit height"
 msgstr "Ajustar a la altura"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:726
+#: setzer/dialogs/preferences/pages/page_appearance.py:746
 msgid "Manual (100%)"
 msgstr "Manual (100%)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:733
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
 msgid "Sidebar"
 msgstr "Barra lateral"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:744
+#: setzer/dialogs/preferences/pages/page_appearance.py:764
 msgid "Sidebar width"
 msgstr "Ancho de la barra lateral"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:745
+#: setzer/dialogs/preferences/pages/page_appearance.py:765
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "Porcentaje del ancho de la ventana asignado a la barra lateral."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:753
+#: setzer/dialogs/preferences/pages/page_appearance.py:773
 msgid "AI settings"
 msgstr "Ajustes de IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:757
+#: setzer/dialogs/preferences/pages/page_appearance.py:777
 msgid "Enable AI agent"
 msgstr "Activar el agente de IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:758
+#: setzer/dialogs/preferences/pages/page_appearance.py:778
 msgid "Enables AI Fix in the build log dialog and the agent terminal button in the header bar"
 msgstr "Activa la corrección con IA en el diálogo del registro de compilación y el botón del terminal del agente en la barra de cabecera"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:762
+#: setzer/dialogs/preferences/pages/page_appearance.py:782
 msgid "Embed agent terminal in the sidebar"
 msgstr "Insertar el terminal del agente en la barra lateral"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:766
+#: setzer/dialogs/preferences/pages/page_appearance.py:786
 msgid "Run the agent in the AI Agent sidebar page and keep one session across sends"
 msgstr "Ejecutar el agente en la página «Agente de IA» de la barra lateral y mantener una sola sesión entre envíos"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:769
+#: setzer/dialogs/preferences/pages/page_appearance.py:789
 msgid "Embedded terminal (VTE) is not available on this system; an external terminal is used instead"
 msgstr "El terminal integrado (VTE) no está disponible en este sistema; se usará un terminal externo en su lugar"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:773
+#: setzer/dialogs/preferences/pages/page_appearance.py:793
 msgid "Show AI edits as a diff preview"
 msgstr "Mostrar las ediciones de la IA como vista previa del diff"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:775
+#: setzer/dialogs/preferences/pages/page_appearance.py:795
 msgid "Snapshot the document when sending an AI task; after the agent edits it, show the typeset changes for review (needs PhiTeX)"
 msgstr "Toma una instantánea del documento al enviar una tarea a la IA; tras la edición del agente, muestra los cambios maquetados para revisarlos (requiere PhiTeX)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:779
+#: setzer/dialogs/preferences/pages/page_appearance.py:799
 msgid "Active agent tool"
 msgstr "Herramienta agente activa"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:780
+#: setzer/dialogs/preferences/pages/page_appearance.py:800
 msgid "Used by AI Fix and the agent terminal"
 msgstr "Usado por la corrección con IA y el terminal del agente"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:786
+#: setzer/dialogs/preferences/pages/page_appearance.py:806
 msgid "Terminal command"
 msgstr "Comando de terminal"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:788
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Leave empty to detect automatically (gnome-terminal / xterm / konsole / …). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "Dejar vacío para detectar automáticamente (gnome-terminal / xterm / konsole / …). En Flatpak, flatpak-spawn --host se añade automáticamente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:794
+#: setzer/dialogs/preferences/pages/page_appearance.py:814
 msgid "Agent tools"
 msgstr "Herramientas de agente"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:795
+#: setzer/dialogs/preferences/pages/page_appearance.py:815
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "Los ajustes preestablecidos integrados no se pueden eliminar. Añada una herramienta personalizada para integrar otras CLI de agente."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:801 setzer/dialogs/preferences/pages/page_appearance.py:803
+#: setzer/dialogs/preferences/pages/page_appearance.py:821 setzer/dialogs/preferences/pages/page_appearance.py:823
 msgid "Add a custom tool"
 msgstr "Añadir una herramienta personalizada"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:808
+#: setzer/dialogs/preferences/pages/page_appearance.py:828
 msgid "Trusted directories"
 msgstr "Directorios de confianza"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:809
+#: setzer/dialogs/preferences/pages/page_appearance.py:829
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "Directorios donde se omite el diálogo de vista previa. Haga clic en eliminar para revocar la confianza de un proyecto."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:819
+#: setzer/dialogs/preferences/pages/page_appearance.py:839
 msgid "Reset AI settings"
 msgstr "Restablecer los ajustes de IA"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:826
+#: setzer/dialogs/preferences/pages/page_appearance.py:846
 msgid "First-run tutorial"
 msgstr "Tutorial de primer uso"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:830
+#: setzer/dialogs/preferences/pages/page_appearance.py:850
 msgid "Show the tutorial again"
 msgstr "Mostrar el tutorial de nuevo"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:831
+#: setzer/dialogs/preferences/pages/page_appearance.py:851
 msgid "Show"
 msgstr "Mostrar"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:839
+#: setzer/dialogs/preferences/pages/page_appearance.py:859
 msgid "Backup and restore"
 msgstr "Copia de seguridad y restauración"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:840
+#: setzer/dialogs/preferences/pages/page_appearance.py:860
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "Exporta tus preferencias y atajos de teclado a un archivo, o impórtalos en otro equipo."
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:846 setzer/dialogs/preferences/pages/page_shortcuts.py:709
+#: setzer/dialogs/preferences/pages/page_appearance.py:866 setzer/dialogs/preferences/pages/page_shortcuts.py:709
 msgid "Export"
 msgstr "Exportar"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:854 setzer/dialogs/preferences/pages/page_shortcuts.py:716
+#: setzer/dialogs/preferences/pages/page_appearance.py:874 setzer/dialogs/preferences/pages/page_shortcuts.py:716
 msgid "Import"
 msgstr "Importar"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:861
+#: setzer/dialogs/preferences/pages/page_appearance.py:881
 msgid "Reset all preferences"
 msgstr "Restablecer todas las preferencias"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:873 setzer/dialogs/preferences/pages/page_build_system.py:870 setzer/dialogs/preferences/pages/page_editor.py:1287 setzer/dialogs/preferences/pages/page_shortcuts.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:893 setzer/dialogs/preferences/pages/page_build_system.py:873 setzer/dialogs/preferences/pages/page_editor.py:1287 setzer/dialogs/preferences/pages/page_shortcuts.py:722
 msgid "Reset to defaults"
 msgstr "Restablecer valores predeterminados"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:889
+#: setzer/dialogs/preferences/pages/page_appearance.py:909
 msgid "Add custom tool"
 msgstr "Añadir herramienta personalizada"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:919
+#: setzer/dialogs/preferences/pages/page_appearance.py:939
 msgid "Tool name (unique)"
 msgstr "Nombre de herramienta (único)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:923
+#: setzer/dialogs/preferences/pages/page_appearance.py:943
 msgid "Executable (such as aider)"
 msgstr "Ejecutable (por ejemplo, aider)"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:927
+#: setzer/dialogs/preferences/pages/page_appearance.py:947
 msgid "Headed command template"
 msgstr "Plantilla de comando con cabecera"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:929
+#: setzer/dialogs/preferences/pages/page_appearance.py:949
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "Argumentos separados por espacios. Use {prompt} / {file} / {cwd} como marcadores de posición. Ejemplo: aider --message {prompt} --no-auto-commits. Si se deja en blanco o sin {prompt}, la instrucción se copia al portapapeles."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:163
+#: setzer/dialogs/preferences/pages/page_build_system.py:166
 msgid "PhiTeX rebuilds as you type, which needs each edit written to disk first — auto build is always on for it."
 msgstr "PhiTeX reconstruye mientras escribes, lo que requiere que cada cambio se escriba antes en el disco: la compilación automática está siempre activada."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:165
+#: setzer/dialogs/preferences/pages/page_build_system.py:168
 msgid "PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, so a longer wait only delays the preview."
 msgstr "PhiTeX usa un retardo corto fijo: una reconstrucción incremental tarda unos 20 ms, así que esperar más solo retrasa la vista previa."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:168
+#: setzer/dialogs/preferences/pages/page_build_system.py:171
 msgid "A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) to know what an edit affects, so they are kept."
 msgstr "Una sesión de PhiTeX en ejecución necesita los archivos auxiliares que escribe (.aux, .toc, .bbl) para saber qué afecta una edición, por eso se conservan."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:171
+#: setzer/dialogs/preferences/pages/page_build_system.py:174
 msgid "With a PhiTeX session the build log never pops up on its own: errors show as squiggles in the text and highlighted areas in the preview."
 msgstr "Con una sesión de PhiTeX el registro de compilación nunca se abre solo: los errores se muestran como subrayados ondulados en el texto y zonas resaltadas en la vista previa."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:173
+#: setzer/dialogs/preferences/pages/page_build_system.py:176
 msgid "Auto build is turned off."
 msgstr "La compilación automática está desactivada."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:280
+#: setzer/dialogs/preferences/pages/page_build_system.py:283
 msgid "Output chain only applies when latexmk builds the document."
 msgstr "La cadena de salida solo se aplica cuando latexmk compila el documento."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:453
+#: setzer/dialogs/preferences/pages/page_build_system.py:456
 msgid "Changing this ends the running PhiTeX session; the next build starts a new one with the new setting."
 msgstr "Cambiar esto finaliza la sesión de PhiTeX en ejecución; la siguiente compilación inicia una nueva con la nueva opción."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:471
+#: setzer/dialogs/preferences/pages/page_build_system.py:474
 msgid "Install PhiTeX on this computer for me: https://github.com/accl-kaust/PhiTeX — a separately built TeX engine I want to use as the LaTeX interpreter in NeoSetzer. Choose whatever is appropriate for this operating system, verify what you download, and install it so that `phitex` is on PATH for my user account without sudo and without writing into system directories. Then check it works and show me what you did. Do not compile PhiTeX into NeoSetzer or bundle it in a NeoSetzer package."
 msgstr "Instálame PhiTeX en este ordenador: https://github.com/accl-kaust/PhiTeX — un motor TeX compilado aparte que quiero usar como intérprete de LaTeX en NeoSetzer. Elige lo apropiado para este sistema operativo, verifica lo que descargas e instálalo de modo que `phitex` esté en el PATH de mi cuenta de usuario sin sudo y sin escribir en directorios del sistema. Después comprueba que funciona y muéstrame qué hiciste. No compiles PhiTeX dentro de NeoSetzer ni lo incluyas en un paquete de NeoSetzer."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:502
+#: setzer/dialogs/preferences/pages/page_build_system.py:505
 msgid "Not found"
 msgstr "No encontrado"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:529
+#: setzer/dialogs/preferences/pages/page_build_system.py:532
 msgid "Could not change PhiTeX’s update check setting."
 msgstr "No se pudo cambiar la comprobación de actualizaciones de PhiTeX."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:541
+#: setzer/dialogs/preferences/pages/page_build_system.py:544
 msgid "Upgrade PhiTeX?"
 msgstr "¿Actualizar PhiTeX?"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:542
+#: setzer/dialogs/preferences/pages/page_build_system.py:545
 msgid "PhiTeX will download its latest release, verify it and replace its own binary. NeoSetzer does not download anything. Running sessions are ended so the next build uses the new version."
 msgstr "PhiTeX descargará su última versión, la verificará y reemplazará su propio binario. NeoSetzer no descarga nada. Se cierran las sesiones activas para que la próxima compilación use la nueva versión."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:544 setzer/dialogs/preferences/pages/page_build_system.py:700
+#: setzer/dialogs/preferences/pages/page_build_system.py:547 setzer/dialogs/preferences/pages/page_build_system.py:703
 msgid "Upgrade"
 msgstr "Actualizar"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:564
+#: setzer/dialogs/preferences/pages/page_build_system.py:567
 #, python-brace-format
 msgid "PhiTeX upgraded: {message}"
 msgstr "PhiTeX actualizado: {message}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:565
+#: setzer/dialogs/preferences/pages/page_build_system.py:568
 msgid "PhiTeX upgraded."
 msgstr "PhiTeX se actualizó."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:567
+#: setzer/dialogs/preferences/pages/page_build_system.py:570
 msgid "PhiTeX could not be upgraded: the command did not run."
 msgstr "No se pudo actualizar PhiTeX: el comando no llegó a ejecutarse."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:569
+#: setzer/dialogs/preferences/pages/page_build_system.py:572
 #, python-brace-format
 msgid "PhiTeX could not be upgraded: {message}"
 msgstr "No se pudo actualizar PhiTeX: {message}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:626
+#: setzer/dialogs/preferences/pages/page_build_system.py:629
 msgid "Build system"
 msgstr "Sistema de compilación"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:630
+#: setzer/dialogs/preferences/pages/page_build_system.py:633
 msgid "LaTeX interpreter"
 msgstr "Intérprete de LaTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:644
+#: setzer/dialogs/preferences/pages/page_build_system.py:647
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
@@ -4385,215 +4393,215 @@ msgstr ""
 "No se ha encontrado ningún intérprete de LaTeX. Para instalar intérpretes en Flatpak, abra una terminal y ejecute el siguiente comando:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:647
+#: setzer/dialogs/preferences/pages/page_build_system.py:650
 msgid "No LaTeX interpreter found. For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 msgstr "No se ha encontrado ningún intérprete de LaTeX. Para instrucciones sobre cómo instalar LaTeX, consulte <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:648
+#: setzer/dialogs/preferences/pages/page_build_system.py:651
 msgid "Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic documentation</a>)."
 msgstr "Nota: el backend Tectonic utiliza únicamente la interfaz de línea de comandos V1. Se ignoran los archivos de configuración Tectonic.toml. Para una configuración de compilación personalizada, cambie a otro intérprete (consulte la <a href=\"https://tectonic-typesetting.github.io/tectonic/\">documentación de Tectonic</a>)."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:652
+#: setzer/dialogs/preferences/pages/page_build_system.py:655
 msgid "PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX’s, but LuaLaTeX is not supported yet."
 msgstr "PhiTeX compila de una sola vez hasta el punto fijo (incluidos BibTeX, biber y makeindex), por lo que las opciones de latexmk de abajo no se aplican. Su PDF es idéntico byte a byte al de pdfLaTeX, pero aún no admite LuaLaTeX."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:655 setzer/dialogs/project_build_configuration_viewgtk.py:225
+#: setzer/dialogs/preferences/pages/page_build_system.py:658 setzer/dialogs/project_build_configuration_viewgtk.py:225
 msgid "Interpreter"
 msgstr "Intérprete"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:662
+#: setzer/dialogs/preferences/pages/page_build_system.py:665
 msgid "Install PhiTeX"
 msgstr "Instalar PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:663
+#: setzer/dialogs/preferences/pages/page_build_system.py:666
 msgid "Not found on this machine. Copy the instructions and hand them to an AI agent — it will fetch and verify the release for your platform."
 msgstr "No se encontró en este equipo. Copia las instrucciones y entrégaselas a un agente de IA: descargará y verificará la versión adecuada para tu plataforma."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:667 setzer/dialogs/preferences/pages/page_build_system.py:671
+#: setzer/dialogs/preferences/pages/page_build_system.py:670 setzer/dialogs/preferences/pages/page_build_system.py:674
 msgid "Copy the installation instructions to the clipboard"
 msgstr "Copiar las instrucciones de instalación al portapapeles"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:681
+#: setzer/dialogs/preferences/pages/page_build_system.py:684
 msgid "PhiTeX"
 msgstr "PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:687
+#: setzer/dialogs/preferences/pages/page_build_system.py:690
 msgid "Version"
 msgstr "Versión"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:691
+#: setzer/dialogs/preferences/pages/page_build_system.py:694
 msgid "Let PhiTeX check for updates"
 msgstr "Permitir que PhiTeX busque actualizaciones"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:692
+#: setzer/dialogs/preferences/pages/page_build_system.py:695
 msgid "PhiTeX checks at most once a day, on its own, from its own binary. NeoSetzer never downloads or queries anything for it."
 msgstr "PhiTeX comprueba como mucho una vez al día, por su cuenta, desde su propio binario. NeoSetzer nunca descarga ni consulta nada para ello."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:696
+#: setzer/dialogs/preferences/pages/page_build_system.py:699
 msgid "Upgrade to the latest release"
 msgstr "Actualizar a la última versión"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:699
+#: setzer/dialogs/preferences/pages/page_build_system.py:702
 msgid "PhiTeX downloads and verifies its own release. NeoSetzer only runs the command."
 msgstr "PhiTeX descarga y verifica su propia versión. NeoSetzer solo ejecuta el comando."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:706
+#: setzer/dialogs/preferences/pages/page_build_system.py:709
 msgid "Running PhiTeX sessions are ended after an upgrade, so the next build starts on the new version."
 msgstr "Las sesiones de PhiTeX activas se cierran tras actualizar, para que la próxima compilación use la nueva versión."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:714
+#: setzer/dialogs/preferences/pages/page_build_system.py:717
 msgid "Remove helper files after building"
 msgstr "Eliminar los archivos auxiliares después de compilar"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:716
+#: setzer/dialogs/preferences/pages/page_build_system.py:719
 msgid "The .log, .dvi and similar helper files are deleted once the PDF is built."
 msgstr "Los archivos auxiliares (.log, .dvi y similares) se eliminan una vez compilado el PDF."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:724
+#: setzer/dialogs/preferences/pages/page_build_system.py:727
 msgid "Keep a PhiTeX session running"
 msgstr "Mantener activa una sesión de PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:725
+#: setzer/dialogs/preferences/pages/page_build_system.py:728
 msgid "Rebuild only what the edit affects by reusing one running PhiTeX process per document. Turning this off re-starts PhiTeX for every build, which recompiles the whole document each time."
 msgstr "Reconstruye solo lo que afecta la edición mediante un proceso de PhiTeX en ejecución por documento. Al desactivarlo se reinicia PhiTeX en cada compilación y se recompila el documento completo cada vez."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:735
+#: setzer/dialogs/preferences/pages/page_build_system.py:738
 msgid "Precise SyncTeX in the background"
 msgstr "SyncTeX preciso en segundo plano"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:736
+#: setzer/dialogs/preferences/pages/page_build_system.py:739
 msgid "While PhiTeX live preview is active, regenerate SyncTeX with the native TeX engine in the background for accurate jumping. Jumping is briefly unavailable while it updates."
 msgstr "Mientras la vista previa en vivo de PhiTeX esté activa, regenera SyncTeX con el motor TeX nativo en segundo plano para lograr saltos precisos. Los saltos no estarán disponibles brevemente mientras se actualiza."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:744
+#: setzer/dialogs/preferences/pages/page_build_system.py:747
 msgid "Output chain"
 msgstr "Cadena de salida"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:747
+#: setzer/dialogs/preferences/pages/page_build_system.py:750
 msgid "Needed by PSTricks and psfrag; the interpreter choice is bypassed on this route."
 msgstr "Necesario para PSTricks y psfrag; en esta vía se ignora el intérprete elegido."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:749
+#: setzer/dialogs/preferences/pages/page_build_system.py:752
 msgid "Direct PDF"
 msgstr "PDF directo"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:750
+#: setzer/dialogs/preferences/pages/page_build_system.py:753
 msgid "PDF via PostScript (DVI → dvips → ps2pdf)"
 msgstr "PDF via PostScript (DVI → dvips → ps2pdf)"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:756
+#: setzer/dialogs/preferences/pages/page_build_system.py:759
 msgid "Generate SyncTeX for preview sync"
 msgstr "Generar SyncTeX para sincronizar la vista previa"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:757
+#: setzer/dialogs/preferences/pages/page_build_system.py:760
 msgid "Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster."
 msgstr "Activa la sincronizacion directa/inversa entre el editor y la vista previa del PDF. Desactivarlo hace que las compilaciones sean algo mas rapidas."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:761
+#: setzer/dialogs/preferences/pages/page_build_system.py:764
 msgid "Elapsed-time counter on the build button"
 msgstr "Contador de tiempo en el botón de compilación"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:764
+#: setzer/dialogs/preferences/pages/page_build_system.py:767
 msgid "Shown automatically for slower interpreters; hidden with PhiTeX live builds."
 msgstr "Se muestra automáticamente con los intérpretes más lentos; se oculta con las compilaciones en vivo de PhiTeX."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:766
+#: setzer/dialogs/preferences/pages/page_build_system.py:769
 msgid "Show once the build passes a second"
 msgstr "Mostrar cuando la compilación supera un segundo"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:767
+#: setzer/dialogs/preferences/pages/page_build_system.py:770
 msgid "Always show"
 msgstr "Mostrar siempre"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:768
+#: setzer/dialogs/preferences/pages/page_build_system.py:771
 msgid "Never show"
 msgstr "Nunca mostrar"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:774
+#: setzer/dialogs/preferences/pages/page_build_system.py:777
 msgid "Auto build"
 msgstr "Compilación automática"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:778
+#: setzer/dialogs/preferences/pages/page_build_system.py:781
 msgid "Automatically build and save after changes"
 msgstr "Compilar y guardar automáticamente tras los cambios"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:779
+#: setzer/dialogs/preferences/pages/page_build_system.py:782
 msgid "When you stop typing, the document is saved and rebuilt after a short delay."
 msgstr "Cuando deja de escribir, el documento se guarda y recompila tras una breve espera."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:783
+#: setzer/dialogs/preferences/pages/page_build_system.py:786
 msgid "Delay (seconds)"
 msgstr "Retardo (segundos)"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:785
+#: setzer/dialogs/preferences/pages/page_build_system.py:788
 msgid "Shorter delays update the preview faster but use more CPU while typing."
 msgstr "Retrasos más cortos actualizan la vista previa más rápido pero usan más CPU mientras escribes."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:796
+#: setzer/dialogs/preferences/pages/page_build_system.py:799
 msgid "Pop up build log on auto-build errors"
 msgstr "Mostrar el registro de compilación en errores de compilación automática"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:798
+#: setzer/dialogs/preferences/pages/page_build_system.py:801
 msgid "When auto-build is on, automatically show the build log when errors occur. Disable to avoid interruptions while typing."
 msgstr "Cuando la compilación automática está activada, muestra automáticamente el registro de compilación cuando se producen errores. Desactívela para evitar interrupciones mientras escribe."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:809
+#: setzer/dialogs/preferences/pages/page_build_system.py:812
 msgid "Automatically show build log"
 msgstr "Mostrar automáticamente el registro de compilación"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:811
+#: setzer/dialogs/preferences/pages/page_build_system.py:814
 msgid "Only when errors occur"
 msgstr "Solo cuando hay errores"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:812
+#: setzer/dialogs/preferences/pages/page_build_system.py:815
 msgid "On errors and warnings"
 msgstr "Con errores y advertencias"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:813
+#: setzer/dialogs/preferences/pages/page_build_system.py:816
 msgid "On errors, warnings and badboxes"
 msgstr "Con errores, advertencias y badboxes"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:814
+#: setzer/dialogs/preferences/pages/page_build_system.py:817
 msgid "Never"
 msgstr "Nunca"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:820
+#: setzer/dialogs/preferences/pages/page_build_system.py:823
 msgid "Embedded system commands"
 msgstr "Comandos del sistema integrados"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:839
+#: setzer/dialogs/preferences/pages/page_build_system.py:842
 msgid "Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources."
 msgstr "Advertencia: active esta opción sólo si es necesario. Puede causar problemas de seguridad al construir archivos desde fuentes no confiables."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:847
+#: setzer/dialogs/preferences/pages/page_build_system.py:850
 msgid "System commands"
 msgstr "Comandos del sistema"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:849
+#: setzer/dialogs/preferences/pages/page_build_system.py:852
 msgid "Disable"
 msgstr "Desactivar"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:850
+#: setzer/dialogs/preferences/pages/page_build_system.py:853
 msgid "Enable restricted \\write18{SHELL COMMAND}"
 msgstr "Activar restringido \\write18{SHELL COMMAND}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:851
+#: setzer/dialogs/preferences/pages/page_build_system.py:854
 msgid "Fully enable \\write18{SHELL COMMAND}"
 msgstr "Activar completamente \\write18{SHELL COMMAND}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:858
+#: setzer/dialogs/preferences/pages/page_build_system.py:861
 msgid "Personal TeX tree"
 msgstr "Arbol TeX personal"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:859
+#: setzer/dialogs/preferences/pages/page_build_system.py:862
 msgid "Directory with your own packages, classes and bibliography styles (kpathsea TEXMFHOME). Applied to every build; leave empty to use your environment or the TeX Live default (~/texmf)."
 msgstr "Directorio con sus propios paquetes, clases y estilos de bibliografia (kpathsea TEXMFHOME). Se aplica a cada compilacion; dejelo vacio para usar su entorno o el valor predeterminado de TeX Live (~/texmf)."
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:863
+#: setzer/dialogs/preferences/pages/page_build_system.py:866
 msgid "TEXMFHOME directory"
 msgstr "Directorio TEXMFHOME"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:864
+#: setzer/dialogs/preferences/pages/page_build_system.py:867
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr "Un \"~\" inicial se expande a su carpeta personal. Ejemplo: ~/.texmf"
 

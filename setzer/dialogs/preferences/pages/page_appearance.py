@@ -353,6 +353,12 @@ class PageGeneral(object):
     def on_reset_clicked(self, button):
         dialog = Adw.AlertDialog(
             heading=_('Reset to defaults?'))
+        # 范围写进确认框：本页 reset 与 Backup 组的 "Reset all preferences"
+        # 口径不同（这里含窗口布局宽度、不含 AI），不写清楚用户无法区分
+        # 两个同名按钮各自重置什么。
+        dialog.set_body(_(
+            'This resets the settings on this page, including the preview and '
+            'sidebar widths. AI settings and keyboard shortcuts are not affected.'))
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('reset', _('Reset'))
         dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
@@ -363,6 +369,7 @@ class PageGeneral(object):
     def on_reset_confirmed(self, dialog, result):
         response_id = dialog.choose_finish(result)
         if response_id == 'reset':
+            previous_language = self.settings.get_value('preferences', 'language')
             defaults = self.settings.defaults['preferences']
             current_theme = defaults['app_theme_mode']
             theme_index = next((i for i, m in enumerate(THEME_MODES) if m[1] == current_theme), 0)
@@ -373,7 +380,16 @@ class PageGeneral(object):
             ServiceLocator.set_style_scheme_name('')
             current_lang = defaults['language']
             lang_index = next((i for i, l in enumerate(LANGUAGES) if l[1] == current_lang), 0)
-            self.view.language_combo.set_selected(lang_index)
+            # 程序性回填语言要 block 掉 on_language_changed：否则 reset 会
+            # 弹"需要重启"对话框——重置操作不应附带模态打断；语言确实变化
+            # 时改在 toast 里提示重启。
+            self.view.language_combo.handler_block_by_func(self.on_language_changed)
+            try:
+                self.view.language_combo.set_selected(lang_index)
+            finally:
+                self.view.language_combo.handler_unblock_by_func(self.on_language_changed)
+            self.settings.set_value('preferences', 'language', current_lang)
+            self.settings.pickle()
             current_startup = defaults['on_startup']
             startup_index = next((i for i, m in enumerate(STARTUP_MODES) if m[1] == current_startup), 0)
             self.view.startup_combo.set_selected(startup_index)
@@ -384,6 +400,10 @@ class PageGeneral(object):
             self.view.option_recolor_pdf.set_active(defaults['recolor_pdf'])
             self.view.option_preview_zoom.set_selected(
                 self.view.preview_zoom_values.index(defaults['preview_zoom']))
+            if defaults['language'] != previous_language:
+                self._show_toast(_('Preferences reset. Restart the application to apply the language change.'))
+            else:
+                self._show_toast(_('Preferences reset. Reopen preferences to see all changes.'))
 
     def on_switch_toggled(self, switch, pspec, preference_name):
         self.settings.set_value('preferences', preference_name, switch.get_active())

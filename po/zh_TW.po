@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-20 00:03+0800\n"
+"POT-Creation-Date: 2026-11-20 00:11+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Traditional)\n"
@@ -642,7 +642,7 @@ msgstr "（未儲存的檔案）"
 msgid "Send to AI Agent"
 msgstr "傳送至 AI 代理"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:100 setzer/dialogs/bibliography_manager/bibliography_manager.py:372 setzer/dialogs/bibliography_manager/bibliography_manager.py:819 setzer/dialogs/bibliography_manager/bibliography_manager.py:843 setzer/dialogs/bibliography_manager/bibliography_manager.py:1519 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:330 setzer/dialogs/preferences/pages/page_appearance.py:356 setzer/dialogs/preferences/pages/page_appearance.py:598 setzer/dialogs/preferences/pages/page_appearance.py:907 setzer/dialogs/preferences/pages/page_build_system.py:285 setzer/dialogs/preferences/pages/page_build_system.py:543 setzer/dialogs/preferences/pages/page_editor.py:736 setzer/dialogs/preferences/pages/page_shortcuts.py:404 setzer/dialogs/preferences/pages/page_shortcuts.py:493 setzer/dialogs/preferences/pages/page_shortcuts.py:633 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:493 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:496 setzer/workspace/sidebar/git/git_section.py:554 setzer/workspace/sidebar/git/git_section.py:607 setzer/workspace/welcome_screen/welcome_screen.py:302
+#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:100 setzer/dialogs/bibliography_manager/bibliography_manager.py:372 setzer/dialogs/bibliography_manager/bibliography_manager.py:819 setzer/dialogs/bibliography_manager/bibliography_manager.py:843 setzer/dialogs/bibliography_manager/bibliography_manager.py:1519 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:330 setzer/dialogs/preferences/pages/page_appearance.py:362 setzer/dialogs/preferences/pages/page_appearance.py:618 setzer/dialogs/preferences/pages/page_appearance.py:927 setzer/dialogs/preferences/pages/page_build_system.py:288 setzer/dialogs/preferences/pages/page_build_system.py:546 setzer/dialogs/preferences/pages/page_editor.py:736 setzer/dialogs/preferences/pages/page_shortcuts.py:404 setzer/dialogs/preferences/pages/page_shortcuts.py:493 setzer/dialogs/preferences/pages/page_shortcuts.py:633 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:493 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:496 setzer/workspace/sidebar/git/git_section.py:554 setzer/workspace/sidebar/git/git_section.py:607 setzer/workspace/welcome_screen/welcome_screen.py:302
 msgid "Cancel"
 msgstr "取消(_C)"
 
@@ -686,7 +686,7 @@ msgstr "新增 BibTeX 文件"
 msgid "Open Document"
 msgstr "開啟文件"
 
-#: setzer/command_palette/catalog.py:77 setzer/dialogs/bibliography_manager/bibliography_manager.py:1352 setzer/dialogs/close_confirmation/close_confirmation.py:60 setzer/dialogs/document_wizard/document_wizard.py:365 setzer/dialogs/document_wizard/document_wizard.py:392 setzer/dialogs/preferences/pages/page_appearance.py:910 setzer/dialogs/preferences/pages/page_shortcuts.py:171 setzer/dialogs/preferences/pages/page_snippets.py:227 setzer/dialogs/project_build_configuration_viewgtk.py:160 setzer/popovers/hamburger_menu/hamburger_menu.py:100
+#: setzer/command_palette/catalog.py:77 setzer/dialogs/bibliography_manager/bibliography_manager.py:1352 setzer/dialogs/close_confirmation/close_confirmation.py:60 setzer/dialogs/document_wizard/document_wizard.py:365 setzer/dialogs/document_wizard/document_wizard.py:392 setzer/dialogs/preferences/pages/page_appearance.py:930 setzer/dialogs/preferences/pages/page_shortcuts.py:171 setzer/dialogs/preferences/pages/page_snippets.py:227 setzer/dialogs/project_build_configuration_viewgtk.py:160 setzer/popovers/hamburger_menu/hamburger_menu.py:100
 msgid "Save"
 msgstr "儲存"
 
@@ -914,7 +914,7 @@ msgstr "縮小"
 msgid "Reset Zoom"
 msgstr "重設縮放"
 
-#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131 setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133 setzer/command_palette/catalog.py:134 setzer/dialogs/bibliography_manager/bibliography_manager.py:465 setzer/dialogs/document_wizard/pages/page_general_settings.py:330 setzer/dialogs/preferences/pages/page_appearance.py:690 setzer/dialogs/preferences/pages/page_shortcuts.py:194
+#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131 setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133 setzer/command_palette/catalog.py:134 setzer/dialogs/bibliography_manager/bibliography_manager.py:465 setzer/dialogs/document_wizard/pages/page_general_settings.py:330 setzer/dialogs/preferences/pages/page_appearance.py:710 setzer/dialogs/preferences/pages/page_shortcuts.py:194
 msgid "Preview"
 msgstr "預覽"
 
@@ -1875,7 +1875,7 @@ msgstr "覆寫建置選項"
 msgid "Auto Build"
 msgstr "自動建置"
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94 setzer/dialogs/preferences/pages/page_build_system.py:720
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94 setzer/dialogs/preferences/pages/page_build_system.py:723
 msgid "Use latexmk"
 msgstr "使用 latexmk"
 
@@ -2149,7 +2149,7 @@ msgstr "依名稱篩選可用的 Beamer 主題。"
 msgid "No themes match this search."
 msgstr "沒有主題符合此次搜尋。"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170 setzer/dialogs/document_wizard/pages/page_letter_settings.py:349 setzer/dialogs/document_wizard/pages/page_standard_settings.py:165 setzer/dialogs/preferences/pages/page_build_system.py:709
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170 setzer/dialogs/document_wizard/pages/page_letter_settings.py:349 setzer/dialogs/document_wizard/pages/page_standard_settings.py:165 setzer/dialogs/preferences/pages/page_build_system.py:712
 msgid "Options"
 msgstr "選項"
 
@@ -2325,7 +2325,7 @@ msgstr "第 3 步：文件一般設定"
 msgid "<b>AMS packages:</b> provide mathematical symbols, math-related environments, …"
 msgstr "<b>AMS 套件：</b>提供數學符號、數學相關環境等……"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182 setzer/dialogs/document_wizard/pages/page_general_settings.py:184 setzer/dialogs/document_wizard/pages/page_general_settings.py:192 setzer/dialogs/document_wizard/pages/page_general_settings.py:245 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102 setzer/dialogs/preferences/pages/page_build_system.py:849
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182 setzer/dialogs/document_wizard/pages/page_general_settings.py:184 setzer/dialogs/document_wizard/pages/page_general_settings.py:192 setzer/dialogs/document_wizard/pages/page_general_settings.py:245 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102 setzer/dialogs/preferences/pages/page_build_system.py:852
 msgid "recommended"
 msgstr "建議"
 
@@ -2361,7 +2361,7 @@ msgstr "日期"
 msgid "Used in the \\date{} command. Use \\today for the current date."
 msgstr "用於 \\date{} 命令。\\today 表示今天日期。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215 setzer/dialogs/document_wizard/pages/page_general_settings.py:219 setzer/dialogs/document_wizard/pages/page_general_settings.py:347 setzer/dialogs/preferences/pages/page_appearance.py:661 setzer/dialogs/preferences/pages/page_editor.py:1055
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215 setzer/dialogs/document_wizard/pages/page_general_settings.py:219 setzer/dialogs/document_wizard/pages/page_general_settings.py:347 setzer/dialogs/preferences/pages/page_appearance.py:681 setzer/dialogs/preferences/pages/page_editor.py:1055
 msgid "Language"
 msgstr "語言"
 
@@ -3923,7 +3923,7 @@ msgstr "為 AI 代理程式加入選區批註"
 msgid "Send selection to AI agent"
 msgstr "將選區傳送給 AI 代理程式"
 
-#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:681 setzer/dialogs/preferences/pages/page_editor.py:1065 setzer/document/preview/preview_controller.py:732
+#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:701 setzer/dialogs/preferences/pages/page_editor.py:1065 setzer/document/preview/preview_controller.py:732
 msgid "Open"
 msgstr "開啟"
 
@@ -3994,7 +3994,7 @@ msgstr "新語言將在應用程式重新啟動後生效。"
 msgid "Restart"
 msgstr "重新啟動"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:249 setzer/dialogs/preferences/pages/page_appearance.py:845
+#: setzer/dialogs/preferences/pages/page_appearance.py:249 setzer/dialogs/preferences/pages/page_appearance.py:865
 msgid "Export settings"
 msgstr "匯出設定"
 
@@ -4002,7 +4002,7 @@ msgstr "匯出設定"
 msgid "Could not export settings: {}"
 msgstr "無法匯出設定：{}"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:284 setzer/dialogs/preferences/pages/page_appearance.py:853
+#: setzer/dialogs/preferences/pages/page_appearance.py:284 setzer/dialogs/preferences/pages/page_appearance.py:873
 msgid "Import settings"
 msgstr "匯入設定"
 
@@ -4026,354 +4026,362 @@ msgstr "要重設所有偏好設定嗎？"
 msgid "Keyboard shortcuts and window layout are kept."
 msgstr "快捷鍵與視窗版面不受影響。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:331 setzer/dialogs/preferences/pages/page_appearance.py:357 setzer/dialogs/preferences/pages/page_appearance.py:599 setzer/dialogs/preferences/pages/page_appearance.py:862 setzer/dialogs/preferences/pages/page_build_system.py:286 setzer/dialogs/preferences/pages/page_editor.py:737 setzer/dialogs/preferences/pages/page_shortcuts.py:494
+#: setzer/dialogs/preferences/pages/page_appearance.py:331 setzer/dialogs/preferences/pages/page_appearance.py:363 setzer/dialogs/preferences/pages/page_appearance.py:619 setzer/dialogs/preferences/pages/page_appearance.py:882 setzer/dialogs/preferences/pages/page_build_system.py:289 setzer/dialogs/preferences/pages/page_editor.py:737 setzer/dialogs/preferences/pages/page_shortcuts.py:494
 msgid "Reset"
 msgstr "重設"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:342
+#: setzer/dialogs/preferences/pages/page_appearance.py:342 setzer/dialogs/preferences/pages/page_appearance.py:406
 msgid "Preferences reset. Reopen preferences to see all changes."
 msgstr "偏好設定已重設。請重新開啟偏好設定以查看所有變更。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:355 setzer/dialogs/preferences/pages/page_appearance.py:595 setzer/dialogs/preferences/pages/page_build_system.py:284 setzer/dialogs/preferences/pages/page_editor.py:735 setzer/dialogs/preferences/pages/page_shortcuts.py:492
+#: setzer/dialogs/preferences/pages/page_appearance.py:355 setzer/dialogs/preferences/pages/page_appearance.py:615 setzer/dialogs/preferences/pages/page_build_system.py:287 setzer/dialogs/preferences/pages/page_editor.py:735 setzer/dialogs/preferences/pages/page_shortcuts.py:492
 msgid "Reset to defaults?"
 msgstr "重設為預設值？"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:465
+#: setzer/dialogs/preferences/pages/page_appearance.py:360
+msgid "This resets the settings on this page, including the preview and sidebar widths. AI settings and keyboard shortcuts are not affected."
+msgstr "將重設本頁設定，包括預覽與側欄寬度。AI 設定與鍵盤快捷鍵不受影響。"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:404
+msgid "Preferences reset. Restart the application to apply the language change."
+msgstr "偏好已重設。重新啟動應用程式以套用語言變更。"
+
+#: setzer/dialogs/preferences/pages/page_appearance.py:485
 msgid "(active)"
 msgstr "（目前）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:469
+#: setzer/dialogs/preferences/pages/page_appearance.py:489
 msgid "built-in"
 msgstr "內建"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:471
+#: setzer/dialogs/preferences/pages/page_appearance.py:491
 msgid "custom"
 msgstr "自訂"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:474
+#: setzer/dialogs/preferences/pages/page_appearance.py:494
 msgid "installed"
 msgstr "已安裝"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:476
+#: setzer/dialogs/preferences/pages/page_appearance.py:496
 msgid "not installed"
 msgstr "未安裝"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:485 setzer/dialogs/preferences/pages/page_appearance.py:487
+#: setzer/dialogs/preferences/pages/page_appearance.py:505 setzer/dialogs/preferences/pages/page_appearance.py:507
 msgid "Remove this custom tool"
 msgstr "移除此自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:505
+#: setzer/dialogs/preferences/pages/page_appearance.py:525
 msgid "No trusted directories yet"
 msgstr "尚無受信任目錄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:506
+#: setzer/dialogs/preferences/pages/page_appearance.py:526
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "在預覽對話方塊中勾選「不再詢問」以加入。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:519 setzer/dialogs/preferences/pages/page_appearance.py:521
+#: setzer/dialogs/preferences/pages/page_appearance.py:539 setzer/dialogs/preferences/pages/page_appearance.py:541
 msgid "Remove from trusted list"
 msgstr "從信任清單中移除"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:532
+#: setzer/dialogs/preferences/pages/page_appearance.py:552
 msgid "The AI agent is turned off."
 msgstr "AI 代理已關閉。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:596
+#: setzer/dialogs/preferences/pages/page_appearance.py:616
 msgid "All AI agent settings will be restored to their default values. Custom tools and trusted directories will be removed."
 msgstr "所有 AI 代理設定都將恢復為預設值。自訂工具與受信任目錄將被移除。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:630
+#: setzer/dialogs/preferences/pages/page_appearance.py:650
 msgid "General"
 msgstr "一般"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:636
+#: setzer/dialogs/preferences/pages/page_appearance.py:656
 msgid "Theme"
 msgstr "主題"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:640
+#: setzer/dialogs/preferences/pages/page_appearance.py:660
 msgid "Color scheme"
 msgstr "配色方案"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:649
+#: setzer/dialogs/preferences/pages/page_appearance.py:669
 msgid "Animations"
 msgstr "動畫"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:653
+#: setzer/dialogs/preferences/pages/page_appearance.py:673
 msgid "Reduce animations"
 msgstr "減弱動畫"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:655
+#: setzer/dialogs/preferences/pages/page_appearance.py:675
 msgid "Turn off sidebar sliding, fading and list scrolling animations. Window opening and closing animations are not affected."
 msgstr "關閉側邊欄滑入滑出、各處淡入淡出與清單捲動動畫。視窗的開啟關閉動畫不受影響。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:665
+#: setzer/dialogs/preferences/pages/page_appearance.py:685
 msgid "Interface language"
 msgstr "介面語言"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:666
+#: setzer/dialogs/preferences/pages/page_appearance.py:686
 msgid "Changes take effect after the application is restarted."
 msgstr "變更將在應用程式重新啟動後生效。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:675
+#: setzer/dialogs/preferences/pages/page_appearance.py:695
 msgid "On startup"
 msgstr "啟動時"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:701
+#: setzer/dialogs/preferences/pages/page_appearance.py:721
 msgid "Preview sidebar width"
 msgstr "預覽側邊欄寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:702
+#: setzer/dialogs/preferences/pages/page_appearance.py:722
 msgid "Percentage of the window width allocated to the PDF preview."
 msgstr "分配給 PDF 預覽的視窗寬度百分比。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:711
+#: setzer/dialogs/preferences/pages/page_appearance.py:731
 msgid "Match PDF colors to theme"
 msgstr "讓 PDF 顏色符合主題"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:717
+#: setzer/dialogs/preferences/pages/page_appearance.py:737
 msgid "Default zoom"
 msgstr "預設縮放"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:719
+#: setzer/dialogs/preferences/pages/page_appearance.py:739
 msgid "Default zoom mode for the PDF preview. Fit width fills the preview width; Fit text width fits the text column; Fit height fills the preview height; Manual starts at 100%."
 msgstr "PDF 預覽的預設縮放模式。符合寬度會填滿預覽寬度；符合文字寬度會配合文字欄寬度；符合高度會填滿預覽高度；手動則從 100% 開始。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:723
+#: setzer/dialogs/preferences/pages/page_appearance.py:743
 msgid "Fit width"
 msgstr "符合寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:724
+#: setzer/dialogs/preferences/pages/page_appearance.py:744
 msgid "Fit text width"
 msgstr "符合文字寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:725
+#: setzer/dialogs/preferences/pages/page_appearance.py:745
 msgid "Fit height"
 msgstr "符合高度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:726
+#: setzer/dialogs/preferences/pages/page_appearance.py:746
 msgid "Manual (100%)"
 msgstr "手動（100%）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:733
+#: setzer/dialogs/preferences/pages/page_appearance.py:753
 msgid "Sidebar"
 msgstr "側邊欄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:744
+#: setzer/dialogs/preferences/pages/page_appearance.py:764
 msgid "Sidebar width"
 msgstr "側邊欄寬度"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:745
+#: setzer/dialogs/preferences/pages/page_appearance.py:765
 msgid "Percentage of the window width allocated to the sidebar."
 msgstr "分配給側邊欄的視窗寬度百分比"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:753
+#: setzer/dialogs/preferences/pages/page_appearance.py:773
 msgid "AI settings"
 msgstr "AI 設定"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:757
+#: setzer/dialogs/preferences/pages/page_appearance.py:777
 msgid "Enable AI agent"
 msgstr "啟用 AI 代理"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:758
+#: setzer/dialogs/preferences/pages/page_appearance.py:778
 msgid "Enables AI Fix in the build log dialog and the agent terminal button in the header bar"
 msgstr "啟用建置日誌對話框中的 AI 修復，以及標題列的 Agent 終端機按鈕"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:762
+#: setzer/dialogs/preferences/pages/page_appearance.py:782
 msgid "Embed agent terminal in the sidebar"
 msgstr "在側邊欄嵌入 Agent 終端機"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:766
+#: setzer/dialogs/preferences/pages/page_appearance.py:786
 msgid "Run the agent in the AI Agent sidebar page and keep one session across sends"
 msgstr "在側邊欄的 AI 代理頁面執行代理，多次傳送共用同一工作階段"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:769
+#: setzer/dialogs/preferences/pages/page_appearance.py:789
 msgid "Embedded terminal (VTE) is not available on this system; an external terminal is used instead"
 msgstr "此系統不支援內嵌終端機（VTE），將改用外部終端機"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:773
+#: setzer/dialogs/preferences/pages/page_appearance.py:793
 msgid "Show AI edits as a diff preview"
 msgstr "以 Diff 預覽顯示 AI 編輯"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:775
+#: setzer/dialogs/preferences/pages/page_appearance.py:795
 msgid "Snapshot the document when sending an AI task; after the agent edits it, show the typeset changes for review (needs PhiTeX)"
 msgstr "傳送 AI 工作時快照文件；代理編輯後顯示排版後的變更供審閱（需要 PhiTeX）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:779
+#: setzer/dialogs/preferences/pages/page_appearance.py:799
 msgid "Active agent tool"
 msgstr "目前 Agent 工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:780
+#: setzer/dialogs/preferences/pages/page_appearance.py:800
 msgid "Used by AI Fix and the agent terminal"
 msgstr "由 AI 修復與 Agent 終端機使用"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:786
+#: setzer/dialogs/preferences/pages/page_appearance.py:806
 msgid "Terminal command"
 msgstr "終端機命令"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:788
+#: setzer/dialogs/preferences/pages/page_appearance.py:808
 msgid "Leave empty to detect automatically (gnome-terminal / xterm / konsole / …). Under Flatpak, flatpak-spawn --host is added automatically."
 msgstr "留空則自動偵測（gnome-terminal / xterm / konsole / …）。Flatpak 環境下會自動加上 flatpak-spawn --host。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:794
+#: setzer/dialogs/preferences/pages/page_appearance.py:814
 msgid "Agent tools"
 msgstr "Agent 工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:795
+#: setzer/dialogs/preferences/pages/page_appearance.py:815
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "內建預設無法刪除。加入自訂工具以整合其他 Agent CLI。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:801 setzer/dialogs/preferences/pages/page_appearance.py:803
+#: setzer/dialogs/preferences/pages/page_appearance.py:821 setzer/dialogs/preferences/pages/page_appearance.py:823
 msgid "Add a custom tool"
 msgstr "新增自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:808
+#: setzer/dialogs/preferences/pages/page_appearance.py:828
 msgid "Trusted directories"
 msgstr "受信任目錄"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:809
+#: setzer/dialogs/preferences/pages/page_appearance.py:829
 msgid "Directories where the preview dialog is skipped. Click delete to revoke trust for a project."
 msgstr "略過預覽對話方塊的目錄。按一下刪除以撤銷對專案的信任。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:819
+#: setzer/dialogs/preferences/pages/page_appearance.py:839
 msgid "Reset AI settings"
 msgstr "重設 AI 設定"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:826
+#: setzer/dialogs/preferences/pages/page_appearance.py:846
 msgid "First-run tutorial"
 msgstr "首次執行教學"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:830
+#: setzer/dialogs/preferences/pages/page_appearance.py:850
 msgid "Show the tutorial again"
 msgstr "再次顯示教學"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:831
+#: setzer/dialogs/preferences/pages/page_appearance.py:851
 msgid "Show"
 msgstr "顯示"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:839
+#: setzer/dialogs/preferences/pages/page_appearance.py:859
 msgid "Backup and restore"
 msgstr "備份與還原"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:840
+#: setzer/dialogs/preferences/pages/page_appearance.py:860
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "將您的偏好設定與鍵盤快捷鍵匯出至檔案，或在其他電腦上匯入。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:846 setzer/dialogs/preferences/pages/page_shortcuts.py:709
+#: setzer/dialogs/preferences/pages/page_appearance.py:866 setzer/dialogs/preferences/pages/page_shortcuts.py:709
 msgid "Export"
 msgstr "匯出"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:854 setzer/dialogs/preferences/pages/page_shortcuts.py:716
+#: setzer/dialogs/preferences/pages/page_appearance.py:874 setzer/dialogs/preferences/pages/page_shortcuts.py:716
 msgid "Import"
 msgstr "匯入"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:861
+#: setzer/dialogs/preferences/pages/page_appearance.py:881
 msgid "Reset all preferences"
 msgstr "重設所有偏好設定"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:873 setzer/dialogs/preferences/pages/page_build_system.py:870 setzer/dialogs/preferences/pages/page_editor.py:1287 setzer/dialogs/preferences/pages/page_shortcuts.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:893 setzer/dialogs/preferences/pages/page_build_system.py:873 setzer/dialogs/preferences/pages/page_editor.py:1287 setzer/dialogs/preferences/pages/page_shortcuts.py:722
 msgid "Reset to defaults"
 msgstr "重設為預設值"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:889
+#: setzer/dialogs/preferences/pages/page_appearance.py:909
 msgid "Add custom tool"
 msgstr "加入自訂工具"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:919
+#: setzer/dialogs/preferences/pages/page_appearance.py:939
 msgid "Tool name (unique)"
 msgstr "工具名稱（唯一）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:923
+#: setzer/dialogs/preferences/pages/page_appearance.py:943
 msgid "Executable (such as aider)"
 msgstr "可執行檔（例如 aider）"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:927
+#: setzer/dialogs/preferences/pages/page_appearance.py:947
 msgid "Headed command template"
 msgstr "有頭指令範本"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:929
+#: setzer/dialogs/preferences/pages/page_appearance.py:949
 #, python-brace-format
 msgid "Space-separated args. Use {prompt} / {file} / {cwd} as placeholders. Example: aider --message {prompt} --no-auto-commits. If left blank or without {prompt}, the prompt is copied to clipboard."
 msgstr "以空格分隔的引數。使用 {prompt} / {file} / {cwd} 作為佔位符。例如：aider --message {prompt} --no-auto-commits。如果留空或不包含 {prompt}，提示資訊將複製到剪貼簿。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:163
+#: setzer/dialogs/preferences/pages/page_build_system.py:166
 msgid "PhiTeX rebuilds as you type, which needs each edit written to disk first — auto build is always on for it."
 msgstr "PhiTeX 會隨輸入重建，而這需要每次編輯先寫入磁碟——因此一律開啟自動建置。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:165
+#: setzer/dialogs/preferences/pages/page_build_system.py:168
 msgid "PhiTeX uses a short fixed delay: an incremental rebuild takes about 20 ms, so a longer wait only delays the preview."
 msgstr "PhiTeX 使用一段較短的固定延遲：增量重建約需 20 毫秒，等得更久只會拖慢預覽。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:168
+#: setzer/dialogs/preferences/pages/page_build_system.py:171
 msgid "A running PhiTeX session needs the helper files it writes (.aux, .toc, .bbl) to know what an edit affects, so they are kept."
 msgstr "執行中的 PhiTeX 工作階段需要它寫出的輔助檔案（.aux、.toc、.bbl）來判斷一次編輯影響到哪些部分，因此會保留這些檔案。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:171
+#: setzer/dialogs/preferences/pages/page_build_system.py:174
 msgid "With a PhiTeX session the build log never pops up on its own: errors show as squiggles in the text and highlighted areas in the preview."
 msgstr "使用 PhiTeX 工作階段時建置紀錄不會自動彈出：錯誤以內文中的波浪線與預覽裡的高亮區域呈現。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:173
+#: setzer/dialogs/preferences/pages/page_build_system.py:176
 msgid "Auto build is turned off."
 msgstr "自動建置已關閉。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:280
+#: setzer/dialogs/preferences/pages/page_build_system.py:283
 msgid "Output chain only applies when latexmk builds the document."
 msgstr "輸出鏈僅在 latexmk 建置文件時生效。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:453
+#: setzer/dialogs/preferences/pages/page_build_system.py:456
 msgid "Changing this ends the running PhiTeX session; the next build starts a new one with the new setting."
 msgstr "變更此項會結束執行中的 PhiTeX 工作階段；下一次建置會依新設定啟動新的工作階段。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:471
+#: setzer/dialogs/preferences/pages/page_build_system.py:474
 msgid "Install PhiTeX on this computer for me: https://github.com/accl-kaust/PhiTeX — a separately built TeX engine I want to use as the LaTeX interpreter in NeoSetzer. Choose whatever is appropriate for this operating system, verify what you download, and install it so that `phitex` is on PATH for my user account without sudo and without writing into system directories. Then check it works and show me what you did. Do not compile PhiTeX into NeoSetzer or bundle it in a NeoSetzer package."
 msgstr "請幫我在這台電腦上安裝 PhiTeX：https://github.com/accl-kaust/PhiTeX —— 它是獨立建置的 TeX 引擎，我想在 NeoSetzer 中作為 LaTeX 解譯器使用。請選擇適合此作業系統的方式，驗證您下載的內容，並安裝到讓我的使用者帳號下的 `phitex` 出現在 PATH 中，勿使用 sudo，也不要寫入系統目錄。完成後確認它能運作，並告知您做了什麼。請勿將 PhiTeX 編譯進 NeoSetzer 或打包進 NeoSetzer 的安裝套件。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:502
+#: setzer/dialogs/preferences/pages/page_build_system.py:505
 msgid "Not found"
 msgstr "找不到"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:529
+#: setzer/dialogs/preferences/pages/page_build_system.py:532
 msgid "Could not change PhiTeX’s update check setting."
 msgstr "無法變更 PhiTeX 的更新檢查設定。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:541
+#: setzer/dialogs/preferences/pages/page_build_system.py:544
 msgid "Upgrade PhiTeX?"
 msgstr "要升級 PhiTeX 嗎？"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:542
+#: setzer/dialogs/preferences/pages/page_build_system.py:545
 msgid "PhiTeX will download its latest release, verify it and replace its own binary. NeoSetzer does not download anything. Running sessions are ended so the next build uses the new version."
 msgstr "PhiTeX 會下載它的最新發行版、驗證並取代自己的二進位檔。NeoSetzer 不下載任何內容。執行中的工作階段會被結束，以便下一次建置使用新版本。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:544 setzer/dialogs/preferences/pages/page_build_system.py:700
+#: setzer/dialogs/preferences/pages/page_build_system.py:547 setzer/dialogs/preferences/pages/page_build_system.py:703
 msgid "Upgrade"
 msgstr "升級"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:564
+#: setzer/dialogs/preferences/pages/page_build_system.py:567
 #, python-brace-format
 msgid "PhiTeX upgraded: {message}"
 msgstr "PhiTeX 已升級：{message}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:565
+#: setzer/dialogs/preferences/pages/page_build_system.py:568
 msgid "PhiTeX upgraded."
 msgstr "PhiTeX 已升級。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:567
+#: setzer/dialogs/preferences/pages/page_build_system.py:570
 msgid "PhiTeX could not be upgraded: the command did not run."
 msgstr "PhiTeX 無法升級：指令未能執行。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:569
+#: setzer/dialogs/preferences/pages/page_build_system.py:572
 #, python-brace-format
 msgid "PhiTeX could not be upgraded: {message}"
 msgstr "PhiTeX 升級失敗：{message}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:626
+#: setzer/dialogs/preferences/pages/page_build_system.py:629
 msgid "Build system"
 msgstr "建置系統"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:630
+#: setzer/dialogs/preferences/pages/page_build_system.py:633
 msgid "LaTeX interpreter"
 msgstr "LaTeX 解譯器"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:644
+#: setzer/dialogs/preferences/pages/page_build_system.py:647
 msgid ""
 "No LaTeX interpreter found. To install interpreters in Flatpak, open a terminal and run the following command:\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
@@ -4381,215 +4389,215 @@ msgstr ""
 "找不到 LaTeX 解譯器。若要在 Flatpak 中安裝解譯器，請開啟終端機並執行以下命令：\n"
 "flatpak install org.freedesktop.Sdk.Extension.texlive"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:647
+#: setzer/dialogs/preferences/pages/page_build_system.py:650
 msgid "No LaTeX interpreter found. For instructions on installing LaTeX see <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 msgstr "找不到 LaTeX 解譯器。有關安裝 LaTeX 的說明，請參閱 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">https://en.wikibooks.org/wiki/LaTeX/Installation</a>"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:648
+#: setzer/dialogs/preferences/pages/page_build_system.py:651
 msgid "Please note: the Tectonic backend uses only the V1 command-line interface. Tectonic.toml configuration files are ignored. For custom build configuration, switch to another interpreter (see the <a href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic documentation</a>)."
 msgstr "請注意：Tectonic 後端僅使用 V1 命令列介面，Tectonic.toml 設定檔會被忽略。若需自訂建置設定，請切換至其他解譯器（請參閱 <a href=\"https://tectonic-typesetting.github.io/tectonic/\">Tectonic 文件</a>）。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:652
+#: setzer/dialogs/preferences/pages/page_build_system.py:655
 msgid "PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX’s, but LuaLaTeX is not supported yet."
 msgstr "PhiTeX 一次建置到不動點（含 BibTeX、biber 與 makeindex），因此下方的 latexmk 選項不適用。其 PDF 與 pdfLaTeX 逐位元組一致，但尚不支援 LuaLaTeX。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:655 setzer/dialogs/project_build_configuration_viewgtk.py:225
+#: setzer/dialogs/preferences/pages/page_build_system.py:658 setzer/dialogs/project_build_configuration_viewgtk.py:225
 msgid "Interpreter"
 msgstr "LaTeX 解譯器"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:662
+#: setzer/dialogs/preferences/pages/page_build_system.py:665
 msgid "Install PhiTeX"
 msgstr "安裝 PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:663
+#: setzer/dialogs/preferences/pages/page_build_system.py:666
 msgid "Not found on this machine. Copy the instructions and hand them to an AI agent — it will fetch and verify the release for your platform."
 msgstr "此電腦未找到。複製這段說明交給 AI Agent，它會為您的平台下載並驗證發布套件。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:667 setzer/dialogs/preferences/pages/page_build_system.py:671
+#: setzer/dialogs/preferences/pages/page_build_system.py:670 setzer/dialogs/preferences/pages/page_build_system.py:674
 msgid "Copy the installation instructions to the clipboard"
 msgstr "複製安裝說明至剪貼簿"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:681
+#: setzer/dialogs/preferences/pages/page_build_system.py:684
 msgid "PhiTeX"
 msgstr "PhiTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:687
+#: setzer/dialogs/preferences/pages/page_build_system.py:690
 msgid "Version"
 msgstr "版本"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:691
+#: setzer/dialogs/preferences/pages/page_build_system.py:694
 msgid "Let PhiTeX check for updates"
 msgstr "允許 PhiTeX 檢查更新"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:692
+#: setzer/dialogs/preferences/pages/page_build_system.py:695
 msgid "PhiTeX checks at most once a day, on its own, from its own binary. NeoSetzer never downloads or queries anything for it."
 msgstr "PhiTeX 每天最多一次、由它自己的二進位檔自行檢查。NeoSetzer 從不為此下載或查詢任何內容。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:696
+#: setzer/dialogs/preferences/pages/page_build_system.py:699
 msgid "Upgrade to the latest release"
 msgstr "升級到最新發行版"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:699
+#: setzer/dialogs/preferences/pages/page_build_system.py:702
 msgid "PhiTeX downloads and verifies its own release. NeoSetzer only runs the command."
 msgstr "PhiTeX 自行下載並校驗其發行版。NeoSetzer 只負責執行該命令。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:706
+#: setzer/dialogs/preferences/pages/page_build_system.py:709
 msgid "Running PhiTeX sessions are ended after an upgrade, so the next build starts on the new version."
 msgstr "升級後會結束執行中的 PhiTeX 工作階段，下一次建置即使用新版本。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:714
+#: setzer/dialogs/preferences/pages/page_build_system.py:717
 msgid "Remove helper files after building"
 msgstr "建置後移除輔助檔案"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:716
+#: setzer/dialogs/preferences/pages/page_build_system.py:719
 msgid "The .log, .dvi and similar helper files are deleted once the PDF is built."
 msgstr "PDF 建置完成後，.log、.dvi 等同類輔助檔案會被刪除。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:724
+#: setzer/dialogs/preferences/pages/page_build_system.py:727
 msgid "Keep a PhiTeX session running"
 msgstr "保持 PhiTeX 工作階段常駐執行"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:725
+#: setzer/dialogs/preferences/pages/page_build_system.py:728
 msgid "Rebuild only what the edit affects by reusing one running PhiTeX process per document. Turning this off re-starts PhiTeX for every build, which recompiles the whole document each time."
 msgstr "每個文件複用一個常駐的 PhiTeX 程序，僅重建編輯影響到的部分。關閉後每次建置都會重新啟動 PhiTeX，每次都要完整重編譯整份文件。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:735
+#: setzer/dialogs/preferences/pages/page_build_system.py:738
 msgid "Precise SyncTeX in the background"
 msgstr "背景精確 SyncTeX"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:736
+#: setzer/dialogs/preferences/pages/page_build_system.py:739
 msgid "While PhiTeX live preview is active, regenerate SyncTeX with the native TeX engine in the background for accurate jumping. Jumping is briefly unavailable while it updates."
 msgstr "PhiTeX 即時預覽啟用時，在背景用原生 TeX 引擎重新產生 SyncTeX，實現精確跳轉。更新期間跳轉短暫無法使用。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:744
+#: setzer/dialogs/preferences/pages/page_build_system.py:747
 msgid "Output chain"
 msgstr "輸出環境"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:747
+#: setzer/dialogs/preferences/pages/page_build_system.py:750
 msgid "Needed by PSTricks and psfrag; the interpreter choice is bypassed on this route."
 msgstr "PSTricks 與 psfrag 需要此路線；該路線會略過所選擇的解譯器。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:749
+#: setzer/dialogs/preferences/pages/page_build_system.py:752
 msgid "Direct PDF"
 msgstr "直接 PDF"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:750
+#: setzer/dialogs/preferences/pages/page_build_system.py:753
 msgid "PDF via PostScript (DVI → dvips → ps2pdf)"
 msgstr "透過 PostScript 生成 PDF（DVI → dvips → ps2pdf）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:756
+#: setzer/dialogs/preferences/pages/page_build_system.py:759
 msgid "Generate SyncTeX for preview sync"
 msgstr "生成 SyncTeX 用於預覽同步"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:757
+#: setzer/dialogs/preferences/pages/page_build_system.py:760
 msgid "Enables forward/reverse sync between editor and PDF preview. Disabling makes builds slightly faster."
 msgstr "啟用編輯器與 PDF 預覽之間的正向/反向同步。停用可讓建置略快。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:761
+#: setzer/dialogs/preferences/pages/page_build_system.py:764
 msgid "Elapsed-time counter on the build button"
 msgstr "建置按鈕上的計時器"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:764
+#: setzer/dialogs/preferences/pages/page_build_system.py:767
 msgid "Shown automatically for slower interpreters; hidden with PhiTeX live builds."
 msgstr "較慢的解譯器自動顯示；PhiTeX 即時建置時隱藏。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:766
+#: setzer/dialogs/preferences/pages/page_build_system.py:769
 msgid "Show once the build passes a second"
 msgstr "建置超過一秒後才顯示"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:767
+#: setzer/dialogs/preferences/pages/page_build_system.py:770
 msgid "Always show"
 msgstr "一律顯示"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:768
+#: setzer/dialogs/preferences/pages/page_build_system.py:771
 msgid "Never show"
 msgstr "永不顯示"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:774
+#: setzer/dialogs/preferences/pages/page_build_system.py:777
 msgid "Auto build"
 msgstr "自動建置"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:778
+#: setzer/dialogs/preferences/pages/page_build_system.py:781
 msgid "Automatically build and save after changes"
 msgstr "變更後自動建置並儲存"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:779
+#: setzer/dialogs/preferences/pages/page_build_system.py:782
 msgid "When you stop typing, the document is saved and rebuilt after a short delay."
 msgstr "當您停止輸入後，文件會在短暫延遲後自動儲存並重新建置。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:783
+#: setzer/dialogs/preferences/pages/page_build_system.py:786
 msgid "Delay (seconds)"
 msgstr "延遲（秒）"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:785
+#: setzer/dialogs/preferences/pages/page_build_system.py:788
 msgid "Shorter delays update the preview faster but use more CPU while typing."
 msgstr "延遲越短，預覽更新越快，但輸入時會耗用更多 CPU。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:796
+#: setzer/dialogs/preferences/pages/page_build_system.py:799
 msgid "Pop up build log on auto-build errors"
 msgstr "自動建置發生錯誤時彈出建置紀錄"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:798
+#: setzer/dialogs/preferences/pages/page_build_system.py:801
 msgid "When auto-build is on, automatically show the build log when errors occur. Disable to avoid interruptions while typing."
 msgstr "啟用自動建置時，發生錯誤會自動顯示建置紀錄。停用可避免輸入時受到干擾。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:809
+#: setzer/dialogs/preferences/pages/page_build_system.py:812
 msgid "Automatically show build log"
 msgstr "自動顯示建置紀錄…"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:811
+#: setzer/dialogs/preferences/pages/page_build_system.py:814
 msgid "Only when errors occur"
 msgstr "僅在出錯時"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:812
+#: setzer/dialogs/preferences/pages/page_build_system.py:815
 msgid "On errors and warnings"
 msgstr "出錯或有警告時"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:813
+#: setzer/dialogs/preferences/pages/page_build_system.py:816
 msgid "On errors, warnings and badboxes"
 msgstr "出錯、警告或 badbox 時"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:814
+#: setzer/dialogs/preferences/pages/page_build_system.py:817
 msgid "Never"
 msgstr "從不"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:820
+#: setzer/dialogs/preferences/pages/page_build_system.py:823
 msgid "Embedded system commands"
 msgstr "內嵌系統命令"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:839
+#: setzer/dialogs/preferences/pages/page_build_system.py:842
 msgid "Warning: enable this only if you have to. It can cause security problems when building files from untrusted sources."
 msgstr "警告：僅在必要時啟用此選項。建置來自不可信來源的檔案時，可能造成安全問題。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:847
+#: setzer/dialogs/preferences/pages/page_build_system.py:850
 msgid "System commands"
 msgstr "內嵌系統命令"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:849
+#: setzer/dialogs/preferences/pages/page_build_system.py:852
 msgid "Disable"
 msgstr "停用"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:850
+#: setzer/dialogs/preferences/pages/page_build_system.py:853
 msgid "Enable restricted \\write18{SHELL COMMAND}"
 msgstr "啟用受限的 \\write18{SHELL COMMAND}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:851
+#: setzer/dialogs/preferences/pages/page_build_system.py:854
 msgid "Fully enable \\write18{SHELL COMMAND}"
 msgstr "完全啟用 \\write18{SHELL COMMAND}"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:858
+#: setzer/dialogs/preferences/pages/page_build_system.py:861
 msgid "Personal TeX tree"
 msgstr "個人 TeX 目錄樹"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:859
+#: setzer/dialogs/preferences/pages/page_build_system.py:862
 msgid "Directory with your own packages, classes and bibliography styles (kpathsea TEXMFHOME). Applied to every build; leave empty to use your environment or the TeX Live default (~/texmf)."
 msgstr "存放您自己的巨集套件、類別和文獻樣式的目錄（kpathsea TEXMFHOME）。套用於每次建置；留空則使用您的環境或 TeX Live 預設值（~/texmf）。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:863
+#: setzer/dialogs/preferences/pages/page_build_system.py:866
 msgid "TEXMFHOME directory"
 msgstr "輸出目錄"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:864
+#: setzer/dialogs/preferences/pages/page_build_system.py:867
 msgid "A leading \"~\" is expanded to your home folder. Example: ~/.texmf"
 msgstr "開頭的\"~\"會展開到您的主資料夾。例如：~/.texmf"
 
