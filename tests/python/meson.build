@@ -94,6 +94,7 @@ foreach t : [
   ['test_phitex_update_ui', 'test_phitex_update_ui.py'],
   ['test_preview_dest_scroll', 'test_preview_dest_scroll.py'],
   ['test_preview_diff_mode', 'test_preview_diff_mode.py'],
+  ['test_viewer_protocol', 'test_viewer_protocol.py'],
   ['test_preview_magnifier', 'test_preview_magnifier.py'],
   ['test_preview_magnifier_lifecycle', 'test_preview_magnifier_lifecycle.py'],
   ['test_preview_no_flash_on_rebuild', 'test_preview_no_flash_on_rebuild.py'],

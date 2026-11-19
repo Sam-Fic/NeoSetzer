@@ -123,6 +123,22 @@ class Preview(Observable):
         # 预览才能在编译全程稳定显示上一次编译好的 PDF。get_pdf_date() 的
         # 磁盘 mtime 只用于会话恢复持久化，不能作为渲染缓存版本。
         self.pdf_version = 0
+        # PhiTeX viewer WS 送来的**页内容 hash 表**（按 0-based 页序的 hex 列
+        # 表；None = 非 PhiTeX/WS 未就绪，行为与引入本字段之前完全一致）。
+        # 渲染缓存用它做页级续命：pdf_version 变了但某页内容 hash 没变 → 旧
+        # 纹理仍代表当前内容，不重渲（62 页文档 agent 改一段话只重渲那页）。
+        # 正确性依据：PhiTeX 页 hash 覆盖该页内容流——hash 相等 ⇔ 渲染必相
+        # 等；纹理自带的标签只在"两边都不是 None 且相等"时才作续命凭据，
+        # 没有标签的纹理照旧按版本失效（自愈：最多多渲一次，不会错留）。
+        self.page_content_hashes = None
+        # WS 刚送到、还没轮到上身的 hash 表：load_pdf 成功换版本时才与
+        # pdf_version 原子地一起换装（与 settled 事件"重新加载 PDF + 重拉
+        # pages"成对的语义同源）。纹理标签的正确性靠"入队时可见的表在该
+        # 版本的整个存续期内不变"保证；版本存续期内到了新表也只入 pending，
+        # 当前版本的渲染判定不受扰动。
+        self._pending_page_hashes = None
+        # pending 表对应的正式 PDF mtime（提交前核对，防表落后一轮；None = 未知）。
+        self._pending_hashes_mtime = None
         self.page_width = None
         self.page_height = None
         self.page_sizes = []
@@ -875,6 +891,46 @@ class Preview(Observable):
         else:
             return None
 
+    def notify_page_hashes(self, hashes):
+        '''viewer WS 送来 watch 最新构建的页 hash 表（主线程）。
+
+        只寄存 pending，**load_pdf 成功换版本时才提交**——提交时机与"内存
+        Poppler 文档换装"严格同点，表与文档的世代配对才有硬保证：
+
+        * 纹理的内容→标签诚实：入队取标签时，committed 表正是本世代文档
+          所来自的那次 settled（watch 先写盘、后发 settled，settled 的 WS
+          投递几乎总是先于 builder 子进程返回→结果上主线程）；
+        * 续命判定只在"版本不同"的旧纹理上做：标签表与当前表都是各自
+          世代的真表，相等 ⇔ 页内容跨两代构建相同 ⇒ 旧纹理画的就是新内容。
+
+        残余竞态：settled(k) 的 WS 投递晚于第 k 轮 wait 返回（本机 ws 一帧
+        vs 子进程退出+线程 hop，几乎不可能）时表会落后一轮，纹理标签随之
+        落后。要造成可见错误还需页内容在相邻两代里 A→B→A 回环（150ms 一
+        个构建节拍），且该页内容再变时自然打破链条。synctex 影子 gz 的失
+        效窗口以秒计，本方案的最坏陈旧面积远小于现状。
+
+        diff 视图（覆盖加载的 JOB-diff PDF）只清不提交：pending 留着，落回
+        正式 PDF 的 load_pdf 会用最新表提交。
+
+        mtime 守卫：收表时记下正式 PDF 的 mtime，提交前核对——期间 PDF 又
+        被构建改写（表落后一轮）就作废不提交。watch 写盘在 settled 之前，正
+        常流"收表 → 消费构建结果 → load_pdf"看到同一 mtime；连续快速编辑下
+        轮次错开在这里被拦下，代价只是这一轮不用页级续命。
+        '''
+        self._pending_page_hashes = list(hashes) if hashes else None
+        try:
+            self._pending_hashes_mtime = (os.path.getmtime(self.pdf_filename)
+                                          if self.pdf_filename else None)
+        except OSError:
+            self._pending_hashes_mtime = None
+
+    def clear_page_hash_context(self):
+        '''引擎离开 PhiTeX live（或 watch 停掉）时调用：表与 pending 一起清，
+        渲染缓存退回"按版本整体失效"。'''
+        self.page_content_hashes = None
+        self._pending_page_hashes = None
+        self._pending_hashes_mtime = None
+
     def load_pdf(self, external_reload=False, display_path=None):
         '''加载 PDF 到预览。
 
@@ -899,6 +955,28 @@ class Preview(Observable):
             self.poppler_document = new_document
             # 新内存文档 → 递增版本号，使渲染缓存整体失效重建。
             self.pdf_version += 1
+            # 页内容 hash 表与版本**成对换装**（延迟提交）：watch 写盘在前、
+            # settled 推表在后，所以进入本次 load 时 pending 里最后的表就是
+            # 即将读入的这份磁盘 PDF 的表——表与文档天然配对。表没赶上
+            # （pending 为 None）就换 None，渲染缓存退化为按版本整体失效。
+            # diff 视图（覆盖加载）显示的是 JOB-diff 旁路构建，hash 表属于
+            # 正式 PDF，一律清空防串。
+            if is_override:
+                self.page_content_hashes = None
+                self._pending_page_hashes = None
+            else:
+                self.page_content_hashes = self._pending_page_hashes
+                if self.page_content_hashes is not None:
+                    try:
+                        current_mtime = (os.path.getmtime(display_target)
+                                         if display_target else None)
+                    except OSError:
+                        current_mtime = None
+                    if current_mtime != self._pending_hashes_mtime:
+                        # 收表之后 PDF 又被写过：表不是这份文档的构建的。
+                        self.page_content_hashes = None
+            self._pending_page_hashes = None
+            self._pending_hashes_mtime = None
             # 字形框缓存绑定旧文档，必须一并清空。
             self._text_layout_cache = dict()
             self._text_ink_raster_cache = dict()
@@ -963,6 +1041,9 @@ class Preview(Observable):
         self.pdf_filename = None
         self.poppler_document = None
         self.pdf_version += 1
+        self.page_content_hashes = None
+        self._pending_page_hashes = None
+        self._pending_hashes_mtime = None
         self.page_width = None
         self.page_height = None
         self.page_sizes = []
@@ -1624,6 +1705,28 @@ class Preview(Observable):
         # 影子 synctex 新鲜度门控：直查路径不经 can_sync，这里自行拦截，
         # 不拿陈旧影子 gz 跳转到错行。
         build_system = getattr(self.document, 'build_system', None)
+        # origins 快路径（PhiTeX viewer WS，逐字形源码映射）：比 synctex 精
+        # 确到词、无行号失真（影子 gz 的整条修复/重定向链就是为治 synctex
+        # 行号而存在），且**不需要** synctex 新鲜度门控——origins 由 watch
+        # 从自己的构建数据现做，永远跟最新 settled 一致。同步等 ≤1s（交互
+        # 语义即"等一下跳过去"）。拿不到就原样落回 synctex。
+        if (build_system is not None and build_system.is_phitex_live_build()
+                and build_system.viewer_client.connected):
+            origin = build_system.query_origin_position(page, x, y)
+            if origin is not None:
+                _sync_debug('origins 反查命中 %s:%s（绕过 synctex）' % (
+                    origin.get('name'), origin['line']))
+                # 列号走 set_synctex_position 的字符精修通道（pdf_line_offset
+                # + pdf_line_text）：两者同为源码行文本 ⇒ 恒等对齐 ⇒ 光标
+                # 落在字形对应的精确字符上（origins 的 word-accuracy）。
+                self._deliver_backward_sync(
+                    {'filename': origin['filename'], 'line': origin['line'],
+                     'column': origin.get('column'), 'offset': None,
+                     'word': None, 'context': None,
+                     'pdf_line_offset': origin.get('column'),
+                     'pdf_line_text': origin.get('line_text'),
+                     'exact': True}, None)
+                return False
         if build_system is not None and not build_system.synctex_is_fresh():
             from setzer.helpers import toast
             toast.show(_('Sync data is being updated in the background. Try again in a moment.'), timeout=2)
@@ -1664,6 +1767,14 @@ class Preview(Observable):
     
     def _deliver_backward_sync(self, position, refinement):
         if position is not None:
+            if refinement is None:
+                # origins 快路径：逐字形映射，行号/文件都已精确，没有 synctex
+                # 的"行号失真"概念——不走 PDF 行文本精修与词匹配，直接落点。
+                position['line'] -= 1
+                ServiceLocator.get_workspace().jump_to_synctex_position(
+                    self.document, position)
+                self.add_change_code('synctex_backward')
+                return False
             (position['word'], position['context'],
              position['pdf_line_offset'], position['pdf_line_text']) = refinement
             position['line'] -= 1  # helper 1-based → set_synctex_position 0-based

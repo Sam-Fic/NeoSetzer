@@ -38,6 +38,7 @@ from setzer.dialogs.document_wizard.file_templates import (
     copy_file_template,
     list_file_templates,
 )
+from setzer.helpers import toast, viewer_protocol
 
 
 class Actions(object):
@@ -137,6 +138,11 @@ class Actions(object):
         self.add_action('copy-pageref', self.copy_pageref_label, GLib.VariantType('s'))
         self.add_action('copy-autoref', self.copy_autoref_label, GLib.VariantType('s'))
         self.add_action('find-all-refs', self.find_all_refs, GLib.VariantType('s'))
+        # PhiTeX 直查 label 的排版位置/裁图（watch 的 where/png 子命令）
+        self.add_action('show-label-in-pdf', self.show_label_in_pdf,
+                        GLib.VariantType('s'))
+        self.add_action('copy-label-png', self.copy_label_png,
+                        GLib.VariantType('s'))
 
         self.add_action('start-search', self.start_search)
         self.add_action('start-search-and-replace', self.start_search_and_replace)
@@ -2051,6 +2057,94 @@ class Actions(object):
         search.view.entry.set_text('\\ref{' + label + '}')
         search.on_search_entry_changed(search.view.entry)
 
+    def _phitex_session_for_document(self, document):
+        '''活跃文档的 PhiTeX 常驻 session；非 live 构建返回 None。'''
+        build_system = getattr(document, 'build_system', None)
+        if build_system is None or not build_system.is_phitex_live_build():
+            return None
+        return getattr(build_system, '_get_phitex_session', lambda: None)()
+
+    def show_label_in_pdf(self, action=None, parameter=None):
+        r'''把 \label{...} 指向的内容在预览里定位并闪一下（`session where`）。
+
+        label 的排版位置只有编译器知道（synctex 对 label 这个无输出命令
+        给的是周围段落盒），watch 的 where 直查自己的构建数据，精确到
+        标签真正标注的对象（图/表/公式/章节）。后台线程跑子进程，idle 回
+        主线程让预览滚动 + 闪烁；预览不在则静默（这是定位辅助，不弹错）。
+        '''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        session = self._phitex_session_for_document(document)
+        if session is None:
+            return
+        preview = getattr(document, 'preview', None)
+
+        def _run():
+            payload = session.where_label(label)
+            if payload is None:
+                GLib.idle_add(toast.show, _('Could not find “{}” in the PDF')
+                              .format(label), 3)
+                return
+            rectangle = viewer_protocol.where_to_rectangle(payload)
+            if rectangle is None:
+                return
+            GLib.idle_add(_flash, rectangle)
+
+        def _flash(rectangle):
+            if preview is None:
+                return False
+            # set_synctex_rectangles 就是正向同步的落点语义：滚到矩形并高亮
+            # 闪一下——这是用户显式发起的"带我去看看"，跳页是预期行为。
+            preview.set_synctex_rectangles([rectangle])
+            return False
+
+        import threading
+        threading.Thread(target=_run, daemon=True).start()
+
+    def copy_label_png(self, action=None, parameter=None):
+        r'''把 \label{...} 指向的内容（图/表/公式）裁成 PNG 放进剪贴板。
+
+        走 `session png --label`（字形边界自动收边，比按盒硬裁好看），落
+        临时文件后由主线程读成贴图进剪贴板——图可以直接粘进幻灯片/聊天。
+        失败只 toast，不打断。
+        '''
+        if parameter is None:
+            return
+        label = parameter.get_string()
+        document = self.workspace.get_active_document()
+        if document is None:
+            return
+        session = self._phitex_session_for_document(document)
+        if session is None:
+            return
+
+        def _run():
+            import tempfile
+            path = os.path.join(tempfile.gettempdir(),
+                                'neosetzer-label-{}.png'.format(
+                                    abs(hash(label)) % (10 ** 8)))
+            returncode, _stdout = session.png_label(label, path)
+            GLib.idle_add(_set_clipboard, path, label)
+
+        def _set_clipboard(path, label):
+            if not os.path.isfile(path):
+                toast.show(_('Could not render “{}” as an image').format(label), 3)
+                return False
+            try:
+                texture = Gdk.Texture.new_from_filename(path)
+                clipboard = Gdk.Display.get_default().get_clipboard()
+                clipboard.set_content(Gdk.ContentProvider.new_for_value(texture))
+                toast.show(_('“{}” copied as an image').format(label), 2)
+            except Exception:
+                toast.show(_('Could not copy “{}” as an image').format(label), 3)
+            return False
+
+        import threading
+        threading.Thread(target=_run, daemon=True).start()
     def fold_all(self, action=None, parameter=None):
         document = self.workspace.get_active_document()
         if document is None:

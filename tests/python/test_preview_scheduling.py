@@ -168,6 +168,11 @@ class TestPreviewPageSizes(unittest.TestCase):
         # 它来判断几何是否变化，桩对象必须同样具备该属性。
         self.preview.layout = None
         self.preview.page_width = self.preview.page_height = None
+        # load_pdf 会在这里提交 viewer WS 的页 hash 表（与 pdf_version 成对
+        # 换装）；桩对象要有这两个属性。
+        self.preview._pending_page_hashes = None
+        self.preview._pending_hashes_mtime = None
+        self.preview.page_content_hashes = None
         self.preview._external_pdf_tracker = Mock()
         self.preview._text_layout_cache = {}
         for name in ('update_vertical_margin', 'clear_text_selection',

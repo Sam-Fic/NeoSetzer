@@ -36,7 +36,14 @@ def _renderer_method(name, **namespace):
         if isinstance(node, ast.FunctionDef) and node.name == name
     )
     namespace = {'math': math, 'queue': queue, 'threading': threading, **namespace}
-    module = ast.Module(body=[method], type_ignores=[])
+    # 判定核心抽成了模块级纯函数（renderer 里 update_rendered_pages 引用它），
+    # 一并装进命名空间。
+    helper = next(
+        (node for node in RENDERER_TREE.body
+         if isinstance(node, ast.FunctionDef)
+         and node.name == 'page_texture_still_valid'), None)
+    body = [helper, method] if helper is not None else [method]
+    module = ast.Module(body=body, type_ignores=[])
     exec(compile(ast.fix_missing_locations(module), str(RENDERER_SOURCE), 'exec'),
          namespace)
     return namespace[name]

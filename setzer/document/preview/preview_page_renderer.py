@@ -35,6 +35,36 @@ from setzer.document.preview.magnifier_geometry import (
 from setzer.helpers.observable import Observable
 
 
+def page_texture_still_valid(page_data, page_number, pdf_version, page_width,
+                             page_height, page_hashes):
+    """判断已渲染纹理对新一版文档是否仍然有效（needs_render 判定核心）。
+
+    page_data：rendered_pages 的条目 [surface, w, h, pdf_version, colors,
+    content_hash]；page_hashes：PhiTeX viewer WS 的页内容 hash 表（None =
+    不可用）。规则：
+
+    * 无纹理 / 尺寸不符 → 必须重渲；
+    * 版本一致 → 有效（原本的行为）；
+    * 版本变了但两边的页内容 hash 都在、相等 → 内容没变，旧纹理仍代表
+      当前页，不重渲（页级续命）；任一 hash 缺失 → 保守重渲（表可能跨代
+      或未就绪，无法证明内容相同）。
+
+    纯函数、gi-free：CI 直接测，传输/线程部分不掺进来。
+    """
+    if page_data is None:
+        return False
+    if page_data[1] != page_width or page_data[2] != page_height:
+        return False
+    if page_data[3] == pdf_version:
+        return True
+    if page_hashes is None or len(page_data) < 6:
+        return False
+    if page_number >= len(page_hashes):
+        return False
+    current_hash = page_hashes[page_number]
+    return current_hash is not None and page_data[5] == current_hash
+
+
 class PreviewPageRenderer(Observable):
 
     def __init__(self, preview):
@@ -294,7 +324,7 @@ class PreviewPageRenderer(Observable):
                         # 的 B/G/R 加权和，最终视觉结果与旧 PIL 路径一致。
                         surface = self._apply_theme_recolor(surface, colors)
 
-                    self._queue_rendered_page({'page_number': todo['page_number'], 'render_count': todo['render_count'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors]})
+                    self._queue_rendered_page({'page_number': todo['page_number'], 'render_count': todo['render_count'], 'item': [surface, todo['page_width'], todo['page_height'], todo['pdf_version'], colors, todo.get('content_hash')]})
                 except Exception:
                     # 释放失败的精修请求，后续布局/滚动通知可重试；draft
                     # 失败不释放，因为同一请求的全分辨率任务仍在队列里。
@@ -675,6 +705,13 @@ class PreviewPageRenderer(Observable):
         # 不变，已渲染页仍然有效。若按 mtime 失效，编译中滚动/缩放会清空缓存
         # 导致预览白屏（只剩页面底色），直到构建结束才恢复。
         pdf_version = self.preview.pdf_version
+        # PhiTeX viewer WS 的页内容 hash 表。关键约定：这张表只在 load_pdf
+        # 换版本时**原子地**换装（preview 侧），所以对任一 pdf_version 它是
+        # 恒定的——入队捕获的标签与纹理内容同代（交付环 item[3] != 当前版本
+        # 会丢弃跨版本的渲染结果，串不进来）。续命判定因此只需比较标签：
+        # 版本变了但该页 hash 没变 ⇒ 两代构建里这页内容相同，旧纹理显示的
+        # 就是新内容。表为 None（非 PhiTeX / WS 未就绪）一切照旧。
+        page_hashes = getattr(self.preview, 'page_content_hashes', None)
         with self.visible_pages_lock:
             self.visible_pages = visible_pages
             self.visible_pages_additional = visible_pages_additional
@@ -734,6 +771,8 @@ class PreviewPageRenderer(Observable):
         vp_lo, vp_hi = visible_pages[0], visible_pages[1]
         color_key = None if colors is None else tuple(
             (c.red, c.green, c.blue, c.alpha) for c in colors)
+        # 入队去重键：版本一致即可（hash 表与 pdf_version 同点换装，见
+        # Preview.notify_page_hashes，版本一致 ⇔ 表一致，不必进键）。
         target = (page_width, page_height, scale_factor, hidpi_factor, pdf_version, color_key)
         # 滚出缓存区的未完成任务也失效；重新滚入时可以正常重新排队。
         for page_number in list(self._pending_page_renders):
@@ -747,8 +786,11 @@ class PreviewPageRenderer(Observable):
             page_data = rendered_pages.get(page_number)
             # 版本不匹配的占位条目（旧 PDF 纹理）同样触发重绘：保留显示但
             # 必须排队产出新版本结果来替换。低分辨率 draft 占位（快速滚动
-            # 时产出）内容已对但偏软，也要排队做全分辨率精修。
-            needs_render = page_data is None or page_data[1] != page_width or page_data[2] != page_height or page_data[3] != pdf_version
+            # 时产出）内容已对但偏软，也要排队做全分辨率精修。页级续命在
+            # 纯函数里（版本变了但页 hash 未变 ⇒ 不重渲）。
+            needs_render = not page_texture_still_valid(
+                page_data, page_number, pdf_version, page_width, page_height,
+                page_hashes)
             if not needs_render and page_data[0].get_width() < full_device_width:
                 needs_render = True
             if not needs_render:
@@ -784,6 +826,10 @@ class PreviewPageRenderer(Observable):
                         draft_task['page_height'] = page_height
                         draft_task['pdf_version'] = pdf_version
                         draft_task['matching_theme_colors'] = colors
+                        draft_task['content_hash'] = (
+                            page_hashes[page_number]
+                            if page_hashes is not None and page_number < len(page_hashes)
+                            else None)
                         draft_task['draft'] = True
                         render_queue.put(draft_task)
 
@@ -796,6 +842,10 @@ class PreviewPageRenderer(Observable):
                     render_task['page_height'] = page_height
                     render_task['pdf_version'] = pdf_version
                     render_task['matching_theme_colors'] = colors
+                    render_task['content_hash'] = (
+                        page_hashes[page_number]
+                        if page_hashes is not None and page_number < len(page_hashes)
+                        else None)
 
                     if page_number >= vp_lo and page_number <= vp_hi:
                         # 视口内、完全没有纹理的页：快速兜底已由 draft 任务

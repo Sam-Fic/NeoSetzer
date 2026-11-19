@@ -34,6 +34,8 @@ import setzer.document.build_system.builder.builder_build_glossaries as builder_
 import setzer.document.build_system.builder.builder_forward_sync as builder_forward_sync
 import setzer.document.build_system.builder.builder_backward_sync as builder_backward_sync
 import setzer.document.build_system.phitex_session.phitex_session as phitex_session
+from setzer.document.build_system.phitex_session.viewer_socket import ViewerSocketClient
+from setzer.helpers import viewer_protocol
 import setzer.document.build_system.shadow_synctex.shadow_synctex as shadow_synctex
 import setzer.document.build_system.query.query as query
 from setzer.document.change_highlight.change_highlight import ChangeHighlight
@@ -62,6 +64,12 @@ class BuildSystem(Observable):
         self.change_highlight = ChangeHighlight(document)
         # AI 编辑的 PDF diff 显示（PhiTeX session compare，仅 PhiTeX live 路径）。
         self.ai_diff = AiDiff(document, self)
+        # viewer WS 元数据通道（仅 PhiTeX live 路径）：页内容 hash 表与
+        # origins 反查走这根管子。生命周期在本类（主线程对象）：每轮 live
+        # 构建 ensure_endpoint 对齐 watch 的 viewer URL，非 live/关文档一律
+        # 断开。协议纯逻辑在 helpers/viewer_protocol.py。
+        self.viewer_client = ViewerSocketClient(
+            on_page_hashes=self._on_viewer_page_hashes)
         # is_phitex_live_build 的 1s 缓存，见该方法与 invalidate_phitex_live_cache。
         self._phitex_live_cache = None
         # 相关偏好（latex_interpreter / phitex_live_build）一改就作废缓存，
@@ -217,6 +225,11 @@ class BuildSystem(Observable):
         # AiDiff 同理（在途 compare 的回调也走 idle_add），并顺手停掉
         # JOB-diff 旁路构建——它常驻 watch 内存，watch 本身可能还要留。
         self.ai_diff.shutdown()
+        # viewer WS 通道随文档销毁永久关闭（在途 origins 回调一并作废）。
+        try:
+            self.viewer_client.shutdown()
+        except Exception:
+            pass
         try:
             self.settings.disconnect('settings_changed', self.invalidate_phitex_live_cache)
             self.settings.disconnect('settings_changed', self._on_shadow_synctex_setting_changed)
@@ -586,6 +599,9 @@ class BuildSystem(Observable):
                     # 闪哪里都等价于没闪。tex_filename 取自构建结果而非当前文档——
                     # 带 % !TEX root 的子文件编译的是根文档。
                     if self.is_phitex_live_build():
+                        # viewer WS 元数据通道对齐当前 watch（URL 来自 start/
+                        # status 解析；变了自动重连，幂等）。
+                        self._ensure_viewer_socket()
                         # 顺序有讲究：AiDiff 要在 highlight 消费脏行**之前**
                         # 偷看一眼（不消费）来判断"用户是否在 buffer 里手改
                         # 过"，以此区分用户编辑与 agent 的磁盘编辑。
@@ -795,6 +811,122 @@ class BuildSystem(Observable):
         '''引擎、项目配置或相关偏好变动后调用：下一次询问重新计算。'''
         self._phitex_live_cache = None
 
+    # ---- viewer WS 元数据通道（页 hash / origins） --------------------------
+
+    def _get_phitex_session(self):
+        '''常驻 watch 会话（worker 线程会重建对象，这里每次现取不缓存）。'''
+        builder = self.builders.get('build_latex')
+        session = getattr(builder, 'phitex_session', None) if builder else None
+        if session is None or session.pid is None:
+            return None
+        return session
+
+    def _ensure_viewer_socket(self):
+        '''把 WS 客户端对齐当前 watch 的 viewer URL；不满足条件就断开。
+
+        只在 live 构建时连（非 PhiTeX 用户根本不该有这条 socket）；URL 要
+        等 start 或 status 解析出来才有（首轮构建结束即有）。幂等。'''
+        session = self._get_phitex_session() if self.is_phitex_live_build() else None
+        viewer_url = getattr(session, 'viewer_url', None) if session else None
+        if viewer_url:
+            self.viewer_client.ensure_endpoint(viewer_url)
+        else:
+            self.viewer_client.disconnect()
+            # 通道没了，页 hash 表一并作废（防跨引擎误续命）。
+            preview = getattr(self.document, 'preview', None)
+            if preview is not None:
+                preview.clear_page_hash_context()
+
+    def _on_viewer_page_hashes(self, hashes):
+        '''WS 的页 hash 表送达（主线程；ViewerSocketClient 的回调就活在这）。'''
+        preview = getattr(self.document, 'preview', None)
+        if preview is None:
+            return
+        preview.notify_page_hashes(hashes)
+
+    def query_origin_position(self, page, x, y):
+        '''origins 精确反查（主线程同步，最长 ~1s）：PDF 点 → 源码位置。
+
+        page 0-based；x/y 是**页左上原点、y 向下**的 PDF pt（origins 坐标
+        系，与 init_backward_sync 从 layout 拿到的 y_offset 同向，零换算）。
+        返回 {'filename', 'line'(1-based), 'name'} 或 None（连接不在 / 页
+        拿不到 / 无命中字形 / 取不到文件文本）。line 是 1-based，调用方按
+        synctex 交付链的约定 -1 后传入。
+
+        同步等待用嵌套 GLib.MainContext 泵：本机 WS 帧的到达就是主上下文
+        事件，泵它能等到回复而不阻塞其他源（与 Python 重入主循环的经典顾
+        虑不同——这里只跑 ≤1s、无用户输入要处理，反查的交互语义本来就是
+        "等一下跳过去"）。泵重入保护：嵌套泵里再进来直接按拿不到返回。
+        watch 侧未做好的页回 pending，client 自带 4→100ms 轮询。
+        '''
+        client = self.viewer_client
+        if not client.connected or getattr(self, '_origin_query_pumping', False):
+            return None
+        result = []
+
+        def _done(glyphs, files):
+            result.append((glyphs, files))
+
+        self._origin_query_pumping = True
+        try:
+            client.request_origins(page, _done)
+            deadline = time.time() + 1.0
+            context = GLib.MainContext.default()
+            while not result and time.time() < deadline:
+                if context.pending():
+                    context.iteration(False)
+                else:
+                    # 没有待发的事件：睡 2ms 再看，避免空转烧 CPU（回复大概
+                    # 率已在 socket 缓冲里，下一拍 pending 就真了）。
+                    time.sleep(0.002)
+        finally:
+            self._origin_query_pumping = False
+        if not result:
+            # 超时：结果晚到也不该把 UI 再拽走（反查已退回 synctex 路径）。
+            client.cancel_origins(page)
+            return None
+        glyphs, files = result[0]
+        if not glyphs:
+            return None
+        glyph = viewer_protocol.nearest_glyph(glyphs, x, y)
+        if glyph is None:
+            return None
+        project_root = os.path.dirname(self.document.get_filename() or '')
+        main_name = os.path.basename(self.document.get_filename() or '')
+
+        def _lookup_text(name):
+            # 主文档取 buffer（与 synctex 交付链的 active_lines 快照同源）；
+            # 子文件读盘（save-to-build 流里盘与构建版本一致）。
+            if name == main_name:
+                return self.document.get_all_text()
+            path = os.path.join(project_root, name)
+            try:
+                with open(path, encoding='utf-8', errors='replace') as handle:
+                    return handle.read()
+            except OSError:
+                return None
+
+        position = viewer_protocol.origin_to_position(
+            glyph, files, project_root, _lookup_text)
+        if position is None:
+            return None
+        # 字符级列号：set_synctex_position 用 pdf_line_offset + pdf_line_text
+        # 做 PDF 行 → 源码行的对齐；这里两者同源（都是源码行），恒等映射
+        # 让光标落在字形对应的精确字符上——origins 的 word-accuracy。
+        text = _lookup_text(position['name'])
+        if text is not None:
+            try:
+                prefix = text.encode('utf-8')[:int(glyph['start'])].decode(
+                    'utf-8', errors='ignore')
+            except UnicodeEncodeError:
+                prefix = None
+            if prefix is not None:
+                line_text = prefix.split('\n')[-1]
+                position['column'] = len(line_text)
+                position['line_text'] = line_text
+        return position
+
+
     def start_building(self):
         if self.build_mode == 'forward_sync' and not self.has_synctex_file: return
         if self.build_mode == 'backward_sync' and self.backward_sync_data == None: return
@@ -911,6 +1043,16 @@ class BuildSystem(Observable):
         if effective != 'phitex' and self.builders['build_latex'].phitex_session is not None:
             threading.Thread(target=self.builders['build_latex'].stop_phitex_session,
                              daemon=True).start()
+        if effective != 'phitex':
+            # 离开 PhiTeX：viewer WS 通道与页 hash 表一并作废（表只对
+            # watch 的构建有意义，跨引擎续命会拿错页内容）。
+            try:
+                self.viewer_client.disconnect()
+            except Exception:
+                pass
+            preview = getattr(self.document, 'preview', None)
+            if preview is not None:
+                preview.clear_page_hash_context()
         self.add_change_code('latex_interpreter_changed')
 
     def _phitex_synctex_lines_unreliable(self):
@@ -948,7 +1090,13 @@ class BuildSystem(Observable):
         return line
 
     def set_synctex_position(self, document, position):
-        line = self.correct_synctex_line(position['line'], position.get('pdf_line_text'))
+        # origins 快路径落点：行号来自逐字形映射（精确），不许 synctex 的
+        # 行号修复启发式再动它——pdf_line_text 在这里是源码行文本，不是
+        # PDF 行文本，喂给 repair_line 只会把精确行改错。
+        if position.get('exact'):
+            line = position['line']
+        else:
+            line = self.correct_synctex_line(position['line'], position.get('pdf_line_text'))
         # 公式/表格内点击 synctex 常返回块边界行（\end{equation} 等）：
         # 重定向到块内最近内容行。字符级精修依赖点击处 PDF 行文本，
         # 换行后不再适用，丢弃 offset 精修字段退化为词匹配/行首。

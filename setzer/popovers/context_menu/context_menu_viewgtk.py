@@ -325,12 +325,23 @@ class ContextMenuView(Gtk.PopoverMenu):
                 label_section = Gio.Menu()
                 label_section.append_item(
                     _action_item(_('Jump to Definition'), 'win.jump-to-definition::' + label))
+                # PhiTeX 直查：label 指向内容的实际排版位置 / 裁剪图（watch
+                # 的 where/png 子命令；其它引擎没有这条数据，不出现）。
+                build_system = getattr(document, 'build_system', None)
+                phitex_live = (build_system is not None
+                               and build_system.is_phitex_live_build())
+                if phitex_live:
+                    label_section.append_item(
+                        _action_item(_('Show in PDF'), 'win.show-label-in-pdf::' + label))
                 label_section.append_item(
                     _action_item(_('Copy \\ref{' + label + '}'), 'win.copy-ref::' + label))
                 label_section.append_item(
                     _action_item(_('Copy \\pageref{' + label + '}'), 'win.copy-pageref::' + label))
                 label_section.append_item(
                     _action_item(_('Copy \\autoref{' + label + '}'), 'win.copy-autoref::' + label))
+                if phitex_live:
+                    label_section.append_item(
+                        _action_item(_('Copy as PNG'), 'win.copy-label-png::' + label))
                 label_section.append_item(
                     _action_item(_('Find All References'), 'win.find-all-refs::' + label))
                 self.latex_section.append_section(None, label_section)

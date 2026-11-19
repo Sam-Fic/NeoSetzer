@@ -11,6 +11,7 @@
 # 纸张尺寸变化）仍照旧作废重建，因为那时旧布局确实是错的。
 
 import ast
+import os
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -36,6 +37,7 @@ class FakeLayout:
 
 def make_namespace(document):
     return {
+        'os': os,
         'Poppler': mock.Mock(),
         'GLib': mock.Mock(filename_to_uri=lambda p: 'uri:' + p),
         'ExternalPdfState': mock.Mock(CURRENT='current'),

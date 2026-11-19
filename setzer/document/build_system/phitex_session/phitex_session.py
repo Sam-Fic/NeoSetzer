@@ -40,6 +40,7 @@ import subprocess
 import sys
 
 from setzer.document.build_system.builder.builder_build import build_env, popen_no_window
+from setzer.helpers import viewer_protocol
 
 _LAUNCH_RE = re.compile(r'(?:started|running) pid (\d+)')
 
@@ -62,6 +63,11 @@ class PhitexSession:
         self.enable_synctex = enable_synctex
         self.additional_arguments = additional_arguments
         self.pid = None
+        # viewer 的 HTTP URL（"http://127.0.0.1:PORT/TOKEN/"）：页 hash 与
+        # origins 这些只存在于 viewer WS 上的元数据都要从它出发连接。start
+        # 的输出行里有（"… · viewer http://… · log …"），status --json 里也
+        # 有（viewer 字段），两处都能补齐。
+        self.viewer_url = None
     @property
     def config_signature(self):
         '''watch 的启动配置指纹。
@@ -238,6 +244,8 @@ class PhitexSession:
         if match is None:
             return False
         self.pid = int(match.group(1))
+        # 同一行还有 "viewer http://127.0.0.1:PORT/TOKEN/"（WS 元数据的入口）。
+        self.viewer_url = viewer_protocol.parse_viewer_url(stdout)
         return True
 
     def build(self, timeout=WAIT_TIMEOUT):
@@ -253,7 +261,12 @@ class PhitexSession:
 
     def status(self):
         _, stdout = self._call(self._session_args('status', '--json'))
-        return self._first_json_object(stdout)
+        status = self._first_json_object(stdout)
+        # viewer URL 的第二个来源：start 输出只在拉起 watch 那一次解析得到，
+        # 而 status 每次构建都会经过这里——复用别人起的 watch 时靠它补齐。
+        if isinstance(status, dict) and status.get('viewer'):
+            self.viewer_url = status['viewer']
+        return status
 
     def pdf_path(self, status=None):
         '''本次构建的完整 PDF 绝对路径。
@@ -341,6 +354,35 @@ class PhitexSession:
                                '--change', str(change_n), '--out', out_path),
             timeout=timeout)
         return returncode, stdout
+
+    def where_label(self, label, timeout=_CALL_TIMEOUT_S):
+        '''`session where LABEL --json`：label 指向内容的页码与盒（页左上 pt）。
+
+        实测（1.0.4）回 {"approximate", "bbox":[x0,y0,x1,y1], "build", "page"
+        (1-based), "number", "pdf", "printed_page", "target"}；label 不存在
+        或没构建过时输出不含 JSON，返回 None 由调用方降级。解析交给
+        helpers/viewer_protocol.parse_where_json（逐行找 JSON 对象）。
+        '''
+        if self.pid is None:
+            return None
+        returncode, stdout = self._call(
+            self._session_args('where', '--json', label), timeout=timeout)
+        if returncode != 0:
+            return None
+        return viewer_protocol.parse_where_json(stdout)
+
+    def png_label(self, label, out_path, timeout=120):
+        '''`session png --label LABEL --out PATH`：label 指向内容裁剪 PNG。
+
+        用于"把图导成图片"（粘到幻灯片/聊天里）。--out 是唯一输出通道
+        （stdout 只报路径与尺寸）；调用方检查文件是否落盘。返回
+        (returncode, stdout)。
+        '''
+        if self.pid is None:
+            return None, None
+        return self._call(
+            self._session_args('png', '--label', label, '--out', out_path),
+            timeout=timeout)
 
     def alive(self):
         '''watch 进程是否还活着。
