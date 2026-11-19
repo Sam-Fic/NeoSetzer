@@ -450,40 +450,33 @@ class GitRepository(Observable):
         GLib.idle_add(callback, error)
         return False
 
-    def diff(self, path, callback):
-        '''单个文件的统一 diff 文本（--no-color），供侧栏 DiffDialog 展示。
-        callback(error_message 或 None, diff_text) 在主线程回调。
+    def file_versions(self, path, callback):
+        '''单个文件的「HEAD 版本 / 工作区版本」全文，供并排（VSCode 式）diff。
+        callback(error_message 或 None, old_text, new_text) 在主线程回调。
 
-        untracked 文件不在 `git diff` 输出里，走 --no-index 与 /dev/null 比较
-        （整个文件显示为新增）；--no-index 有差异时 exit 1，这是正常结果，
-        不当错误。'''
-        threading.Thread(target=self.diff_unified_thread, args=(path, callback),
+        旧版走 `git show HEAD:<path>`（文件不在 HEAD 里——untracked / 刚
+        staged 的新文件——旧版为空串）；新版直接读工作区，文件已删除（D）
+        时新版为空串。二进制（含 NUL）不尝试展示，报错让调用方提示。'''
+        threading.Thread(target=self._file_versions_thread, args=(path, callback),
                          daemon=True).start()
 
-    def diff_unified_thread(self, path, callback):
-        entry_untracked = None
-        state = self.state
-        if state is not None:
-            for entry in state['changed_files']:
-                if entry['path'] == path:
-                    entry_untracked = entry['untracked']
-                    break
-
-        if entry_untracked:
-            code, out = run_git(['diff', '--no-color', '--no-index', '--',
-                                 '/dev/null', path], self.root, timeout=60)
-            # --no-index 有差异时 exit 1：是预期结果。
-            error = None if code in (0, 1) else (out.strip() or _('git diff failed.'))
-            text = out
+    def _file_versions_thread(self, path, callback):
+        code, old_text = run_git(['show', 'HEAD:' + path], self.root, timeout=60)
+        if code != 0:
+            old_text = ''
+        absolute = os.path.join(self.root, path)
+        new_text = ''
+        if os.path.isfile(absolute):
+            try:
+                with open(absolute, 'rb') as f:
+                    new_text = f.read().decode('utf-8', errors='replace')
+            except OSError:
+                new_text = ''
+        if '\x00' in old_text or '\x00' in new_text:
+            error = _('Binary files cannot be displayed as text.')
         else:
-            code, out = run_git(['diff', '--no-color', '--', path], self.root, timeout=60)
-            if code != 0:
-                error = out.strip() or _('git diff failed.')
-                text = ''
-            else:
-                error = None
-                text = out
-        GLib.idle_add(callback, error, text)
+            error = None
+        GLib.idle_add(callback, error, old_text, new_text)
         return False
 
     def discard(self, path, callback):

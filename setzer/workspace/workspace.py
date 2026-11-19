@@ -1509,9 +1509,16 @@ class Workspace(Observable):
         这一个 helper——这是 diff 触发范围"仅 AI 编辑"的实现点：快照即武装，
         之后 AiDiff 在构建成功后自行判断要不要 compare。
 
-        注意 headerbar 入口不落盘，所以快照取 buffer 的 get_all_text()，
-        不能绑在 save_to_disk 上。非 LaTeX 文档 / 未保存 / 开关关闭 → 静默
-        不武装（返回 False，调用方不需要处理）。
+        基线两条通道：
+        * **git 通道**：文档目录在 git 仓库里（或其父目录是）→ 发一份私有
+          快照提交（临时 index，用户的 HEAD/staging 一概不碰），多文件全量
+          diff，\\input/\\include 子文件的改动也能看见。
+        * **文件通道**（git 不可用/不在仓库时回退）：只有主文件副本，
+          子文件改动看不见（PhiTeX OldCopy 语义）。
+
+        注意 headerbar 入口不落盘，所以快照正文一律取 buffer 的
+        get_all_text()，不能绑在 save_to_disk 上。非 LaTeX 文档 / 未保存 /
+        开关关闭 → 静默不武装（返回 False，调用方不需要处理）。
         '''
         if document is None or not document.is_latex_document():
             return False
@@ -1527,11 +1534,14 @@ class Workspace(Observable):
             return False
         from setzer.helpers import phitex_compare
         text = document.get_all_text()
-        path = phitex_compare.write_baseline(
-            text, os.path.dirname(filename), os.path.basename(filename))
-        if path is None:
+        # git 通道优先：不在仓库/git 不可用时静默回退文件通道。
+        ref = phitex_compare.write_git_snapshot(os.path.dirname(filename))
+        if ref is None:
+            ref = phitex_compare.write_baseline(
+                text, os.path.dirname(filename), os.path.basename(filename))
+        if ref is None:
             return False
-        ai_diff.arm_baseline(path)
+        ai_diff.arm_baseline(ref, text)
         return True
 
     def shutdown_agent_session(self):

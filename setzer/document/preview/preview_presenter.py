@@ -42,11 +42,14 @@ _SYNCTEX_HIGHLIGHT_MAX_ALPHA = 0.30
 
 # AI diff 高亮的 per-kind 颜色（diff PDF 视图，compare 的 kind → RGBA）。
 # 配色沿用 papilot / latexdiff 印刷惯例：added 绿、deleted 红，中间态 change
-# 用琥珀——刻意不用蓝，蓝色在预览里与链接语义冲突。fill 给面积感、stroke
-# 勾精确边界；fill alpha 与 synctex 高亮（0.30）同量级，能透出底下文字。
+# 用琥珀；moved 是 papilot 的移动蓝——蓝在这里恰恰是对的：moved 与"链接"
+# 语义相反（这段话没变，只是换了地方），用蓝把它从"内容变了"的红绿里摘出来。
+# fill 给面积感、stroke 勾精确边界；fill alpha 与 synctex 高亮（0.30）同量级，
+# 能透出底下文字。
 _DIFF_KIND_COLORS = {
     'add': ((0.12, 0.55, 0.32), (0.12, 0.55, 0.32)),      # #1f8c52
     'del': ((0.78, 0.16, 0.22), (0.78, 0.16, 0.22)),      # #c72938
+    'moved': ((0.15, 0.39, 0.79), (0.15, 0.39, 0.79)),    # #2563c9
     'change': ((0.72, 0.47, 0.12), (0.72, 0.47, 0.12)),   # #b7791f
 }
 _DIFF_FILL_ALPHA = 0.20
@@ -159,11 +162,36 @@ class PreviewPresenter(object):
         result = preview.diff_result
         if result is None:
             return
+        if result.get('source', 'ai') != 'ai':
+            # 非 AI 来源（Git 页的「工作区 vs HEAD」diff）：静默。用户是在
+            # Git 页主动点击的，预览自动切到 diff 档已是反馈；失败场景由
+            # Git 页 show_error 报告。两条 AI toast（编辑完成 / 排版失败）
+            # 都不适用。
+            return
+        if result.get('failed'):
+            # diff 构建自己编译失败：报告失败，绝不假装成功（papilot 的
+            # 原则——失败要么报出来，要么不出结果，不出"截断的成功"）。
+            toast_helpers.show(
+                _('Failed to typeset the AI diff; the document may have errors'),
+                timeout=5, throttle_ms=8000, key='ai_diff_failed',
+                overlay=self.view.toast_overlay)
+            return
         count = result.get('change_count') or 0
         if count <= 0:
             return
-        message = ngettext('AI edited this document: {} change',
-                           'AI edited this document: {} changes', count).format(count)
+        # 措辞跟内容走：用户手改后 diff 是"基线 → 当前正文"的混合视图，
+        # 再说"AI edited"就是把用户的修改记到 AI 头上。
+        document = getattr(preview, 'document', None)
+        build_system = getattr(document, 'build_system', None)
+        ai_diff = getattr(build_system, 'ai_diff', None) if build_system else None
+        human_edited = bool(getattr(ai_diff, 'human_edited_since_baseline', False))
+        if human_edited:
+            message = ngettext('Document changed since the AI task: {} change',
+                               'Document changed since the AI task: {} changes',
+                               count).format(count)
+        else:
+            message = ngettext('AI edited this document: {} change',
+                               'AI edited this document: {} changes', count).format(count)
         pages = result.get('pages')
         if pages:
             message = '{} · {}'.format(

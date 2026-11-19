@@ -347,7 +347,36 @@ class PreviewController(object):
         '''展示该处改动的 before/after 详情。延迟导入：弹窗模块链进 Adw，
         而本模块在部分无显示测试里被 import，顶层导入会拖累它们。'''
         from setzer.document.preview.diff_change_dialog import show_diff_change_dialog
-        show_diff_change_dialog(self.view, change)
+        show_diff_change_dialog(self.view, change,
+                                crop_provider=self._make_crop_provider())
+
+    def _make_crop_provider(self):
+        '''弹窗裁剪图的取图回调：diff 构建里 change N 的排版裁剪 PNG。
+
+        需要三样东西齐全才提供：在途的基线快照（AiDiff）、活着的 phitex
+        session。缺任何一样返回 None——弹窗就只显示前后文本，不显示图。
+        回调会在后台线程被调（一次 png 子进程调用，秒级），只允许碰
+        session/路径这些线程安全的对象，不碰 GTK。'''
+        document = self.preview.document
+        build_system = getattr(document, 'build_system', None)
+        ai_diff = getattr(build_system, 'ai_diff', None)
+        builder = build_system.builders.get('build_latex') if build_system else None
+        session = getattr(builder, 'phitex_session', None) if builder else None
+        baseline = getattr(ai_diff, 'baseline_ref', None)
+        if session is None or session.pid is None or not baseline:
+            return None
+
+        def provider(change_n):
+            import tempfile
+            out_path = os.path.join(
+                tempfile.gettempdir(),
+                'neosetzer-diff-crop-{}-{}.png'.format(session.pid, change_n))
+            returncode, _ = session.png_compare_crop(baseline, change_n, out_path)
+            if returncode == 0 and os.path.isfile(out_path):
+                return out_path
+            return None
+
+        return provider
 
     def _get_link_at(self, x_offset, y_offset):
         '''返回鼠标位置命中的链接 [rect, target, type]，未命中返回 None。
@@ -450,6 +479,9 @@ class PreviewController(object):
             if self.preview.showing_diff_pdf:
                 change = self._diff_change_at(x_offset, y_offset)
                 if change is not None:
+                    # 点中哪处就把导航器拨到哪处：用户靠点击跳读时，
+                    # 计数器跟着走才不会"2/9 亮着却看着第 5 处"。
+                    self.preview.sync_diff_change_from_click(change.get('n'))
                     self._show_diff_change_dialog(change)
                     return True
             else:

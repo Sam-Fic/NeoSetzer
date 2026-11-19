@@ -62,7 +62,6 @@ class PhitexSession:
         self.enable_synctex = enable_synctex
         self.additional_arguments = additional_arguments
         self.pid = None
-
     @property
     def config_signature(self):
         '''watch 的启动配置指纹。
@@ -285,21 +284,28 @@ class PhitexSession:
             return None
         return payload.get('problems')
 
-    def compare(self, baseline_path, timeout=_CALL_TIMEOUT_S):
-        '''`session compare <旧版> --json`：diff 排版 + 每 change 的页码/矩形。
+    def compare(self, rev_or_path, timeout=_CALL_TIMEOUT_S):
+        '''`session compare <REV> --json`：diff 排版 + 每 change 的页码/矩形。
 
-        baseline_path 是 AI 发送时的主文件快照（绝对路径）。PhiTeX 接受
-        "一份旧主文件副本"作为版本：diff 时只有主文件文本换成快照，
-        \\input/\\include 的子文件仍读当前版——多文件文档的子文件改动
-        看不出来，这是已知边界。
+        REV 两种形态（PhiTeX 都收）：
+        * **git rev**（私有快照 sha 等）：多文件全量 diff——rev 里的全部
+          文本文件参与对比，\\input/\\include 子文件的改动可见。原样传给
+          PhiTeX，**不能** abspath（40 位 sha 接上 cwd 就成了不存在的路径）。
+        * **旧主文件副本路径**：只有主文件文本换成副本，子文件读当前版
+          （OldCopy 语义），多文件文档的子文件改动看不出来。
 
-        返回 (returncode, payload)。退出码沿 PhiTeX 语义：0 成功、1 是 diff
+        返回 (returncode, stdout)。退出码沿 PhiTeX 语义：0 成功、1 是 diff
         构建有 TeX 错误（payload 仍带 changes，只是定位全 null）、3 无 watch、
         4 请求被拒（payload 形如 {"error": ..., "status": N}）。payload 解析
         交给 helpers/phitex_compare，这里只负责把 stdout 完整带回。
         '''
+        from setzer.helpers.phitex_compare import looks_like_rev
+        if looks_like_rev(rev_or_path):
+            reference = rev_or_path
+        else:
+            reference = os.path.abspath(rev_or_path)
         returncode, stdout = self._call(
-            self._session_args('compare', '--json', os.path.abspath(baseline_path)),
+            self._session_args('compare', '--json', reference),
             timeout=timeout)
         return returncode, stdout
 
@@ -312,6 +318,29 @@ class PhitexSession:
         if self.pid is None:
             return
         self._call(self._session_args('compare', '--stop'))
+
+    def png_compare_crop(self, baseline_ref, change_n, out_path, timeout=120):
+        '''`session png --compare <REV> --change N --out PATH`：diff 构建
+        里 change N 所在区域的裁剪 PNG（latexdiff 标记排版，1.0.3+）。
+
+        用于 diff 点击弹窗里的"这处改动排出来长什么样"缩略图。--compare 的
+        REV 与 session compare 同一语义（git rev 或旧副本路径，须与当初出
+        changes 的那份一致，change 编号才对得上）。返回 (returncode, stdout)；
+        PNG 是否落盘由调用方检查 out_path。
+
+        走 png 而不是自己从 diff PDF 裁：png 按字形边界自动收边（--context
+        的页边距），比拿 bbox 硬裁好看。
+        '''
+        from setzer.helpers.phitex_compare import looks_like_rev
+        if looks_like_rev(baseline_ref):
+            reference = baseline_ref
+        else:
+            reference = os.path.abspath(baseline_ref)
+        returncode, stdout = self._call(
+            self._session_args('png', '--compare', reference,
+                               '--change', str(change_n), '--out', out_path),
+            timeout=timeout)
+        return returncode, stdout
 
     def alive(self):
         '''watch 进程是否还活着。

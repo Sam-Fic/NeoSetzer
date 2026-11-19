@@ -28,14 +28,24 @@ def _(s):
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gdk, Gtk
+from gi.repository import Adw, Gdk, GLib, Gtk
 
 import os
+import threading
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.document.build_system.phitex_session.phitex_session import PhitexSession
+from setzer.helpers import phitex_compare
 from setzer.vcs.git_repository import GitRepository, git_available
 from setzer.workspace.sidebar.git.git_section_viewgtk import GitSectionView
 from setzer.workspace.sidebar.git.diff_dialog import DiffDialog
+
+# PDF diff（PhiTeX session compare）适用的文件扩展：与
+# workspace.create_document_from_filename 的可编译集合一致。
+LATEX_DIFF_EXTENSIONS = ('.tex', '.cls', '.sty', '.lco', '.loc', '.bib')
+
+# session compare 首跑要 prime + 重排，宽裕上限同 AiDiff.COMPARE_TIMEOUT_S。
+PDF_DIFF_TIMEOUT_S = 600
 
 
 class GitSection(object):
@@ -74,6 +84,7 @@ class GitSection(object):
 
         self._messages = dict()   # repo root → 未提交的 commit message
         self._checked = dict()    # repo root → {path: 是否纳入提交}
+        self._pdf_diff_running = False
         self._saved_document = None
 
         workspace.connect('new_active_document', self.on_new_active_document)
@@ -336,24 +347,124 @@ class GitSection(object):
     # —— 文件行：diff / 查看文件 / Discard ——————————————————
 
     def on_file_row_activated(self, row, entry):
-        '''点击文件行：只读查看该文件 diff，不需信任门。路径绑定进回调，
-        弹窗标题/副标题用它。'''
+        '''点击文件行：LaTeX 族文件优先走 PhiTeX PDF diff（工作区 vs HEAD
+        的编译级 diff），条件不满足或失败兜底文本统一 diff。均只读，不需
+        信任门。路径绑定进回调，弹窗标题/副标题用它。'''
+        if entry['path'].lower().endswith(LATEX_DIFF_EXTENSIONS):
+            if self._open_pdf_diff(entry):
+                return
+        self._show_text_diff(entry)
+
+    def _show_text_diff(self, entry):
+        '''并排文本 diff 弹窗（非 LaTeX 文件，或 PDF diff 不可用时的兜底）。'''
         if self.repo is None:
             return
-        self.repo.diff(entry['path'],
-                       lambda error, text, path=entry['path']:
-                       self.on_diff_done(error, text, path))
+        self.repo.file_versions(entry['path'],
+                                lambda error, old_text, new_text, path=entry['path']:
+                                self.on_diff_done(error, old_text, new_text, path))
 
-    def on_diff_done(self, error, text, path):
+    def on_diff_done(self, error, old_text, new_text, path):
         if error:
             self.show_error(error)
             return
-        dialog = DiffDialog(path, text)
+        dialog = DiffDialog(path, old_text, new_text)
         dialog.present(ServiceLocator.get_main_window())
 
+    def _pdf_diff_session(self, document):
+        '''PDF diff 的前置条件检查，通过返回 PhitexSession，否则 None。
+
+        条件：活动文档有 build_system + preview（可编译可交付）、PhiTeX
+        ≥1.0.3（supports_compare）、watch session 存活、AI 审阅无在途
+        compare（JOB-diff session 并发会互相污染）。'''
+        build_system = getattr(document, 'build_system', None)
+        if build_system is None or getattr(document, 'preview', None) is None:
+            return None
+        if not PhitexSession.supports_compare():
+            return None
+        ai_diff = getattr(build_system, 'ai_diff', None)
+        if ai_diff is None or ai_diff.is_query_running():
+            return None
+        builder = build_system.builders.get('build_latex')
+        session = getattr(builder, 'phitex_session', None) if builder else None
+        if session is None or session.pid is None:
+            return None
+        return session
+
+    def _open_pdf_diff(self, entry):
+        '''尝试展示「工作区 vs HEAD」的编译级 PDF diff。
+
+        返回 True 表示已接管（发起查询；结果失败时本方法自行兜底文本
+        diff）；False 表示条件不满足，调用方走文本 diff。_pdf_diff_running
+        只在主线程读写（发起/回调都经 GLib.idle_add），无需加锁。'''
+        document = self.document
+        if document is None:
+            return False
+        session = self._pdf_diff_session(document)
+        if session is None:
+            return False
+        if self._pdf_diff_running:
+            # 已有在途的 PDF diff 查询：不重复发起，也不兜底（等结果）。
+            return True
+        # 未保存的缓冲区不在磁盘态里，diff 会漏；先落盘（与提交同一纪律）。
+        self._save_open_documents()
+        # 解除 AI 审阅武装：防止后续自动构建触发的 AI compare 覆盖本次
+        # git diff 结果（两者共用 preview 的 diff 槽位）。disarm 不打断
+        # JOB-diff——紧接着的 git compare 正要用它。
+        ai_diff = getattr(document.build_system, 'ai_diff', None)
+        if ai_diff is not None:
+            ai_diff.disarm()
+        self._pdf_diff_running = True
+        threading.Thread(target=self._pdf_diff_query,
+                         args=(session, document, entry),
+                         daemon=True).start()
+        return True
+
+    def _pdf_diff_query(self, session, document, entry):
+        '''后台线程：`session compare HEAD --json`（子进程，秒级到分钟级）。'''
+        try:
+            returncode, stdout = session.compare('HEAD', timeout=PDF_DIFF_TIMEOUT_S)
+        except Exception:
+            returncode, stdout = 1, ''
+        GLib.idle_add(self._on_pdf_diff_done, document, entry, returncode, stdout)
+        return False
+
+    def _on_pdf_diff_done(self, document, entry, returncode, stdout):
+        self._pdf_diff_running = False
+        payload = phitex_compare.parse_compare_json(stdout)
+        failed = (payload is None
+                  or phitex_compare.compare_failed(payload)
+                  or payload.get('pdf') is None)
+        changes = (payload.get('changes') or []) if payload is not None else []
+        preview = getattr(document, 'preview', None)
+        if (failed
+                or not changes
+                or preview is None
+                or getattr(document, 'build_system', None) is None):
+            # PDF diff 没排出来 / 排出来无可见差异：报一条说明并兜底文本 diff
+            # （文本 diff 一定能呈现该文件的改动，哪怕是纯注释级的）。
+            self.show_error(_('Could not render a PDF diff — showing the text diff '
+                              'instead.'))
+            self._show_text_diff(entry)
+            return
+        result = {
+            'rectangles': phitex_compare.changes_to_rectangles(changes),
+            'changes': changes,
+            'pdf': payload.get('pdf'),
+            'pages': payload.get('pages'),
+            'change_count': len(changes),
+            'errors': payload.get('errors') or [],
+            'failed': False,
+            'source': 'git',
+        }
+        preview.set_diff_result(result)
+        presenter = getattr(preview, 'presenter', None)
+        if presenter is not None:
+            presenter.show_diff_view()
+
     def on_open_file_clicked(self, button, entry):
-        '''行内「查看文件」：优先在编辑器打开（已打开则激活），非 LaTeX
-        文件交给系统默认应用。已删除文件按钮为灰（populate 时按存在性设置）。'''
+        '''行内「查看文件」：一律在 NeoSetzer 编辑器里打开（已打开则激活）。
+        非 LaTeX/BibTeX 文件（.log 等）走 create_document_from_filename 的
+        纯文本(other)兜底——基础文本编辑器已有，没必要跳去外部应用。'''
         if self.repo is None:
             return
         absolute = os.path.join(self.repo.root, entry['path'])
@@ -363,14 +474,9 @@ class GitSection(object):
         if document is not None:
             self.workspace.set_active_document(document)
             return
-        if absolute.endswith(('.tex', '.cls', '.sty', '.lco', '.loc', '.bib')):
-            document = self.workspace.create_document_from_filename(absolute)
-            if document is not None:
-                self.workspace.set_active_document(document)
-                return
-        # 非 LaTeX/BibTeX（如 .log、.pdf）：交给系统默认应用。
-        Gtk.show_uri(ServiceLocator.get_main_window(),
-                     'file://' + absolute, Gdk.CURRENT_TIME)
+        document = self.workspace.create_document_from_filename(absolute)
+        if document is not None:
+            self.workspace.set_active_document(document)
 
     def on_discard_clicked(self, button, entry):
         '''行内 Discard：先确认（写操作 + 对 untracked 是直接删文件），

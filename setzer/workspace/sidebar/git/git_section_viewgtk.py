@@ -322,6 +322,9 @@ class GitSectionView(Gtk.Box):
         row.set_title(os.path.basename(entry['path']))
         subtitle = ' · '.join(part for part in (dirname, status_label) if part)
         row.set_subtitle(subtitle or status_label)
+        # 点击行本体 → 查看文本 diff。AdwPreferencesRow.activatable 默认是
+        # False（与直觉相反），不显式置 True 的话整行点击没有任何反应。
+        row.set_activatable(True)
 
         check = Gtk.CheckButton()
         check.set_valign(Gtk.Align.CENTER)

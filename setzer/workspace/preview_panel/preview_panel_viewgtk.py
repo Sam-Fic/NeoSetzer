@@ -165,6 +165,42 @@ class PreviewPanelView(Gtk.Box):
         self.detach_button.add_css_class('flat')
         self.toolbar.append(self.detach_button)
 
+        # 结束 AI 审阅：清 diff 结果、档位随之消失。与 diff 档同生命周期
+        # （presenter 按 diff_result 是否存在显隐），平时不可见不占位。
+        # 语义与"切走档位"区分：切走是暂时离开（结果保留），这是明确说
+        # "这轮我看完了"。window-close-symbolic 对应 GNOME 的 dismiss 惯例。
+        self.diff_end_button = Gtk.Button(icon_name='window-close-symbolic')
+        self.diff_end_button.set_tooltip_text(_('End AI review'))
+        self.diff_end_button.add_css_class('flat')
+        self.diff_end_button.set_visible(False)
+        self._on_diff_end_requested = None
+        self.diff_end_button.connect('clicked', self._on_diff_end_clicked)
+        self.toolbar.append(self.diff_end_button)
+
+        # diff 改动导航器（diff 档专用）：上一处 / 计数 / 下一处。多处不连续
+        # 的改动靠它逐处走，不用在长文档里肉眼扫高亮。与 diff 档同生灭；
+        # 显示时 presenter 会收起 magnifier / recolor / external / detach 四个
+        # 按钮腾出位置（见 PreviewPanelPresenter.update_buttons）。
+        # 计数标签用 "2/9" 而非整句（数字自明，免去 i18n 复数）。
+        self.diff_nav = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        self.diff_nav.add_css_class('linked')
+        self.diff_nav_prev_button = Gtk.Button(icon_name='go-previous-symbolic')
+        self.diff_nav_prev_button.set_tooltip_text(_('Previous change'))
+        self.diff_nav.append(self.diff_nav_prev_button)
+        self.diff_nav_label = Gtk.Label()
+        self.diff_nav_label.add_css_class('dim-label')
+        self.diff_nav_label.set_width_chars(6)
+        self.diff_nav.append(self.diff_nav_label)
+        self.diff_nav_next_button = Gtk.Button(icon_name='go-next-symbolic')
+        self.diff_nav_next_button.set_tooltip_text(_('Next change'))
+        self.diff_nav.append(self.diff_nav_next_button)
+        self.diff_nav.set_visible(False)
+        self._on_diff_nav_previous = None
+        self._on_diff_nav_next = None
+        self.diff_nav_prev_button.connect('clicked', self._on_diff_nav_prev_clicked)
+        self.diff_nav_next_button.connect('clicked', self._on_diff_nav_next_clicked)
+        self.toolbar.append(self.diff_nav)
+
         # 分段控件最后 append：工具栏最右端（detach 之后）。
         self.toolbar.append(self.mode_switch)
 
@@ -214,3 +250,46 @@ class PreviewPanelView(Gtk.Box):
                 tooltip=_('Typeset diff of AI edits')))
         elif not visible and toggle is not None:
             self.mode_switch.remove(toggle)
+
+    def set_diff_end_visible(self, visible):
+        '''结束审阅按钮的显隐：只要 diff 结果存在就给（包括排版失败的
+        ——用户可能想手动清掉一个失败状态），没有结果才收。'''
+        self.diff_end_button.set_visible(visible)
+
+    def set_diff_end_handler(self, callback):
+        self._on_diff_end_requested = callback
+
+    def _on_diff_end_clicked(self, button):
+        if self._on_diff_end_requested is not None:
+            self._on_diff_end_requested()
+
+    def set_diff_nav_visible(self, visible):
+        '''导航器跟着 diff 档走：只有正看着 diff PDF 且确有改动时才给
+        （否则一排 0/0 的死按钮只是占位）。'''
+        self.diff_nav.set_visible(visible)
+
+    def set_diff_nav_state(self, index, total):
+        '''index 0-based、total 为改动处数：更新 "2/9" 与两端禁用。
+
+        两端不循环：审阅是有终点的线性过程，最后一处再点"下一处"跳回
+        第一处会让人分不清"看完了"还是"又开始了"。'''
+        if total <= 0:
+            self.diff_nav_label.set_text('')
+            self.diff_nav_prev_button.set_sensitive(False)
+            self.diff_nav_next_button.set_sensitive(False)
+            return
+        self.diff_nav_label.set_text('{}/{}'.format(index + 1, total))
+        self.diff_nav_prev_button.set_sensitive(index > 0)
+        self.diff_nav_next_button.set_sensitive(index < total - 1)
+
+    def set_diff_nav_handlers(self, previous, next_):
+        self._on_diff_nav_previous = previous
+        self._on_diff_nav_next = next_
+
+    def _on_diff_nav_prev_clicked(self, button):
+        if self._on_diff_nav_previous is not None:
+            self._on_diff_nav_previous()
+
+    def _on_diff_nav_next_clicked(self, button):
+        if self._on_diff_nav_next is not None:
+            self._on_diff_nav_next()

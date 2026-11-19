@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 02:59+0800\n"
+"POT-Creation-Date: 2026-11-19 13:14+0800\n"
 "PO-Revision-Date: 2026-07-27\n"
 "Last-Translator: NeoSetzer contributors\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -609,7 +609,7 @@ msgstr "没有可发送的批注"
 msgid "No active document"
 msgstr "当前没有打开的文档"
 
-#: setzer/ai_fix/annotation_sender.py:91 setzer/workspace/actions/actions.py:1300 setzer/workspace/actions/actions.py:1428
+#: setzer/ai_fix/annotation_sender.py:91 setzer/workspace/actions/actions.py:1306 setzer/workspace/actions/actions.py:1434
 msgid "Select some text first"
 msgstr "请先选择文本"
 
@@ -638,7 +638,7 @@ msgstr "（未保存的文档）"
 msgid "Send to AI Agent"
 msgstr "发送给 AI 代理"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:96 setzer/dialogs/bibliography_manager/bibliography_manager.py:368 setzer/dialogs/bibliography_manager/bibliography_manager.py:815 setzer/dialogs/bibliography_manager/bibliography_manager.py:839 setzer/dialogs/bibliography_manager/bibliography_manager.py:1515 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:325 setzer/dialogs/preferences/pages/page_appearance.py:351 setzer/dialogs/preferences/pages/page_appearance.py:585 setzer/dialogs/preferences/pages/page_appearance.py:887 setzer/dialogs/preferences/pages/page_build_system.py:180 setzer/dialogs/preferences/pages/page_build_system.py:451 setzer/dialogs/preferences/pages/page_shortcuts.py:386 setzer/dialogs/preferences/pages/page_shortcuts.py:475 setzer/dialogs/preferences/pages/page_shortcuts.py:613 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:699 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:480 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:364 setzer/workspace/sidebar/git/git_section.py:422 setzer/workspace/sidebar/git/git_section.py:475 setzer/workspace/welcome_screen/welcome_screen.py:298
+#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:96 setzer/dialogs/bibliography_manager/bibliography_manager.py:368 setzer/dialogs/bibliography_manager/bibliography_manager.py:815 setzer/dialogs/bibliography_manager/bibliography_manager.py:839 setzer/dialogs/bibliography_manager/bibliography_manager.py:1515 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:325 setzer/dialogs/preferences/pages/page_appearance.py:351 setzer/dialogs/preferences/pages/page_appearance.py:585 setzer/dialogs/preferences/pages/page_appearance.py:887 setzer/dialogs/preferences/pages/page_build_system.py:180 setzer/dialogs/preferences/pages/page_build_system.py:451 setzer/dialogs/preferences/pages/page_shortcuts.py:386 setzer/dialogs/preferences/pages/page_shortcuts.py:475 setzer/dialogs/preferences/pages/page_shortcuts.py:613 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:486 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:494 setzer/workspace/sidebar/git/git_section.py:552 setzer/workspace/sidebar/git/git_section.py:605 setzer/workspace/welcome_screen/welcome_screen.py:298
 msgid "Cancel"
 msgstr "取消"
 
@@ -658,7 +658,7 @@ msgstr "此项目不再询问"
 msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
 msgstr "今后跳过当前文档目录的此预览对话框。可在首选项 → 常规 → AI 设置 → 信任目录中撤销。"
 
-#: setzer/app/exception_handler.py:61 setzer/dialogs/document_wizard/document_wizard.py:439 setzer/dialogs/preferences/pages/page_shortcuts.py:348 setzer/document/preview/diff_change_dialog.py:64
+#: setzer/app/exception_handler.py:61 setzer/dialogs/document_wizard/document_wizard.py:439 setzer/dialogs/preferences/pages/page_shortcuts.py:348 setzer/document/preview/diff_change_dialog.py:67
 msgid "Close"
 msgstr "关闭"
 
@@ -702,7 +702,7 @@ msgstr "导出 PDF 为"
 msgid "Export Project Package"
 msgstr "导出项目包"
 
-#: setzer/command_palette/catalog.py:82 setzer/dialogs/preferences/pages/page_shortcuts.py:113 setzer/document/preview/preview_presenter.py:919
+#: setzer/command_palette/catalog.py:82 setzer/dialogs/preferences/pages/page_shortcuts.py:113 setzer/document/preview/preview_presenter.py:947
 msgid "Print"
 msgstr "打印"
 
@@ -1418,15 +1418,15 @@ msgstr "打开 BibTeX 文件"
 msgid "BibTeX Files"
 msgstr "BibTeX 文件"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1185 setzer/popovers/context_menu/context_menu_viewgtk.py:371
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1185 setzer/popovers/context_menu/context_menu_viewgtk.py:382
 msgid "Protect Upper-Case"
 msgstr "保护大写"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1191 setzer/popovers/context_menu/context_menu_viewgtk.py:374
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1191 setzer/popovers/context_menu/context_menu_viewgtk.py:385
 msgid "Unicode → LaTeX"
 msgstr "Unicode → LaTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1197 setzer/popovers/context_menu/context_menu_viewgtk.py:377
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1197 setzer/popovers/context_menu/context_menu_viewgtk.py:388
 msgid "LaTeX → Unicode"
 msgstr "LaTeX → Unicode"
 
@@ -1486,7 +1486,7 @@ msgstr "放弃未保存的更改？"
 msgid "Changes to @string macros have not been saved yet."
 msgstr "对 @string 宏的更改尚未保存。"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516 setzer/dialogs/close_confirmation/close_confirmation.py:59 setzer/workspace/sidebar/git/git_section.py:365
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516 setzer/dialogs/close_confirmation/close_confirmation.py:59 setzer/workspace/sidebar/git/git_section.py:495
 msgid "Discard"
 msgstr "丢弃"
 
@@ -2425,7 +2425,7 @@ msgstr "额外包含的包名，以逗号分隔。"
 msgid "Ready to create"
 msgstr "可以创建"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:346 setzer/document/preview/preview_presenter.py:988 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:401 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:346 setzer/document/preview/preview_presenter.py:1016 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:401 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
 msgid "Document"
 msgstr "文档"
 
@@ -3911,7 +3911,7 @@ msgstr "为 AI 代理添加选区批注"
 msgid "Send selection to AI agent"
 msgstr "把选区发送给 AI 代理"
 
-#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:666 setzer/dialogs/preferences/pages/page_editor.py:1034 setzer/document/preview/preview_controller.py:700
+#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:666 setzer/dialogs/preferences/pages/page_editor.py:1034 setzer/document/preview/preview_controller.py:732
 msgid "Open"
 msgstr "打开"
 
@@ -6182,7 +6182,7 @@ msgstr "所选 BibTeX 路径不是常规文件"
 msgid "The bibliography changed outside Setzer"
 msgstr "参考文献库已在 Setzer 外部被更改"
 
-#: setzer/document/build_system/build_system.py:674
+#: setzer/document/build_system/build_system.py:690
 msgid "Previous build cancelled"
 msgstr "上一次构建已取消"
 
@@ -6305,48 +6305,56 @@ msgstr "查找上一个匹配"
 msgid "Next Match"
 msgstr "查找下一个匹配"
 
-#: setzer/document/preview/diff_change_dialog.py:58
+#: setzer/document/preview/diff_change_dialog.py:62
 msgid "Change {}"
 msgstr "改动 {}"
 
-#: setzer/document/preview/diff_change_dialog.py:102
+#: setzer/document/preview/diff_change_dialog.py:105
 msgid "Before"
 msgstr "之前"
 
-#: setzer/document/preview/diff_change_dialog.py:104
+#: setzer/document/preview/diff_change_dialog.py:107
 msgid "After"
 msgstr "之后"
 
-#: setzer/document/preview/diff_change_dialog.py:106
+#: setzer/document/preview/diff_change_dialog.py:109
 msgid "No text recorded for this change"
 msgstr "此改动没有记录到文本"
 
-#: setzer/document/preview/preview.py:1522 setzer/workspace/actions/actions.py:1435
+#: setzer/document/preview/diff_change_dialog.py:159
+msgid "Typeset"
+msgstr "排版效果"
+
+#: setzer/document/preview/diff_change_dialog.py:193
+msgid "No typeset crop available"
+msgstr "没有可用的排版裁剪"
+
+#: setzer/document/preview/preview.py:1736 setzer/workspace/actions/actions.py:1441
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr "同步数据正在后台更新，请稍候再试。"
 
-#: setzer/document/preview/preview_controller.py:410 setzer/document/preview/preview_controller.py:647
+#: setzer/document/preview/preview_controller.py:439 setzer/document/preview/preview_controller.py:679
 msgid "Hold Ctrl and click to open this link"
 msgstr "按住 Ctrl 并点击以打开此链接"
 
-#: setzer/document/preview/preview_controller.py:412
+#: setzer/document/preview/preview_controller.py:441
 #, python-brace-format
 msgid "Go to page {n}"
 msgstr "跳到第 {n} 页"
 
-#: setzer/document/preview/preview_controller.py:686
+#: setzer/document/preview/preview_controller.py:718
 msgid "Could not open link"
 msgstr "无法打开链接"
 
-#: setzer/document/preview/preview_controller.py:691
+#: setzer/document/preview/preview_controller.py:723
 msgid "Link blocked: this link type is unsafe"
 msgstr "链接已阻止：此链接类型不安全"
 
-#: setzer/document/preview/preview_controller.py:697
+#: setzer/document/preview/preview_controller.py:729
 msgid "Open local file from this PDF?"
 msgstr "从此 PDF 打开本地文件？"
 
-#: setzer/document/preview/preview_controller.py:698
+#: setzer/document/preview/preview_controller.py:730
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6357,33 +6365,43 @@ msgstr ""
 "\n"
 "{uri}"
 
-#: setzer/document/preview/preview_presenter.py:165
+#: setzer/document/preview/preview_presenter.py:175
+msgid "Failed to typeset the AI diff; the document may have errors"
+msgstr "AI diff 排版失败：文档可能有编译错误"
+
+#: setzer/document/preview/preview_presenter.py:189
+msgid "Document changed since the AI task: {} change"
+msgid_plural "Document changed since the AI task: {} changes"
+msgstr[0] "AI 任务后文档已更改：{} 处改动"
+msgstr[1] "AI 任务后文档已更改：{} 处改动"
+
+#: setzer/document/preview/preview_presenter.py:193
 msgid "AI edited this document: {} change"
 msgid_plural "AI edited this document: {} changes"
 msgstr[0] "AI 已编辑此文档：{} 处改动"
 
-#: setzer/document/preview/preview_presenter.py:170
+#: setzer/document/preview/preview_presenter.py:198
 msgid "{} page"
 msgid_plural "{} pages"
 msgstr[0] "{} 页"
 
-#: setzer/document/preview/preview_presenter.py:174
+#: setzer/document/preview/preview_presenter.py:202
 msgid "Show Diff"
 msgstr "查看 Diff"
 
-#: setzer/document/preview/preview_presenter.py:873
+#: setzer/document/preview/preview_presenter.py:901
 msgid "Save Image As"
 msgstr "另存为"
 
-#: setzer/document/preview/preview_presenter.py:978
+#: setzer/document/preview/preview_presenter.py:1006
 msgid "No printer available"
 msgstr "没有可用的打印机"
 
-#: setzer/document/preview/preview_presenter.py:983
+#: setzer/document/preview/preview_presenter.py:1011
 msgid "Could not prepare print data"
 msgstr "无法准备打印数据"
 
-#: setzer/document/preview/preview_presenter.py:997
+#: setzer/document/preview/preview_presenter.py:1025
 #, python-brace-format
 msgid "Printing failed: {message}"
 msgstr "打印失败：{message}"
@@ -6668,39 +6686,47 @@ msgstr "将“{word}”添加到词典"
 msgid "Jump to Definition"
 msgstr "跳转到定义"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:329
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:335
+msgid "Show in PDF"
+msgstr "在 PDF 中显示"
+
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:337
 msgid "Copy \\ref{"
 msgstr "复制 \\ref{"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:331
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:339
 msgid "Copy \\pageref{"
 msgstr "复制 \\pageref{"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:333
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:341
 msgid "Copy \\autoref{"
 msgstr "复制 \\autoref{"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:335
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:344
+msgid "Copy as PNG"
+msgstr "复制为 PNG"
+
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:346
 msgid "Find All References"
 msgstr "查找所有引用"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:343
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:354
 msgid "Wrap in Command"
 msgstr "包入命令"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:350
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:361
 msgid "Wrap in Environment"
 msgstr "包入环境"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:357
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:368
 msgid "Insert Template"
 msgstr "插入模板"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:363
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:374
 msgid "Show in Preview"
 msgstr "在预览中显示"
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:380
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:391
 msgid "Transform Selection"
 msgstr "转换所选内容"
 
@@ -7310,43 +7336,43 @@ msgstr "提交失败。"
 msgid "Push failed."
 msgstr "推送失败。"
 
-#: setzer/vcs/git_repository.py:476 setzer/vcs/git_repository.py:481
-msgid "git diff failed."
-msgstr "git diff 失败。"
+#: setzer/vcs/git_repository.py:476
+msgid "Binary files cannot be displayed as text."
+msgstr "二进制文件无法以文本形式显示。"
 
-#: setzer/vcs/git_repository.py:515
+#: setzer/vcs/git_repository.py:508
 msgid "Discard failed."
 msgstr "丢弃失败。"
 
-#: setzer/vcs/git_repository.py:532
+#: setzer/vcs/git_repository.py:525
 msgid "Local and remote histories diverged. NeoSetzer only supports fast-forward pulls — please resolve this in a terminal (git pull / rebase)."
 msgstr "本地与远程历史已分叉。NeoSetzer 仅支持快进式拉取——请在终端中处理（git pull / rebase）。"
 
-#: setzer/vcs/git_repository.py:536
+#: setzer/vcs/git_repository.py:529
 msgid "Working tree has uncommitted changes. Commit them first or use a terminal to stash."
 msgstr "工作区有未提交的更改。请先提交，或在终端中用 git stash 暂存。"
 
-#: setzer/vcs/git_repository.py:539
+#: setzer/vcs/git_repository.py:532
 msgid "Could not reach the remote repository. Check your network connection."
 msgstr "无法连接远程仓库。请检查网络连接。"
 
-#: setzer/vcs/git_repository.py:547
+#: setzer/vcs/git_repository.py:540
 msgid "No remote repository is set up for this project. Add one in a terminal: git remote add origin <url>"
 msgstr "此项目没有配置远程仓库。请在终端中添加：git remote add origin <url>"
 
-#: setzer/vcs/git_repository.py:550
+#: setzer/vcs/git_repository.py:543
 msgid "Push failed: no stored credentials for this remote. Please configure a credential helper in a terminal (git config credential.helper). NeoSetzer never stores tokens or passwords."
 msgstr "推送失败：此远程没有已存储的凭据。请在终端中配置凭据助手（git config credential.helper）。NeoSetzer 绝不会存储令牌或密码。"
 
-#: setzer/vcs/git_repository.py:555
+#: setzer/vcs/git_repository.py:548
 msgid "Push rejected: the remote has new commits. Pull first."
 msgstr "推送被拒绝：远程有新提交。请先拉取。"
 
-#: setzer/vcs/git_repository.py:558
+#: setzer/vcs/git_repository.py:551
 msgid "Git user name and email are not configured. Set them with: git config --global user.name / user.email"
 msgstr "尚未配置 Git 用户名和邮箱。请用以下命令设置：git config --global user.name / user.email"
 
-#: setzer/vcs/git_repository.py:561
+#: setzer/vcs/git_repository.py:554
 msgid "Nothing to commit: no files were selected."
 msgstr "没有可提交的内容：未选择任何文件。"
 
@@ -7354,29 +7380,45 @@ msgstr "没有可提交的内容：未选择任何文件。"
 msgid "Choose File"
 msgstr "选择文件"
 
-#: setzer/workspace/actions/actions.py:470
+#: setzer/workspace/actions/actions.py:476
 msgid "No .tex files were found in your Templates folder."
 msgstr "在“模板”文件夹中未找到 .tex 文件。"
 
-#: setzer/workspace/actions/actions.py:477 setzer/workspace/actions/actions.py:507
+#: setzer/workspace/actions/actions.py:483 setzer/workspace/actions/actions.py:513
 msgid "Create document from template"
 msgstr "从模板创建文档"
 
-#: setzer/workspace/actions/actions.py:478
+#: setzer/workspace/actions/actions.py:484
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr "请选择一个 LaTeX 模板，然后选择新副本的创建位置。"
 
-#: setzer/workspace/actions/actions.py:481
+#: setzer/workspace/actions/actions.py:487
 msgid "Choose location"
 msgstr "选择位置"
 
-#: setzer/workspace/actions/actions.py:528
+#: setzer/workspace/actions/actions.py:534
 msgid "The selected destination is not a local file."
 msgstr "所选目标不是本地文件。"
 
-#: setzer/workspace/actions/actions.py:1442 setzer/workspace/actions/actions.py:1447 setzer/workspace/actions/actions.py:1457
+#: setzer/workspace/actions/actions.py:1448 setzer/workspace/actions/actions.py:1453 setzer/workspace/actions/actions.py:1463
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr "无法将 PDF 选区映射到源码。请先构建文档。"
+
+#: setzer/workspace/actions/actions.py:2089
+msgid "Could not find “{}” in the PDF"
+msgstr "在 PDF 中找不到“{}”"
+
+#: setzer/workspace/actions/actions.py:2135
+msgid "Could not render “{}” as an image"
+msgstr "无法将“{}”渲染为图片"
+
+#: setzer/workspace/actions/actions.py:2141
+msgid "“{}” copied as an image"
+msgstr "已将“{}”复制为图片"
+
+#: setzer/workspace/actions/actions.py:2143
+msgid "Could not copy “{}” as an image"
+msgstr "无法将“{}”复制为图片"
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:81
 msgid "Keep this window on top"
@@ -7489,24 +7531,24 @@ msgstr "出于安全考虑，帮助页面在禁用 JavaScript 的情况下渲染
 msgid "Help page rendering requires WebKit6. Search is still available — click a result to open it in your web browser."
 msgstr "帮助页面渲染需要 WebKit6。搜索仍可用——点击结果即可在网页浏览器中打开"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:514
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:564
 msgid "Maximum zoom level reached"
 msgstr "已达到最大缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:516
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:566
 msgid "Minimum zoom level reached"
 msgstr "已达到最小缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:554
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:607
 msgid "Build failed — showing the previous PDF"
 msgstr "构建失败——显示上一版 PDF"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:568
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:621
 #, python-brace-format
 msgid "of {total}"
 msgstr "/ {total}"
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:570
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:623
 msgid "No preview"
 msgstr "无预览"
 
@@ -7530,7 +7572,19 @@ msgstr "在外部 PDF 查看器中打开"
 msgid "Detach preview to separate window"
 msgstr "将预览分离到独立窗口"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:214
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:173
+msgid "End AI review"
+msgstr "结束 AI 审阅"
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:188
+msgid "Previous change"
+msgstr "上一处改动"
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:195
+msgid "Next change"
+msgstr "下一处改动"
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:250
 msgid "Typeset diff of AI edits"
 msgstr "AI 编辑的排版 Diff"
 
@@ -7789,48 +7843,56 @@ msgstr "跳转"
 msgid "Mark as Done"
 msgstr "标记为已完成"
 
-#: setzer/workspace/sidebar/git/diff_dialog.py:86
-msgid "(no diff)"
-msgstr "（无差异）"
+#: setzer/workspace/sidebar/git/diff_dialog.py:115
+msgid "No changes in this file."
+msgstr "此文件没有更改。"
 
-#: setzer/workspace/sidebar/git/git_section.py:159
+#: setzer/workspace/sidebar/git/diff_dialog.py:134
+msgid "Diff truncated: too many lines to display."
+msgstr "差异已截断：行数过多，无法全部显示。"
+
+#: setzer/workspace/sidebar/git/git_section.py:170
 msgid "The git executable was not found in PATH."
 msgstr "在 PATH 中未找到 git 可执行文件。"
 
-#: setzer/workspace/sidebar/git/git_section.py:162
+#: setzer/workspace/sidebar/git/git_section.py:173
 msgid "Git integration is disabled in Preferences."
 msgstr "Git 集成已在偏好设置中关闭。"
 
-#: setzer/workspace/sidebar/git/git_section.py:178
+#: setzer/workspace/sidebar/git/git_section.py:189
 msgid "(no commits yet)"
 msgstr "（尚无提交）"
 
-#: setzer/workspace/sidebar/git/git_section.py:188
+#: setzer/workspace/sidebar/git/git_section.py:199
 msgid "synced"
 msgstr "已同步"
 
-#: setzer/workspace/sidebar/git/git_section.py:202 setzer/workspace/sidebar/git/git_section_viewgtk.py:159
+#: setzer/workspace/sidebar/git/git_section.py:213 setzer/workspace/sidebar/git/git_section_viewgtk.py:159
 msgid "Push commits to the remote"
 msgstr "将提交推送到远程"
 
-#: setzer/workspace/sidebar/git/git_section.py:203
+#: setzer/workspace/sidebar/git/git_section.py:214
 msgid "No remote repository is set up for this project."
 msgstr "此项目没有配置远程仓库。"
 
-#: setzer/workspace/sidebar/git/git_section.py:209 setzer/workspace/sidebar/git/git_section_viewgtk.py:153
+#: setzer/workspace/sidebar/git/git_section.py:220 setzer/workspace/sidebar/git/git_section_viewgtk.py:153
 msgid "Update this branch from the remote (fast-forward only)"
 msgstr "从远程更新此分支（仅限快进）"
 
-#: setzer/workspace/sidebar/git/git_section.py:211
+#: setzer/workspace/sidebar/git/git_section.py:222
 msgid "Push this branch once to set its upstream, then you can pull."
 msgstr "先推送一次以设置此分支的上游，之后即可拉取。"
 
-#: setzer/workspace/sidebar/git/git_section.py:357
+#: setzer/workspace/sidebar/git/git_section.py:444
+msgid "Could not render a PDF diff — showing the text diff instead."
+msgstr "无法生成 PDF diff——改为显示文本 diff。"
+
+#: setzer/workspace/sidebar/git/git_section.py:487
 #, python-format
 msgid "Discard changes in %s?"
 msgstr "丢弃 %s 中的更改？"
 
-#: setzer/workspace/sidebar/git/git_section.py:359
+#: setzer/workspace/sidebar/git/git_section.py:489
 #, python-format
 msgid ""
 "%s\n"
@@ -7841,7 +7903,7 @@ msgstr ""
 "\n"
 "该未跟踪文件将被永久删除。"
 
-#: setzer/workspace/sidebar/git/git_section.py:362
+#: setzer/workspace/sidebar/git/git_section.py:492
 #, python-format
 msgid ""
 "%s\n"
@@ -7852,15 +7914,15 @@ msgstr ""
 "\n"
 "该文件中所有未提交的更改将丢失。"
 
-#: setzer/workspace/sidebar/git/git_section.py:393
+#: setzer/workspace/sidebar/git/git_section.py:523
 msgid "Changes discarded"
 msgstr "已丢弃更改"
 
-#: setzer/workspace/sidebar/git/git_section.py:420
+#: setzer/workspace/sidebar/git/git_section.py:550
 msgid "Initialize Git Repository?"
 msgstr "初始化 Git 仓库？"
 
-#: setzer/workspace/sidebar/git/git_section.py:421
+#: setzer/workspace/sidebar/git/git_section.py:551
 #, python-format
 msgid ""
 "A new repository will be created in:\n"
@@ -7871,15 +7933,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: setzer/workspace/sidebar/git/git_section.py:423
+#: setzer/workspace/sidebar/git/git_section.py:553
 msgid "Initialize"
 msgstr "初始化"
 
-#: setzer/workspace/sidebar/git/git_section.py:472
+#: setzer/workspace/sidebar/git/git_section.py:602
 msgid "Trust This Repository?"
 msgstr "信任此仓库？"
 
-#: setzer/workspace/sidebar/git/git_section.py:473
+#: setzer/workspace/sidebar/git/git_section.py:603
 #, python-format
 msgid ""
 "Pull, commit and push run git commands in this repository, which may execute its hooks:\n"
@@ -7890,15 +7952,15 @@ msgstr ""
 "\n"
 "%s"
 
-#: setzer/workspace/sidebar/git/git_section.py:476
+#: setzer/workspace/sidebar/git/git_section.py:606
 msgid "Trust and Continue"
 msgstr "信任并继续"
 
-#: setzer/workspace/sidebar/git/git_section.py:511
+#: setzer/workspace/sidebar/git/git_section.py:641
 msgid "Working tree has uncommitted changes. Commit them first, or use a terminal to stash."
 msgstr "工作区有未提交的更改。请先提交，或在终端中用 git stash 暂存。"
 
-#: setzer/workspace/sidebar/git/git_section.py:537
+#: setzer/workspace/sidebar/git/git_section.py:667
 msgid "Nothing to push: this branch has no commits yet."
 msgstr "没有可推送的内容：此分支还没有提交。"
 
@@ -7978,11 +8040,15 @@ msgstr "用 Git 记录此文件夹的更改与历史。"
 msgid "Initialize Repository"
 msgstr "初始化仓库"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:345
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:349
+msgid "View file"
+msgstr "查看文件"
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:356
 msgid "Discard changes in this file"
 msgstr "丢弃此文件中的更改"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:364
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:375
 msgid "(no commit message)"
 msgstr "（无提交信息）"
 

@@ -34,10 +34,13 @@ def _(s):
     return s if fn is None else fn(s)
 
 
+import os
+
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw
+from gi.repository import GLib, Gtk, Adw
 
 
 # kind → (徽章文案, 文本着色 class)。error/success/warning 是 Adwaita 内建
@@ -45,13 +48,14 @@ from gi.repository import Gtk, Adw
 _KIND_INFO = {
     'add': ('Added', 'success'),
     'del': ('Deleted', 'error'),
+    'moved': ('Moved', 'accent'),
     'change': ('Changed', 'warning'),
 }
 
 
 class DiffChangeDialog(Adw.Dialog):
 
-    def __init__(self, change):
+    def __init__(self, change, crop_provider=None):
         super().__init__()
         change_n = change.get('n')
         section = (change.get('section') or '').strip()
@@ -60,7 +64,6 @@ class DiffChangeDialog(Adw.Dialog):
         self.set_content_height(360)
         self.set_follows_content_size(True)
 
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         close_button = Gtk.Button(label=_('Close'))
         close_button.connect('clicked', lambda button: self.close())
         header = Adw.HeaderBar()
@@ -105,6 +108,12 @@ class DiffChangeDialog(Adw.Dialog):
         if not old_text and not new_text:
             content.append(Gtk.Label(label=_('No text recorded for this change')))
 
+        # 排版裁剪图：这处改动在 diff 构建里的样子（latexdiff 标记排版）。
+        # 取图是一次 png 子进程调用（秒级），放后台线程，回来自动替换占位。
+        self._crop_closed = False
+        if crop_provider is not None and change_n is not None:
+            content.append(self._build_crop_section(crop_provider, change_n))
+
         clamp = Adw.Clamp()
         clamp.set_child(content)
         scrolled = Gtk.ScrolledWindow()
@@ -138,9 +147,78 @@ class DiffChangeDialog(Adw.Dialog):
         box.append(card)
         return box
 
+    def _build_crop_section(self, crop_provider, change_n):
+        '''排版裁剪图区块：先放占位，后台线程取到 PNG 后回填。
 
-def show_diff_change_dialog(parent_widget, change):
-    '''在 parent_widget 所在窗口展示改动详情。'''
-    dialog = DiffChangeDialog(change)
+        取图走 `phitex session png --compare --change N`（一次子进程，秒级），
+        失败/取不到就整个区块让位——它只是弹窗里的锦上添花，不该以错误状态
+        露脸。'''
+        import threading
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        header_label = Gtk.Label(label=_('Typeset'))
+        header_label.set_halign(Gtk.Align.START)
+        header_label.add_css_class('caption')
+        header_label.add_css_class('dim-label')
+        box.append(header_label)
+
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        card.add_css_class('card')
+        card.set_margin_start(2)
+        placeholder = Gtk.Spinner()
+        placeholder.set_spinning(True)
+        placeholder.set_margin_top(14)
+        placeholder.set_margin_bottom(14)
+        card.append(placeholder)
+        box.append(card)
+        self._crop_card = card
+
+        def _load():
+            path = None
+            try:
+                path = crop_provider(change_n)
+            except Exception:
+                path = None
+            GLib.idle_add(self._apply_crop, card, placeholder, path)
+
+        threading.Thread(target=_load, daemon=True).start()
+        return box
+
+    def _apply_crop(self, card, placeholder, path):
+        '''把取到的裁剪 PNG 换进卡片；弹窗已关（_crop_closed）或没取到则让位。'''
+        if self._crop_closed:
+            return False
+        card.remove(placeholder)
+        if not path or not os.path.isfile(path):
+            label = Gtk.Label(label=_('No typeset crop available'))
+            label.add_css_class('caption')
+            label.add_css_class('dim-label')
+            label.set_margin_top(10)
+            label.set_margin_bottom(10)
+            card.append(label)
+            return False
+        picture = Gtk.Picture.new_for_filename(path)
+        picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
+        picture.set_hexpand(True)
+        picture.set_margin_top(8)
+        picture.set_margin_bottom(8)
+        card.append(picture)
+        # 高度随内容变化：弹窗开了 follows_content_size，但已显示后追加内容
+        # 需要主动收一次尺寸，否则底部留白。
+        self.set_content_height(-1)
+        return False
+
+    def do_close(self):
+        '''弹窗关掉时立牌子：在途的取图线程回来后不再动 widget。'''
+        self._crop_closed = True
+        Adw.Dialog.do_close(self)
+
+
+def show_diff_change_dialog(parent_widget, change, crop_provider=None):
+    '''在 parent_widget 所在窗口展示改动详情。
+
+    crop_provider：可选的 (change_n) → PNG 路径 回调，在后台线程调用——
+    由调用方（preview controller）绑定 PhitexSession 与基线快照。'''
+    dialog = DiffChangeDialog(change, crop_provider=crop_provider)
     root = parent_widget.get_root() if parent_widget is not None else None
     dialog.present(root)

@@ -22,7 +22,9 @@ ROOT = Path(__file__).resolve().parents[2]
 PRESENTER = 'setzer/workspace/preview_panel/preview_panel_presenter.py'
 
 METHODS = ['set_mode', '_diff_available', '_target_preview', '_sync_mode_switch',
-           '_on_mode_switch_changed', 'on_diff_state_changed']
+           '_on_mode_switch_changed', 'on_diff_state_changed',
+           'on_diff_end_requested', 'on_diff_position_changed',
+           '_sync_diff_navigator', 'on_diff_nav_previous', 'on_diff_nav_next']
 
 
 def load_methods(relative_path, class_name, method_names, namespace):
@@ -66,6 +68,11 @@ class FakeView:
     def __init__(self, names=('pdf', 'snippet', 'help')):
         self.mode_switch = FakeModeSwitch(names)
         self.diff_toggle_visible = False
+        self.diff_end_visible = False
+        self.diff_end_requests = []
+        self.diff_nav_visible = False
+        self.diff_nav_state = None
+        self.diff_nav_handlers = None
 
     def set_diff_toggle_visible(self, visible):
         self.diff_toggle_visible = visible
@@ -74,6 +81,31 @@ class FakeView:
         elif not visible and 'diff' in self.mode_switch.names:
             self.mode_switch.names.remove('diff')
 
+    def set_diff_end_visible(self, visible):
+        # 结束按钮只跟"结果有无"走（含排版失败的），与档位的 usable 语义不同。
+        self.diff_end_visible = visible
+
+    def set_diff_end_handler(self, callback):
+        self._diff_end_handler = callback
+
+    def click_diff_end(self):
+        self._diff_end_handler()
+
+    def set_diff_nav_visible(self, visible):
+        self.diff_nav_visible = visible
+
+    def set_diff_nav_state(self, index, total):
+        self.diff_nav_state = (index, total)
+
+    def set_diff_nav_handlers(self, previous, next_):
+        self.diff_nav_handlers = (previous, next_)
+
+    def click_diff_nav_previous(self):
+        self.diff_nav_handlers[0]()
+
+    def click_diff_nav_next(self):
+        self.diff_nav_handlers[1]()
+
 
 class FakePreview:
     def __init__(self, diff_result=None):
@@ -81,17 +113,40 @@ class FakePreview:
         self.showing_diff_pdf = False
         self.show_diff_calls = 0
         self.show_main_calls = 0
+        # diff 导航器用：矩形列表与其下标（真 Preview 的对应字段）。
+        self.diff_rectangles = []
+        self.diff_change_index = None
+        self.step_calls = []
         # 模拟 "diff PDF 打不开" 的失败模式：show_diff_pdf 不置位。
         self.show_diff_succeeds = True
+
+    @property
+    def diff_result_usable(self):
+        # 与 Preview.diff_result_usable 同语义（失败结果不算可看）。
+        result = self.diff_result
+        return result is not None and not result.get('failed')
 
     def show_diff_pdf(self):
         self.show_diff_calls += 1
         if self.show_diff_succeeds and self.diff_result is not None:
             self.showing_diff_pdf = True
+            self.diff_rectangles = list(self.diff_result.get('rectangles') or [])
+            if self.diff_rectangles and self.diff_change_index is None:
+                self.diff_change_index = 0
 
     def show_main_pdf(self):
         self.show_main_calls += 1
         self.showing_diff_pdf = False
+        self.diff_rectangles = []
+
+    def step_diff_change(self, delta):
+        self.step_calls.append(delta)
+        total = len(self.diff_rectangles)
+        if not total:
+            return False
+        current = self.diff_change_index if isinstance(self.diff_change_index, int) else 0
+        self.diff_change_index = max(0, min(current + delta, total - 1))
+        return True
 
 
 class FakeActions:
@@ -126,9 +181,16 @@ class FakePresenter:
         self.workspace = FakeWorkspace(preview)
         self._syncing_mode_switch = False
         self.preview_document_calls = []
+        self.update_buttons_calls = 0
+        self.view.set_diff_nav_handlers(self.on_diff_nav_previous, self.on_diff_nav_next)
 
     def set_preview_document(self):
         self.preview_document_calls.append(self.mode)
+
+    def update_buttons(self):
+        # 真实现里还管着一堆工具栏按钮的显隐；这里只数调用，
+        # 导航器的效果由 set_mode/on_diff_state_changed 自己触发。
+        self.update_buttons_calls += 1
 
     def _sync_mode_action_state(self):
         pass
@@ -140,6 +202,9 @@ for _name, _fn in load_methods(PRESENTER, 'PreviewPanelPresenter', METHODS, {}).
 
 DIFF_RESULT = {'rectangles': [], 'changes': [], 'pdf': '/tmp/x-diff.pdf', 'pages': 2,
                'change_count': 3}
+DIFF_RECT_1 = {'page': 1, 'h': 10, 'v': 20, 'width': 30, 'height': 5, 'kind': 'add', 'n': 1}
+DIFF_RECT_2 = {'page': 2, 'h': 10, 'v': 40, 'width': 30, 'height': 5, 'kind': 'del', 'n': 2}
+NAV_RESULT = dict(DIFF_RESULT, rectangles=[DIFF_RECT_1, DIFF_RECT_2], change_count=2)
 
 
 class SetModeDiffTest(unittest.TestCase):
@@ -294,6 +359,32 @@ class DiffStateChangedTest(unittest.TestCase):
         self.assertTrue(presenter.view.diff_toggle_visible)
         self.assertEqual(presenter.mode, 'pdf')
 
+    def test_end_button_tracks_result_presence(self):
+        # 结束按钮与档位的语义不同：结果存在就给（含排版失败的），结果没了
+        # 才收。
+        failed = dict(DIFF_RESULT, failed=True)
+        preview = FakePreview(failed)
+        presenter = FakePresenter(preview)
+        presenter.on_diff_state_changed(preview)
+        # 失败结果：档位不亮（不可看），但结束按钮给着（可以手动清掉）。
+        self.assertFalse(presenter.view.diff_toggle_visible)
+        self.assertTrue(presenter.view.diff_end_visible)
+
+        preview.diff_result = None
+        presenter.on_diff_state_changed(preview)
+        self.assertFalse(presenter.view.diff_end_visible)
+
+    def test_end_button_click_clears_result_and_disarms(self):
+        preview = FakePreview(DIFF_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.view.set_diff_end_handler(presenter.on_diff_end_requested)
+        presenter.mode = 'diff'
+        presenter.view.set_diff_toggle_visible(True)
+        preview.end_diff_review = mock.Mock(
+            side_effect=lambda: setattr(preview, 'diff_result', None))
+        presenter.view.click_diff_end()
+        preview.end_diff_review.assert_called_once()
+
 
 class ToggleViewGuardTest(unittest.TestCase):
     '''view 侧档位增删的结构守护。
@@ -317,6 +408,80 @@ class ToggleViewGuardTest(unittest.TestCase):
         self.assertNotIn('active == 2', source)
         self.assertIn('set_active_name', source)
         self.assertIn('get_active_name', source)
+
+    def test_diff_mode_hides_irrelevant_tools(self):
+        '''diff 档收缩工具栏：放大镜/主题着色/外部查看器/detach 都不该在
+        diff 视图里出现（空间让给改动导航器；recolor 还会涂掉 latexdiff
+        的红绿语义）。'''
+        source = (ROOT / PRESENTER).read_text(encoding='utf-8')
+        self.assertIn('hide_for_mode = snippet_mode or diff_mode', source)
+        for widget in ('external_viewer_button', 'recolor_pdf_toggle',
+                       'magnifier_toggle'):
+            self.assertIn('self.view.{}.set_visible(not hide_for_mode)'.format(widget),
+                          source)
+        self.assertIn('and not diff_mode', source)
+
+    def test_view_has_diff_navigator(self):
+        source = (ROOT / 'setzer/workspace/preview_panel/preview_panel_viewgtk.py').read_text(
+            encoding='utf-8')
+        self.assertIn('self.diff_nav = Gtk.Box', source)
+        self.assertIn('go-previous-symbolic', source)
+        self.assertIn('go-next-symbolic', source)
+        self.assertIn('def set_diff_nav_state', source)
+
+
+class DiffNavigatorTest(unittest.TestCase):
+    '''工具栏改动导航器：显隐、计数、上下切换的路由。'''
+
+    def test_navigator_shows_with_state_on_diff_entry(self):
+        preview = FakePreview(NAV_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.set_mode('diff')
+        self.assertTrue(presenter.view.diff_nav_visible)
+        # show_diff_pdf 落第一处 → 计数 1/2。
+        self.assertEqual(presenter.view.diff_nav_state, (0, 2))
+
+    def test_navigator_hidden_outside_diff_mode(self):
+        preview = FakePreview(NAV_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.on_diff_state_changed(preview)
+        self.assertTrue(presenter.view.diff_toggle_visible)
+        self.assertFalse(presenter.view.diff_nav_visible)
+
+    def test_navigator_hidden_when_diff_pdf_unopenable(self):
+        # diff PDF 打不开：模式落回 pdf，计数器跟着收（别给一个指不了
+        # 任何东西的死按钮）。
+        preview = FakePreview(NAV_RESULT)
+        preview.show_diff_succeeds = False
+        presenter = FakePresenter(preview)
+        presenter.set_mode('diff')
+        self.assertEqual(presenter.mode, 'pdf')
+        self.assertFalse(presenter.view.diff_nav_visible)
+
+    def test_prev_next_route_to_preview(self):
+        preview = FakePreview(NAV_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.set_mode('diff')
+        presenter.view.click_diff_nav_next()
+        presenter.view.click_diff_nav_previous()
+        self.assertEqual(preview.step_calls, [1, -1])
+        self.assertTrue(preview.diff_change_index in (0, 1))
+
+    def test_position_change_resyncs_state(self):
+        preview = FakePreview(NAV_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.set_mode('diff')
+        preview.diff_change_index = 1
+        presenter.on_diff_position_changed(preview)
+        self.assertEqual(presenter.view.diff_nav_state, (1, 2))
+
+    def test_leaving_diff_hides_navigator(self):
+        preview = FakePreview(NAV_RESULT)
+        presenter = FakePresenter(preview)
+        presenter.set_mode('diff')
+        self.assertTrue(presenter.view.diff_nav_visible)
+        presenter.set_mode('pdf')
+        self.assertFalse(presenter.view.diff_nav_visible)
 
 
 if __name__ == '__main__':

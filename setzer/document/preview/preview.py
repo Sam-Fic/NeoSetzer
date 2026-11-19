@@ -150,6 +150,12 @@ class Preview(Observable):
         # 当前生效的 diff 矩形（dict 列表，synctex 惯例 + kind）：仅 diff
         # 视图非空。layouter 重建布局时按它重放。
         self.diff_rectangles = list()
+        # 导航器所指的改动下标（0-based，对应 diff_rectangles；None = 尚未
+        # 定位）。进入 diff 视图落第一处，点击高亮会同步到被点的那处。
+        self.diff_change_index = None
+        # 进入 diff 视图时布局可能还没建好（页尺寸变了会作废 layout）：
+        # 记下待办，布局建立后补一次定位。
+        self._pending_diff_jump = False
 
         self.view = preview_view.PreviewView()
         self.layouter = preview_layouter.PreviewLayouter(self, self.view)
@@ -969,6 +975,8 @@ class Preview(Observable):
         self.diff_result = None
         self.showing_diff_pdf = False
         self.diff_rectangles = list()
+        self.diff_change_index = None
+        self._pending_diff_jump = False
         self.add_change_code('pdf_changed')
         self.add_change_code('layout_changed')
         self.add_change_code('diff_state_changed')
@@ -998,6 +1006,8 @@ class Preview(Observable):
             # set_zoom_fit_to_width()（它会把已恢复的 fit_to_text_width 等模式
             # 覆盖成 fit_to_width）。视口宽度就绪后 on_size_change 会按 zoom_mode 重算。
             self.zoom_manager.set_zoom_level(1.0)
+        # 进入 diff 视图时布局尚未建好而挂起的定位，现在补上。
+        self._apply_pending_diff_jump()
         self.add_change_code('layout_changed')
 
     def update_vertical_margin(self):
@@ -1417,6 +1427,8 @@ class Preview(Observable):
         if result is None:
             self.diff_result = None
             self.diff_rectangles = list()
+            self.diff_change_index = None
+            self._pending_diff_jump = False
             if self.showing_diff_pdf:
                 self.showing_diff_pdf = False
                 self.load_pdf()
@@ -1439,6 +1451,17 @@ class Preview(Observable):
         self.diff_rectangles = result.get('rectangles') or list()
         if self.layout is not None:
             self.layouter.update_diff_rectangles(self.layout)
+        # 进入 diff 视图即落到当前/第一处改动：toast 说"有 N 处"之后，
+        # 用户切过来不该还停在原 PDF 的滚动位置，靠肉眼找颜色。
+        total = len(self.diff_rectangles)
+        if total:
+            index = self.diff_change_index
+            if not isinstance(index, int) or not 0 <= index < total:
+                index = 0
+            self.diff_change_index = index
+            if not self._scroll_to_rectangle(self.diff_rectangles[index]):
+                self._pending_diff_jump = True
+        self.add_change_code('diff_position_changed')
         self.add_change_code('diff_state_changed')
 
     def show_main_pdf(self):
@@ -1456,6 +1479,90 @@ class Preview(Observable):
             if isinstance(change, dict) and change.get('n') == change_n:
                 return change
         return None
+
+    def jump_to_diff_change(self, index):
+        '''跳到第 index 处改动（0-based，diff_rectangles 的下标）。
+
+        复用 synctex 正向同步的 _scroll_to_rectangle：它已处理 per-page 页顶、
+        缩放因子与"只在下缘高出视口 30% 时动"的滚动策略。布局尚未建立
+        （diff PDF 页尺寸与正式 PDF 不同会作废 layout）时记待办，等
+        setup_layout_and_zoom_levels 建好布局再补跳。'''
+        total = len(self.diff_rectangles)
+        if total == 0:
+            return False
+        try:
+            index = int(index)
+        except (TypeError, ValueError):
+            return False
+        index = max(0, min(index, total - 1))
+        if index != self.diff_change_index:
+            self.diff_change_index = index
+            self.add_change_code('diff_position_changed')
+        if self._scroll_to_rectangle(self.diff_rectangles[index]):
+            return True
+        if self.layout is None:
+            self._pending_diff_jump = True
+        return False
+
+    def step_diff_change(self, delta):
+        '''上一处/下一处（delta = ±1）。不循环：审阅有终点。'''
+        total = len(self.diff_rectangles)
+        if total == 0:
+            return False
+        current = self.diff_change_index
+        if not isinstance(current, int):
+            current = 0
+        return self.jump_to_diff_change(max(0, min(current + delta, total - 1)))
+
+    def sync_diff_change_from_click(self, change_n):
+        '''点击高亮矩形时把导航器拨到对应那处（不滚动——用户已经在那儿）。
+
+        change_n 找不到（矩形与 changes 理论上同源，找不到只可能是数据
+        异常）时保持导航器不动。'''
+        for index, rectangle in enumerate(self.diff_rectangles):
+            if rectangle.get('n') == change_n:
+                if self.diff_change_index != index:
+                    self.diff_change_index = index
+                    self.add_change_code('diff_position_changed')
+                return index
+        return None
+
+    def _apply_pending_diff_jump(self):
+        '''布局建好后补做进入 diff 视图时那一次定位（见 jump_to_diff_change）。'''
+        if not self._pending_diff_jump:
+            return
+        self._pending_diff_jump = False
+        index = self.diff_change_index
+        if isinstance(index, int) and 0 <= index < len(self.diff_rectangles):
+            self._scroll_to_rectangle(self.diff_rectangles[index])
+
+    @property
+    def diff_result_usable(self):
+        '''diff 结果是否存在**且可看**（diff PDF 没排出来的失败结果不算）。
+
+        档位显隐、能否进入 diff 模式都以此为准：失败结果仍保留在
+        diff_result 里（错误信息不丢），只是不作为可切换的内容。'''
+        result = self.diff_result
+        return result is not None and not result.get('failed')
+
+    def end_diff_review(self):
+        '''手动结束本轮 AI 审阅（工具栏结束按钮）。
+
+        清结果（档位/结束按钮随之消失、diff 视图落回正式 PDF），并把
+        AiDiff 解除武装 + 停 JOB-diff。与"切走档位"的语义区分：切走只是
+        去看别的内容，结果保留；这里是明确说"这轮我看完了"。'''
+        self.diff_result = None
+        self.diff_rectangles = list()
+        self.diff_change_index = None
+        self._pending_diff_jump = False
+        if self.showing_diff_pdf:
+            self.showing_diff_pdf = False
+            self.load_pdf()
+        self.add_change_code('diff_state_changed')
+        build_system = getattr(self.document, 'build_system', None)
+        ai_diff = getattr(build_system, 'ai_diff', None)
+        if ai_diff is not None:
+            ai_diff.end_review()
 
     def init_backward_sync(self, x_offset, y_offset):
         if self.layout == None:

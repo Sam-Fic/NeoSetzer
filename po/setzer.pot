@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NeoSetzer 90\n"
 "Report-Msgid-Bugs-To: https://github.com/Sam-Fic/NeoSetzer/issues\n"
-"POT-Creation-Date: 2026-11-19 02:59+0800\n"
+"POT-Creation-Date: 2026-11-19 13:14+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -413,8 +413,8 @@ msgid "No active document"
 msgstr ""
 
 #: setzer/ai_fix/annotation_sender.py:91
-#: setzer/workspace/actions/actions.py:1300
-#: setzer/workspace/actions/actions.py:1428
+#: setzer/workspace/actions/actions.py:1306
+#: setzer/workspace/actions/actions.py:1434
 msgid "Select some text first"
 msgstr ""
 
@@ -482,14 +482,14 @@ msgstr ""
 #: setzer/dialogs/project_build_configuration_viewgtk.py:314
 #: setzer/dialogs/project_build_configuration_viewgtk.py:334
 #: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
-#: setzer/document/preview/preview_controller.py:699
+#: setzer/document/preview/preview_controller.py:731
 #: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
-#: setzer/workspace/actions/actions.py:480
+#: setzer/workspace/actions/actions.py:486
 #: setzer/workspace/sidebar/document_structure_page/structure.py:363
 #: setzer/workspace/sidebar/document_structure_page/structure.py:518
-#: setzer/workspace/sidebar/git/git_section.py:364
-#: setzer/workspace/sidebar/git/git_section.py:422
-#: setzer/workspace/sidebar/git/git_section.py:475
+#: setzer/workspace/sidebar/git/git_section.py:494
+#: setzer/workspace/sidebar/git/git_section.py:552
+#: setzer/workspace/sidebar/git/git_section.py:605
 #: setzer/workspace/welcome_screen/welcome_screen.py:298
 msgid "Cancel"
 msgstr ""
@@ -517,7 +517,7 @@ msgstr ""
 #: setzer/app/exception_handler.py:61
 #: setzer/dialogs/document_wizard/document_wizard.py:439
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:348
-#: setzer/document/preview/diff_change_dialog.py:64
+#: setzer/document/preview/diff_change_dialog.py:67
 msgid "Close"
 msgstr ""
 
@@ -584,7 +584,7 @@ msgstr ""
 
 #: setzer/command_palette/catalog.py:82
 #: setzer/dialogs/preferences/pages/page_shortcuts.py:113
-#: setzer/document/preview/preview_presenter.py:919
+#: setzer/document/preview/preview_presenter.py:947
 msgid "Print"
 msgstr ""
 
@@ -1412,17 +1412,17 @@ msgid "BibTeX Files"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1185
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:371
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:382
 msgid "Protect Upper-Case"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1191
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:374
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:385
 msgid "Unicode → LaTeX"
 msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1197
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:377
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:388
 msgid "LaTeX → Unicode"
 msgstr ""
 
@@ -1489,7 +1489,7 @@ msgstr ""
 
 #: setzer/dialogs/bibliography_manager/bibliography_manager.py:1516
 #: setzer/dialogs/close_confirmation/close_confirmation.py:59
-#: setzer/workspace/sidebar/git/git_section.py:365
+#: setzer/workspace/sidebar/git/git_section.py:495
 msgid "Discard"
 msgstr ""
 
@@ -2501,7 +2501,7 @@ msgid "Ready to create"
 msgstr ""
 
 #: setzer/dialogs/document_wizard/pages/page_general_settings.py:346
-#: setzer/document/preview/preview_presenter.py:988
+#: setzer/document/preview/preview_presenter.py:1016
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:401
 #: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:403
 msgid "Document"
@@ -4191,7 +4191,7 @@ msgstr ""
 #: setzer/dialogs/open_document/open_document.py:39
 #: setzer/dialogs/preferences/pages/page_appearance.py:666
 #: setzer/dialogs/preferences/pages/page_editor.py:1034
-#: setzer/document/preview/preview_controller.py:700
+#: setzer/document/preview/preview_controller.py:732
 msgid "Open"
 msgstr ""
 
@@ -6650,7 +6650,7 @@ msgstr ""
 msgid "The bibliography changed outside Setzer"
 msgstr ""
 
-#: setzer/document/build_system/build_system.py:674
+#: setzer/document/build_system/build_system.py:690
 msgid "Previous build cancelled"
 msgstr ""
 
@@ -6785,45 +6785,53 @@ msgstr ""
 msgid "Next Match"
 msgstr ""
 
-#: setzer/document/preview/diff_change_dialog.py:58
+#: setzer/document/preview/diff_change_dialog.py:62
 msgid "Change {}"
 msgstr ""
 
-#: setzer/document/preview/diff_change_dialog.py:102
+#: setzer/document/preview/diff_change_dialog.py:105
 msgid "Before"
 msgstr ""
 
-#: setzer/document/preview/diff_change_dialog.py:104
+#: setzer/document/preview/diff_change_dialog.py:107
 msgid "After"
 msgstr ""
 
-#: setzer/document/preview/diff_change_dialog.py:106
+#: setzer/document/preview/diff_change_dialog.py:109
 msgid "No text recorded for this change"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:410
-#: setzer/document/preview/preview_controller.py:647
+#: setzer/document/preview/diff_change_dialog.py:159
+msgid "Typeset"
+msgstr ""
+
+#: setzer/document/preview/diff_change_dialog.py:193
+msgid "No typeset crop available"
+msgstr ""
+
+#: setzer/document/preview/preview_controller.py:439
+#: setzer/document/preview/preview_controller.py:679
 msgid "Hold Ctrl and click to open this link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:412
+#: setzer/document/preview/preview_controller.py:441
 #, python-brace-format
 msgid "Go to page {n}"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:686
+#: setzer/document/preview/preview_controller.py:718
 msgid "Could not open link"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:691
+#: setzer/document/preview/preview_controller.py:723
 msgid "Link blocked: this link type is unsafe"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:697
+#: setzer/document/preview/preview_controller.py:729
 msgid "Open local file from this PDF?"
 msgstr ""
 
-#: setzer/document/preview/preview_controller.py:698
+#: setzer/document/preview/preview_controller.py:730
 #, python-brace-format
 msgid ""
 "This link points to a file on your computer:\n"
@@ -6831,41 +6839,51 @@ msgid ""
 "{uri}"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:165
+#: setzer/document/preview/preview_presenter.py:175
+msgid "Failed to typeset the AI diff; the document may have errors"
+msgstr ""
+
+#: setzer/document/preview/preview_presenter.py:189
+msgid "Document changed since the AI task: {} change"
+msgid_plural "Document changed since the AI task: {} changes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setzer/document/preview/preview_presenter.py:193
 msgid "AI edited this document: {} change"
 msgid_plural "AI edited this document: {} changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/preview/preview_presenter.py:170
+#: setzer/document/preview/preview_presenter.py:198
 msgid "{} page"
 msgid_plural "{} pages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: setzer/document/preview/preview_presenter.py:174
+#: setzer/document/preview/preview_presenter.py:202
 msgid "Show Diff"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:873
+#: setzer/document/preview/preview_presenter.py:901
 msgid "Save Image As"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:978
+#: setzer/document/preview/preview_presenter.py:1006
 msgid "No printer available"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:983
+#: setzer/document/preview/preview_presenter.py:1011
 msgid "Could not prepare print data"
 msgstr ""
 
-#: setzer/document/preview/preview_presenter.py:997
+#: setzer/document/preview/preview_presenter.py:1025
 #, python-brace-format
 msgid "Printing failed: {message}"
 msgstr ""
 
-#: setzer/document/preview/preview.py:1522
-#: setzer/workspace/actions/actions.py:1435
+#: setzer/document/preview/preview.py:1736
+#: setzer/workspace/actions/actions.py:1441
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr ""
 
@@ -7171,39 +7189,47 @@ msgstr ""
 msgid "Jump to Definition"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:329
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:335
+msgid "Show in PDF"
+msgstr ""
+
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:337
 msgid "Copy \\ref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:331
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:339
 msgid "Copy \\pageref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:333
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:341
 msgid "Copy \\autoref{"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:335
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:344
+msgid "Copy as PNG"
+msgstr ""
+
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:346
 msgid "Find All References"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:343
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:354
 msgid "Wrap in Command"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:350
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:361
 msgid "Wrap in Environment"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:357
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:368
 msgid "Insert Template"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:363
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:374
 msgid "Show in Preview"
 msgstr ""
 
-#: setzer/popovers/context_menu/context_menu_viewgtk.py:380
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:391
 msgid "Transform Selection"
 msgstr ""
 
@@ -7856,54 +7882,54 @@ msgstr ""
 msgid "Push failed."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:476 setzer/vcs/git_repository.py:481
-msgid "git diff failed."
+#: setzer/vcs/git_repository.py:476
+msgid "Binary files cannot be displayed as text."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:515
+#: setzer/vcs/git_repository.py:508
 msgid "Discard failed."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:532
+#: setzer/vcs/git_repository.py:525
 msgid ""
 "Local and remote histories diverged. NeoSetzer only supports fast-forward "
 "pulls — please resolve this in a terminal (git pull / rebase)."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:536
+#: setzer/vcs/git_repository.py:529
 msgid ""
 "Working tree has uncommitted changes. Commit them first or use a terminal to "
 "stash."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:539
+#: setzer/vcs/git_repository.py:532
 msgid "Could not reach the remote repository. Check your network connection."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:547
+#: setzer/vcs/git_repository.py:540
 msgid ""
 "No remote repository is set up for this project. Add one in a terminal: git "
 "remote add origin <url>"
 msgstr ""
 
-#: setzer/vcs/git_repository.py:550
+#: setzer/vcs/git_repository.py:543
 msgid ""
 "Push failed: no stored credentials for this remote. Please configure a "
 "credential helper in a terminal (git config credential.helper). NeoSetzer "
 "never stores tokens or passwords."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:555
+#: setzer/vcs/git_repository.py:548
 msgid "Push rejected: the remote has new commits. Pull first."
 msgstr ""
 
-#: setzer/vcs/git_repository.py:558
+#: setzer/vcs/git_repository.py:551
 msgid ""
 "Git user name and email are not configured. Set them with: git config --"
 "global user.name / user.email"
 msgstr ""
 
-#: setzer/vcs/git_repository.py:561
+#: setzer/vcs/git_repository.py:554
 msgid "Nothing to commit: no files were selected."
 msgstr ""
 
@@ -7911,31 +7937,47 @@ msgstr ""
 msgid "Choose File"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:470
+#: setzer/workspace/actions/actions.py:476
 msgid "No .tex files were found in your Templates folder."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:477
-#: setzer/workspace/actions/actions.py:507
+#: setzer/workspace/actions/actions.py:483
+#: setzer/workspace/actions/actions.py:513
 msgid "Create document from template"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:478
+#: setzer/workspace/actions/actions.py:484
 msgid "Choose a LaTeX template, then choose where to create its new copy."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:481
+#: setzer/workspace/actions/actions.py:487
 msgid "Choose location"
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:528
+#: setzer/workspace/actions/actions.py:534
 msgid "The selected destination is not a local file."
 msgstr ""
 
-#: setzer/workspace/actions/actions.py:1442
-#: setzer/workspace/actions/actions.py:1447
-#: setzer/workspace/actions/actions.py:1457
+#: setzer/workspace/actions/actions.py:1448
+#: setzer/workspace/actions/actions.py:1453
+#: setzer/workspace/actions/actions.py:1463
 msgid "Could not map the PDF selection to source. Build the document first."
+msgstr ""
+
+#: setzer/workspace/actions/actions.py:2089
+msgid "Could not find “{}” in the PDF"
+msgstr ""
+
+#: setzer/workspace/actions/actions.py:2135
+msgid "Could not render “{}” as an image"
+msgstr ""
+
+#: setzer/workspace/actions/actions.py:2141
+msgid "“{}” copied as an image"
+msgstr ""
+
+#: setzer/workspace/actions/actions.py:2143
+msgid "Could not copy “{}” as an image"
 msgstr ""
 
 #: setzer/workspace/agent_terminal_window/agent_terminal_window.py:81
@@ -8061,24 +8103,24 @@ msgid ""
 "result to open it in your web browser."
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:514
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:564
 msgid "Maximum zoom level reached"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:516
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:566
 msgid "Minimum zoom level reached"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:554
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:607
 msgid "Build failed — showing the previous PDF"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:568
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:621
 #, python-brace-format
 msgid "of {total}"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_presenter.py:570
+#: setzer/workspace/preview_panel/preview_panel_presenter.py:623
 msgid "No preview"
 msgstr ""
 
@@ -8102,7 +8144,19 @@ msgstr ""
 msgid "Detach preview to separate window"
 msgstr ""
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:214
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:173
+msgid "End AI review"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:188
+msgid "Previous change"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:195
+msgid "Next change"
+msgstr ""
+
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:250
 msgid "Typeset diff of AI edits"
 msgstr ""
 
@@ -8386,50 +8440,58 @@ msgstr ""
 msgid "Mark as Done"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/diff_dialog.py:86
-msgid "(no diff)"
+#: setzer/workspace/sidebar/git/diff_dialog.py:115
+msgid "No changes in this file."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:159
+#: setzer/workspace/sidebar/git/diff_dialog.py:134
+msgid "Diff truncated: too many lines to display."
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:170
 msgid "The git executable was not found in PATH."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:162
+#: setzer/workspace/sidebar/git/git_section.py:173
 msgid "Git integration is disabled in Preferences."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:178
+#: setzer/workspace/sidebar/git/git_section.py:189
 msgid "(no commits yet)"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:188
+#: setzer/workspace/sidebar/git/git_section.py:199
 msgid "synced"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:202
+#: setzer/workspace/sidebar/git/git_section.py:213
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:159
 msgid "Push commits to the remote"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:203
+#: setzer/workspace/sidebar/git/git_section.py:214
 msgid "No remote repository is set up for this project."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:209
+#: setzer/workspace/sidebar/git/git_section.py:220
 #: setzer/workspace/sidebar/git/git_section_viewgtk.py:153
 msgid "Update this branch from the remote (fast-forward only)"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:211
+#: setzer/workspace/sidebar/git/git_section.py:222
 msgid "Push this branch once to set its upstream, then you can pull."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:357
+#: setzer/workspace/sidebar/git/git_section.py:444
+msgid "Could not render a PDF diff — showing the text diff instead."
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:487
 #, python-format
 msgid "Discard changes in %s?"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:359
+#: setzer/workspace/sidebar/git/git_section.py:489
 #, python-format
 msgid ""
 "%s\n"
@@ -8437,7 +8499,7 @@ msgid ""
 "This untracked file will be deleted permanently."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:362
+#: setzer/workspace/sidebar/git/git_section.py:492
 #, python-format
 msgid ""
 "%s\n"
@@ -8445,15 +8507,15 @@ msgid ""
 "All uncommitted changes in this file will be lost."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:393
+#: setzer/workspace/sidebar/git/git_section.py:523
 msgid "Changes discarded"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:420
+#: setzer/workspace/sidebar/git/git_section.py:550
 msgid "Initialize Git Repository?"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:421
+#: setzer/workspace/sidebar/git/git_section.py:551
 #, python-format
 msgid ""
 "A new repository will be created in:\n"
@@ -8461,15 +8523,15 @@ msgid ""
 "%s"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:423
+#: setzer/workspace/sidebar/git/git_section.py:553
 msgid "Initialize"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:472
+#: setzer/workspace/sidebar/git/git_section.py:602
 msgid "Trust This Repository?"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:473
+#: setzer/workspace/sidebar/git/git_section.py:603
 #, python-format
 msgid ""
 "Pull, commit and push run git commands in this repository, which may execute "
@@ -8478,17 +8540,17 @@ msgid ""
 "%s"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:476
+#: setzer/workspace/sidebar/git/git_section.py:606
 msgid "Trust and Continue"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:511
+#: setzer/workspace/sidebar/git/git_section.py:641
 msgid ""
 "Working tree has uncommitted changes. Commit them first, or use a terminal "
 "to stash."
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section.py:537
+#: setzer/workspace/sidebar/git/git_section.py:667
 msgid "Nothing to push: this branch has no commits yet."
 msgstr ""
 
@@ -8568,11 +8630,15 @@ msgstr ""
 msgid "Initialize Repository"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:345
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:349
+msgid "View file"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:356
 msgid "Discard changes in this file"
 msgstr ""
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:364
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:375
 msgid "(no commit message)"
 msgstr ""
 

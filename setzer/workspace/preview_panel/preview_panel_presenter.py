@@ -58,6 +58,8 @@ class PreviewPanelPresenter(object):
 
         # 模式/面板切换（整篇 PDF / TikZ 片段图 / 帮助面板）与片段视图的 Retry。
         self.view.mode_switch.connect('notify::active', self._on_mode_switch_changed)
+        self.view.set_diff_end_handler(self.on_diff_end_requested)
+        self.view.set_diff_nav_handlers(self.on_diff_nav_previous, self.on_diff_nav_next)
         self.view.snippet_view.retry_button.connect('clicked', self._on_snippet_retry_clicked)
 
         # 帮助面板工具栏的分段控件（与预览工具栏相同的三档）：点 pdf/snippet
@@ -161,6 +163,7 @@ class PreviewPanelPresenter(object):
             self._connected_preview.disconnect('layout_changed', self.on_layout_changed)
             self._connected_preview.disconnect('pdf_stale_changed', self.on_pdf_stale_changed)
             self._connected_preview.disconnect('diff_state_changed', self.on_diff_state_changed)
+            self._connected_preview.disconnect('diff_position_changed', self.on_diff_position_changed)
             self._connected_preview.zoom_manager.disconnect('zoom_level_changed', self.on_zoom_level_changed)
             self._connected_preview.zoom_manager.disconnect('zoom_clamped', self.on_zoom_clamped)
             self._connected_preview.zoom_manager.disconnect('zoom_mode_changed', self.on_zoom_mode_changed)
@@ -179,6 +182,7 @@ class PreviewPanelPresenter(object):
         if self.document == None or doc_preview is None:
             self.stack.set_visible_child(self.view.empty_placeholder)
             self.view.set_diff_toggle_visible(False)
+            self.view.set_diff_end_visible(False)
             self.update_label()
             self.update_buttons()
             self._detach_target_bar()
@@ -192,10 +196,11 @@ class PreviewPanelPresenter(object):
             # diff 档跟着目标文档走：切到没有 diff 的文档时档位消失，模式
             # 若还停在 diff 就必须落回 pdf（否则档位灭了但内容还是 diff PDF
             # —— 且那个 PDF 已随文档切换被替换掉了）。
-            if self.mode == 'diff' and doc_preview.diff_result is None:
+            if self.mode == 'diff' and not doc_preview.diff_result_usable:
                 self.mode = 'pdf'
                 self._sync_mode_switch()
-            self.view.set_diff_toggle_visible(doc_preview.diff_result is not None)
+            self.view.set_diff_toggle_visible(doc_preview.diff_result_usable)
+            self.view.set_diff_end_visible(doc_preview.diff_result is not None)
             self.update_label()
             self.update_buttons()
             self.update_zoom_level()
@@ -210,6 +215,7 @@ class PreviewPanelPresenter(object):
                 doc_preview.connect('layout_changed', self.on_layout_changed)
                 doc_preview.connect('pdf_stale_changed', self.on_pdf_stale_changed)
                 doc_preview.connect('diff_state_changed', self.on_diff_state_changed)
+                doc_preview.connect('diff_position_changed', self.on_diff_position_changed)
                 doc_preview.zoom_manager.connect('zoom_level_changed', self.on_zoom_level_changed)
                 doc_preview.zoom_manager.connect('zoom_clamped', self.on_zoom_clamped)
                 doc_preview.zoom_manager.connect('zoom_mode_changed', self.on_zoom_mode_changed)
@@ -220,13 +226,15 @@ class PreviewPanelPresenter(object):
         '''diff 结果出现/消失：维护档位可见性，并在必要时从 diff 档落回。
 
         三种情形分开处理，别混成一条「不在 diff 视图就回 pdf」：
-        * 结果没了（用户手改、文档重置）→ 档位移除 + 落回 pdf；
+        * 结果没了或排不出来（failed）→ 档位移除 + 落回 pdf；
         * 结果还在但视图被顶回正式 PDF（新一轮构建到达时 preview 会自动
           干净地落回）→ 档位保留、模式落回 pdf，用户可以再切回去；
         * 正常在 diff 视图里（show_diff_pdf 自己发的这条）→ 什么都不做。
         '''
-        available = preview.diff_result is not None
+        available = preview.diff_result_usable
         self.view.set_diff_toggle_visible(available)
+        self.view.set_diff_end_visible(preview.diff_result is not None)
+        self._sync_diff_navigator()
         if self.mode != 'diff':
             return
         if not available:
@@ -301,6 +309,8 @@ class PreviewPanelPresenter(object):
                 # 别让亮着的档位说谎。
                 self.mode = 'pdf'
                 self._sync_mode_switch()
+            self.update_buttons()
+            self._sync_diff_navigator()
             self._sync_mode_action_state()
             self.workspace.actions.update_actions()
             return
@@ -311,13 +321,53 @@ class PreviewPanelPresenter(object):
             if preview is not None:
                 preview.show_main_pdf()
         self.set_preview_document()
+        self._sync_diff_navigator()
         self._sync_mode_action_state()
         self.workspace.actions.update_actions()
 
-    def _diff_available(self):
-        '''当前预览目标是否有一份可切换查看的 diff 结果。'''
+    def on_diff_end_requested(self):
+        '''工具栏结束按钮：交给目标 Preview 收口（清结果 + AiDiff 解除武装
+        + 停 JOB-diff）。档位/结束按钮随 diff_state_changed 自己消失。'''
         preview = self._target_preview()
-        return preview is not None and preview.diff_result is not None
+        if preview is not None:
+            preview.end_diff_review()
+
+    def on_diff_position_changed(self, preview):
+        '''导航器所指的改动变了（进入 diff 视图 / 上一下一处 / 点击高亮）。'''
+        self._sync_diff_navigator()
+
+    def on_diff_nav_previous(self):
+        preview = self._target_preview()
+        if preview is not None:
+            preview.step_diff_change(-1)
+
+    def on_diff_nav_next(self):
+        preview = self._target_preview()
+        if preview is not None:
+            preview.step_diff_change(1)
+
+    def _sync_diff_navigator(self):
+        '''工具栏 diff 导航器的显隐与 "2/9" 状态。
+
+        只在 diff 档且预览真的显示着 diff PDF 时给：别的档位里它无处可
+        指（矩形是 diff PDF 的坐标），一个点不动的计数器只是噪音。'''
+        preview = self._target_preview()
+        total = 0
+        if preview is not None and preview.showing_diff_pdf:
+            total = len(preview.diff_rectangles)
+        visible = self.mode == 'diff' and total > 0
+        self.view.set_diff_nav_visible(visible)
+        if not visible:
+            return
+        index = preview.diff_change_index
+        if not isinstance(index, int) or not 0 <= index < total:
+            index = 0
+        self.view.set_diff_nav_state(index, total)
+
+    def _diff_available(self):
+        '''当前预览目标是否有一份可切换查看的 diff 结果（失败的不算）。'''
+        preview = self._target_preview()
+        return preview is not None and preview.diff_result_usable
 
     def _target_preview(self):
         '''预览目标文档的 Preview（多文件工程里是 root 的那份）。
@@ -550,7 +600,10 @@ class PreviewPanelPresenter(object):
                 self.view.paging_of_label.set_visible(False)
                 self.view.stale_label.set_text('')
                 return
-            if preview.pdf_is_stale and not self._hide_stale_banner(self.document):
+            # diff 视图里"构建失败—显示上一版 PDF"说的是正式 PDF，与眼前
+            # 排出来的 diff 无关：不给这条提示（页码照常，那是 diff PDF 的）。
+            if (self.mode != 'diff' and preview.pdf_is_stale
+                    and not self._hide_stale_banner(self.document)):
                 self.view.stale_label.set_text(_('Build failed — showing the previous PDF'))
             else:
                 self.view.stale_label.set_text('')
@@ -601,19 +654,28 @@ class PreviewPanelPresenter(object):
         doc_preview = getattr(self.document, 'preview', None) if self.document != None else None
         has_pdf = doc_preview is not None and doc_preview.poppler_document != None
         snippet_mode = self.mode == 'snippet'
+        diff_mode = self.mode == 'diff'
 
         self.view.toolbar.set_visible(True)
         # 片段模式下这些按钮的语义都是「对整篇 PDF 操作」：一并隐藏，
         # 只留两档切换、zoom±、detach 与切到 Help。
-        self.view.external_viewer_button.set_visible(not snippet_mode)
-        self.view.recolor_pdf_toggle.set_visible(not snippet_mode)
-        self.view.magnifier_toggle.set_visible(not snippet_mode)
+        # diff 模式同理收缩工具栏，把空间让给改动导航器：
+        #   - magnifier：点击语义在 diff 视图已让给"审阅这一处"；
+        #   - recolor：主题重着色会把 latexdiff 的红绿语义涂掉；
+        #   - external：diff PDF 是临时产物，交给外部查看器没有意义；
+        #   - detach：为逐处审阅把整块预览弹到别的屏不是当下任务。
+        hide_for_mode = snippet_mode or diff_mode
+        self.view.external_viewer_button.set_visible(not hide_for_mode)
+        self.view.recolor_pdf_toggle.set_visible(not hide_for_mode)
+        self.view.magnifier_toggle.set_visible(not hide_for_mode)
         self.view.zoom_out_button.set_visible(True)
         self.view.fit_width_button.set_visible(not snippet_mode)
         self.view.zoom_level_button.set_visible(not snippet_mode)
         self.view.zoom_in_button.set_visible(True)
         # 弹出状态下隐藏 detach 按钮（preview_panel 已在独立窗口内，收回走窗口 X）。
-        self.view.detach_button.set_visible(not self.workspace.is_preview_popped_out())
+        self.view.detach_button.set_visible(
+            not self.workspace.is_preview_popped_out() and not diff_mode)
+        self._sync_diff_navigator()
         # 同步分段控件 help 档与帮助面板 switch 按钮的弹出态可见性。
         self._sync_pop_state()
 

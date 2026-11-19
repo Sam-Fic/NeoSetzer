@@ -589,7 +589,7 @@ class BuildSystem(Observable):
                         # 顺序有讲究：AiDiff 要在 highlight 消费脏行**之前**
                         # 偷看一眼（不消费）来判断"用户是否在 buffer 里手改
                         # 过"，以此区分用户编辑与 agent 的磁盘编辑。
-                        self.ai_diff.diff_after_build()
+                        self.ai_diff.diff_after_build(pdf_filename)
                         self.change_highlight.highlight_after_build(
                             pdf_filename, result_blob['build'].get('tex_filename'))
                 else:
