@@ -21,7 +21,9 @@ from gi.repository import Gtk, Gdk, Gio
 
 
 # 悬停预览中放大符号的像素尺寸（侧边栏列表里仅约 16px，放大便于看清细节）。
-PREVIEW_PIXEL_SIZE = 56
+# 悬停预览属内容渲染，不受图标尺寸档硬性约束，仍对齐 HIG 档位 64
+# （docs/ui-guidelines.md §3.3）。
+PREVIEW_PIXEL_SIZE = 64
 
 # 全局标记：当前是否有符号的右键上下文菜单处于打开状态。
 # 右键菜单打开期间必须禁止 hover 预览气泡弹出，否则两个 Popover 会互相遮挡

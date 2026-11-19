@@ -166,6 +166,8 @@ textview gutter {
  * 仅作用于带 .compact-rows 的 ListBox，不影响其他列表。
  */
 .compact-rows row {
+    /* 1px 上下 + 28px 最小高：紧凑行距（叠加 ActionRow 自带 padding 后的
+       总密度），§2.2 光学例外。 */
     padding-top: 1px;
     padding-bottom: 1px;
     min-height: 28px;
@@ -215,6 +217,7 @@ row.accent {
 /* 文档结构树形展开器（折叠/展开的三角形按钮）。作为 ActionRow 内的普通
    widget，无原生按钮视觉；仅作可点击指示，不显示悬停/按下背景。 */
 .compact-rows .structure-expander {
+    /* 1px：三角指示符与行标题之间的发丝间隙，§2.2 光学例外。 */
     margin: 0 1px;
 }
 
@@ -223,6 +226,7 @@ row.accent {
  * 这里只收紧间距。
  */
 .sidebar-section-group > .header {
+    /* 2px：组标题与首行内容之间的发丝间隙，§2.2 光学例外。 */
     margin-bottom: 2px;
 }
 .sidebar-section-group {
@@ -388,6 +392,7 @@ tabbar.inline tabbox {
 }
 
 .preview-target-label {
+    /* 2px 垂直：单行文字提示栏的紧凑内边距（§2.2 光学例外）。 */
     padding: 2px 12px;
 }
 
@@ -396,6 +401,7 @@ tabbar.inline tabbox {
  * 与卡片共享左右 margin（6px），文字 dim-label 灰化，caption 小字号。
  */
 .editor-statusbar {
+    /* 2px 垂直：状态栏单行 caption 的紧凑内边距（§2.2 光学例外）。 */
     padding: 2px 12px;
     margin: 0 6px 0 6px;
 }
@@ -467,6 +473,8 @@ toolbarview > * > * > * {
     -gtk-icon-size: 16px;
     background: @popover_bg_color;
     border-radius: 999px;
+    /* 3px：16px 图标四周的 pill 内衬（16 + 2×3 = 22px 视觉直径），
+       §2.2 光学例外。 */
     padding: 3px;
     box-shadow: 0 1px 3px @setzer_shadow_deep;
 }
@@ -548,6 +556,8 @@ toolbarview > * > * > * {
  */
 .build-log-stage-header {
     opacity: var(--setzer-opacity-dim);
+    /* 2px 上下 padding / 2px margin-top：stage 标题与上下内容的发丝间隙，
+       §2.2 光学例外。 */
     padding: 2px 0 2px var(--setzer-spacing-sm);
     margin-top: 2px;
 }
@@ -868,10 +878,10 @@ headerbar {
 /*
  * Git 页改动文件行的状态字母徽标（M/U/A/D）。颜色由 libadwaita 内建的
  * .success / .error / .warning 文本着色 class 提供（build_file_row 里追加），
- * 这里只管形状：等宽加粗小字，与其余 caption 徽标一致。
+ * 等宽由标准 monospace 样式类提供（Python 侧，§3.1），
+ * 这里只管形状：与其余 caption 徽标一致的小字宽度。
  */
 .git-status-badge {
-    font-family: monospace;
     min-width: 16px;
 }
 
@@ -938,5 +948,13 @@ scrolledwindow.list-card-scroll {
     }
     .document-searchbar > revealer > box {
         box-shadow: inset 0 -1px @borders;
+    }
+    /* 选中态 / 当前项在 HC 主题下底色差缩小、阴影不可见：补 accent 内描边。 */
+    row.accent,
+    .compact-rows:focus-within row:selected,
+    .accent-selection row:selected,
+    .autocomplete-widget row:selected,
+    .command-palette-list row:selected {
+        box-shadow: inset 0 0 0 1px @theme_selected_bg_color;
     }
 }

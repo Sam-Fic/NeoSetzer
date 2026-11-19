@@ -219,6 +219,7 @@ class CommandPaletteDialog(DialogView):
         label.add_css_class('dim-label')
         label.set_halign(Gtk.Align.START)
         label.set_margin_top(12)
+        # 2px：组标题与其下首行之间的发丝间隙（§2.2 光学例外）。
         label.set_margin_bottom(2)
         label.set_margin_start(12)
         label.set_margin_end(12)

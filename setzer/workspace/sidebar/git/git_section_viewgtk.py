@@ -135,6 +135,8 @@ class GitSectionView(Gtk.Box):
 
         self.label_ahead_behind = Gtk.Label()
         self.label_ahead_behind.set_xalign(0)
+        # 2px：与左侧分支名之间的发丝间隙（caption 对 caption，6px 档视觉
+        # 过宽，§2.2 光学例外）。
         self.label_ahead_behind.set_margin_start(2)
         self.label_ahead_behind.add_css_class('dim-label')
         self.label_ahead_behind.add_css_class('caption')
@@ -384,6 +386,8 @@ class GitSectionView(Gtk.Box):
         badge = Gtk.Label(label=status.strip() or '?')
         badge.set_valign(Gtk.Align.CENTER)
         badge.add_css_class('git-status-badge')
+        # 等宽走标准样式类（§3.1），不写 CSS font-family。
+        badge.add_css_class('monospace')
         badge.add_css_class('caption-heading')
         # 着色：新增/未跟踪绿，删除红，改动橙红。首字母判定足够（MM 等组合
         # 以未暂存侧为准）。

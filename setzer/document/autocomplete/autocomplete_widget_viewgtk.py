@@ -310,6 +310,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
             content.attach(icon, 0, 0, 1, 1)
             content.attach(label, 1, 0, 1, 1)
             content.attach(detail_label, 2, 0, 1, 1)
+            # 2px 上下微间隙：比 4px 档更紧的行内密度（§2.2 光学例外）。
             content.set_margin_top(2)
             content.set_margin_bottom(2)
             content.set_margin_start(6)
@@ -349,6 +350,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
         label.set_xalign(0.0)
         label.set_margin_start(6)
         label.set_margin_end(6)
+        # 2px 上下微间隙：与上方命令行同为紧凑行密度（§2.2 光学例外）。
         label.set_margin_top(2)
         label.set_margin_bottom(2)
         label.add_css_class('dim-label')
@@ -368,6 +370,7 @@ class AutocompleteWidgetView(Gtk.ListBox):
         label.set_xalign(1.0)
         label.set_margin_start(6)
         label.set_margin_end(6)
+        # 2px 上下微间隙：与上方命令行同为紧凑行密度（§2.2 光学例外）。
         label.set_margin_top(2)
         label.set_margin_bottom(2)
         label.add_css_class('dim-label')

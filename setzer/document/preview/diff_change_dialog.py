@@ -132,6 +132,7 @@ class DiffChangeDialog(Adw.Dialog):
         box.append(header_label)
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         card.add_css_class('card')
+        # 2px：卡片相对上方 caption 标题的光学缩进，表达层级归属（§2.2）。
         card.set_margin_start(2)
         label = Gtk.Label(label=text)
         label.set_wrap(True)
@@ -164,6 +165,7 @@ class DiffChangeDialog(Adw.Dialog):
 
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         card.add_css_class('card')
+        # 2px：卡片相对上方 caption 标题的光学缩进，表达层级归属（§2.2）。
         card.set_margin_start(2)
         placeholder = Gtk.Spinner()
         placeholder.set_spinning(True)
