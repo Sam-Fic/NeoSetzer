@@ -34,7 +34,8 @@ msgstr "编辑 LaTeX 文档、编译并预览 PDF"
 msgid "latex;bibtex;tex;editor;pdf;documents;"
 msgstr "latex;bibtex;tex;编辑器;pdf;文档;"
 
-#: data/org.cvfosammmm.Setzer.desktop:17 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:393
+#: data/org.cvfosammmm.Setzer.desktop:17
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:393
 msgid "New Document"
 msgstr "新建文档"
 
@@ -50,7 +51,8 @@ msgstr "NeoSetzer 让你在简单易用却功能完备的编辑器中撰写 LaTe
 msgid "Features include:"
 msgstr "功能包括："
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:17 data/org.cvfosammmm.Setzer.metainfo.xml.in:37
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:17
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:37
 msgid "Buttons and shortcuts for many LaTeX elements and special characters"
 msgstr "为大量 LaTeX 元素和特殊字符提供按钮与快捷键"
 
@@ -58,11 +60,13 @@ msgstr "为大量 LaTeX 元素和特殊字符提供按钮与快捷键"
 msgid "Comfortable document creation wizard"
 msgstr "舒适的文档创建向导"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19 data/org.cvfosammmm.Setzer.metainfo.xml.in:45
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:19
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:45
 msgid "Dark mode"
 msgstr "深色模式"
 
-#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20 data/org.cvfosammmm.Setzer.metainfo.xml.in:49
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:20
+#: data/org.cvfosammmm.Setzer.metainfo.xml.in:49
 msgid "Helpful error messages in the build log"
 msgstr "构建日志中提供实用的错误信息"
 
@@ -222,7 +226,12 @@ msgstr "Flatpak 运行时更新至 GNOME 48"
 msgid "Mostly bugfixes, ..."
 msgstr "以错误修复为主，……"
 
-#: data/resources/latexdb/languages/languages.xml:2 data/resources/latexdb/languages/languages.xml:21 data/resources/latexdb/languages/languages.xml:22 data/resources/latexdb/languages/languages.xml:23 data/resources/latexdb/languages/languages.xml:24 data/resources/latexdb/languages/languages.xml:25
+#: data/resources/latexdb/languages/languages.xml:2
+#: data/resources/latexdb/languages/languages.xml:21
+#: data/resources/latexdb/languages/languages.xml:22
+#: data/resources/latexdb/languages/languages.xml:23
+#: data/resources/latexdb/languages/languages.xml:24
+#: data/resources/latexdb/languages/languages.xml:25
 msgid "English"
 msgstr "English"
 
@@ -230,7 +239,8 @@ msgstr "English"
 msgid "Español"
 msgstr "Español"
 
-#: data/resources/latexdb/languages/languages.xml:4 data/resources/latexdb/languages/languages.xml:29
+#: data/resources/latexdb/languages/languages.xml:4
+#: data/resources/latexdb/languages/languages.xml:29
 msgid "Français"
 msgstr "Français"
 
@@ -238,11 +248,15 @@ msgstr "Français"
 msgid "Русский"
 msgstr "Русский"
 
-#: data/resources/latexdb/languages/languages.xml:6 data/resources/latexdb/languages/languages.xml:7
+#: data/resources/latexdb/languages/languages.xml:6
+#: data/resources/latexdb/languages/languages.xml:7
 msgid "Português"
 msgstr "Português"
 
-#: data/resources/latexdb/languages/languages.xml:8 data/resources/latexdb/languages/languages.xml:31 data/resources/latexdb/languages/languages.xml:32 data/resources/latexdb/languages/languages.xml:33
+#: data/resources/latexdb/languages/languages.xml:8
+#: data/resources/latexdb/languages/languages.xml:31
+#: data/resources/latexdb/languages/languages.xml:32
+#: data/resources/latexdb/languages/languages.xml:33
 msgid "Deutsch"
 msgstr "Deutsch"
 
@@ -310,7 +324,8 @@ msgstr "Suomi"
 msgid "Galego"
 msgstr "Galego"
 
-#: data/resources/latexdb/languages/languages.xml:34 data/resources/latexdb/languages/languages.xml:35
+#: data/resources/latexdb/languages/languages.xml:34
+#: data/resources/latexdb/languages/languages.xml:35
 msgid "Ελληνικά"
 msgstr "Ελληνικά"
 
@@ -350,7 +365,8 @@ msgstr "Bahasa Melayu"
 msgid "Davvisámegiella"
 msgstr "Davvisámegiella"
 
-#: data/resources/latexdb/languages/languages.xml:45 data/resources/latexdb/languages/languages.xml:46
+#: data/resources/latexdb/languages/languages.xml:45
+#: data/resources/latexdb/languages/languages.xml:46
 msgid "Norsk"
 msgstr "Norsk"
 
@@ -446,15 +462,18 @@ msgstr "可重定义标签的 enumerate 列表。"
 msgid "interface to document dimensions."
 msgstr "文档尺寸参数接口。"
 
-#: data/resources/latexdb/packages/general.xml:14 setzer/dialogs/document_wizard/pages/page_general_settings.py:191
+#: data/resources/latexdb/packages/general.xml:14
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:191
 msgid "create a glossary for your document."
 msgstr "为您的文档创建术语表"
 
-#: data/resources/latexdb/packages/general.xml:15 setzer/dialogs/document_wizard/pages/page_general_settings.py:184
+#: data/resources/latexdb/packages/general.xml:15
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:184
 msgid "include graphics in your document."
 msgstr "在您文档中包括图形"
 
-#: data/resources/latexdb/packages/general.xml:16 setzer/dialogs/document_wizard/pages/page_general_settings.py:188
+#: data/resources/latexdb/packages/general.xml:16
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:188
 msgid "create hyperlinks within your document."
 msgstr "在您文档内创建超链接"
 
@@ -470,7 +489,8 @@ msgstr "提供用于嵌入程序代码的 listing 环境。"
 msgid "provides additional bibliography and citation styles."
 msgstr "提供额外的参考文献与引用样式。"
 
-#: data/resources/latexdb/packages/general.xml:20 setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+#: data/resources/latexdb/packages/general.xml:20
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
 msgid "paragraphs without indentation."
 msgstr "不带缩进的段落"
 
@@ -478,11 +498,13 @@ msgstr "不带缩进的段落"
 msgid "create plots in two and three dimensions."
 msgstr "创建二维与三维图形。"
 
-#: data/resources/latexdb/packages/general.xml:22 setzer/dialogs/document_wizard/pages/page_general_settings.py:183
+#: data/resources/latexdb/packages/general.xml:22
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:183
 msgid "contains symbols to be used in textmode."
 msgstr "包含在文本模式中使用的符号"
 
-#: data/resources/latexdb/packages/general.xml:23 setzer/dialogs/document_wizard/pages/page_general_settings.py:189
+#: data/resources/latexdb/packages/general.xml:23
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:189
 msgid "define theorem environments (like \"definition\", \"lemma\", …) with custom styling."
 msgstr "使用自定义样式定义定理环境（如“定义”、“引理”等）"
 
@@ -498,7 +520,8 @@ msgstr "为文档中的节设置透明度。"
 msgid "type urls with the \\\\url{..} command without escaping them."
 msgstr "使用 \\\\url{..} 命令输入网址而无需转义。"
 
-#: data/resources/latexdb/packages/general.xml:27 setzer/dialogs/document_wizard/pages/page_general_settings.py:186
+#: data/resources/latexdb/packages/general.xml:27
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:186
 msgid "enables colored text."
 msgstr "启用彩色文本"
 
@@ -536,11 +559,19 @@ msgstr "{tool} 在此系统上不可用。请在首选项 → 常规 → AI 设�
 msgid "Embedded terminal is not available on this system."
 msgstr "此系统不支持内嵌终端。"
 
-#: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:262 setzer/dialogs/build_log/build_log_dialog_controller.py:464 setzer/workspace/headerbar/headerbar.py:390
+#: setzer/ai_fix/agent_session.py:130 setzer/ai_fix/annotation_sender.py:262
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:464
+#: setzer/workspace/headerbar/headerbar.py:390
 msgid "No agent tool configured. Add one in Preferences → General → AI Settings."
 msgstr "未配置 Agent 工具。请在首选项 → 常规 → AI 设置中添加。"
 
-#: setzer/ai_fix/agent_session.py:138 setzer/ai_fix/annotation_sender.py:160 setzer/ai_fix/annotation_sender.py:202 setzer/ai_fix/annotation_sender.py:216 setzer/dialogs/build_log/build_log_dialog_controller.py:453 setzer/dialogs/build_log/build_log_dialog_controller.py:525 setzer/workspace/headerbar/headerbar.py:374 setzer/workspace/sidebar/ai_page/ai_page.py:324
+#: setzer/ai_fix/agent_session.py:138 setzer/ai_fix/annotation_sender.py:160
+#: setzer/ai_fix/annotation_sender.py:202
+#: setzer/ai_fix/annotation_sender.py:216
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:453
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:525
+#: setzer/workspace/headerbar/headerbar.py:374
+#: setzer/workspace/sidebar/ai_page/ai_page.py:324
 msgid "Please save the document first"
 msgstr "请先保存文档"
 
@@ -557,19 +588,24 @@ msgstr "没有可发送的内容"
 msgid "Sent to {tool} (copied to clipboard as fallback)."
 msgstr "已发送到 {tool}（同时复制到剪贴板兜底）。"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:68 setzer/ai_fix/agent_terminal_viewgtk.py:70
+#: setzer/ai_fix/agent_terminal_viewgtk.py:68
+#: setzer/ai_fix/agent_terminal_viewgtk.py:70
 msgid "End session and stop the agent"
 msgstr "结束会话并停止 Agent"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:77 setzer/ai_fix/agent_terminal_viewgtk.py:80
+#: setzer/ai_fix/agent_terminal_viewgtk.py:77
+#: setzer/ai_fix/agent_terminal_viewgtk.py:80
 msgid "New session (in the active document’s directory)"
 msgstr "新会话（在当前文档目录中）"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:85 setzer/ai_fix/agent_terminal_viewgtk.py:230 setzer/ai_fix/agent_terminal_viewgtk.py:232
+#: setzer/ai_fix/agent_terminal_viewgtk.py:85
+#: setzer/ai_fix/agent_terminal_viewgtk.py:230
+#: setzer/ai_fix/agent_terminal_viewgtk.py:232
 msgid "Open in a separate window"
 msgstr "在独立窗口中打开"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:109 setzer/ai_fix/agent_terminal_viewgtk.py:159
+#: setzer/ai_fix/agent_terminal_viewgtk.py:109
+#: setzer/ai_fix/agent_terminal_viewgtk.py:159
 msgid "No active session"
 msgstr "无活跃会话"
 
@@ -597,35 +633,50 @@ msgstr "正在启动…"
 msgid "Session ended — next send starts a new one"
 msgstr "会话已结束——下次发送将开启新会话"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:216 setzer/workspace/agent_terminal_window/agent_terminal_window.py:69 setzer/workspace/agent_terminal_window/agent_terminal_window.py:74
+#: setzer/ai_fix/agent_terminal_viewgtk.py:216
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:69
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:74
 msgid "Agent Terminal"
 msgstr "Agent 终端"
 
-#: setzer/ai_fix/agent_terminal_viewgtk.py:225 setzer/ai_fix/agent_terminal_viewgtk.py:227
+#: setzer/ai_fix/agent_terminal_viewgtk.py:225
+#: setzer/ai_fix/agent_terminal_viewgtk.py:227
 msgid "Dock back into the sidebar"
 msgstr "收回侧边栏"
 
-#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78 setzer/ai_fix/annotation_sender.py:132 setzer/ai_fix/annotation_sender.py:155
+#: setzer/ai_fix/annotation_sender.py:57 setzer/ai_fix/annotation_sender.py:78
+#: setzer/ai_fix/annotation_sender.py:132
+#: setzer/ai_fix/annotation_sender.py:155
 msgid "No annotations to send"
 msgstr "没有可发送的批注"
 
-#: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120 setzer/dialogs/build_log/build_log_dialog_controller.py:448 setzer/workspace/headerbar/headerbar.py:370
+#: setzer/ai_fix/annotation_sender.py:85 setzer/ai_fix/annotation_sender.py:120
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:448
+#: setzer/workspace/headerbar/headerbar.py:370
 msgid "No active document"
 msgstr "当前没有打开的文档"
 
-#: setzer/ai_fix/annotation_sender.py:91 setzer/workspace/actions/actions.py:1304 setzer/workspace/actions/actions.py:1432
+#: setzer/ai_fix/annotation_sender.py:91
+#: setzer/workspace/actions/actions.py:1304
+#: setzer/workspace/actions/actions.py:1432
 msgid "Select some text first"
 msgstr "请先选择文本"
 
-#: setzer/ai_fix/annotation_sender.py:171 setzer/dialogs/build_log/build_log_dialog_controller.py:187 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:477 setzer/workspace/sidebar/symbols_page/symbols_page.py:342
+#: setzer/ai_fix/annotation_sender.py:171
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:187
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:477
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:342
 msgid "Copied to clipboard"
 msgstr "已复制到剪贴板"
 
-#: setzer/ai_fix/annotation_sender.py:196 setzer/dialogs/build_log/build_log_dialog_controller.py:442 setzer/workspace/headerbar/headerbar.py:364
+#: setzer/ai_fix/annotation_sender.py:196
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:442
+#: setzer/workspace/headerbar/headerbar.py:364
 msgid "AI agent is disabled. Enable it in Preferences → General → AI Settings."
 msgstr "AI 代理已禁用。请在首选项 → 常规 → AI 设置中启用。"
 
-#: setzer/ai_fix/annotation_sender.py:251 setzer/dialogs/build_log/build_log_dialog_controller.py:513
+#: setzer/ai_fix/annotation_sender.py:251
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:513
 msgid "Added to trusted directories"
 msgstr "已加入受信任目录"
 
@@ -638,11 +689,53 @@ msgstr "发送到 {tool}"
 msgid "(unsaved document)"
 msgstr "（未保存的文档）"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:43 setzer/ai_fix/preview_dialog_viewgtk.py:52
+#: setzer/ai_fix/preview_dialog_viewgtk.py:43
+#: setzer/ai_fix/preview_dialog_viewgtk.py:52
 msgid "Send to AI Agent"
 msgstr "发送给 AI 代理"
 
-#: setzer/ai_fix/preview_dialog_viewgtk.py:57 setzer/dialogs/autosave_recovery/autosave_recovery.py:100 setzer/dialogs/bibliography_manager/bibliography_manager.py:372 setzer/dialogs/bibliography_manager/bibliography_manager.py:819 setzer/dialogs/bibliography_manager/bibliography_manager.py:843 setzer/dialogs/bibliography_manager/bibliography_manager.py:1519 setzer/dialogs/build_save/build_save.py:38 setzer/dialogs/building_failed/building_failed.py:56 setzer/dialogs/close_confirmation/close_confirmation.py:58 setzer/dialogs/close_confirmation/close_confirmation.py:74 setzer/dialogs/document_wizard/document_wizard.py:364 setzer/dialogs/document_wizard/document_wizard.py:391 setzer/dialogs/document_wizard/pages/page_document_class.py:81 setzer/dialogs/go_to_line/go_to_line.py:41 setzer/dialogs/go_to_page/go_to_page.py:42 setzer/dialogs/interpreter_missing/interpreter_missing.py:60 setzer/dialogs/preferences/pages/page_appearance.py:196 setzer/dialogs/preferences/pages/page_appearance.py:330 setzer/dialogs/preferences/pages/page_appearance.py:362 setzer/dialogs/preferences/pages/page_appearance.py:618 setzer/dialogs/preferences/pages/page_appearance.py:927 setzer/dialogs/preferences/pages/page_build_system.py:288 setzer/dialogs/preferences/pages/page_build_system.py:546 setzer/dialogs/preferences/pages/page_editor.py:736 setzer/dialogs/preferences/pages/page_shortcuts.py:404 setzer/dialogs/preferences/pages/page_shortcuts.py:493 setzer/dialogs/preferences/pages/page_shortcuts.py:633 setzer/dialogs/preferences/pages/page_snippets.py:74 setzer/dialogs/preferences/pages/page_snippets.py:225 setzer/dialogs/project_build_configuration_viewgtk.py:157 setzer/dialogs/project_build_configuration_viewgtk.py:314 setzer/dialogs/project_build_configuration_viewgtk.py:334 setzer/dialogs/replace_confirmation/replace_confirmation.py:56 setzer/document/preview/preview_controller.py:731 setzer/popovers/document_switcher/document_switcher_viewgtk.py:83 setzer/workspace/actions/actions.py:493 setzer/workspace/sidebar/document_structure_page/structure.py:363 setzer/workspace/sidebar/document_structure_page/structure.py:518 setzer/workspace/sidebar/git/git_section.py:496 setzer/workspace/sidebar/git/git_section.py:554 setzer/workspace/sidebar/git/git_section.py:607 setzer/workspace/welcome_screen/welcome_screen.py:302
+#: setzer/ai_fix/preview_dialog_viewgtk.py:57
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:100
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:372
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:819
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:843
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1519
+#: setzer/dialogs/build_save/build_save.py:38
+#: setzer/dialogs/building_failed/building_failed.py:56
+#: setzer/dialogs/close_confirmation/close_confirmation.py:58
+#: setzer/dialogs/close_confirmation/close_confirmation.py:74
+#: setzer/dialogs/document_wizard/document_wizard.py:364
+#: setzer/dialogs/document_wizard/document_wizard.py:391
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:81
+#: setzer/dialogs/go_to_line/go_to_line.py:41
+#: setzer/dialogs/go_to_page/go_to_page.py:42
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:60
+#: setzer/dialogs/preferences/pages/page_appearance.py:196
+#: setzer/dialogs/preferences/pages/page_appearance.py:330
+#: setzer/dialogs/preferences/pages/page_appearance.py:362
+#: setzer/dialogs/preferences/pages/page_appearance.py:618
+#: setzer/dialogs/preferences/pages/page_appearance.py:927
+#: setzer/dialogs/preferences/pages/page_build_system.py:288
+#: setzer/dialogs/preferences/pages/page_build_system.py:546
+#: setzer/dialogs/preferences/pages/page_editor.py:736
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:404
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:493
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:633
+#: setzer/dialogs/preferences/pages/page_snippets.py:74
+#: setzer/dialogs/preferences/pages/page_snippets.py:225
+#: setzer/dialogs/project_build_configuration_viewgtk.py:157
+#: setzer/dialogs/project_build_configuration_viewgtk.py:314
+#: setzer/dialogs/project_build_configuration_viewgtk.py:334
+#: setzer/dialogs/replace_confirmation/replace_confirmation.py:56
+#: setzer/document/preview/preview_controller.py:731
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:83
+#: setzer/workspace/actions/actions.py:493
+#: setzer/workspace/sidebar/document_structure_page/structure.py:363
+#: setzer/workspace/sidebar/document_structure_page/structure.py:518
+#: setzer/workspace/sidebar/git/git_section.py:496
+#: setzer/workspace/sidebar/git/git_section.py:554
+#: setzer/workspace/sidebar/git/git_section.py:607
+#: setzer/workspace/welcome_screen/welcome_screen.py:302
 msgid "Cancel"
 msgstr "取消"
 
@@ -662,7 +755,10 @@ msgstr "此项目不再询问"
 msgid "Skip this preview dialog for the current document's directory in the future. You can revoke this in Preferences → General → AI Settings → Trusted directories."
 msgstr "今后跳过当前文档目录的此预览对话框。可在首选项 → 常规 → AI 设置 → 信任目录中撤销。"
 
-#: setzer/app/exception_handler.py:61 setzer/dialogs/document_wizard/document_wizard.py:439 setzer/dialogs/preferences/pages/page_shortcuts.py:366 setzer/document/preview/diff_change_dialog.py:67
+#: setzer/app/exception_handler.py:61
+#: setzer/dialogs/document_wizard/document_wizard.py:439
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:366
+#: setzer/document/preview/diff_change_dialog.py:67
 msgid "Close"
 msgstr "关闭"
 
@@ -670,23 +766,43 @@ msgstr "关闭"
 msgid "An unexpected error occurred"
 msgstr "发生意外错误"
 
-#: setzer/command_palette/catalog.py:74 setzer/command_palette/catalog.py:75 setzer/command_palette/catalog.py:76 setzer/command_palette/catalog.py:77 setzer/command_palette/catalog.py:78 setzer/command_palette/catalog.py:79 setzer/command_palette/catalog.py:80 setzer/command_palette/catalog.py:81 setzer/command_palette/catalog.py:82 setzer/command_palette/catalog.py:83 setzer/command_palette/catalog.py:84 setzer/command_palette/catalog.py:85 setzer/command_palette/catalog.py:86 setzer/dialogs/build_log/build_log_filter_popover.py:88
+#: setzer/command_palette/catalog.py:74 setzer/command_palette/catalog.py:75
+#: setzer/command_palette/catalog.py:76 setzer/command_palette/catalog.py:77
+#: setzer/command_palette/catalog.py:78 setzer/command_palette/catalog.py:79
+#: setzer/command_palette/catalog.py:80 setzer/command_palette/catalog.py:81
+#: setzer/command_palette/catalog.py:82 setzer/command_palette/catalog.py:83
+#: setzer/command_palette/catalog.py:84 setzer/command_palette/catalog.py:85
+#: setzer/command_palette/catalog.py:86
+#: setzer/dialogs/build_log/build_log_filter_popover.py:88
 msgid "File"
 msgstr "文件"
 
-#: setzer/command_palette/catalog.py:74 setzer/popovers/hamburger_menu/hamburger_menu.py:86 setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:99
+#: setzer/command_palette/catalog.py:74
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:86
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:99
 msgid "New LaTeX Document"
 msgstr "新建 LaTeX 文档"
 
-#: setzer/command_palette/catalog.py:75 setzer/popovers/hamburger_menu/hamburger_menu.py:89
+#: setzer/command_palette/catalog.py:75
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:89
 msgid "New BibTeX Document"
 msgstr "新建 BibTeX 文档"
 
-#: setzer/command_palette/catalog.py:76 setzer/popovers/document_chooser/document_chooser_viewgtk.py:30
+#: setzer/command_palette/catalog.py:76
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:30
 msgid "Open Document"
 msgstr "打开文档"
 
-#: setzer/command_palette/catalog.py:77 setzer/dialogs/bibliography_manager/bibliography_manager.py:1352 setzer/dialogs/close_confirmation/close_confirmation.py:60 setzer/dialogs/document_wizard/document_wizard.py:365 setzer/dialogs/document_wizard/document_wizard.py:392 setzer/dialogs/preferences/pages/page_appearance.py:930 setzer/dialogs/preferences/pages/page_shortcuts.py:171 setzer/dialogs/preferences/pages/page_snippets.py:227 setzer/dialogs/project_build_configuration_viewgtk.py:160 setzer/popovers/hamburger_menu/hamburger_menu.py:100
+#: setzer/command_palette/catalog.py:77
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1352
+#: setzer/dialogs/close_confirmation/close_confirmation.py:60
+#: setzer/dialogs/document_wizard/document_wizard.py:365
+#: setzer/dialogs/document_wizard/document_wizard.py:392
+#: setzer/dialogs/preferences/pages/page_appearance.py:930
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:171
+#: setzer/dialogs/preferences/pages/page_snippets.py:227
+#: setzer/dialogs/project_build_configuration_viewgtk.py:160
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:100
 msgid "Save"
 msgstr "保存"
 
@@ -694,7 +810,8 @@ msgstr "保存"
 msgid "Save As"
 msgstr "另存为"
 
-#: setzer/command_palette/catalog.py:79 setzer/dialogs/close_confirmation/close_confirmation.py:76
+#: setzer/command_palette/catalog.py:79
+#: setzer/dialogs/close_confirmation/close_confirmation.py:76
 msgid "Save All"
 msgstr "全部保存"
 
@@ -706,15 +823,20 @@ msgstr "导出 PDF 为"
 msgid "Export Project Package"
 msgstr "导出项目包"
 
-#: setzer/command_palette/catalog.py:82 setzer/dialogs/preferences/pages/page_shortcuts.py:173 setzer/document/preview/preview_presenter.py:947
+#: setzer/command_palette/catalog.py:82
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:173
+#: setzer/document/preview/preview_presenter.py:947
 msgid "Print"
 msgstr "打印"
 
-#: setzer/command_palette/catalog.py:83 setzer/popovers/hamburger_menu/hamburger_menu.py:164 setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:244
+#: setzer/command_palette/catalog.py:83
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:164
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:244
 msgid "Close Document"
 msgstr "关闭文档"
 
-#: setzer/command_palette/catalog.py:84 setzer/popovers/hamburger_menu/hamburger_menu.py:161
+#: setzer/command_palette/catalog.py:84
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:161
 msgid "Close All Documents"
 msgstr "关闭全部文档"
 
@@ -726,7 +848,10 @@ msgstr "重新打开已关闭文档"
 msgid "Pin Tab"
 msgstr "固定标签页"
 
-#: setzer/command_palette/catalog.py:87 setzer/command_palette/catalog.py:88 setzer/command_palette/catalog.py:89 setzer/command_palette/catalog.py:90 setzer/command_palette/catalog.py:91 setzer/dialogs/preferences/pages/page_shortcuts.py:191
+#: setzer/command_palette/catalog.py:87 setzer/command_palette/catalog.py:88
+#: setzer/command_palette/catalog.py:89 setzer/command_palette/catalog.py:90
+#: setzer/command_palette/catalog.py:91
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:191
 msgid "Build"
 msgstr "构建"
 
@@ -738,7 +863,8 @@ msgstr "构建 PDF"
 msgid "Save and Build PDF"
 msgstr "保存并构建 PDF"
 
-#: setzer/command_palette/catalog.py:89 setzer/dialogs/building_failed/building_failed.py:57
+#: setzer/command_palette/catalog.py:89
+#: setzer/dialogs/building_failed/building_failed.py:57
 msgid "Show Build Log"
 msgstr "显示构建日志"
 
@@ -750,27 +876,54 @@ msgstr "关闭构建日志"
 msgid "Forward Sync"
 msgstr "正向同步"
 
-#: setzer/command_palette/catalog.py:92 setzer/command_palette/catalog.py:93 setzer/command_palette/catalog.py:94 setzer/command_palette/catalog.py:95 setzer/command_palette/catalog.py:96 setzer/command_palette/catalog.py:97 setzer/command_palette/catalog.py:98 setzer/command_palette/catalog.py:99 setzer/command_palette/catalog.py:100 setzer/command_palette/catalog.py:101 setzer/command_palette/catalog.py:102 setzer/command_palette/catalog.py:103 setzer/command_palette/catalog.py:104 setzer/command_palette/catalog.py:105 setzer/command_palette/catalog.py:106 setzer/command_palette/catalog.py:107 setzer/command_palette/catalog.py:108 setzer/command_palette/catalog.py:109 setzer/command_palette/catalog.py:110 setzer/command_palette/catalog.py:111 setzer/command_palette/catalog.py:112 setzer/command_palette/catalog.py:113 setzer/command_palette/catalog.py:114 setzer/command_palette/catalog.py:115
+#: setzer/command_palette/catalog.py:92 setzer/command_palette/catalog.py:93
+#: setzer/command_palette/catalog.py:94 setzer/command_palette/catalog.py:95
+#: setzer/command_palette/catalog.py:96 setzer/command_palette/catalog.py:97
+#: setzer/command_palette/catalog.py:98 setzer/command_palette/catalog.py:99
+#: setzer/command_palette/catalog.py:100 setzer/command_palette/catalog.py:101
+#: setzer/command_palette/catalog.py:102 setzer/command_palette/catalog.py:103
+#: setzer/command_palette/catalog.py:104 setzer/command_palette/catalog.py:105
+#: setzer/command_palette/catalog.py:106 setzer/command_palette/catalog.py:107
+#: setzer/command_palette/catalog.py:108 setzer/command_palette/catalog.py:109
+#: setzer/command_palette/catalog.py:110 setzer/command_palette/catalog.py:111
+#: setzer/command_palette/catalog.py:112 setzer/command_palette/catalog.py:113
+#: setzer/command_palette/catalog.py:114 setzer/command_palette/catalog.py:115
 msgid "Edit"
 msgstr "编辑"
 
-#: setzer/command_palette/catalog.py:92 setzer/dialogs/build_log/build_log_dialog_controller.py:354 setzer/dialogs/preferences/pages/page_editor.py:913 setzer/dialogs/preferences/pages/page_shortcuts.py:201 setzer/popovers/context_menu/context_menu_viewgtk.py:185
+#: setzer/command_palette/catalog.py:92
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:354
+#: setzer/dialogs/preferences/pages/page_editor.py:913
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:201
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:185
 msgid "Undo"
 msgstr "撤销"
 
-#: setzer/command_palette/catalog.py:93 setzer/dialogs/preferences/pages/page_shortcuts.py:202 setzer/dialogs/preferences/pages/page_shortcuts.py:353 setzer/popovers/context_menu/context_menu_viewgtk.py:187
+#: setzer/command_palette/catalog.py:93
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:202
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:353
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:187
 msgid "Redo"
 msgstr "重做"
 
-#: setzer/command_palette/catalog.py:94 setzer/dialogs/preferences/pages/page_shortcuts.py:198 setzer/popovers/context_menu/context_menu_viewgtk.py:191
+#: setzer/command_palette/catalog.py:94
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:198
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:191
 msgid "Cut"
 msgstr "剪切"
 
-#: setzer/command_palette/catalog.py:95 setzer/dialogs/preferences/pages/page_shortcuts.py:199 setzer/document/preview/context_menu/context_menu.py:127 setzer/document/preview/context_menu/context_menu.py:140 setzer/popovers/context_menu/context_menu_viewgtk.py:193 setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
+#: setzer/command_palette/catalog.py:95
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:199
+#: setzer/document/preview/context_menu/context_menu.py:127
+#: setzer/document/preview/context_menu/context_menu.py:140
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:193
+#: setzer/workspace/sidebar/document_structure_page/todos_viewgtk.py:112
 msgid "Copy"
 msgstr "复制"
 
-#: setzer/command_palette/catalog.py:96 setzer/dialogs/preferences/pages/page_shortcuts.py:200 setzer/popovers/context_menu/context_menu_viewgtk.py:195
+#: setzer/command_palette/catalog.py:96
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:200
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:195
 msgid "Paste"
 msgstr "粘贴"
 
@@ -778,19 +931,25 @@ msgstr "粘贴"
 msgid "Delete Selection"
 msgstr "删除所选内容"
 
-#: setzer/command_palette/catalog.py:98 setzer/popovers/context_menu/context_menu_viewgtk.py:200
+#: setzer/command_palette/catalog.py:98
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:200
 msgid "Select All"
 msgstr "全选"
 
-#: setzer/command_palette/catalog.py:99 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92 setzer/dialogs/preferences/pages/page_shortcuts.py:183 setzer/dialogs/project_search_replace.py:71
+#: setzer/command_palette/catalog.py:99
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:92
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:183
+#: setzer/dialogs/project_search_replace.py:71
 msgid "Find"
 msgstr "查找"
 
-#: setzer/command_palette/catalog.py:100 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:524
+#: setzer/command_palette/catalog.py:100
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:524
 msgid "Find and Replace"
 msgstr "查找和替换"
 
-#: setzer/command_palette/catalog.py:101 setzer/dialogs/project_search_replace.py:53
+#: setzer/command_palette/catalog.py:101
+#: setzer/dialogs/project_search_replace.py:53
 msgid "Search and Replace in Project"
 msgstr "在项目中搜索和替换"
 
@@ -802,11 +961,13 @@ msgstr "查找下一个"
 msgid "Find Previous"
 msgstr "查找上一个"
 
-#: setzer/command_palette/catalog.py:104 setzer/dialogs/go_to_line/go_to_line.py:39
+#: setzer/command_palette/catalog.py:104
+#: setzer/dialogs/go_to_line/go_to_line.py:39
 msgid "Go to Line"
 msgstr "跳转到行"
 
-#: setzer/command_palette/catalog.py:105 setzer/popovers/context_menu/context_menu_viewgtk.py:205
+#: setzer/command_palette/catalog.py:105
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:205
 msgid "Duplicate Line"
 msgstr "复制行"
 
@@ -814,15 +975,18 @@ msgstr "复制行"
 msgid "Delete Line"
 msgstr "删除行"
 
-#: setzer/command_palette/catalog.py:107 setzer/popovers/context_menu/context_menu_viewgtk.py:208
+#: setzer/command_palette/catalog.py:107
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:208
 msgid "Move Line Up"
 msgstr "上移行"
 
-#: setzer/command_palette/catalog.py:108 setzer/popovers/context_menu/context_menu_viewgtk.py:211
+#: setzer/command_palette/catalog.py:108
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:211
 msgid "Move Line Down"
 msgstr "下移行"
 
-#: setzer/command_palette/catalog.py:109 setzer/popovers/context_menu/context_menu_viewgtk.py:213
+#: setzer/command_palette/catalog.py:109
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:213
 msgid "Indent"
 msgstr "缩进"
 
@@ -830,7 +994,8 @@ msgstr "缩进"
 msgid "Outdent"
 msgstr "减少缩进"
 
-#: setzer/command_palette/catalog.py:111 setzer/popovers/context_menu/context_menu_viewgtk.py:319
+#: setzer/command_palette/catalog.py:111
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:319
 msgid "Toggle Comment"
 msgstr "切换注释"
 
@@ -854,7 +1019,13 @@ msgstr "清除书签"
 msgid "Document Wizard"
 msgstr "文档向导"
 
-#: setzer/command_palette/catalog.py:116 setzer/command_palette/catalog.py:117 setzer/command_palette/catalog.py:118 setzer/command_palette/catalog.py:119 setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121 setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123 setzer/command_palette/catalog.py:124 setzer/document/build_widget/build_widget.py:209 setzer/project/build_configuration.py:50
+#: setzer/command_palette/catalog.py:116 setzer/command_palette/catalog.py:117
+#: setzer/command_palette/catalog.py:118 setzer/command_palette/catalog.py:119
+#: setzer/command_palette/catalog.py:120 setzer/command_palette/catalog.py:121
+#: setzer/command_palette/catalog.py:122 setzer/command_palette/catalog.py:123
+#: setzer/command_palette/catalog.py:124
+#: setzer/document/build_widget/build_widget.py:209
+#: setzer/project/build_configuration.py:50
 msgid "LaTeX"
 msgstr "LaTeX"
 
@@ -862,43 +1033,56 @@ msgstr "LaTeX"
 msgid "Manage Packages"
 msgstr "管理宏包"
 
-#: setzer/command_palette/catalog.py:118 setzer/dialogs/preamble_assistant.py:59 setzer/popovers/hamburger_menu/hamburger_menu.py:136
+#: setzer/command_palette/catalog.py:118
+#: setzer/dialogs/preamble_assistant.py:59
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:136
 msgid "Preamble Assistant"
 msgstr "导言区助手"
 
-#: setzer/command_palette/catalog.py:119 setzer/popovers/shortcutsbar/bibliography_menu.py:31
+#: setzer/command_palette/catalog.py:119
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:31
 msgid "Include BibTeX File"
 msgstr "包含 BibTeX 文件"
 
-#: setzer/command_palette/catalog.py:120 setzer/dialogs/bibliography_manager/bibliography_manager.py:101 setzer/popovers/shortcutsbar/bibliography_menu.py:32
+#: setzer/command_palette/catalog.py:120
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:101
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:32
 msgid "Manage Bibliography"
 msgstr "管理参考文献"
 
-#: setzer/command_palette/catalog.py:121 setzer/popovers/shortcutsbar/document_menu.py:46
+#: setzer/command_palette/catalog.py:121
+#: setzer/popovers/shortcutsbar/document_menu.py:46
 msgid "Include LaTeX File"
 msgstr "包含 LaTeX 文件"
 
-#: setzer/command_palette/catalog.py:122 setzer/dialogs/insert_image/insert_image_viewgtk.py:48
+#: setzer/command_palette/catalog.py:122
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:48
 msgid "Insert Image"
 msgstr "插入图片"
 
-#: setzer/command_palette/catalog.py:123 setzer/dialogs/insert_table/insert_table_viewgtk.py:84
+#: setzer/command_palette/catalog.py:123
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:84
 msgid "Insert Table"
 msgstr "插入表格"
 
-#: setzer/command_palette/catalog.py:124 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:58
+#: setzer/command_palette/catalog.py:124
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:58
 msgid "Insert Matrix"
 msgstr "插入矩阵"
 
-#: setzer/command_palette/catalog.py:125 setzer/popovers/context_menu/context_menu_viewgtk.py:156
+#: setzer/command_palette/catalog.py:125
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:156
 msgid "Fold All"
 msgstr "复制全部"
 
-#: setzer/command_palette/catalog.py:125 setzer/command_palette/catalog.py:126 setzer/command_palette/catalog.py:127 setzer/command_palette/catalog.py:128 setzer/command_palette/catalog.py:129
+#: setzer/command_palette/catalog.py:125 setzer/command_palette/catalog.py:126
+#: setzer/command_palette/catalog.py:127 setzer/command_palette/catalog.py:128
+#: setzer/command_palette/catalog.py:129
 msgid "View"
 msgstr "视图"
 
-#: setzer/command_palette/catalog.py:126 setzer/popovers/context_menu/context_menu_viewgtk.py:157
+#: setzer/command_palette/catalog.py:126
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:157
 msgid "Unfold All"
 msgstr "展开全部"
 
@@ -914,11 +1098,18 @@ msgstr "缩小"
 msgid "Reset Zoom"
 msgstr "重置缩放"
 
-#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131 setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133 setzer/command_palette/catalog.py:134 setzer/dialogs/bibliography_manager/bibliography_manager.py:465 setzer/dialogs/document_wizard/pages/page_general_settings.py:330 setzer/dialogs/preferences/pages/page_appearance.py:710 setzer/dialogs/preferences/pages/page_shortcuts.py:194
+#: setzer/command_palette/catalog.py:130 setzer/command_palette/catalog.py:131
+#: setzer/command_palette/catalog.py:132 setzer/command_palette/catalog.py:133
+#: setzer/command_palette/catalog.py:134
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:465
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:330
+#: setzer/dialogs/preferences/pages/page_appearance.py:710
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:194
 msgid "Preview"
 msgstr "预览"
 
-#: setzer/command_palette/catalog.py:130 setzer/document/preview/context_menu/context_menu.py:147
+#: setzer/command_palette/catalog.py:130
+#: setzer/document/preview/context_menu/context_menu.py:147
 msgid "Search in PDF"
 msgstr "在 PDF 中搜索"
 
@@ -938,28 +1129,39 @@ msgstr "缩小 PDF"
 msgid "TikZ Preview"
 msgstr "TikZ 预览"
 
-#: setzer/command_palette/catalog.py:135 setzer/command_palette/catalog.py:136 setzer/command_palette/catalog.py:137 setzer/command_palette/catalog.py:138 setzer/command_palette/catalog.py:139
+#: setzer/command_palette/catalog.py:135 setzer/command_palette/catalog.py:136
+#: setzer/command_palette/catalog.py:137 setzer/command_palette/catalog.py:138
+#: setzer/command_palette/catalog.py:139
 msgid "Application"
 msgstr "应用程序"
 
-#: setzer/command_palette/catalog.py:135 setzer/dialogs/preferences/pages/page_shortcuts.py:226 setzer/dialogs/preferences/preferences_viewgtk.py:29 setzer/popovers/hamburger_menu/hamburger_menu.py:142
+#: setzer/command_palette/catalog.py:135
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:226
+#: setzer/dialogs/preferences/preferences_viewgtk.py:29
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:142
 msgid "Preferences"
 msgstr "首选项"
 
-#: setzer/command_palette/catalog.py:136 setzer/dialogs/document_properties/document_properties_viewgtk.py:45 setzer/popovers/hamburger_menu/hamburger_menu.py:134
+#: setzer/command_palette/catalog.py:136
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:45
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:134
 msgid "Document Properties"
 msgstr "文档属性"
 
-#: setzer/command_palette/catalog.py:137 setzer/popovers/hamburger_menu/hamburger_menu.py:145
+#: setzer/command_palette/catalog.py:137
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:145
 msgid "Keyboard Shortcuts"
 msgstr "键盘快捷键"
 
 # Command palette strings (reviewed 2026-08-21).
-#: setzer/command_palette/catalog.py:138 setzer/dialogs/preferences/pages/page_shortcuts.py:227 setzer/popovers/hamburger_menu/hamburger_menu.py:153
+#: setzer/command_palette/catalog.py:138
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:227
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:153
 msgid "About NeoSetzer"
 msgstr "关于 NeoSetzer"
 
-#: setzer/command_palette/catalog.py:139 setzer/popovers/hamburger_menu/hamburger_menu.py:126
+#: setzer/command_palette/catalog.py:139
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:126
 msgid "Toggle Fullscreen"
 msgstr "切换全屏"
 
@@ -979,7 +1181,8 @@ msgstr "可用命令"
 msgid "Unavailable in Current Context"
 msgstr "在当前上下文中不可用"
 
-#: setzer/command_palette/dialog.py:68 setzer/popovers/hamburger_menu/hamburger_menu.py:121
+#: setzer/command_palette/dialog.py:68
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:121
 msgid "Command Palette"
 msgstr "命令面板"
 
@@ -1045,7 +1248,8 @@ msgstr "贡献者"
 msgid "translator-credits"
 msgstr "lumingzh <lumingzh@qq.com>"
 
-#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34 setzer/popovers/shortcutsbar/document_menu.py:39
+#: setzer/dialogs/add_remove_packages/add_remove_packages_viewgtk.py:34
+#: setzer/popovers/shortcutsbar/document_menu.py:39
 msgid "Add / Remove Packages"
 msgstr "添加/移除宏包"
 
@@ -1082,7 +1286,8 @@ msgstr "崩溃恢复"
 msgid "Setzer did not exit cleanly last time. {n} unsaved document(s) were recovered:"
 msgstr "NeoSetzer 上次未正常退出，已恢复 {n} 个未保存的文档："
 
-#: setzer/dialogs/autosave_recovery/autosave_recovery.py:99 setzer/dialogs/close_confirmation/close_confirmation.py:75
+#: setzer/dialogs/autosave_recovery/autosave_recovery.py:99
+#: setzer/dialogs/close_confirmation/close_confirmation.py:75
 msgid "Discard All"
 msgstr "全部丢弃"
 
@@ -1090,11 +1295,15 @@ msgstr "全部丢弃"
 msgid "Restore All"
 msgstr "全部恢复"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:55 setzer/dialogs/document_wizard/pages/page_general_settings.py:203 setzer/popovers/shortcutsbar/document_menu.py:78
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:55
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:203
+#: setzer/popovers/shortcutsbar/document_menu.py:78
 msgid "Author"
 msgstr "作者"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:56 setzer/dialogs/document_wizard/pages/page_general_settings.py:200 setzer/popovers/shortcutsbar/document_menu.py:79
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:56
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:200
+#: setzer/popovers/shortcutsbar/document_menu.py:79
 msgid "Title"
 msgstr "标题"
 
@@ -1134,7 +1343,9 @@ msgstr "DOI"
 msgid "URL"
 msgstr "URL"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:66 setzer/dialogs/document_properties/document_properties_viewgtk.py:124 setzer/dialogs/preferences/pages/page_editor.py:826
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:66
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:124
+#: setzer/dialogs/preferences/pages/page_editor.py:826
 msgid "Editor"
 msgstr "编辑器"
 
@@ -1142,7 +1353,9 @@ msgstr "编辑器"
 msgid "Edition"
 msgstr "版本"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:68 setzer/dialogs/document_wizard/pages/page_letter_settings.py:237 setzer/dialogs/document_wizard/pages/page_letter_settings.py:285
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:68
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:237
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:285
 msgid "Address"
 msgstr "地址"
 
@@ -1174,7 +1387,8 @@ msgstr "出版方式"
 msgid "Keywords"
 msgstr "关键词"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:110 setzer/dialogs/bibliography_manager/bibliography_manager.py:1166
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:110
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1166
 msgid "Reload"
 msgstr "重新加载"
 
@@ -1282,7 +1496,8 @@ msgstr "每行一个字段：name = value"
 msgid "Save Entry"
 msgstr "保存条目"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:395 setzer/dialogs/bibliography_manager/bibliography_manager.py:484
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:395
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:484
 msgid "Insert Citations"
 msgstr "插入引用"
 
@@ -1318,7 +1533,8 @@ msgstr "已选键"
 msgid "No keys selected yet."
 msgstr "尚未选择键。"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:479 setzer/dialogs/preferences/pages/page_shortcuts.py:703
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:479
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:703
 msgid "Actions"
 msgstr "操作"
 
@@ -1350,7 +1566,8 @@ msgstr "请添加条目或调整搜索条件。"
 msgid "Additional fields must use “name = value”"
 msgstr "附加字段必须使用“name = value”格式"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:807 setzer/document/bibtex/entry_store.py:565
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:807
+#: setzer/document/bibtex/entry_store.py:565
 #, python-brace-format
 msgid "The field “{field}” occurs more than once"
 msgstr "字段“{field}”出现了多次"
@@ -1364,7 +1581,14 @@ msgstr "删除 BibTeX 条目？"
 msgid "Delete “{key}” from this bibliography? This can be undone when the file is open in Setzer."
 msgstr "要从此参考文献库中删除“{key}”吗？文件在 Setzer 中打开时可撤销此操作。"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:820 setzer/dialogs/bibliography_manager/bibliography_manager.py:1466 setzer/dialogs/document_wizard/pages/page_document_class.py:82 setzer/dialogs/preferences/pages/page_snippets.py:75 setzer/dialogs/project_build_configuration_viewgtk.py:193 setzer/dialogs/project_build_configuration_viewgtk.py:335 setzer/popovers/context_menu/context_menu_viewgtk.py:196 setzer/workspace/sidebar/document_structure_page/structure.py:519
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:820
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1466
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:82
+#: setzer/dialogs/preferences/pages/page_snippets.py:75
+#: setzer/dialogs/project_build_configuration_viewgtk.py:193
+#: setzer/dialogs/project_build_configuration_viewgtk.py:335
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:196
+#: setzer/workspace/sidebar/document_structure_page/structure.py:519
 msgid "Delete"
 msgstr "删除"
 
@@ -1418,19 +1642,24 @@ msgstr "未选择 BibTeX 文件"
 msgid "Open BibTeX File"
 msgstr "打开 BibTeX 文件"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1127 setzer/dialogs/bibliography_manager/bibliography_manager.py:1582 setzer/dialogs/include_bibtex_file/include_bibtex_file.py:106
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1127
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1582
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file.py:106
 msgid "BibTeX Files"
 msgstr "BibTeX 文件"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1189 setzer/popovers/context_menu/context_menu_viewgtk.py:382
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1189
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:382
 msgid "Protect Upper-Case"
 msgstr "保护大写"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1195 setzer/popovers/context_menu/context_menu_viewgtk.py:385
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1195
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:385
 msgid "Unicode → LaTeX"
 msgstr "Unicode → LaTeX"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1201 setzer/popovers/context_menu/context_menu_viewgtk.py:388
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1201
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:388
 msgid "LaTeX → Unicode"
 msgstr "LaTeX → Unicode"
 
@@ -1438,7 +1667,9 @@ msgstr "LaTeX → Unicode"
 msgid "Manage @string Macros"
 msgstr "管理 @string 宏"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1347 setzer/dialogs/preamble_assistant.py:66 setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1347
+#: setzer/dialogs/preamble_assistant.py:66
+#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:42
 msgid "_Close"
 msgstr "关闭(_C)"
 
@@ -1466,7 +1697,10 @@ msgstr "无 @string 宏"
 msgid "Use the + button to add one."
 msgstr "使用 + 按钮添加。"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1451 setzer/dialogs/document_wizard/pages/page_letter_settings.py:234 setzer/dialogs/document_wizard/pages/page_letter_settings.py:282 setzer/dialogs/preferences/pages/page_snippets.py:185
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1451
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:234
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:282
+#: setzer/dialogs/preferences/pages/page_snippets.py:185
 msgid "Name"
 msgstr "名称"
 
@@ -1490,7 +1724,9 @@ msgstr "放弃未保存的更改？"
 msgid "Changes to @string macros have not been saved yet."
 msgstr "对 @string 宏的更改尚未保存。"
 
-#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1520 setzer/dialogs/close_confirmation/close_confirmation.py:59 setzer/workspace/sidebar/git/git_section.py:497
+#: setzer/dialogs/bibliography_manager/bibliography_manager.py:1520
+#: setzer/dialogs/close_confirmation/close_confirmation.py:59
+#: setzer/workspace/sidebar/git/git_section.py:497
 msgid "Discard"
 msgstr "丢弃"
 
@@ -1554,19 +1790,42 @@ msgstr "所有文件"
 msgid "Failed to save build log"
 msgstr "保存构建日志失败"
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:268 setzer/dialogs/build_log/build_log_dialog_controller.py:272 setzer/dialogs/build_log/build_log_dialog_presenter.py:173 setzer/dialogs/build_log/build_log_dialog_presenter.py:177 setzer/dialogs/build_log/build_log_dialog_presenter.py:316 setzer/dialogs/build_log/build_log_dialog_presenter.py:320 setzer/dialogs/build_log/build_log_dialog_presenter.py:354 setzer/dialogs/build_log/build_log_dialog_presenter.py:362 setzer/dialogs/build_log/build_log_dialog_presenter.py:365 setzer/dialogs/build_log/build_log_dialog_presenter.py:368 setzer/dialogs/build_log/build_log_dialog_presenter.py:376 setzer/dialogs/build_log/build_log_dialog_presenter.py:379 setzer/dialogs/build_log/build_log_dialog_presenter.py:396 setzer/dialogs/build_log/build_log_filter_popover.py:89 setzer/dialogs/build_log/build_log_filter_popover.py:93 setzer/dialogs/build_log/build_log_filter_popover.py:181 setzer/dialogs/build_log/build_log_filter_popover.py:193
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:268
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:272
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:173
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:177
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:316
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:354
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:362
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:365
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:368
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:376
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:379
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:396
+#: setzer/dialogs/build_log/build_log_filter_popover.py:89
+#: setzer/dialogs/build_log/build_log_filter_popover.py:93
+#: setzer/dialogs/build_log/build_log_filter_popover.py:181
+#: setzer/dialogs/build_log/build_log_filter_popover.py:193
 msgid "All"
 msgstr "全部"
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:284 setzer/dialogs/build_log/build_log_dialog_presenter.py:61 setzer/dialogs/build_log/build_log_dialog_presenter.py:320 setzer/dialogs/build_log/build_log_dialog_presenter.py:390
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:284
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:61
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:390
 msgid "Undefined reference"
 msgstr "未定义的引用"
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:286 setzer/dialogs/build_log/build_log_dialog_presenter.py:320 setzer/dialogs/build_log/build_log_dialog_presenter.py:392
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:286
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:392
 msgid "Missing package"
 msgstr "缺失宏包"
 
-#: setzer/dialogs/build_log/build_log_dialog_controller.py:288 setzer/dialogs/build_log/build_log_dialog_presenter.py:320 setzer/dialogs/build_log/build_log_dialog_presenter.py:394
+#: setzer/dialogs/build_log/build_log_dialog_controller.py:288
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:320
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:394
 msgid "Syntax error"
 msgstr "语法错误"
 
@@ -1624,7 +1883,10 @@ msgstr "未定义的引用"
 msgid "Warning"
 msgstr "警告"
 
-#: setzer/dialogs/build_log/build_log_dialog_presenter.py:408 setzer/dialogs/build_log/build_log_dialog_presenter.py:413 setzer/dialogs/build_log/build_log_dialog_presenter.py:447 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:63
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:408
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:413
+#: setzer/dialogs/build_log/build_log_dialog_presenter.py:447
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:63
 msgid "Build Log"
 msgstr "构建日志"
 
@@ -1648,43 +1910,53 @@ msgid "{amount} warning or badbox"
 msgid_plural "{amount} warnings or badboxes"
 msgstr[0] "出现 {amount} 个警告或排版溢出（Badbox）"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:69 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:71
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:69
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:71
 msgid "Copy all log entries"
 msgstr "复制所有日志条目"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:78 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:80
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:78
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:80
 msgid "Save log to file"
 msgstr "保存日志到文件"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:90 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:92
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:90
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:92
 msgid "Fix all errors with AI"
 msgstr "用 AI 修复全部错误"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:103 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:105
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:103
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:105
 msgid "Filter log entries"
 msgstr "筛选日志条目"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:114 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:116
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:114
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:116
 msgid "Restore ignored warnings"
 msgstr "恢复已忽略的警告"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:150 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:152
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:150
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:152
 msgid "Search build log"
 msgstr "搜索编译日志"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:208 setzer/dialogs/build_log/build_log_filter_popover.py:118
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:208
+#: setzer/dialogs/build_log/build_log_filter_popover.py:118
 msgid "Errors"
 msgstr "错误"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:209 setzer/dialogs/build_log/build_log_filter_popover.py:121
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:209
+#: setzer/dialogs/build_log/build_log_filter_popover.py:121
 msgid "Warnings"
 msgstr "警告"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:210 setzer/dialogs/build_log/build_log_filter_popover.py:124
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:210
+#: setzer/dialogs/build_log/build_log_filter_popover.py:124
 msgid "Badboxes"
 msgstr "坏盒子"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:226 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:228
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:226
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:228
 msgid "Collapse or expand group"
 msgstr "折叠或展开分组"
 
@@ -1697,11 +1969,14 @@ msgstr "没有可显示的编译日志项。"
 msgid "Restore {count} ignored warning type(s)"
 msgstr "已恢复 {count} 个已忽略的警告类型"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:440 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:442 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:497
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:440
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:442
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:497
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
-#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:456 setzer/dialogs/build_log/build_log_dialog_viewgtk.py:458
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:456
+#: setzer/dialogs/build_log/build_log_dialog_viewgtk.py:458
 msgid "Fix this error with AI"
 msgstr "用 AI 修复此错误"
 
@@ -1762,7 +2037,8 @@ msgstr "复制错误"
 msgid "Search Online"
 msgstr "在线搜索"
 
-#: setzer/dialogs/building_failed/building_failed.py:55 setzer/dialogs/interpreter_missing/interpreter_missing.py:61
+#: setzer/dialogs/building_failed/building_failed.py:55
+#: setzer/dialogs/interpreter_missing/interpreter_missing.py:61
 msgid "Go to Preferences"
 msgstr "前往首选项"
 
@@ -1821,7 +2097,8 @@ msgstr "文档{document}已从磁盘删除或移走"
 msgid "If you close it or close Setzer without saving, this document will be lost."
 msgstr "如果你关闭它或关闭 NeoSetzer 而不保存，此文档将会丢失。"
 
-#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43 setzer/popovers/hamburger_menu/hamburger_menu.py:103
+#: setzer/dialogs/document_deleted_on_disk/document_deleted_on_disk.py:43
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:103
 msgid "Save As…"
 msgstr "另存为…"
 
@@ -1829,15 +2106,20 @@ msgstr "另存为…"
 msgid "Keep Open"
 msgstr "保持打开"
 
-#: setzer/dialogs/document_properties/document_properties.py:43 setzer/dialogs/document_properties/document_properties.py:49 setzer/dialogs/document_properties/document_properties_viewgtk.py:32 setzer/dialogs/document_properties/document_properties_viewgtk.py:38
+#: setzer/dialogs/document_properties/document_properties.py:43
+#: setzer/dialogs/document_properties/document_properties.py:49
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:32
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:38
 msgid "Follow global default"
 msgstr "使用全局默认值"
 
-#: setzer/dialogs/document_properties/document_properties.py:44 setzer/dialogs/document_properties/document_properties_viewgtk.py:33
+#: setzer/dialogs/document_properties/document_properties.py:44
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:33
 msgid "Spaces"
 msgstr "空格"
 
-#: setzer/dialogs/document_properties/document_properties.py:45 setzer/dialogs/document_properties/document_properties_viewgtk.py:34
+#: setzer/dialogs/document_properties/document_properties.py:45
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:34
 msgid "Tabs"
 msgstr "制表符"
 
@@ -1851,7 +2133,16 @@ msgstr "{engine}（{source}）"
 msgid "This document’s \"% !TEX program = {engine}\" comment overrides the interpreter chosen for it. PhiTeX reads that comment itself and chooses the engine from the document, so selecting PhiTeX in the Document menu ends the override without editing the file."
 msgstr "本文档的“% !TEX program = {engine}”注释会覆盖为它选择的解释器。PhiTeX 会自行读取该注释并按文档选择引擎，因此在“文档”菜单中选择 PhiTeX 即可结束覆盖，无需编辑文件。"
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:49 setzer/dialogs/document_wizard/document_wizard_viewgtk.py:53 setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:74 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:42 setzer/dialogs/insert_image/insert_image_viewgtk.py:52 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:64 setzer/dialogs/insert_table/insert_table_viewgtk.py:90 setzer/dialogs/preamble_assistant.py:179 setzer/dialogs/project_search_replace.py:54 setzer/dialogs/project_search_replace.py:156
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:49
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:53
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:74
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:42
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:52
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:64
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:90
+#: setzer/dialogs/preamble_assistant.py:179
+#: setzer/dialogs/project_search_replace.py:54
+#: setzer/dialogs/project_search_replace.py:156
 msgid "_Cancel"
 msgstr "取消(_C)"
 
@@ -1875,7 +2166,8 @@ msgstr "覆盖构建选项"
 msgid "Auto Build"
 msgstr "自动构建"
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94 setzer/dialogs/preferences/pages/page_build_system.py:723
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:94
+#: setzer/dialogs/preferences/pages/page_build_system.py:723
 msgid "Use latexmk"
 msgstr "使用 Latexmk"
 
@@ -1891,7 +2183,8 @@ msgstr "清理构建文件"
 msgid "Automatically remove auxiliary files after building"
 msgstr "在构建 PDF 后自动移除辅助文件（.log、.dvi 等……）"
 
-#: setzer/dialogs/document_properties/document_properties_viewgtk.py:107 setzer/dialogs/project_build_configuration_viewgtk.py:149
+#: setzer/dialogs/document_properties/document_properties_viewgtk.py:107
+#: setzer/dialogs/project_build_configuration_viewgtk.py:149
 msgid "Project Build Configuration"
 msgstr "项目构建配置"
 
@@ -1935,7 +2228,8 @@ msgstr "请先输入文档标题，再创建此文档。"
 msgid "Cannot continue"
 msgstr "无法继续"
 
-#: setzer/dialogs/document_wizard/document_wizard.py:616 setzer/dialogs/document_wizard/document_wizard.py:628
+#: setzer/dialogs/document_wizard/document_wizard.py:616
+#: setzer/dialogs/document_wizard/document_wizard.py:628
 msgid "Your name"
 msgstr "您的姓名"
 
@@ -1967,15 +2261,18 @@ msgstr "亲爱的收件人，"
 msgid "Yours sincerely,"
 msgstr "此致，"
 
-#: setzer/dialogs/document_wizard/document_wizard.py:725 setzer/dialogs/document_wizard/document_wizard.py:746
+#: setzer/dialogs/document_wizard/document_wizard.py:725
+#: setzer/dialogs/document_wizard/document_wizard.py:746
 msgid "Other destination"
 msgstr "其它目的地"
 
-#: setzer/dialogs/document_wizard/document_wizard.py:726 setzer/dialogs/document_wizard/document_wizard.py:747
+#: setzer/dialogs/document_wizard/document_wizard.py:726
+#: setzer/dialogs/document_wizard/document_wizard.py:747
 msgid "PS: PostScriptum"
 msgstr "附言：后记"
 
-#: setzer/dialogs/document_wizard/document_wizard.py:727 setzer/dialogs/document_wizard/document_wizard.py:748
+#: setzer/dialogs/document_wizard/document_wizard.py:727
+#: setzer/dialogs/document_wizard/document_wizard.py:748
 msgid "Enclosures"
 msgstr "附件"
 
@@ -1993,15 +2290,19 @@ msgstr ""
 "% 您也可以移除该注释。\n"
 "% \n"
 
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:51 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:390 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:394
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:51
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:390
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:394
 msgid "Create a template document"
 msgstr "创建模版文档"
 
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:60 setzer/dialogs/document_wizard/document_wizard_viewgtk.py:62
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:60
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:62
 msgid "Go to the previous wizard page"
 msgstr "转到上一向导页"
 
-#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:67 setzer/dialogs/document_wizard/document_wizard_viewgtk.py:69
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:67
+#: setzer/dialogs/document_wizard/document_wizard_viewgtk.py:69
 msgid "Template actions"
 msgstr "模板操作"
 
@@ -2025,11 +2326,13 @@ msgstr "创建(_C)"
 msgid "The destination must be different from the template file"
 msgstr "目标文件必须与模板文件不同"
 
-#: setzer/dialogs/document_wizard/file_templates.py:89 setzer/dialogs/document_wizard/file_templates.py:117
+#: setzer/dialogs/document_wizard/file_templates.py:89
+#: setzer/dialogs/document_wizard/file_templates.py:117
 msgid "The destination file already exists"
 msgstr "目标文件已存在"
 
-#: setzer/dialogs/document_wizard/file_templates.py:95 setzer/dialogs/document_wizard/file_templates.py:143
+#: setzer/dialogs/document_wizard/file_templates.py:95
+#: setzer/dialogs/document_wizard/file_templates.py:143
 msgid "The template file could not be read"
 msgstr "无法读取模板文件"
 
@@ -2041,7 +2344,8 @@ msgstr "无法写入目标文件夹"
 msgid "Could not create the document from this template"
 msgstr "无法根据此模板创建文档"
 
-#: setzer/dialogs/document_wizard/file_templates.py:134 setzer/dialogs/document_wizard/file_templates.py:141
+#: setzer/dialogs/document_wizard/file_templates.py:134
+#: setzer/dialogs/document_wizard/file_templates.py:141
 msgid "The template file is missing"
 msgstr "模板文件缺失"
 
@@ -2073,7 +2377,9 @@ msgstr "模板文件过大"
 msgid "Step 2"
 msgstr "第 2 步"
 
-#: setzer/dialogs/document_wizard/pages/page.py:105 setzer/dialogs/document_wizard/pages/page_letter_settings.py:345 setzer/dialogs/document_wizard/pages/page_standard_settings.py:161
+#: setzer/dialogs/document_wizard/pages/page.py:105
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:345
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:161
 msgid "Page format"
 msgstr "页面格式"
 
@@ -2097,7 +2403,9 @@ msgstr "两栏布局"
 msgid "Common for scientific articles and magazines."
 msgstr "学术期刊与杂志常用。"
 
-#: setzer/dialogs/document_wizard/pages/page.py:133 setzer/dialogs/document_wizard/pages/page_letter_settings.py:354 setzer/dialogs/document_wizard/pages/page_standard_settings.py:170
+#: setzer/dialogs/document_wizard/pages/page.py:133
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:354
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:170
 msgid "Font size"
 msgstr "字体大小"
 
@@ -2113,11 +2421,17 @@ msgstr "使用默认边界"
 msgid "On: use LaTeX default margins (about 1 inch / 2.54 cm). Off: set custom margins below."
 msgstr "开：使用 LaTeX 默认页边距（约 1 英寸 / 2.54 厘米）。关：在下方自定义。"
 
-#: setzer/dialogs/document_wizard/pages/page.py:146 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:119 setzer/dialogs/insert_table/insert_table_viewgtk.py:370 setzer/dialogs/preferences/pages/page_shortcuts.py:224
+#: setzer/dialogs/document_wizard/pages/page.py:146
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:119
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:370
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:224
 msgid "Left"
 msgstr "左对齐"
 
-#: setzer/dialogs/document_wizard/pages/page.py:147 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:120 setzer/dialogs/insert_table/insert_table_viewgtk.py:372 setzer/dialogs/preferences/pages/page_shortcuts.py:225
+#: setzer/dialogs/document_wizard/pages/page.py:147
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:120
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:372
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:225
 msgid "Right"
 msgstr "右对齐"
 
@@ -2149,7 +2463,10 @@ msgstr "按名称筛选可用的 Beamer 主题。"
 msgid "No themes match this search."
 msgstr "没有主题与此次搜索匹配。"
 
-#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170 setzer/dialogs/document_wizard/pages/page_letter_settings.py:349 setzer/dialogs/document_wizard/pages/page_standard_settings.py:165 setzer/dialogs/preferences/pages/page_build_system.py:712
+#: setzer/dialogs/document_wizard/pages/page_beamer_settings.py:170
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:349
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:165
+#: setzer/dialogs/preferences/pages/page_build_system.py:712
 msgid "Options"
 msgstr "选项"
 
@@ -2205,7 +2522,9 @@ msgstr "书籍"
 msgid "Letter"
 msgstr "信件"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:140 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:434 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:436
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:140
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:434
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:436
 msgid "Beamer"
 msgstr "Beamer 演示"
 
@@ -2313,7 +2632,9 @@ msgstr "使用向导设置"
 msgid "Select a saved LaTeX source template to preview it here."
 msgstr "选择已保存的 LaTeX 源文本模板，即可在此处预览。"
 
-#: setzer/dialogs/document_wizard/pages/page_document_class.py:290 setzer/dialogs/document_wizard/pages/page_general_settings.py:247 setzer/dialogs/document_wizard/pages/page_standard_settings.py:154
+#: setzer/dialogs/document_wizard/pages/page_document_class.py:290
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:247
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:154
 msgid "None"
 msgstr "无"
 
@@ -2325,7 +2646,12 @@ msgstr "第 3 步：文档常规设置"
 msgid "<b>AMS packages:</b> provide mathematical symbols, math-related environments, …"
 msgstr "<b>AMS 宏包：</b>提供了数学符号，数学相关的环境等……"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182 setzer/dialogs/document_wizard/pages/page_general_settings.py:184 setzer/dialogs/document_wizard/pages/page_general_settings.py:192 setzer/dialogs/document_wizard/pages/page_general_settings.py:245 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102 setzer/dialogs/preferences/pages/page_build_system.py:852
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:182
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:184
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:192
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:245
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:102
+#: setzer/dialogs/preferences/pages/page_build_system.py:852
 msgid "recommended"
 msgstr "推荐"
 
@@ -2353,7 +2679,8 @@ msgstr "用于 \\title{} 命令。"
 msgid "Used in the \\author{} command."
 msgstr "用于 \\author{} 命令。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:206 setzer/popovers/shortcutsbar/document_menu.py:80
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:206
+#: setzer/popovers/shortcutsbar/document_menu.py:80
 msgid "Date"
 msgstr "日期"
 
@@ -2361,7 +2688,11 @@ msgstr "日期"
 msgid "Used in the \\date{} command. Use \\today for the current date."
 msgstr "用于 \\date{} 命令。\\today 表示当前日期。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215 setzer/dialogs/document_wizard/pages/page_general_settings.py:219 setzer/dialogs/document_wizard/pages/page_general_settings.py:347 setzer/dialogs/preferences/pages/page_appearance.py:681 setzer/dialogs/preferences/pages/page_editor.py:1055
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:215
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:219
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:347
+#: setzer/dialogs/preferences/pages/page_appearance.py:681
+#: setzer/dialogs/preferences/pages/page_editor.py:1055
 msgid "Language"
 msgstr "语言"
 
@@ -2369,7 +2700,9 @@ msgstr "语言"
 msgid "The main language for hyphenation patterns and automatic labels (such as \"Abstract\" vs \"Zusammenfassung\")."
 msgstr "用于断词模式和自动标签的主要语言（如“Abstract”与“Zusammenfassung”）。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:237 setzer/dialogs/document_wizard/pages/page_general_settings.py:240 setzer/dialogs/document_wizard/pages/page_general_settings.py:348
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:237
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:240
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:348
 msgid "Font package"
 msgstr "字体宏包"
 
@@ -2393,7 +2726,9 @@ msgstr "fontspec 需要 XeLaTeX 或 LuaLaTeX 才能编译；pdfLaTeX 会失败�
 msgid "AMS math packages"
 msgstr "AMS 数学宏包"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:266 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:467 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:469
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:266
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:467
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:469
 msgid "Math"
 msgstr "数学"
 
@@ -2401,7 +2736,9 @@ msgstr "数学"
 msgid "Graphics"
 msgstr "图形"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:276 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:450 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:452
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:276
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:450
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:452
 msgid "Text"
 msgstr "文本"
 
@@ -2409,11 +2746,13 @@ msgstr "文本"
 msgid "References"
 msgstr "参考文献"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:296 setzer/dialogs/insert_image/insert_image_viewgtk.py:138
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:296
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:138
 msgid "Layout"
 msgstr "布局"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:304 setzer/dialogs/document_wizard/pages/page_general_settings.py:349
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:304
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:349
 msgid "Packages"
 msgstr "宏包"
 
@@ -2429,11 +2768,15 @@ msgstr "其他宏包"
 msgid "Comma-separated package names to include additionally."
 msgstr "额外包含的包名，以逗号分隔。"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:343 setzer/dialogs/document_wizard/pages/page_general_settings.py:384
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:343
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:384
 msgid "Ready to create"
 msgstr "可以创建"
 
-#: setzer/dialogs/document_wizard/pages/page_general_settings.py:346 setzer/document/preview/preview_presenter.py:1016 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:405 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:407
+#: setzer/dialogs/document_wizard/pages/page_general_settings.py:346
+#: setzer/document/preview/preview_presenter.py:1016
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:405
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:407
 msgid "Document"
 msgstr "文档"
 
@@ -2517,7 +2860,8 @@ msgstr "地点"
 msgid "Location printed above the date, such as \"Berlin\". Only used by scrlttr2."
 msgstr "日期上方打印的地点，如“Berlin”。仅用于 scrlttr2。"
 
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:243 setzer/dialogs/document_wizard/pages/page_letter_settings.py:287
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:243
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:287
 msgid "Phone"
 msgstr "电话"
 
@@ -2557,7 +2901,8 @@ msgstr "您的网站地址。"
 msgid "Logo"
 msgstr "徽标"
 
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:266 setzer/dialogs/document_wizard/pages/page_letter_settings.py:387
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:266
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:387
 msgid "Choose a logo image or PDF to include in the letterhead."
 msgstr "选择要包含在信头中的徽标图像或 PDF。"
 
@@ -2665,11 +3010,13 @@ msgstr "使用信件样式日期"
 msgid "Print the date in the spelled-out letter style instead of the numeric ISO form."
 msgstr "以拼写的信件样式打印日期，而非数字 ISO 格式。"
 
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:358 setzer/dialogs/document_wizard/pages/page_standard_settings.py:174
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:358
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:174
 msgid "Page margins"
 msgstr "页面边界"
 
-#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:359 setzer/dialogs/document_wizard/pages/page_standard_settings.py:175
+#: setzer/dialogs/document_wizard/pages/page_letter_settings.py:359
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:175
 msgid "All values are in cm (1 inch ≅ 2.54 cm)."
 msgstr "所有数值为 cm（1 英寸 ≅ 2.54 厘米）"
 
@@ -2681,7 +3028,9 @@ msgstr "未选择徽标"
 msgid "Step 2: Standard document settings"
 msgstr "第 2 步：文档标准设置"
 
-#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:143 setzer/popovers/shortcutsbar/text_menu.py:40 setzer/popovers/shortcutsbar/text_menu.py:105
+#: setzer/dialogs/document_wizard/pages/page_standard_settings.py:143
+#: setzer/popovers/shortcutsbar/text_menu.py:40
+#: setzer/popovers/shortcutsbar/text_menu.py:105
 msgid "Sectioning"
 msgstr "章节划分"
 
@@ -2701,7 +3050,8 @@ msgstr "节（\\section{}）"
 msgid "Chapter (\\chapter{})"
 msgstr "章（\\chapter{}）"
 
-#: setzer/dialogs/document_wizard/user_document_templates.py:82 setzer/snippets/user_snippets.py:70
+#: setzer/dialogs/document_wizard/user_document_templates.py:82
+#: setzer/snippets/user_snippets.py:70
 msgid "A user data directory is required"
 msgstr "需要用户数据目录。"
 
@@ -2749,7 +3099,8 @@ msgstr "模板源文件缺失。"
 msgid "The template source file is not valid UTF-8"
 msgstr "模板源文件不是有效的 UTF-8 文本。"
 
-#: setzer/dialogs/document_wizard/user_document_templates.py:173 setzer/dialogs/document_wizard/user_document_templates.py:214
+#: setzer/dialogs/document_wizard/user_document_templates.py:173
+#: setzer/dialogs/document_wizard/user_document_templates.py:214
 msgid "Template identifier is invalid"
 msgstr "模板标识无效。"
 
@@ -2769,11 +3120,13 @@ msgstr "模板库索引的格式不受支持。"
 msgid "The template library index is invalid"
 msgstr "模板库索引无效。"
 
-#: setzer/dialogs/document_wizard/user_document_templates.py:207 setzer/dialogs/document_wizard/user_document_templates.py:225
+#: setzer/dialogs/document_wizard/user_document_templates.py:207
+#: setzer/dialogs/document_wizard/user_document_templates.py:225
 msgid "Template metadata is invalid"
 msgstr "模板元数据无效。"
 
-#: setzer/dialogs/document_wizard/user_document_templates.py:216 setzer/dialogs/document_wizard/user_document_templates.py:230
+#: setzer/dialogs/document_wizard/user_document_templates.py:216
+#: setzer/dialogs/document_wizard/user_document_templates.py:230
 msgid "Template filename is invalid"
 msgstr "模板文件名无效。"
 
@@ -2793,7 +3146,8 @@ msgstr "无法写入模板库。"
 msgid "No PDF available to export."
 msgstr "没有可用于导出的 PDF"
 
-#: setzer/dialogs/export_pdf/export_pdf.py:42 setzer/popovers/hamburger_menu/hamburger_menu.py:108
+#: setzer/dialogs/export_pdf/export_pdf.py:42
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:108
 msgid "Export PDF As…"
 msgstr "导出 PDF 为…"
 
@@ -2848,7 +3202,8 @@ msgstr "开始写作"
 msgid "Start with a document, then build and preview it. You can reopen these tips at any time from Preferences."
 msgstr "从一个文档开始，然后构建并预览 PDF。你可以随时在“偏好设置”中重新打开这些提示。"
 
-#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:125 setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
+#: setzer/dialogs/first_run_tutorial/first_run_tutorial.py:125
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:114
 msgid "Create Example Project…"
 msgstr "创建示例项目…"
 
@@ -2891,7 +3246,8 @@ msgstr "当你不记得某个操作的位置时，使用 {shortcut} 搜索并运
 msgid "Enter a line number (1–{lines})."
 msgstr "输入行号（1–{lines}）"
 
-#: setzer/dialogs/go_to_line/go_to_line.py:42 setzer/dialogs/go_to_page/go_to_page.py:43
+#: setzer/dialogs/go_to_line/go_to_line.py:42
+#: setzer/dialogs/go_to_page/go_to_page.py:43
 msgid "Go"
 msgstr "前往"
 
@@ -2916,11 +3272,14 @@ msgstr "页码"
 msgid "Include BibTeX file"
 msgstr "包括 BibTeX 文件"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:78 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:46
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:78
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:46
 msgid "_Include"
 msgstr "包括(_I)"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:90 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:442 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:444
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:90
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:442
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:444
 msgid "Bibliography"
 msgstr "参考文献"
 
@@ -2928,7 +3287,10 @@ msgstr "参考文献"
 msgid "BibTeX file to include"
 msgstr "要包括的 BibTeX 文件"
 
-#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108 setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:217 setzer/widgets/filechooser_button/filechooser_button.py:37 setzer/widgets/filechooser_button/filechooser_button.py:72
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:108
+#: setzer/dialogs/include_bibtex_file/include_bibtex_file_viewgtk.py:217
+#: setzer/widgets/filechooser_button/filechooser_button.py:37
+#: setzer/widgets/filechooser_button/filechooser_button.py:72
 msgid "(None)"
 msgstr "（无）"
 
@@ -2956,7 +3318,8 @@ msgstr "绝对路径"
 msgid "Relative Path"
 msgstr "相对路径"
 
-#: setzer/dialogs/include_latex_file/include_latex_file.py:88 setzer/dialogs/project_build_configuration_viewgtk.py:285
+#: setzer/dialogs/include_latex_file/include_latex_file.py:88
+#: setzer/dialogs/project_build_configuration_viewgtk.py:285
 msgid "LaTeX Files"
 msgstr "LaTeX 文件"
 
@@ -2976,7 +3339,8 @@ msgstr "选择 LaTeX 文件"
 msgid "Type of path to included file"
 msgstr "包括文件的路径类型"
 
-#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:85 setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:87
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:85
+#: setzer/dialogs/include_latex_file/include_latex_file_viewgtk.py:87
 msgid "Path type explanation"
 msgstr "路径类型说明"
 
@@ -2988,15 +3352,22 @@ msgstr "<b>绝对路径：</b> 指定被包含文件在文件系统中的绝对�
 msgid "<b>Relative Path:</b> Set the path relative to the main document. This is useful when the included file is in the same folder as the main document and you want to move around both of them together."
 msgstr "<b>相对路径：</b> 设置相对于主文档的路径。当被包含文件与主文档位于同一文件夹，且希望二者一起移动时，这很有用。"
 
-#: setzer/dialogs/insert_image/insert_image_controller.py:61 setzer/dialogs/insert_image/insert_image_controller.py:122 setzer/dialogs/insert_image/insert_image_viewgtk.py:95
+#: setzer/dialogs/insert_image/insert_image_controller.py:61
+#: setzer/dialogs/insert_image/insert_image_controller.py:122
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:95
 msgid "No file chosen"
 msgstr "未选择文件"
 
-#: setzer/dialogs/insert_image/insert_image_controller.py:62 setzer/dialogs/insert_image/insert_image_controller.py:116 setzer/dialogs/insert_image/insert_image_viewgtk.py:96
+#: setzer/dialogs/insert_image/insert_image_controller.py:62
+#: setzer/dialogs/insert_image/insert_image_controller.py:116
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:96
 msgid "_Choose…"
 msgstr "选择(_C)…"
 
-#: setzer/dialogs/insert_image/insert_image_controller.py:66 setzer/dialogs/insert_image/insert_image_viewgtk.py:206 setzer/dialogs/insert_image/insert_image_viewgtk.py:208 setzer/dialogs/insert_table/insert_table_viewgtk.py:282
+#: setzer/dialogs/insert_image/insert_image_controller.py:66
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:206
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:208
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:282
 msgid "Caption"
 msgstr "题注"
 
@@ -3012,11 +3383,14 @@ msgstr "图像"
 msgid "Saved"
 msgstr "已保存"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:56 setzer/dialogs/insert_image/insert_image_viewgtk.py:59
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:56
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:59
 msgid "Store the current options to be used next time"
 msgstr "将当前选项存储为下次使用的默认值"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:64 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:74 setzer/dialogs/insert_table/insert_table_viewgtk.py:100
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:64
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:74
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:100
 msgid "_Insert"
 msgstr "插入(_I)"
 
@@ -3072,7 +3446,8 @@ msgstr "图片存放于文档目录下的子文件夹"
 msgid "Image will be saved as PNG into \"<document folder>/<subfolder>/<file name>.png\"."
 msgstr "图片将作为 PNG 保存至“<文档目录>/<子文件夹>/<文件名>.png”。"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141 setzer/dialogs/insert_table/insert_table_viewgtk.py:261
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:141
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:261
 msgid "Float placement"
 msgstr "浮动位置"
 
@@ -3088,19 +3463,23 @@ msgstr "htbp（此处、页顶、页底、单独页）— 最灵活，默认"
 msgid "ht (here, top) — common default"
 msgstr "ht（当前位置、页顶）—— 常用默认值"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164 setzer/dialogs/insert_table/insert_table_viewgtk.py:265
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:164
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:265
 msgid "h (here only)"
 msgstr "h（仅此处）"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:165 setzer/dialogs/insert_table/insert_table_viewgtk.py:266
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:165
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:266
 msgid "t (top)"
 msgstr "t（页顶）"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:166 setzer/dialogs/insert_table/insert_table_viewgtk.py:267
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:166
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:267
 msgid "b (bottom)"
 msgstr "b（页底）"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:167 setzer/dialogs/insert_table/insert_table_viewgtk.py:268
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:167
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:268
 msgid "p (separate float page)"
 msgstr "p（单独的浮动页）"
 
@@ -3149,7 +3528,8 @@ msgstr "题注和标签"
 msgid "Text shown below the image; leave empty for no caption"
 msgstr "显示在图片下方的文字；留空则不生成标题"
 
-#: setzer/dialogs/insert_image/insert_image_viewgtk.py:212 setzer/dialogs/insert_table/insert_table_viewgtk.py:286
+#: setzer/dialogs/insert_image/insert_image_viewgtk.py:212
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:286
 msgid "Label (for \\ref)"
 msgstr "标签（配合 \\ref）"
 
@@ -3166,7 +3546,10 @@ msgstr "标签通过 \\ref{label} 引用。保留 “fig:” 前缀或自行修�
 msgid "Change…"
 msgstr "更改…"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:67 setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:70 setzer/dialogs/insert_table/insert_table_viewgtk.py:93 setzer/dialogs/insert_table/insert_table_viewgtk.py:96
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:67
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:70
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:93
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:96
 msgid "Copy the generated LaTeX without changing the document"
 msgstr "复制生成的 LaTeX 代码，而不修改文档"
 
@@ -3174,7 +3557,8 @@ msgstr "复制生成的 LaTeX 代码，而不修改文档"
 msgid "Matrix Size"
 msgstr "矩阵大小"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:92 setzer/dialogs/insert_table/insert_table_viewgtk.py:118
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:92
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:118
 msgid "Rows"
 msgstr "行"
 
@@ -3182,7 +3566,8 @@ msgstr "行"
 msgid "Number of matrix rows"
 msgstr "矩阵行数"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:98 setzer/dialogs/insert_table/insert_table_viewgtk.py:124
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:98
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:124
 msgid "Columns"
 msgstr "列"
 
@@ -3190,7 +3575,10 @@ msgstr "列"
 msgid "Number of matrix columns"
 msgstr "矩阵列数"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:159 setzer/dialogs/preferences/pages/page_shortcuts.py:217 setzer/popovers/shortcutsbar/text_menu.py:42
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:106
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:159
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:217
+#: setzer/popovers/shortcutsbar/text_menu.py:42
 msgid "Environment"
 msgstr "环境"
 
@@ -3210,7 +3598,8 @@ msgstr "列对齐"
 msgid "Only matrix* supports an alignment argument"
 msgstr "仅 matrix* 支持对齐参数"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:118 setzer/dialogs/insert_table/insert_table_viewgtk.py:371
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:118
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:371
 msgid "Center"
 msgstr "居中"
 
@@ -3222,7 +3611,8 @@ msgstr "所需宏包会自动添加"
 msgid "amsmath for bracketed matrices; mathtools for matrix*."
 msgstr "带括号矩阵用 amsmath；matrix* 用 mathtools。"
 
-#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:131 setzer/dialogs/insert_table/insert_table_viewgtk.py:293
+#: setzer/dialogs/insert_matrix/insert_matrix_viewgtk.py:131
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:293
 msgid "LaTeX Preview"
 msgstr "LaTeX 预览"
 
@@ -3250,7 +3640,8 @@ msgstr "CSV 和 TSV 文件"
 msgid "No file was selected for table import."
 msgstr "未选择要导入的表格文件。"
 
-#: setzer/dialogs/insert_table/insert_table_controller.py:149 setzer/dialogs/insert_table/insert_table_controller.py:152
+#: setzer/dialogs/insert_table/insert_table_controller.py:149
+#: setzer/dialogs/insert_table/insert_table_controller.py:152
 msgid "Could not read the selected table file."
 msgstr "无法读取所选表格文件。"
 
@@ -3285,7 +3676,8 @@ msgstr "导入的 TSV/CSV 数据无效。"
 msgid "Removed {count} merged ranges that no longer fit the resized table."
 msgstr "已移除 {count} 个不再适配调整后表格大小的合并范围。"
 
-#: setzer/dialogs/insert_table/insert_table_controller.py:235 setzer/dialogs/insert_table/insert_table_controller.py:264
+#: setzer/dialogs/insert_table/insert_table_controller.py:235
+#: setzer/dialogs/insert_table/insert_table_controller.py:264
 msgid "The selected range must fit inside the table, span at least two cells, and not overlap another merged range."
 msgstr "所选范围必须位于表格内、至少跨越两个单元格，且不能与其他合并范围重叠。"
 
@@ -3406,7 +3798,8 @@ msgstr "使用上方的值替换所选合并范围"
 msgid "_Cancel Merge Edit"
 msgstr "取消编辑合并(_C)"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:219 setzer/dialogs/preferences/pages/page_editor.py:833
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:219
+#: setzer/dialogs/preferences/pages/page_editor.py:833
 msgid "Appearance"
 msgstr "外观"
 
@@ -3510,7 +3903,8 @@ msgstr "显示在表格上方的文本；留空则不生成"
 msgid "Identifier used with \\ref to cross-reference this table"
 msgstr "用于通过 \\ref 交叉引用此表格的标识符"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:357 setzer/dialogs/insert_table/insert_table_viewgtk.py:476
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:357
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:476
 #, python-brace-format
 msgid "Row {row}, column {column}"
 msgstr "第 {row} 行，第 {column} 列"
@@ -3534,11 +3928,13 @@ msgstr "合并范围：第 {row} 行，第 {column} 列"
 msgid "{rows} rows × {columns} columns"
 msgstr "{rows} 行 × {columns} 列"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:424 setzer/dialogs/insert_table/insert_table_viewgtk.py:426
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:424
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:426
 msgid "Edit this merged range"
 msgstr "编辑此合并范围"
 
-#: setzer/dialogs/insert_table/insert_table_viewgtk.py:433 setzer/dialogs/insert_table/insert_table_viewgtk.py:435
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:433
+#: setzer/dialogs/insert_table/insert_table_viewgtk.py:435
 msgid "Remove this merged range"
 msgstr "移除此合并范围"
 
@@ -3599,7 +3995,9 @@ msgstr "文档"
 msgid "Create new document"
 msgstr "创建新文档"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46 setzer/workspace/headerbar/headerbar_viewgtk.py:59 setzer/workspace/headerbar/headerbar_viewgtk.py:61
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:46
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:59
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:61
 msgid "Open a document"
 msgstr "打开文档"
 
@@ -3607,7 +4005,9 @@ msgstr "打开文档"
 msgid "Show recent documents"
 msgstr "显示最近的文档"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48 setzer/dialogs/preferences/pages/page_shortcuts.py:177 setzer/workspace/headerbar/headerbar_viewgtk.py:139
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:48
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:177
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:139
 msgid "Show open documents"
 msgstr "显示打开的文档"
 
@@ -3639,7 +4039,8 @@ msgstr "恢复上一次会话…"
 msgid "Reopen the last closed document"
 msgstr "重新打开已关闭文档"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58 setzer/dialogs/preferences/pages/page_shortcuts.py:267
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:58
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:267
 msgid "Pin or unpin the active document tab"
 msgstr "固定或取消固定当前文档标签页"
 
@@ -3647,11 +4048,16 @@ msgstr "固定或取消固定当前文档标签页"
 msgid "Tools"
 msgstr "工具"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62 setzer/document/build_widget/build_widget.py:365 setzer/document/build_widget/build_widget_viewgtk.py:62 setzer/document/build_widget/build_widget_viewgtk.py:65 setzer/document/build_widget/build_widget_viewgtk.py:93
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:62
+#: setzer/document/build_widget/build_widget.py:365
+#: setzer/document/build_widget/build_widget_viewgtk.py:62
+#: setzer/document/build_widget/build_widget_viewgtk.py:65
+#: setzer/document/build_widget/build_widget_viewgtk.py:93
 msgid "Save and build .pdf-file from document"
 msgstr "保存并从文档构建 PDF 文件"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:63 setzer/dialogs/preferences/pages/page_shortcuts.py:255
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:63
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:255
 msgid "Build PDF without saving"
 msgstr "不保存即构建 PDF"
 
@@ -3683,11 +4089,13 @@ msgstr "显示帮助面板"
 msgid "Toggle fullscreen"
 msgstr "切换全屏"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:78 setzer/dialogs/preferences/pages/page_shortcuts.py:261
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:78
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:261
 msgid "Toggle document structure panel"
 msgstr "切换文档结构面板"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:81 setzer/dialogs/preferences/pages/page_shortcuts.py:262
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:81
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:262
 msgid "Toggle symbols panel"
 msgstr "切换符号面板"
 
@@ -3695,7 +4103,8 @@ msgstr "切换符号面板"
 msgid "Toggle build log"
 msgstr "切换构建日志"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83 setzer/dialogs/preferences/pages/page_shortcuts.py:264
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:83
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:264
 msgid "Toggle preview panel"
 msgstr "切换预览面板"
 
@@ -3711,7 +4120,8 @@ msgstr "显示全局菜单"
 msgid "Show context menu"
 msgstr "显示上下文菜单"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:87 setzer/dialogs/preferences/pages/page_shortcuts.py:176
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:87
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:176
 msgid "Show keyboard shortcuts"
 msgstr "显示键盘快捷键"
 
@@ -3719,31 +4129,44 @@ msgstr "显示键盘快捷键"
 msgid "Quit the application"
 msgstr "退出应用程序"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:91 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98 setzer/dialogs/preferences/pages/page_shortcuts.py:184
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:91
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:98
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:184
 msgid "Find and replace"
 msgstr "查找与替换"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:93 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:96
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:93
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:96
 msgid "Find the next match"
 msgstr "查找下个匹配"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:94 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:97
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:94
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:97
 msgid "Find the previous match"
 msgstr "查找上个匹配"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:101 setzer/popovers/context_menu/context_menu_viewgtk.py:224 setzer/workspace/context_menu/context_menu.py:109
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:101
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:224
+#: setzer/workspace/context_menu/context_menu.py:109
 msgid "Zoom"
 msgstr "缩放"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102 setzer/dialogs/preferences/pages/page_shortcuts.py:180 setzer/workspace/preview_panel/preview_panel_viewgtk.py:143 setzer/workspace/preview_panel/preview_panel_viewgtk.py:145
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:102
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:180
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:143
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:145
 msgid "Zoom in"
 msgstr "放大"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103 setzer/dialogs/preferences/pages/page_shortcuts.py:181 setzer/workspace/preview_panel/preview_panel_viewgtk.py:114 setzer/workspace/preview_panel/preview_panel_viewgtk.py:116
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:103
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:181
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:114
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:116
 msgid "Zoom out"
 msgstr "缩小"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:104 setzer/dialogs/preferences/pages/page_shortcuts.py:182
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:104
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:182
 msgid "Reset zoom"
 msgstr "重置缩放"
 
@@ -3771,7 +4194,8 @@ msgstr "撤销与重做"
 msgid "Undo previous text edit"
 msgstr "撤销上次文本编辑"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:115 setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:117
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:115
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:117
 msgid "Redo previous text edit"
 msgstr "重做上次文本编辑"
 
@@ -3791,11 +4215,15 @@ msgstr "选中下一个相同词"
 msgid "Select all occurrences of the current word"
 msgstr "选中所有相同词"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:125 setzer/dialogs/preferences/pages/page_editor.py:1272 setzer/dialogs/preferences/pages/page_shortcuts.py:236
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:125
+#: setzer/dialogs/preferences/pages/page_editor.py:1272
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:236
 msgid "Add cursor above"
 msgstr "在上方添加光标"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:126 setzer/dialogs/preferences/pages/page_editor.py:1273 setzer/dialogs/preferences/pages/page_shortcuts.py:237
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:126
+#: setzer/dialogs/preferences/pages/page_editor.py:1273
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:237
 msgid "Add cursor below"
 msgstr "在下方添加光标"
 
@@ -3807,7 +4235,8 @@ msgstr "清除多余光标"
 msgid "Editing"
 msgstr "编辑"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:131 setzer/dialogs/preferences/pages/page_shortcuts.py:354
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:131
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:354
 msgid "Toggle insert / overwrite"
 msgstr "切换插入/覆盖"
 
@@ -3819,7 +4248,8 @@ msgstr "上移当前行"
 msgid "Move current line down"
 msgstr "下移当前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:139 setzer/dialogs/preferences/pages/page_shortcuts.py:352
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:139
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:352
 msgid "Go to line"
 msgstr "跳转到行"
 
@@ -3851,7 +4281,8 @@ msgstr "LaTeX 快捷键"
 msgid "Comment / Uncomment current line(s)"
 msgstr "注释/取消注释当前行"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:150 setzer/dialogs/preferences/pages/page_shortcuts.py:209
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:150
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:209
 msgid "New line"
 msgstr "新行"
 
@@ -3875,11 +4306,13 @@ msgstr "打字机文字"
 msgid "Emphasized text"
 msgstr "强调文字"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:157 setzer/dialogs/preferences/pages/page_shortcuts.py:215
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:157
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:215
 msgid "Quotation marks"
 msgstr "引用标记"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:158 setzer/dialogs/preferences/pages/page_shortcuts.py:216
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:158
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:216
 msgid "List item"
 msgstr "列表项目"
 
@@ -3895,23 +4328,31 @@ msgstr "行内数学部分"
 msgid "Display math section"
 msgstr "展示数学部分"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:165 setzer/dialogs/preferences/pages/page_shortcuts.py:220
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:165
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:220
 msgid "Equation"
 msgstr "方程式"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:166 setzer/dialogs/preferences/pages/page_shortcuts.py:221 setzer/popovers/shortcutsbar/math_menu.py:41
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:166
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:221
+#: setzer/popovers/shortcutsbar/math_menu.py:41
 msgid "Subscript"
 msgstr "下标"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:167 setzer/dialogs/preferences/pages/page_shortcuts.py:222 setzer/popovers/shortcutsbar/math_menu.py:42
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:167
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:222
+#: setzer/popovers/shortcutsbar/math_menu.py:42
 msgid "Superscript"
 msgstr "上标"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:168 setzer/dialogs/preferences/pages/page_shortcuts.py:223 setzer/popovers/shortcutsbar/math_menu.py:43
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:168
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:223
+#: setzer/popovers/shortcutsbar/math_menu.py:43
 msgid "Fraction"
 msgstr "分数"
 
-#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:175 setzer/workspace/sidebar/ai_page/ai_page.py:48
+#: setzer/dialogs/keyboard_shortcuts/keyboard_shortcuts.py:175
+#: setzer/workspace/sidebar/ai_page/ai_page.py:48
 msgid "AI Agent"
 msgstr "AI Agent"
 
@@ -3923,7 +4364,10 @@ msgstr "为 AI 代理添加选区批注"
 msgid "Send selection to AI agent"
 msgstr "把选区发送给 AI 代理"
 
-#: setzer/dialogs/open_document/open_document.py:39 setzer/dialogs/preferences/pages/page_appearance.py:701 setzer/dialogs/preferences/pages/page_editor.py:1065 setzer/document/preview/preview_controller.py:732
+#: setzer/dialogs/open_document/open_document.py:39
+#: setzer/dialogs/preferences/pages/page_appearance.py:701
+#: setzer/dialogs/preferences/pages/page_editor.py:1065
+#: setzer/document/preview/preview_controller.py:732
 msgid "Open"
 msgstr "打开"
 
@@ -3949,7 +4393,8 @@ msgstr "无法打开 {count} 个文件"
 msgid "Load Session"
 msgstr "加载会话"
 
-#: setzer/dialogs/open_session/open_session.py:44 setzer/dialogs/save_session/save_session.py:49
+#: setzer/dialogs/open_session/open_session.py:44
+#: setzer/dialogs/save_session/save_session.py:49
 msgid "Setzer Session"
 msgstr "NeoSetzer 会话"
 
@@ -3994,7 +4439,8 @@ msgstr "新语言将在应用程序重启后生效"
 msgid "Restart"
 msgstr "重启"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:249 setzer/dialogs/preferences/pages/page_appearance.py:865
+#: setzer/dialogs/preferences/pages/page_appearance.py:249
+#: setzer/dialogs/preferences/pages/page_appearance.py:865
 msgid "Export settings"
 msgstr "导出设置"
 
@@ -4002,7 +4448,8 @@ msgstr "导出设置"
 msgid "Could not export settings: {}"
 msgstr "无法导出设置：{}"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:284 setzer/dialogs/preferences/pages/page_appearance.py:873
+#: setzer/dialogs/preferences/pages/page_appearance.py:284
+#: setzer/dialogs/preferences/pages/page_appearance.py:873
 msgid "Import settings"
 msgstr "导入设置"
 
@@ -4026,15 +4473,26 @@ msgstr "重置所有首选项？"
 msgid "Keyboard shortcuts and window layout are kept."
 msgstr "快捷键与窗口布局不受影响。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:331 setzer/dialogs/preferences/pages/page_appearance.py:363 setzer/dialogs/preferences/pages/page_appearance.py:619 setzer/dialogs/preferences/pages/page_appearance.py:882 setzer/dialogs/preferences/pages/page_build_system.py:289 setzer/dialogs/preferences/pages/page_editor.py:737 setzer/dialogs/preferences/pages/page_shortcuts.py:494
+#: setzer/dialogs/preferences/pages/page_appearance.py:331
+#: setzer/dialogs/preferences/pages/page_appearance.py:363
+#: setzer/dialogs/preferences/pages/page_appearance.py:619
+#: setzer/dialogs/preferences/pages/page_appearance.py:882
+#: setzer/dialogs/preferences/pages/page_build_system.py:289
+#: setzer/dialogs/preferences/pages/page_editor.py:737
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:494
 msgid "Reset"
 msgstr "重置"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:342 setzer/dialogs/preferences/pages/page_appearance.py:406
+#: setzer/dialogs/preferences/pages/page_appearance.py:342
+#: setzer/dialogs/preferences/pages/page_appearance.py:406
 msgid "Preferences reset. Reopen preferences to see all changes."
 msgstr "首选项已重置。重新打开首选项以查看全部更改。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:355 setzer/dialogs/preferences/pages/page_appearance.py:615 setzer/dialogs/preferences/pages/page_build_system.py:287 setzer/dialogs/preferences/pages/page_editor.py:735 setzer/dialogs/preferences/pages/page_shortcuts.py:492
+#: setzer/dialogs/preferences/pages/page_appearance.py:355
+#: setzer/dialogs/preferences/pages/page_appearance.py:615
+#: setzer/dialogs/preferences/pages/page_build_system.py:287
+#: setzer/dialogs/preferences/pages/page_editor.py:735
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:492
 msgid "Reset to defaults?"
 msgstr "重置为默认值？"
 
@@ -4066,7 +4524,8 @@ msgstr "已安装"
 msgid "not installed"
 msgstr "未安装"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:505 setzer/dialogs/preferences/pages/page_appearance.py:507
+#: setzer/dialogs/preferences/pages/page_appearance.py:505
+#: setzer/dialogs/preferences/pages/page_appearance.py:507
 msgid "Remove this custom tool"
 msgstr "移除该自定义工具"
 
@@ -4078,7 +4537,8 @@ msgstr "暂无受信任目录"
 msgid "Check \"Don't ask again\" in the preview dialog to add one."
 msgstr "在预览对话框中勾选“不再询问”以添加。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:539 setzer/dialogs/preferences/pages/page_appearance.py:541
+#: setzer/dialogs/preferences/pages/page_appearance.py:539
+#: setzer/dialogs/preferences/pages/page_appearance.py:541
 msgid "Remove from trusted list"
 msgstr "从信任列表中移除"
 
@@ -4230,7 +4690,8 @@ msgstr "Agent 工具"
 msgid "Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs."
 msgstr "内置预设无法删除。添加自定义工具以集成其他 Agent CLI。"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:821 setzer/dialogs/preferences/pages/page_appearance.py:823
+#: setzer/dialogs/preferences/pages/page_appearance.py:821
+#: setzer/dialogs/preferences/pages/page_appearance.py:823
 msgid "Add a custom tool"
 msgstr "添加自定义工具"
 
@@ -4266,11 +4727,13 @@ msgstr "备份与恢复"
 msgid "Export your preferences and keyboard shortcuts to a file, or import them on another machine."
 msgstr "将首选项和键盘快捷键导出到文件，或在其他机器上导入"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:866 setzer/dialogs/preferences/pages/page_shortcuts.py:709
+#: setzer/dialogs/preferences/pages/page_appearance.py:866
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:709
 msgid "Export"
 msgstr "导出"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:874 setzer/dialogs/preferences/pages/page_shortcuts.py:716
+#: setzer/dialogs/preferences/pages/page_appearance.py:874
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:716
 msgid "Import"
 msgstr "导入"
 
@@ -4278,7 +4741,10 @@ msgstr "导入"
 msgid "Reset all preferences"
 msgstr "重置所有首选项"
 
-#: setzer/dialogs/preferences/pages/page_appearance.py:893 setzer/dialogs/preferences/pages/page_build_system.py:873 setzer/dialogs/preferences/pages/page_editor.py:1287 setzer/dialogs/preferences/pages/page_shortcuts.py:722
+#: setzer/dialogs/preferences/pages/page_appearance.py:893
+#: setzer/dialogs/preferences/pages/page_build_system.py:873
+#: setzer/dialogs/preferences/pages/page_editor.py:1287
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:722
 msgid "Reset to defaults"
 msgstr "重置为默认值"
 
@@ -4351,7 +4817,8 @@ msgstr "升级 PhiTeX？"
 msgid "PhiTeX will download its latest release, verify it and replace its own binary. NeoSetzer does not download anything. Running sessions are ended so the next build uses the new version."
 msgstr "PhiTeX 会下载它的最新发布版、校验并替换自己的二进制文件。NeoSetzer 不下载任何内容。正在运行的会话会被结束，以便下一次构建使用新版本。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:547 setzer/dialogs/preferences/pages/page_build_system.py:703
+#: setzer/dialogs/preferences/pages/page_build_system.py:547
+#: setzer/dialogs/preferences/pages/page_build_system.py:703
 msgid "Upgrade"
 msgstr "升级"
 
@@ -4401,7 +4868,8 @@ msgstr "请注意：Tectonic 后端仅使用 V1 命令行接口。Tectonic.toml 
 msgid "PhiTeX builds once to a fixpoint (BibTeX, biber and makeindex included), so the latexmk options below do not apply. Its PDF is byte-identical to pdfLaTeX’s, but LuaLaTeX is not supported yet."
 msgstr "PhiTeX 一次构建到不动点（含 BibTeX、biber 与 makeindex），因此下方的 latexmk 选项不适用。其 PDF 与 pdfLaTeX 逐字节一致，但尚不支持 LuaLaTeX。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:658 setzer/dialogs/project_build_configuration_viewgtk.py:225
+#: setzer/dialogs/preferences/pages/page_build_system.py:658
+#: setzer/dialogs/project_build_configuration_viewgtk.py:225
 msgid "Interpreter"
 msgstr "解释器"
 
@@ -4413,7 +4881,8 @@ msgstr "安装 PhiTeX"
 msgid "Not found on this machine. Copy the instructions and hand them to an AI agent — it will fetch and verify the release for your platform."
 msgstr "本机未找到。复制这段说明交给 AI Agent，它会为你的平台下载并校验发布包。"
 
-#: setzer/dialogs/preferences/pages/page_build_system.py:670 setzer/dialogs/preferences/pages/page_build_system.py:674
+#: setzer/dialogs/preferences/pages/page_build_system.py:670
+#: setzer/dialogs/preferences/pages/page_build_system.py:674
 msgid "Copy the installation instructions to the clipboard"
 msgstr "复制安装说明到剪贴板"
 
@@ -4941,7 +5410,8 @@ msgstr "显示 Git 侧栏面板"
 msgid "Branch status, recent commits, and pull / commit / push actions"
 msgstr "分支状态、最近提交，以及拉取 / 提交 / 推送操作"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1147 setzer/dialogs/preferences/pages/page_shortcuts.py:169
+#: setzer/dialogs/preferences/pages/page_editor.py:1147
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:169
 msgid "New document"
 msgstr "新建文档"
 
@@ -5098,11 +5568,13 @@ msgstr "Alt+点击 添加/移除光标"
 msgid "Alt+Drag column selection"
 msgstr "Alt+拖拽列选择"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1270 setzer/dialogs/preferences/pages/page_shortcuts.py:234
+#: setzer/dialogs/preferences/pages/page_editor.py:1270
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:234
 msgid "Select next occurrence"
 msgstr "选中下一个匹配项"
 
-#: setzer/dialogs/preferences/pages/page_editor.py:1271 setzer/dialogs/preferences/pages/page_shortcuts.py:235
+#: setzer/dialogs/preferences/pages/page_editor.py:1271
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:235
 msgid "Select all occurrences"
 msgstr "选中所有匹配项"
 
@@ -5126,11 +5598,13 @@ msgstr "打开文档"
 msgid "Save as"
 msgstr "另存为"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:174 setzer/popovers/document_switcher/document_switcher_viewgtk.py:214
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:174
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:214
 msgid "Close document"
 msgstr "关闭文档"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:175 setzer/popovers/hamburger_menu/hamburger_menu.py:175
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:175
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:175
 msgid "Quit"
 msgstr "退出"
 
@@ -5150,7 +5624,8 @@ msgstr "查找下一个"
 msgid "Find previous"
 msgstr "查找上一个"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:187 setzer/popovers/hamburger_menu/hamburger_menu.py:150
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:187
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:150
 msgid "Help"
 msgstr "帮助"
 
@@ -5170,7 +5645,10 @@ msgstr "保存并构建"
 msgid "Forward sync"
 msgstr "正向同步"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:193 setzer/workspace/headerbar/headerbar_viewgtk.py:91 setzer/workspace/headerbar/headerbar_viewgtk.py:93 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:539
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:193
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:91
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:93
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:539
 msgid "Build log"
 msgstr "构建日志"
 
@@ -5210,19 +5688,32 @@ msgstr "上移行"
 msgid "Move line down"
 msgstr "下移行"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:210 setzer/popovers/shortcutsbar/math_menu.py:76 setzer/popovers/shortcutsbar/text_menu.py:52 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:486 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:489 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:490
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:210
+#: setzer/popovers/shortcutsbar/math_menu.py:76
+#: setzer/popovers/shortcutsbar/text_menu.py:52
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:486
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:489
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:490
 msgid "Bold"
 msgstr "粗体"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:211 setzer/popovers/shortcutsbar/math_menu.py:77 setzer/popovers/shortcutsbar/text_menu.py:53 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:503 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:506 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:507
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:211
+#: setzer/popovers/shortcutsbar/math_menu.py:77
+#: setzer/popovers/shortcutsbar/text_menu.py:53
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:503
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:506
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:507
 msgid "Italic"
 msgstr "斜体"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:212 setzer/popovers/shortcutsbar/text_menu.py:54
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:212
+#: setzer/popovers/shortcutsbar/text_menu.py:54
 msgid "Underline"
 msgstr "下划线"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:213 setzer/popovers/shortcutsbar/math_menu.py:80 setzer/popovers/shortcutsbar/text_menu.py:56
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:213
+#: setzer/popovers/shortcutsbar/math_menu.py:80
+#: setzer/popovers/shortcutsbar/text_menu.py:56
 msgid "Typewriter"
 msgstr "等宽字体"
 
@@ -5350,7 +5841,8 @@ msgstr "请按下快捷键…"
 msgid "Press desired key combination, or Escape to cancel"
 msgstr "按下所需的按键组合，或按 Escape 取消"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:363 setzer/dialogs/preferences/pages/page_shortcuts.py:401
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:363
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:401
 msgid "Shortcut already in use"
 msgstr "快捷键已被占用"
 
@@ -5372,7 +5864,8 @@ msgstr "重新分配"
 msgid "Import keyboard shortcuts"
 msgstr "导入键盘快捷键"
 
-#: setzer/dialogs/preferences/pages/page_shortcuts.py:510 setzer/dialogs/preferences/pages/page_shortcuts.py:652
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:510
+#: setzer/dialogs/preferences/pages/page_shortcuts.py:652
 msgid "JSON files"
 msgstr "JSON 文件"
 
@@ -5455,7 +5948,8 @@ msgstr "LaTeX 代码片段"
 msgid "Create reusable LaTeX text and expand it from the editor completion list."
 msgstr "创建可复用的 LaTeX 文本，并从编辑器补全列表中展开。"
 
-#: setzer/dialogs/preferences/pages/page_snippets.py:106 setzer/dialogs/preferences/pages/page_snippets.py:162
+#: setzer/dialogs/preferences/pages/page_snippets.py:106
+#: setzer/dialogs/preferences/pages/page_snippets.py:162
 msgid "Add snippet"
 msgstr "添加代码片段"
 
@@ -5491,19 +5985,23 @@ msgstr "使用 • 在插入代码片段后定位光标。"
 msgid "Active"
 msgstr "使用中"
 
-#: setzer/dialogs/project_build_configuration.py:126 setzer/dialogs/project_build_configuration_viewgtk.py:195
+#: setzer/dialogs/project_build_configuration.py:126
+#: setzer/dialogs/project_build_configuration_viewgtk.py:195
 msgid "Set active"
 msgstr "设为使用中"
 
-#: setzer/dialogs/project_build_configuration.py:178 setzer/dialogs/project_build_configuration.py:179
+#: setzer/dialogs/project_build_configuration.py:178
+#: setzer/dialogs/project_build_configuration.py:179
 msgid "Move up"
 msgstr "上移"
 
-#: setzer/dialogs/project_build_configuration.py:182 setzer/dialogs/project_build_configuration.py:183
+#: setzer/dialogs/project_build_configuration.py:182
+#: setzer/dialogs/project_build_configuration.py:183
 msgid "Move down"
 msgstr "下移"
 
-#: setzer/dialogs/project_build_configuration.py:187 setzer/dialogs/project_build_configuration.py:188
+#: setzer/dialogs/project_build_configuration.py:187
+#: setzer/dialogs/project_build_configuration.py:188
 msgid "Remove task"
 msgstr "移除任务"
 
@@ -5543,7 +6041,9 @@ msgstr "添加配置"
 msgid "Duplicate profile"
 msgstr "复制配置"
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:192 setzer/dialogs/project_build_configuration_viewgtk.py:315 setzer/workspace/sidebar/document_structure_page/structure.py:364
+#: setzer/dialogs/project_build_configuration_viewgtk.py:192
+#: setzer/dialogs/project_build_configuration_viewgtk.py:315
+#: setzer/workspace/sidebar/document_structure_page/structure.py:364
 msgid "Rename"
 msgstr "重命名"
 
@@ -5551,11 +6051,13 @@ msgstr "重命名"
 msgid "Build settings"
 msgstr "构建设置"
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:206 setzer/popovers/document_switcher/document_switcher_viewgtk.py:208
+#: setzer/dialogs/project_build_configuration_viewgtk.py:206
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:208
 msgid "Root document"
 msgstr "根文档"
 
-#: setzer/dialogs/project_build_configuration_viewgtk.py:207 setzer/dialogs/project_build_configuration_viewgtk.py:213
+#: setzer/dialogs/project_build_configuration_viewgtk.py:207
+#: setzer/dialogs/project_build_configuration_viewgtk.py:213
 msgid "Browse…"
 msgstr "浏览…"
 
@@ -5607,11 +6109,13 @@ msgstr "配置「{}」将被移除。"
 msgid "Save a LaTeX document before searching its project."
 msgstr "搜索项目前请先保存 LaTeX 文档。"
 
-#: setzer/dialogs/project_search_replace.py:60 setzer/dialogs/project_search_replace.py:62
+#: setzer/dialogs/project_search_replace.py:60
+#: setzer/dialogs/project_search_replace.py:62
 msgid "Preview replacements"
 msgstr "预览替换效果"
 
-#: setzer/dialogs/project_search_replace.py:65 setzer/dialogs/project_search_replace.py:157
+#: setzer/dialogs/project_search_replace.py:65
+#: setzer/dialogs/project_search_replace.py:157
 msgid "_Apply replacements"
 msgstr "应用替换(_A)"
 
@@ -5619,7 +6123,9 @@ msgstr "应用替换(_A)"
 msgid "Replace with"
 msgstr "替换为"
 
-#: setzer/dialogs/project_search_replace.py:77 setzer/document/search/search_viewgtk.py:111 setzer/document/search/search_viewgtk.py:113
+#: setzer/dialogs/project_search_replace.py:77
+#: setzer/document/search/search_viewgtk.py:111
+#: setzer/document/search/search_viewgtk.py:113
 msgid "Match case"
 msgstr "区分大小写"
 
@@ -5689,7 +6195,8 @@ msgstr "保存文档"
 msgid "Save failed. The disk may be full or you may not have permission to write the file."
 msgstr "保存失败，可能是磁盘已满或权限不足"
 
-#: setzer/dialogs/save_document/save_document.py:88 setzer/workspace/preview_panel/snippet_preview_view.py:101
+#: setzer/dialogs/save_document/save_document.py:88
+#: setzer/workspace/preview_panel/snippet_preview_view.py:101
 msgid "Retry"
 msgstr "重试"
 
@@ -5749,7 +6256,8 @@ msgstr "已忽略的单词"
 msgid "Words ignored for the current session. They are not saved and will be checked again after restart."
 msgstr "仅当前会话内忽略的单词。不会保存，重启后将重新检查。"
 
-#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:78 setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:133
+#: setzer/dialogs/spellchecking_words/spellchecking_words_viewgtk.py:78
+#: setzer/workspace/welcome_screen/welcome_screen_viewgtk.py:133
 msgid "Clear All"
 msgstr "全部清空"
 
@@ -5757,15 +6265,21 @@ msgstr "全部清空"
 msgid "AI Annotation"
 msgstr "AI 批注"
 
-#: setzer/document/ai_annotations/annotation_popover.py:67 setzer/document/ai_annotations/annotation_popover.py:69
+#: setzer/document/ai_annotations/annotation_popover.py:67
+#: setzer/document/ai_annotations/annotation_popover.py:69
 msgid "Preset instruction"
 msgstr "预制指令"
 
-#: setzer/document/ai_annotations/annotation_popover.py:74 setzer/document/ai_annotations/annotation_popover.py:111 setzer/document/ai_annotations/annotation_popover.py:169 setzer/workspace/sidebar/ai_page/ai_page.py:280 setzer/workspace/sidebar/ai_page/ai_page.py:310
+#: setzer/document/ai_annotations/annotation_popover.py:74
+#: setzer/document/ai_annotations/annotation_popover.py:111
+#: setzer/document/ai_annotations/annotation_popover.py:169
+#: setzer/workspace/sidebar/ai_page/ai_page.py:280
+#: setzer/workspace/sidebar/ai_page/ai_page.py:310
 msgid "Custom (no preset)"
 msgstr "自定义（无预制）"
 
-#: setzer/document/ai_annotations/annotation_popover.py:96 setzer/document/ai_annotations/annotation_popover.py:98
+#: setzer/document/ai_annotations/annotation_popover.py:96
+#: setzer/document/ai_annotations/annotation_popover.py:98
 msgid "Save Annotation"
 msgstr "保存批注"
 
@@ -5783,27 +6297,32 @@ msgstr "从字符 {position} 开始的条目未闭合"
 msgid "The citation key “{key}” is used more than once"
 msgstr "引用键“{key}”被使用了多次"
 
-#: setzer/document/bibtex/entry_store.py:233 setzer/document/bibtex/entry_store.py:253
+#: setzer/document/bibtex/entry_store.py:233
+#: setzer/document/bibtex/entry_store.py:253
 #, python-brace-format
 msgid "The citation key “{key}” already exists"
 msgstr "引用键“{key}”已存在"
 
-#: setzer/document/bibtex/entry_store.py:247 setzer/document/bibtex/entry_store.py:413
+#: setzer/document/bibtex/entry_store.py:247
+#: setzer/document/bibtex/entry_store.py:413
 #, python-brace-format
 msgid "The citation key “{key}” no longer exists"
 msgstr "引用键“{key}”已不存在"
 
-#: setzer/document/bibtex/entry_store.py:249 setzer/document/bibtex/entry_store.py:415
+#: setzer/document/bibtex/entry_store.py:249
+#: setzer/document/bibtex/entry_store.py:415
 #, python-brace-format
 msgid "The citation key “{key}” is ambiguous"
 msgstr "引用键“{key}”不明确"
 
-#: setzer/document/bibtex/entry_store.py:309 setzer/document/bibtex/entry_store.py:330
+#: setzer/document/bibtex/entry_store.py:309
+#: setzer/document/bibtex/entry_store.py:330
 #, python-brace-format
 msgid "The string “{name}” already exists"
 msgstr "字符串“{name}”已存在"
 
-#: setzer/document/bibtex/entry_store.py:325 setzer/document/bibtex/entry_store.py:341
+#: setzer/document/bibtex/entry_store.py:325
+#: setzer/document/bibtex/entry_store.py:341
 #, python-brace-format
 msgid "The string “{name}” no longer exists"
 msgstr "字符串“{name}”不再存在"
@@ -5827,7 +6346,8 @@ msgstr "字符 {position} 处的条目无法安全编辑：{reason}"
 msgid "A field name is invalid"
 msgstr "字段名称无效"
 
-#: setzer/document/bibtex/entry_store.py:559 setzer/document/bibtex/entry_store.py:562
+#: setzer/document/bibtex/entry_store.py:559
+#: setzer/document/bibtex/entry_store.py:562
 #, python-brace-format
 msgid "The field “{field}” has no value"
 msgstr "字段“{field}”没有值"
@@ -5885,7 +6405,8 @@ msgstr "字符 {position} 处的字符串未闭合"
 msgid "The string at character {position} has no “=” between name and value"
 msgstr "字符 {position} 处的字符串名称与值之间没有“=”"
 
-#: setzer/document/bibtex/entry_store.py:702 setzer/document/bibtex/entry_store.py:709
+#: setzer/document/bibtex/entry_store.py:702
+#: setzer/document/bibtex/entry_store.py:709
 #, python-brace-format
 msgid "The string at character {position} cannot be edited safely: {reason}"
 msgstr "字符 {position} 处的字符串无法安全编辑：{reason}"
@@ -5930,19 +6451,23 @@ msgstr "未生成 PDF 文件。LaTeX 引擎以代码 0 退出，但没有写出�
 msgid "No PDF file was produced. The LaTeX engine exited with code 0 but no output file was written. Check the build log for toolchain-level errors (xdvipdfmx, fontloader, kpathsea)."
 msgstr "未生成 PDF 文件。LaTeX 引擎以代码 0 退出，但没有写出输出文件。请检查构建日志中的工具链级错误（xdvipdfmx、fontloader、kpathsea）。"
 
-#: setzer/document/build_widget/build_widget.py:210 setzer/project/build_configuration.py:51
+#: setzer/document/build_widget/build_widget.py:210
+#: setzer/project/build_configuration.py:51
 msgid "BibTeX"
 msgstr "BibTeX"
 
-#: setzer/document/build_widget/build_widget.py:211 setzer/project/build_configuration.py:52
+#: setzer/document/build_widget/build_widget.py:211
+#: setzer/project/build_configuration.py:52
 msgid "Biber"
 msgstr "Biber"
 
-#: setzer/document/build_widget/build_widget.py:212 setzer/project/build_configuration.py:53
+#: setzer/document/build_widget/build_widget.py:212
+#: setzer/project/build_configuration.py:53
 msgid "MakeIndex"
 msgstr "MakeIndex"
 
-#: setzer/document/build_widget/build_widget.py:213 setzer/project/build_configuration.py:54
+#: setzer/document/build_widget/build_widget.py:213
+#: setzer/project/build_configuration.py:54
 msgid "Glossaries"
 msgstr "词汇表"
 
@@ -5954,7 +6479,8 @@ msgstr "同步"
 msgid "Success!"
 msgstr "成功！"
 
-#: setzer/document/build_widget/build_widget.py:230 setzer/helpers/build_status_text.py:46
+#: setzer/document/build_widget/build_widget.py:230
+#: setzer/helpers/build_status_text.py:46
 msgid "Build succeeded"
 msgstr "构建成功"
 
@@ -5968,7 +6494,8 @@ msgstr[0] "{count} 个错误"
 msgid "Failed"
 msgstr "失败"
 
-#: setzer/document/build_widget/build_widget.py:246 setzer/document/preview/preview_viewgtk.py:458
+#: setzer/document/build_widget/build_widget.py:246
+#: setzer/document/preview/preview_viewgtk.py:458
 msgid "Build failed"
 msgstr "构建失败"
 
@@ -5976,7 +6503,8 @@ msgstr "构建失败"
 msgid "Stop building"
 msgstr "停止构建"
 
-#: setzer/document/build_widget/build_widget_viewgtk.py:70 setzer/document/build_widget/build_widget_viewgtk.py:72
+#: setzer/document/build_widget/build_widget_viewgtk.py:70
+#: setzer/document/build_widget/build_widget_viewgtk.py:72
 msgid "Cleanup build files"
 msgstr "清理构建文件"
 
@@ -5993,11 +6521,13 @@ msgstr "无法保存文档：{error}"
 msgid "No PDF available for forward sync. Build the document first."
 msgstr "没有可用于正向同步的 PDF。请先构建文档"
 
-#: setzer/document/preview/context_menu/context_menu.py:110 setzer/popovers/context_menu/context_menu_viewgtk.py:296
+#: setzer/document/preview/context_menu/context_menu.py:110
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:296
 msgid "Add AI Annotation…"
 msgstr "添加 AI 批注…"
 
-#: setzer/document/preview/context_menu/context_menu.py:111 setzer/popovers/context_menu/context_menu_viewgtk.py:298
+#: setzer/document/preview/context_menu/context_menu.py:111
+#: setzer/popovers/context_menu/context_menu_viewgtk.py:298
 msgid "Send Selection to Agent"
 msgstr "发送选中内容给代理"
 
@@ -6009,15 +6539,18 @@ msgstr "打开链接"
 msgid "Copy Link Location"
 msgstr "复制链接地址"
 
-#: setzer/document/preview/context_menu/context_menu.py:131 setzer/document/preview/context_menu/context_menu.py:141
+#: setzer/document/preview/context_menu/context_menu.py:131
+#: setzer/document/preview/context_menu/context_menu.py:141
 msgid "Copy Image"
 msgstr "复制图片"
 
-#: setzer/document/preview/context_menu/context_menu.py:135 setzer/document/preview/context_menu/context_menu.py:142
+#: setzer/document/preview/context_menu/context_menu.py:135
+#: setzer/document/preview/context_menu/context_menu.py:142
 msgid "Save Image As…"
 msgstr "另存为…"
 
-#: setzer/document/preview/context_menu/context_menu.py:148 setzer/popovers/hamburger_menu/hamburger_menu.py:109
+#: setzer/document/preview/context_menu/context_menu.py:148
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:109
 msgid "Print…"
 msgstr "打印…"
 
@@ -6041,11 +6574,13 @@ msgstr "显示来源"
 msgid "Find in PDF…"
 msgstr "在 PDF 中查找"
 
-#: setzer/document/preview/context_menu/context_menu.py:246 setzer/document/preview/context_menu/context_menu.py:247
+#: setzer/document/preview/context_menu/context_menu.py:246
+#: setzer/document/preview/context_menu/context_menu.py:247
 msgid "Previous Match"
 msgstr "查找上一个匹配"
 
-#: setzer/document/preview/context_menu/context_menu.py:251 setzer/document/preview/context_menu/context_menu.py:252
+#: setzer/document/preview/context_menu/context_menu.py:251
+#: setzer/document/preview/context_menu/context_menu.py:252
 msgid "Next Match"
 msgstr "查找下一个匹配"
 
@@ -6073,11 +6608,13 @@ msgstr "排版效果"
 msgid "No typeset crop available"
 msgstr "没有可用的排版裁剪"
 
-#: setzer/document/preview/preview.py:1736 setzer/workspace/actions/actions.py:1439
+#: setzer/document/preview/preview.py:1736
+#: setzer/workspace/actions/actions.py:1439
 msgid "Sync data is being updated in the background. Try again in a moment."
 msgstr "同步数据正在后台更新，请稍候再试。"
 
-#: setzer/document/preview/preview_controller.py:439 setzer/document/preview/preview_controller.py:679
+#: setzer/document/preview/preview_controller.py:439
+#: setzer/document/preview/preview_controller.py:679
 msgid "Hold Ctrl and click to open this link"
 msgstr "按住 Ctrl 并点击以打开此链接"
 
@@ -6154,11 +6691,15 @@ msgstr "打印失败：{message}"
 msgid "Scroll page {} to the top"
 msgstr "滚动到第 {} 页顶部"
 
-#: setzer/document/preview/preview_viewgtk.py:118 setzer/document/preview/preview_viewgtk.py:121 setzer/document/preview/preview_viewgtk.py:271
+#: setzer/document/preview/preview_viewgtk.py:118
+#: setzer/document/preview/preview_viewgtk.py:121
+#: setzer/document/preview/preview_viewgtk.py:271
 msgid "PDF build failed, showing previous version"
 msgstr "PDF 构建失败，显示上一版本"
 
-#: setzer/document/preview/preview_viewgtk.py:199 setzer/document/preview/preview_viewgtk.py:250 setzer/document/preview/preview_viewgtk.py:251
+#: setzer/document/preview/preview_viewgtk.py:199
+#: setzer/document/preview/preview_viewgtk.py:250
+#: setzer/document/preview/preview_viewgtk.py:251
 msgid "Reload Preview"
 msgstr "重新加载预览"
 
@@ -6202,7 +6743,9 @@ msgstr "已到文档末尾，从头继续"
 msgid "Reached the beginning of the document, continuing from the end"
 msgstr "已到文档开头，从末尾继续"
 
-#: setzer/document/search/search.py:711 setzer/document/search/search.py:716 setzer/document/search/search.py:726 setzer/document/search/search.py:744 setzer/document/search/search.py:756
+#: setzer/document/search/search.py:711 setzer/document/search/search.py:716
+#: setzer/document/search/search.py:726 setzer/document/search/search.py:744
+#: setzer/document/search/search.py:756
 msgid "Replace all results"
 msgstr "替换全部结果"
 
@@ -6226,7 +6769,8 @@ msgid "Replace all {amount} match"
 msgid_plural "Replace all {amount} matches"
 msgstr[0] "替换全部 {amount} 个匹配项"
 
-#: setzer/document/search/search_history_popup.py:57 setzer/document/search/search_viewgtk.py:295
+#: setzer/document/search/search_history_popup.py:57
+#: setzer/document/search/search_viewgtk.py:295
 msgid "Search history"
 msgstr "搜索历史"
 
@@ -6238,35 +6782,45 @@ msgstr "清除历史"
 msgid "No history"
 msgstr "无历史"
 
-#: setzer/document/search/search_history_popup.py:156 setzer/document/search/search_history_popup.py:158
+#: setzer/document/search/search_history_popup.py:156
+#: setzer/document/search/search_history_popup.py:158
 msgid "Remove from history"
 msgstr "从历史记录中移除"
 
-#: setzer/document/search/search_viewgtk.py:67 setzer/document/search/search_viewgtk.py:69
+#: setzer/document/search/search_viewgtk.py:67
+#: setzer/document/search/search_viewgtk.py:69
 msgid "Search and replace"
 msgstr "查找和替换"
 
-#: setzer/document/search/search_viewgtk.py:122 setzer/document/search/search_viewgtk.py:124
+#: setzer/document/search/search_viewgtk.py:122
+#: setzer/document/search/search_viewgtk.py:124
 msgid "Use regular expressions"
 msgstr "使用正则表达式"
 
-#: setzer/document/search/search_viewgtk.py:133 setzer/document/search/search_viewgtk.py:135
+#: setzer/document/search/search_viewgtk.py:133
+#: setzer/document/search/search_viewgtk.py:135
 msgid "Match entire word"
 msgstr "全词匹配"
 
-#: setzer/document/search/search_viewgtk.py:148 setzer/document/search/search_viewgtk.py:150 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:126 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:130
+#: setzer/document/search/search_viewgtk.py:148
+#: setzer/document/search/search_viewgtk.py:150
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:126
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:130
 msgid "More options"
 msgstr "更多选项"
 
-#: setzer/document/search/search_viewgtk.py:158 setzer/document/search/search_viewgtk.py:160
+#: setzer/document/search/search_viewgtk.py:158
+#: setzer/document/search/search_viewgtk.py:160
 msgid "Previous result"
 msgstr "上一个结果"
 
-#: setzer/document/search/search_viewgtk.py:165 setzer/document/search/search_viewgtk.py:167
+#: setzer/document/search/search_viewgtk.py:165
+#: setzer/document/search/search_viewgtk.py:167
 msgid "Next result"
 msgstr "下一个结果"
 
-#: setzer/document/search/search_viewgtk.py:173 setzer/document/search/search_viewgtk.py:175
+#: setzer/document/search/search_viewgtk.py:173
+#: setzer/document/search/search_viewgtk.py:175
 msgid "Close search"
 msgstr "关闭搜索"
 
@@ -6274,7 +6828,8 @@ msgstr "关闭搜索"
 msgid "Type replacement text…"
 msgstr "输入替换文本…"
 
-#: setzer/document/search/search_viewgtk.py:200 setzer/document/search/search_viewgtk.py:202
+#: setzer/document/search/search_viewgtk.py:200
+#: setzer/document/search/search_viewgtk.py:202
 msgid "Replacement history"
 msgstr "替换历史"
 
@@ -6302,7 +6857,8 @@ msgstr "正在渲染公式…"
 msgid "TikZ Preview is turned off. Enable it in the Editor preferences."
 msgstr "TikZ 预览已关闭。可在编辑器偏好设置中启用。"
 
-#: setzer/document/snippet_preview/tikz_preview.py:241 setzer/document/snippet_preview/tikz_preview.py:267
+#: setzer/document/snippet_preview/tikz_preview.py:241
+#: setzer/document/snippet_preview/tikz_preview.py:267
 msgid "No LaTeX compiler was found for the snippet preview."
 msgstr "未找到可用于片段预览的 LaTeX 编译器。"
 
@@ -6348,11 +6904,13 @@ msgstr "显示构建日志"
 msgid "Choose a Folder for the Example Project"
 msgstr "选择示例项目的文件夹"
 
-#: setzer/example_project/project_store.py:57 setzer/example_project/project_store.py:76
+#: setzer/example_project/project_store.py:57
+#: setzer/example_project/project_store.py:76
 msgid "The example project is incomplete"
 msgstr "示例项目不完整"
 
-#: setzer/example_project/project_store.py:63 setzer/example_project/project_store.py:100
+#: setzer/example_project/project_store.py:63
+#: setzer/example_project/project_store.py:100
 msgid "The example project could not be created"
 msgstr "无法创建示例项目"
 
@@ -6364,11 +6922,13 @@ msgstr "需要一个文件夹"
 msgid "The bundled example project is missing"
 msgstr "随附的示例项目缺失"
 
-#: setzer/example_project/project_store.py:79 setzer/example_project/project_store.py:82
+#: setzer/example_project/project_store.py:79
+#: setzer/example_project/project_store.py:82
 msgid "The bundled example project is invalid"
 msgstr "随附的示例项目无效"
 
-#: setzer/example_project/project_store.py:88 setzer/example_project/project_store.py:90
+#: setzer/example_project/project_store.py:88
+#: setzer/example_project/project_store.py:90
 msgid "The selected folder could not be used"
 msgstr "无法使用所选文件夹"
 
@@ -6404,15 +6964,18 @@ msgstr "来自项目配置"
 msgid "from preferences"
 msgstr "来自偏好设置"
 
-#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73 setzer/popovers/helpers/gio_menu_builder.py:144
+#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73
+#: setzer/popovers/helpers/gio_menu_builder.py:144
 msgid "Alt"
 msgstr "Alt"
 
-#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73 setzer/popovers/helpers/gio_menu_builder.py:140
+#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73
+#: setzer/popovers/helpers/gio_menu_builder.py:140
 msgid "Ctrl"
 msgstr "Ctrl"
 
-#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73 setzer/popovers/helpers/gio_menu_builder.py:142
+#: setzer/keyboard_shortcuts/shortcut_tooltips.py:73
+#: setzer/popovers/helpers/gio_menu_builder.py:142
 msgid "Shift"
 msgstr "Shift"
 
@@ -6478,15 +7041,20 @@ msgstr "在预览中显示"
 msgid "Transform Selection"
 msgstr "转换所选内容"
 
-#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:41 setzer/popovers/document_switcher/document_switcher_viewgtk.py:166 setzer/popovers/hamburger_menu/hamburger_menu.py:115
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:41
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:166
+#: setzer/popovers/hamburger_menu/hamburger_menu.py:115
 msgid "Recent Documents"
 msgstr "最近文档"
 
-#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50 setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62 setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:109
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:50
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:62
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:109
 msgid "No Results"
 msgstr "无结果"
 
-#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:58 setzer/popovers/document_switcher/document_switcher_viewgtk.py:100
+#: setzer/popovers/document_chooser/document_chooser_viewgtk.py:58
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:100
 msgid "Other Documents"
 msgstr "其他文档"
 
@@ -6498,7 +7066,8 @@ msgstr "复制路径"
 msgid "Copy Relative Path"
 msgstr "复制相对路径"
 
-#: setzer/popovers/document_switcher/document_switcher.py:154 setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:221
+#: setzer/popovers/document_switcher/document_switcher.py:154
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:221
 msgid "Open Containing Folder"
 msgstr "打开所在文件夹"
 
@@ -6510,7 +7079,9 @@ msgstr "关闭其他"
 msgid "Select Root Document"
 msgstr "选择根文档"
 
-#: setzer/popovers/document_switcher/document_switcher.py:369 setzer/popovers/document_switcher/document_switcher_viewgtk.py:33 setzer/popovers/document_switcher/document_switcher_viewgtk.py:134
+#: setzer/popovers/document_switcher/document_switcher.py:369
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:33
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:134
 msgid "Open Documents"
 msgstr "打开的文档"
 
@@ -6526,7 +7097,8 @@ msgstr "将某个文档设为主文档"
 msgid "Designate a document as the build root"
 msgstr "将文档指定为构建根"
 
-#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:72 setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
+#: setzer/popovers/document_switcher/document_switcher_viewgtk.py:72
+#: setzer/workspace/sidebar/document_structure_page/files_viewgtk.py:233
 msgid "Unset Root Document"
 msgstr "取消主文档设置"
 
@@ -6582,7 +7154,9 @@ msgstr "最近的会话"
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48 setzer/workspace/preview_panel/preview_panel_viewgtk.py:124 setzer/workspace/preview_panel/preview_panel_viewgtk.py:126
+#: setzer/popovers/preview_zoom_level/preview_zoom_level_viewgtk.py:48
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:124
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:126
 msgid "Fit to Width"
 msgstr "适合宽度"
 
@@ -6602,7 +7176,8 @@ msgstr "隐藏导航"
 msgid "Title Page"
 msgstr "标题页"
 
-#: setzer/popovers/shortcutsbar/beamer_menu.py:35 setzer/popovers/shortcutsbar/document_menu.py:44
+#: setzer/popovers/shortcutsbar/beamer_menu.py:35
+#: setzer/popovers/shortcutsbar/document_menu.py:44
 msgid "Table of Contents"
 msgstr "目录"
 
@@ -6630,7 +7205,8 @@ msgstr "引用"
 msgid "Citation with Page Number"
 msgstr "带页码的引用"
 
-#: setzer/popovers/shortcutsbar/bibliography_menu.py:37 setzer/popovers/shortcutsbar/bibliography_menu.py:41
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:37
+#: setzer/popovers/shortcutsbar/bibliography_menu.py:41
 msgid "Natbib Citations"
 msgstr "Natbib 引用"
 
@@ -6678,7 +7254,8 @@ msgstr "引用年份"
 msgid "Cite Year with Brackets"
 msgstr "引用年份（带括号）"
 
-#: setzer/popovers/shortcutsbar/document_menu.py:40 setzer/popovers/shortcutsbar/document_menu.py:77
+#: setzer/popovers/shortcutsbar/document_menu.py:40
+#: setzer/popovers/shortcutsbar/document_menu.py:77
 msgid "Document Info"
 msgstr "文档信息"
 
@@ -6724,7 +7301,8 @@ msgstr "行内数学部分"
 msgid "Display Math Section"
 msgstr "展示数学部分"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:39 setzer/popovers/shortcutsbar/math_menu.py:55
+#: setzer/popovers/shortcutsbar/math_menu.py:39
+#: setzer/popovers/shortcutsbar/math_menu.py:55
 msgid "Math Environments"
 msgstr "数学环境"
 
@@ -6732,23 +7310,28 @@ msgstr "数学环境"
 msgid "Square Root"
 msgstr "平方根"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:48 setzer/popovers/shortcutsbar/math_menu.py:70
+#: setzer/popovers/shortcutsbar/math_menu.py:48
+#: setzer/popovers/shortcutsbar/math_menu.py:70
 msgid "Math Functions"
 msgstr "数学函数"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:49 setzer/popovers/shortcutsbar/math_menu.py:75
+#: setzer/popovers/shortcutsbar/math_menu.py:49
+#: setzer/popovers/shortcutsbar/math_menu.py:75
 msgid "Math Font Styles"
 msgstr "数学字体样式"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:50 setzer/popovers/shortcutsbar/math_menu.py:86
+#: setzer/popovers/shortcutsbar/math_menu.py:50
+#: setzer/popovers/shortcutsbar/math_menu.py:86
 msgid "Math Stacking Symbols"
 msgstr "数学堆叠符号"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:51 setzer/popovers/shortcutsbar/math_menu.py:101
+#: setzer/popovers/shortcutsbar/math_menu.py:51
+#: setzer/popovers/shortcutsbar/math_menu.py:101
 msgid "Math Accents"
 msgstr "数学重音"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:52 setzer/popovers/shortcutsbar/math_menu.py:114
+#: setzer/popovers/shortcutsbar/math_menu.py:52
+#: setzer/popovers/shortcutsbar/math_menu.py:114
 msgid "Math Spaces"
 msgstr "数学间距"
 
@@ -6756,7 +7339,8 @@ msgstr "数学间距"
 msgid "Roman"
 msgstr "罗马体"
 
-#: setzer/popovers/shortcutsbar/math_menu.py:79 setzer/popovers/shortcutsbar/text_menu.py:55
+#: setzer/popovers/shortcutsbar/math_menu.py:79
+#: setzer/popovers/shortcutsbar/text_menu.py:55
 msgid "Sans Serif"
 msgstr "无衬线体"
 
@@ -6788,7 +7372,8 @@ msgstr "矩阵"
 msgid "Inline Image"
 msgstr "行内图片"
 
-#: setzer/popovers/shortcutsbar/object_menu.py:35 setzer/popovers/shortcutsbar/object_menu.py:41
+#: setzer/popovers/shortcutsbar/object_menu.py:35
+#: setzer/popovers/shortcutsbar/object_menu.py:41
 msgid "Code Listing"
 msgstr "代码清单"
 
@@ -6844,23 +7429,28 @@ msgstr "德语替代引号"
 msgid "German Alt Single Quotes"
 msgstr "德语替代单引号"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:34 setzer/popovers/shortcutsbar/text_menu.py:51
+#: setzer/popovers/shortcutsbar/text_menu.py:34
+#: setzer/popovers/shortcutsbar/text_menu.py:51
 msgid "Font Styles"
 msgstr "字体样式"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:35 setzer/popovers/shortcutsbar/text_menu.py:62
+#: setzer/popovers/shortcutsbar/text_menu.py:35
+#: setzer/popovers/shortcutsbar/text_menu.py:62
 msgid "Font Sizes"
 msgstr "字体大小"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:36 setzer/popovers/shortcutsbar/text_menu.py:75
+#: setzer/popovers/shortcutsbar/text_menu.py:36
+#: setzer/popovers/shortcutsbar/text_menu.py:75
 msgid "Alignment"
 msgstr "对齐"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:37 setzer/popovers/shortcutsbar/text_menu.py:81
+#: setzer/popovers/shortcutsbar/text_menu.py:37
+#: setzer/popovers/shortcutsbar/text_menu.py:81
 msgid "Vertical Spacing"
 msgstr "垂直间距"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:38 setzer/popovers/shortcutsbar/text_menu.py:92
+#: setzer/popovers/shortcutsbar/text_menu.py:38
+#: setzer/popovers/shortcutsbar/text_menu.py:92
 msgid "International Accents"
 msgstr "国际音标重音"
 
@@ -6868,15 +7458,18 @@ msgstr "国际音标重音"
 msgid "Verbatim Environment"
 msgstr "逐字排版环境"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:44 setzer/popovers/shortcutsbar/text_menu.py:123
+#: setzer/popovers/shortcutsbar/text_menu.py:44
+#: setzer/popovers/shortcutsbar/text_menu.py:123
 msgid "List Environments"
 msgstr "列表环境"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:45 setzer/popovers/shortcutsbar/text_menu.py:131
+#: setzer/popovers/shortcutsbar/text_menu.py:45
+#: setzer/popovers/shortcutsbar/text_menu.py:131
 msgid "Quotations"
 msgstr "引用语"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:47 setzer/popovers/shortcutsbar/text_menu.py:137
+#: setzer/popovers/shortcutsbar/text_menu.py:47
+#: setzer/popovers/shortcutsbar/text_menu.py:137
 msgid "Cross References"
 msgstr "交叉引用"
 
@@ -6912,31 +7505,38 @@ msgstr "右对齐"
 msgid "New Line"
 msgstr "新行"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:106 setzer/popovers/shortcutsbar/text_menu.py:114
+#: setzer/popovers/shortcutsbar/text_menu.py:106
+#: setzer/popovers/shortcutsbar/text_menu.py:114
 msgid "Part"
 msgstr "部"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:107 setzer/popovers/shortcutsbar/text_menu.py:115
+#: setzer/popovers/shortcutsbar/text_menu.py:107
+#: setzer/popovers/shortcutsbar/text_menu.py:115
 msgid "Chapter"
 msgstr "章"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:108 setzer/popovers/shortcutsbar/text_menu.py:116
+#: setzer/popovers/shortcutsbar/text_menu.py:108
+#: setzer/popovers/shortcutsbar/text_menu.py:116
 msgid "Section"
 msgstr "节"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:109 setzer/popovers/shortcutsbar/text_menu.py:117
+#: setzer/popovers/shortcutsbar/text_menu.py:109
+#: setzer/popovers/shortcutsbar/text_menu.py:117
 msgid "Subsection"
 msgstr "小节"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:110 setzer/popovers/shortcutsbar/text_menu.py:118
+#: setzer/popovers/shortcutsbar/text_menu.py:110
+#: setzer/popovers/shortcutsbar/text_menu.py:118
 msgid "Subsubsection"
 msgstr "子小节"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:111 setzer/popovers/shortcutsbar/text_menu.py:119
+#: setzer/popovers/shortcutsbar/text_menu.py:111
+#: setzer/popovers/shortcutsbar/text_menu.py:119
 msgid "Paragraph"
 msgstr "段"
 
-#: setzer/popovers/shortcutsbar/text_menu.py:112 setzer/popovers/shortcutsbar/text_menu.py:120
+#: setzer/popovers/shortcutsbar/text_menu.py:112
+#: setzer/popovers/shortcutsbar/text_menu.py:120
 msgid "Subparagraph"
 msgstr "子段"
 
@@ -7132,7 +7732,8 @@ msgstr "选择文件"
 msgid "No .tex files were found in your Templates folder."
 msgstr "在“模板”文件夹中未找到 .tex 文件。"
 
-#: setzer/workspace/actions/actions.py:490 setzer/workspace/actions/actions.py:520
+#: setzer/workspace/actions/actions.py:490
+#: setzer/workspace/actions/actions.py:520
 msgid "Create document from template"
 msgstr "从模板创建文档"
 
@@ -7148,7 +7749,9 @@ msgstr "选择位置"
 msgid "The selected destination is not a local file."
 msgstr "所选目标不是本地文件。"
 
-#: setzer/workspace/actions/actions.py:1446 setzer/workspace/actions/actions.py:1451 setzer/workspace/actions/actions.py:1461
+#: setzer/workspace/actions/actions.py:1446
+#: setzer/workspace/actions/actions.py:1451
+#: setzer/workspace/actions/actions.py:1461
 msgid "Could not map the PDF selection to source. Build the document first."
 msgstr "无法将 PDF 选区映射到源码。请先构建文档。"
 
@@ -7168,7 +7771,8 @@ msgstr "已将“{}”复制为图片"
 msgid "Could not copy “{}” as an image"
 msgstr "无法将“{}”复制为图片"
 
-#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:81 setzer/workspace/agent_terminal_window/agent_terminal_window.py:84
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:81
+#: setzer/workspace/agent_terminal_window/agent_terminal_window.py:84
 msgid "Keep this window on top"
 msgstr "保持窗口置顶"
 
@@ -7192,15 +7796,18 @@ msgstr "Agent 会话已在侧栏就绪"
 msgid "Agent session ready in a separate window"
 msgstr "Agent 会话已在独立窗口就绪"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:48 setzer/workspace/headerbar/headerbar_viewgtk.py:51
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:48
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:51
 msgid "Toggle sidebar (Document Structure / Symbols)"
 msgstr "切换侧边栏（文档结构 / 符号）"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:80 setzer/workspace/headerbar/headerbar_viewgtk.py:83
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:80
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:83
 msgid "Toggle preview panel (PDF Preview / Help)"
 msgstr "切换预览面板（PDF 预览 / 帮助）"
 
-#: setzer/workspace/headerbar/headerbar_viewgtk.py:103 setzer/workspace/headerbar/headerbar_viewgtk.py:105
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:103
+#: setzer/workspace/headerbar/headerbar_viewgtk.py:105
 msgid "Open AI agent in terminal"
 msgstr "在终端中打开 AI 代理"
 
@@ -7219,35 +7826,43 @@ msgstr[0] "{n} 个结果"
 msgid "No results for '{query}'"
 msgstr "未找到“{query}”的结果"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:65 setzer/workspace/help_panel/help_panel_viewgtk.py:67
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:65
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:67
 msgid "Help home"
 msgstr "帮助主页"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:72 setzer/workspace/help_panel/help_panel_viewgtk.py:74
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:72
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:74
 msgid "Scroll to top"
 msgstr "滚动到顶部"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:79 setzer/workspace/help_panel/help_panel_viewgtk.py:81
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:79
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:81
 msgid "Back"
 msgstr "后退"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:86 setzer/workspace/help_panel/help_panel_viewgtk.py:88
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:86
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:88
 msgid "Forward"
 msgstr "前进"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:99 setzer/workspace/help_panel/help_panel_viewgtk.py:101
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:99
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:101
 msgid "Search help documentation"
 msgstr "搜索帮助文档"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:114 setzer/workspace/preview_panel/preview_panel_viewgtk.py:66
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:114
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:66
 msgid "Full PDF preview"
 msgstr "整篇 PDF 预览"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:117 setzer/workspace/preview_panel/preview_panel_viewgtk.py:69
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:117
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:69
 msgid "TikZ snippet preview"
 msgstr "TikZ 片段预览"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:120 setzer/workspace/preview_panel/preview_panel_viewgtk.py:75
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:120
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:75
 msgid "Switch to Help"
 msgstr "切换到帮助"
 
@@ -7267,7 +7882,9 @@ msgstr "搜索帮助"
 msgid "Type a keyword to search the documentation."
 msgstr "输入关键字以搜索文档"
 
-#: setzer/workspace/help_panel/help_panel_viewgtk.py:229 setzer/workspace/help_panel/help_panel_viewgtk.py:232 setzer/workspace/help_panel/help_panel_viewgtk.py:242
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:229
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:232
+#: setzer/workspace/help_panel/help_panel_viewgtk.py:242
 msgid "JavaScript is disabled"
 msgstr "JavaScript 已禁用"
 
@@ -7300,35 +7917,43 @@ msgstr "/ {total}"
 msgid "No preview"
 msgstr "无预览"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:135 setzer/workspace/preview_panel/preview_panel_viewgtk.py:137
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:135
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:137
 msgid "Set zoom level"
 msgstr "设置缩放级别"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:154 setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:154
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:157
 msgid "Magnifier: hold left mouse button on the PDF to zoom"
 msgstr "放大镜：按住左键在 PDF 上缩放"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:163 setzer/workspace/preview_panel/preview_panel_viewgtk.py:165
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:163
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:165
 msgid "Match theme colors"
 msgstr "匹配主题颜色"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:170 setzer/workspace/preview_panel/preview_panel_viewgtk.py:172
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:170
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:172
 msgid "Open in external PDF viewer"
 msgstr "在外部 PDF 查看器中打开"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:180 setzer/workspace/preview_panel/preview_panel_viewgtk.py:182
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:180
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:182
 msgid "Detach preview to separate window"
 msgstr "将预览分离到独立窗口"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:191 setzer/workspace/preview_panel/preview_panel_viewgtk.py:193
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:191
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:193
 msgid "End AI review"
 msgstr "结束 AI 审阅"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:208 setzer/workspace/preview_panel/preview_panel_viewgtk.py:210
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:208
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:210
 msgid "Previous change"
 msgstr "上一处改动"
 
-#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:217 setzer/workspace/preview_panel/preview_panel_viewgtk.py:219
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:217
+#: setzer/workspace/preview_panel/preview_panel_viewgtk.py:219
 msgid "Next change"
 msgstr "下一处改动"
 
@@ -7340,11 +7965,13 @@ msgstr "AI 编辑的排版 Diff"
 msgid "Put the cursor inside a tikzpicture to preview it here."
 msgstr "把光标移入 tikzpicture 内即可在此预览。"
 
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:459 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:461
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:459
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:461
 msgid "Quotes"
 msgstr "引号"
 
-#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:475 setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:477
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:475
+#: setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py:477
 msgid "Objects"
 msgstr "对象"
 
@@ -7385,11 +8012,13 @@ msgstr "删除批注"
 msgid "Started a new agent session"
 msgstr "已开启新的 Agent 会话"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:61 setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:64
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:61
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:64
 msgid "Preset used when sending a selection directly"
 msgstr "直发选区时使用的预制提示词"
 
-#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87 setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:87
+#: setzer/workspace/sidebar/ai_page/ai_page_viewgtk.py:89
 msgid "Send All"
 msgstr "全部发送"
 
@@ -7447,7 +8076,8 @@ msgstr "选区：<b>{words}</b> 个词，<b>{chars}</b> 个字符（不含空白
 msgid "Word counts require <tt>texcount</tt> (part of TeX Live), which was not found. Character and line counts remain available above. See <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">installation guide</a>."
 msgstr "字数统计需要 <tt>texcount</tt>（TeX Live 的一部分），但未找到。字符数与行数统计仍可用。参见 <a href=\"https://en.wikibooks.org/wiki/LaTeX/Installation\">安装指南</a>"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75 setzer/workspace/sidebar/git/git_section_viewgtk.py:95
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:75
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:95
 msgid "No Document"
 msgstr "无文档"
 
@@ -7455,11 +8085,13 @@ msgstr "无文档"
 msgid "Open a document to see its structure."
 msgstr "打开文档以查看其结构"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150 setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:150
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:152
 msgid "Jump to section"
 msgstr "跳转到章节"
 
-#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173 setzer/workspace/sidebar/document_structure_page/document_structure_page.py:175
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:173
+#: setzer/workspace/sidebar/document_structure_page/document_structure_page.py:175
 msgid "Search document structure"
 msgstr "搜索文档结构"
 
@@ -7615,7 +8247,9 @@ msgstr "（尚无提交）"
 msgid "synced"
 msgstr "已同步"
 
-#: setzer/workspace/sidebar/git/git_section.py:213 setzer/workspace/sidebar/git/git_section_viewgtk.py:164 setzer/workspace/sidebar/git/git_section_viewgtk.py:166
+#: setzer/workspace/sidebar/git/git_section.py:213
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:164
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:166
 msgid "Push commits to the remote"
 msgstr "将提交推送到远程"
 
@@ -7623,7 +8257,9 @@ msgstr "将提交推送到远程"
 msgid "No remote repository is set up for this project."
 msgstr "此项目没有配置远程仓库。"
 
-#: setzer/workspace/sidebar/git/git_section.py:220 setzer/workspace/sidebar/git/git_section_viewgtk.py:155 setzer/workspace/sidebar/git/git_section_viewgtk.py:158
+#: setzer/workspace/sidebar/git/git_section.py:220
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:155
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:158
 msgid "Update this branch from the remote (fast-forward only)"
 msgstr "从远程更新此分支（仅限快进）"
 
@@ -7788,11 +8424,13 @@ msgstr "用 Git 记录此文件夹的更改与历史。"
 msgid "Initialize Repository"
 msgstr "初始化仓库"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:405 setzer/workspace/sidebar/git/git_section_viewgtk.py:407
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:405
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:407
 msgid "View file"
 msgstr "查看文件"
 
-#: setzer/workspace/sidebar/git/git_section_viewgtk.py:414 setzer/workspace/sidebar/git/git_section_viewgtk.py:416
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:414
+#: setzer/workspace/sidebar/git/git_section_viewgtk.py:416
 msgid "Discard changes in this file"
 msgstr "丢弃此文件中的更改"
 
@@ -7820,11 +8458,15 @@ msgstr "待办事项"
 msgid "Document Stats"
 msgstr "文档统计"
 
-#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:80 setzer/workspace/sidebar/symbols_page/symbols_page.py:205 setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:217
+#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:80
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:205
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:217
 msgid "Package"
 msgstr "宏包"
 
-#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:159 setzer/workspace/sidebar/symbols_page/symbols_page.py:211 setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:228
+#: setzer/workspace/sidebar/symbols_page/symbol_preview.py:159
+#: setzer/workspace/sidebar/symbols_page/symbols_page.py:211
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:228
 msgid "Insert"
 msgstr "插入"
 
@@ -7840,11 +8482,13 @@ msgstr "☆ 添加到收藏"
 msgid "Copy LaTeX Command"
 msgstr "复制 LaTeX 命令"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:53 setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:55
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:53
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:55
 msgid "Jump to category"
 msgstr "跳转到分类"
 
-#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:76 setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:78
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:76
+#: setzer/workspace/sidebar/symbols_page/symbols_page_viewgtk.py:78
 msgid "Search symbols"
 msgstr "搜索符号"
 
@@ -7888,15 +8532,18 @@ msgstr "关闭标签页"
 msgid "Changed on disk since last opened"
 msgstr "自上次打开后已在磁盘上更改"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:225 setzer/workspace/welcome_screen/welcome_screen.py:227
+#: setzer/workspace/welcome_screen/welcome_screen.py:225
+#: setzer/workspace/welcome_screen/welcome_screen.py:227
 msgid "Remove from recent list"
 msgstr "从最近列表中移除"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:264 setzer/workspace/welcome_screen/welcome_screen.py:266
+#: setzer/workspace/welcome_screen/welcome_screen.py:264
+#: setzer/workspace/welcome_screen/welcome_screen.py:266
 msgid "Pin"
 msgstr "固定"
 
-#: setzer/workspace/welcome_screen/welcome_screen.py:264 setzer/workspace/welcome_screen/welcome_screen.py:266
+#: setzer/workspace/welcome_screen/welcome_screen.py:264
+#: setzer/workspace/welcome_screen/welcome_screen.py:266
 msgid "Unpin"
 msgstr "取消固定"
 
@@ -7977,7 +8624,9 @@ msgstr "无法打开会话：{name}"
 msgid "Could not save workspace state: {error}"
 msgstr "无法保存工作区状态：{error}"
 
-#: setzer/workspace/workspace_viewgtk.py:337 setzer/workspace/workspace_viewgtk.py:600 setzer/workspace/workspace_viewgtk.py:607
+#: setzer/workspace/workspace_viewgtk.py:337
+#: setzer/workspace/workspace_viewgtk.py:600
+#: setzer/workspace/workspace_viewgtk.py:607
 msgid "Drop to open file"
 msgstr "拖放以打开文件"
 
