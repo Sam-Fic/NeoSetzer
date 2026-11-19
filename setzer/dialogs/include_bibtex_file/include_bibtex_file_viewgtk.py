@@ -81,6 +81,8 @@ class IncludeBibTeXFileView(DialogView):
         self.include_button.set_can_focus(True)
         self.include_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.include_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.include_button)
 
         self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.content.set_margin_start(12)

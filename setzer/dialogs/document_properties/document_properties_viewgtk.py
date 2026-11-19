@@ -53,6 +53,8 @@ class DocumentPropertiesView(DialogView):
         self.apply_button = Gtk.Button.new_with_mnemonic(_('_Apply'))
         self.apply_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.apply_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.apply_button)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         content.set_margin_top(12)

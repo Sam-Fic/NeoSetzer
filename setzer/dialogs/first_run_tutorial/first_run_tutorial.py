@@ -69,6 +69,8 @@ class FirstRunTutorialDialog(object):
         self.start_button.add_css_class('suggested-action')
         self.start_button.connect('clicked', lambda b: self.view.close())
         headerbar.pack_end(self.start_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.view.set_default_widget(self.start_button)
 
         toolbar = Adw.ToolbarView()
         toolbar.add_top_bar(headerbar)

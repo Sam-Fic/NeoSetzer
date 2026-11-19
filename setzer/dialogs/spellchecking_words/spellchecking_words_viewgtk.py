@@ -46,6 +46,8 @@ class SpellCheckingWordsView(DialogView):
         self.save_button = Gtk.Button.new_with_mnemonic(_('_Save'))
         self.save_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.save_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.save_button)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         content.set_margin_top(12)
@@ -64,7 +66,8 @@ class SpellCheckingWordsView(DialogView):
         self.dictionary_add_entry.set_title(_('Add a word'))
         self.dictionary_add_button = Gtk.Button(label=_('Add'))
         self.dictionary_add_button.set_valign(Gtk.Align.CENTER)
-        self.dictionary_add_button.add_css_class('suggested-action')
+        # 行内添加按钮不用 suggested：主确认 Save 是全弹窗唯一的
+        # suggested-action（docs/ui-guidelines.md §6.2）。
         self.dictionary_add_entry.add_suffix(self.dictionary_add_button)
         self.dictionary_group.add(self.dictionary_add_entry)
         content.append(self.dictionary_group)

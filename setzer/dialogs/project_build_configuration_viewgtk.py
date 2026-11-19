@@ -162,6 +162,8 @@ class ProjectBuildConfigurationView(DialogView):
         self.save_button = Gtk.Button(label=_('Save'))
         self.save_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.save_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.save_button)
 
         # Toast 承载非模态反馈（如「同名 profile 已存在」），替代原先的
         # AlertDialog；ToastOverlay 包在 ToolbarView 外，提示落在弹窗自身。
@@ -195,7 +197,8 @@ class ProjectBuildConfigurationView(DialogView):
         self.delete_button = Gtk.Button(label=_('Delete'))
         self.delete_button.add_css_class('destructive-action')
         self.active_button = Gtk.Button(label=_('Set active'))
-        self.active_button.add_css_class('suggested-action')
+        # 行内管理按钮不用 suggested：主确认 Save 是全弹窗唯一的
+        # suggested-action（docs/ui-guidelines.md §6.2）。
         for b in (self.add_button, self.duplicate_button, self.rename_button,
                   self.delete_button, self.active_button):
             profile_buttons.append(b)
@@ -263,7 +266,8 @@ class ProjectBuildConfigurationView(DialogView):
         self.task_add_combo = TextDropDown()
         self.task_add_combo.set_hexpand(True)
         self.task_add_button = Gtk.Button(label=_('Add task'))
-        self.task_add_button.add_css_class('suggested-action')
+        # 行内添加按钮不用 suggested：主确认 Save 是全弹窗唯一的
+        # suggested-action（docs/ui-guidelines.md §6.2）。
         add_box.append(self.task_add_combo)
         add_box.append(self.task_add_button)
         tasks_box.append(add_box)

@@ -930,6 +930,8 @@ class AddCustomToolDialog(object):
         self.save_button = Gtk.Button(label=_('Save'))
         self.save_button.add_css_class('suggested-action')
         headerbar.pack_end(self.save_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.view.set_default_widget(self.save_button)
 
         # 表单字段
         group = Adw.PreferencesGroup()
@@ -952,6 +954,10 @@ class AddCustomToolDialog(object):
         group.add(self.headed_entry)
 
         self._on_save_cb = None
+        # EntryRow 内 Return 直通弹窗主按钮（Adw.EntryRow 自带
+        # activates-default，docs/ui-guidelines.md §6.2）。
+        for entry in (self.name_entry, self.exec_entry, self.headed_entry):
+            entry.set_activates_default(True)
         self.cancel_button.connect('clicked', lambda b: self.view.close())
         self.save_button.connect('clicked', self._on_save_clicked)
 

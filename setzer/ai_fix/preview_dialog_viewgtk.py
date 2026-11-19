@@ -64,6 +64,8 @@ class PreviewDialogView(DialogView):
         self.send_button.add_css_class('suggested-action')
         self.send_button.set_can_focus(True)
         self.headerbar.pack_end(self.send_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.send_button)
 
         # 内容：垂直堆叠 prompt TextView + 信任复选框
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)

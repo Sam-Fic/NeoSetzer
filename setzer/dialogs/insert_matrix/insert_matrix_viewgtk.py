@@ -75,6 +75,8 @@ class InsertMatrixView(DialogView):
         self.insert_button = Gtk.Button.new_with_mnemonic(_('_Insert'))
         self.insert_button.add_css_class('suggested-action')
         self.headerbar.pack_end(self.insert_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.insert_button)
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)

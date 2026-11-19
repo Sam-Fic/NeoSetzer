@@ -66,6 +66,9 @@ class InsertImageView(DialogView):
         self.insert_button.add_css_class('suggested-action')
         self.insert_button.set_sensitive(False)
         self.headerbar.pack_end(self.insert_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）；未选图时按钮
+        # insensitive，Return 即无动作。
+        self.set_default_widget(self.insert_button)
 
         # 滚动内容
         scrolled = Gtk.ScrolledWindow()

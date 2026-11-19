@@ -301,6 +301,15 @@
 | 中间 | 次要操作 | 统一降级为 flat 图标按钮并配套 tooltip |
 | 右侧 | 主确认按钮 | 带 `suggested-action` 样式 |
 
+即 HIG 的 action dialog 形态：标题栏两颗主按钮，Cancel 在左、肯定按钮在右。肯定按钮用具体动词（Insert / Save / Include），禁用 OK / Done 这类泛化标签。Cancel 不加 `.flat`——官方样式里 headerbar 只有图标按钮默认扁平，文字按钮自带淡底就是官方长相。
+
+行为细则（HIG dialogs / buttons 页口径，2026-11-20 落地）：
+
+- **Return 键**：确认弹窗创建主按钮后调用 `Adw.Dialog.set_default_widget(主按钮)`（libadwaita 1.5+；全库先例 grep `set_default_widget`）。两个例外：破坏性主操作不绑，防误触（先例：project_search_replace 的 Apply All）；已有自己的 Return 语义的不重复绑（先例：wizard 的 EventControllerKey 处理 Return → Next/Create）。表单类弹窗给 `Adw.EntryRow` 加 `set_activates_default(True)`，行内 Return 直通主按钮（先例：外观页 AI 工具表单）。
+- **insensitive 直到可确认**：必选项未定时主按钮 `set_sensitive(False)`，选完置 True；此时 default widget 的 Return 自然无动作，不必再写守卫（先例：insert_image、bibliography save）。
+- **suggested 唯一**：一个 view 只允许一颗 `suggested-action`，给主确认按钮；内容区 / 行内的重复动作按钮（添加、设为激活等）用默认样式（先例：project_build_configuration 的 profile 行按钮与 Add task、spellchecking 的词典添加）。`destructive-action` 只给破坏性动作（行内 Delete 等），同样不参与 Return 绑定。
+- Esc 关闭由 Adw.Dialog 原生处理，语义即 Cancel（见 dialogs/helpers/dialog_viewgtk.py 注释），不要拦截。
+
 ### 6.3 分段控件（Adw.ToggleGroup）
 
 面板/模式切换统一用 `Adw.ToggleGroup` 分段控件（先例：预览/帮助工具栏、侧栏面板切换），不用互斥 `Gtk.ToggleButton` 组。

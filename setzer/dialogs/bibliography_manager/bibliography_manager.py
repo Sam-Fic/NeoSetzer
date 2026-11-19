@@ -1358,6 +1358,9 @@ class _StringsDialog(DialogView):
         self.save_button.set_sensitive(False)
         self.save_button.connect('clicked', self._on_save)
         self.headerbar.pack_end(self.save_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）；无改动时按钮
+        # insensitive，Return 即无动作。
+        self.set_default_widget(self.save_button)
 
         import_button = Gtk.Button.new_from_icon_name('document-open-symbolic')
         import_button.set_tooltip_text(

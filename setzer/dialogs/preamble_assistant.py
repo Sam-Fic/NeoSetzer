@@ -73,6 +73,8 @@ class PreambleAssistantDialog(DialogView):
         self.add_button.add_css_class('suggested-action')
         self.add_button.connect('clicked', self._on_add)
         self.headerbar.pack_end(self.add_button)
+        # Return 激活主确认（docs/ui-guidelines.md §6.2）。
+        self.set_default_widget(self.add_button)
 
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         # 顶部不留额外边距：headerbar 自带上下内边距（约 6px），加上
