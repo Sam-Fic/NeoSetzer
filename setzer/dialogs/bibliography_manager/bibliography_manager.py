@@ -191,6 +191,8 @@ class BibliographyManagerDialog(DialogView):
         # 当前激活行用于右侧详情面板。
         self.entry_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.entry_list.add_css_class('boxed-list')
+        # 当前条目指示用统一的半透明 accent 选中样式（不用原生实底高亮）。
+        self.entry_list.add_css_class('accent-selection')
         # boxed-list 即卡片样式，新版 libadwaita 卡片自带阴影；用应用级
         # CSS 去掉（保留圆角边框的卡片外观）
         self.entry_list.add_css_class('no-card-shadow')
@@ -203,6 +205,10 @@ class BibliographyManagerDialog(DialogView):
         entry_scroller = Gtk.ScrolledWindow()
         entry_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         entry_scroller.set_vexpand(True)
+        # 圆角卡片蒙版（.list-card-scroll）：文献条目多到滚动时，行被裁进
+        # boxed-list 的 12px 圆角内，与 Git 侧栏 / 搜索历史列表同款。
+        entry_scroller.set_overflow(Gtk.Overflow.HIDDEN)
+        entry_scroller.add_css_class('list-card-scroll')
         entry_scroller.set_child(self.entry_list)
         left.append(entry_scroller)
 
@@ -1456,7 +1462,6 @@ class _StringsDialog(DialogView):
 
         delete_button = Gtk.Button.new_from_icon_name('user-trash-symbolic')
         delete_button.add_css_class('flat')
-        delete_button.add_css_class('destructive-action')
         delete_button.set_valign(Gtk.Align.CENTER)
         delete_button.set_tooltip_text(_('Delete'))
         delete_button.connect('clicked', self._on_delete, item)

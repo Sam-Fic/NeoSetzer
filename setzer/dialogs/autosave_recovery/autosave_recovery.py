@@ -89,6 +89,10 @@ class AutosaveRecoveryDialog(object):
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_propagate_natural_height(True)
         scrolled.set_max_content_height(260)
+        # 圆角卡片蒙版（.list-card-scroll）：恢复的文档多到滚动时，行被裁进
+        # boxed-list 的 12px 圆角内（与搜索历史弹窗同一范式）。
+        scrolled.set_overflow(Gtk.Overflow.HIDDEN)
+        scrolled.add_css_class('list-card-scroll')
         scrolled.set_child(listbox)
         self.view.set_extra_child(scrolled)
 

@@ -69,9 +69,11 @@ class GitPageView(Gtk.Box):
         self.toolbar.set_valign(Gtk.Align.START)
 
         # 左：Git 页内部 Changes/Commits 图标档位（VSCode 式分组切换，
-        # 但不同屏展现）。样式与右侧面板切换器同款（纯图标 + 底槽 +
-        # 等宽），名称由 tooltip 展示。
+        # 但不同屏展现）。用 libadwaita 内置的 .round 变体：整组为全圆角
+        # 胶囊底槽、选中档为圆角矩形高亮，与右侧面板切换器的常规分段控件
+        # 形成区分。名称由 tooltip 展示。
         self.view_toggle = Adw.ToggleGroup()
+        self.view_toggle.add_css_class('round')
         self.view_toggle.set_valign(Gtk.Align.CENTER)
         self.view_toggle.set_homogeneous(True)
         for name, icon_name, label in GIT_VIEW_OPTIONS:
@@ -94,7 +96,9 @@ class GitPageView(Gtk.Box):
         content_box.set_vexpand(True)
         content_box.set_margin_start(12)
         content_box.set_margin_end(12)
-        content_box.set_margin_bottom(24)
+        # 底部与左右同为 12px：列表滚到底时，卡片下沿到窗口底的距离与到
+        # 侧栏左边一致，不会出现「左右贴 12、底下空 24」的不对称留白。
+        content_box.set_margin_bottom(12)
         content_box.append(content)
         self.append(content_box)
 

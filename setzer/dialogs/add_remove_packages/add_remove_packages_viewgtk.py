@@ -52,13 +52,19 @@ class AddRemovePackagesDialogView(DialogView):
 
         self.add_list = Gtk.ListBox()
         self.add_list.add_css_class('boxed-list')
+        # 当前包指示用统一的半透明 accent 选中样式。
+        self.add_list.add_css_class('accent-selection')
         self.add_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.add_list.set_sort_func(self.sort_function)
 
         self.add_scrolled_window = Gtk.ScrolledWindow()
         self.add_scrolled_window.set_size_request(-1, 200)
         self.add_scrolled_window.set_vexpand(False)
-        self.add_list.set_margin_bottom(18)
+        # 底部留白挂在滚动容器上（原先挂在 ListBox 上）：卡片要铺满滚动区，
+        # 圆角蒙版（.list-card-scroll）的四角才能与 boxed-list 卡片重合。
+        self.add_scrolled_window.set_margin_bottom(18)
+        self.add_scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
+        self.add_scrolled_window.add_css_class('list-card-scroll')
         self.add_scrolled_window.set_child(self.add_list)
         self.add_group.add(self.add_scrolled_window)
 
@@ -75,13 +81,17 @@ class AddRemovePackagesDialogView(DialogView):
 
         self.remove_list = Gtk.ListBox()
         self.remove_list.add_css_class('boxed-list')
+        self.remove_list.add_css_class('accent-selection')
         self.remove_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.remove_list.set_sort_func(self.sort_function)
 
         self.remove_scrolled_window = Gtk.ScrolledWindow()
         self.remove_scrolled_window.set_size_request(-1, 200)
         self.remove_scrolled_window.set_vexpand(False)
-        self.remove_list.set_margin_bottom(18)
+        # 同 add 段：底部留白移到滚动容器，圆角蒙版才与卡片四角重合。
+        self.remove_scrolled_window.set_margin_bottom(18)
+        self.remove_scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
+        self.remove_scrolled_window.add_css_class('list-card-scroll')
         self.remove_scrolled_window.set_child(self.remove_list)
         self.remove_group.add(self.remove_scrolled_window)
 

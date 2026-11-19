@@ -199,11 +199,30 @@ class GitSectionView(Gtk.Box):
         self.changes_box.append(self.label_error)
 
         # 改动文件列表：行 = 勾选框 + 状态字母徽标 + 文件名/目录 + Discard。
+        # 列表是面板里唯一会无限变长的区域，必须套 ScrolledWindow：此前直接
+        # 塞进 Gtk.Box，文件一多整段内容就超出面板被裁掉且滚不动。
+        # vexpand 让滚动区吃掉剩余高度（缩短窗口时列表先被压缩滚动，而不是
+        # 把 Commit 按钮顶出面板）；未溢出时 ListBox 仍按内容高度画卡片、
+        # 下方留白由 viewport 提供，观感与改动前一致。
         self.files_list = Gtk.ListBox()
         self.files_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.files_list.add_css_class('boxed-list')
+        # viewport 会把 child 拉伸到视口高度，而 boxed-list 的背景画在
+        # ListBox 上：不限制的话文件很少时卡片也会一路延伸到面板底部。
+        # 顶部对齐让它只占内容高度，缺少的部分由透明的 viewport 留白。
+        self.files_list.set_valign(Gtk.Align.START)
         self.files_list.set_visible(False)
-        self.changes_box.append(self.files_list)
+
+        self.files_scroller = Gtk.ScrolledWindow()
+        self.files_scroller.set_policy(
+            Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.files_scroller.set_vexpand(True)
+        # 圆角卡片蒙版见 .list-card-scroll：滚动时行不会被方角糊出卡片圆角。
+        self.files_scroller.set_overflow(Gtk.Overflow.HIDDEN)
+        self.files_scroller.add_css_class('list-card-scroll')
+        self.files_scroller.set_child(self.files_list)
+        self.files_scroller.set_visible(False)
+        self.changes_box.append(self.files_scroller)
 
         self.label_clean = Gtk.Label(label=_('Working tree clean'))
         self.label_clean.set_xalign(0)
@@ -219,7 +238,18 @@ class GitSectionView(Gtk.Box):
         self.history_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.history_list.add_css_class('boxed-list')
         self.history_list.add_css_class('compact-rows')
-        self.commits_box.append(self.history_list)
+        # 同 files_list：别让卡片被 viewport 拉满（见 _build_changes_view）。
+        self.history_list.set_valign(Gtk.Align.START)
+
+        # 历史同样可能很长（git log 无上限），滚动容器写法与改动文件列表一致。
+        self.history_scroller = Gtk.ScrolledWindow()
+        self.history_scroller.set_policy(
+            Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.history_scroller.set_vexpand(True)
+        self.history_scroller.set_overflow(Gtk.Overflow.HIDDEN)
+        self.history_scroller.add_css_class('list-card-scroll')
+        self.history_scroller.set_child(self.history_list)
+        self.commits_box.append(self.history_scroller)
 
         # 仓库还没有任何提交：空状态占位（与其它侧栏分区的空状态同款）。
         self.history_empty = self._make_status_page(
@@ -297,15 +327,18 @@ class GitSectionView(Gtk.Box):
     def clear_file_rows(self):
         self.files_list.remove_all()
         self.files_list.set_visible(False)
+        self.files_scroller.set_visible(False)
         self.label_clean.set_visible(False)
 
     def append_file_row(self, row):
         self.files_list.append(row)
         self.files_list.set_visible(True)
+        self.files_scroller.set_visible(True)
         self.label_clean.set_visible(False)
 
     def set_clean(self):
         self.files_list.set_visible(False)
+        self.files_scroller.set_visible(False)
         self.label_clean.set_visible(True)
 
     def build_file_row(self, entry):
@@ -367,6 +400,7 @@ class GitSectionView(Gtk.Box):
         self.history_list.remove_all()
         has_commits = len(commits) > 0
         self.history_list.set_visible(has_commits)
+        self.history_scroller.set_visible(has_commits)
         self.history_empty.set_visible(not has_commits)
         if not has_commits:
             return

@@ -28,6 +28,11 @@ class SearchHistoryPopup(Gtk.Popover):
     a min height would stretch the card into the empty area below the rows.
     The surplus space instead falls below the list and shows the plain
     popover background, while the card only wraps the rows.
+
+    When the rows do overflow, the scroller clips them to the card's 12px
+    radius (``set_overflow(HIDDEN)`` + ``.list-card-scroll``) — the same
+    "rounded-card mask" used by the Git sidebar lists, so the whole visible
+    scroll area stays inside one rounded card.
     """
 
     __gsignals__ = {
@@ -81,6 +86,10 @@ class SearchHistoryPopup(Gtk.Popover):
         # 负责（见类 docstring），否则 ListBox 卡片底色会铺满空区。
         self._scroller.set_propagate_natural_height(True)
         self._scroller.set_max_content_height(460)
+        # 圆角卡片蒙版（.list-card-scroll）：条目超出 460px 后滚动，滚动的行
+        # 被裁进 boxed-list 的 12px 圆角内，与 Git 页列表观感一致。
+        self._scroller.set_overflow(Gtk.Overflow.HIDDEN)
+        self._scroller.add_css_class('list-card-scroll')
         self._scroller.set_child(self._listbox)
         content.append(self._scroller)
 
