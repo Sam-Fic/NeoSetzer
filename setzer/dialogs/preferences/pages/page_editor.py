@@ -922,21 +922,21 @@ class PageEditorView(Adw.PreferencesPage):
         self.max_undo_levels_row.set_adjustment(adjustment_undo)
         group_undo.add(self.max_undo_levels_row)
 
-        group_line_numbers = Adw.PreferencesGroup()
-        group_line_numbers.set_title(_('Line numbers'))
-        self.add(group_line_numbers)
+        # Display 组：行号、右边距导引、高亮与可见字符都是文本区/gutter 的
+        # 视觉显示。原先拆成 4 个单项组（Line numbers / Right margin /
+        # Highlighting / Visible characters），单项组等于没有分组语义，
+        # 反而稀释扫描锚点（HIG：把相关设置编为一组）。
+        group_display = Adw.PreferencesGroup()
+        group_display.set_title(_('Display'))
+        self.add(group_display)
 
         self.option_show_line_numbers = Adw.SwitchRow()
         self.option_show_line_numbers.set_title(_('Show line numbers'))
-        group_line_numbers.add(self.option_show_line_numbers)
-
-        group_right_margin = Adw.PreferencesGroup()
-        group_right_margin.set_title(_('Right margin'))
-        self.add(group_right_margin)
+        group_display.add(self.option_show_line_numbers)
 
         self.option_show_right_margin = Adw.SwitchRow()
         self.option_show_right_margin.set_title(_('Show right margin guide'))
-        group_right_margin.add(self.option_show_right_margin)
+        group_display.add(self.option_show_right_margin)
 
         self.right_margin_position_row = Adw.SpinRow()
         self.right_margin_position_row.set_title(_('Right margin column'))
@@ -945,34 +945,50 @@ class PageEditorView(Adw.PreferencesPage):
             _('LaTeX documents are typically kept within 80 columns.'))
         adjustment_right_margin = Gtk.Adjustment(value=80, lower=40, upper=200, step_increment=1)
         self.right_margin_position_row.set_adjustment(adjustment_right_margin)
-        group_right_margin.add(self.right_margin_position_row)
+        group_display.add(self.right_margin_position_row)
 
-        group_line_wrapping = Adw.PreferencesGroup()
-        group_line_wrapping.set_title(_('Line wrapping'))
-        self.add(group_line_wrapping)
+        self.option_highlight_current_line = Adw.SwitchRow()
+        self.option_highlight_current_line.set_title(_('Highlight current line'))
+        self.option_highlight_current_line.set_subtitle(_('Visually emphasize the line containing the cursor.'))
+        group_display.add(self.option_highlight_current_line)
+
+        self.option_highlight_matching_brackets = Adw.SwitchRow()
+        self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
+        group_display.add(self.option_highlight_matching_brackets)
+
+        self.option_highlight_matching_begin_end = Adw.SwitchRow()
+        self.option_highlight_matching_begin_end.set_title(_('Highlight matching \\begin/\\end'))
+        group_display.add(self.option_highlight_matching_begin_end)
+
+        self.option_show_line_endings = Adw.SwitchRow()
+        self.option_show_line_endings.set_title(_('Show line endings'))
+        self.option_show_line_endings.set_subtitle(_('Show ¶ at the end of each line.'))
+        group_display.add(self.option_show_line_endings)
+
+        self.option_show_whitespace = Adw.SwitchRow()
+        self.option_show_whitespace.set_title(_('Show whitespace'))
+        self.option_show_whitespace.set_subtitle(_('Show · for spaces and → for tabs.'))
+        group_display.add(self.option_show_whitespace)
+
+        # Text flow 组：换行、折叠与 sticky scroll 同属长文档的阅读/导航行为。
+        group_text_flow = Adw.PreferencesGroup()
+        group_text_flow.set_title(_('Text flow'))
+        self.add(group_text_flow)
 
         self.option_line_wrapping = Adw.SwitchRow()
         self.option_line_wrapping.set_title(_('Enable line wrapping'))
         self.option_line_wrapping.set_subtitle(_('Wrap long lines instead of scrolling horizontally.'))
-        group_line_wrapping.add(self.option_line_wrapping)
-
-        group_code_folding = Adw.PreferencesGroup()
-        group_code_folding.set_title(_('Code folding'))
-        self.add(group_code_folding)
+        group_text_flow.add(self.option_line_wrapping)
 
         self.option_code_folding = Adw.SwitchRow()
         self.option_code_folding.set_title(_('Enable code folding'))
         self.option_code_folding.set_subtitle(_('Allow collapsing blocks of code such as environments.'))
-        group_code_folding.add(self.option_code_folding)
-
-        group_sticky_scroll = Adw.PreferencesGroup()
-        group_sticky_scroll.set_title(_('Sticky scroll'))
-        self.add(group_sticky_scroll)
+        group_text_flow.add(self.option_code_folding)
 
         self.option_sticky_scroll = Adw.SwitchRow()
         self.option_sticky_scroll.set_title(_('Enable sticky scroll for sections'))
         self.option_sticky_scroll.set_subtitle(_('Show the current section header at the top of the editor while scrolling.'))
-        group_sticky_scroll.add(self.option_sticky_scroll)
+        group_text_flow.add(self.option_sticky_scroll)
 
         group_math_preview = Adw.PreferencesGroup()
         group_math_preview.set_title(_('Math preview'))
@@ -1011,24 +1027,18 @@ class PageEditorView(Adw.PreferencesPage):
         self.tikz_preview_delay_row.set_digits(1)
         group_figure_preview.add(self.tikz_preview_delay_row)
 
-        group_highlighting = Adw.PreferencesGroup()
-        group_highlighting.set_title(_('Highlighting'))
-        self.add(group_highlighting)
-
-        self.option_highlight_current_line = Adw.SwitchRow()
-        self.option_highlight_current_line.set_title(_('Highlight current line'))
-        self.option_highlight_current_line.set_subtitle(_('Visually emphasize the line containing the cursor.'))
-        group_highlighting.add(self.option_highlight_current_line)
-
-        self.option_highlight_matching_brackets = Adw.SwitchRow()
-        self.option_highlight_matching_brackets.set_title(_('Highlight matching brackets'))
-        group_highlighting.add(self.option_highlight_matching_brackets)
-
-        self.option_highlight_matching_begin_end = Adw.SwitchRow()
-        self.option_highlight_matching_begin_end.set_title(_('Highlight matching \\begin/\\end'))
-        group_highlighting.add(self.option_highlight_matching_begin_end)
-
         # 拼写检查：pyenchant 后端；缺库或系统无词典时整组置灰。
+        # chktex 是 linter 不是拼写检查，独立成 Linting 组（原先混在拼写组里）。
+        group_linting = Adw.PreferencesGroup()
+        group_linting.set_title(_('Linting'))
+        self.add(group_linting)
+
+        self.option_chktex = Adw.SwitchRow()
+        self.option_chktex.set_title(_('Real-time linting (chktex)'))
+        self.option_chktex.set_subtitle(_(
+            'Run chktex in the background and underline possible problems'))
+        group_linting.add(self.option_chktex)
+
         group_spellchecking = Adw.PreferencesGroup()
         group_spellchecking.set_title(_('Spell checking'))
         self.add(group_spellchecking)
@@ -1058,46 +1068,22 @@ class PageEditorView(Adw.PreferencesPage):
         self.spellchecking_words_row.set_activatable_widget(self.spellchecking_words_button)
         group_spellchecking.add(self.spellchecking_words_row)
 
-        self.option_chktex = Adw.SwitchRow()
-        self.option_chktex.set_title(_('Real-time linting (chktex)'))
-        self.option_chktex.set_subtitle(_(
-            'Run chktex in the background and underline possible problems'))
-        group_spellchecking.add(self.option_chktex)
-
-        # 可见字符：显示行尾 ¶ 和空白（空格 · Tab →），调试缩进问题时有用。
-        group_visible_chars = Adw.PreferencesGroup()
-        group_visible_chars.set_title(_('Visible characters'))
-        self.add(group_visible_chars)
-
-        self.option_show_line_endings = Adw.SwitchRow()
-        self.option_show_line_endings.set_title(_('Show line endings'))
-        self.option_show_line_endings.set_subtitle(_('Show ¶ at the end of each line.'))
-        group_visible_chars.add(self.option_show_line_endings)
-
-        self.option_show_whitespace = Adw.SwitchRow()
-        self.option_show_whitespace.set_title(_('Show whitespace'))
-        self.option_show_whitespace.set_subtitle(_('Show · for spaces and → for tabs.'))
-        group_visible_chars.add(self.option_show_whitespace)
-
-        # 界面元素显隐：快捷键栏与多文档标签栏（与上方显示类设置相邻）
-        group_shortcuts_bar = Adw.PreferencesGroup()
-        group_shortcuts_bar.set_title(_('Shortcuts bar'))
-        self.add(group_shortcuts_bar)
+        # 界面元素显隐：编辑器上方的快捷键栏与多文档标签栏（原先两个单项组
+        # 合并为一组）。
+        group_interface = Adw.PreferencesGroup()
+        group_interface.set_title(_('Interface elements'))
+        self.add(group_interface)
 
         self.option_show_shortcuts_bar = Adw.SwitchRow()
         self.option_show_shortcuts_bar.set_title(_('Show shortcuts bar'))
-        group_shortcuts_bar.add(self.option_show_shortcuts_bar)
-
-        group_tab_bar = Adw.PreferencesGroup()
-        group_tab_bar.set_title(_('Tab bar'))
-        self.add(group_tab_bar)
+        group_interface.add(self.option_show_shortcuts_bar)
 
         self.option_show_tab_bar = Adw.SwitchRow()
         self.option_show_tab_bar.set_title(_('Show tab bar'))
         # 非显然的行为（单文档自动隐藏）原在 tooltip，上提为常显副标题。
         self.option_show_tab_bar.set_subtitle(
             _('Hidden automatically when only one document is open.'))
-        group_tab_bar.add(self.option_show_tab_bar)
+        group_interface.add(self.option_show_tab_bar)
 
         # 自动保存（崩溃恢复）：把缓冲区内容定时写入临时文件，
         # 应用崩溃后下次启动可恢复未保存的编辑。

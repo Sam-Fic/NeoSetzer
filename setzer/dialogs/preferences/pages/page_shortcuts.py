@@ -54,6 +54,42 @@ def _normalize_shortcut(raw):
 
 class PageShortcuts(object):
 
+    # 分类与快捷键窗口（dialogs/keyboard_shortcuts）保持同一套命名与归组，
+    # 偏好页和快捷键窗口看到的是同一张地图。标题在 load_shortcuts 里翻译
+    # （类体求值时 _ 尚未注入）。未归组的键兜底进 Other，未来新键不会漏显。
+    SHORTCUT_CATEGORIES = [
+        ('Documents', (
+            'new_document', 'open_document', 'show_document_chooser',
+            'show_open_docs', 'switch_document', 'save', 'save_as',
+            'close_document', 'close_all_documents', 'restore_session',
+            'reopen_last_closed_document', 'pin_tab')),
+        ('Tools', ('print', 'save_and_build', 'build', 'forward_sync')),
+        ('Windows and panels', (
+            'show_preferences_dialog', 'show_about_dialog', 'help',
+            'document_structure', 'symbols', 'build_log', 'preview',
+            'command_palette', 'hamburger_menu', 'context_menu',
+            'show_shortcuts', 'quit', 'fullscreen')),
+        ('Find and replace', ('find', 'find_and_replace', 'find_next',
+                              'find_previous')),
+        ('Zoom', ('zoom_in', 'zoom_out', 'reset_zoom')),
+        ('Copy and paste', ('copy', 'cut', 'paste')),
+        ('Undo and redo', ('undo', 'redo')),
+        ('Selection', ('select_all', 'select_next_occurrence',
+                       'select_all_occurrences', 'add_cursor_above',
+                       'add_cursor_below', 'clear_multi_cursor')),
+        ('Editing', ('delete_line', 'duplicate_line', 'move_line_up',
+                     'move_line_down', 'toggle_bookmark', 'next_bookmark',
+                     'previous_bookmark')),
+        ('LaTeX shortcuts', ('toggle_comment', 'new_line', 'bold', 'italic',
+                             'underline', 'typewriter', 'emphasized',
+                             'quotation_marks', 'list_item', 'environment',
+                             'insert_table_dialog', 'insert_matrix_dialog')),
+        ('Math shortcuts', ('inline_math', 'display_math', 'equation',
+                            'subscript', 'superscript', 'fraction', 'left',
+                            'right')),
+        ('AI Agent', ('ai_add_annotation', 'ai_send_selection')),
+    ]
+
     def __init__(self, preferences, settings):
         self.view = PageShortcutsView()
         self.preferences = preferences
@@ -80,28 +116,52 @@ class PageShortcuts(object):
         shortcuts = self.settings.get_value('keyboard_shortcuts', None)
         if shortcuts is None:
             shortcuts = self.settings.defaults['keyboard_shortcuts']
-        
-        for action_name, shortcut in shortcuts.items():
-            self.add_shortcut_row(action_name, shortcut)
 
-    def add_shortcut_row(self, action_name, shortcut):
+        # 分类组动态创建，插在导出/导入与重置组之前（display 顺序由 add
+        # 先后决定，操作组最后 add，保证"列表在前、操作在后"）。
+        categorized = set()
+        for category_title, action_names in self.SHORTCUT_CATEGORIES:
+            group = Adw.PreferencesGroup()
+            group.set_title(_(category_title))
+            self.view.add(group)
+            for action_name in action_names:
+                if action_name in shortcuts:
+                    self.add_shortcut_row(action_name, shortcuts[action_name], group)
+                    categorized.add(action_name)
+
+        # 兜底：不在分类里的键（未来新增/导入的未知键）不能凭空消失。
+        leftover = [a for a in shortcuts if a not in categorized]
+        if leftover:
+            group = Adw.PreferencesGroup()
+            group.set_title(_('Other'))
+            self.view.add(group)
+            for action_name in leftover:
+                self.add_shortcut_row(action_name, shortcuts[action_name], group)
+
+        self.view.add(self.view.group_actions)
+        self.view.add(self.view.group_reset)
+
+    def add_shortcut_row(self, action_name, shortcut, group):
         row = Adw.ActionRow()
         row.set_title(self.get_action_title(action_name))
-        row.set_subtitle(self.get_action_description(action_name))
-        
+        # 副标题只对有信息增量的条目显示（裁剪后多数为空），空串不设。
+        description = self.get_action_description(action_name)
+        if description:
+            row.set_subtitle(description)
+
         shortcut_button = Gtk.Button()
         shortcut_button.set_label(self.format_shortcut(shortcut))
         shortcut_button.set_valign(Gtk.Align.CENTER)
         shortcut_button.connect('clicked', self.on_shortcut_button_clicked, action_name)
         row.add_suffix(shortcut_button)
-        
+
         self.shortcut_entries[action_name] = {
             'row': row,
             'button': shortcut_button,
             'shortcut': shortcut
         }
-        
-        self.view.shortcuts_group.add(row)
+
+        group.add(row)
 
     def get_action_title(self, action_name):
         if self._action_titles is None:
@@ -636,33 +696,30 @@ class PageShortcutsView(Adw.PreferencesPage):
         self.set_title(_('Keyboard shortcuts'))
         self.set_icon_name('input-keyboard-symbolic')
 
-        self.shortcuts_group = Adw.PreferencesGroup()
-        self.shortcuts_group.set_title(_('Keyboard shortcuts'))
-        self.shortcuts_group.set_description(_('Click a shortcut button to change it. Press Escape to cancel.'))
-        self.add(self.shortcuts_group)
-
-        group_actions = Adw.PreferencesGroup()
-        group_actions.set_title(_('Actions'))
-        self.add(group_actions)
+        # 分类组由控制器 load_shortcuts 动态创建（与快捷键窗口同一套分类），
+        # 此处只创建导出/导入与重置组；display 顺序由控制器在分类组之后
+        # add，保证"列表在前、操作在后"。
+        self.group_actions = Adw.PreferencesGroup()
+        self.group_actions.set_title(_('Actions'))
+        self.group_actions.set_description(
+            _('Click a shortcut button to change it. Press Escape to cancel.'))
 
         export_row = Adw.ActionRow()
         export_row.set_title(_('Export shortcuts'))
         self.export_button = Gtk.Button(label=_('Export'))
         self.export_button.set_valign(Gtk.Align.CENTER)
         export_row.add_suffix(self.export_button)
-        group_actions.add(export_row)
+        self.group_actions.add(export_row)
 
         import_row = Adw.ActionRow()
         import_row.set_title(_('Import shortcuts'))
         self.import_button = Gtk.Button(label=_('Import'))
         self.import_button.set_valign(Gtk.Align.CENTER)
         import_row.add_suffix(self.import_button)
-        group_actions.add(import_row)
+        self.group_actions.add(import_row)
 
-        group_reset = Adw.PreferencesGroup()
-        self.add(group_reset)
-
+        self.group_reset = Adw.PreferencesGroup()
         self.reset_button = Gtk.Button(label=_('Reset to defaults'))
         self.reset_button.set_halign(Gtk.Align.END)
         self.reset_button.add_css_class('destructive-action')
-        group_reset.add(self.reset_button)
+        self.group_reset.add(self.reset_button)

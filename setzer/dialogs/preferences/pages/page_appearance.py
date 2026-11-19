@@ -532,7 +532,7 @@ class PageGeneral(object):
         reason = None if enabled else _('The AI agent is turned off.')
         for w in (self.view.option_tool, self.view.option_terminal_cmd,
                   self.view.option_embedded_terminal, self.view.option_ai_diff,
-                  self.view.group_tools, self.view.group_add, self.view.group_trusted):
+                  self.view.group_tools, self.view.group_trusted):
             w.set_sensitive(enabled)
             w.set_tooltip_text(reason)
 
@@ -781,12 +781,13 @@ class PageGeneralView(Adw.PreferencesPage):
         group_ai_main.add(self.option_tool)
 
         self.option_terminal_cmd = Adw.EntryRow()
-        # "(optional)" 括号升级为常显副标题；检测链细节保留在 tooltip。
+        # EntryRow 没有 subtitle 槽位："(optional)" 与自动检测说明只能走
+        # tooltip（合并为一条，避免拆两条悬停提示）。
         self.option_terminal_cmd.set_title(_('Terminal command'))
-        self.option_terminal_cmd.set_subtitle(_('Leave empty to detect automatically.'))
         self.option_terminal_cmd.set_tooltip_text(
-            _('Auto-detected terminal examples: gnome-terminal / xterm / konsole / …. '
-              'Under Flatpak, flatpak-spawn --host is added automatically.'))
+            _('Leave empty to detect automatically (gnome-terminal / xterm / '
+              'konsole / …). Under Flatpak, flatpak-spawn --host is added '
+              'automatically.'))
         group_ai_main.add(self.option_terminal_cmd)
 
         self.group_tools = Adw.PreferencesGroup()
@@ -794,12 +795,14 @@ class PageGeneralView(Adw.PreferencesPage):
         self.group_tools.set_description(_('Built-in presets cannot be removed. Add a custom tool to integrate other Agent CLIs.'))
         self.add(self.group_tools)
 
-        # 添加按钮：独立 group，直接放入（右对齐），避免重建时被误移除。
-        self.group_add = Adw.PreferencesGroup()
-        self.add(self.group_add)
-        self.add_tool_button = Gtk.Button(label=_('+ Add custom tool'))
-        self.add_tool_button.set_halign(Gtk.Align.END)
-        self.group_add.add(self.add_tool_button)
+        # 添加按钮收进组头 header_suffix（原先是一个空组只为放一个按钮）；
+        # 纯图标按钮须配 tooltip + 无障碍名（§4.3），复用同一文案。
+        self.add_tool_button = Gtk.Button.new_from_icon_name('list-add-symbolic')
+        self.add_tool_button.set_tooltip_text(_('Add a custom tool'))
+        self.add_tool_button.update_property(
+            [Gtk.AccessibleProperty.LABEL], [_('Add a custom tool')])
+        self.add_tool_button.set_valign(Gtk.Align.CENTER)
+        self.group_tools.set_header_suffix(self.add_tool_button)
 
         self.group_trusted = Adw.PreferencesGroup()
         self.group_trusted.set_title(_('Trusted directories'))

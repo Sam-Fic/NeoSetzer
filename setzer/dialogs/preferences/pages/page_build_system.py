@@ -84,9 +84,8 @@ class PageBuildSystem(object):
         self.view.option_auto_build.connect('notify::active', self.on_auto_build_toggled)
         self.view.option_auto_build_delay.set_property('value', self.settings.get_value('preferences', 'auto_build_delay'))
         self.view.option_auto_build_delay.connect('notify::value', self.on_delay_changed, 'auto_build_delay')
-        # 初值态按"非 PhiTeX live"同步（auto_build 关闭时 delay/autoshow 置灰
-        # 带原因）；检测结果回来后 update_engine_specific_visibility 统一重算。
-        self._sync_auto_build_rows(False)
+        # 初值态的置灰同步在 init 末尾统一做（_sync_auto_build_rows 要 block
+        # 各行回调，必须在全部 connect 之后调用）。
 
         # 输出链（issue #223，仅 latexmk 生效）与个人 TeX 树（issue #182）
         output_chain = self.settings.get_value('preferences', 'latexmk_output_chain')
@@ -108,6 +107,10 @@ class PageBuildSystem(object):
         # （on_switch_toggled 只负责写偏好）。
         self.view.option_phitex_live_build.connect(
             'notify::active', lambda *args: self._sync_auto_build_rows(self._phitex_active()))
+
+        # 初值态按"非 PhiTeX live"同步（auto_build 关闭时 delay/autoshow 置灰
+        # 带原因）。必须在全部 connect 之后：_sync 要 block 各行回调。
+        self._sync_auto_build_rows(False)
 
         build_timer = self.settings.get_value('preferences', 'build_timer')
         if build_timer not in self.build_timer_values:
