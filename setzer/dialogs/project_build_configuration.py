@@ -172,7 +172,7 @@ class ProjectBuildConfigurationDialog():
         row.set_title(task_type_label(task))
         row.set_activatable(False)
 
-        # 行内操作按钮：Adwaita 标准符号图标（go-up/down + edit-delete），
+        # 行内操作按钮：Adwaita 标准符号图标（go-up/down + window-close），
         # flat 无边框样式与 page_build_system 的行内删除按钮一致。
         up = Gtk.Button(icon_name='go-up-symbolic')
         up.set_tooltip_text(_('Move up'))
@@ -180,7 +180,7 @@ class ProjectBuildConfigurationDialog():
         down = Gtk.Button(icon_name='go-down-symbolic')
         down.set_tooltip_text(_('Move down'))
         down.connect('clicked', lambda b: self._move_task(profile, position, 1))
-        remove = Gtk.Button(icon_name='edit-delete-symbolic')
+        remove = Gtk.Button(icon_name='window-close-symbolic')
         remove.add_css_class('destructive-action')
         remove.set_tooltip_text(_('Remove task'))
         remove.connect('clicked', lambda b: self._remove_task(profile, position))

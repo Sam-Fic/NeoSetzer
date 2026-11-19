@@ -87,8 +87,9 @@ class AnnotationPopover(Gtk.Popover):
         preset_group.add_action(self._preset_action)
         self.preset_button.insert_action_group('preset', preset_group)
 
-        # 纯图标保存按钮（名称由 tooltip 展示）；图标与项目其他保存按钮一致。
-        self.save_button = Gtk.Button(icon_name='document-save-symbolic')
+        # 纯图标保存按钮（名称由 tooltip 展示）；object-select-symbolic
+        # 是 Adwaita 的简单对钩，表示「完成保存」。
+        self.save_button = Gtk.Button(icon_name='object-select-symbolic')
         self.save_button.add_css_class('suggested-action')
         self.save_button.set_tooltip_text(_('Save Annotation'))
         self.save_button.update_property(

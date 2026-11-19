@@ -416,11 +416,15 @@ class InsertTableView(DialogView):
             row.set_subtitle(_('{rows} rows × {columns} columns').format(
                 rows=merge.row_span, columns=merge.column_span))
             edit_button = Gtk.Button.new_from_icon_name('document-edit-symbolic')
+            edit_button.set_has_frame(False)
+            edit_button.add_css_class('flat')
             edit_button.set_tooltip_text(_('Edit this merged range'))
             if on_edit is not None:
                 edit_button.connect('clicked', lambda button, item=merge: on_edit(item))
             row.add_suffix(edit_button)
             remove_button = Gtk.Button.new_from_icon_name('user-trash-symbolic')
+            remove_button.set_has_frame(False)
+            remove_button.add_css_class('flat')
             remove_button.set_tooltip_text(_('Remove this merged range'))
             if on_remove is not None:
                 remove_button.connect('clicked', lambda button, item=merge: on_remove(item))

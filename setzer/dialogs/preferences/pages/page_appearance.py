@@ -473,7 +473,7 @@ class PageGeneral(object):
 
         # 删除按钮（仅自定义可删）
         if not is_builtin:
-            del_btn = Gtk.Button(icon_name='edit-delete-symbolic')
+            del_btn = Gtk.Button(icon_name='window-close-symbolic')
             del_btn.set_has_frame(False)
             del_btn.set_valign(Gtk.Align.CENTER)
             del_btn.add_css_class('flat')
@@ -505,7 +505,7 @@ class PageGeneral(object):
         for d in dirs:
             row = Adw.ActionRow()
             row.set_title(d)
-            del_btn = Gtk.Button(icon_name='edit-delete-symbolic')
+            del_btn = Gtk.Button(icon_name='window-close-symbolic')
             del_btn.set_has_frame(False)
             del_btn.set_valign(Gtk.Align.CENTER)
             del_btn.add_css_class('flat')

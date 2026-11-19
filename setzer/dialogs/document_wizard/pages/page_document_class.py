@@ -158,6 +158,8 @@ class DocumentClassPageView(PageView):
             group_list.set_size_request(348, -1)
             group_list.set_can_focus(True)
             group_list.add_css_class('boxed-list')
+            # 当前文档类指示用统一的半透明 accent 选中样式。
+            group_list.add_css_class('accent-selection')
             for document_class, title in classes:
                 row = Adw.ActionRow()
                 row.set_title(title)

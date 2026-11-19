@@ -74,11 +74,11 @@ class TaskRowRemoveButtonTest(unittest.TestCase):
 
     def test_last_remaining_task_cannot_be_removed(self):
         buttons = self.row_buttons(['latex'])
-        self.assertFalse(buttons['edit-delete-symbolic'].sensitive)
+        self.assertFalse(buttons['window-close-symbolic'].sensitive)
 
     def test_remove_stays_available_while_more_than_one_task(self):
         buttons = self.row_buttons(['latex', 'bibtex'])
-        self.assertTrue(buttons['edit-delete-symbolic'].sensitive)
+        self.assertTrue(buttons['window-close-symbolic'].sensitive)
 
 
 if __name__ == '__main__':

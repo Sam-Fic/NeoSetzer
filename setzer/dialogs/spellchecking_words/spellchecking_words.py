@@ -84,7 +84,7 @@ class SpellCheckingWordsDialog(object):
                                 _('Your user dictionary is empty.'))
         for word in sorted(self._dict_words, key=str.lower):
             row = self._make_word_row(word, _('Remove from dictionary'),
-                                      'user-trash-symbolic',
+                                      'window-close-symbolic',
                                       self.on_remove_dictionary_clicked)
             self.view.dictionary_group.add(row)
             self._dictionary_rows.append(row)
@@ -108,7 +108,7 @@ class SpellCheckingWordsDialog(object):
                                 _('No words ignored this session.'))
         for word in sorted(self._ignored_words):
             row = self._make_word_row(word, _('Stop ignoring'),
-                                      'user-trash-symbolic',
+                                      'window-close-symbolic',
                                       self.on_unignore_clicked)
             self.view.ignored_group.add(row)
             self._ignored_rows.append(row)

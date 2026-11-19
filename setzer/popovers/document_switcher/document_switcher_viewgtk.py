@@ -58,6 +58,9 @@ class DocumentSwitcherView(object):
         self.root_group = Adw.PreferencesGroup()
         self.set_root_document_row = Adw.ActionRow()
         self.set_root_document_row.set_activatable(True)
+        # 禁用行选择：点击只激活，避免残留 libadwaita 原生 :selected 实底高亮
+        # 与统一方案的 accent 半透明底并存（见 row.set_selectable 相关注释）。
+        self.set_root_document_row.set_selectable(False)
         self.set_root_document_row.set_title(_('Set one Document as Root'))
         self.set_root_document_row.set_icon_name('document-properties-symbolic')
         self.set_root_document_row.set_tooltip_text(_('Designate a document as the build root'))
@@ -65,6 +68,7 @@ class DocumentSwitcherView(object):
 
         self.unset_root_document_row = Adw.ActionRow()
         self.unset_root_document_row.set_activatable(True)
+        self.unset_root_document_row.set_selectable(False)
         self.unset_root_document_row.set_title(_('Unset Root Document'))
         self.unset_root_document_row.set_icon_name('edit-clear-symbolic')
         self.unset_root_document_row.set_tooltip_text(_('Remove the root document designation'))
@@ -92,6 +96,7 @@ class DocumentSwitcherView(object):
         self.other_group = Adw.PreferencesGroup()
         self.other_documents_row = Adw.ActionRow()
         self.other_documents_row.set_activatable(True)
+        self.other_documents_row.set_selectable(False)
         self.other_documents_row.set_title(_('Other Documents') + '...')
         self.other_documents_row.set_icon_name('document-open-symbolic')
         self.other_documents_row.set_tooltip_text(_('Open a document not in the recent list'))
@@ -171,6 +176,11 @@ class DocumentSwitcherView(object):
     def _create_open_row(self, document, root_selection_mode, is_active=False, query=''):
         row = Adw.ActionRow()
         row.set_activatable(True)
+        # 行禁用选择（点击只激活）：PreferencesGroup 内部 ListBox 默认 SINGLE，
+        # 可选中行会在点击后残留 libadwaita 原生 :selected 实底高亮（重开弹窗
+        # 且 _dirty=False 行不重建时仍可见），与当前文档行的 accent 半透明底
+        # 形成两套选中视觉。当前项指示完全交给 .accent 类。
+        row.set_selectable(False)
         row.document = document
 
         doc_type = document.get_document_type()
@@ -216,6 +226,7 @@ class DocumentSwitcherView(object):
     def _create_recent_row(self, filename, query=''):
         row = Adw.ActionRow()
         row.set_activatable(True)
+        row.set_selectable(False)
         row.set_use_markup(True)
         row.filename = filename
 

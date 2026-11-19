@@ -150,6 +150,8 @@ class BeamerSettingsPageView(PageView):
         self.themes_list = Gtk.ListBox()
         self.themes_list.set_can_focus(True)
         self.themes_list.add_css_class('boxed-list')
+        # 当前主题指示用统一的半透明 accent 选中样式。
+        self.themes_list.add_css_class('accent-selection')
         self.themes_list_rows = dict()
         for name in self.theme_names:
             row = Adw.ActionRow()
