@@ -179,7 +179,9 @@ class MainWindow(Adw.ApplicationWindow):
         # preview_split: 横向 Adw.OverlaySplitView（预览/帮助在右 = sidebar）。
         # 与 sidebar_split 同款控件，set_show_sidebar() 自带滑入/滑出动画，
         # 因此 toggle preview / toggle help 能得到与 toggle document structure 一致的
-        # 滑入动画。分隔条仍可拖拽调整宽度（notify::sidebar-width-fraction）。
+        # 滑入动画。该控件没有可拖拽分隔条（组件事实：宽度只能由
+        # sidebar-width-fraction 程序化设置）；实际调宽入口是偏好设置
+        # 外观页的滑杆，notify 回调只做持久化。
         # collapsed 保持 False：永不折叠为浮层抽屉，始终 inline 推挤编辑器列。
         # 内容列（编辑器 + headerbar overlay）= sidebar 之外的剩余空间，
         # 窗口变窄时自动收缩，shortcutsbar 的 reflow 逻辑不受影响
@@ -188,8 +190,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.preview_split.set_content(self.document_stack_overlay)
         self.preview_split.set_sidebar(self.preview_help_stack)
         self.preview_split.set_sidebar_position(Gtk.PackType.END)  # 预览在右侧
-        self.preview_split.set_min_sidebar_width(1)      # 极端宽松：仅防止拖到 0
-        self.preview_split.set_max_sidebar_width(4000)  # 极端宽松：上限远高于常规屏宽
+        # min/max 钳到几乎不设限：宽度只由 fraction 与滑杆控制，
+        # 钳制值不给拖拽兜底（组件没有拖拽）。
+        self.preview_split.set_min_sidebar_width(1)
+        self.preview_split.set_max_sidebar_width(4000)
         self.preview_split.set_sidebar_width_fraction(0.5)
         self.preview_paned_overlay.set_child(self.preview_split)
 
@@ -197,11 +201,13 @@ class MainWindow(Adw.ApplicationWindow):
         # 宽窗口：侧边栏内联（与内容并排，等价原 Gtk.Paned 行为）；
         # 窄窗口（<700px breakpoint）：侧边栏折叠为浮层抽屉。
         # sidebar 为 Sidebar(Gtk.Stack)，含 symbols / document_structure 两页，共享同一抽屉。
+        # 该控件没有可拖拽分隔条：宽度只由 sidebar-width-fraction 程序化设置
+        # （调宽入口 = 偏好设置外观页滑杆），min/max 仅钳制首选值。
         self.sidebar_split = Adw.OverlaySplitView()
         self.sidebar_split.set_sidebar(self.sidebar)
         self.sidebar_split.set_content(self.preview_paned_overlay)
-        self.sidebar_split.set_min_sidebar_width(1)      # 极端宽松：仅防止拖到 0
-        self.sidebar_split.set_max_sidebar_width(4000)  # 极端宽松：上限远高于常规屏宽
+        self.sidebar_split.set_min_sidebar_width(1)
+        self.sidebar_split.set_max_sidebar_width(4000)
         # 初始值仅为占位：真正的宽度由 setup_paneds() 按持久化的
         # window_state/sidebar_width_fraction（默认 0.20）覆盖设定。
         self.sidebar_split.set_sidebar_width_fraction(0.20)

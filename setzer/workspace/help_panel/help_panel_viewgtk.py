@@ -174,6 +174,8 @@ class HelpPanelView(Gtk.Box):
         self.search_content_box.append(self.search_scroll)
 
         self.no_results_slate = Adw.StatusPage()
+        # 仅 .compact，不加 .sidebar-empty-state：64px/220px 缩小空态是
+        # 左侧栏专属规范，右栏（预览/帮助）用 StatusPage 默认尺寸。
         self.no_results_slate.add_css_class('compact')
         self.no_results_slate.set_icon_name('action-unavailable-symbolic')
         self.no_results_slate.set_title(_('No results found'))
@@ -183,6 +185,7 @@ class HelpPanelView(Gtk.Box):
         self.search_content_box.append(self.no_results_slate)
 
         self.initial_slate = Adw.StatusPage()
+        # 仅 .compact：右栏空态用默认尺寸，同上。
         self.initial_slate.add_css_class('compact')
         self.initial_slate.set_icon_name('system-search-symbolic')
         self.initial_slate.set_title(_('Search Help'))
@@ -192,11 +195,11 @@ class HelpPanelView(Gtk.Box):
         self.initial_slate.set_valign(Gtk.Align.CENTER)
         self.search_content_box.append(self.initial_slate)
 
-        # 不再用 Adw.Clamp 包裹：固定宽侧栏（396px）里 Clamp 的动态限宽会把
-        # 内容区域算窄于卡片，导致卡片左右被 Clamp 的可视区裁切。改为由
-        # search_content_box 的左右 margin 直接控制留白，卡片宽度=侧栏宽-24，
-        # 与设置列表在固定侧栏里的表现一致。search_content_box 在下方 stack
-        # 创建后通过 add_named(..., 'search') 加入。
+        # 不再用 Adw.Clamp 包裹：侧栏宽度走 preview_split 的 fraction（本面板
+        # set_size_request(300, -1) 只是下限），横向对齐归 10px 边缘线体系，
+        # Clamp 的居中钉宽与边缘线冲突（docs/ui-guidelines.md §5.5）。改为由
+        # search_content_box 的左右 margin 直接控制留白，卡片宽度=侧栏宽-24。
+        # search_content_box 在下方 stack 创建后通过 add_named(..., 'search') 加入。
 
         # WebKit 可用时创建 WebView 渲染帮助页面；不可用时降级为 Gtk.Label
         # 占位（显示提示文案）。搜索功能不依赖 WebKit，仍正常工作。

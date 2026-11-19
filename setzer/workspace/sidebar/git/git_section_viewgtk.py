@@ -266,7 +266,7 @@ class GitSectionView(Gtk.Box):
         self.commits_box.append(self.history_scroller)
 
         # 仓库还没有任何提交：空状态占位。规格与 Document Structure 页的空
-        # 状态完全一致（.compact + .sidebar-empty-state：48px 图标 / 220px
+        # 状态完全一致（.compact + .sidebar-empty-state：64px 图标 / 220px
         # 最小高度）。vexpand + valign CENTER 让它在滚动区原本占的整块空间里
         # 垂直居中，而不是贴在顶端。
         self.history_empty = self._make_status_page(

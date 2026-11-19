@@ -76,10 +76,11 @@ class WorkspacePresenter(object):
         # 断言，_finish_page / on_document_removed 用本集合做最终防线。
         self._finished_pages = weakref.WeakSet()
 
-        # 拖动分隔条时 notify::sidebar-width-fraction 每像素触发一次。
-        # 原实现每帧调 set_value → add_change_code('settings_changed') →
-        # 通知全部 ~10 个 settings 观察者做字符串比较。去抖后合并为拖动
-        # 停止后一次 idle 落盘，消除拖动期间的级联通知。
+        # sidebar-width-fraction 变更源是偏好设置外观页的滑杆（Adw.OverlaySplitView
+        # 没有可拖拽分隔条，见 workspace_viewgtk 的注释）。notify 触发节奏跟随
+        # 滑杆拖动，仍可能连续多次。原实现每次 set_value →
+        # add_change_code('settings_changed') → 通知全部 ~10 个 settings 观察者
+        # 做字符串比较。去抖后合并为停止后一次 idle 落盘，消除级联通知。
         self._sidebar_width_idle_id = None
         self._preview_width_idle_id = None
         # _deferred_post_activate 的 50ms timeout id。快速切换文档时取消
@@ -624,7 +625,8 @@ class WorkspacePresenter(object):
         self.main_window.sidebar_split.set_show_sidebar(show_sidebar)
         self.main_window.preview_split.set_show_sidebar(show_preview_help)
 
-        # 拖动分隔条时实时持久化到 settings（仅更新内存 dict，pickle 在关闭时落盘）
+        # fraction 变更（偏好设置滑杆）实时持久化到 settings（仅更新内存 dict，
+        # pickle 在关闭时落盘）。连接处没有拖拽语义：OverlaySplitView 无分隔条。
         self.main_window.sidebar_split.connect('notify::sidebar-width-fraction', self.on_sidebar_width_changed)
         self.main_window.preview_split.connect('notify::sidebar-width-fraction', self.on_preview_width_changed)
 
