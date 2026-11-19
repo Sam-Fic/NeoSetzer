@@ -224,11 +224,16 @@ class GitSectionView(Gtk.Box):
         self.files_scroller.set_visible(False)
         self.changes_box.append(self.files_scroller)
 
-        self.label_clean = Gtk.Label(label=_('Working tree clean'))
-        self.label_clean.set_xalign(0)
-        self.label_clean.add_css_class('dim-label')
-        self.label_clean.set_visible(False)
-        self.changes_box.append(self.label_clean)
+        # 工作区干净：不用单行灰字，改为与 Document Structure 空状态同款的
+        # Adw.StatusPage（.compact + .sidebar-empty-state：48px 图标 /
+        # 0.95em 标题）。vexpand 吃掉改动列表原本占的高度，内容在剩余空间
+        # 里垂直居中；高度不够时内部 ScrolledWindow 已开
+        # propagate-natural-height，不会自己滚起来。
+        self.clean_status = self._make_status_page(
+            'object-select-symbolic', _('Working tree clean'))
+        self.clean_status.set_vexpand(True)
+        self.clean_status.set_visible(False)
+        self.changes_box.append(self.clean_status)
 
     def _build_commits_view(self):
         # 线性历史（`git log` 顺序，新 → 旧）。组件沿用原布局。
@@ -328,18 +333,18 @@ class GitSectionView(Gtk.Box):
         self.files_list.remove_all()
         self.files_list.set_visible(False)
         self.files_scroller.set_visible(False)
-        self.label_clean.set_visible(False)
+        self.clean_status.set_visible(False)
 
     def append_file_row(self, row):
         self.files_list.append(row)
         self.files_list.set_visible(True)
         self.files_scroller.set_visible(True)
-        self.label_clean.set_visible(False)
+        self.clean_status.set_visible(False)
 
     def set_clean(self):
         self.files_list.set_visible(False)
         self.files_scroller.set_visible(False)
-        self.label_clean.set_visible(True)
+        self.clean_status.set_visible(True)
 
     def build_file_row(self, entry):
         '''构造一个改动文件行：prefix 勾选框 + 状态字母徽标，
