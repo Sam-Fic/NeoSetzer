@@ -309,6 +309,7 @@
 - **insensitive 直到可确认**：必选项未定时主按钮 `set_sensitive(False)`，选完置 True；此时 default widget 的 Return 自然无动作，不必再写守卫（先例：insert_image、bibliography save）。
 - **suggested 唯一**：一个 view 只允许一颗 `suggested-action`，给主确认按钮；内容区 / 行内的重复动作按钮（添加、设为激活等）用默认样式（先例：project_build_configuration 的 profile 行按钮与 Add task、spellchecking 的词典添加）。`destructive-action` 只给破坏性动作（行内 Delete 等），同样不参与 Return 绑定。
 - Esc 关闭由 Adw.Dialog 原生处理，语义即 Cancel（见 dialogs/helpers/dialog_viewgtk.py 注释），不要拦截。
+- **标题相对整个 HeaderBar（即窗口全宽）居中**，不随两侧按钮宽度浮动。官方 Adw.HeaderBar 内部是 GtkCenterBox，GtkCenterLayout 全宽居中、仅在标题会被某侧按钮压住时才往内推；两侧按钮宽度不等（Cancel 宽于 Close、Next 换 Create）是常态，标题钉在窗口正中不动——这是刻意设计，否则按钮一变宽标题就跳。不为凑居中去平衡两侧按钮宽度；确有严格真居中需求的特例用 `Adw.HeaderBar:centering-policy=STRICT`（size group 强制两侧等宽）。空间不够时标题先压缩省略（Adw 设 shrink-center-last=FALSE），按钮组保宽。
 
 ### 6.3 分段控件（Adw.ToggleGroup）
 
