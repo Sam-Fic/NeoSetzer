@@ -9,6 +9,8 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, GObject, Adw
 
+from setzer.helpers import animation_prefs
+
 
 class SearchHistoryPopup(Gtk.Popover):
     """Popover showing search/replace history entries.
@@ -110,6 +112,15 @@ class SearchHistoryPopup(Gtk.Popover):
         """
         self._clear_callback = on_clear
         self._clear_list()
+
+        # 减弱动画（§8.2 / docs/ui-guidelines.md）：CSS 里 hover 淡入删除按钮的
+        # `transition: opacity 150ms` 不走 animation_prefs 登记的 Revealer/Stack
+        # 通道，须像 .preview-card 那样按偏好挂 .no-transition 关掉。populate
+        # 每次弹出前都跑，偏好中途切换下次打开即生效。
+        if animation_prefs.is_reduced():
+            self.add_css_class('no-transition')
+        else:
+            self.remove_css_class('no-transition')
 
         if not items:
             self._show_empty_state()
