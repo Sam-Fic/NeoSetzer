@@ -394,12 +394,15 @@ preferencespage.symbols-page > scrolledwindow > viewport > clamp > box {
  * 而预览卡片顶边 = 侧栏工具栏（.sidebar-toolbar，padding 6px）下沿 ≈ 46px，
  * 于是那 6px 上内边距会让标签比卡片低一截，看起来像标签上方凭空多了一条空白。
  *
- * 只清掉上内边距，下内边距保留，维持标签与下方快捷键栏之间原有的 6px 间距。
+ * 下内边距同样清掉：否则它会与 ShortcutsBar 自带的 margin_top 6px 叠加成
+ * 12px，比标题栏按钮下沿到标签顶边的 7px 间距明显更大（§2.2 不重复叠加）。
+ * 单文档时标签条 autohide 隐藏，这段间距由 ShortcutsBar 的 margin 单独提供。
  * 选择器限定 .inline（非 headerbar 上下文的 TabBar），不影响未来任何
  * 放进标题栏的标签条。
  */
 tabbar.inline tabbox {
     padding-top: 0;
+    padding-bottom: 0;
 }
 
 /*
