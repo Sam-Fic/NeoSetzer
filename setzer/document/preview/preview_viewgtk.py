@@ -50,8 +50,10 @@ class PageIndicatorButton(Gtk.Button):
         super().__init__()
         self.add_css_class('page-indicator-button')
         self.add_css_class('heading')
-        # 16 个按钮不参与 Tab 焦点循环（用户不需要键盘 focus 它们）。
-        self.set_can_focus(False)
+        # §4.3：按钮不得 set_can_focus(False) 关键盘可达。徽章常驻 Tab 可达
+        # （屏幕阅读器/键盘用户点页码的路径），只压鼠标点击抢焦点——否则
+        # 点徽章后编辑器失去焦点。滚动瞬间才显示的行为不变。
+        self.set_focus_on_click(False)
         # tooltip / 无障碍名不在这里设：未分配页码的按钮不会 reveal（调用方
         # 先 set_page_number 再 set_reveal_child），语义文案随页码在
         # set_page_number 里更新，让每个徽章可区分。
