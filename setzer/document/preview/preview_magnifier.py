@@ -133,6 +133,10 @@ class PreviewMagnifier(Gtk.DrawingArea):
 
         # 描边：外圈半透明黑保证任意底色上的轮廓对比度。单一描边层，
         # 不再叠加内圈 @borders。
+        # 0.35 不取 §2.1 半透明令牌：镜片描边浮在 PDF 页面内容上（白页/
+        # recolor 深页都可能），职责是给内容轮廓压对比，属 §3.4 纸边同族的
+        # 内容渲染着墨，不是 UI 表面/状态色；令牌表（最浅 0.03–最深 0.60）
+        # 按 UI 角色组织，塞进任一档都会错位语义。
         ctx.set_source_rgba(0, 0, 0, 0.35)
         ctx.set_line_width(1)
         ctx.arc(width / 2, height / 2, radius, 0, 2 * math.pi)
