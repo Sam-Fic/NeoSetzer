@@ -41,6 +41,15 @@ class FilesSectionView(sidebar_list_view.SidebarListView):
             _('The main document is always shown. Add \\input{...} or \\include{...} to include other files.')
         )
 
+        # 右键菜单上下文：被右键的 (kind, entry)，win.file-ctx-* action 读取。
+        self._ctx_item = None
+        # Adw.Sidebar 只有 :menu-model 非空时才响应右键：adw-sidebar.c 的
+        # open_context_menu() 先取模型、为空直接 return，之后才发 setup-menu，
+        # 且取到的模型在发信号前已快照。因此这里常驻挂一份静态模型，条目
+        # 可见性由 setup-menu 里启停 action + hidden-when="action-disabled"
+        # 控制（不能像旧实现那样在 setup-menu 里换模型）。
+        self.sidebar.set_menu_model(self._build_menu_model())
+
         self._register_context_actions()
 
     def populate(self):
@@ -154,10 +163,11 @@ class FilesSectionView(sidebar_list_view.SidebarListView):
         return item
 
     def _register_context_actions(self):
-        '''在 main_window 上注册带 win. 前缀的上下文 action（带文件名 target）。
+        '''在 main_window 上注册带 win. 前缀的上下文 action。
 
         把 action 注册到窗口而非 PopoverMenu，可避免 Gtk.PopoverMenu 基于
         menu model 渲染的菜单项在点击时无法解析到 action group 的问题。
+        action 不带参数，操作对象由 setup-menu 记录在 self._ctx_item 里。
         '''
         main_window = ServiceLocator.get_main_window()
         if main_window is None:
@@ -165,70 +175,71 @@ class FilesSectionView(sidebar_list_view.SidebarListView):
         if main_window.lookup_action('file-ctx-open-folder') is not None:
             return  # 已经注册过
 
-        def add(name, callback, param_type=None):
-            action = Gio.SimpleAction.new(name, param_type)
+        def add(name, callback):
+            action = Gio.SimpleAction.new(name, None)
             action.connect('activate', callback)
             main_window.add_action(action)
 
-        add('file-ctx-open-folder', self._on_file_ctx_open_folder, GLib.VariantType('s'))
-        add('file-ctx-save-as', self._on_file_ctx_save_as, GLib.VariantType('s'))
-        add('file-ctx-set-root', self._on_file_ctx_set_root, GLib.VariantType('s'))
+        add('file-ctx-open-folder', self._on_file_ctx_open_folder)
+        add('file-ctx-save-as', self._on_file_ctx_save_as)
+        add('file-ctx-set-root', self._on_file_ctx_set_root)
         add('file-ctx-unset-root', self._on_file_ctx_unset_root)
-        add('file-ctx-close', self._on_file_ctx_close, GLib.VariantType('s'))
+        add('file-ctx-close', self._on_file_ctx_close)
+
+    def _ctx_filename(self):
+        if self._ctx_item is None:
+            return None
+        return self._ctx_item[1]['filename']
+
+    def _ctx_document(self):
+        # entry['document'] 只在构建缓存那一刻正确（期间可能被打开/关闭），
+        # 弹菜单与激活时都按 filename 重新解析。
+        filename = self._ctx_filename()
+        if filename is None:
+            return None
+        workspace = self.model.data_provider.workspace
+        return workspace.get_document_by_filename(filename)
 
     def _on_file_ctx_open_folder(self, action, parameter):
-        self._open_containing_folder(parameter.get_string())
+        self._open_containing_folder(self._ctx_filename())
 
     def _on_file_ctx_save_as(self, action, parameter):
-        workspace = self.model.data_provider.workspace
-        document = workspace.get_document_by_filename(parameter.get_string())
-        self._save_document_as(document)
+        self._save_document_as(self._ctx_document())
 
     def _on_file_ctx_set_root(self, action, parameter):
-        self._set_as_root(None, parameter.get_string())
+        self._set_as_root(None, self._ctx_filename())
 
     def _on_file_ctx_unset_root(self, action, parameter):
         self._unset_root()
 
     def _on_file_ctx_close(self, action, parameter):
-        workspace = self.model.data_provider.workspace
-        document = workspace.get_document_by_filename(parameter.get_string())
-        self._close_document(document)
+        self._close_document(self._ctx_document())
 
-    def _build_menu_model(self, kind, document, filename):
-        workspace = self.model.data_provider.workspace
+    def _build_menu_model(self):
+        '''常驻静态菜单模型：所有条目都在，按行状态在 setup-menu 里
+        启停 action。hidden-when="action-disabled" 让不适用条目自动隐藏，
+        全空的 section 也不会留下分隔线。
+        '''
         menu = Gio.Menu()
 
-        # 文件相关：打开所在文件夹（无路径的未保存文档不显示）
-        if filename is not None:
-            file_section = Gio.Menu()
-            item = Gio.MenuItem.new(_('Open Containing Folder'), 'win.file-ctx-open-folder')
-            item.set_action_and_target_value('win.file-ctx-open-folder', GLib.Variant('s', filename))
-            file_section.append_item(item)
-            menu.append_section(None, file_section)
+        def make_item(label, action_name):
+            item = Gio.MenuItem.new(label, action_name)
+            item.set_attribute_value('hidden-when', GLib.Variant('s', 'action-disabled'))
+            return item
 
-        # 文档相关：另存为 / 主文档设置
+        file_section = Gio.Menu()
+        file_section.append_item(make_item(_('Open Containing Folder'), 'win.file-ctx-open-folder'))
+        menu.append_section(None, file_section)
+
         doc_section = Gio.Menu()
-        if document is not None:
-            item = Gio.MenuItem.new(_('Save Document As…'), 'win.file-ctx-save-as')
-            item.set_action_and_target_value('win.file-ctx-save-as', GLib.Variant('s', filename or ''))
-            doc_section.append_item(item)
-        if kind == 'main' and document is not None and document == workspace.get_root_document():
-            item = Gio.MenuItem.new(_('Unset Root Document'), 'win.file-ctx-unset-root')
-            doc_section.append_item(item)
-        else:
-            item = Gio.MenuItem.new(_('Set as Root'), 'win.file-ctx-set-root')
-            item.set_action_and_target_value('win.file-ctx-set-root', GLib.Variant('s', filename or ''))
-            doc_section.append_item(item)
+        doc_section.append_item(make_item(_('Save Document As…'), 'win.file-ctx-save-as'))
+        doc_section.append_item(make_item(_('Set as Root'), 'win.file-ctx-set-root'))
+        doc_section.append_item(make_item(_('Unset Root Document'), 'win.file-ctx-unset-root'))
         menu.append_section(None, doc_section)
 
-        # 关闭（仅对已打开的文档显示）
-        if document is not None:
-            close_section = Gio.Menu()
-            item = Gio.MenuItem.new(_('Close Document'), 'win.file-ctx-close')
-            item.set_action_and_target_value('win.file-ctx-close', GLib.Variant('s', filename or ''))
-            close_section.append_item(item)
-            menu.append_section(None, close_section)
+        close_section = Gio.Menu()
+        close_section.append_item(make_item(_('Close Document'), 'win.file-ctx-close'))
+        menu.append_section(None, close_section)
 
         return menu
 
@@ -237,23 +248,30 @@ class FilesSectionView(sidebar_list_view.SidebarListView):
         # 这里再尝试一次（_register_context_actions 内部幂等）。
         self._register_context_actions()
 
-        # 菜单按被右键的文件条目动态重建（Adw.Sidebar 的 menu_model 支持
-        # 在 setup-menu 里替换；无 item 或空模型时不弹）。
-        if item is None or getattr(item, 'item_data', None) is None:
-            self.sidebar.set_menu_model(None)
+        # 记录被右键的条目（菜单关闭时 item 为 None），再按它启停 action。
+        self._ctx_item = getattr(item, 'item_data', None)
+        self._update_ctx_actions()
+
+    def _update_ctx_actions(self):
+        main_window = ServiceLocator.get_main_window()
+        if main_window is None:
             return
 
-        kind, entry = item.item_data
+        filename = self._ctx_filename()
+        document = self._ctx_document()
         workspace = self.model.data_provider.workspace
-        filename = entry['filename']
-        # entry['document'] 只在构建缓存那一刻正确（期间可能被打开/关闭），
-        # 弹菜单时按 filename 重新解析。
-        document = workspace.get_document_by_filename(filename) if filename is not None else None
-        menu_model = self._build_menu_model(kind, document, filename)
-        if menu_model.get_n_items() == 0:
-            self.sidebar.set_menu_model(None)
-        else:
-            self.sidebar.set_menu_model(menu_model)
+        is_root = document is not None and document == workspace.get_root_document()
+
+        def set_enabled(name, enabled):
+            action = main_window.lookup_action(name)
+            if action is not None:
+                action.set_enabled(enabled)
+
+        set_enabled('file-ctx-open-folder', filename is not None)
+        set_enabled('file-ctx-save-as', document is not None)
+        set_enabled('file-ctx-close', document is not None)
+        set_enabled('file-ctx-set-root', self._ctx_item is not None and not is_root)
+        set_enabled('file-ctx-unset-root', is_root)
 
     def _open_containing_folder(self, filename):
         if filename is None:
