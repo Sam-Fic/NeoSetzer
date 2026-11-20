@@ -139,7 +139,7 @@ class Workspace(Observable):
         # 会话/发送器懒创建：VTE 不可用或用户从未用过 AI 功能时零开销。
         self.agent_terminal_popped_out = False
         self.agent_terminal_window = None
-        self._agent_session = None
+        self._agent_sessions = None
         self._annotation_sender = None
 
         # Actions 必须在 Workspace 构造期就建立：DialogLocator.init_dialogs()
@@ -1500,12 +1500,20 @@ class Workspace(Observable):
 
     # ---- Agent 会话 / 批注发送（懒创建，避免循环导入）----
 
+    def get_agent_sessions(self):
+        '''workspace 级会话集合（一个会话一个标签页，懒创建）。'''
+        if self._agent_sessions is None:
+            from setzer.ai_fix.agent_sessions import AgentSessions
+            self._agent_sessions = AgentSessions(self)
+        return self._agent_sessions
+
     def get_agent_session(self):
-        '''单 workspace 共享的 Agent 会话（批注 / build_log AI fix 共用）。'''
-        if self._agent_session is None:
-            from setzer.ai_fix.agent_session import AgentSession
-            self._agent_session = AgentSession(self)
-        return self._agent_session
+        '''当前激活的 Agent 会话；一个都没有时创建默认会话。
+
+        批注 / build_log AI fix / 顶栏按钮沿用「当前会话」语义；需要独立
+        新会话的入口（AI 提交）走 get_agent_sessions().new_session()。
+        '''
+        return self.get_agent_sessions().ensure_default()
 
     def get_annotation_sender(self):
         '''统一发送控制器：保存 → 信任门 → VTE/外部终端路由。'''
@@ -1557,12 +1565,12 @@ class Workspace(Observable):
         return True
 
     def shutdown_agent_session(self):
-        '''应用退出时结束 Agent 子进程（未创建过则零开销）。'''
-        if self._agent_session is not None:
-            self._agent_session.shutdown()
+        '''应用退出时结束全部 Agent 子进程（未创建过则零开销）。'''
+        if self._agent_sessions is not None:
+            self._agent_sessions.shutdown_all()
 
     def pop_out_agent_terminal(self):
-        '''把 AI 页终端区（工具栏 + 卡片）整体弹出为独立窗口。
+        '''把 AI 页新增的会话标签区整体弹出为独立窗口。
 
         仿 pop_out_preview 的整体 reparent：VTE 与 PTY 随 widget 搬移，
         会话不中断。不改 show_ai_agent（侧栏 AI 页弹回批注档）。
@@ -1576,28 +1584,31 @@ class Workspace(Observable):
             return
         if self.agent_terminal_window is None:
             self.agent_terminal_window = agent_terminal_window.AgentTerminalWindow(self)
-        panel = ai_page.terminal_view
+        panel = ai_page.terminal_tabs
         ai_page.view.detach_agent_panel()
         self.agent_terminal_window.set_panel(panel)
         panel.set_popped_out(True)
         self.agent_terminal_popped_out = True
         self.agent_terminal_window.present()
 
-    def pop_in_agent_terminal(self, end_session=False):
-        '''收回终端区到 AI 页（落在终端档）。end_session=True（关窗 X）时同时杀会话。'''
+    def pop_in_agent_terminal(self):
+        '''收回终端区到 AI 页（落在终端档）。
+
+        窗口关闭不结束会话：会话生命周期归标签页的关闭按钮管理，隐藏
+        窗口后后台任务（如 AI 提交）继续跑，下次弹出仍在原标签。
+        '''
         if self.agent_terminal_popped_out and self.agent_terminal_window is not None:
             ai_page = getattr(self.sidebar, 'ai_page', None)
-            self.agent_terminal_window.take_panel()
+            panel = self.agent_terminal_window.take_panel()
             if ai_page is not None:
                 # 先清弹出标记再装回：attach 会触发档位回调，回调里靠该
                 # 标记区分「页内切档」与「终端不在页内」两种情形。
-                ai_page.terminal_view.set_popped_out(False)
+                if panel is not None:
+                    panel.set_popped_out(False)
                 ai_page.view.attach_agent_panel()
             # 隐藏而非销毁：保留几何状态便于下次弹出。
             self.agent_terminal_window.set_visible(False)
             self.agent_terminal_popped_out = False
-        if end_session:
-            self.get_agent_session().end_session()
 
     def reveal_agent_terminal(self):
         '''发送成功后确保终端可见：已弹出 → 抬起独立窗口；否则侧栏 AI 页

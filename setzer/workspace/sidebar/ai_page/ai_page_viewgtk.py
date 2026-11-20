@@ -25,8 +25,8 @@ ListBox(.boxed-list)。列表不设 vexpand，只占内容自然高度，空白�
 `.ai-page` 清零，让首条批注顶边与工具栏下沿（= 右侧标签条 / 预览卡片顶边）
 齐平——本页分组没有标题，不需要那点呼吸空间。
 
-批注列表与 Agent 终端（AgentTerminalView：迷你工具栏在卡片外、圆角卡片
-仅 VTE）用 Git 页 Changes/Commits 同款 .round ToggleGroup 切档：内容单栈
+批注列表与 Agent 终端（会话标签页：Adw.TabBar + 每个会话一个终端卡片）
+用 Git 页 Changes/Commits 同款 .round ToggleGroup 切档：内容单栈
 不同屏展现，一次只看一个，不再上下分栏。Send All 是批注档列表上方的
 整行图标+文字按钮（git 页 Commit 行同款），在档内随列表显隐——空列表
 与终端档都不会出现它。终端弹出独立窗口时经 detach/attach_agent_panel
@@ -52,13 +52,13 @@ AI_VIEW_OPTIONS = (
 
 class AiPageView(Gtk.Box):
 
-    def __init__(self, terminal_view):
+    def __init__(self, terminal_panel):
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.VERTICAL)
         # 供 style_gtk.css 精确作用到本页（去掉批注列表默认的 24px 上外边距，
         # 让首条批注顶边与工具栏下沿 / 标签条顶边对齐）。
         self.add_css_class('ai-page')
-        self.terminal_view = terminal_view
+        self.terminal_panel = terminal_panel
 
         # ---- 顶部工具栏（与其他侧栏页同款 .sidebar-toolbar）----
         self.toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -155,7 +155,7 @@ class AiPageView(Gtk.Box):
         self.list_stack.set_visible_child_name('empty')
 
         self.content_stack.add_named(self.list_stack, 'annotations')
-        self.content_stack.add_named(self.terminal_view, 'agent')
+        self.content_stack.add_named(self.terminal_panel, 'agent')
         self.append(self.content_stack)
 
     # ---- 视图档位 / 内容栈 ----
@@ -171,12 +171,12 @@ class AiPageView(Gtk.Box):
 
     def detach_agent_panel(self):
         '''弹出终端前从内容栈整体摘下（reparent 前必须无父），档位弹回批注。'''
-        self.content_stack.remove(self.terminal_view)
+        self.content_stack.remove(self.terminal_panel)
         self.set_active_view('annotations')
 
     def attach_agent_panel(self):
         '''收回终端：装回内容栈并切到终端档。'''
-        self.content_stack.add_named(self.terminal_view, 'agent')
+        self.content_stack.add_named(self.terminal_panel, 'agent')
         self.set_active_view('agent')
 
     def set_has_annotations(self, has_annotations):

@@ -19,9 +19,10 @@
 
 批注跨所有打开文档收集、按添加顺序平铺；行内按钮 = 跳转源码 / 编辑 /
 单发 / 删除。批注列表与终端两档内容单栈不同屏展现（同 Git 页
-Changes/Commits），工具栏档位是事实源；终端区由 AgentSession +
-AgentTerminalView 提供，弹出独立窗口经 workspace.pop_out_agent_terminal
-/ pop_in_agent_terminal，发送成功经 reveal_terminal 亮出终端。
+Changes/Commits），工具栏档位是事实源；终端区由 AgentSessions 管理器 +
+AgentTerminalTabs（一个会话一个标签页）提供，弹出独立窗口经
+workspace.pop_out_agent_terminal / pop_in_agent_terminal，发送成功经
+reveal_terminal 亮出终端。
 """
 
 import os
@@ -32,7 +33,7 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Pango
 
 from setzer.app.service_locator import ServiceLocator
-from setzer.ai_fix.agent_terminal_viewgtk import AgentTerminalView
+from setzer.ai_fix.agent_terminal_tabs import AgentTerminalTabs
 from setzer.document.ai_annotations.annotation_popover import AnnotationPopover
 from setzer.workspace.sidebar.ai_page.ai_page_viewgtk import AiPageView
 
@@ -41,10 +42,12 @@ class AiPage(object):
 
     def __init__(self, workspace):
         self.workspace = workspace
-        self.session = workspace.get_agent_session()
+        # 启动时不预建会话：空标签条 + 「No active session」占位卡片，
+        # 首次发送（批注 / Build Log / AI 提交）或点「+」才真正建会话。
+        self.sessions = workspace.get_agent_sessions()
         self.sender = workspace.get_annotation_sender()
-        self.terminal_view = AgentTerminalView(self.session)
-        self.view = AiPageView(self.terminal_view)
+        self.terminal_tabs = AgentTerminalTabs(self.sessions)
+        self.view = AiPageView(self.terminal_tabs)
         # 无障碍名；同时为 sidebar_viewgtk.PANEL_SWITCH_OPTIONS 的 _('AI Agent')
         # 提供字面量 msgid（xgettext 据此提取，切换器 tooltip 运行时查表共用）。
         self.view.update_property([Gtk.AccessibleProperty.LABEL], [_('AI Agent')])
@@ -62,9 +65,9 @@ class AiPage(object):
         self.view.send_all_button.connect('clicked', self.on_send_all_clicked)
         # 档位（ToggleGroup 无 toggled 信号）：notify::active 驱动内容栈。
         self.view.view_toggle.connect('notify::active', self.on_view_toggle)
-        self.terminal_view.close_session_button.connect('clicked', self.on_close_session_clicked)
-        self.terminal_view.new_session_button.connect('clicked', self.on_new_session_clicked)
-        self.terminal_view.pop_button.connect('clicked', self.on_pop_clicked)
+        # 会话的关闭交给标签页自身的关闭按钮（AgentTerminalTabs）。
+        self.terminal_tabs.new_session_button.connect('clicked', self.on_new_session_clicked)
+        self.terminal_tabs.pop_button.connect('clicked', self.on_pop_clicked)
 
         self.rebuild_list()
 
@@ -281,7 +284,7 @@ class AiPage(object):
         name = group.get_active_name()
         if name is None:
             return
-        if name == 'agent' and self.terminal_view._popped_out:
+        if name == 'agent' and self.terminal_tabs._popped_out:
             self.workspace.pop_out_agent_terminal()  # 已弹出态 → present()
             self.view.set_active_view('annotations')
             return
@@ -289,28 +292,25 @@ class AiPage(object):
 
     def reveal_terminal(self):
         '''发送成功后亮出终端：页内切到终端档（已弹出则由 workspace 抬窗）。'''
-        if not self.terminal_view._popped_out:
+        if not self.terminal_tabs._popped_out:
             self.view.set_active_view('agent')
 
     def on_send_all_clicked(self, button):
         self.sender.send_annotations(self._all_entries())
 
-    def on_close_session_clicked(self, button):
-        '''关闭会话：杀子进程 + 清屏，恢复未打开状态（节省资源）。'''
-        self.session.end_session()
-        # 清屏后 StatusPage 切到「No active session」，状态变化可见，无需 toast
-
     def on_new_session_clicked(self, button):
+        '''新建会话标签（不打断已有会话）。'''
         document = self.workspace.get_active_document()
         cwd = document.get_dirname() if document is not None else None
         if not cwd:
             self._toast(_('Please save the document first'))
             return
-        self.session.restart(cwd)
-        self._toast(_('Started a new agent session'))
+        session = self.sessions.new_session()
+        success, message = session.ensure_started(cwd)
+        self._toast(_('Started a new agent session') if success else message)
 
     def on_pop_clicked(self, button):
-        if self.terminal_view._popped_out:
+        if self.terminal_tabs._popped_out:
             self.workspace.pop_in_agent_terminal()
         else:
             self.workspace.pop_out_agent_terminal()

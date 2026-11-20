@@ -403,6 +403,16 @@ tabbar.inline tabbox {
 }
 
 /*
+ * 侧栏 Agent 会话标签条：libadwaita 在只有一个标签时给 tabbox 加
+ * .single-tab 并去掉选中背景（普通 TabBar 单标签会 autohide，见编辑器）。
+ * 会话标签条 autohide=False（唯一的关闭入口就是标签上的 X），单标签也必须
+ * 显示选中高亮。取色与多标签选中态一致（alpha(currentColor, 0.1)）。
+ */
+tabbar.agent-session-tabs tabbox.single-tab tab:selected {
+    background-color: alpha(currentColor, 0.1);
+}
+
+/*
  * Pass-12: 预览内容卡片样式。
  * PDF stack 作为带边距 + 圆角的"卡片"嵌在侧栏中，与左侧栏的视觉密度一致。
  * - margin: 卡片四周留白，不贴侧栏边缘；

@@ -24,13 +24,13 @@ widget 搬移不中断会话。
 行为：
 - set_transient_for(main_window) + 非 modal：仅相对 NeoSetzer 置顶
   （多数 WM 下 transient 窗口保持在父窗口之上），不是系统级置顶。
-- 关窗（X）= 结束会话（kill 子进程）+ 收回隐藏；下次发送自动开新会话。
-- 工具栏「收回侧栏」按钮 = reparent 回 AI 页且不杀会话。
+- 关窗（X）= 收回隐藏，不结束任何会话：会话由标签页自身的关闭按钮
+  管理，后台任务（如 AI 提交）不受影响。
+- 内容区是 AgentTerminalTabs（标签条 + 终端），标签条上的「收回侧栏」
+  按钮 = reparent 回 AI 页且不杀会话。
 
-标题栏只有一层：内容区里的迷你工具栏被并进 HeaderBar —— agent 名与
-会话状态填进 Adw.WindowTitle（标题 / 副标题），三个快捷按钮
-（结束会话 / 新会话 / 收回侧栏）pack_end 到标题栏右侧；窗口自建的
-置顶开关（view-pin）pack_end 在最右，位于会话按钮右侧。
+置顶开关（view-pin）pack_end 在标题栏最右；窗口标题固定为
+「Agent Terminal」，具体会话信息由标签条承载。
 
 置顶开关是 best-effort：X11 走 wmctrl 设 _NET_WM_STATE_ABOVE；
 Wayland 无通用置顶协议，niri 下用浮动层近似（浮动窗口始终盖在同
@@ -100,24 +100,22 @@ class AgentTerminalWindow(Adw.Window):
     def set_panel(self, panel):
         self._panel = panel
         self.content_box.append(panel)
-        # 终端视图把状态/按钮交给标题栏，避免标题栏 + 迷你工具栏两层。
-        attach = getattr(panel, 'attach_headerbar', None)
-        if attach is not None:
-            attach(self.headerbar, self.window_title)
 
     def take_panel(self):
-        if self._panel is not None:
+        '''摘下会话标签区并返回它（reparent 前必须无父）。'''
+        panel = self._panel
+        if panel is not None:
             try:
-                detach = getattr(self._panel, 'detach_headerbar', None)
-                if detach is not None:
-                    detach()
-                self.content_box.remove(self._panel)
+                self.content_box.remove(panel)
             except Exception:
                 pass
             self._panel = None
+        return panel
 
     def _on_close_request(self, window):
-        self.workspace.pop_in_agent_terminal(end_session=True)
+        # 关窗只收回、不结束会话：会话由标签页自己的关闭按钮管理，
+        # 后台任务（如 AI 提交）不应因为关掉查看窗口而被杀掉。
+        self.workspace.pop_in_agent_terminal()
         return True
 
     # ---- 置顶开关 ----
