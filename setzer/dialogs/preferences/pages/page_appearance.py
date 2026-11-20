@@ -907,6 +907,9 @@ class AddCustomToolDialog(object):
         self.main_window = main_window
         self.view = Adw.Dialog()
         self.view.set_title(_('Add custom tool'))
+        # 宽度 480 = §6.5 特例：三条单行 EntryRow 的窄表单，M 档 600 会把
+        # 行拉成空条（长提示文案走 tooltip，不撑行宽）。高度 320：三行 +
+        # 头尾控件。
         self.view.set_content_width(480)
         self.view.set_content_height(320)
 
