@@ -1,0 +1,30 @@
+# LaTeX build artifacts produced when previewing the example project.
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.pdf
+*.ps
+*.run.xml
+*.snm
+*.synctex
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# PhiTeX session state.
+.phitex/
+
+# Screenshots referenced by chapters/06-whats-new.tex are intentionally tracked.
