@@ -79,6 +79,27 @@ viewport 会把 child 拉伸到视口高度，背景画在 ListBox 上就会一�
 - 先例：Git 侧栏 [git_section_viewgtk.py](../../setzer/workspace/sidebar/git/git_section_viewgtk.py) 给两个列表加 `.git-card-list`（ListBox 左右 edge 边距，margin 在 viewport 内），同栏其它控件由 `.git-section-box > *` 补同样的边距，`GitPageView.content_box` 的横向 margin 归零——三者合起来仍是全侧栏 10px 边缘线。
 - 代价：视口是方的，列表溢出后滚动的行会走到视口方角处（卡片 12px 圆角只在首尾生效）；卡片左右阴影完整，上下只在未溢出（卡片边界在视口内）时可见。
 
+### 3.3 设有 layout manager 的 widget，其 do_size_allocate vfunc 永不执行
+
+GTK4 中 widget 一旦 `set_layout_manager(...)`，分配走 layout manager 的
+`allocate` 路径，widget 子类覆写的 `do_size_allocate` vfunc **被静默跳过**
+（PyGObject 3.56.2 + GTK 4.22 实测：连续缩放窗口零次进入）。也不报错、
+不警告——写在里面的逻辑等于不存在。同理「measure 由 layout manager
+处理」：Gtk.Box 子类覆写 `do_measure` 不生效，须覆写 layout manager 的
+`do_measure` / `do_allocate`（`Gtk.BoxLayout.do_measure(self, ...)`
+链入默认实现）。
+
+排查信号：某段「每帧/每次分配都要跑」的逻辑从未执行、行为时有时无
+（只有别的入口偶然触发时才生效）。先用普通方法打桩计数确认。
+
+- 先例：ShortcutsBar 连续 overflow reflow 钩子曾在 `do_size_allocate`
+  里，从不执行 → 窗口缩放不收按钮、按钮被裁一半；修复移入
+  `_NoNaturalWidthLayout.do_allocate`（[shortcutsbar_viewgtk.py](../../setzer/workspace/shortcutsbar/shortcutsbar_viewgtk.py)），
+  回归测试 [test_shortcutsbar_overflow_reflow.py](../../tests/python/test_shortcutsbar_overflow_reflow.py)。
+- 附带口径：layout manager / `do_size_allocate` vfunc 收到的 width 都是
+  **扣除 widget 自身 margin 的内容宽度**；`gtk_widget_measure` 的返回值
+  **含** widget 自身 margin（overflow 按钮自然宽 40 = 分配 34 + margin_start 6）。
+
 ## 4 文本与绘制
 
 ### 4.1 get_iter_at_line* 返回 (ok, iter) 元组

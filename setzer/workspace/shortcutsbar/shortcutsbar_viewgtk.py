@@ -49,7 +49,18 @@ class _NoNaturalWidthLayout(Gtk.BoxLayout):
     实现注意：GTK4 中 Gtk.Box 的 measure 由 layout manager 处理，覆写 widget
     的 do_measure 不生效（PyGObject 3.56.2 + GTK 4.22 验证：Gtk.Box 子类的
     do_measure 从未被调用）。必须覆写 Gtk.BoxLayout.do_measure 才能改变
-    Gtk.Box 的测量结果。'''
+    Gtk.Box 的测量结果。
+
+    reflow 入口（同族坑位）：widget 设置了 layout manager 后，GTK4 **不再
+    调用 widget 子类的 do_size_allocate vfunc**（同环境实测：窗口连续缩放
+    期间 ShortcutsBar.do_size_allocate 零次进入，而本类的 do_allocate 每次
+    分配都进）。因此连续 reflow 钩子必须挂在本类的 do_allocate 里——在链入
+    Gtk.BoxLayout.do_allocate 之前按本次分配宽度重算 overflow（set_visible
+    是 flag 改动不是结构改动，分配阶段安全），同帧按新可见性分配子项。
+
+    do_allocate 收到的 width 是 widget **扣除自身 margin 后的内容宽度**
+    （实测：右组按钮终点 = width - margin_end），内容宽度语义与 get_width()
+    一致。'''
 
     def do_measure(self, widget, orientation, for_size):
         if orientation == Gtk.Orientation.HORIZONTAL:
@@ -58,6 +69,10 @@ class _NoNaturalWidthLayout(Gtk.BoxLayout):
         else:
             # 纵向用默认测量（按内容决定高度）
             return Gtk.BoxLayout.do_measure(self, widget, orientation, for_size)
+
+    def do_allocate(self, widget, width, height, baseline):
+        widget._reflow_before_allocate(width)
+        Gtk.BoxLayout.do_allocate(self, widget, width, height, baseline)
 
 
 class ShortcutsBar(Gtk.Box):
@@ -68,18 +83,25 @@ class ShortcutsBar(Gtk.Box):
     Public method `set_overflow_count(n)` moves the rightmost n left
     buttons into the popover; n=0 shows them all inline.
 
-    `do_size_allocate` is overridden to **continuously** reflow based on
+    `_NoNaturalWidthLayout.do_allocate` reflows **continuously** based on
     the actual allocated width (instead of discrete Adw.Breakpoints that
     would only flip at fixed thresholds). The number of overflowed buttons
-    matches the available space on every layout pass.'''
+    matches the available space on every layout pass.
 
-    # Overflow 安全余量（像素）。覆盖 GTK4 按钮 measure() 未计入的部分：
-    # box-shadow（不参与布局测量）、CSS border/margin 在某些主题下的额外
-    # 像素、子像素取整误差。8-12px 足以覆盖默认 Adwaita 主题；30px 是保守
-    # 值，确保较厚阴影的主题（如自定义暗色主题）下按钮不被裁切。若改用
-    # 更紧凑的主题可适当减小。GTK4 的 measure() 不暴露 box-shadow 尺寸，
-    # 故无法精确动态计算——保守常量是最可靠的方案。
-    _OVERFLOW_SAFETY_MARGIN = 30
+    注意 reflow 钩子在 layout manager 的 do_allocate 里而不是 widget 的
+    do_size_allocate——后者在设置了 layout manager 后被 GTK4 跳过，永不
+    执行（曾导致窗口缩放时按钮不收起、被裁切一半）。详见
+    _NoNaturalWidthLayout 的类文档。'''
+
+    # Overflow 安全余量（像素）。双重作用：
+    # 1. 覆盖 GTK4 按钮 measure() 未计入的部分：box-shadow（不参与布局
+    #    测量）、CSS border/margin 在某些主题下的额外像素、子像素取整误差。
+    #    GTK4 的 measure() 不暴露 box-shadow 尺寸，无法精确动态计算。
+    # 2. 「激进收起」档位：数值越大，收起越早（可用宽度判定越紧），
+    #    代价是收起态下工具条右侧留白越多。64 ≈ 1.5 个按钮宽，窗口收窄时
+    #    比精确适配提前约一个按钮开始收起，避免按钮贴边被裁。
+    # 收起判定全程以本常量为唯一裕度来源，别处不得再加 ad-hoc 余量。
+    _OVERFLOW_SAFETY_MARGIN = 64
 
     def __init__(self):
         Gtk.Box.__init__(self)
@@ -169,54 +191,48 @@ class ShortcutsBar(Gtk.Box):
 
         # Overflow state: 0 = 全部 visible
         self._overflow_count = 0
-        self._last_allocated_width = -1
         # 按钮自然宽度缓存。避免在 reflow 热路径中调用 measure()。
         self._button_widths = None
         # Gio.Menu 重建延迟到 idle：overflow 菜单只在用户点击三点按钮时显示，
-        # 不需要在 do_size_allocate 中同步重建（会触发 PopoverMenu items-changed
+        # 不需要在 reflow（分配阶段）同步重建（会触发 PopoverMenu items-changed
         # 信号处理，造成 threshold 切换时的卡顿）。
         self._menu_refresh_pending = False
         self._pending_overflow_buttons = []
-        self.connect('realize', self._on_realize)
-
-    def _on_realize(self, widget):
-        # realize 后 CSS 已应用，按钮宽度可能与 realize 前不同。
-        # 在 realize 回调中（allocate 之外）重建缓存，measure() 返回准确值。
-        self._button_widths = None
-        self._ensure_width_cache()
+        # 宽度缓存不预建：realize 时机可能早于样式验证（CSS 未生效时测得的
+        # 按钮宽度系统性偏小，会造成少收、裁切）。首次 reflow 发生在分配阶段，
+        # 那时样式必然已验证，惰性建缓存即得准确值（_ensure_width_cache）。
 
     # ------- continuous reflow: 父级 size 变化时自动计算 overflow -------
 
-    def do_size_allocate(self, width, height, baseline):
-        # 同步 reflow：在 Gtk.Box.do_size_allocate 之前用 set_visible() 改按钮可见性。
-        # 之前用 idle 异步 reflow 有 ~0.x 秒延迟——因为 idle (PRIORITY_HIGH_IDLE=100)
-        # 优先级低于 motion 事件 (PRIORITY_DEFAULT=0)，连续拖拽时 idle 被事件饿死，
-        # 直到用户停拖才执行。
-        #
-        # 之前用 remove/append 同步 reflow 会破坏 GTK4 布局周期（structural change
-        # during allocate），导致后续 do_size_allocate 不再触发。
-        #
-        # 现在：set_visible() 不是 structural change（只设 flag），在 allocate 中安全。
-        # 在 Gtk.Box.do_size_allocate 之前调用，layout manager 会按新可见性在同一帧
-        # 分配空间——零延迟、零帧丢失。
+    def _reflow_before_allocate(self, width):
+        '''同步 reflow：由 _NoNaturalWidthLayout.do_allocate 在链入
+        Gtk.BoxLayout.do_allocate 之前调用。
+
+        之前用 idle 异步 reflow 有 ~0.x 秒延迟——因为 idle (PRIORITY_HIGH_IDLE=100)
+        优先级低于 motion 事件 (PRIORITY_DEFAULT=0)，连续拖拽时 idle 被事件饿死，
+        直到用户停拖才执行。
+        之前用 remove/append 同步 reflow 会破坏 GTK4 布局周期（structural change
+        during allocate），导致后续分配不再触发。
+        现在：set_visible() 不是 structural change（只设 flag），在 allocate 中
+        安全；先改可见性再链入 BoxLayout 分配，同一帧按新可见性分配空间——
+        零延迟、零帧丢失。'''
         target = self._compute_overflow_target(width)
         if target != self._overflow_count:
             self.set_overflow_count(target)
-        Gtk.Box.do_size_allocate(self, width, height, baseline)
-        self._last_allocated_width = width
 
     def request_reflow(self):
         '''Re-run reflow with the current allocated width.
 
-        正常 reflow 只在 shortcutsbar 分配宽度变化时触发（do_size_allocate）。
-        但按钮宽度可能因内容变化而改变，且不会引起 shortcutsbar 分配宽度变化
-        （_NoNaturalWidthLayout 横向返回 0，paned 不会因此重分配）。这类情况包括：
+        正常 reflow 只在 shortcutsbar 分配宽度变化时触发
+        （_NoNaturalWidthLayout.do_allocate）。但按钮宽度可能因内容变化而改变，
+        且不会引起 shortcutsbar 分配宽度变化（_NoNaturalWidthLayout 横向返回
+        0，paned 不会因此重分配）。这类情况包括：
           - update_buttons 切换 latex 专属按钮的可见性
         此时需主动触发一次 reflow，按新的按钮宽度重新计算 overflow 数量。
         失效宽度缓存（按钮可见性变了，缓存的宽度不再有效），用 idle 延迟确保
         GTK 已处理 set_visible 后的新首选宽度。'''
         self._button_widths = None
-        width = self.get_allocated_width()
+        width = self.get_width()
         if width > 1:
             GLib.idle_add(self.reflow_for_width, width)
 
@@ -249,7 +265,11 @@ class ShortcutsBar(Gtk.Box):
         return base
 
     def _compute_overflow_target(self, available_width):
-        '''纯计算：返回应该 overflow 的左侧按钮数量。无副作用。'''
+        '''纯计算：返回应该 overflow 的左侧按钮数量。无副作用。
+
+        available_width 是 shortcutsbar **扣除自身 margin 后的内容宽度**
+        （_NoNaturalWidthLayout.do_allocate / get_width() 的语义），因此这里
+        不再扣减 margin_horizontal——重复扣减会虚增收起量且误导调参。'''
         if available_width <= 1:
             return self._overflow_count
         self._ensure_width_cache()
@@ -275,10 +295,14 @@ class ShortcutsBar(Gtk.Box):
 
         left_total = sum(left_widths) + spacing * max(0, n_left - 1)
         right_total = sum(right_widths) + spacing * max(0, n_right - 1)
-        fixed = right_total + 2 * self._margin_horizontal + overflow_nat + spacing
+        # overflow 按钮恒计入（隐藏时也占判定预算）：提前把它算进 fixed 让
+        # "下一级收起"更早发生，同时保证 target==1 跳过规则不产生裁切区
+        # （见循环后注释）。注意 measure() 返回值含 overflow_button 的
+        # margin_start(6)，此处不再额外加间距，避免重复计费。
+        fixed = right_total + overflow_nat
 
         # 安全余量：覆盖 measure() 未计入的 box-shadow/border/子像素取整，
-        # 让"下一级收起"判定更积极，避免按钮被轻微裁切。详见类常量
+        # 同时是"激进收起"档位——数值越大收起越早。详见类常量
         # _OVERFLOW_SAFETY_MARGIN 的文档。
         avail = available_width - fixed - self._OVERFLOW_SAFETY_MARGIN
 
@@ -316,9 +340,10 @@ class ShortcutsBar(Gtk.Box):
         0 = show all inline. Idempotent.
 
         用 set_visible() 而非 remove/append：
-        - set_visible() 是 flag 设置，在 do_size_allocate 中安全（不改变 widget tree 结构）
+        - set_visible() 是 flag 设置，在分配阶段（layout manager do_allocate
+          链入 BoxLayout 分配之前）安全（不改变 widget tree 结构）
         - remove/append 是 structural change，在 allocate 中会破坏 GTK4 布局周期
-        - 配合在 Gtk.Box.do_size_allocate 之前调用，layout manager 按新可见性同帧分配
+        - 配合先于 Gtk.BoxLayout.do_allocate 调用，同帧按新可见性分配
 
         用 base-visible data 区分两种隐藏来源：
         - update_buttons 设 base-visible=False（非 latex 文档隐藏 latex 专属按钮）
@@ -338,8 +363,8 @@ class ShortcutsBar(Gtk.Box):
             btn.set_visible(base and reflow_visible)
 
         # Gio.Menu 重建延迟到 idle：overflow 菜单只在用户点击时显示，不需要
-        # 在 do_size_allocate 中同步重建。连续拖拽时 target 可能快速变化
-        # （0→1→2→3），_menu_refresh_pending 确保只重建一次（用最终状态）。
+        # 在分配阶段同步重建。连续拖拽时 target 可能快速变化
+        # （0→2→3），_menu_refresh_pending 确保只重建一次（用最终状态）。
         overflow_buttons = [self.left_buttons[i] for i in sorted(overflow_indices)]
         self._pending_overflow_buttons = overflow_buttons
         if not self._menu_refresh_pending:

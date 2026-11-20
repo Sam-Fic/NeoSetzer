@@ -127,6 +127,7 @@ foreach t : [
   ['test_settings_realtime_persistence', 'test_settings_realtime_persistence.py'],
   ['test_shadow_synctex', 'test_shadow_synctex.py'],
   ['test_shortcut_hardcoded_conflict', 'test_shortcut_hardcoded_conflict.py'],
+  ['test_shortcutsbar_overflow_reflow', 'test_shortcutsbar_overflow_reflow.py'],
   ['test_smart_list', 'test_smart_list.py'],
   ['test_smart_list_controller', 'test_smart_list_controller.py'],
   ['test_smart_typing', 'test_smart_typing.py'],
