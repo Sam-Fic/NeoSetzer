@@ -89,7 +89,10 @@ class AgentTerminalTabs(Gtk.Box):
         # .inline 标签条从 40px 撑到 46px（按钮 34px + 上下 padding），
         # 标签上方凭空多一条 6px 空隙。放到行内与 TabBar 并排，高度与
         # 编辑器标签条一致。
-        self.tab_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        # spacing 只作用于两个动作按钮之间：TabBar 自带 6px 尾部留白
+        # （tabbox 5px + .box 1px），已构成标签与动作按钮之间的 sm 档间隙，
+        # 再叠 6px 会变成 12px，与按钮间距不成同一档位。
+        self.tab_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         # 与 .sidebar-toolbar 的 10px 边缘线对齐：TabBar 自带 6px 内边距，
         # 左侧补 4px；右侧动作按钮直接贴 10px（--setzer-spacing-edge）。
         self.tab_row.set_margin_start(4)
@@ -101,6 +104,8 @@ class AgentTerminalTabs(Gtk.Box):
         # START：AdwTab 本体在 40px 标签条里是顶部对齐（34px，y=0），
         # 居中会低 3px，与标签顶边错位。
         self.new_session_button.set_valign(Gtk.Align.START)
+        # 两个动作按钮之间补 sm=6（tab_row spacing=0，见上）。
+        self.new_session_button.set_margin_end(6)
         self.new_session_button.set_tooltip_text(
             _('New session (in the active document’s directory)'))
         self.new_session_button.update_property(
