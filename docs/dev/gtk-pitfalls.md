@@ -72,8 +72,12 @@ find /usr/share/icons/Adwaita -name '<name>-symbolic.svg'
 viewport 会把 child 拉伸到视口高度，背景画在 ListBox 上就会一路铺到底：
 
 - 给 ListBox 设 `set_valign(Gtk.Align.START)` 才只占内容高度（scroller 仍 vexpand）。
-- 滚动内容按圆角裁剪 = 容器 CSS `border-radius` + `set_overflow(Gtk.Overflow.HIDDEN)`。通用类 `.list-card-scroll`（[style_gtk.css](../../data/resources/style_gtk.css)）用于「圆角卡片蒙版」：Git 页改动/历史列表、搜索/替换历史弹窗、参考文献条目列表等。
-- 蒙版四角要与卡片重合的前提：卡片是 ScrolledWindow 的**直接子级**且铺满视口（`valign FILL`，底部留白挂在 scroller 上）；中间夹 `Adw.Clamp` 或卡片自带 margin 时加类是 no-op。
+- **不要**给装 boxed-list 的 ScrolledWindow 设 `set_overflow(Gtk.Overflow.HIDDEN)` 做「圆角卡片蒙版」：overflow 裁剪子级**全部绘制，包括 `box-shadow`**。
+- 阴影被裁的真正原因：`Gtk.ScrolledWindow` 内部包一层 `Gtk.Viewport`，视口把子控件裁到自己的矩形（滚动实现必需，与 `set_overflow` 无关）。libadwaita 的卡片投影（`0 0 0 1px …3%, 0 1px 3px 1px …7%, 0 2px 6px 2px …3%`，左右外扩约 5px）整块落在视口外，只要卡片与视口**同宽**，左右/上边就会被切。
+- 官方做法（`Adw.PreferencesPage`）：`preferencespage > scrolledwindow > viewport > clamp > box { margin: 24px 12px }`——**边距留在视口内部**，卡片比视口窄，投影落在视口内的空白里。自己搭滚动列表要照这个结构：margin 加在 ListBox / 内容容器上（viewport 内）；加在 scroller 外面完全无效，视口照样把卡片投影裁掉。
+- 不要试图把投影搬到 scroller 上（`overflow` 裁剪、`box-shadow` 搬运、按溢出切类都试过）：溢出时滚动区上下边是视口**裁切内容**的位置，不是卡片边界，在那里画阴影等于谎报「卡片到这儿结束」。投影归 `list.boxed-list` 自己，滚动区不画任何阴影。
+- 先例：Git 侧栏 [git_section_viewgtk.py](../../setzer/workspace/sidebar/git/git_section_viewgtk.py) 给两个列表加 `.git-card-list`（ListBox 左右 edge 边距，margin 在 viewport 内），同栏其它控件由 `.git-section-box > *` 补同样的边距，`GitPageView.content_box` 的横向 margin 归零——三者合起来仍是全侧栏 10px 边缘线。
+- 代价：视口是方的，列表溢出后滚动的行会走到视口方角处（卡片 12px 圆角只在首尾生效）；卡片左右阴影完整，上下只在未溢出（卡片边界在视口内）时可见。
 
 ## 4 文本与绘制
 

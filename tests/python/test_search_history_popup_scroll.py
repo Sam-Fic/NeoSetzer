@@ -18,9 +18,8 @@
 '''搜索/替换历史弹窗的「圆角卡片蒙版」契约。
 
 契约：历史列表装在垂直滚动、按内容撑高（propagate natural height，
-460px 封顶）的 ScrolledWindow 里，并挂 `.list-card-scroll` +
-`set_overflow(HIDDEN)`——条目溢出时滚动的行被裁进 boxed-list 的 12px
-圆角内，与 Git 侧栏列表同一观感。
+460px 封顶）的 ScrolledWindow 里；容器不做 overflow 圆角裁剪，以保留
+boxed-list 的卡片投影（见 docs/dev/gtk-pitfalls.md 3.2）。
 '''
 
 import builtins
@@ -69,14 +68,15 @@ class SearchHistoryPopupScrollTest(unittest.TestCase):
         if self.popup.get_parent() is not None:
             self.popup.unparent()
 
-    def test_scroller_is_card_masked(self):
+    def test_scroller_does_not_clip_card_shadow(self):
         scroller = self.popup._scroller
         self.assertIsInstance(scroller, Gtk.ScrolledWindow)
         self.assertEqual(scroller.get_policy()[1], Gtk.PolicyType.AUTOMATIC)
         self.assertTrue(scroller.get_propagate_natural_height())
         self.assertEqual(scroller.get_max_content_height(), 460)
-        self.assertTrue(scroller.has_css_class('list-card-scroll'))
-        self.assertEqual(scroller.get_overflow(), Gtk.Overflow.HIDDEN)
+        # 不裁剪：overflow 会连 boxed-list 的卡片投影一起裁掉，卡片两侧
+        # 只剩硬切直边（与 AI 页列表观感不一致）。
+        self.assertEqual(scroller.get_overflow(), Gtk.Overflow.VISIBLE)
         # ScrolledWindow 先包一层 viewport，列表在 viewport 里。
         viewport = scroller.get_child()
         self.assertIsInstance(viewport, Gtk.Viewport)

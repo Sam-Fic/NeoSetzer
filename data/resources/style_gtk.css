@@ -1009,15 +1009,26 @@ headerbar {
 }
 
 /*
- * 「圆角卡片蒙版」滚动容器：列表本身是 boxed-list 卡片（12px 圆角），滚动
- * 时行会被视口的方角裁切、糊出卡片圆角；给 ScrolledWindow 同一圆角（代码
- * 侧 set_overflow(HIDDEN)）让整块滚动显示区都落在圆角卡片内。用于 Git 页
- * 的改动文件 / 提交历史列表，以及搜索/替换历史弹窗。
- * 刻意不设背景与边框：未溢出时 ListBox 仍是原本的卡片，列表只有两三行时
- * 也不会被 vexpand 拉成一张通到面板底部的大卡片。
+ * Git 侧栏的滚动列表：与官方 PreferencesPage 同构，把边距留在**视口内部**。
+ * 官方结构是 `preferencespage > scrolledwindow > viewport > clamp > box
+ * { margin: 24px 12px }`——卡片比视口窄，boxed-list 自己的投影才落在视口内
+ * 的空白里；把同样大小的 margin 加在 scroller 外面是无效的，视口照样把卡片
+ * 的 box-shadow 裁掉（视口只认自己的矩形）。
+ * 所以：ListBox 自己带左右 edge 边距（margin 在 viewport 内），而
+ * GitPageView.content_box 的横向 margin 归零；同一栏里的其它控件（分支行、
+ * Commit 按钮等）由 `.git-section-box > *` 统一补同样的边距。
  */
-scrolledwindow.list-card-scroll {
-    border-radius: 12px;
+list.git-card-list {
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
+}
+box.git-section-box > * {
+    margin-left: var(--setzer-spacing-edge);
+    margin-right: var(--setzer-spacing-edge);
+}
+box.git-section-box > scrolledwindow {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /*

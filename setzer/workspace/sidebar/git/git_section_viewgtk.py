@@ -122,6 +122,8 @@ class GitSectionView(Gtk.Box):
 
     def _build_changes_view(self):
         self.changes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        # 直接子级统一补左右 edge 边距（滚动列表除外，见 CSS .git-section-box）。
+        self.changes_box.add_css_class('git-section-box')
 
         # 分支行：分支名 + ahead/behind 徽标 + Pull/Push 图标按钮。
         # Pull/Push 是低频动作，降为 .flat 图标按钮，不与 Commit 争视觉权重。
@@ -240,6 +242,9 @@ class GitSectionView(Gtk.Box):
         self.files_list = Gtk.ListBox()
         self.files_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.files_list.add_css_class('boxed-list')
+        # 左右 edge 边距由 CSS 加在 ListBox 上（margin 必须在 viewport 内，
+        # 卡片才比视口窄、boxed-list 的投影才不会被视口裁掉）。
+        self.files_list.add_css_class('git-card-list')
         # viewport 会把 child 拉伸到视口高度，而 boxed-list 的背景画在
         # ListBox 上：不限制的话文件很少时卡片也会一路延伸到面板底部。
         # 顶部对齐让它只占内容高度，缺少的部分由透明的 viewport 留白。
@@ -250,9 +255,6 @@ class GitSectionView(Gtk.Box):
         self.files_scroller.set_policy(
             Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.files_scroller.set_vexpand(True)
-        # 圆角卡片蒙版见 .list-card-scroll：滚动时行不会被方角糊出卡片圆角。
-        self.files_scroller.set_overflow(Gtk.Overflow.HIDDEN)
-        self.files_scroller.add_css_class('list-card-scroll')
         self.files_scroller.set_child(self.files_list)
         self.files_scroller.set_visible(False)
         self.changes_box.append(self.files_scroller)
@@ -271,11 +273,13 @@ class GitSectionView(Gtk.Box):
     def _build_commits_view(self):
         # 线性历史（`git log` 顺序，新 → 旧）。组件沿用原布局。
         self.commits_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.commits_box.add_css_class('git-section-box')
 
         self.history_list = Gtk.ListBox()
         self.history_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.history_list.add_css_class('boxed-list')
         self.history_list.add_css_class('compact-rows')
+        self.history_list.add_css_class('git-card-list')
         # 同 files_list：别让卡片被 viewport 拉满（见 _build_changes_view）。
         self.history_list.set_valign(Gtk.Align.START)
 
@@ -284,8 +288,6 @@ class GitSectionView(Gtk.Box):
         self.history_scroller.set_policy(
             Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.history_scroller.set_vexpand(True)
-        self.history_scroller.set_overflow(Gtk.Overflow.HIDDEN)
-        self.history_scroller.add_css_class('list-card-scroll')
         self.history_scroller.set_child(self.history_list)
         self.commits_box.append(self.history_scroller)
 

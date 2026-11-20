@@ -86,6 +86,9 @@ class GitSidebarScrollTest(unittest.TestCase):
         self.view = GitSectionView()
         self.view.show_repository()
         self.window = Gtk.Window()
+        # 固定窗口尺寸：无 WM 的 Xvfb 下窗口按自然宽度开，窄到 ActionRow
+        # 换行，行高与「短列表」断言都会漂。
+        self.window.set_default_size(420, 700)
         self.window.set_child(self.view)
         self.window.present()
         pump()
@@ -117,15 +120,16 @@ class GitSidebarScrollTest(unittest.TestCase):
             self.assertEqual(scroller.get_policy()[1],
                              Gtk.PolicyType.AUTOMATIC)
             self.assertIsNotNone(scroller.get_child())
-            # 圆角卡片蒙版：滚动内容裁进 boxed-list 的 12px 圆角。
-            self.assertTrue(scroller.has_css_class('list-card-scroll'))
-            self.assertEqual(scroller.get_overflow(), Gtk.Overflow.HIDDEN)
+            # 不做圆角裁剪：overflow 会连 boxed-list 的卡片投影一起裁掉。
+            self.assertEqual(scroller.get_overflow(), Gtk.Overflow.VISIBLE)
 
     def test_overflowing_file_list_can_scroll(self):
         self._add_file_rows(40)
         scroller = self.view.files_scroller
         adjustment = scroller.get_vadjustment()
         self.assertGreater(adjustment.get_upper(), adjustment.get_page_size())
+        # 溢出也不裁剪：卡片投影由 boxed-list 自己画（见 docs/dev/gtk-pitfalls.md 3.2）。
+        self.assertEqual(scroller.get_overflow(), Gtk.Overflow.VISIBLE)
         # 窗口变矮时滚动区被压缩到面板高度，而不是把页面撑出窗口。
         self.assertLess(scroller.get_height(),
                         self.view.files_list.get_height())
@@ -144,21 +148,31 @@ class GitSidebarScrollTest(unittest.TestCase):
         self._add_commits(40)
         adjustment = self.view.history_scroller.get_vadjustment()
         self.assertGreater(adjustment.get_upper(), adjustment.get_page_size())
+        self.assertEqual(
+            self.view.history_scroller.get_overflow(), Gtk.Overflow.VISIBLE)
 
     def test_short_list_keeps_natural_card_height(self):
         self._add_file_rows(2)
+        # 列表短时卡片只占内容高度，剩余空白由透明 viewport 提供（不铺满）。
         self.assertLess(self.view.files_list.get_height(),
                         self.view.files_scroller.get_height())
+        self.assertEqual(
+            self.view.files_scroller.get_overflow(), Gtk.Overflow.VISIBLE)
 
     def test_content_margins_sidebar_edge_line(self):
-        '''水平边距取 --setzer-spacing-edge 10px（全侧栏统一边缘线，
-        锚点：.sidebar-toolbar / .sidebar-search-bar）；底部 12px 保证
-        滚到底时卡片下沿不贴边（先例：统计页）。'''
-        page = GitPageView(GitSectionView())
+        '''横向 edge 边距在**视口内部**：页面容器 margin 归零，卡片自己的
+        `.git-card-list` 边距 + 同栏控件的 `.git-section-box > *` 边距凑出
+        10px 边缘线（官方 PreferencesPage 的 clamp box margin 同构）。底部
+        12px 保留：滚到底时卡片下沿不贴边（先例：统计页）。'''
+        view = GitSectionView()
+        page = GitPageView(view)
         content = page.get_last_child()
-        self.assertEqual(content.get_margin_start(), 10)
-        self.assertEqual(content.get_margin_end(), 10)
+        self.assertEqual(content.get_margin_start(), 0)
+        self.assertEqual(content.get_margin_end(), 0)
         self.assertEqual(content.get_margin_bottom(), 12)
+        self.assertTrue(view.files_list.has_css_class('git-card-list'))
+        self.assertTrue(view.history_list.has_css_class('git-card-list'))
+        self.assertTrue(view.changes_box.has_css_class('git-section-box'))
 
     def test_scroller_follows_empty_states(self):
         self._add_file_rows(2)

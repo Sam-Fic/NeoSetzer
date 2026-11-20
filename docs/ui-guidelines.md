@@ -283,7 +283,7 @@
 **滚动**
 
 - 长内容（git 文件列表等）包 `ScrolledWindow`：窗口变矮时滚动区压缩到面板高度，不得把页面撑出窗口。
-- 内容外边距挂在滚动容器上而非列表上，配 `.list-card-scroll` 圆角蒙版（滚到底时行被裁进 boxed-list 圆角内）。
+- 列表容器**不要**加 overflow 圆角裁剪：那会连 boxed-list 的卡片投影一起裁掉。要投影完整，边距必须留在**滚动视口内部**（参照官方 `PreferencesPage` 的 `clamp > box { margin }`，加到 ListBox/内容容器上；加在 ScrolledWindow 外面无效）。详见 [dev/gtk-pitfalls.md](dev/gtk-pitfalls.md) 3.2。
 
 ## 6 弹窗与浮层
 

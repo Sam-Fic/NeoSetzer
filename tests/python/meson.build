@@ -79,7 +79,7 @@ foreach t : [
   ['test_latex_braces', 'test_latex_braces.py'],
   ['test_latex_db_error_flag', 'test_latex_db_error_flag.py'],
   ['test_line_ending', 'test_line_ending.py'],
-  ['test_list_card_mask', 'test_list_card_mask.py'],
+  ['test_dialog_list_scroll', 'test_dialog_list_scroll.py'],
   ['test_magic_comments', 'test_magic_comments.py'],
   ['test_magnifier_geometry', 'test_magnifier_geometry.py'],
   ['test_matching_blocks_regex', 'test_matching_blocks_regex.py'],

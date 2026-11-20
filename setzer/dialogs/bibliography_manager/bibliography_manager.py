@@ -207,10 +207,6 @@ class BibliographyManagerDialog(DialogView):
         entry_scroller = Gtk.ScrolledWindow()
         entry_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         entry_scroller.set_vexpand(True)
-        # 圆角卡片蒙版（.list-card-scroll）：文献条目多到滚动时，行被裁进
-        # boxed-list 的 12px 圆角内，与 Git 侧栏 / 搜索历史列表同款。
-        entry_scroller.set_overflow(Gtk.Overflow.HIDDEN)
-        entry_scroller.add_css_class('list-card-scroll')
         entry_scroller.set_child(self.entry_list)
         left.append(entry_scroller)
 

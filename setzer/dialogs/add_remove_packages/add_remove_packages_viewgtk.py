@@ -61,11 +61,9 @@ class AddRemovePackagesDialogView(DialogView):
         self.add_scrolled_window = Gtk.ScrolledWindow()
         self.add_scrolled_window.set_size_request(-1, 200)
         self.add_scrolled_window.set_vexpand(False)
-        # 底部留白挂在滚动容器上（原先挂在 ListBox 上）：卡片要铺满滚动区，
-        # 圆角蒙版（.list-card-scroll）的四角才能与 boxed-list 卡片重合。
+        # 底部留白挂在滚动容器上（原先挂在 ListBox 上）：列表铺满滚动区，
+        # 滚到底时卡片下沿与容器下沿对齐。
         self.add_scrolled_window.set_margin_bottom(18)
-        self.add_scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
-        self.add_scrolled_window.add_css_class('list-card-scroll')
         self.add_scrolled_window.set_child(self.add_list)
         self.add_group.add(self.add_scrolled_window)
 
@@ -89,10 +87,8 @@ class AddRemovePackagesDialogView(DialogView):
         self.remove_scrolled_window = Gtk.ScrolledWindow()
         self.remove_scrolled_window.set_size_request(-1, 200)
         self.remove_scrolled_window.set_vexpand(False)
-        # 同 add 段：底部留白移到滚动容器，圆角蒙版才与卡片四角重合。
+        # 同 add 段：底部留白移到滚动容器。
         self.remove_scrolled_window.set_margin_bottom(18)
-        self.remove_scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
-        self.remove_scrolled_window.add_css_class('list-card-scroll')
         self.remove_scrolled_window.set_child(self.remove_list)
         self.remove_group.add(self.remove_scrolled_window)
 

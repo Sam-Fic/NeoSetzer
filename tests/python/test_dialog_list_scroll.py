@@ -15,12 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-'''「圆角卡片蒙版」在对话框内的三处接入契约。
+'''对话框内列表的滚动容器契约。
 
-契约：参考文献管理器条目列表、崩溃恢复文档列表、Add / Remove Packages
-的包列表，滚动容器都要挂 `.list-card-scroll` + `set_overflow(HIDDEN)`，
-使滚动内容裁进 boxed-list 的 12px 圆角卡片内。包列表的 18px 底部留白
-必须挂在滚动容器上（而不是 ListBox），卡片才会铺满滚动区、四角与蒙版重合。
+契约：参考文献管理器条目列表、崩溃恢复文档列表、Add / Remove Packages 的
+包列表都装在 ScrolledWindow 里，容器不做 overflow 圆角裁剪——裁剪会连
+boxed-list 的卡片投影一起裁掉（见 docs/dev/gtk-pitfalls.md 3.2）。包列表
+的 18px 底部留白挂在滚动容器上（而不是 ListBox），滚到底时卡片下沿与容器
+下沿对齐。
 '''
 
 import builtins
@@ -56,17 +57,18 @@ if gtk_ready:
 
 
 @unittest.skipUnless(gtk_ready, 'GTK display not available')
-class ListCardMaskTest(unittest.TestCase):
+class DialogListScrollTest(unittest.TestCase):
 
-    def assert_masked(self, scroller, label):
+    def assert_scroller(self, scroller, label):
         self.assertIsInstance(scroller, Gtk.ScrolledWindow, label)
-        self.assertTrue(scroller.has_css_class('list-card-scroll'), label)
-        self.assertEqual(scroller.get_overflow(), Gtk.Overflow.HIDDEN, label)
+        # 不裁剪：overflow 会连 boxed-list 的卡片投影一起裁掉，卡片两侧
+        # 只剩硬切直边。
+        self.assertEqual(scroller.get_overflow(), Gtk.Overflow.VISIBLE, label)
 
     def test_add_remove_packages(self):
         view = AddRemovePackagesDialogView(None)
-        self.assert_masked(view.add_scrolled_window, 'add')
-        self.assert_masked(view.remove_scrolled_window, 'remove')
+        self.assert_scroller(view.add_scrolled_window, 'add')
+        self.assert_scroller(view.remove_scrolled_window, 'remove')
         # 底部留白在滚动容器上，卡片才能铺满滚动区。
         self.assertEqual(view.add_scrolled_window.get_margin_bottom(), 18)
         self.assertEqual(view.remove_scrolled_window.get_margin_bottom(), 18)
@@ -83,7 +85,7 @@ class ListCardMaskTest(unittest.TestCase):
         }
         dialog.setup()
         scroller = dialog.view.get_extra_child()
-        self.assert_masked(scroller, 'crash recovery')
+        self.assert_scroller(scroller, 'crash recovery')
         self.assertEqual(scroller.get_max_content_height(), 260)
         self.assertTrue(scroller.get_propagate_natural_height())
 
@@ -92,7 +94,7 @@ class ListCardMaskTest(unittest.TestCase):
         viewport = dialog.entry_list.get_parent()
         self.assertIsInstance(viewport, Gtk.Viewport)
         scroller = viewport.get_parent()
-        self.assert_masked(scroller, 'bibliography entries')
+        self.assert_scroller(scroller, 'bibliography entries')
         self.assertTrue(scroller.get_vexpand())
 
 
