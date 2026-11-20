@@ -191,8 +191,15 @@ class GitSectionView(Gtk.Box):
         self.message_overlay.add_overlay(self.message_placeholder)
         self.changes_box.append(self.message_overlay)
 
-        # Commit 主按钮：占满整行，suggested-action。
-        self.button_commit = Gtk.Button(label=_('Commit'))
+        # Commit 主按钮：占满整行，suggested-action。图标+文字整行按钮沿用
+        # AI 页 Send All 的同款写法（Box + Image + Label）；对钩用项目自带
+        # object-select-symbolic（与「Working tree clean」空状态同图标）。
+        self.button_commit = Gtk.Button()
+        commit_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        commit_box.set_halign(Gtk.Align.CENTER)
+        commit_box.append(Gtk.Image(icon_name='object-select-symbolic'))
+        commit_box.append(Gtk.Label(label=_('Commit')))
+        self.button_commit.set_child(commit_box)
         self.button_commit.add_css_class('suggested-action')
         self.button_commit.set_tooltip_text(_('Commit the checked files (Ctrl+Enter)'))
         self.changes_box.append(self.button_commit)
