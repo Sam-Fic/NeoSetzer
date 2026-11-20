@@ -8653,3 +8653,15 @@ msgstr "Va ouvrir {count} fichiers"
 #: setzer/workspace/workspace_viewgtk.py:611
 msgid "Cannot open this file type"
 msgstr "Impossible d'ouvrir ce type de fichier"
+#: setzer/workspace/sidebar/git/git_section.py:523
+msgid "Commit the checked files with AI"
+msgstr "Commiter avec l’IA les fichiers cochés"
+
+#: setzer/workspace/sidebar/git/git_section.py:520
+msgid "AI is committing in the background…"
+msgstr "L’IA effectue le commit en arrière-plan…"
+
+#: setzer/vcs/git_repository.py:449
+msgid "Unstaging files failed."
+msgstr "Échec du retrait des fichiers de l'index."
+

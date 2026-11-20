@@ -1,10 +1,12 @@
-# generated on Wed Nov 18 06:58:54 PM UTC 2026
+# generated on Fri Nov 20 07:48:30 AM UTC 2026
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 ./data/org.cvfosammmm.Setzer.desktop
 
 ./setzer/ai_fix/agent_runner.py
 ./setzer/ai_fix/agent_session.py
+./setzer/ai_fix/agent_sessions.py
+./setzer/ai_fix/agent_terminal_tabs.py
 ./setzer/ai_fix/agent_terminal_viewgtk.py
 ./setzer/ai_fix/annotation_prompt_builder.py
 ./setzer/ai_fix/annotation_sender.py
@@ -170,6 +172,7 @@
 ./setzer/document/build_system/latex_log_parser/latex_log_parser.py
 ./setzer/document/build_system/phitex_session/__init__.py
 ./setzer/document/build_system/phitex_session/phitex_session.py
+./setzer/document/build_system/phitex_session/viewer_socket.py
 ./setzer/document/build_system/query/__init__.py
 ./setzer/document/build_system/query/query.py
 ./setzer/document/build_system/shadow_synctex/__init__.py
@@ -251,6 +254,7 @@
 ./setzer/example_project/project_store.py
 ./setzer/helpers/animation_prefs.py
 ./setzer/helpers/build_status_text.py
+./setzer/helpers/clamp.py
 ./setzer/helpers/decode_output.py
 ./setzer/helpers/document_state_paths.py
 ./setzer/helpers/drawing.py
@@ -272,6 +276,7 @@
 ./setzer/helpers/text_input_card.py
 ./setzer/helpers/timer.py
 ./setzer/helpers/toast.py
+./setzer/helpers/viewer_protocol.py
 ./setzer/helpers/zoom_css.py
 ./setzer/helpers/zoom_math.py
 ./setzer/keyboard_shortcuts/__init__.py
@@ -379,6 +384,7 @@
 ./setzer/workspace/sidebar/document_structure_page/__init__.py
 ./setzer/workspace/sidebar/document_structure_page/labels.py
 ./setzer/workspace/sidebar/document_structure_page/labels_viewgtk.py
+./setzer/workspace/sidebar/document_structure_page/sidebar_list_viewgtk.py
 ./setzer/workspace/sidebar/document_structure_page/structure.py
 ./setzer/workspace/sidebar/document_structure_page/structure_viewgtk.py
 ./setzer/workspace/sidebar/document_structure_page/structure_widget.py

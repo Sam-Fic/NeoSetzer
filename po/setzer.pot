@@ -8941,3 +8941,15 @@ msgstr ""
 #: data/resources/latexdb/packages/general.xml:26
 msgid "type urls with the \\\\url{..} command without escaping them."
 msgstr ""
+#: setzer/workspace/sidebar/git/git_section.py:523
+msgid "Commit the checked files with AI"
+msgstr ""
+
+#: setzer/workspace/sidebar/git/git_section.py:520
+msgid "AI is committing in the background…"
+msgstr ""
+
+#: setzer/vcs/git_repository.py:449
+msgid "Unstaging files failed."
+msgstr ""
+

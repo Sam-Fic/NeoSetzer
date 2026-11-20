@@ -8644,3 +8644,15 @@ msgstr "將開啟 {count} 個檔案"
 #: setzer/workspace/workspace_viewgtk.py:611
 msgid "Cannot open this file type"
 msgstr "無法開啟此類型的檔案"
+#: setzer/workspace/sidebar/git/git_section.py:523
+msgid "Commit the checked files with AI"
+msgstr "用 AI 提交勾選的檔案"
+
+#: setzer/workspace/sidebar/git/git_section.py:520
+msgid "AI is committing in the background…"
+msgstr "AI 正在背景下提交…"
+
+#: setzer/vcs/git_repository.py:449
+msgid "Unstaging files failed."
+msgstr "取消暫存檔案失敗。"
+

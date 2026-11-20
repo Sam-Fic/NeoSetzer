@@ -8659,3 +8659,15 @@ msgstr "Se abrirán {count} archivos"
 #: setzer/workspace/workspace_viewgtk.py:611
 msgid "Cannot open this file type"
 msgstr "No se puede abrir este tipo de archivo"
+#: setzer/workspace/sidebar/git/git_section.py:523
+msgid "Commit the checked files with AI"
+msgstr "Confirmar con IA los archivos marcados"
+
+#: setzer/workspace/sidebar/git/git_section.py:520
+msgid "AI is committing in the background…"
+msgstr "La IA está confirmando los cambios en segundo plano…"
+
+#: setzer/vcs/git_repository.py:449
+msgid "Unstaging files failed."
+msgstr "No se pudieron quitar los archivos del área de preparación."
+

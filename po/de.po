@@ -8658,3 +8658,15 @@ msgstr "{count} Dateien werden geöffnet"
 #: setzer/workspace/workspace_viewgtk.py:611
 msgid "Cannot open this file type"
 msgstr "Dieser Dateityp kann nicht geöffnet werden"
+#: setzer/workspace/sidebar/git/git_section.py:523
+msgid "Commit the checked files with AI"
+msgstr "Ausgewählte Dateien mit KI committen"
+
+#: setzer/workspace/sidebar/git/git_section.py:520
+msgid "AI is committing in the background…"
+msgstr "Die KI committet im Hintergrund…"
+
+#: setzer/vcs/git_repository.py:449
+msgid "Unstaging files failed."
+msgstr "Das Entfernen aus dem Staging-Bereich ist fehlgeschlagen."
+
