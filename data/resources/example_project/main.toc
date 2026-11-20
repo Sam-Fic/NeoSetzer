@@ -1,0 +1,53 @@
+\contentsline {section}{\numberline {1}Introduction}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}What this document contains}{4}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Getting Started with NeoSetzer}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Choose a starting point}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Build a first PDF}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}A small task to try}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Writing, Structure, and Navigation}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}A \textit {nested} heading title}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Labels, references, and completion}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}TODO items and comments}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Open a child file directly}{5}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Project Workflows}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Root documents and Magic Comments}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Bibliography files}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Structure numbering}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Build diagnostics}{6}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Tables and Imported Data}{6}{section.5}%
+\contentsline {subsection}{\numberline {5.1}CSV and TSV practice data}{6}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Long tables and cell structure}{7}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}A suggested experiment}{7}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Text Formatting}{7}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Lists}{7}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Itemize}{7}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Enumerate}{7}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}Description}{7}{subsubsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.2}Quotes and Remarks}{7}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Mathematics}{8}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Inline Math}{8}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Displayed Equations}{8}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Theorems and Proofs}{8}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Tables}{9}{section.8}%
+\contentsline {section}{\numberline {9}Figures and Captions}{9}{section.9}%
+\contentsline {section}{\numberline {10}Code Listings}{10}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Python}{10}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}JSON}{10}{subsection.10.2}%
+\contentsline {section}{\numberline {11}Cross-References}{10}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Links}{10}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Footnotes}{11}{subsection.11.2}%
+\contentsline {section}{\numberline {12}NeoSetzer Feature Map}{11}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Find and run actions}{11}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Write efficiently}{11}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Navigate, inspect, and organize}{11}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}Build, diagnose, and review PDF output}{12}{subsection.12.4}%
+\contentsline {subsection}{\numberline {12.5}Keep projects safe and recoverable}{12}{subsection.12.5}%
+\contentsline {subsection}{\numberline {12.6}Tables, templates, and structured starting points}{12}{subsection.12.6}%
+\contentsline {subsection}{\numberline {12.7}External tools and AI Fix}{12}{subsection.12.7}%
+\contentsline {subsection}{\numberline {12.8}Where to tune behaviour}{12}{subsection.12.8}%
+\contentsline {subsection}{\numberline {12.9}A deliberate exploration path}{13}{subsection.12.9}%
+\contentsline {section}{\numberline {13}About NeoSetzer}{13}{section.13}%
+\contentsline {section}{\numberline {14}Conclusion}{13}{section.14}%
+\contentsline {section}{\numberline {A}Appendix Structure Sample}{13}{section.A}%
+\contentsline {subsection}{\numberline {A.1}A child appendix heading}{13}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.3}A literal counter change}{14}{subsection.A.3}%

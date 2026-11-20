@@ -75,6 +75,72 @@ class StructureSection(object):
         self._last_highlight_line = None
         self._next_highlight_line = None
 
+        # 滚动跟随：监听活跃文档的纵向 adjustment，光标不动、仅滚动正文时
+        # 也把高亮切到视口顶部所在的节（与 sticky scroll 的"可见首行"判定
+        # 同源）。文档切换时迁移订阅。
+        self._scroll_document = None
+        self._scroll_adjustment = None
+        self._scroll_handler_id = None
+        self.data_provider.workspace.connect('new_active_document', self.on_active_document_changed)
+        self._sync_scroll_subscription()
+
+    def on_active_document_changed(self, workspace, document=None):
+        self._sync_scroll_subscription()
+
+    def _sync_scroll_subscription(self):
+        '''把滚动监听挂到当前活跃文档的编辑器视口上。'''
+        document = self.data_provider.workspace.active_document
+        if document is self._scroll_document:
+            return
+        self._disconnect_scroll_subscription()
+        self._scroll_document = document
+        view = getattr(document, 'view', None)
+        scrolled = getattr(view, 'scrolled_window', None)
+        if scrolled is None:
+            return
+        self._scroll_adjustment = scrolled.get_vadjustment()
+        self._scroll_handler_id = self._scroll_adjustment.connect(
+            'value-changed', self.on_view_scroll)
+
+    def _disconnect_scroll_subscription(self):
+        if self._scroll_adjustment is not None and self._scroll_handler_id is not None:
+            try:
+                self._scroll_adjustment.disconnect(self._scroll_handler_id)
+            except (TypeError, RuntimeError):
+                pass
+        self._scroll_adjustment = None
+        self._scroll_handler_id = None
+
+    def on_view_scroll(self, adjustment):
+        '''视口滚动：按可见范围更新高亮。
+
+        光标仍在视口内时沿用光标所在的节——打字触发的自动滚动不应把
+        高亮甩到视口顶部的父节；光标滚出视口（纯浏览式滚动）时改跟
+        可见首行，与 sticky scroll 的判定同源。
+        '''
+        document = self._scroll_document
+        view = getattr(document, 'view', None)
+        source_view = getattr(view, 'source_view', None)
+        if source_view is None:
+            return
+        top_line = source_view.get_line_at_y(adjustment.get_value())[0].get_line()
+        line_number = top_line
+        cursor_line = self._cursor_line(document)
+        page_size = adjustment.get_page_size()
+        if cursor_line is not None and page_size > 0:
+            bottom_line = source_view.get_line_at_y(
+                adjustment.get_value() + page_size)[0].get_line()
+            if top_line <= cursor_line <= bottom_line:
+                line_number = cursor_line
+        self.highlight_current_section(line_number, document)
+
+    def _cursor_line(self, document):
+        buffer = getattr(document, 'source_buffer', None)
+        if buffer is None:
+            return None
+        return buffer.get_iter_at_offset(
+            buffer.get_property('cursor-position')).get_line()
+
     def on_row_activated(self, row):
         node = row.item_data
         if node is None:

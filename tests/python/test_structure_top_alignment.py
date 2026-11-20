@@ -49,6 +49,12 @@ _TODO_JUMP = _load_method(
 _JUMP_TO_DEFINITION = _load_method(
     os.path.join(REPO, 'setzer/workspace/actions/actions.py'),
     'Actions', 'jump_to_definition')
+_SECTION_CURSOR_LINE = _load_method(
+    os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/structure.py'),
+    'StructureSection', '_cursor_line')
+_SECTION_VIEW_SCROLL = _load_method(
+    os.path.join(REPO, 'setzer/workspace/sidebar/document_structure_page/structure.py'),
+    'StructureSection', 'on_view_scroll')
 
 
 class _FakeIter:
@@ -441,6 +447,98 @@ class StructureTopAlignmentTest(unittest.TestCase):
         _STRUCTURE_ROW_ACTIVATED(section, row)
 
         self.assertEqual(calls, [('open', '/missing.tex')])
+
+
+class _ScrollIter:
+
+    def __init__(self, line):
+        self.line = line
+
+    def get_line(self):
+        return self.line
+
+
+class _ScrollBuffer:
+
+    def __init__(self, cursor_line):
+        self.cursor_line = cursor_line
+
+    def get_property(self, name):
+        return 0
+
+    def get_iter_at_offset(self, offset):
+        return _ScrollIter(self.cursor_line)
+
+
+class _ScrollSourceView:
+
+    def __init__(self, lines_at_y):
+        self.lines_at_y = lines_at_y
+
+    def get_line_at_y(self, y):
+        return _ScrollIter(self.lines_at_y[y]), 0
+
+
+class _ScrollAdjustment:
+
+    def __init__(self, value, page_size):
+        self.value = value
+        self.page_size = page_size
+
+    def get_value(self):
+        return self.value
+
+    def get_page_size(self):
+        return self.page_size
+
+
+class _ScrollSection:
+
+    _cursor_line = _SECTION_CURSOR_LINE
+    on_view_scroll = _SECTION_VIEW_SCROLL
+
+    def __init__(self, document):
+        self._scroll_document = document
+        self.highlighted = []
+
+    def highlight_current_section(self, line_number, document):
+        self.highlighted.append((line_number, document))
+
+
+def _scroll_document(cursor_line, lines_at_y):
+    source_view = _ScrollSourceView(lines_at_y)
+    view = type('View', (), {'source_view': source_view})()
+    return type('Document', (), {
+        'view': view,
+        'source_buffer': _ScrollBuffer(cursor_line),
+    })()
+
+
+class StructureScrollFollowTest(unittest.TestCase):
+
+    def test_scroll_follows_first_visible_line_when_cursor_is_offscreen(self):
+        document = _scroll_document(cursor_line=5, lines_at_y={200: 40, 800: 55})
+        section = _ScrollSection(document)
+
+        section.on_view_scroll(_ScrollAdjustment(200, 600))
+
+        self.assertEqual(section.highlighted, [(40, document)])
+
+    def test_scroll_keeps_cursor_section_while_cursor_stays_visible(self):
+        document = _scroll_document(cursor_line=45, lines_at_y={200: 40, 800: 55})
+        section = _ScrollSection(document)
+
+        section.on_view_scroll(_ScrollAdjustment(200, 600))
+
+        self.assertEqual(section.highlighted, [(45, document)])
+
+    def test_scroll_falls_back_to_first_visible_line_without_page_size(self):
+        document = _scroll_document(cursor_line=45, lines_at_y={200: 40})
+        section = _ScrollSection(document)
+
+        section.on_view_scroll(_ScrollAdjustment(200, 0))
+
+        self.assertEqual(section.highlighted, [(40, document)])
 
 
 if __name__ == '__main__':

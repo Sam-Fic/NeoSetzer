@@ -130,11 +130,30 @@ class StructureWidget(Gtk.Box):
         cursor_row = self._find_cursor_row()
         if cursor_row is not None and cursor_row != selected:
             self.list_box.select_row(cursor_row)
+            self._ensure_row_visible(cursor_row)
         elif selected is None:
             # No cursor-follow row and nothing selected — select first visible.
             first_visible = self._get_first_visible_row()
             if first_visible is not None:
                 self.list_box.select_row(first_visible)
+
+    def _ensure_row_visible(self, row):
+        '''把跟随行滚进侧栏视口（完全不可见时才滚动，避免逐行抖动）。'''
+        scrolled = self.get_ancestor(Gtk.ScrolledWindow)
+        if scrolled is None:
+            return
+        success, bounds = row.compute_bounds(self)
+        if not success:
+            return
+        vadjustment = scrolled.get_vadjustment()
+        top = bounds.get_y()
+        bottom = top + bounds.get_height()
+        value = vadjustment.get_value()
+        page_size = vadjustment.get_page_size()
+        if top < value:
+            vadjustment.set_value(top)
+        elif page_size > 0 and bottom > value + page_size:
+            vadjustment.set_value(bottom - page_size)
 
     def _find_cursor_row(self):
         """Walk visible rows looking for the one marked ``_cursor_row``."""
