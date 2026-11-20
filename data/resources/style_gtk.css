@@ -413,6 +413,9 @@ tabbar.inline tabbox {
 
 /*
  * 编辑器卡片样式：与预览/帮助侧栏一致的圆角卡片外观。
+ * 8px 是应用内「卡片」族的互锚值（.editor-card / .diff-card /
+ * .agent-terminal-card / .preview-card 四处同值改动须同步），
+ * 与 boxed-list 的 12px 分属两档：卡片浮在侧栏底色上，12px 显笨重。
  */
 .editor-card {
     border-radius: 8px;
@@ -440,8 +443,8 @@ tabbar.inline tabbox {
 }
 
 /* F11 全屏 + shortcut 栏隐藏时，编辑器卡片顶部加 6px 间距，
-   避免内容紧贴窗口顶边。条件由 JS 逻辑在 document_stack_wrapper
-   上切换 .fullscreen-no-shortcuts 类驱动。 */
+   避免内容紧贴窗口顶边。条件由 Python 逻辑在 document_stack_wrapper
+   上切换 .fullscreen-no-shortcuts 类驱动（workspace_viewgtk.py）。 */
 .fullscreen-no-shortcuts .editor-card {
     margin-top: 6px;
 }
@@ -585,6 +588,8 @@ toolbarview > * > * > * {
 /* 居中对齐由代码里 set_alignment(0.5) 实现（GTK CSS 不支持 text-align）。 */
 .preview-page-entry {
     background: @setzer_input_fill;
+    /* 9px：同 Adwaita entry/button 默认圆角，与同栏的缩放按钮等控件
+       逐处对齐（§5.1 邻居锚，非全局统一）。 */
     border-radius: 9px;
     border: none;
     box-shadow: none;
@@ -762,6 +767,11 @@ toolbarview > * > * > * {
 .search-history-popover row button:focus {
     opacity: 1;
 }
+/* 减弱动画：由 SearchHistoryPopup.populate 按 animation_prefs.is_reduced()
+   挂类（同 .preview-card.no-transition 先例），删除按钮 hover 瞬时显隐。 */
+.search-history-popover.no-transition row button {
+    transition: none;
+}
 
 /*
  * 全屏 headerbar 淡入淡出过渡。
@@ -829,6 +839,9 @@ headerbar {
  * overflow: hidden 保证 sticky header 不会超出编辑器卡片顶部。
  */
 .sticky-scroll {
+    /* 4px（§5.1 圆角锚点）：头部悬浮在 .editor-card（8px）顶缘内侧，
+       取比宿主卡片小一档的圆角以读出「嵌在卡片里」的层级；底部两角为 0，
+       与下方正文平接。 */
     border-radius: 4px 4px 0 0;
 }
 
@@ -856,6 +869,8 @@ headerbar {
     /* 浮层语义色，与真正的 popover 同源，明暗主题自动适配 */
     background-color: @popover_bg_color;
     background: @popover_bg_color;
+    /* 14px（§5.1 圆角锚点）：与内部选中行的 8px 圆角同心——外框 14 =
+       容器 padding 6px + 行圆角 8px，滚到边缘时高亮块不顶破外框弧度。 */
     border-radius: 14px;
     padding: 6px;
     /* 无描边：用柔和投影表达「浮起」，与 Adw.Popover 的表达方式一致 */
