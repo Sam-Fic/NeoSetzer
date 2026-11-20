@@ -26,6 +26,7 @@ from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
+from setzer.ai_fix import agent_session
 from setzer.ai_fix.presets import build_git_commit_prompt
 
 GIT_SECTION_SRC = os.path.join(
@@ -92,7 +93,10 @@ class ExecuteAiCommitTest(unittest.TestCase):
         fn = _load_method('_execute_ai_commit', {'show_toast': show_toast})
         controller = SimpleNamespace(settings=settings, workspace=workspace,
                                      _toast=mock.Mock())
-        fn(controller, 'PROMPT', {'name': 'pi'}, '/repo')
+        # CI 无 VTE，VTE_AVAILABLE 为 False 会走外部终端回退分支；本测试
+        # 只覆盖内嵌终端路径，需强制打开该开关。
+        with mock.patch.object(agent_session, 'VTE_AVAILABLE', True):
+            fn(controller, 'PROMPT', {'name': 'pi'}, '/repo')
         return session, manager, workspace, show_toast
 
     def test_new_session_receives_prompt(self):
@@ -125,7 +129,8 @@ class ExecuteAiCommitTest(unittest.TestCase):
         fn = _load_method('_execute_ai_commit', {'show_toast': mock.Mock()})
         controller = SimpleNamespace(settings=settings, workspace=workspace,
                                      _toast=mock.Mock())
-        fn(controller, 'PROMPT', {'name': 'pi'}, '/repo')
+        with mock.patch.object(agent_session, 'VTE_AVAILABLE', True):
+            fn(controller, 'PROMPT', {'name': 'pi'}, '/repo')
         manager.remove.assert_called_once_with(session)
         controller._toast.assert_called_once_with('nope')
 

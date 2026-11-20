@@ -48,8 +48,12 @@ try:
 except Exception:
     gtk_ready = False
 
+# Observable 是纯 Python 辅助类，不依赖显示服务，无头环境也必须能导入：
+# 下面的 FakeSessions 在模块级继承它，若放进 gtk_ready 分支会在 CI 无头
+# 环境下抛 NameError，导致整个测试模块加载失败。
+from setzer.helpers.observable import Observable
+
 if gtk_ready:
-    from setzer.helpers.observable import Observable
     from setzer.workspace.sidebar.ai_page.ai_page import AiPage
 
 
