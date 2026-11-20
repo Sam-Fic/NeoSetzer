@@ -381,7 +381,10 @@ class BibTeXEntryStore:
                 elif value_kind == 'quoted':
                     normalized_value = _validate_string_value('"' + candidate.value + '"')[0]
                 else:
-                    normalized_value, _ = _validate_string_value(candidate.value)
+                    # Index [0] instead of discarding kind into `_`: any
+                    # assignment to `_` makes it a local and shadows the
+                    # builtins gettext injection used below (AGENTS.md).
+                    normalized_value = _validate_string_value(candidate.value)[0]
             except BibTeXEntryError as error:
                 summary['errors'].append(
                     _('Cannot import “{name}”: {reason}').format(name=candidate.name, reason=str(error))
