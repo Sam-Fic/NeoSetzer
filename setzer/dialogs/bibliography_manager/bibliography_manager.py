@@ -1182,6 +1182,9 @@ class BibliographyManagerDialog(DialogView):
         popover = Gtk.Popover()
         popover.set_autohide(True)
         popover.set_has_arrow(True)
+        # spacing=2 (§2.2 optical exception): frameless menu rows in the
+        # popover only need a hairline gap so adjacent hover highlights don't
+        # merge; outer 4px margins already separate the block from the frame.
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         box.set_margin_top(4)
         box.set_margin_bottom(4)

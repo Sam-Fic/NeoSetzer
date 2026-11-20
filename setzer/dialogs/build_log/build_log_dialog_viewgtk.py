@@ -385,6 +385,8 @@ class BuildLogList(Gtk.ListBox):
         self._row_menu = Gtk.Popover()
         self._row_menu.set_autohide(True)
         self._row_menu.set_has_arrow(True)
+        # spacing=2（§2.2 光学例外）：弹层内无框菜单行的发丝间隙，
+        # 相邻按钮的 hover 底色刚好不粘连；外围 4px 边距负责与框体分隔。
         menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         menu_box.set_margin_top(4)
         menu_box.set_margin_bottom(4)

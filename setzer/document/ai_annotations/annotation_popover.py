@@ -70,6 +70,8 @@ class AnnotationPopover(Gtk.Popover):
         self.preset_button.set_hexpand(True)
         self.preset_button.set_can_focus(True)
 
+        # spacing=2（§2.2 光学例外）：label 与下拉箭头的微间隙（xs 档一半），
+        # 箭头是 label 的附属指示符，不该吃 4px 的独立控件间距。
         preset_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         self.preset_label = Gtk.Label(label=_('Custom (no preset)'))
         self.preset_label.set_xalign(0.0)

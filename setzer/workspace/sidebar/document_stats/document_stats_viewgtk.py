@@ -59,6 +59,9 @@ class DocumentStatsView(Gtk.Box):
         self.stats_box.set_visible(False)
         self.append(self.stats_box)
 
+        # spacing=2（§2.2 光学例外）：数值大字号（title-1）与其 caption 说明
+        # 行之间的紧贴间隙——caption 上行留白已含行距，2px 让两者读作一组；
+        # 同规格用于下方 col_lines。
         self.col_chars = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         self.col_chars.set_hexpand(True)
         self.stats_box.append(self.col_chars)
@@ -74,6 +77,7 @@ class DocumentStatsView(Gtk.Box):
         self.label_chars_desc.add_css_class('caption')
         self.col_chars.append(self.label_chars_desc)
 
+        # spacing=2 同 col_chars（value + caption 一组）。
         self.col_lines = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         self.col_lines.set_hexpand(True)
         self.stats_box.append(self.col_lines)
