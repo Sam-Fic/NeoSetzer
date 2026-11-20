@@ -27,6 +27,9 @@
   - 按文件分组；小文件（≤ WHOLE_FILE_MAX_LINES 行）直接贴全文件带行号，
     大文件贴各批注区间 ±CONTEXT_RADIUS 的并集（重叠区间合并去重）。
   - 每条批注：行区间 + 选区 verbatim 代码块 + 预制指令 + 用户批注。
+  - 多条批注共用同一条预制指令时（典型场景：全部批注用同一个预设），
+    指令上提为「Shared instructions」只写一遍，各批注按预设名引用，
+    避免同一段文字在 prompt 里重复 N 次。
 """
 
 import os
@@ -39,6 +42,10 @@ CONTEXT_RADIUS = 10
 
 # 小文件阈值：不超过该行数直接贴全文件（最强免读保证）。
 WHOLE_FILE_MAX_LINES = 200
+
+# 无预制指令且无用户批注时的默认要求（同样参与「共用只写一遍」去重）。
+DEFAULT_REVIEW_INSTRUCTION = (
+    'Review the annotated passage and improve it where appropriate.')
 
 
 def _context_preamble(cwd, interpreter):
@@ -105,18 +112,70 @@ def _group_by_file(annotations):
     return groups
 
 
-def _annotation_request(ann, presets):
-    '''单条批注的要求文本：预制指令 + 用户批注。'''
-    parts = []
-    instruction = annotation_preset_instruction(presets, ann.get('preset'))
+def _resolved_request(ann, presets):
+    '''解析单条批注的 (预制指令, 去空白后的用户批注)。'''
+    return (annotation_preset_instruction(presets, ann.get('preset')),
+            (ann.get('comment') or '').strip())
+
+
+def _shared_instructions(annotations, presets):
+    '''找出一条以上批注共用的指令，返回 [(显示标签, 指令文本)]（首次出现顺序）。
+
+    同一段指令只保留一条，标签聚合所有使用它的预设名；无预设且无用户批注
+    的默认要求也按同一规则聚合（标签为 Default）。仅被一条批注使用的指令
+    不上提——照旧内联在该批注下，避免单条批注多一层引用。
+    '''
+    entries = []  # [(指令文本, 预设名或 None)]
+    for ann in annotations:
+        instruction, comment = _resolved_request(ann, presets)
+        if instruction:
+            entries.append((instruction, ann.get('preset')))
+        elif not comment:
+            entries.append((DEFAULT_REVIEW_INSTRUCTION, None))
+
+    counts = {}
+    names = {}
+    order = []
+    for text, name in entries:
+        counts[text] = counts.get(text, 0) + 1
+        if text not in names:
+            names[text] = []
+            order.append(text)
+        if name and name not in names[text]:
+            names[text].append(name)
+
+    shared = []
+    for text in order:
+        if counts[text] < 2:
+            continue
+        if names[text]:
+            label = 'Preset ' + ' / '.join('"{}"'.format(n) for n in names[text])
+        else:
+            label = 'Default (annotations without a preset)'
+        shared.append((label, text))
+    return shared
+
+
+def _annotation_request(ann, presets, shared_texts):
+    '''单条批注的要求文本：预制指令 + 用户批注。
+
+    已上提为共用说明的指令只写引用，不重复正文。
+    '''
+    instruction, comment = _resolved_request(ann, presets)
     if instruction:
-        parts.append(instruction)
-    comment = (ann.get('comment') or '').strip()
+        if instruction in shared_texts:
+            request = 'Apply preset "{}" (see shared instructions).'.format(
+                ann.get('preset'))
+        else:
+            request = instruction
+        if comment:
+            request += ' Additional user request: {}'.format(comment)
+        return request
     if comment:
-        parts.append('Additional user request: {}'.format(comment))
-    if not parts:
-        parts.append('Review the annotated passage and improve it where appropriate.')
-    return ' '.join(parts)
+        return comment
+    if DEFAULT_REVIEW_INSTRUCTION in shared_texts:
+        return 'Apply the default review instruction (see shared instructions).'
+    return DEFAULT_REVIEW_INSTRUCTION
 
 
 def build_prompt_for_annotations(annotations, cwd, interpreter='default', presets=None):
@@ -139,6 +198,18 @@ def build_prompt_for_annotations(annotations, cwd, interpreter='default', preset
         presets = ANNOTATION_PRESETS
 
     parts = [_context_preamble(cwd, interpreter), '']
+
+    shared = _shared_instructions(annotations, presets)
+    shared_texts = {text for _label, text in shared}
+    if shared:
+        parts.append('## Shared instructions')
+        parts.append('The following requests apply to more than one annotation; each '
+                     'is stated once here and referenced by name below.')
+        parts.append('')
+        for label, text in shared:
+            parts.append('- {}: {}'.format(label, text))
+        parts.append('')
+
     total_chars = 0
     truncated = False
 
@@ -154,7 +225,8 @@ def build_prompt_for_annotations(annotations, cwd, interpreter='default', preset
             line_range = '{}-{}'.format(ann['start_line'], ann['end_line']) \
                 if ann['end_line'] != ann['start_line'] else str(ann['start_line'])
             parts.append('### Annotation {} (lines {})'.format(idx, line_range))
-            parts.append('Request: {}'.format(_annotation_request(ann, presets)))
+            parts.append('Request: {}'.format(
+                _annotation_request(ann, presets, shared_texts)))
             parts.append('Annotated passage (verbatim):')
             selection = (ann.get('text') or '').rstrip('\n')
             parts.append('```latex\n{}\n```'.format(selection))

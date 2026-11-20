@@ -208,6 +208,62 @@ class PresetsTest(unittest.TestCase):
         self.assertNotEqual(ANNOTATION_PRESETS[0]['name'], 'mutated')
 
 
+class SharedInstructionTest(unittest.TestCase):
+    '''多条批注共用同一指令时只陈述一次，各批注按预设名引用。'''
+
+    def test_repeated_preset_instruction_stated_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['x', 'y', 'z'])
+            annotations = [ann(path, i, i, text='x', preset='Improve writing')
+                           for i in (1, 2, 3)]
+            prompt = apb.build_prompt_for_annotations(annotations, tmp)
+        instruction = ANNOTATION_PRESETS[0]['instruction']
+        self.assertEqual(prompt.count(instruction), 1)
+        self.assertIn('## Shared instructions', prompt)
+        self.assertEqual(prompt.count('Apply preset "Improve writing"'), 3)
+
+    def test_single_use_preset_stays_inline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['x'])
+            prompt = apb.build_prompt_for_annotations(
+                [ann(path, 1, 1, preset='Explain')], tmp)
+        self.assertNotIn('## Shared instructions', prompt)
+        self.assertIn('Request: Explain the annotated passages.', prompt)
+
+    def test_mixed_presets_hoist_only_repeated_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['x', 'y', 'z'])
+            annotations = [ann(path, 1, 1, preset='Improve writing'),
+                           ann(path, 2, 2, preset='Improve writing'),
+                           ann(path, 3, 3, preset='Explain')]
+            prompt = apb.build_prompt_for_annotations(annotations, tmp)
+        self.assertEqual(prompt.count(ANNOTATION_PRESETS[0]['instruction']), 1)
+        self.assertEqual(prompt.count(ANNOTATION_PRESETS[2]['instruction']), 1)
+        # 只出现一次的 Explain 保持内联，不进共享区
+        shared_part = prompt.split('## File:')[0]
+        self.assertNotIn(ANNOTATION_PRESETS[2]['instruction'], shared_part)
+        self.assertIn(ANNOTATION_PRESETS[0]['instruction'], shared_part)
+
+    def test_comment_attached_to_referenced_preset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['x', 'y'])
+            annotations = [ann(path, 1, 1, preset='Improve writing'),
+                           ann(path, 2, 2, preset='Improve writing',
+                               comment='keep the example')]
+            prompt = apb.build_prompt_for_annotations(annotations, tmp)
+        self.assertIn('Apply preset "Improve writing" (see shared instructions). '
+                      'Additional user request: keep the example', prompt)
+
+    def test_repeated_default_review_stated_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_file(tmp, 'a.tex', ['x', 'y'])
+            prompt = apb.build_prompt_for_annotations(
+                [ann(path, 1, 1), ann(path, 2, 2)], tmp)
+        self.assertEqual(prompt.count(apb.DEFAULT_REVIEW_INSTRUCTION), 1)
+        self.assertIn('Apply the default review instruction (see shared instructions).',
+                      prompt)
+
+
 class FocusTest(unittest.TestCase):
     '''PDF 派生批注：整行/整块仅作上下文，单独强调用户实际选中部分。'''
 
