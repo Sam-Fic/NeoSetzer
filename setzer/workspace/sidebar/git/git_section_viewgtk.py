@@ -191,18 +191,35 @@ class GitSectionView(Gtk.Box):
         self.message_overlay.add_overlay(self.message_placeholder)
         self.changes_box.append(self.message_overlay)
 
-        # Commit 主按钮：占满整行，suggested-action。图标+文字整行按钮沿用
-        # AI 页 Send All 的同款写法（Box + Image + Label）；对钩用项目自带
-        # object-select-symbolic（与「Working tree clean」空状态同图标）。
+        # Commit 主按钮 + AI 提交按钮同一行：主按钮占满剩余宽度，
+        # AI 按钮固定在行尾（默认样式，不用 flat——它是和主按钮并列的
+        # 独立动作，不该看起来像行内次要入口）。
+        # 图标+文字写法沿用 AI 页 Send All（Box + Image + Label）；对钩用
+        # 项目自带 object-select-symbolic（与「Working tree clean」同图标）。
+        self.commit_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.changes_box.append(self.commit_row)
+
         self.button_commit = Gtk.Button()
         commit_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         commit_box.set_halign(Gtk.Align.CENTER)
         commit_box.append(Gtk.Image(icon_name='object-select-symbolic'))
         commit_box.append(Gtk.Label(label=_('Commit')))
         self.button_commit.set_child(commit_box)
+        self.button_commit.set_hexpand(True)
         self.button_commit.add_css_class('suggested-action')
         self.button_commit.set_tooltip_text(_('Commit the checked files (Ctrl+Enter)'))
-        self.changes_box.append(self.button_commit)
+        self.commit_row.append(self.button_commit)
+
+        # AI 提交：纯图标按钮。可见性由控制器按 preferences.ai_fix_enabled
+        # 控制（AI 入口关闭时整个消失，而不是置灰）。
+        self.button_ai_commit = Gtk.Button(icon_name='ai-slop-symbolic')
+        self.button_ai_commit.set_valign(Gtk.Align.FILL)
+        self.button_ai_commit.set_tooltip_text(
+            _('Commit the checked files with AI'))
+        self.button_ai_commit.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            [_('Commit the checked files with AI')])
+        self.commit_row.append(self.button_ai_commit)
 
         # 错误/结果提示（pull 失败、push 无凭据等），默认隐藏。
         self.label_error = Gtk.Label()

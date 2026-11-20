@@ -34,9 +34,14 @@ import os
 import threading
 
 from setzer.app.service_locator import ServiceLocator
+from setzer.ai_fix import agent_runner
+from setzer.ai_fix.availability import is_ai_agent_enabled
+from setzer.ai_fix.presets import build_git_commit_prompt
 from setzer.document.build_system.phitex_session.phitex_session import PhitexSession
 from setzer.helpers import phitex_compare
-from setzer.vcs.git_repository import GitRepository, git_available
+from setzer.helpers.toast import show as show_toast
+from setzer.vcs.git_repository import (
+    GitRepository, git_available, is_staged_status)
 from setzer.workspace.sidebar.git.git_section_viewgtk import GitSectionView
 from setzer.workspace.sidebar.git.diff_dialog import DiffWindow
 
@@ -60,8 +65,10 @@ class GitSection(object):
     刷新时机（事件驱动，无轮询）：活动文档切换、文档保存、仓库状态信号
     （.git/index、.git/HEAD 的 Gio.FileMonitor 覆盖终端里的 commit/pull）。
 
-    会话内记忆（不持久化）：commit message 按仓库根记忆（_messages），
-    文件勾选状态按仓库根记忆（_checked），切换仓库/文档后恢复。
+    文件勾选 = git 暂存区状态（实时绑定）：勾选/取消立即 git add /
+    git restore --staged，刷新时按 porcelain 的 index 位回显；无勾选时
+    提交默认把全部改动加入暂存（VSCode smart commit 语义）。
+    会话内记忆（不持久化）：commit message 按仓库根记忆（_messages）。
     '''
 
     def __init__(self, workspace):
@@ -74,6 +81,7 @@ class GitSection(object):
         self.view.button_pull.connect('clicked', self.on_pull_clicked)
         self.view.button_push.connect('clicked', self.on_push_clicked)
         self.view.button_commit.connect('clicked', self.on_commit_clicked)
+        self.view.button_ai_commit.connect('clicked', self.on_ai_commit_clicked)
         self.view.button_init.connect('clicked', self.on_init_clicked)
         self.view.message_text.get_buffer().connect('changed', self.on_message_changed)
 
@@ -83,12 +91,12 @@ class GitSection(object):
         key_controller.connect('key-pressed', self.on_message_key_pressed)
 
         self._messages = dict()   # repo root → 未提交的 commit message
-        self._checked = dict()    # repo root → {path: 是否纳入提交}
         self._pdf_diff_running = False
         self._saved_document = None
 
         workspace.connect('new_active_document', self.on_new_active_document)
         self.settings.connect('settings_changed', self.on_settings_changed)
+        self.update_ai_availability()
         self.set_document()
 
     def on_new_active_document(self, workspace, document):
@@ -98,6 +106,8 @@ class GitSection(object):
         section, item, value = parameter
         if section == 'preferences' and item in ('git_integration', 'git_sidebar_panel'):
             self.set_document()
+        elif section == 'preferences' and item == 'ai_fix_enabled':
+            self.update_ai_availability()
 
     def set_document(self):
         document = self.workspace.get_active_document()
@@ -232,12 +242,12 @@ class GitSection(object):
 
     def _populate_changes(self, changed_files):
         self.view.clear_file_rows()
-        checked_map = self._checked.setdefault(self.repo.root, dict())
         for entry in changed_files:
             path = entry['path']
-            default = not entry['untracked']
             row, check, open_button, discard = self.view.build_file_row(entry)
-            check.set_active(checked_map.get(path, default))
+            # 勾选状态 = 暂存区状态。先 set_active 再 connect，避免程序化
+            # 设置触发一次多余的 add/restore。
+            check.set_active(is_staged_status(entry['status']))
             check.connect('toggled', self.on_file_check_toggled, entry)
             open_button.connect('clicked', self.on_open_file_clicked, entry)
             # 已删除（D）的文件磁盘上不存在：查看文件按钮灰掉。
@@ -250,21 +260,29 @@ class GitSection(object):
             self.view.set_clean()
 
     def on_file_check_toggled(self, check, entry):
-        checked_map = self._checked.setdefault(self.repo.root, dict())
-        checked_map[entry['path']] = check.get_active()
-        self._update_commit_sensitivity()
+        '''勾选/取消 = 暂存/取消暂存（实时绑定，命令在后台串行执行）。'''
+        if self.repo is None:
+            return
+        self.show_error(None)
+        self.repo.stage_paths(
+            [entry['path']], check.get_active(), self.on_stage_done)
 
-    def _checked_paths(self):
-        checked_map = self._checked.get(self.repo.root, dict())
-        state = self.repo.state
-        if state is None:
+    def on_stage_done(self, error):
+        if error:
+            self.show_error(error)
+
+    def _staged_paths(self):
+        '''当前已暂存的文件（porcelain index 位）。'''
+        if self.repo is None or self.repo.state is None:
             return []
-        result = []
-        for entry in state['changed_files']:
-            default = not entry['untracked']
-            if checked_map.get(entry['path'], default):
-                result.append(entry['path'])
-        return result
+        return [entry['path'] for entry in self.repo.state['changed_files']
+                if is_staged_status(entry['status'])]
+
+    def _all_changed_paths(self):
+        '''全部改动文件：无勾选时默认全部进入暂存（VSCode smart commit）。'''
+        if self.repo is None or self.repo.state is None:
+            return []
+        return [entry['path'] for entry in self.repo.state['changed_files']]
 
     def _current_message(self):
         start = self.view.message_text.get_buffer().get_start_iter()
@@ -272,8 +290,17 @@ class GitSection(object):
         return self.view.message_text.get_buffer().get_text(start, end, False).strip()
 
     def _update_commit_sensitivity(self):
+        has_files = bool(self._all_changed_paths())
         self.view.button_commit.set_sensitive(
-            bool(self._current_message()) and bool(self._checked_paths()))
+            bool(self._current_message()) and has_files)
+        self.view.button_ai_commit.set_sensitive(has_files)
+
+    def update_ai_availability(self):
+        '''AI 总开关关闭时入口消失（不是置灰），开启时重算可用性。'''
+        enabled = is_ai_agent_enabled(self.settings)
+        self.view.button_ai_commit.set_visible(enabled)
+        if enabled:
+            self._update_commit_sensitivity()
 
     def on_message_changed(self, buffer):
         start = buffer.get_start_iter()
@@ -304,17 +331,20 @@ class GitSection(object):
         if not self._panel_enabled() or self.repo is None or self.repo.state is None:
             return
         message = self._current_message()
-        files = self._checked_paths()
+        # 无勾选（暂存区为空）→ 默认全部进入暂存（VSCode smart commit）。
+        files = self._staged_paths() or self._all_changed_paths()
         if not message or not files:
             return
         if not self._is_trusted():
-            self._request_trust(self.do_commit)
+            self._request_trust(self.do_commit, files, message)
             return
-        self.do_commit()
+        self.do_commit(files, message)
 
-    def do_commit(self):
-        message = self._current_message()
-        files = self._checked_paths()
+    def do_commit(self, files=None, message=None):
+        if message is None:
+            message = self._current_message()
+        if files is None:
+            files = self._staged_paths() or self._all_changed_paths()
         if not message or not files:
             return
         self.show_error(None)
@@ -332,6 +362,116 @@ class GitSection(object):
         self._messages[self.repo.root] = ''
         self.view.message_text.get_buffer().set_text('')
         self.repo.refresh()
+
+    # —— AI 提交 ————————————————————————————————————————
+
+    def on_ai_commit_clicked(self, button):
+        '''用 AI 提交勾选文件；无勾选时先把全部改动加入暂存。'''
+        if not self._panel_enabled() or self.repo is None or self.repo.state is None:
+            return
+        if not is_ai_agent_enabled(self.settings):
+            return
+        files = self._staged_paths()
+        if files:
+            self._start_ai_commit(files)
+            return
+        # 没有任何勾选/暂存 → 视为用户希望提交全部改动（与手动 Commit
+        # 的 smart commit 语义一致），交给 AI 决定如何合理拆分提交。
+        files = self._all_changed_paths()
+        if not files:
+            return
+        self.show_error(None)
+        # 先落盘再暂存：否则暂存的是磁盘旧内容，AI 会提交与编辑器不一致的版本。
+        self._save_open_documents()
+        self.repo.stage_paths(
+            files, True,
+            lambda error: self.on_stage_all_for_ai_done(error, files))
+
+    def on_stage_all_for_ai_done(self, error, files):
+        if error:
+            self.show_error(error)
+            return
+        self._start_ai_commit(files)
+
+    def _start_ai_commit(self, files):
+        '''组装提示词：未信任目录先走 Send to Agent 预览确认。'''
+        agent_runner._ = _
+        tool_config = agent_runner.resolve_tool_config(
+            self.settings.get_value('preferences', 'ai_fix_tools'),
+            self.settings.get_value('preferences', 'ai_fix_active_tool'))
+        if tool_config is None:
+            self._toast(_('No agent tool configured. '
+                          'Add one in Preferences → General → AI Settings.'))
+            return
+        self._save_open_documents()
+        cwd = self.repo.root
+        prompt = build_git_commit_prompt(files, self._current_message(), cwd)
+        if self._ai_dir_trusted(cwd):
+            self._execute_ai_commit(prompt, tool_config, cwd)
+            return
+        from setzer.ai_fix.preview_dialog import PreviewDialog
+        dialog = PreviewDialog(ServiceLocator.get_main_window())
+        dialog.present_for(
+            parent=ServiceLocator.get_main_window(),
+            prompt=prompt,
+            tool_name=tool_config.get('name', 'agent'),
+            cwd=cwd,
+            on_send_cb=lambda edited_prompt, dont_ask:
+            self.on_ai_commit_confirmed(
+                edited_prompt, dont_ask, tool_config, cwd))
+
+    def _ai_dir_trusted(self, cwd):
+        trusted = self.settings.get_value(
+            'preferences', 'ai_fix_trusted_dirs') or []
+        cwd_real = os.path.realpath(cwd)
+        return any(os.path.realpath(d) == cwd_real for d in trusted)
+
+    def on_ai_commit_confirmed(self, prompt, dont_ask, tool_config, cwd):
+        if dont_ask:
+            trusted = list(self.settings.get_value(
+                'preferences', 'ai_fix_trusted_dirs') or [])
+            cwd_real = os.path.realpath(cwd)
+            if not any(os.path.realpath(d) == cwd_real for d in trusted):
+                trusted.append(cwd_real)
+                self.settings.set_value(
+                    'preferences', 'ai_fix_trusted_dirs', trusted)
+                self.settings.pickle()
+                self._toast(_('Added to trusted directories'))
+        self._execute_ai_commit(prompt, tool_config, cwd)
+
+    def _execute_ai_commit(self, prompt, tool_config, cwd):
+        '''内嵌终端：新开一个会话标签（不动已有会话）；否则回退外部终端。
+
+        确认后不弹窗、不跳转：只发一条带「Show」按钮的 toast，点击时
+        把会话标签区弹出为独立窗口。
+        '''
+        from setzer.ai_fix import agent_session as agent_session_module
+        embedded = (agent_session_module.VTE_AVAILABLE
+                    and self.settings.get_value(
+                        'preferences', 'ai_fix_embedded_terminal'))
+        if embedded:
+            agent_session_module._ = _
+            sessions = self.workspace.get_agent_sessions()
+            session = sessions.new_session()
+            success, msg = session.send(prompt, cwd)
+            if not success:
+                sessions.remove(session)
+                self._toast(msg)
+                return
+            show_toast(
+                _('AI is committing in the background…'),
+                button_label=_('Show'),
+                on_button_clicked=self.workspace.pop_out_agent_terminal)
+            return
+
+        terminal_cmd = self.settings.get_value(
+            'preferences', 'ai_fix_terminal_cmd') or None
+        success, msg = agent_runner.run_headed(
+            tool_config, prompt, cwd, None, terminal_cmd=terminal_cmd)
+        if success:
+            show_toast(_('AI is committing in the background…'))
+        else:
+            self._toast(msg)
 
     def _save_open_documents(self):
         root_prefix = self.repo.root + os.sep

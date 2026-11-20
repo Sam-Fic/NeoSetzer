@@ -120,6 +120,15 @@ def parse_status_porcelain(output):
     return branch, upstream, ahead, behind, files
 
 
+def is_staged_status(status):
+    '''porcelain XY 的 X 位表示暂存区状态。
+
+    `' M'`（仅工作区改动）/ `'??'`（未跟踪）视为未暂存；其余
+    （`'M '`、`'A '`、`'D '`、`'R '` 等）视为已暂存。
+    '''
+    return bool(status) and status[0] not in (' ', '?')
+
+
 def parse_log_history(output):
     '''解析 `git log --pretty=format:%h%x1f%s%x1f%an%x1f%ct` 输出。
 
@@ -220,6 +229,12 @@ class GitRepository(Observable):
         self._diff_inflight = set()
         self._monitors = []
         self._monitor_debounce_id = None
+        # 暂存区写操作串行队列：git add / git restore 都会写 .git/index，
+        # 并发执行会互相抢 .git/index.lock 而失败。连续快速勾选/取消时
+        # 由单个 worker 顺序消化。
+        self._stage_queue = []
+        self._stage_lock = threading.Lock()
+        self._stage_worker = False
         self._setup_monitors()
         self.refresh()
 
@@ -427,6 +442,52 @@ class GitRepository(Observable):
                 error = (classify_git_error(out, 'commit') or out.strip()
                          or _('Commit failed.'))
         GLib.idle_add(callback, error)
+        return False
+
+    def stage_paths(self, paths, staged, callback=None):
+        '''把 paths 加入（staged=True）或移出（False）暂存区。
+
+        写 index 的操作严格串行：连续勾选时排队由同一个 worker 顺序执行，
+        回调在主线程拿到 error（或 None）。完成后自动 refresh。
+        '''
+        paths = [path for path in (paths or []) if path]
+        if not paths:
+            if callback is not None:
+                GLib.idle_add(callback, None)
+            return
+        with self._stage_lock:
+            self._stage_queue.append((paths, staged, callback))
+            if self._stage_worker:
+                return
+            self._stage_worker = True
+        threading.Thread(target=self._stage_worker_thread, daemon=True).start()
+
+    def _stage_worker_thread(self):
+        while True:
+            with self._stage_lock:
+                if not self._stage_queue:
+                    self._stage_worker = False
+                    return False
+                paths, staged, callback = self._stage_queue.pop(0)
+            if staged:
+                code, out = run_git(['add', '--'] + paths, self.root)
+                error = None
+                if code != 0:
+                    error = (classify_git_error(out, 'add') or out.strip()
+                             or _('Staging files failed.'))
+            else:
+                code, out = run_git(['restore', '--staged', '--'] + paths, self.root)
+                error = None
+                if code != 0:
+                    error = (classify_git_error(out, 'restore') or out.strip()
+                             or _('Unstaging files failed.'))
+            GLib.idle_add(self._stage_done, error, callback)
+        return False
+
+    def _stage_done(self, error, callback):
+        self.refresh()
+        if callback is not None:
+            callback(error)
         return False
 
     def push(self, callback):

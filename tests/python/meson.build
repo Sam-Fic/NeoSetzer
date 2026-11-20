@@ -21,7 +21,7 @@ test_env.set('LC_ALL', 'C')
 foreach t : [
   ['test_agent_runner_bare', 'test_agent_runner_bare.py'],
   ['test_agent_session', 'test_agent_session.py'],
-  ['test_agent_terminal_headerbar', 'test_agent_terminal_headerbar.py'],
+  ['test_agent_terminal_tabs', 'test_agent_terminal_tabs.py'],
   ['test_ai_agent_disabled_entries', 'test_ai_agent_disabled_entries.py'],
   ['test_ai_annotations', 'test_ai_annotations.py'],
   ['test_ai_diff', 'test_ai_diff.py'],
@@ -63,6 +63,7 @@ foreach t : [
   ['test_file_templates', 'test_file_templates.py'],
   ['test_first_run_tutorial', 'test_first_run_tutorial.py'],
   ['test_frequent_build_ui_feedback', 'test_frequent_build_ui_feedback.py'],
+  ['test_git_ai_commit', 'test_git_ai_commit.py'],
   ['test_git_pdf_diff_wiring', 'test_git_pdf_diff_wiring.py'],
   ['test_git_repository', 'test_git_repository.py'],
   ['test_git_sidebar_scroll', 'test_git_sidebar_scroll.py'],

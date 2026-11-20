@@ -150,6 +150,7 @@ def merge_missing_builtins(tools):
 
 
 # 批注预制提示词：选区批注 / 单条直发时可选的指令模板。
+# （新增 Git AI 提交提示词见文件末尾 GIT_COMMIT_PROMPT。）
 # name 同时用作显示名与 settings.ai_annotation_presets 的键；
 # instruction 是注入 prompt 的英文指令（与 build_log AI fix 的 prompt 一致，
 # 面向模型用英文）。用户批注（comment）作为附加要求拼在指令之后。
@@ -188,3 +189,38 @@ def annotation_preset_instruction(presets, name):
         return ''
     match = next((p for p in (presets or []) if p.get('name') == name), None)
     return match.get('instruction', '') if match else ''
+
+
+# Git「AI 提交」预制提示词：面向模型用英文（与批注 / 构建修复一致）。
+# 语义：只允许提交列出的文件，可按逻辑分组拆成多个提交；不推送、不改代码。
+GIT_COMMIT_PROMPT = '''You are working in the git repository at {cwd}.
+
+Commit the changes in the following files (this is the allowed scope):
+
+{files}
+
+Instructions:
+1. Inspect the changes with `git status` and `git diff --cached`.
+2. Group the changes into logically coherent commits. If the listed files
+   contain unrelated changes, split them into multiple commits; never split
+   one logical change across commits.
+3. Stage and commit only paths from the list above. Never stage, commit,
+   revert, modify or discard any other file.
+4. If a listed file has unstaged edits, you may run `git add -- <path>` for
+   that listed path to include its current content.
+5. Write commit messages in the imperative mood: a short subject line and,
+   when useful, a body explaining why.
+6. Do not push.
+7. When done, reply with a one-line summary for each commit you created.
+'''
+
+
+def build_git_commit_prompt(files, message_hint=None, cwd=None):
+    '''组装 AI 提交提示词：勾选文件清单 + 可选的用户草稿信息。'''
+    paths = '\n'.join('- ' + path for path in (files or []))
+    prompt = GIT_COMMIT_PROMPT.format(cwd=cwd or '', files=paths)
+    hint = (message_hint or '').strip()
+    if hint:
+        prompt += ('\nThe user drafted this commit message; use it as guidance '
+                   'and complete or adjust it as needed:\n\n' + hint + '\n')
+    return prompt

@@ -28,6 +28,7 @@ from setzer.vcs.git_repository import (
     parse_log_history,
     parse_num_diff,
     classify_git_error,
+    is_staged_status,
     DIFF_CHANGED_LIMIT,
 )
 
@@ -71,6 +72,17 @@ class TestParseStatusPorcelain(unittest.TestCase):
         assert branch is None
         assert upstream is None
         assert files == []
+
+
+class TestIsStagedStatus(unittest.TestCase):
+
+    def test_index_side_status_is_staged(self):
+        for status in ('M ', 'A ', 'D ', 'R ', 'MM', 'AM'):
+            self.assertTrue(is_staged_status(status), status)
+
+    def test_worktree_only_and_untracked_are_not_staged(self):
+        for status in (' M', ' D', '??', '', '  '):
+            self.assertFalse(is_staged_status(status), status)
 
 
 class TestParseLogHistory(unittest.TestCase):

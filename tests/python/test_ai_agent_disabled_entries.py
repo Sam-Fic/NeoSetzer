@@ -47,6 +47,8 @@ BUILD_LOG_SRC = os.path.join(REPO, 'setzer', 'dialogs', 'build_log',
                             'build_log_dialog_controller.py')
 CONTEXT_MENU_SRC = os.path.join(REPO, 'setzer', 'popovers', 'context_menu',
                                'context_menu_viewgtk.py')
+GIT_SECTION_SRC = os.path.join(REPO, 'setzer', 'workspace', 'sidebar', 'git',
+                              'git_section.py')
 
 
 class FakeSettings:
@@ -173,6 +175,30 @@ class BuildLogAiButtonTest(unittest.TestCase):
         update(controller)
         controller.view.ai_fix_all_button.set_visible.assert_called_once_with(True)
         self.assertTrue(controller.view.lists['Error'].ai_fix_enabled)
+
+
+class GitAiCommitButtonTest(unittest.TestCase):
+
+    def _update(self, enabled):
+        update = _load_method(GIT_SECTION_SRC, 'GitSection',
+                              'update_ai_availability',
+                              {'is_ai_agent_enabled': is_ai_agent_enabled})
+        controller = SimpleNamespace(
+            settings=FakeSettings(enabled),
+            view=SimpleNamespace(button_ai_commit=mock.Mock()),
+            _update_commit_sensitivity=mock.Mock())
+        update(controller)
+        return controller
+
+    def test_hidden_when_disabled(self):
+        controller = self._update(False)
+        controller.view.button_ai_commit.set_visible.assert_called_once_with(False)
+        controller._update_commit_sensitivity.assert_not_called()
+
+    def test_shown_when_enabled(self):
+        controller = self._update(True)
+        controller.view.button_ai_commit.set_visible.assert_called_once_with(True)
+        controller._update_commit_sensitivity.assert_called_once()
 
 
 class FakeMenu:
