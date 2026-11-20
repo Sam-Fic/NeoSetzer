@@ -233,6 +233,12 @@ class SnippetEditorDialog(Adw.Dialog):
         buttons.append(self.save_button)
         content.append(buttons)
 
+        # Return 直通主确认（docs/ui-guidelines.md §6.2）：两个 EntryRow 里按
+        # Return 即触发保存（Adw.EntryRow 自带 activates-default）。
+        self.set_default_widget(self.save_button)
+        self.name_row.set_activates_default(True)
+        self.trigger_row.set_activates_default(True)
+
     def _on_save_clicked(self, button):
         start, end = self.body_buffer.get_bounds()
         self.on_save(
