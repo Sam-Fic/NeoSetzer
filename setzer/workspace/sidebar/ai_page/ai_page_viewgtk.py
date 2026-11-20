@@ -136,7 +136,8 @@ class AiPageView(Gtk.Box):
         self.list_stack.add_named(list_wrapper, 'list')
 
         self.empty_status = Adw.StatusPage()
-        self.empty_status.set_icon_name('ai-slop-symbolic')
+        # 与批注档位同款图标，空态和工具栏指向同一对象。
+        self.empty_status.set_icon_name('comment-symbolic')
         self.empty_status.set_title(_('No Annotations'))
         self.empty_status.set_description(_(
             'Select text in the editor and use the right-click menu or shortcut '

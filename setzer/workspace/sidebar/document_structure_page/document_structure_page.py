@@ -33,7 +33,7 @@ SUBVIEW_OPTIONS = (
     ('structure', 'catlog-symbolic', 'Document Structure'),
     ('files', 'folder-symbolic', 'Files'),
     ('labels', 'tag-symbolic', 'Labels'),
-    ('todos', 'starred-symbolic', 'To-Dos'),
+    ('todos', 'star-symbolic', 'To-Dos'),
     ('stats', 'info-outline-symbolic', 'Document Stats'),
 )
 

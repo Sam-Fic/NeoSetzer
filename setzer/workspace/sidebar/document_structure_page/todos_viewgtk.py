@@ -30,7 +30,7 @@ class TodosSectionView(sidebar_list_view.SidebarListView):
     def __init__(self, model):
         sidebar_list_view.SidebarListView.__init__(self, model)
         self.set_placeholder_info(
-            'starred-symbolic',
+            'star-symbolic',
             _('No to-dos'),
             _('Add \\todo{...} to keep track of tasks.')
         )
