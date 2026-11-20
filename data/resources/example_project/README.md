@@ -22,6 +22,7 @@ example_project/
 │   ├── 04-tables-and-data.tex
 │   ├── 05-feature-atlas.tex
 │   └── appendix-structure.tex
+├── images/
 └── data/
     └── example-table.csv
 ```
@@ -30,8 +31,22 @@ example_project/
 
 `references.bib` provides a real BibTeX citation for the project. Build enough passes for your selected builder to resolve it; `latexmk` can manage those passes automatically when configured. `data/example-table.csv` is deliberately a practice input for NeoSetzer's **Insert Table** dialog. It is not read automatically by LaTeX: use **Paste TSV/CSV** or **Import CSV/TSV File** in the dialog, then inspect and edit the LaTeX it inserts.
 
+The screenshots used by `chapters/05-feature-atlas.tex` live under `images/`:
+
+```text
+images/neosetzer-overview.png
+images/command-palette.png
+images/ai-annotations.png
+images/ai-fix-terminal.png
+images/phitex-live-preview.png
+images/math-hover-preview.png
+images/diagnostics.png
+images/git-panel.png
+images/insert-table.png
+```
+
 ## Safe experimentation
 
 Use **Save and Build** in NeoSetzer after making a small edit. If you want to keep a clean starting point, create another example project from the welcome screen or first-run tutorial; NeoSetzer creates a new numbered directory instead of overwriting an existing copy.
 
-Suggested experiments are embedded in the source: open a child chapter directly, inspect the nested heading and TODO in Document Structure, import the CSV grid, follow a cross-reference, then build the project again. The appendix also demonstrates ordinary article appendix numbering and a literal subsection counter change. Finally, use `05-feature-atlas.tex` as a task-oriented directory for NeoSetzer's command discovery, editing aids, sidebars, build and preview tools, preferences, recovery behaviour, and optional external tools.
+Suggested experiments are embedded in the source: open a child chapter directly, inspect the nested heading and TODO in Document Structure, import the CSV grid, follow a cross-reference, then build the project again. The appendix also demonstrates ordinary article appendix numbering and a literal subsection counter change. Finally, use `05-feature-atlas.tex` as a task-oriented directory for NeoSetzer's command discovery, editing aids, sidebars, build and preview tools, AI assistance, Git integration, structured authoring, preferences, and recovery behaviour. It also contains a small TikZ figure you can preview in snippet mode.

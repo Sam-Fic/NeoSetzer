@@ -9,14 +9,31 @@ menu item. Settings, installed TeX tools, dictionaries, and keyboard shortcuts
 can differ between systems, so use \menu{Preferences} and the Command Palette
 as the live source of truth for your own installation.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{images/neosetzer-overview.png}
+    \caption{The main window with the editor, sidebars, and live PDF preview.}
+    \label{fig:feature-map-overview}
+\end{figure}
+
 \subsection{Find and run actions}
 \label{sec:feature-map:actions}
 
 Use the \textbf{Command Palette} when you know what you want to do but not
 where the action lives. It groups commands by area, searches by name and
 keywords, and explains when a command is unavailable in the current document
-or view. This is often the fastest way to discover an operation before deciding
-whether you want to assign or change a shortcut.
+or view. Recently used commands are surfaced first, and fuzzy matching makes a
+partial name enough to find the action. This is often the fastest way to
+discover an operation before deciding whether you want to assign or change a
+shortcut.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{images/command-palette.png}
+    \caption{The Command Palette with fuzzy search, categories, and
+             unavailable commands explained in place.}
+    \label{fig:feature-map-command-palette}
+\end{figure}
 
 The welcome screen provides the other high-level entry points: create a blank
 LaTeX or BibTeX document, open a file, start the Document Wizard, reopen recent
@@ -26,18 +43,32 @@ work, or create another writable example-project copy.
 \label{sec:feature-map:editing}
 
 The editor combines syntax highlighting, automatic matching brackets,
-auto-indentation, line operations, code folding, search and replace, and
-context-aware completion. Completion adapts to LaTeX context: commands,
-references, citations, labels, environments, symbols, enumerate items, and
-Beamer frames are examples of suggestions that can be offered when the source
-makes them meaningful. The \textbf{Shortcuts Bar} and \textbf{Symbols} sidebar
-provide discoverable insertions when you prefer not to memorize commands.
+auto-indentation, line operations, code folding, sticky section headers,
+multi-cursor editing, search and replace, and context-aware completion.
+Completion adapts to LaTeX context: commands, references, citations, labels,
+environments, symbols, enumerate items, and Beamer frames are examples of
+suggestions that can be offered when the source makes them meaningful. The
+\textbf{Shortcuts Bar} and \textbf{Symbols} sidebar provide discoverable
+insertions when you prefer not to memorize commands, and snippets cover
+recurring structures.
 
-Spell checking depends on an available dictionary and the language settings on
-your system. It is best treated as a writing aid rather than a LaTeX validator:
+Smart typing can insert LaTeX quotation marks and wrap subscripts and
+superscripts in braces automatically. Hovering a formula shows a rendered
+preview, while chktex reports common LaTeX and typography problems as you
+type. Spell checking depends on an available dictionary and the language
+settings on your system; project-specific terms can be added to its managed
+word list. It is best treated as a writing aid rather than a LaTeX validator:
 use the build log for typesetting or package errors. Editor appearance, font,
 line wrapping, indentation, current-line highlighting, and related behaviour
 can be adjusted in the Appearance and Editor preference pages.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/math-hover-preview.png}
+    \caption{Hovering a formula shows the rendered result without building
+             the whole document.}
+    \label{fig:feature-map-math-hover}
+\end{figure}
 
 \subsection{Navigate, inspect, and organize}
 \label{sec:feature-map:navigation}
@@ -45,13 +76,14 @@ can be adjusted in the Appearance and Editor preference pages.
 The \textbf{Document Structure} sidebar lists headings, labels, project files,
 and TODO entries. It shows ordinary section numbers when they are reliably
 available from the source, including common appendices and literal counter
-changes such as the sample in Appendix~\ref{sec:appendix-structure}. It does
-not execute arbitrary TeX macros, so exotic number redefinitions may differ
-from the final PDF.
+changes such as the sample in Appendix~\ref{sec:appendix-structure}. It also
+reports unused and duplicate labels. It does not execute arbitrary TeX macros,
+so exotic number redefinitions may differ from the final PDF.
 
 Use the \textbf{Document Statistics} view when you need counts and reading
 information, and use source labels and references to keep large documents
-connected. The project and structure views are particularly useful with the
+connected. Bookmarks and project-wide search and replace cover longer
+manuscripts. The project and structure views are particularly useful with the
 child files in this example project: opening a child does not prevent you from
 building the root document.
 
@@ -61,26 +93,67 @@ building the root document.
 NeoSetzer can use configured LaTeX build systems such as PDFLaTeX, XeLaTeX,
 LuaLaTeX, Tectonic, and \texttt{latexmk} when they are installed. Save and
 build is a common starting action, but shortcuts are configurable; inspect the
-Keyboard Shortcuts preference page instead of relying on one fixed key.
+Keyboard Shortcuts preference page instead of relying on one fixed key. With
+PhiTeX, a resident session rebuilds incrementally while you type, and cached
+rendering is reused for pages whose content has not changed. The bundled
+PhiTeX interpreter and its optional update checks are managed in Preferences.
 
-The PDF preview supports zooming, searching within the PDF, and SyncTeX source
-navigation when the selected engine produces the required synchronization data.
-The build log groups diagnostics and lets you jump to reported source lines. If
-a PDF changes outside NeoSetzer, the preview shows a persistent reload prompt
-rather than silently leaving you with an old result.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{images/phitex-live-preview.png}
+    \caption{PhiTeX is bundled as an internal \LaTeX{} interpreter; its version
+             and optional update checks are managed in Preferences.}
+    \label{fig:feature-map-live-preview}
+\end{figure}
 
-\subsection{Keep projects safe and recoverable}
-\label{sec:feature-map:recovery}
+Two source-level previews are available in the preview panel. The
+\textbf{TikZ snippet preview} renders the \texttt{tikzpicture} under the cursor
+without waiting for a full document build; Figure~\ref{fig:feature-map-tikz}
+is a small sample to try. The \textbf{math preview on hover} shows a rendered
+version of the formula under the mouse pointer, as described in
+Section~\ref{sec:feature-map:editing}.
 
-Auto-save can preserve recoverable editor state after a crash, while session
-management and the recent-documents list help restore a working set. Recent
-documents can be pinned. The Editor preferences also control how NeoSetzer
-responds when source files change outside the application; enable automatic
-reload only when that behaviour fits your workflow.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=0.9]
+        \draw[rounded corners, fill=linkblue!8, draw=linkblue, thick]
+            (0,0) rectangle (9,2.9);
+        \node[align=center, font=\small] at (4.5,2.05)
+            {Edit source \(\rightarrow\) incremental build \(\rightarrow\) live preview\\
+             without leaving the cursor position};
+        \draw[->, thick, linkblue] (1.0,0.7) -- (3.2,0.7);
+        \draw[->, thick, linkblue] (4.4,0.7) -- (6.6,0.7);
+        \node[linkblue, font=\scriptsize] at (0.8,0.35) {source};
+        \node[linkblue, font=\scriptsize] at (3.8,0.35) {build};
+        \node[linkblue, font=\scriptsize] at (7.6,0.35) {PDF};
+    \end{tikzpicture}
+    \caption{A TikZ picture that can be previewed in the snippet panel.}
+    \label{fig:feature-map-tikz}
+\end{figure}
 
-Auto-build can rebuild after editing stops, but it is deliberately a preference
-rather than an assumption. It is most useful when the selected builder is fast
-and the document is already in a healthy state.
+The PDF preview supports zooming, searching within the PDF, text selection, a
+magnifier toolbar, and an independent preview window. SyncTeX navigation works
+in both directions when the selected engine produces the required data: use
+\emph{Forward Sync} to jump from source to the matching PDF position, or click
+in the PDF to return to the corresponding source line. Print and Export PDF are
+available when you need a file outside the application. If a PDF changes outside
+NeoSetzer, the preview shows a persistent reload prompt rather than silently
+leaving you with an old result.
+
+If \texttt{chktex} is installed, NeoSetzer runs it in the background and reports
+common LaTeX and typography problems as you edit. Diagnostics appear in the
+editor and can be revisited from the line-number column. Build output remains
+the authoritative source for compiler errors: the build log groups diagnostics
+and links each reported line back to the source, and a status-bar indicator
+shows the current build result at a glance.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{images/diagnostics.png}
+    \caption{The build log collects compiler diagnostics; a successful build
+             shows this empty state.}
+    \label{fig:feature-map-diagnostics}
+\end{figure}
 
 \subsection{Tables, templates, and structured starting points}
 \label{sec:feature-map:structured-tools}
@@ -91,27 +164,103 @@ which store complete LaTeX source snapshots for later preview, selection, and
 reuse. The Insert Table dialog generates editable LaTeX grids, supports
 constrained cell merges and longtable choices, and can import or paste UTF-8
 CSV/TSV data. Chapter~\ref{sec:tables-data} contains a safe practice input.
+The matrix and image dialogs produce ready-to-edit math and figure code. A
+bibliography manager and bibliography formatting help maintain citations and
+reference lists, and the Preamble Assistant suggests packages and preamble
+entries.
 
-\subsection{External tools and AI Fix}
-\label{sec:feature-map:external-tools}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/insert-table.png}
+    \caption{The Insert Table dialog with table data, import format, and
+             CSV/TSV controls.}
+    \label{fig:feature-map-insert-table}
+\end{figure}
 
-\textbf{AI Fix} is optional. When configured, it can hand a selected build
-error and nearby source context to an external agent command. That agent runs
-outside NeoSetzer and can modify files, so review its permissions, use trusted
-project directories only, and keep ordinary backup or version-control habits.
-Combining automatic external-file reload with auto-build can create a fast
-workflow, but it also means external edits may be incorporated and rebuilt
-quickly; enable that combination only when you understand the consequences.
+\subsection{AI-assisted writing}
+\label{sec:feature-map:ai}
+
+AI features are opt-in and require an external agent command-line tool. The
+active tool is selected in \menu{Preferences \textrightarrow{} Appearance
+\textrightarrow{} AI settings}; built-in presets cover several common agents,
+and custom commands can be added.
+
+\textbf{AI annotations} work on source selections and PDF regions. Annotations
+appear in the \textbf{AI} sidebar page, where they can be reviewed, edited,
+copied as prompts, sent individually, or sent all at once. \textbf{AI Fix}
+sends a build error and the surrounding source context to the configured agent.
+The \textbf{agent terminal} can be hosted in the AI sidebar page or opened in a
+separate window, so every step remains visible. When PhiTeX is the active
+builder, the preview can also show a PDF diff of what changed after an AI edit,
+making the result easier to review before keeping it.
+
+The agent runs outside NeoSetzer and can modify files, so review its permissions,
+use trusted project directories only, and keep ordinary backup or
+version-control habits. Combining automatic external-file reload with auto-build
+can create a fast workflow, but it also means external edits may be incorporated
+and rebuilt quickly; enable that combination only when you understand the
+consequences.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\linewidth]{images/ai-annotations.png}
+    \caption{AI annotations collected in the AI sidebar page, ready to be
+             reviewed or sent to the configured agent.}
+    \label{fig:feature-map-ai-annotations}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{images/ai-fix-terminal.png}
+    \caption{The build log offers \textbf{Fix all errors with AI}, which sends
+             the reported errors to the configured agent.}
+    \label{fig:feature-map-ai-fix}
+\end{figure}
+
+\subsection{Git integration}
+\label{sec:feature-map:git}
+
+When Git integration is enabled in \menu{Preferences \textrightarrow{} Editor
+\textrightarrow{} Git integration}, added, modified, and deleted lines are
+marked in the line-number column relative to \texttt{HEAD}. The \textbf{Git}
+sidebar page provides two views: \textbf{Changes} shows the current branch, a
+commit message field, the list of changed files, and stage, commit, and push
+actions; \textbf{Commits} shows a linear history of recent commits. Selecting a
+changed file opens a diff. For LaTeX sources and, with PhiTeX, PDF output, the
+diff can show the visual result of the change as well.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\linewidth]{images/git-panel.png}
+    \caption{The Git sidebar page with branch state, commit controls, and the
+             list of changed files.}
+    \label{fig:feature-map-git-panel}
+\end{figure}
+
+\subsection{Keep projects safe and recoverable}
+\label{sec:feature-map:recovery}
+
+Auto-save can preserve recoverable editor state after a crash, while session
+management and the recent-documents list help restore a working set. Recent
+documents and editor tabs can be pinned. Export Project Package creates a
+portable archive of the current project. The Editor preferences also control
+how NeoSetzer responds when source files change outside the application; enable
+automatic reload only when that behaviour fits your workflow.
+
+Auto-build can rebuild after editing stops, but it is deliberately a preference
+rather than an assumption. It is most useful when the selected builder is fast
+and the document is already in a healthy state.
 
 \subsection{Where to tune behaviour}
 \label{sec:feature-map:preferences}
 
 \begin{description}[style=nextline]
     \item[Appearance]
-        Select application and editor appearance, including themes and fonts.
+        Select application and editor appearance, including themes, fonts, and
+        AI settings.
     \item[Editor]
         Tune indentation, wrapping, matching behaviour, auto-save, external
-        changes, and other writing-time behaviour.
+        changes, Git integration, and other writing-time behaviour.
     \item[Autocomplete]
         Choose completion behaviour and related suggestion settings.
     \item[Build System]
@@ -125,7 +274,7 @@ quickly; enable that combination only when you understand the consequences.
 \label{sec:feature-map:explore}
 
 For a complete first tour, use the Command Palette to find Document Structure,
-Document Statistics, Symbols, Insert Table, Build Log, and Preferences. Then
-return to this project, make one small change in each feature area, and build
-again. The safest way to learn an editor is to connect each interface control
-to a visible source or PDF result.
+Document Statistics, Symbols, Insert Table, Build Log, AI, Git, and
+Preferences. Then return to this project, make one small change in each feature
+area, and build again. The safest way to learn an editor is to connect each
+interface control to a visible source or PDF result.
