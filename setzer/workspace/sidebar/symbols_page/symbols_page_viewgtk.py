@@ -64,7 +64,7 @@ class SymbolsPageView(Gtk.Box):
         # 第二行：六个符号分类的图标档（Adw.ToggleGroup，当前档随滚动高亮，
         # 点击滚动到对应分类）。档位静态（ToggleGroup 不支持动态增删，见
         # adw-toggle-banner-api 记忆），故 Recent/Favorites 不做档位。
-        # .subview-row 顶距归零：行间空隙由第一行的 7px 底距单独承担。
+        # .subview-row 顶距归零：行间空隙由第一行的 6px 底距单独承担。
         self.category_toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.category_toolbar.add_css_class('sidebar-toolbar')
         self.category_toolbar.add_css_class('subview-row')

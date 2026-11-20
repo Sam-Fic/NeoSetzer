@@ -209,7 +209,7 @@ class DocumentStructurePage(Gtk.Box):
 
         # 第二行：五档子视图切换器单独一行（Jump-to-section 菜单已被其
         # 取代——原长页的分区跳转对象不复存在）。.subview-row 顶距归零：
-        # 行间空隙由第一行的 7px 底距单独承担，见 style_gtk.css。
+        # 行间空隙由第一行的 6px 底距单独承担，见 style_gtk.css。
         self.subview_toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.subview_toolbar.add_css_class('sidebar-toolbar')
         self.subview_toolbar.add_css_class('subview-row')

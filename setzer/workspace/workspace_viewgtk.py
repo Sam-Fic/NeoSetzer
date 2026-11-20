@@ -240,15 +240,16 @@ class MainWindow(Adw.ApplicationWindow):
 
         # 浮层 headerbar 会覆盖下方内容区顶部，给内容区整体留出 headerbar
         # 高度的上边距，避免编辑器内容被标题栏遮住。
-        # 初始使用 47px 作为兜底（= Adw.HeaderBar 的 min-height），随后由
+        # 初始使用 46px 作为兜底（= 标题栏 min-height / 对称 6px 内边距下的
+        # 实际高度，见 style_gtk.css 的 .setzer-headerbar 覆写），随后由
         # do_size_allocate 根据 headerbar 实际分配高度动态调整，避免写死高度。
-        # 兜底值取 47 而非 46：首帧 headerbar 尚未分配时若用 46，编辑器卡片/
-        # 标签条会比侧栏卡片低/高 1px 闪一下。welcome_screen 同样留上边距，
+        # 兜底值与实际高度一致，首帧 headerbar 尚未分配时编辑器卡片/标签条
+        # 不会比侧栏卡片高/低一像素闪一下。welcome_screen 同样留上边距，
         # 否则欢迎页顶部的图标/标题会被浮层 headerbar 遮住。
         # Pass-12: preview_panel / help_panel 不再设 margin_top——它们不再
         # 被标题栏覆盖（侧栏有自己的 .sidebar-toolbar 工具栏）。
-        self.document_stack_wrapper.set_margin_top(47)
-        self.welcome_screen.set_margin_top(47)
+        self.document_stack_wrapper.set_margin_top(46)
+        self.welcome_screen.set_margin_top(46)
 
         # Pass-12: headerbar 作为 document_stack_overlay 的 overlay（只覆盖编辑器列）。
         # 不再放在 preview_paned_overlay 上——那样会连预览/帮助侧栏一起覆盖，
@@ -364,8 +365,10 @@ class MainWindow(Adw.ApplicationWindow):
         # （notify::current-breakpoint 触发 compact 模式切换）。
         self.narrow_breakpoint = sidebar_breakpoint
         self.add_breakpoint(sidebar_breakpoint)
-        # 注意：shortcutsbar overflow 现在由 ShortcutsBar.do_size_allocate
+        # 注意：shortcutsbar overflow 现在由 _NoNaturalWidthLayout.do_allocate
         # 连续测量后动态计算（每像素自适应），不再用 Adw.Breakpoint 阶梯。
+        # 钩子必须挂在 layout manager 上：widget 设置了 layout manager 后，
+        # GTK4 不再调用其 do_size_allocate vfunc（实测曾致缩放时按钮不收起）。
 
         # 欢迎页快速操作按钮窄窗纵向堆叠：3 个按钮（New LaTeX / New BibTeX /
         # Use a Template）默认水平均分，<500px 时 "New LaTeX Document" 会
@@ -395,7 +398,7 @@ class MainWindow(Adw.ApplicationWindow):
                 self.get_display(), self.css_provider_app,
                 Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-        # shortcutsbar overflow reflow 安全网已移除：ShortcutsBar.do_size_allocate
+        # shortcutsbar overflow reflow 安全网已移除：_NoNaturalWidthLayout.do_allocate
         # 是可靠主路径（同步 reflow，零延迟），request_reflow() 覆盖内容变化场景。
         # 删除永久 250ms 轮询，避免全生命周期每秒唤醒 4 次及窗口销毁后仍调度。
 

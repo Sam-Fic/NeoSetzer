@@ -79,28 +79,26 @@ window {
  * Pass-12: 预览/帮助侧栏也采用此工具栏样式，与左侧栏外观一致。
  * - 水平内边距让导航按钮不贴边；
  * - min-height 使各侧栏工具栏等高，切换时无跳动；
- * - 总高严格等于标题栏（47px），见下方 padding / min-height 注释；
+ * - 总高严格等于标题栏（46px），见下方 padding / min-height 注释；
  * - 底部一条极淡分隔线，把固定工具栏与下方滚动内容区分开。
  *   用 currentColor 的 alpha，自动跟随明暗主题。
  */
 .sidebar-toolbar {
-    /* 上下不对称的 6px / 7px：复刻 Adw.HeaderBar 内部 box 的
-       `headerbar > windowhandle > box { padding: 6px 7px 7px 7px }`。
-       Adw.HeaderBar 的 min-height 是 47px，而编辑器列的内容区顶边由
-       workspace_viewgtk.do_size_allocate 按标题栏实测高度让出，于是
-       「标题栏 = 47px」也是编辑器卡片顶边、标签条顶边的基准线。
-       工具栏若用对称的 6px（=46px），下方卡片顶边就比这条基准线低 1px，
-       四列（AI 列表 / 编辑器卡片 / 标签 / 预览卡片）顶边对不齐。 */
-    padding: var(--setzer-spacing-sm) var(--setzer-spacing-edge) 7px;
+    /* 上下对称的 6px：与应用内标题栏（.setzer-headerbar，见文件下半部分
+       对 libadwaita 默认 6px/7px 的覆写）保持同一垂直节奏。
+       编辑器列的内容区顶边由 workspace_viewgtk.do_size_allocate 按标题栏
+       实测高度让出，于是「标题栏 = 46px」也是编辑器卡片顶边、标签条顶边的
+       基准线，四列（AI 列表 / 编辑器卡片 / 标签 / 预览卡片）顶边才能对齐。 */
+    padding: var(--setzer-spacing-sm) var(--setzer-spacing-edge);
     /* 内容至少 34px（与 entry / button / tabbox 的 min-height 一致），
-       6 + 34 + 7 = 47px，任何子控件组合都不会把工具栏压得比标题栏矮。 */
+       6 + 34 + 6 = 46px，任何子控件组合都不会把工具栏压得比标题栏矮。 */
     min-height: 34px;
 }
 
 /*
  * 工具栏下的第二行（结构页子视图切换器行、AI 页 Agent 终端迷你工具栏）：
- * 顶距归零。行间空隙 = 第一行的 7px 底距（47px 基线的一部分，见上，
- * 不能动），自己不再叠加 6px 顶距——否则两行按钮之间隔出 7+6=13px 空档，
+ * 顶距归零。行间空隙 = 第一行的 6px 底距（46px 基线的一部分，见上，
+ * 不能动），自己不再叠加 6px 顶距——否则两行按钮之间隔出 6+6=12px 空档，
  * 比同一工具栏内部 6px 的按钮间距松一倍。
  */
 .sidebar-toolbar.subview-row {
@@ -138,6 +136,27 @@ window {
  */
 headerbar {
     background-color: transparent;
+}
+
+/*
+ * 标题栏垂直节奏统一为 6px。
+ *
+ * libadwaita 默认 `headerbar { min-height: 47px }` +
+ * `headerbar > windowhandle > box { padding: 6px 7px 7px 7px }`，即 34px 控件
+ * 上方 6px、下方 7px、总高 47px。下方那条 7px 会让标题栏按钮下沿到标签顶边
+ * 比应用其余间距（--setzer-spacing-sm = 6px）多 1px，与 .sidebar-toolbar、
+ * 标签条到快捷键栏的节奏不一致。
+ *
+ * 这里对称改成 6px / 6px 并把 min-height 降到 46px，全应用统一 6px 垂直节奏。
+ * 只作用于 .setzer-headerbar（主窗口标题栏），对话框/弹窗里的 headerbar 不受
+ * 影响；左右内边距沿用主题默认的 7px，避免改变横向按钮间距。
+ */
+headerbar.setzer-headerbar {
+    min-height: 46px;
+}
+headerbar.setzer-headerbar > windowhandle > box {
+    padding-top: var(--setzer-spacing-sm);
+    padding-bottom: var(--setzer-spacing-sm);
 }
 
 /* 符号面板的搜索条：左右留白，与上方工具栏、下方符号网格区分。 */
@@ -271,10 +290,10 @@ textview gutter {
     margin: 0 1px;
 }
 .sidebar-tree {
-    /* 顶距归零：与子视图工具栏的间距由 .sidebar-toolbar 的 7px 底距单独
+    /* 顶距归零：与子视图工具栏的间距由 .sidebar-toolbar 的 6px 底距单独
        承担（同 .sidebar-toolbar.subview-row / .sidebar-subview-tools 的
        节奏），不再叠加官方 navigation-sidebar 自带的 6px padding-top 出
-       13px 空档。底部 4px 保留（滚到底时末行不贴边）。 */
+       12px 空档。底部 4px 保留（滚到底时末行不贴边）。 */
     padding-top: 0;
 }
 
@@ -313,7 +332,7 @@ row.accent {
 /*
  * 结构页子视图工具行（todos 的两档切换 This document / All documents）：
  * 页内工具行，位于 Adw.Sidebar 之上。顶距归零：与子视图工具栏的间距由
- * .sidebar-toolbar 的 7px 底距单独承担（同第一/二行工具栏之间的节奏，
+ * .sidebar-toolbar 的 6px 底距单独承担（同第一/二行工具栏之间的节奏，
  * 见 .sidebar-toolbar.subview-row）；水平 edge 档与 .sidebar-toolbar /
  * .sidebar-search-bar 的边缘同一条线；底部留 6px。
  */
@@ -390,12 +409,12 @@ preferencespage.symbols-page > scrolledwindow > viewport > clamp > box {
  *
  * libadwaita（1.9 默认样式表）给 `tabbar tabbox` 同时设了
  * padding-top: 6px / padding-bottom: 6px（min-height: 34px）。标签条的顶边
- * 由 document_stack_wrapper 的 margin-top（= 浮动标题栏高度 47px）决定，
- * 而预览卡片顶边 = 侧栏工具栏（.sidebar-toolbar，padding 6px）下沿 ≈ 46px，
+ * 由 document_stack_wrapper 的 margin-top（= 浮动标题栏高度 46px）决定，
+ * 而预览卡片顶边 = 侧栏工具栏（.sidebar-toolbar，6px 顶内边距）下沿 = 46px，
  * 于是那 6px 上内边距会让标签比卡片低一截，看起来像标签上方凭空多了一条空白。
  *
  * 下内边距同样清掉：否则它会与 ShortcutsBar 自带的 margin_top 6px 叠加成
- * 12px，比标题栏按钮下沿到标签顶边的 7px 间距明显更大（§2.2 不重复叠加）。
+ * 12px，比标题栏按钮下沿到标签顶边的 6px 间距大一倍（§2.2 不重复叠加）。
  * 单文档时标签条 autohide 隐藏，这段间距由 ShortcutsBar 的 margin 单独提供。
  * 选择器限定 .inline（非 headerbar 上下文的 TabBar），不影响未来任何
  * 放进标题栏的标签条。
@@ -1040,7 +1059,7 @@ box.git-section-box > scrolledwindow {
  * 本应用为「去线」把卡片、输入框、分隔线都改成靠底色/阴影区分；在 GNOME
  * 高对比度主题里阴影不可见、@card_bg_color 与窗口底色相同，这些边界会整体
  * 消失。这里只补回「可辨识边界」所需的最小描边，不恢复任何装饰性线条。
- * 统一用 inset box-shadow 而非 border，避免改变布局尺寸（侧栏工具栏 47px
+ * 统一用 inset box-shadow 而非 border，避免改变布局尺寸（侧栏工具栏 46px
  * 对齐依赖精确高度）。必须放在文件末尾：同优先级的常态规则在后面会覆盖它。
  */
 @media (prefers-contrast: more) {

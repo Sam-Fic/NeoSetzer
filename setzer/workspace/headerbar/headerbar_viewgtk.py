@@ -35,6 +35,10 @@ class HeaderBar(object):
 
     def __init__(self):
         self.widget = Adw.HeaderBar()
+        # 主窗口标题栏专用钩子：style_gtk.css 用它把上下内边距统一成 6px
+        # （总高 46px），避免 libadwaita 默认的 7px 底距破坏全应用 6px 节奏。
+        # 加类而非改全局 headerbar，对话框/弹窗标题栏保持 libadwaita 默认。
+        self.widget.add_css_class('setzer-headerbar')
 
         # build button wrapper (contains Build / stop / clean / timer)
         # 用户指定：编译按钮放在左侧组「打开文档」按钮右边（pack_start 按调用

@@ -62,7 +62,7 @@
 - 弹层/菜单的外围留白由 Adw 自带 `popover > contents` 内边距提供，不要再给子容器叠加 `set_margin_*()`；内部段间距用 6，承载表单或卡片的弹层可用 12。
 - 侧栏所有页面的内容水平边缘统一压到 edge 档 10px，与 `.sidebar-toolbar` / `.sidebar-search-bar` 同一条线；libadwaita 默认值与此冲突时覆写（`.navigation-sidebar` 行 6px、preferences clamp 12px 均已覆写，见 style_gtk.css 注释）。
 - `Gtk.Box` 的 spacing 无法用 CSS 设置，Python 中只写 4/6/10/12/18/24，并在注释中标注对应档位。
-- 布局间距只取上表档位。1–3px 及个别光学对齐值（如标题栏 47px 基线的 7px、pill 按钮水平内边距 10px——该值按圆角半径推导，与 edge 档无关、色块留白 9px）必须写注释说明对齐锚点；不得无注释地出现 7/8/9/11/13/14/16/20 等非标值。
+- 布局间距只取上表档位。1–3px 及个别光学对齐值（如 pill 按钮水平内边距 10px——该值按圆角半径推导，与 edge 档无关、色块留白 9px）必须写注释说明对齐锚点；不得无注释地出现 7/8/9/11/13/14/16/20 等非标值。
 - 同一界面内等价区块使用同一档位；嵌套容器不要重复叠加外边距，优先由父级统一控制。
 
 ## 3 排版与色彩
@@ -143,7 +143,7 @@
 ### 3.5 高对比度
 
 - 自定义表面必须能在 `prefers-contrast: more` 下辨认边界；「去线」只针对普通主题。
-- 兜底统一用 inset `box-shadow`（`inset 0 0 0 1px @borders` / `inset 0 -1px @borders`），不用 `border`，避免改变 47px 工具栏等精确高度。
+- 兜底统一用 inset `box-shadow`（`inset 0 0 0 1px @borders` / `inset 0 -1px @borders`），不用 `border`，避免改变 46px 工具栏等精确高度。
 - 高对比度下聚焦环提升为不透明 `@theme_selected_bg_color`；相关规则集中在 [style_gtk.css](../data/resources/style_gtk.css) 末尾与 [text_input_card.py](../setzer/helpers/text_input_card.py) 的 `_CSS`。
 
 ## 4 控件规范
@@ -239,7 +239,7 @@
 - **结构**：`ScrolledWindow → Adw.Clamp → 内容`（先例：wizard `wrap_content`、preamble_assistant）。
 - **非默认值收三档**：通用档位常量在 [helpers/clamp.py](../setzer/helpers/clamp.py)——`NARROW` 400/300（紧凑列表/弹层，锚定 libadwaita demo 的 Boxed Lists 页）、`WIDE` 760/520（并排双列布局，由并排算术推导）。官方默认不用常量，`Adw.Clamp()` 空构造即 600/400。
 - **锚点驱动的特殊值仍就地手写并注释**，不硬塞进档位（例：welcome 页 520 与按钮堆叠 breakpoint（<500px）区间协调）。不做无注释魔法数。
-- **限宽值不是间距 token**：它属于内容宽度锚点（同标题栏 47px 基线一族），不进 `--setzer-spacing-*` 六档标度，Python 侧直接写数字。
+- **限宽值不是间距 token**：它属于内容宽度锚点（同标题栏 46px 基线一族），不进 `--setzer-spacing-*` 六档标度，Python 侧直接写数字。
 - **不该用的地方**：双栏编辑器布局（bibliography_manager、project_search_replace——拉宽是有意设计）、侧栏整体（宽度走 fraction + 10px 边缘线体系，见 5.5）、宽度跟随内容的 MessageDialog。
 
 ### 5.3 空状态
@@ -252,7 +252,7 @@
 
 ### 5.5 侧栏
 
-应用最大的自绘界面区域，有独立于弹窗/页面的节奏体系。实现锚点（47px 构成、行规格逐条数值）记录在 [style_gtk.css](../data/resources/style_gtk.css) 注释里，本节只放决策性规则。
+应用最大的自绘界面区域，有独立于弹窗/页面的节奏体系。实现锚点（46px 构成、行规格逐条数值）记录在 [style_gtk.css](../data/resources/style_gtk.css) 注释里，本节只放决策性规则。
 
 **容器形态**
 
@@ -264,10 +264,10 @@
 
 - 侧栏宽度 = fraction（滑杆调节 + 持久化），内容横向对齐走 10px 边缘线（§2.2 edge 档）；Clamp 的居中钉宽与边缘线体系冲突，侧栏整体不用（§5.2 豁免）。
 
-**47px 垂直基线**
+**46px 垂直基线**
 
-- `.sidebar-toolbar` = 6px 顶 + ≥34px 内容 + 7px 底 = 47px，与 `Adw.HeaderBar` min-height 等高，保证编辑器列/标签条/预览卡片顶边对齐；改任何侧栏工具栏高度前先读 style_gtk.css `.sidebar-toolbar` 注释。
-- 第二行（子视图切换器行）顶距归零，行间空隙由第一行的 7px 底距承担；`.sidebar-tree` 列表顶距同理归零，不叠加官方 navigation-sidebar 自带的 6px padding-top（会出 13px 空档）。
+- `.sidebar-toolbar` = 6px 顶 + ≥34px 内容 + 6px 底 = 46px，与主窗口 `.setzer-headerbar`（覆写 libadwaita 默认 47px：对称 6px 内边距 + min-height 46px）等高，保证编辑器列/标签条/预览卡片顶边对齐；改任何侧栏工具栏高度前先读 style_gtk.css `.sidebar-toolbar` 注释。
+- 第二行（子视图切换器行）顶距归零，行间空隙由第一行的 6px 底距承担；`.sidebar-tree` 列表顶距同理归零，不叠加官方 navigation-sidebar 自带的 6px padding-top（会出 12px 空档）。
 
 **行规格**
 
