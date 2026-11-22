@@ -21,6 +21,23 @@ The application has been redesigned based on the original project to comply with
 
 The UI/UX design has been thoroughly optimized; I hope you’ll appreciate the meticulous details I’ve crafted :)
 
+## Features
+
+NeoSetzer keeps Setzer's familiar edit–build–preview workflow while adding a modern GNOME interface and a large set of authoring, diagnostic, and AI-assisted tools. Features that depend on external programs (PhiTeX, chktex, Git, an AI agent CLI) are optional and degrade gracefully when the tool is not installed.
+
+### What this fork adds beyond upstream Setzer
+
+| Area | Highlights |
+|------|------------|
+| Interface | Full GNOME HIG redesign on GTK 4 / libadwaita, native Adwaita |
+| Command discovery | Built-in **Command Palette** (`Ctrl+.`) with fuzzy search, categories, keywords, and recent commands |
+| AI assistance | **AI annotations** on source selections or PDF regions, **AI Fix** for build errors, an embedded **agent terminal**, adapters for opencode / claude / codex / gemini / aider / pi / codebuddy, and a PDF diff of AI edits |
+| Live compilation | **PhiTeX** fast incremental compilation with live preview, and precise SyncTeX in both directions |
+| Live preview | **TikZ snippet preview**, **math preview on hover**, PDF search, text selection, magnifier toolbar, independent preview window, and external-change monitoring |
+| Git | Gutter change marks, a **Changes / Commits** sidebar, stage / commit / push actions, and file diffs |
+| Structured authoring | Document Wizard, user document templates, Insert Table with CSV/TSV import, matrix dialog, image insertion, bibliography manager and formatting, Preamble Assistant |
+| Editing | Multi-cursor and column selection, code folding, sticky scroll, snippets, smart quotes, automatic braces for sub/superscripts, list continuation, bracket completion, bookmarks, spell checking with a managed word list |
+
 ## Platform Support
 
 NeoSetzer runs on **Linux**, **Windows**, and **macOS** from a single codebase. No platform fork or separate build is required.
